@@ -250,8 +250,8 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	connLatest := meta.(*config.MongoDBClient).AtlasV2Preview
+	connV220231115 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2Preview
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
@@ -264,7 +264,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if !useReplicationSpecPerShard {
-		clusterDescOld, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+		clusterDescOld, resp, err := connV220231115.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			if resp != nil {
 				if resp.StatusCode == http.StatusNotFound {
@@ -283,17 +283,17 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 		}
 
-		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterDescOld.GetReplicationSpecs(), clusterDescOld.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connLatest)
+		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterDescOld.GetReplicationSpecs(), clusterDescOld.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		diags := setCommonSchemaFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterDescOld))
+		diags := setRootFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterDescOld))
 		if diags.HasError() {
 			return diags
 		}
 	} else {
-		clusterDescLatest, resp, err := connLatest.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+		clusterDescLatest, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return nil
@@ -303,12 +303,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		clusterID = clusterDescLatest.GetId()
 
-		replicationSpecs, err = flattenAdvancedReplicationSpecsDS(ctx, clusterDescLatest.GetReplicationSpecs(), d, connLatest)
+		replicationSpecs, err = flattenAdvancedReplicationSpecsDS(ctx, clusterDescLatest.GetReplicationSpecs(), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		diags := setCommonSchemaFields(d, clusterDescLatest)
+		diags := setRootFields(d, clusterDescLatest)
 		if diags.HasError() {
 			return diags
 		}
@@ -318,8 +318,8 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
 
-	// TODO: update to use connLatest to call below API
-	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	// TODO: CLOUDP-258711 update to use connLatest to call below API
+	processArgs, _, err := connV220231115.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorAdvancedConfRead, clusterName, err))
 	}
@@ -332,7 +332,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return nil
 }
 
-func setCommonSchemaFields(d *schema.ResourceData, cluster *admin.ClusterDescription20240710) diag.Diagnostics {
+func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20240710) diag.Diagnostics {
 	clusterName := *cluster.Name
 
 	if err := d.Set("backup_enabled", cluster.GetBackupEnabled()); err != nil {

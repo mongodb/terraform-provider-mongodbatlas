@@ -451,6 +451,28 @@ func flattenProcessArgs(p *admin20231115.ClusterDescriptionProcessArgs) []map[st
 
 func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []admin20231115.ReplicationSpec, rootDiskSizeGB float64, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
+	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin20231115.ReplicationSpec, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
+		return flattenAdvancedReplicationSpecOldSDK(ctx, sdkModel, rootDiskSizeGB, tfModel, resourceData, connV2)
+	}
+	return flattenAdvancedReplicationSpecsLogic[admin20231115.ReplicationSpec](ctx, apiObjects, tfMapObjects, d,
+		doesAdvancedReplicationSpecMatchAPIOldSDK, replicationSpecFlattener, connV2)
+}
+
+func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec20240710, tfMapObjects []any,
+	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
+	return flattenAdvancedReplicationSpecsLogic[admin.ReplicationSpec20240710](ctx, apiObjects, tfMapObjects, d,
+		doesAdvancedReplicationSpecMatchAPI, flattenAdvancedReplicationSpec, connV2)
+}
+
+type ReplicationSpecSDKModel interface {
+	admin20231115.ReplicationSpec | admin.ReplicationSpec20240710
+}
+
+func flattenAdvancedReplicationSpecsLogic[T ReplicationSpecSDKModel](
+	ctx context.Context, apiObjects []T, tfMapObjects []any, d *schema.ResourceData,
+	tfModelWithSDKMatcher func(map[string]any, *T) bool,
+	flattenRepSpec func(context.Context, *T, map[string]any, *schema.ResourceData, *admin.APIClient) (map[string]any, error),
+	connV2 *admin.APIClient) ([]map[string]any, error) {
 	if len(apiObjects) == 0 {
 		return nil, nil
 	}
@@ -466,11 +488,11 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 		}
 
 		for j := 0; j < len(apiObjects); j++ {
-			if wasAPIObjectUsed[j] || !doesAdvancedReplicationSpecMatchAPI(tfMapObject, &apiObjects[j]) {
+			if wasAPIObjectUsed[j] || !tfModelWithSDKMatcher(tfMapObject, &apiObjects[j]) {
 				continue
 			}
 
-			advancedReplicationSpec, err := flattenAdvancedReplicationSpecOldSDK(ctx, &apiObjects[j], rootDiskSizeGB, tfMapObject, d, connV2)
+			advancedReplicationSpec, err := flattenRepSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
 
 			if err != nil {
 				return nil, err
@@ -494,7 +516,7 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 		}
 
 		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
-		advancedReplicationSpec, err := flattenAdvancedReplicationSpecOldSDK(ctx, &apiObjects[j], rootDiskSizeGB, tfMapObject, d, connV2)
+		advancedReplicationSpec, err := flattenRepSpec(ctx, &apiObjects[j], tfMapObject, d, connV2)
 
 		if err != nil {
 			return nil, err
@@ -507,8 +529,12 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 	return tfList, nil
 }
 
-func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *admin20231115.ReplicationSpec) bool {
+func doesAdvancedReplicationSpecMatchAPIOldSDK(tfObject map[string]any, apiObject *admin20231115.ReplicationSpec) bool {
 	return tfObject["id"] == apiObject.GetId() || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.GetZoneName())
+}
+
+func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *admin.ReplicationSpec20240710) bool {
+	return tfObject["external_id"] == apiObject.GetId()
 }
 
 func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin20231115.ReplicationSpec, rootDiskSizeGB float64, tfMapObject map[string]any,
@@ -837,7 +863,7 @@ func expandAdvancedReplicationSpec(tfMap map[string]any, rootDiskSizeGB *float64
 		ZoneName:      conversion.StringPtr(tfMap["zone_name"].(string)),
 		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]any), rootDiskSizeGB),
 	}
-	// TODO: here we will populate id value using external_id value from the state (relevant for update request)
+	// TODO: CLOUDP-259836 here we will populate id value using external_id value from the state (relevant for update request)
 	return apiObject
 }
 
@@ -916,7 +942,7 @@ func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *f
 		apiObject.NodeCount = conversion.Pointer(v.(int))
 	}
 
-	// TODO: once disk_size_gb schema attribute is added at this level, we will check if defined in config and prioritize over value defined at root level (deprecated and to be removed)
+	// TODO: CLOUDP-258270 once disk_size_gb schema attribute is added at this level, we will check if defined in config and prioritize over value defined at root level (deprecated and to be removed)
 	apiObject.DiskSizeGB = rootDiskSizeGB
 
 	return apiObject
@@ -977,8 +1003,11 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 	}
 
 	tfMap := map[string]any{}
-	tfMap["id"] = apiObject.GetId()
 	tfMap["external_id"] = apiObject.GetId()
+
+	// define num_shards for backwards compatibility as this attribute has default value of 1.
+	tfMap["num_shards"] = 1
+
 	if tfMapObject != nil {
 		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), tfMapObject["region_configs"].([]any), d, connV2)
 		if err != nil {
