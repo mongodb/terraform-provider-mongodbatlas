@@ -27,8 +27,8 @@ func TestAccSearchIndex_withSearchType(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, indexName, "search", databaseName),
-				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName),
+				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, ""),
+				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, ""),
 			},
 		},
 	})
@@ -158,11 +158,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, indexName, "", databaseName),
-				Check:  checkBasic(projectID, clusterName, indexName, "", databaseName),
+				Config: configBasic(projectID, clusterName, indexName, "", databaseName, ""),
+				Check:  checkBasic(projectID, clusterName, indexName, "", databaseName, ""),
 			},
 			{
-				Config:            configBasic(projectID, clusterName, indexName, "", databaseName),
+				Config:            configBasic(projectID, clusterName, indexName, "", databaseName, ""),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -170,6 +170,25 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			},
 		},
 	}
+}
+
+func TestAccSearchIndex_withStoredSourceBoolean(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, ""),
+				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, ""),
+			},
+		},
+	})
 }
 
 func basicVectorTestCase(tb testing.TB) *resource.TestCase {
@@ -233,11 +252,15 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func configBasic(projectID, clusterName, indexName, indexType, databaseName string) string {
-	var indexTypeStr string
+func configBasic(projectID, clusterName, indexName, indexType, databaseName, storedSource string) string {
+	var extra string
 	if indexType != "" {
-		indexTypeStr = fmt.Sprintf("type=%q", indexType)
+		extra += fmt.Sprintf("type=%q\n", indexType)
 	}
+	if storedSource != "" {
+		extra += fmt.Sprintf("stored_source=%q\n", storedSource)
+	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			cluster_name     = %[1]q
@@ -255,10 +278,10 @@ func configBasic(projectID, clusterName, indexName, indexType, databaseName stri
 			project_id       = mongodbatlas_search_index.test.project_id
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, indexTypeStr)
+	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, extra)
 }
 
-func checkBasic(projectID, clusterName, indexName, indexType, databaseName string) resource.TestCheckFunc {
+func checkBasic(projectID, clusterName, indexName, indexType, databaseName, storedSource string) resource.TestCheckFunc {
 	mappingsDynamic := "true"
 	return checkAggr(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic)
 }
