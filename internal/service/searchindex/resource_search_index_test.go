@@ -221,21 +221,8 @@ func basicVectorTestCase(tb testing.TB) *resource.TestCase {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(tb)
 		indexName              = acc.RandomName()
-		indexType              = "vectorSearch"
 		databaseName           = acc.RandomName()
-		attributes             = map[string]string{
-			"name":            indexName,
-			"cluster_name":    clusterName,
-			"database":        databaseName,
-			"collection_name": collectionName,
-			"type":            indexType,
-		}
 	)
-	checks := addAttrChecks(nil, attributes)
-	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id")
-	checks = acc.AddAttrSetChecks(datasourceName, checks, "project_id", "index_id")
-	checks = append(checks, resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)))
-
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -243,7 +230,7 @@ func basicVectorTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configVector(projectID, indexName, databaseName, clusterName),
-				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
+				Check:  checkVector(projectID, indexName, databaseName, clusterName),
 			},
 		},
 	}
@@ -407,6 +394,25 @@ func configVector(projectID, indexName, databaseName, clusterName string) string
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, databaseName, collectionName, fieldsJSON)
+}
+
+func checkVector(projectID, indexName, databaseName, clusterName string) resource.TestCheckFunc {
+	indexType := "vectorSearch"
+	attributes := map[string]string{
+		"project_id":      projectID,
+		"name":            indexName,
+		"cluster_name":    clusterName,
+		"database":        databaseName,
+		"collection_name": collectionName,
+		"type":            indexType,
+	}
+	checks := addAttrChecks(nil, attributes)
+	checks = acc.AddAttrSetChecks(resourceName, checks, "index_id")
+	checks = acc.AddAttrSetChecks(datasourceName, checks, "index_id")
+	checks = append(checks,
+		resource.TestCheckResourceAttrWith(resourceName, "fields", acc.JSONEquals(fieldsJSON)),
+		resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)))
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
