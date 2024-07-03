@@ -539,7 +539,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
 
-		// TODO: set disk size gb at root level
+		// TODO: CLOUDP-258270 set disk size gb at root level
 
 		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
@@ -570,7 +570,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	return nil
 }
 
-// TODO: this can likely be unified with data source function setRootFields
+// TODO: CLOUDP-259838 this can likely be unified with data source function setRootFields
 func setResourceRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20240710) diag.Diagnostics {
 	clusterName := *cluster.Name
 
