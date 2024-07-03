@@ -32,37 +32,35 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 		},
 		"analyzer": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"analyzers": {
-			Type:             schema.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: validateSearchAnalyzersDiff,
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"collection_name": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"database": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"name": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"search_analyzer": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"mappings_dynamic": {
 			Type:     schema.TypeBool,
-			Optional: true,
+			Computed: true,
 		},
 		"mappings_fields": {
-			Type:             schema.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: validateSearchIndexMappingDiff,
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"synonyms": {
 			Type:     schema.TypeSet,
@@ -90,12 +88,15 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 		},
 		"type": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"fields": {
-			Type:             schema.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: validateSearchIndexMappingDiff,
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"stored_source": {
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 	}
 }

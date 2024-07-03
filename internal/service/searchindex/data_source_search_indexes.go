@@ -35,7 +35,7 @@ func PluralDataSource() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: returnSearchIndexSchema(),
+					Schema: returnSearchIndexDSSchema(),
 				},
 			},
 			"total_count": {

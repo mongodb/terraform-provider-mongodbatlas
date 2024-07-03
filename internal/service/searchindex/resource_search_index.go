@@ -127,6 +127,11 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Optional:         true,
 			DiffSuppressFunc: validateSearchIndexMappingDiff,
 		},
+		"stored_source": {
+			Type:     schema.TypeString,
+			Optional: true,
+			// TODO, DONT MERGE, TAKING INTO ACCOUNT false, true. ... DiffSuppressFunc: validateSearchIndexMappingDiff,
+		},
 	}
 }
 
