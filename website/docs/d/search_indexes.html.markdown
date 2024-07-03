@@ -37,6 +37,7 @@ data "mongodbatlas_search_indexes" "test" {
 
 ### Results
 
+* `index_id` - The unique identifier of the Atlas Search index.
 * `name` - Name of the index.
 * `status` - Current status of the index.
 * `analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when creating the index.

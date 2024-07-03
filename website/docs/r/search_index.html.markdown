@@ -202,6 +202,7 @@ EOF
 
 In addition to all arguments above, the following attributes are exported:
 
+* `index_id` - The unique identifier of the Atlas Search index.
 * `status` - Current status of the index.
 
 ### Analyzers (search  index)
