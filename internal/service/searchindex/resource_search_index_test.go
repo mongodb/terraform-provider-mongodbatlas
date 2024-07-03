@@ -20,10 +20,7 @@ func TestAccSearchIndex_withSearchType(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t)
 		indexName              = acc.RandomName()
 		databaseName           = acc.RandomName()
-		indexType              = "search"
-		mappingsDynamic        = "true"
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -31,7 +28,7 @@ func TestAccSearchIndex_withSearchType(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, indexName, databaseName, clusterName, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
+				Check:  checkBasic(projectID, indexName, databaseName, clusterName, true),
 			},
 		},
 	})
@@ -45,7 +42,7 @@ func TestAccSearchIndex_withMapping(t *testing.T) {
 		indexType              = ""
 		mappingsDynamic        = "false"
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
 	checks = addAttrSetChecks(checks, "mappings_fields", "analyzers")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -74,7 +71,7 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 			"synonyms.0.source_collection": collectionName,
 		}
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
 	checks = addAttrChecks(checks, mapChecks)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -98,7 +95,7 @@ func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 		indexType              = ""
 		mappingsDynamic        = "true"
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName)
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, false)
 	checks1 := addAttrChecks(checks, map[string]string{
 		"synonyms.#":                   "1",
 		"synonyms.0.analyzer":          "lucene.simple",
@@ -191,11 +188,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		projectID, clusterName = acc.ClusterNameExecution(tb)
 		indexName              = acc.RandomName()
 		databaseName           = acc.RandomName()
-		indexType              = ""
-		mappingsDynamic        = "true"
 	)
-	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName)
-
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -203,7 +196,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, indexName, databaseName, clusterName, false),
-				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
+				Check:  checkBasic(projectID, indexName, databaseName, clusterName, false),
 			},
 			{
 				Config:            configBasic(projectID, indexName, databaseName, clusterName, false),
@@ -236,17 +229,23 @@ func basicVectorTestCase(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName string) []resource.TestCheckFunc {
+func commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName string, explicitType bool) []resource.TestCheckFunc {
 	attributes := map[string]string{
 		"name":             indexName,
 		"cluster_name":     clusterName,
 		"database":         databaseName,
 		"collection_name":  collectionName,
-		"type":             indexType,
 		"mappings_dynamic": mappingsDynamic,
 	}
+	indexTypeEffective := ""
+	if explicitType {
+		indexTypeEffective = indexType
+	}
 	checks := addAttrChecks(nil, attributes)
-	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id")
+	checks = append(checks,
+		resource.TestCheckResourceAttr(resourceName, "type", indexTypeEffective),
+		resource.TestCheckResourceAttr(datasourceName, "type", indexTypeEffective))
+	checks = acc.AddAttrSetChecks(resourceName, checks, "project_id", "index_id")
 	return acc.AddAttrSetChecks(datasourceName, checks, "project_id", "index_id")
 }
 
@@ -301,6 +300,13 @@ func configBasic(projectID, indexName, databaseName, clusterName string, explici
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, indexType)
+}
+
+func checkBasic(projectID, indexName, databaseName, clusterName string, explicitType bool) resource.TestCheckFunc {
+	indexType := "search"
+	mappingsDynamic := "true"
+	checks := commonChecks(indexName, indexType, mappingsDynamic, databaseName, clusterName, explicitType)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func configWithMapping(projectID, indexName, databaseName, clusterName string) string {
