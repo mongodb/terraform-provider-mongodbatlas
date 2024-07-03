@@ -506,6 +506,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
+	var clusterResp *admin.ClusterDescription20240710
+
 	var replicationSpecs []map[string]any
 	if isUsingOldAPISchemaStructure(d) {
 		clusterOldSDK, resp, err := connV220231115.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
@@ -526,10 +528,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		diags := setResourceRootFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterOldSDK))
-		if diags.HasError() {
-			return diags
-		}
+		clusterResp = convertClusterDescToLatestExcludeRepSpecs(clusterOldSDK)
 	} else {
 		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 		if err != nil {
@@ -540,15 +539,19 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
 
+		// TODO: set disk size gb at root level
+
 		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		diags := setResourceRootFields(d, cluster)
-		if diags.HasError() {
-			return diags
-		}
+		clusterResp = cluster
+	}
+
+	diags := setResourceRootFields(d, clusterResp)
+	if diags.HasError() {
+		return diags
 	}
 
 	if err := d.Set("replication_specs", replicationSpecs); err != nil {
@@ -594,8 +597,6 @@ func setResourceRootFields(d *schema.ResourceData, cluster *admin.ClusterDescrip
 	if err := d.Set("create_date", conversion.TimePtrToStringPtr(cluster.CreateDate)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "create_date", clusterName, err))
 	}
-
-	// TODO: set disk size gb at root level
 
 	if err := d.Set("encryption_at_rest_provider", cluster.GetEncryptionAtRestProvider()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
