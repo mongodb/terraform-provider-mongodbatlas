@@ -488,6 +488,31 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 	})
 }
 
+func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
+	acc.SkipTestForCI(t) // TODO: CLOUDP-260154 for ensuring this use case is supported
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 2, 2, false),
+				Check:  checkMultiZoneWithShards(clusterName, 2, 2),
+			},
+			{
+				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 3, 3, false),
+				Check:  checkMultiZoneWithShards(clusterName, 3, 3),
+			},
+		},
+	})
+}
+
 func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")

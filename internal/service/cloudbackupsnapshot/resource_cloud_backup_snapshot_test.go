@@ -67,6 +67,7 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
+	acc.SkipTestForCI(t) // TODO: CLOUDP-260154 for ensuring this use case is supported
 	var (
 		projectID       = acc.ProjectIDExecution(t)
 		clusterName     = acc.RandomClusterName()
