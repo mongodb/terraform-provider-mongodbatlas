@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_cloud_backup_schedule: Updates `copy_settings` on changes (even when empty) ([#2387](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2387))
+
 ## 1.17.3 (June 27, 2024)
 
 ## 1.17.2 (June 20, 2024)
