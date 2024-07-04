@@ -25,7 +25,7 @@ func TestAccConfigDSOrgInvitation_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDS(orgID, name, initialRole),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "invitation_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(dataSourceName, "username", name),

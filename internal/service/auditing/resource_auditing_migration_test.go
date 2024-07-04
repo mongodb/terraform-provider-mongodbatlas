@@ -23,7 +23,7 @@ func TestMigGenericAuditing_basic(t *testing.T) {
 			{
 				Config:            config,
 				ExternalProviders: mig.ExternalProviders(),
-				Check:             resource.ComposeTestCheckFunc(checks(auditFilter, true, true)...),
+				Check:             resource.ComposeAggregateTestCheckFunc(checks(auditFilter, true, true)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},

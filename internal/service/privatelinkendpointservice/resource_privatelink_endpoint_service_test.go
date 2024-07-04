@@ -50,7 +50,7 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 				Config: configCompleteAWS(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
 				),
-				Check: resource.ComposeTestCheckFunc(checks...),
+				Check: resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				ResourceName:            resourceName,

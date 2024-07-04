@@ -20,7 +20,7 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationConfigWithDS(orgID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(datasourceName, "name"),
 					resource.TestCheckResourceAttrSet(datasourceName, "id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "restrict_employee_access"),

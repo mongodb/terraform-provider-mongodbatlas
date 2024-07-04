@@ -25,7 +25,7 @@ func TestMigConfigAPIKey_basic(t *testing.T) {
 			{
 				Config:            config,
 				ExternalProviders: mig.ExternalProviders(),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", description),

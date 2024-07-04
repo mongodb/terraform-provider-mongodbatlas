@@ -27,7 +27,7 @@ func TestMigServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "comment", commentOrigin),
@@ -57,7 +57,7 @@ func TestMigServerlessPrivateLinkEndpointService_AWSVPC(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProvidersWithAWS(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
 				),

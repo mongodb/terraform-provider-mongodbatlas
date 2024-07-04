@@ -6,8 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -80,7 +81,7 @@ func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, clusterName string) ([]map[string]any, error) {
+func flattenSearchIndexes(searchIndexes []admin.SearchIndexResponse, projectID, clusterName string) ([]map[string]any, error) {
 	var searchIndexesMap []map[string]any
 
 	if len(searchIndexes) == 0 {
@@ -92,22 +93,22 @@ func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, c
 		searchIndexesMap[i] = map[string]any{
 			"project_id":      projectID,
 			"cluster_name":    clusterName,
-			"analyzer":        searchIndexes[i].Analyzer,
+			"analyzer":        searchIndexes[i].LatestDefinition.Analyzer,
 			"collection_name": searchIndexes[i].CollectionName,
 			"database":        searchIndexes[i].Database,
 			"index_id":        searchIndexes[i].IndexID,
 			"name":            searchIndexes[i].Name,
-			"search_analyzer": searchIndexes[i].SearchAnalyzer,
+			"search_analyzer": searchIndexes[i].LatestDefinition.SearchAnalyzer,
 			"status":          searchIndexes[i].Status,
-			"synonyms":        flattenSearchIndexSynonyms(searchIndexes[i].GetSynonyms()),
+			"synonyms":        flattenSearchIndexSynonyms(searchIndexes[i].LatestDefinition.GetSynonyms()),
 			"type":            searchIndexes[i].Type,
 		}
 
-		if searchIndexes[i].Mappings != nil {
-			searchIndexesMap[i]["mappings_dynamic"] = searchIndexes[i].Mappings.Dynamic
+		if searchIndexes[i].LatestDefinition.Mappings != nil {
+			searchIndexesMap[i]["mappings_dynamic"] = searchIndexes[i].LatestDefinition.Mappings.Dynamic
 
-			if len(searchIndexes[i].Mappings.Fields) > 0 {
-				searchIndexMappingFields, err := marshalSearchIndex(searchIndexes[i].Mappings.Fields)
+			if conversion.HasElementsSliceOrMap(searchIndexes[i].LatestDefinition.Mappings.Fields) {
+				searchIndexMappingFields, err := marshalSearchIndex(searchIndexes[i].LatestDefinition.Mappings.Fields)
 				if err != nil {
 					return nil, err
 				}
@@ -115,7 +116,7 @@ func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, c
 			}
 		}
 
-		if analyzers := searchIndexes[i].GetAnalyzers(); len(analyzers) > 0 {
+		if analyzers := searchIndexes[i].LatestDefinition.GetAnalyzers(); len(analyzers) > 0 {
 			searchIndexAnalyzers, err := marshalSearchIndex(analyzers)
 			if err != nil {
 				return nil, err
@@ -123,7 +124,7 @@ func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, c
 			searchIndexesMap[i]["analyzers"] = searchIndexAnalyzers
 		}
 
-		if fields := searchIndexes[i].GetFields(); len(fields) > 0 {
+		if fields := searchIndexes[i].LatestDefinition.GetFields(); len(fields) > 0 {
 			fieldsMarshaled, err := marshalSearchIndex(fields)
 			if err != nil {
 				return nil, err

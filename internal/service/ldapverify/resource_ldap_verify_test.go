@@ -38,7 +38,7 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithConfiguration(projectID, hostname, username, password, caCertificate, cast.ToInt(port), true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "request_id"),
@@ -74,7 +74,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, hostname, username, password, cast.ToInt(port)),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "request_id"),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),

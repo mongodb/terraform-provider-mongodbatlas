@@ -26,7 +26,7 @@ func TestAccConfigRSCustomDNSConfigurationAWS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectName, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
@@ -34,7 +34,7 @@ func TestAccConfigRSCustomDNSConfigurationAWS_basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgID, projectName, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
@@ -42,7 +42,7 @@ func TestAccConfigRSCustomDNSConfigurationAWS_basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgID, projectName, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),

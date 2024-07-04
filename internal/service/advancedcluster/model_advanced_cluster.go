@@ -19,6 +19,8 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/spf13/cast"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 var (

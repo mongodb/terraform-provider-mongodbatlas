@@ -45,11 +45,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(s3BucketName1, nonEmptyPrefixPath)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName1, nonEmptyPrefixPath)...),
 			},
 			{
 				Config: configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(s3BucketName2, nonEmptyPrefixPath)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName2, nonEmptyPrefixPath)...),
 			},
 			{
 				Config:                               configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
@@ -87,7 +87,7 @@ func noPrefixPathTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, defaultPrefixPath, false),
-				Check:  resource.ComposeTestCheckFunc(commonChecks(s3BucketName1, defaultPrefixPath)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName1, defaultPrefixPath)...),
 			},
 		},
 	}

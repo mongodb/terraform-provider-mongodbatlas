@@ -26,7 +26,7 @@ func TestMigProjectAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configWithIPAddress(orgID, description, ipAddress),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
@@ -54,7 +54,7 @@ func TestMigProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
 			{
 				ExternalProviders: acc.ExternalProviders("1.14.0"),
 				Config:            configWithCIDRBlock(orgID, description, cidrBlock),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
@@ -92,7 +92,7 @@ func TestMigProjectAccesslistAPIKey_SettingCIDRBlock_WideCIDR_SDKMigration(t *te
 			{
 				ExternalProviders: acc.ExternalProviders("1.14.0"),
 				Config:            configWithCIDRBlock(orgID, description, cidrBlock),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),

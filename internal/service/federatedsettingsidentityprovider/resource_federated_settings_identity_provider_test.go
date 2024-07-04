@@ -73,7 +73,7 @@ func basicSAMLTestCase(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName, idpID),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
 					resource.TestCheckResourceAttr(resourceName, "name", "SAML-test"),
@@ -125,11 +125,11 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configOIDCWorkforceBasic(federationSettingsID, associatedDomain, description1, audience1),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				Config: configOIDCWorkforceBasic(federationSettingsID, associatedDomain, description2, audience2),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsManaged(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", description2),
 					resource.TestCheckResourceAttr(resourceName, "audience", audience2),

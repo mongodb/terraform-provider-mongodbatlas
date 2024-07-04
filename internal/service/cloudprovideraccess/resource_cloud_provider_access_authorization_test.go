@@ -59,7 +59,7 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configAuthorizationAWS(projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
@@ -69,7 +69,7 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configAuthorizationAWS(projectID, policyName, roleNameUpdated, federatedDatabaseInstanceName, testS3Bucket),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(resourceName, "role_id"),

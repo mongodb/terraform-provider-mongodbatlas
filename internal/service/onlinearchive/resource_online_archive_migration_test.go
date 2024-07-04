@@ -34,14 +34,14 @@ func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configFirstStep(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),
 			},

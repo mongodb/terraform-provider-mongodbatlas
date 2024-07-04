@@ -42,11 +42,11 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configFirstSteps(name, projectName, orgID),
-				Check:  resource.ComposeTestCheckFunc(firstStepChecks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(firstStepChecks...),
 			},
 			{
 				Config: configFirstStepsUpdate(name, projectName, orgID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
@@ -95,7 +95,7 @@ func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 				),
@@ -128,7 +128,7 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configWithCluster(orgID, projectName, clusterName1, clusterName2, name),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),

@@ -25,7 +25,7 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(&clusterInfo, false, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
@@ -57,7 +57,7 @@ func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(&clusterInfo, false, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
@@ -90,7 +90,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithDBConfig(&clusterInfo, customZone),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "5"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),

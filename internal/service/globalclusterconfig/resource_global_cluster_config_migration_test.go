@@ -21,7 +21,7 @@ func TestMigClusterRSGlobalCluster_basic(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),

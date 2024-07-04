@@ -39,7 +39,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, description, roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
@@ -70,7 +70,7 @@ func TestAccProjectAPIKey_changingSingleProject(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configChangingProject(orgID, projectName2, description, fmt.Sprintf("%q", projectID1)),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
@@ -78,7 +78,7 @@ func TestAccProjectAPIKey_changingSingleProject(t *testing.T) {
 			},
 			{
 				Config: configChangingProject(orgID, projectName2, description, "mongodbatlas_project.proj2.id"),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
@@ -103,7 +103,7 @@ func TestAccProjectAPIKey_multiple(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiple(projectID, description, roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.0.project_id"),
@@ -134,14 +134,14 @@ func TestAccProjectAPIKey_updateDescription(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, description, roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 				),
 			},
 			{
 				Config: configBasic(projectID, updatedDescription, roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
 				),
@@ -167,7 +167,7 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: projectAPIKeyConfig,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				),
 			},
@@ -200,14 +200,14 @@ func TestAccProjectAPIKey_deleteProjectAndAssignment(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDeletedProjectAndAssignment(orgID, projectID1, projectName2, description, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.0.project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.1.project_id"),
 				),
 			},
 			{
 				Config: configDeletedProjectAndAssignment(orgID, projectID1, projectName2, description, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.0.project_id"),
 				),
 			},

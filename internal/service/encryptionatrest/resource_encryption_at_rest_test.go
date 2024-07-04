@@ -16,8 +16,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20231115014/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/mockadmin"
 )
 
 const (
@@ -131,7 +131,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
@@ -144,7 +144,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKmsUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
@@ -204,7 +204,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVault),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
@@ -215,7 +215,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVaultUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
@@ -263,7 +263,7 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKms),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.enabled", "true"),
@@ -271,7 +271,7 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKmsUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.enabled", "true"),
@@ -316,7 +316,7 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, true, &awsKms),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
