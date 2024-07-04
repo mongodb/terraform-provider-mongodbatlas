@@ -184,6 +184,10 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		if err := d.Set("fields", fieldsMarshaled); err != nil {
 			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
 		}
+
+		if err := d.Set("stored_source", searchIndex.LatestDefinition.StoredSource); err != nil {
+			return diag.Errorf("error setting `stored_source` for search index (%s): %s", d.Id(), err)
+		}
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

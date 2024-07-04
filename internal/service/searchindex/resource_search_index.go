@@ -262,6 +262,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		searchIndex.Definition.Synonyms = &synonyms
 	}
 
+	if d.HasChange("stored_source") {
+		searchIndex.Definition.StoredSource = conversion.StringPtr(d.Get("stored_source").(string))
+	}
+
 	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
 		return diag.Errorf("error updating search index (%s): %s", indexName, err)
 	}
@@ -376,24 +380,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 	}
 
-	return nil
-}
-
-func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
-	synonymsMap := make([]map[string]any, len(synonyms))
-	for i, s := range synonyms {
-		synonymsMap[i] = map[string]any{
-			"name":              s.Name,
-			"analyzer":          s.Analyzer,
-			"source_collection": s.Source.Collection,
-		}
+	if err := d.Set("stored_source", searchIndex.LatestDefinition.StoredSource); err != nil {
+		return diag.Errorf("error setting `stored_source` for search index (%s): %s", d.Id(), err)
 	}
-	return synonymsMap
-}
 
-func marshalSearchIndex(fields any) (string, error) {
-	bytes, err := json.Marshal(fields)
-	return string(bytes), err
+	return nil
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -409,6 +400,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Definition: &admin.BaseSearchIndexCreateRequestDefinition{
 			Analyzer:       conversion.StringPtr(d.Get("analyzer").(string)),
 			SearchAnalyzer: conversion.StringPtr(d.Get("search_analyzer").(string)),
+			StoredSource:   conversion.StringPtr(d.Get("stored_source").(string)),
 		},
 	}
 
@@ -473,6 +465,23 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}))
 
 	return resourceRead(ctx, d, meta)
+}
+
+func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
+	synonymsMap := make([]map[string]any, len(synonyms))
+	for i, s := range synonyms {
+		synonymsMap[i] = map[string]any{
+			"name":              s.Name,
+			"analyzer":          s.Analyzer,
+			"source_collection": s.Source.Collection,
+		}
+	}
+	return synonymsMap
+}
+
+func marshalSearchIndex(fields any) (string, error) {
+	bytes, err := json.Marshal(fields)
+	return string(bytes), err
 }
 
 func expandSearchIndexSynonyms(d *schema.ResourceData) []admin.SearchSynonymMappingDefinition {

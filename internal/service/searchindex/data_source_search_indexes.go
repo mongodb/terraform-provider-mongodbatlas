@@ -102,6 +102,7 @@ func flattenSearchIndexes(searchIndexes []admin.SearchIndexResponse, projectID, 
 			"status":          searchIndexes[i].Status,
 			"synonyms":        flattenSearchIndexSynonyms(searchIndexes[i].LatestDefinition.GetSynonyms()),
 			"type":            searchIndexes[i].Type,
+			"stored_source":   searchIndexes[i].LatestDefinition.StoredSource,
 		}
 
 		if searchIndexes[i].LatestDefinition.Mappings != nil {
