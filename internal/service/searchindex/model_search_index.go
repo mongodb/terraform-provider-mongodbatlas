@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"strconv"
 
 	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -80,6 +81,34 @@ func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyze
 		return nil, diag.Errorf("cannot unmarshal search index attribute `analyzers` because it has an incorrect format")
 	}
 	return fields, nil
+}
+
+func MarshalStoredSource(obj any) (string, error) {
+	if obj == nil {
+		return "", nil
+	}
+	if b, ok := obj.(bool); ok {
+		return strconv.FormatBool(b), nil
+	}
+	bytes, err := json.Marshal(obj)
+	return string(bytes), err
+}
+
+func UnmarshalStoredSource(str string) (any, diag.Diagnostics) {
+	switch str {
+	case "":
+		return any(nil), nil
+	case "true":
+		return true, nil
+	case "false":
+		return false, nil
+	default:
+		var obj any
+		if err := json.Unmarshal([]byte(str), &obj); err != nil {
+			return nil, diag.Errorf("cannot unmarshal search index attribute `stored_source` because it has an incorrect format")
+		}
+		return obj, nil
+	}
 }
 
 func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceData) bool {

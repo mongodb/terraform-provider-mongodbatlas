@@ -261,7 +261,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("stored_source") {
-		searchIndex.Definition.StoredSource = conversion.StringPtr(d.Get("stored_source").(string))
+		obj, err := UnmarshalStoredSource(d.Get("stored_source").(string))
+		if err != nil {
+			return err
+		}
+		searchIndex.Definition.StoredSource = obj
 	}
 
 	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
@@ -378,7 +382,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 	}
 
-	if err := d.Set("stored_source", searchIndex.LatestDefinition.StoredSource); err != nil {
+	storedSource := searchIndex.LatestDefinition.GetStoredSource()
+	objStoredSource, errStoredSource := MarshalStoredSource(storedSource)
+	if errStoredSource != nil {
+		return diag.FromErr(errStoredSource)
+	}
+	if err := d.Set("stored_source", objStoredSource); err != nil {
 		return diag.Errorf("error setting `stored_source` for search index (%s): %s", d.Id(), err)
 	}
 
@@ -398,7 +407,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Definition: &admin.BaseSearchIndexCreateRequestDefinition{
 			Analyzer:       conversion.StringPtr(d.Get("analyzer").(string)),
 			SearchAnalyzer: conversion.StringPtr(d.Get("search_analyzer").(string)),
-			StoredSource:   conversion.StringPtr(d.Get("stored_source").(string)),
 		},
 	}
 
@@ -426,6 +434,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		synonyms := expandSearchIndexSynonyms(d)
 		searchIndexRequest.Definition.Synonyms = &synonyms
 	}
+
+	objStoredSource, errStoredSource := UnmarshalStoredSource(d.Get("stored_source").(string))
+	if errStoredSource != nil {
+		return errStoredSource
+	}
+	searchIndexRequest.Definition.StoredSource = objStoredSource
 
 	dbSearchIndexRes, _, err := connV2.AtlasSearchApi.CreateAtlasSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
 	if err != nil {
