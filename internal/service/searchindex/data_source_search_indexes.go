@@ -133,6 +133,5 @@ func flattenSearchIndexes(searchIndexes []admin.SearchIndexResponse, projectID, 
 			searchIndexesMap[i]["fields"] = fieldsMarshaled
 		}
 	}
-
 	return searchIndexesMap, nil
 }
