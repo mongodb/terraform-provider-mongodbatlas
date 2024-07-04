@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20240530001/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -19,8 +19,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 var (
@@ -305,7 +303,7 @@ func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admi
 	}
 }
 
-func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin20231115.ClustersApi) retry.StateRefreshFunc {
+func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()
 

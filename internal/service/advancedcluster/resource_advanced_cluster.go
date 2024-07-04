@@ -13,20 +13,17 @@ import (
 	"time"
 
 	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20240530001/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/spf13/cast"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 const (
@@ -386,8 +383,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
 		}
 	}
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV2
-	connV2 := meta.(*config.MongoDBClient).AtlasV2Preview
+	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
 	var rootDiskSizeGB *float64
@@ -421,7 +418,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
-		params.Tags = convertTagsToLatest(conversion.ExpandTagsFromSetSchema(d))
+		params.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
 		params.MongoDBMajorVersion = conversion.StringPtr(FormatMongoDBMajorVersion(v.(string)))
@@ -502,8 +499,8 @@ func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV2
-	connV2 := meta.(*config.MongoDBClient).AtlasV2Preview
+	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -684,7 +681,7 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 }
 
 func resourceUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV2
+	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -711,8 +708,8 @@ func resourceUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV2
-	connV2 := meta.(*config.MongoDBClient).AtlasV2Preview
+	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -749,7 +746,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("tags") {
-		cluster.Tags = conversion.ExpandTagsFromSetSchema(d)
+		cluster.Tags = convertTagsPtrToOldSDK(conversion.ExpandTagsFromSetSchema(d))
 	}
 
 	if d.HasChange("mongo_db_major_version") {
@@ -840,7 +837,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2Preview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]

@@ -130,7 +130,7 @@ var TfLimitObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 
 // Resources that need to be cleaned up before a project can be deleted
 type AtlasProjectDependants struct {
-	AdvancedClusters *admin.PaginatedAdvancedClusterDescription
+	AdvancedClusters *admin.PaginatedClusterDescription20240710
 }
 
 func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

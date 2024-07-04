@@ -714,7 +714,9 @@ func newUrls(urlsFromConfig []any) *[]string {
 
 func newCloudProviderConfig(d *schema.ResourceData) *admin.DataLakeCloudProviderConfig {
 	if cloudProvider, ok := d.Get("cloud_provider_config").([]any); ok && len(cloudProvider) == 1 {
-		return admin.NewDataLakeCloudProviderConfig(*newAWSConfig(cloudProvider))
+		cloudProviderConfig := admin.DataLakeCloudProviderConfig{}
+		cloudProviderConfig.Aws = newAWSConfig(cloudProvider)
+		return &cloudProviderConfig
 	}
 
 	return nil
