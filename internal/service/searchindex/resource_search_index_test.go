@@ -184,8 +184,12 @@ func TestAccSearchIndex_withStoredSourceBoolean(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, ""),
-				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, ""),
+				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "true"),
+				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, "true"),
+			},
+			{
+				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
+				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
 			},
 		},
 	})
