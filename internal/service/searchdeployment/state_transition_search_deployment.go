@@ -10,10 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
-const SearchDeploymentDoesNotExistsError = "ATLAS_FTS_DEPLOYMENT_DOES_NOT_EXIST"
+const SearchDeploymentDoesNotExistsError = "ATLAS_SEARCH_DEPLOYMENT_DOES_NOT_EXIST"
 
 func WaitSearchNodeStateTransition(ctx context.Context, projectID, clusterName string, client admin.AtlasSearchApi,
 	timeConfig retrystrategy.TimeConfig) (*admin.ApiSearchDeploymentResponse, error) {
@@ -56,7 +56,7 @@ func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName str
 			return nil, "", err
 		}
 		if err != nil {
-			if resp.StatusCode == 400 && strings.Contains(err.Error(), SearchDeploymentDoesNotExistsError) {
+			if resp.StatusCode == 404 && strings.Contains(err.Error(), SearchDeploymentDoesNotExistsError) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
 			if resp.StatusCode == 503 {

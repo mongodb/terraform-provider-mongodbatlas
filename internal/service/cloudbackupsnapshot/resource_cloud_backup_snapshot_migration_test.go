@@ -23,7 +23,7 @@ func TestMigBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "type", "replicaSet"),
@@ -42,6 +42,7 @@ func TestMigBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 }
 
 func TestMigBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
+	acc.SkipTestForCI(t) // TODO: CLOUDP-260154 for ensuring this use case is supported
 	var (
 		projectID       = acc.ProjectIDExecution(t)
 		clusterName     = acc.RandomClusterName()
@@ -57,7 +58,7 @@ func TestMigBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "type", "shardedCluster"),

@@ -21,7 +21,7 @@ func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicDS(projectID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
@@ -47,7 +47,7 @@ func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithThreshold(projectID, true, 1),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
@@ -73,7 +73,7 @@ func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithOutputs(projectID, outputLabel),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
@@ -102,7 +102,7 @@ func TestAccConfigDSAlertConfiguration_withPagerDuty(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithPagerDutyDS(projectID, serviceKey, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 				),

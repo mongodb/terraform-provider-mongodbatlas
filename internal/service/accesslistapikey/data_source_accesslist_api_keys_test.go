@@ -25,7 +25,7 @@ func TestAccConfigDSAccesslistAPIKeys_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDSPlural(orgID, description, ipAddress),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),

@@ -24,7 +24,7 @@ func TestAccConfigDSTeam_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfigBasic(orgID, name, username),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "team_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
@@ -50,7 +50,7 @@ func TestAccConfigDSTeamByName_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfigBasicByName(orgID, name, username),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "team_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),

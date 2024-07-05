@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
-	adminPreview "go.mongodb.org/atlas-sdk/v20240530001/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 const (
@@ -38,11 +37,6 @@ func Conn() *matlas.Client {
 
 func ConnV2() *admin.APIClient {
 	return MongoDBClient.AtlasV2
-}
-
-// TODO can be removed and replaced for ConnV2 when new SDK is adopted
-func ConnV2Preview() *adminPreview.APIClient {
-	return MongoDBClient.AtlasV2Preview
 }
 
 func ConnV2UsingProxy(proxyPort *int) *admin.APIClient {

@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 const (
@@ -219,7 +220,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		processArgs        = &admin.ClusterDescriptionProcessArgs{
+		processArgs        = &admin20231115.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
@@ -231,7 +232,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
-		processArgsUpdated = &admin.ClusterDescriptionProcessArgs{
+		processArgsUpdated = &admin20231115.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("0"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
@@ -267,7 +268,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		processArgs        = &admin.ClusterDescriptionProcessArgs{
+		processArgs        = &admin20231115.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			JavascriptEnabled:                conversion.Pointer(true),
@@ -277,7 +278,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
 			SampleSizeBIConnector:            conversion.Pointer(110),
 		}
-		processArgsUpdated = &admin.ClusterDescriptionProcessArgs{
+		processArgsUpdated = &admin20231115.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("majority"),
 			JavascriptEnabled:                conversion.Pointer(true),
@@ -487,6 +488,31 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 	})
 }
 
+func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
+	acc.SkipTestForCI(t) // TODO: CLOUDP-260154 for ensuring this use case is supported
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 2, 2, false),
+				Check:  checkMultiZoneWithShards(clusterName, 2, 2),
+			},
+			{
+				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 3, 3, false),
+				Check:  checkMultiZoneWithShards(clusterName, 3, 3),
+			},
+		},
+	})
+}
+
 func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -547,7 +573,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		if _, _, err := acc.ConnV2Preview().ClustersApi.GetCluster(context.Background(), ids["project_id"], ids["cluster_name"]).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().ClustersApi.GetCluster(context.Background(), ids["project_id"], ids["cluster_name"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("cluster(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.ID)
@@ -910,7 +936,7 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 			"paused": strconv.FormatBool(paused)})
 }
 
-func configAdvanced(projectID, clusterName string, p *admin.ClusterDescriptionProcessArgs) string {
+func configAdvanced(projectID, clusterName string, p *admin20231115.ClusterDescriptionProcessArgs) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
@@ -976,7 +1002,7 @@ func checkAdvanced(name, tls string) resource.TestCheckFunc {
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
 }
 
-func configAdvancedDefaultWrite(projectID, clusterName string, p *admin.ClusterDescriptionProcessArgs) string {
+func configAdvancedDefaultWrite(projectID, clusterName string, p *admin20231115.ClusterDescriptionProcessArgs) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q

@@ -25,29 +25,41 @@ func TestAccNetworkNetworkPeering_basicAWS(t *testing.T) {
 	resource.ParallelTest(t, *basicAWSTestCase(t))
 }
 
-func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
+func TestAccNetworkRSNetworkPeering_Azure(t *testing.T) {
 	var (
 		projectID         = acc.ProjectIDExecution(t)
 		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
 		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
 		vNetName          = os.Getenv("AZURE_VNET_NAME")
+		updatedvNetName   = os.Getenv("AZURE_VNET_NAME_UPDATED")
 		providerName      = "AZURE"
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
 				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "vnet_name", vNetName),
+					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
+				),
+			},
+			{
+				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, updatedvNetName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "vnet_name", updatedvNetName),
 					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
 				),
 			},
@@ -62,69 +74,29 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccNetworkRSNetworkPeering_updateBasicAzure(t *testing.T) {
-	var (
-		projectID         = acc.ProjectIDExecution(t)
-		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
-		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
-		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
-		vNetName          = os.Getenv("AZURE_VNET_NAME")
-		updatedvNetName   = os.Getenv("AZURE_VNET_NAME_UPDATED")
-		providerName      = "AZURE"
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAzure(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyNetworkPeering,
-		Steps: []resource.TestStep{
-			{
-				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "vnet_name", vNetName),
-					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
-				),
-			},
-			{
-				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, updatedvNetName),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "vnet_name", updatedvNetName),
-					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
-				),
-			},
-		},
-	})
-}
-
-func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
+func TestAccNetworkRSNetworkPeering_GCP(t *testing.T) {
 	acc.SkipTestForCI(t) // needs GCP configuration
 
 	var (
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		providerName = "GCP"
-		gcpProjectID = os.Getenv("GCP_PROJECT_ID")
-		networkName  = acc.RandomName()
+		projectID          = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		providerName       = "GCP"
+		gcpProjectID       = os.Getenv("GCP_PROJECT_ID")
+		networkName        = acc.RandomName()
+		updatedNetworkName = acc.RandomName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvGCP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
 				Config: configGCP(projectID, providerName, gcpProjectID, networkName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
 
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "gcp_project_id", gcpProjectID),
@@ -136,47 +108,8 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccNetworkRSNetworkPeering_updateBasicGCP(t *testing.T) {
-	acc.SkipTestForCI(t) // needs GCP configuration
-
-	var (
-		projectID          = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		providerName       = "GCP"
-		gcpProjectID       = os.Getenv("GCP_PROJECT_ID")
-		networkName        = acc.RandomName()
-		updatedNetworkName = acc.RandomName()
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckPeeringEnvGCP(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyNetworkPeering,
-		Steps: []resource.TestStep{
-			{
-				Config: configGCP(projectID, providerName, gcpProjectID, networkName),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
-
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "gcp_project_id", gcpProjectID),
-					resource.TestCheckResourceAttr(resourceName, "network_name", networkName),
-				),
-			},
-			{
 				Config: configGCP(projectID, providerName, gcpProjectID, updatedNetworkName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
@@ -185,7 +118,17 @@ func TestAccNetworkRSNetworkPeering_updateBasicGCP(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "gcp_project_id", gcpProjectID),
 					resource.TestCheckResourceAttr(resourceName, "network_name", updatedNetworkName),
+
+					// computed values that are obtain from associated container, checks for existing prefix convention to ensure they are gcp related values
+					resource.TestCheckResourceAttrWith(resourceName, "atlas_gcp_project_id", acc.MatchesExpression("p-.*")),
+					resource.TestCheckResourceAttrWith(resourceName, "atlas_vpc_name", acc.MatchesExpression("nt-.*")),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -226,7 +169,7 @@ func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 		},
 	})
@@ -253,7 +196,7 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				ResourceName:            resourceName,

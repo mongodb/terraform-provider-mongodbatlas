@@ -26,7 +26,7 @@ func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDS(orgID, projectName, dayOfWeek, hourOfDay),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "day_of_week", cast.ToString(dayOfWeek)),

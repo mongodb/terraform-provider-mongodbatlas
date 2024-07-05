@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
@@ -26,7 +26,7 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUserByUserID(userID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					dataSourceChecksForUser(dataSourceName, "", user)...,
 				),
 			},
@@ -47,7 +47,7 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUserByUsername(username),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					dataSourceChecksForUser(dataSourceName, "", user)...,
 				),
 			},

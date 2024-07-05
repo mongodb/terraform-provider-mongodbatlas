@@ -18,7 +18,7 @@ func TestAccConfigDSOrganizations_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationsConfigWithDS(),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.name"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.id"),
@@ -40,7 +40,7 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationsConfigWithPagination(2, 5),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
 				),
 			},

@@ -2,7 +2,7 @@ package advancedcluster
 
 import (
 	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20240530001/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 )
@@ -11,20 +11,40 @@ import (
 // - These functions must not contain any business logic.
 // - All will be removed once we rely on a single API version.
 
-func convertTagsToLatest(tags *[]admin20231115.ResourceTag) *[]admin.ResourceTag {
+func convertTagsPtrToLatest(tags *[]admin20231115.ResourceTag) *[]admin.ResourceTag {
 	if tags == nil {
 		return nil
 	}
-	tagSlice := *tags
-	results := make([]admin.ResourceTag, len(tagSlice))
-	for i := range len(tagSlice) {
-		tag := tagSlice[i]
-		results[i] = admin.ResourceTag{
+	result := convertTagsToLatest(*tags)
+	return &result
+}
+
+func convertTagsPtrToOldSDK(tags *[]admin.ResourceTag) *[]admin20231115.ResourceTag {
+	if tags == nil {
+		return nil
+	}
+	tagsSlice := *tags
+	results := make([]admin20231115.ResourceTag, len(tagsSlice))
+	for i := range len(tagsSlice) {
+		tag := tagsSlice[i]
+		results[i] = admin20231115.ResourceTag{
 			Key:   tag.Key,
 			Value: tag.Value,
 		}
 	}
 	return &results
+}
+
+func convertTagsToLatest(tags []admin20231115.ResourceTag) []admin.ResourceTag {
+	results := make([]admin.ResourceTag, len(tags))
+	for i := range len(tags) {
+		tag := tags[i]
+		results[i] = admin.ResourceTag{
+			Key:   tag.Key,
+			Value: tag.Value,
+		}
+	}
+	return results
 }
 
 func convertBiConnectToOldSDK(biconnector *admin.BiConnector) *admin20231115.BiConnector {
@@ -298,7 +318,7 @@ func convertClusterDescToLatestExcludeRepSpecs(oldClusterDesc *admin20231115.Adv
 		StateName:                        oldClusterDesc.StateName,
 		TerminationProtectionEnabled:     oldClusterDesc.TerminationProtectionEnabled,
 		VersionReleaseSystem:             oldClusterDesc.VersionReleaseSystem,
-		Tags:                             convertTagsToLatest(oldClusterDesc.Tags),
+		Tags:                             convertTagsPtrToLatest(oldClusterDesc.Tags),
 		BiConnector:                      convertBiConnectToLatest(oldClusterDesc.BiConnector),
 		ConnectionStrings:                convertConnectionStringToLatest(oldClusterDesc.ConnectionStrings),
 		Labels:                           convertLabelsToLatest(oldClusterDesc.Labels),

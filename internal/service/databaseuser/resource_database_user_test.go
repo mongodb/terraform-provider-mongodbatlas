@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 const (
@@ -33,7 +33,7 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -48,7 +48,7 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 			},
 			{
 				Config: acc.ConfigDatabaseUserBasic(projectID, username, "read", "Second Key", "Second value"),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -86,7 +86,7 @@ func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -119,7 +119,7 @@ func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -145,7 +145,7 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectID, username, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -177,7 +177,7 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", nil),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -199,7 +199,7 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -225,7 +225,7 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -265,7 +265,7 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -285,7 +285,7 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -324,7 +324,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -346,7 +346,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -387,7 +387,7 @@ func TestAccConfigRSDatabaseUser_updateToEmptyScopes(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -402,7 +402,7 @@ func TestAccConfigRSDatabaseUser_updateToEmptyScopes(t *testing.T) {
 			},
 			{
 				Config: acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin", nil),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -439,7 +439,7 @@ func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
@@ -451,7 +451,7 @@ func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 			},
 			{
 				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", nil),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
 				),
@@ -473,7 +473,7 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectID, username, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -509,7 +509,7 @@ func TestAccCOnfigRSDatabaseUser_withOIDCAuthType(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigDataBaseUserWithOIDCAuthType(projectID, usernameWorkforce, workforceAuthType, "admin", "atlasAdmin"),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", usernameWorkforce),
@@ -519,7 +519,7 @@ func TestAccCOnfigRSDatabaseUser_withOIDCAuthType(t *testing.T) {
 			},
 			{
 				Config: acc.ConfigDataBaseUserWithOIDCAuthType(projectID, usernameWorkload, workloadAuthType, "$external", "atlasAdmin"),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", usernameWorkload),

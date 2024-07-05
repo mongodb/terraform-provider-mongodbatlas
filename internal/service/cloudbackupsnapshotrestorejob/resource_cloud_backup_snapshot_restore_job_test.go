@@ -38,7 +38,7 @@ func TestAccCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDownload(projectID, clusterName, description, retentionInDays, useSnapshotID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.download", "true"),
 				),
@@ -70,7 +70,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, clusterName, description, retentionInDays),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.automated", "true"),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", clusterName),

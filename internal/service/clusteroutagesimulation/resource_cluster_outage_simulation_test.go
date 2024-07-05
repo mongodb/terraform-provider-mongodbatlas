@@ -29,7 +29,7 @@ func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSingleRegion(projectID, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "outage_filters.#"),
@@ -62,7 +62,7 @@ func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configMultiRegion(projectID, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "outage_filters.#"),

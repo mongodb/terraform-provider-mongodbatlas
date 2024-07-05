@@ -21,7 +21,7 @@ func TestAccConfigDSCustomDNSConfigurationAWS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDS(orgID, projectName, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "enabled", "true"),

@@ -12,15 +12,15 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20231115014/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/mockadmin"
 )
 
 var (
 	updating = "UPDATING"
 	idle     = "IDLE"
 	unknown  = ""
-	sc400    = conversion.IntPtr(400)
+	sc404    = conversion.IntPtr(404)
 	sc500    = conversion.IntPtr(500)
 	sc503    = conversion.IntPtr(503)
 )
@@ -94,7 +94,7 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			name: "Regular transition to DELETED",
 			mockResponses: []response{
 				{state: &updating},
-				{statusCode: sc400, err: errors.New(searchdeployment.SearchDeploymentDoesNotExistsError)},
+				{statusCode: sc404, err: errors.New(searchdeployment.SearchDeploymentDoesNotExistsError)},
 			},
 			expectedError: false,
 		},

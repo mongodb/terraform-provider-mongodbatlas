@@ -32,7 +32,7 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectName, roleName, "INSERT", databaseName1),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
@@ -43,7 +43,7 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgID, projectName, roleName, "UPDATE", databaseName2),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
@@ -141,7 +141,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithInheritedRoles(orgID, projectName, inheritRole, testRole),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// For Inherited Roles
 					// inherited Role [0]
@@ -172,7 +172,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			},
 			{
 				Config: configWithInheritedRoles(orgID, projectName, inheritRoleUpdated, testRoleUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// For Inherited Role
 					// inherited Role [0]
@@ -332,7 +332,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithMultiple(orgID, projectName, inheritRole, testRole),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// For Inherited Role
 					checkExists(InheritedRoleResourceName),
@@ -353,7 +353,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 			},
 			{
 				Config: configWithMultiple(orgID, projectName, inheritRoleUpdated, testRoleUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// For Inherited Role
 					checkExists(InheritedRoleResourceName),
@@ -393,7 +393,7 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 				Steps: []resource.TestStep{
 					{
 						Config: configBasic(orgID, projectName, roleName, "INSERT", acc.RandomClusterName()),
-						Check: resource.ComposeTestCheckFunc(
+						Check: resource.ComposeAggregateTestCheckFunc(
 							checkExists(resourceName),
 							resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 							resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
@@ -494,7 +494,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithMultiple(orgID, projectName, inheritRole, testRole),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// For Inherited Role
 					checkExists(InheritedRoleResourceName),
@@ -514,7 +514,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 			},
 			{
 				Config: configWithMultiple(orgID, projectName, inheritRoleUpdated, testRole),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// For Inherited Role
 					checkExists(InheritedRoleResourceName),

@@ -38,13 +38,13 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				// We need this step to pupulate the cluster with Sample Data
 				// The online archive won't work if the cluster does not have data
 				Config: configFirstStep(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
 				Config: configWithDailySchedule(orgID, projectName, clusterName, 1, 7),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
@@ -60,7 +60,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 			},
 			{
 				Config: configWithDailySchedule(orgID, projectName, clusterName, 2, 8),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
@@ -76,7 +76,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 			},
 			{
 				Config: testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, clusterName, 2),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
@@ -89,7 +89,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 			},
 			{
 				Config: testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, clusterName, 2),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
@@ -102,7 +102,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 			},
 			{
 				Config: configWithoutSchedule(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
@@ -111,7 +111,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 			},
 			{
 				Config: configWithoutSchedule(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),
 			},
@@ -138,13 +138,13 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 				// We need this step to pupulate the cluster with Sample Data
 				// The online archive won't work if the cluster does not have data
 				Config: configFirstStep(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
 				Config: configWithoutSchedule(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
@@ -152,7 +152,7 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 			},
 			{
 				Config: configWithDailySchedule(orgID, projectName, clusterName, 1, 1),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
@@ -189,13 +189,13 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 				// We need this step to pupulate the cluster with Sample Data
 				// The online archive won't work if the cluster does not have data
 				Config: configFirstStep(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
 				Config: configWithDataProcessRegion(orgID, projectName, clusterName, cloudProvider, processRegion),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", cloudProvider),
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", processRegion),
 					resource.TestCheckResourceAttr(onlineArchiveDataSourceName, "data_process_region.0.cloud_provider", cloudProvider),
@@ -208,7 +208,7 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 			},
 			{
 				Config: configWithoutSchedule(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", cloudProvider),
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", processRegion),
 				),
