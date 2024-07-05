@@ -102,7 +102,6 @@ func flattenSearchIndexes(searchIndexes []admin.SearchIndexResponse, projectID, 
 			"status":          searchIndexes[i].Status,
 			"synonyms":        flattenSearchIndexSynonyms(searchIndexes[i].LatestDefinition.GetSynonyms()),
 			"type":            searchIndexes[i].Type,
-			"stored_source":   searchIndexes[i].LatestDefinition.StoredSource,
 		}
 
 		if searchIndexes[i].LatestDefinition.Mappings != nil {
@@ -132,6 +131,13 @@ func flattenSearchIndexes(searchIndexes []admin.SearchIndexResponse, projectID, 
 			}
 			searchIndexesMap[i]["fields"] = fieldsMarshaled
 		}
+
+		storedSource := searchIndexes[i].LatestDefinition.GetStoredSource()
+		strStoredSource, errStoredSource := MarshalStoredSource(storedSource)
+		if errStoredSource != nil {
+			return nil, errStoredSource
+		}
+		searchIndexesMap[i]["stored_source"] = strStoredSource
 	}
 	return searchIndexesMap, nil
 }

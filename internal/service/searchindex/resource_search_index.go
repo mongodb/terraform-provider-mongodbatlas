@@ -196,6 +196,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("error updating search index (%s): attributes name, type, database and collection_name can't be updated", indexName)
 	}
 
+	// Temporary until CLOUDP-260196 is resolved
+	if d.HasChange("stored_source") {
+		return diag.Errorf("error updating search index (%s): attribute stored_source can't be updated", indexName)
+	}
+
 	searchRead, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error getting search index information: %s", err)
@@ -383,11 +388,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	storedSource := searchIndex.LatestDefinition.GetStoredSource()
-	objStoredSource, errStoredSource := MarshalStoredSource(storedSource)
+	strStoredSource, errStoredSource := MarshalStoredSource(storedSource)
 	if errStoredSource != nil {
 		return diag.FromErr(errStoredSource)
 	}
-	if err := d.Set("stored_source", objStoredSource); err != nil {
+	if err := d.Set("stored_source", strStoredSource); err != nil {
 		return diag.Errorf("error setting `stored_source` for search index (%s): %s", d.Id(), err)
 	}
 

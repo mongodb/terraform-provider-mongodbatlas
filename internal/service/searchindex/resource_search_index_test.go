@@ -172,7 +172,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func TestAccSearchIndex_withStoredSourceBoolean(t *testing.T) {
+func TestAccSearchIndex_withStoredSourceTrue(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t)
 		indexName              = acc.RandomName()
@@ -187,6 +187,21 @@ func TestAccSearchIndex_withStoredSourceBoolean(t *testing.T) {
 				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "true"),
 				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, "true"),
 			},
+		},
+	})
+}
+
+func TestAccSearchIndex_withStoredSourceFalse(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
 				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
@@ -287,7 +302,10 @@ func configBasic(projectID, clusterName, indexName, indexType, databaseName, sto
 
 func checkBasic(projectID, clusterName, indexName, indexType, databaseName, storedSource string) resource.TestCheckFunc {
 	mappingsDynamic := "true"
-	return checkAggr(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic)
+	return checkAggr(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic,
+		resource.TestCheckResourceAttr(resourceName, "stored_source", storedSource),
+		resource.TestCheckResourceAttr(datasourceName, "stored_source", storedSource),
+	)
 }
 
 func configWithMapping(projectID, indexName, databaseName, clusterName string) string {
