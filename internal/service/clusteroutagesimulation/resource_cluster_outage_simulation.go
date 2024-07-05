@@ -30,7 +30,7 @@ func Resource() *schema.Resource {
 		UpdateContext: resourceUpdate,
 		DeleteContext: resourceDelete,
 		Timeouts: &schema.ResourceTimeout{
-			Delete: schema.DefaultTimeout(25 * time.Minute),
+			Delete: schema.DefaultTimeout(90 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
