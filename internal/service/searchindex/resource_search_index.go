@@ -61,7 +61,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		"analyzers": {
 			Type:             schema.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: validateSearchAnalyzersDiff,
+			DiffSuppressFunc: diffSuppressJSON,
 		},
 		"collection_name": {
 			Type:     schema.TypeString,
@@ -86,7 +86,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		"mappings_fields": {
 			Type:             schema.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: validateSearchIndexMappingDiff,
+			DiffSuppressFunc: diffSuppressJSON,
 		},
 		"synonyms": {
 			Type:     schema.TypeSet,
@@ -123,12 +123,12 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		"fields": {
 			Type:             schema.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: validateSearchIndexMappingDiff,
+			DiffSuppressFunc: diffSuppressJSON,
 		},
 		"stored_source": {
-			Type:     schema.TypeString,
-			Optional: true,
-			// TODO, DONT MERGE, TAKING INTO ACCOUNT false, true. ... DiffSuppressFunc: validateSearchIndexMappingDiff,
+			Type:             schema.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: diffSuppressJSON,
 		},
 	}
 }

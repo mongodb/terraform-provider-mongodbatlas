@@ -111,32 +111,7 @@ func UnmarshalStoredSource(str string) (any, diag.Diagnostics) {
 	}
 }
 
-func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceData) bool {
-	var j, j2 any
-
-	if old == "" {
-		old = "{}"
-	}
-
-	if newStr == "" {
-		newStr = "{}"
-	}
-
-	if err := json.Unmarshal([]byte(old), &j); err != nil {
-		log.Printf("[ERROR] cannot unmarshal old search index mapping json %v", err)
-	}
-	if err := json.Unmarshal([]byte(newStr), &j2); err != nil {
-		log.Printf("[ERROR] cannot unmarshal new search index mapping json %v", err)
-	}
-	if diff := deep.Equal(&j, &j2); diff != nil {
-		log.Printf("[DEBUG] deep equal not passed: %v", diff)
-		return false
-	}
-
-	return true
-}
-
-func validateSearchAnalyzersDiff(k, old, newStr string, d *schema.ResourceData) bool {
+func diffSuppressJSON(k, old, newStr string, d *schema.ResourceData) bool {
 	var j, j2 any
 
 	if old == "" {

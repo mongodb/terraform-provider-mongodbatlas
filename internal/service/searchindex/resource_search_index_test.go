@@ -172,42 +172,40 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func TestAccSearchIndex_withStoredSourceTrue(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
-		indexName              = acc.RandomName()
-		databaseName           = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroySearchIndex,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "true"),
-				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, "true"),
-			},
-		},
-	})
+func TestAccSearchIndex_withStoredSourceFalse(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCase(t, "false"))
 }
 
-func TestAccSearchIndex_withStoredSourceFalse(t *testing.T) {
+func TestAccSearchIndex_withStoredSourceTrue(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCase(t, "true"))
+}
+
+func TestAccSearchIndex_withStoredSourceInclude(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCase(t, storedSourceIncludeJSON))
+}
+
+func TestAccSearchIndex_withStoredSourceExclude(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCase(t, storedSourceExcludeJSON))
+}
+
+func storedSourceTestCase(tb testing.TB, storedSource string) *resource.TestCase {
+	tb.Helper()
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(tb)
 		indexName              = acc.RandomName()
 		databaseName           = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
-				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
+				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, storedSource),
+				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, storedSource),
 			},
 		},
-	})
+	}
 }
 
 func basicVectorTestCase(tb testing.TB) *resource.TestCase {
@@ -277,7 +275,11 @@ func configBasic(projectID, clusterName, indexName, indexType, databaseName, sto
 		extra += fmt.Sprintf("type=%q\n", indexType)
 	}
 	if storedSource != "" {
-		extra += fmt.Sprintf("stored_source=%q\n", storedSource)
+		if storedSource == "true" || storedSource == "false" {
+			extra += fmt.Sprintf("stored_source=%q\n", storedSource)
+		} else {
+			extra += fmt.Sprintf("stored_source= <<-EOF\n%s\nEOF\n", storedSource)
+		}
 	}
 
 	return fmt.Sprintf(`
@@ -302,10 +304,17 @@ func configBasic(projectID, clusterName, indexName, indexType, databaseName, sto
 
 func checkBasic(projectID, clusterName, indexName, indexType, databaseName, storedSource string) resource.TestCheckFunc {
 	mappingsDynamic := "true"
-	return checkAggr(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic,
+	checks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "stored_source", storedSource),
 		resource.TestCheckResourceAttr(datasourceName, "stored_source", storedSource),
-	)
+	}
+	if storedSource != "" && storedSource != "true" && storedSource != "false" {
+		checks = []resource.TestCheckFunc{
+			resource.TestCheckResourceAttrWith(resourceName, "stored_source", acc.JSONEquals(storedSource)),
+			resource.TestCheckResourceAttrWith(datasourceName, "stored_source", acc.JSONEquals(storedSource)),
+		}
+	}
+	return checkAggr(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic, checks...)
 }
 
 func configWithMapping(projectID, indexName, databaseName, clusterName string) string {
@@ -553,5 +562,16 @@ const (
 			"numDimensions": 1536,
 			"similarity": "euclidean"
 		}]	
+	`
+	storedSourceIncludeJSON = `
+		{ 
+			"include": ["include1","include2"]
+		}	
+	`
+
+	storedSourceExcludeJSON = `
+		{
+			"exclude": ["exclude1", "exclude2"]
+		}	
 	`
 )
