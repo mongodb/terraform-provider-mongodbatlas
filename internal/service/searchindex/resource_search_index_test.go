@@ -200,6 +200,29 @@ func TestAccSearchIndex_withStoredSourceUpdate(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
+				Config: configBasic(projectID, clusterName, indexName, "", databaseName, "false"),
+				Check:  checkBasic(projectID, clusterName, indexName, "", databaseName, "false"),
+			},
+			{
+				Config: configBasic(projectID, clusterName, indexName, "", databaseName, "true"),
+				Check:  checkBasic(projectID, clusterName, indexName, "", databaseName, "true"),
+			},
+		},
+	})
+}
+
+func TestAccSearchIndex_withStoredSourceUpdateTEMPORARY_INVALID(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
 				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
 				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
 			},
