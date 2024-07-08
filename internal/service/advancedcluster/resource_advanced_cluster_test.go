@@ -705,6 +705,7 @@ func configSingleProvider(projectID, name string) string {
 			name         = %[2]q
 			cluster_type = "REPLICASET"
 			retain_backups_enabled = "true"
+			disk_size_gb = 60
 
 			replication_specs {
 				region_configs {
@@ -734,8 +735,9 @@ func checkSingleProvider(projectID, name string) resource.TestCheckFunc {
 	return checkAggr(
 		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"project_id": projectID,
-			"name":       name},
+			"project_id":   projectID,
+			"disk_size_gb": "60",
+			"name":         name},
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
@@ -1210,6 +1212,7 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 						instance_size = %[4]q
 						disk_iops = %[6]d
 						node_count    = 3
+						disk_size_gb  = 60
 					}
 					analytics_specs {
 						instance_size = %[4]q
@@ -1227,6 +1230,7 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 						instance_size = %[5]q
 						disk_iops = %[7]d
 						node_count    = 3
+						disk_size_gb  = 60
 					}
 					analytics_specs {
 						instance_size = %[5]q
@@ -1255,6 +1259,10 @@ func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, 
 			"replication_specs.0.id": "",
 			"replication_specs.0.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec1,
 			"replication_specs.1.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec2,
+			"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":  "60",
+			"replication_specs.1.region_configs.0.electable_specs.0.disk_size_gb":  "60",
+			"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
+			"replication_specs.0.region_configs.0.read_only_specs.0.disk_size_gb":  "60",
 			"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec1,
 			"replication_specs.1.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec2,
 		})

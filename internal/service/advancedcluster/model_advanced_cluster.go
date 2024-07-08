@@ -942,8 +942,11 @@ func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *f
 		apiObject.NodeCount = conversion.Pointer(v.(int))
 	}
 
-	// TODO: CLOUDP-258270 once disk_size_gb schema attribute is added at this level, we will check if defined in config and prioritize over value defined at root level (deprecated and to be removed)
 	apiObject.DiskSizeGB = rootDiskSizeGB
+	// disk size gb defined in inner level will take precedence over root level.
+	if v, ok := tfMap["disk_size_gb"]; ok {
+		apiObject.DiskSizeGB = conversion.Pointer(v.(float64))
+	}
 
 	return apiObject
 }
