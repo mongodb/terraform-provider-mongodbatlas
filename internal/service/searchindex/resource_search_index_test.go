@@ -188,6 +188,29 @@ func TestAccSearchIndex_withStoredSourceExclude(t *testing.T) {
 	resource.ParallelTest(t, *storedSourceTestCase(t, storedSourceExcludeJSON))
 }
 
+func TestAccSearchIndex_withStoredSourceUpdate(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
+				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
+			},
+			{
+				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "true"),
+				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, "true"),
+			},
+		},
+	})
+}
+
 func storedSourceTestCase(tb testing.TB, storedSource string) *resource.TestCase {
 	tb.Helper()
 	var (
