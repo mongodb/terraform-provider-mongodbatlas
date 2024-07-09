@@ -115,7 +115,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
 
   replication_specs {
     num_shards = 1
-    zone_name  = "zone1"
+    zone_name  = "Zone 1"
 
     region_configs {
       priority      = 7
@@ -143,7 +143,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
 
   replication_specs {
     num_shards = 1
-    zone_name  = "zone1"
+    zone_name  = "Zone 1"
 
     region_configs {
       priority      = 7

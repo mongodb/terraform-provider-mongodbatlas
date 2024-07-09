@@ -80,7 +80,7 @@ func (r *ReplicationSpecRequest) AddDefaults() {
 		r.NodeCount = 3
 	}
 	if r.ZoneName == "" {
-		r.ZoneName = "zone1"
+		r.ZoneName = "Zone 1"
 	}
 	if r.Region == "" {
 		r.Region = "US_WEST_1"
