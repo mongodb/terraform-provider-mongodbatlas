@@ -6,6 +6,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func projectTemplateWithExtra(extra string) string {
@@ -101,6 +102,90 @@ func TestFormatToHCLLifecycleIgnore(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, projectTemplateWithExtra(acc.FormatToHCLLifecycleIgnore(tc.keys...)))
+		})
+	}
+}
+
+var standardClusterResource = `
+resource "mongodbatlas_advanced_cluster" "cluster_info" {
+  backup_enabled = false
+  cluster_type   = "REPLICASET"
+  name           = "my-name"
+  project_id     = "project"
+
+  replication_specs {
+    num_shards = 1
+    zone_name  = "z1"
+
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_WEST_1"
+      auto_scaling {
+        disk_gb_enabled = false
+      }
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
+
+}
+`
+
+var dependsOnClusterResource = `
+resource "mongodbatlas_advanced_cluster" "cluster_info" {
+  backup_enabled = false
+  cluster_type   = "REPLICASET"
+  name           = "my-name"
+  project_id     = "project"
+
+  replication_specs {
+    num_shards = 1
+    zone_name  = "z1"
+
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_WEST_1"
+      auto_scaling {
+        disk_gb_enabled = false
+      }
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
+
+  depends_on = [mongodbatlas_project.project_execution]
+}
+`
+
+func Test_ClusterResourceHcl(t *testing.T) {
+	var (
+		clusterName = "my-name"
+		testCases   = map[string]struct {
+			expected string
+			req      acc.ClusterRequest
+		}{
+			"defaults": {
+				standardClusterResource,
+				acc.ClusterRequest{ClusterNameExplicit: clusterName},
+			},
+			"dependsOn": {
+				dependsOnClusterResource,
+				acc.ClusterRequest{ClusterNameExplicit: clusterName, ResourceDependencyName: "mongodbatlas_project.project_execution"},
+			},
+		}
+	)
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			config, actualClusterName, err := acc.ClusterResourceHcl("project", &tc.req, nil)
+			require.NoError(t, err)
+			assert.Equal(t, clusterName, actualClusterName)
+			assert.Equal(t, tc.expected, config)
 		})
 	}
 }
