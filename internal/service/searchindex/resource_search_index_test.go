@@ -3,6 +3,7 @@ package searchindex_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -113,6 +114,10 @@ func TestAccSearchIndex_updatedToEmptyAnalyzers(t *testing.T) {
 			{
 				Config: configAdditional(projectID, indexName, databaseName, clusterName, ""),
 				Check:  checkAdditionalAnalyzers(projectID, indexName, databaseName, clusterName, false),
+			},
+			{
+				Config:      configAdditional(projectID, indexName, databaseName, clusterName, incorrectFormatAnalyzersTF),
+				ExpectError: regexp.MustCompile("cannot unmarshal search index attribute `analyzers` because it has an incorrect format"),
 			},
 		},
 	})
@@ -437,8 +442,9 @@ const (
 	with           = true
 	without        = false
 
-	analyzersTF      = "\nanalyzers = <<-EOF\n" + analyzersJSON + "\nEOF\n"
-	mappingsFieldsTF = "\nmappings_fields = <<-EOF\n" + mappingsFieldsJSON + "\nEOF\n"
+	analyzersTF                = "\nanalyzers = <<-EOF\n" + analyzersJSON + "\nEOF\n"
+	incorrectFormatAnalyzersTF = "\nanalyzers = <<-EOF\n" + incorrectFormatAnalyzersJSON + "\nEOF\n"
+	mappingsFieldsTF           = "\nmappings_fields = <<-EOF\n" + mappingsFieldsJSON + "\nEOF\n"
 
 	analyzersJSON = `
 		[
@@ -508,5 +514,19 @@ const (
 			"numDimensions": 1536,
 			"similarity": "euclidean"
 		}]	
+	`
+
+	incorrectFormatAnalyzersJSON = `
+		[
+			{
+				"wrongField":[
+					{
+							"type":"length",
+							"min":20,
+							"max":33
+					}
+				]
+			}
+		]
 	`
 )

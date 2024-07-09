@@ -1,6 +1,7 @@
 package searchindex
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -387,8 +388,8 @@ func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition)
 }
 
 func marshalSearchIndex(fields any) (string, error) {
-	bytes, err := json.Marshal(fields)
-	return string(bytes), err
+	respBytes, err := json.Marshal(fields)
+	return string(respBytes), err
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -566,7 +567,10 @@ func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyze
 	if str == "" {
 		return fields, nil
 	}
-	if err := json.Unmarshal([]byte(str), &fields); err != nil {
+	dec := json.NewDecoder(bytes.NewReader([]byte(str)))
+	dec.DisallowUnknownFields()
+
+	if err := dec.Decode(&fields); err != nil {
 		return nil, diag.Errorf("cannot unmarshal search index attribute `analyzers` because it has an incorrect format")
 	}
 	return fields, nil
