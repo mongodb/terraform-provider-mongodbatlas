@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * resource/mongodbatlas_cloud_backup_schedule: Updates `copy_settings` on changes (even when empty) ([#2387](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2387))
+* resource/mongodbatlas_search_index: Returns error if the `analyzers` attribute contains unknown fields ([#2394](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2394))
 
 ## 1.17.3 (June 27, 2024)
 
