@@ -852,10 +852,12 @@ func expandRegionConfig(tfMap map[string]any) *admin.CloudRegionConfig {
 func expandRegionConfigSpec(tfList []any, providerName string) *admin.DedicatedHardwareSpec {
 	tfMap, _ := tfList[0].(map[string]any)
 	apiObject := new(admin.DedicatedHardwareSpec)
-	if providerName == "AWS" {
+	if providerName == constant.AWS || providerName == constant.AZURE {
 		if v, ok := tfMap["disk_iops"]; ok && v.(int) > 0 {
 			apiObject.DiskIOPS = conversion.Pointer(v.(int))
 		}
+	}
+	if providerName == constant.AWS {
 		if v, ok := tfMap["ebs_volume_type"]; ok {
 			apiObject.EbsVolumeType = conversion.StringPtr(v.(string))
 		}
