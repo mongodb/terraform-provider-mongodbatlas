@@ -273,41 +273,65 @@ const (
 		replication_specs {
 			zone_name  = "US"
 			num_shards = 1
-			regions_config {
+			region_configs {
+				auto_scaling {
+					disk_gb_enabled = false
+				}
 				region_name     = "US_EAST_1"
-				electable_nodes = 3
+				provider_name	= "AWS"
 				priority        = 7
-				read_only_nodes = 0
+				electable_specs {
+					instance_size = "M10"
+					node_count = 3
+				}
 			}
 		}
 		replication_specs {
 			zone_name  = "EU"
 			num_shards = 1
-			regions_config {
+			region_configs {
+				auto_scaling {
+					disk_gb_enabled = false
+				}
 				region_name     = "EU_WEST_1"
-				electable_nodes = 3
+				provider_name	= "AWS"
 				priority        = 7
-				read_only_nodes = 0
+				electable_specs {
+					instance_size = "M10"
+					node_count = 3
+				}
 			}
 		}
 		replication_specs {
 			zone_name  = "DE"
 			num_shards = 1
-			regions_config {
+			region_configs {
+				auto_scaling {
+					disk_gb_enabled = false
+				}
 				region_name     = "EU_NORTH_1"
-				electable_nodes = 3
+				provider_name	= "AWS"
 				priority        = 7
-				read_only_nodes = 0
+				electable_specs {
+					instance_size = "M10"
+					node_count = 3
+				}
 			}
 		}
 		replication_specs {
 			zone_name  = "JP"
 			num_shards = 1
-			regions_config {
+			region_configs {
+				auto_scaling {
+					disk_gb_enabled = false
+				}
 				region_name     = "AP_NORTHEAST_1"
-				electable_nodes = 3
+				provider_name	= "AWS"
 				priority        = 7
-				read_only_nodes = 0
+				electable_specs {
+					instance_size = "M10"
+					node_count = 3
+				}
 			}
 		}
 	`

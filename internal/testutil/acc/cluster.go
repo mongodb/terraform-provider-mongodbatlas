@@ -61,23 +61,27 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 		`, req.ResourceDependencyName)
 	}
 	clusterTerraformStr := fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test_cluster" {
+		resource "mongodbatlas_advanced_cluster" "test_cluster" {
 			project_id                   = %[1]q
 			name                         = %[2]q
-			cloud_backup                 = %[3]t
-			auto_scaling_disk_gb_enabled = false
-			provider_name                = %[4]q
-			provider_instance_size_name  = "M10"
-		
-			cluster_type = %[5]q
+			backup_enabled               = %[3]t
+			cluster_type 				 = %[5]q
+			
 			replication_specs {
 				num_shards = 1
 				zone_name  = "Zone 1"
-				regions_config {
-					region_name     = "US_WEST_2"
-					electable_nodes = 3
+				region_configs {
+					auto_scaling {
+						disk_gb_enabled = false
+					}
+					provider_name	= %[4]q
+					region_name		= "US_WEST_2"
 					priority        = 7
-					read_only_nodes = 0
+					
+					electable_specs {
+						instance_size	= "M10"
+						node_count 		= 3
+					}
 				}
 			}
 			%[6]s
@@ -88,7 +92,7 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 		ProjectIDStr:        fmt.Sprintf("%q", projectID),
 		ProjectID:           projectID,
 		ClusterName:         clusterName,
-		ClusterNameStr:      "mongodbatlas_cluster.test_cluster.name",
+		ClusterNameStr:      "mongodbatlas_advanced_cluster.test_cluster.name",
 		ClusterTerraformStr: clusterTerraformStr,
 	}
 }
