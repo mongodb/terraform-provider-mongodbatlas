@@ -634,10 +634,12 @@ func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin.DedicatedHa
 	if len(tfMapObjects) > 0 {
 		tfMapObject := tfMapObjects[0].(map[string]any)
 
-		if providerName == "AWS" {
+		if providerName == constant.AWS || providerName == constant.AZURE {
 			if cast.ToInt64(apiObject.GetDiskIOPS()) > 0 {
 				tfMap["disk_iops"] = apiObject.GetDiskIOPS()
 			}
+		}
+		if providerName == constant.AWS {
 			if v, ok := tfMapObject["ebs_volume_type"]; ok && v.(string) != "" {
 				tfMap["ebs_volume_type"] = apiObject.GetEbsVolumeType()
 			}
