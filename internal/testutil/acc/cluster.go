@@ -5,11 +5,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 type ClusterRequest struct {
-	ProviderName           string
 	ResourceDependencyName string
 	ClusterNameExplicit    string
 	CloudBackup            bool
@@ -67,35 +67,44 @@ type ReplicationSpecRequest struct {
 	ZoneName     string
 	Region       string
 	InstanceSize string
+	ProviderName string
 	NumShards    int
 	NodeCount    int
+}
+
+func (r *ReplicationSpecRequest) AddDefaults() {
+	if r.NumShards == 0 {
+		r.NumShards = 1
+	}
+	if r.NodeCount == 0 {
+		r.NodeCount = 3
+	}
+	if r.ZoneName == "" {
+		r.ZoneName = "zone1"
+	}
+	if r.Region == "" {
+		r.Region = "US_WEST_1"
+	}
+	if r.InstanceSize == "" {
+		r.InstanceSize = "M10"
+	}
+	if r.ProviderName == "" {
+		r.ProviderName = constant.AWS
+	}
 }
 
 func ReplicationSpec(req *ReplicationSpecRequest) admin.ReplicationSpec {
 	if req == nil {
 		req = new(ReplicationSpecRequest)
 	}
-	if req.NumShards == 0 {
-		req.NumShards = 1
-	}
-	if req.NodeCount == 0 {
-		req.NodeCount = 3
-	}
-	if req.ZoneName == "" {
-		req.ZoneName = "zone1"
-	}
-	if req.Region == "" {
-		req.Region = "US_WEST_1"
-	}
-	if req.InstanceSize == "" {
-		req.InstanceSize = "M10"
-	}
+	req.AddDefaults()
 	spec := admin.ReplicationSpec{
 		NumShards: &req.NumShards,
 		ZoneName:  &req.ZoneName,
 		RegionConfigs: &[]admin.CloudRegionConfig{
 			{
-				RegionName: &req.Region,
+				RegionName:   &req.Region,
+				ProviderName: &req.ProviderName,
 				ElectableSpecs: &admin.HardwareSpec{
 					InstanceSize: &req.InstanceSize,
 					NodeCount:    &req.NodeCount,
