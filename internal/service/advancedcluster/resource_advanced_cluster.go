@@ -538,7 +538,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
 
-		// TODO: CLOUDP-258270 set disk size gb at root level
+		// root disk_size_gb defined for backwards compatibility avoiding breaking changes
+		if err := d.Set("disk_size_gb", getDiskSizeGBFromReplicationSpec(cluster)); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+		}
 
 		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
