@@ -10,8 +10,9 @@ import (
 )
 
 type ClusterRequest struct {
-	ResourceDependencyName string
+	ResourceDependencyName string // use "," to separate resources
 	ClusterNameExplicit    string
+	DiskSizeGb             int
 	CloudBackup            bool
 	Geosharded             bool
 }

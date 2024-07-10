@@ -94,12 +94,16 @@ func ClusterResourceHcl(projectID string, req *ClusterRequest, specs []admin.Rep
 	f := hclwrite.NewEmptyFile()
 	root := f.Body()
 	cluster := root.AppendNewBlock("resource", []string{"mongodbatlas_advanced_cluster", "cluster_info"}).Body()
-	addPrimitiveAttributes(cluster, map[string]any{
+	clusterRootAttributes := map[string]any{
 		"project_id":     projectID,
-		"clusterType":    clusterTypeStr,
+		"cluster_type":   clusterTypeStr,
 		"name":           clusterName,
 		"backup_enabled": req.CloudBackup,
-	})
+	}
+	if req.DiskSizeGb != 0 {
+		clusterRootAttributes["disk_size_gb"] = req.DiskSizeGb
+	}
+	addPrimitiveAttributes(cluster, clusterRootAttributes)
 	cluster.AppendNewline()
 	for i, spec := range specs {
 		err = writeReplicationSpec(cluster, spec)
