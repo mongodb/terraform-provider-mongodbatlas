@@ -100,19 +100,22 @@ func ReplicationSpec(req *ReplicationSpecRequest) admin.ReplicationSpec {
 	}
 	req.AddDefaults()
 	defaultNumShards := 1
-	spec := admin.ReplicationSpec{
-		NumShards: &defaultNumShards,
-		ZoneName:  &req.ZoneName,
-		RegionConfigs: &[]admin.CloudRegionConfig{
-			{
-				RegionName:   &req.Region,
-				ProviderName: &req.ProviderName,
-				ElectableSpecs: &admin.HardwareSpec{
-					InstanceSize: &req.InstanceSize,
-					NodeCount:    &req.NodeCount,
-				},
-			},
+	regionConfig := CloudRegionConfig(req.Region, req.ProviderName, req.InstanceSize, req.NodeCount)
+	configs := []admin.CloudRegionConfig{regionConfig}
+	return admin.ReplicationSpec{
+		NumShards:     &defaultNumShards,
+		ZoneName:      &req.ZoneName,
+		RegionConfigs: &configs,
+	}
+}
+
+func CloudRegionConfig(regionName, provider, instanceSize string, nodeCount int) admin.CloudRegionConfig {
+	return admin.CloudRegionConfig{
+		RegionName:   &regionName,
+		ProviderName: &provider,
+		ElectableSpecs: &admin.HardwareSpec{
+			InstanceSize: &instanceSize,
+			NodeCount:    &nodeCount,
 		},
 	}
-	return spec
 }

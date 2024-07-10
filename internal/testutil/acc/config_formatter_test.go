@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -262,11 +264,59 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
 
 }
 `
+var twoRegionConfigs = `
+resource "mongodbatlas_advanced_cluster" "cluster_info" {
+  backup_enabled = false
+  cluster_type   = "REPLICASET"
+  name           = "my-name"
+  project_id     = "project"
+
+  replication_specs {
+    num_shards = 1
+    zone_name  = "Zone 1"
+
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_WEST_1"
+      auto_scaling {
+        disk_gb_enabled = false
+      }
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_WEST_1"
+      auto_scaling {
+        disk_gb_enabled = false
+      }
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
+
+}
+`
 
 func Test_ClusterResourceHcl(t *testing.T) {
 	var (
-		clusterName = "my-name"
-		testCases   = map[string]struct {
+		clusterName                 = "my-name"
+		replicationSpecMultiRegions = admin.ReplicationSpec{
+			NumShards: conversion.IntPtr(1),
+			ZoneName:  conversion.StringPtr("Zone 1"),
+			RegionConfigs: &[]admin.CloudRegionConfig{
+				acc.CloudRegionConfig("US_WEST_1", constant.AWS, "M10", 3),
+				acc.CloudRegionConfig("EU_WEST_1", constant.AWS, "M10", 3),
+			},
+		}
+		testCases = map[string]struct {
 			expected string
 			req      acc.ClusterRequest
 		}{
@@ -296,6 +346,10 @@ func Test_ClusterResourceHcl(t *testing.T) {
 						Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: "AZURE",
 					}),
 				}},
+			},
+			"twoRegionConfigs": {
+				twoRegionConfigs,
+				acc.ClusterRequest{ClusterNameExplicit: clusterName, ReplicationSpecs: []admin.ReplicationSpec{replicationSpecMultiRegions}},
 			},
 		}
 	)
