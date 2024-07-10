@@ -21,33 +21,37 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 	acc.SkipTestForCI(t) // needs AWS configuration
 
 	var (
-		endpointResourceSuffix = "atlasple"
-		resourceSuffix         = "atlasrm"
-		resourceName           = fmt.Sprintf("mongodbatlas_private_endpoint_regional_mode.%s", resourceSuffix)
-		awsAccessKey           = os.Getenv("AWS_ACCESS_KEY_ID")
-		awsSecretKey           = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		providerName           = "AWS"
-		region                 = os.Getenv("AWS_REGION")
-		projectID              = acc.ProjectIDExecution(t)
-		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName            = acc.RandomProjectName()
-		clusterName            = acc.RandomClusterName()
-		clusterResourceName    = "test"
-		clusterResource        = acc.ConfigClusterGlobal(orgID, projectName, clusterName)
-		clusterDataSource      = modeClusterData(clusterResourceName, resourceSuffix, endpointResourceSuffix)
-		endpointResources      = testConfigUnmanagedAWS(
+		endpointResourceSuffix                 = "atlasple"
+		resourceSuffix                         = "atlasrm"
+		resourceName                           = fmt.Sprintf("mongodbatlas_private_endpoint_regional_mode.%s", resourceSuffix)
+		awsAccessKey                           = os.Getenv("AWS_ACCESS_KEY_ID")
+		awsSecretKey                           = os.Getenv("AWS_SECRET_ACCESS_KEY")
+		providerName                           = "AWS"
+		region                                 = os.Getenv("AWS_REGION")
+		privatelinkEndpointServiceResourceName = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", endpointResourceSuffix)
+		clusterDependsOn                       = fmt.Sprintf("%s, %s", resourceName, privatelinkEndpointServiceResourceName)
+		spec1                                  = acc.ReplicationSpec(&acc.ReplicationSpecRequest{Region: "US_EAST_1", ProviderName: providerName})
+		spec2                                  = acc.ReplicationSpec(&acc.ReplicationSpecRequest{Region: "US_WEST_2", ProviderName: providerName})
+		clusterInfo                            = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, DiskSizeGb: 80, ResourceDependencyName: clusterDependsOn}, spec1, spec2)
+		clusterName                            = clusterInfo.ClusterName
+		projectID                              = clusterInfo.ProjectID
+		clusterResourceName                    = clusterInfo.ClusterNameStr
+		endpointResources                      = testConfigUnmanagedAWS(
 			awsAccessKey, awsSecretKey, projectID, providerName, region, endpointResourceSuffix,
 		)
-		dependencies = []string{clusterResource, clusterDataSource, endpointResources}
+		dependencies = []string{clusterInfo.ClusterTerraformStr, endpointResources}
 	)
 
+	configBefore := configWithDependencies(resourceSuffix, projectID, false, dependencies)
+	configAfter := configWithDependencies(resourceSuffix, projectID, true, dependencies)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithDependencies(resourceSuffix, projectID, false, dependencies),
+				Config: configBefore,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					checkModeClustersUpToDate(projectID, clusterName, clusterResourceName),
@@ -57,7 +61,7 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithDependencies(resourceSuffix, projectID, true, dependencies),
+				Config: configAfter,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					checkModeClustersUpToDate(projectID, clusterName, clusterResourceName),
@@ -109,19 +113,6 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			},
 		},
 	}
-}
-
-func modeClusterData(clusterResourceName, regionalModeResourceName, privateLinkResourceName string) string {
-	return fmt.Sprintf(`
-		data "mongodbatlas_cluster" %[1]q {
-			project_id = mongodbatlas_cluster.%[1]s.project_id
-			name       = mongodbatlas_cluster.%[1]s.name
-			depends_on = [
-				mongodbatlas_privatelink_endpoint_service.%[3]s,
-				mongodbatlas_private_endpoint_regional_mode.%[2]s
-			]
-		}
-	`, clusterResourceName, regionalModeResourceName, privateLinkResourceName)
 }
 
 func configWithDependencies(resourceName, projectID string, enabled bool, dependencies []string) string {
@@ -180,9 +171,8 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkModeClustersUpToDate(projectID, clusterName, clusterResourceName string) resource.TestCheckFunc {
-	resourceName := strings.Join([]string{"data", "mongodbatlas_cluster", clusterResourceName}, ".")
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
+		rs, ok := s.RootModule().Resources[clusterResourceName]
 		if !ok {
 			return fmt.Errorf("Could not find resource state for cluster (%s) on project (%s)", clusterName, projectID)
 		}
@@ -221,14 +211,14 @@ func checkDestroy(s *terraform.State) error {
 func testConfigUnmanagedAWS(awsAccessKey, awsSecretKey, projectID, providerName, region, serviceResourceName string) string {
 	return fmt.Sprintf(`
 		provider "aws" {
-			region     = "%[5]s"
-			access_key = "%[1]s"
-			secret_key = "%[2]s"
+			region     = %[5]q
+			access_key = %[1]q
+			secret_key = %[2]q
 		}
 		resource "mongodbatlas_privatelink_endpoint" "test" {
-			project_id    = "%[3]s"
-			provider_name = "%[4]s"
-			region        = "%[5]s"
+			project_id    = %[3]q
+			provider_name = %[4]q
+			region        = %[5]q
 		}
 		resource "aws_vpc_endpoint" "ptfe_service" {
 			vpc_id             = aws_vpc.primary.id
