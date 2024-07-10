@@ -332,7 +332,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return nil
 }
 
-func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20240710) diag.Diagnostics {
+func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20250101) diag.Diagnostics {
 	clusterName := *cluster.Name
 
 	if err := d.Set("backup_enabled", cluster.GetBackupEnabled()); err != nil {

@@ -246,12 +246,12 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	backupPolicy, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+	backupPolicy, _, err := connV220231115.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.Errorf(cluster.ErrorSnapshotBackupPolicyRead, clusterName, err)
 	}

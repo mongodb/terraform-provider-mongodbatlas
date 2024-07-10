@@ -451,7 +451,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 		{
 			name: "Error not from the API",
 			mockResponses: AdvancedClusterDescriptionResponse{
-				AdvancedClusterDescription: &admin.PaginatedClusterDescription20240710{},
+				AdvancedClusterDescription: &admin.PaginatedClusterDescription20250101{},
 				Err:                        errors.New("Non-API error"),
 			},
 			expectedError: true,
@@ -459,7 +459,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 		{
 			name: "Error from the API",
 			mockResponses: AdvancedClusterDescriptionResponse{
-				AdvancedClusterDescription: &admin.PaginatedClusterDescription20240710{},
+				AdvancedClusterDescription: &admin.PaginatedClusterDescription20250101{},
 				Err:                        &admin.GenericOpenAPIError{},
 			},
 			expectedError: true,
@@ -467,9 +467,9 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 		{
 			name: "Successful API call",
 			mockResponses: AdvancedClusterDescriptionResponse{
-				AdvancedClusterDescription: &admin.PaginatedClusterDescription20240710{
+				AdvancedClusterDescription: &admin.PaginatedClusterDescription20250101{
 					TotalCount: conversion.IntPtr(2),
-					Results: &[]admin.ClusterDescription20240710{
+					Results: &[]admin.ClusterDescription20250101{
 						{StateName: conversion.StringPtr("IDLE")},
 						{StateName: conversion.StringPtr("DELETING")},
 					},
@@ -1259,7 +1259,7 @@ type DeleteProjectLimitResponse struct {
 	Err                error
 }
 type AdvancedClusterDescriptionResponse struct {
-	AdvancedClusterDescription *admin.PaginatedClusterDescription20240710
+	AdvancedClusterDescription *admin.PaginatedClusterDescription20250101
 	HTTPResponse               *http.Response
 	Err                        error
 }
