@@ -3,6 +3,7 @@ package advancedcluster_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -187,7 +188,7 @@ func TestGetDiskSizeGBFromReplicationSpec(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			result := advancedcluster.GetDiskSizeGBFromReplicationSpec(&tc.clusterDescription)
-			assert.InEpsilon(t, tc.expectedDiskSizeResult, result, 0.001) // using InEpsilon as type is float64
+			assert.Equal(t, fmt.Sprintf("%.f", tc.expectedDiskSizeResult), fmt.Sprintf("%.f", result)) // formatting to string to avoid float comparison
 		})
 	}
 }
