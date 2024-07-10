@@ -121,7 +121,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
     region_configs {
       priority      = 7
       provider_name = "AWS"
-      region_name   = "US_WEST_1"
+      region_name   = "US_WEST_2"
       auto_scaling {
         disk_gb_enabled = false
       }
@@ -176,7 +176,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
     region_configs {
       priority      = 7
       provider_name = "AWS"
-      region_name   = "US_WEST_1"
+      region_name   = "US_WEST_2"
       auto_scaling {
         disk_gb_enabled = false
       }
