@@ -68,14 +68,10 @@ type ReplicationSpecRequest struct {
 	Region       string
 	InstanceSize string
 	ProviderName string
-	NumShards    int
 	NodeCount    int
 }
 
 func (r *ReplicationSpecRequest) AddDefaults() {
-	if r.NumShards == 0 {
-		r.NumShards = 1
-	}
 	if r.NodeCount == 0 {
 		r.NodeCount = 3
 	}
@@ -98,8 +94,9 @@ func ReplicationSpec(req *ReplicationSpecRequest) admin.ReplicationSpec {
 		req = new(ReplicationSpecRequest)
 	}
 	req.AddDefaults()
+	defaultNumShards := 1
 	spec := admin.ReplicationSpec{
-		NumShards: &req.NumShards,
+		NumShards: &defaultNumShards,
 		ZoneName:  &req.ZoneName,
 		RegionConfigs: &[]admin.CloudRegionConfig{
 			{
