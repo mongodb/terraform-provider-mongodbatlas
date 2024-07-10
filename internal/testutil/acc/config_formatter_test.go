@@ -268,52 +268,40 @@ func Test_ClusterResourceHcl(t *testing.T) {
 		clusterName = "my-name"
 		testCases   = map[string]struct {
 			expected string
-			specs    []acc.ReplicationSpecRequest
 			req      acc.ClusterRequest
 		}{
 			"defaults": {
 				standardClusterResource,
-				nil,
 				acc.ClusterRequest{ClusterNameExplicit: clusterName},
 			},
 			"dependsOn": {
 				dependsOnClusterResource,
-				nil,
 				acc.ClusterRequest{ClusterNameExplicit: clusterName, ResourceDependencyName: "mongodbatlas_project.project_execution"},
 			},
 			"dependsOnMulti": {
 				dependsOnMultiResource,
-				nil,
 				acc.ClusterRequest{ClusterNameExplicit: clusterName, ResourceDependencyName: fmt.Sprintf("%s, %s", "mongodbatlas_private_endpoint_regional_mode.atlasrm", "mongodbatlas_privatelink_endpoint_service.atlasple")},
 			},
 			"twoReplicationSpecs": {
 				twoReplicationSpecs,
-				[]acc.ReplicationSpecRequest{
-					{Region: "US_WEST_1", ZoneName: "Zone 1"},
-					{Region: "EU_WEST_2", ZoneName: "Zone 2"},
-				},
-				acc.ClusterRequest{ClusterNameExplicit: clusterName},
+				acc.ClusterRequest{ClusterNameExplicit: clusterName, ReplicationSpecs: []admin.ReplicationSpec{
+					acc.ReplicationSpec(&acc.ReplicationSpecRequest{Region: "US_WEST_1", ZoneName: "Zone 1"}),
+					acc.ReplicationSpec(&acc.ReplicationSpecRequest{Region: "EU_WEST_2", ZoneName: "Zone 2"}),
+				}},
 			},
 			"overrideClusterResource": {
 				overrideClusterResource,
-				[]acc.ReplicationSpecRequest{
-					{Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: "AZURE"},
-				},
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, Geosharded: true, CloudBackup: true},
+				acc.ClusterRequest{ClusterNameExplicit: clusterName, Geosharded: true, CloudBackup: true, ReplicationSpecs: []admin.ReplicationSpec{
+					acc.ReplicationSpec(&acc.ReplicationSpecRequest{
+						Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: "AZURE",
+					}),
+				}},
 			},
 		}
 	)
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			specs := make([]admin.ReplicationSpec, len(tc.specs))
-			if len(tc.specs) == 0 {
-				specs = []admin.ReplicationSpec{acc.ReplicationSpec(nil)}
-			} else {
-				for i, req := range tc.specs {
-					specs[i] = acc.ReplicationSpec(&req)
-				}
-			}
-			config, actualClusterName, err := acc.ClusterResourceHcl("project", &tc.req, specs)
+			config, actualClusterName, err := acc.ClusterResourceHcl("project", &tc.req)
 			require.NoError(t, err)
 			assert.Equal(t, clusterName, actualClusterName)
 			assert.Equal(t, tc.expected, config)

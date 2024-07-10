@@ -10,8 +10,9 @@ import (
 )
 
 type ClusterRequest struct {
-	ResourceDependencyName string // use "," to separate resources
+	ResourceDependencyName string
 	ClusterNameExplicit    string
+	ReplicationSpecs       []admin.ReplicationSpec
 	DiskSizeGb             int
 	CloudBackup            bool
 	Geosharded             bool
@@ -21,6 +22,7 @@ type ClusterInfo struct {
 	ProjectIDStr        string
 	ProjectID           string
 	ClusterName         string
+	ClusterResourceName string
 	ClusterNameStr      string
 	ClusterTerraformStr string
 }
@@ -28,7 +30,7 @@ type ClusterInfo struct {
 // GetClusterInfo is used to obtain a project and cluster configuration resource.
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, creation of resources is avoided. This is useful for local execution but not intended for CI executions.
 // Clusters will be created in project ProjectIDExecution.
-func GetClusterInfo(tb testing.TB, req *ClusterRequest, specs ...admin.ReplicationSpec) ClusterInfo {
+func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 	tb.Helper()
 	if req == nil {
 		req = new(ClusterRequest)
@@ -45,15 +47,17 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest, specs ...admin.Replicati
 		}
 	}
 	projectID = ProjectIDExecution(tb)
-	clusterTerraformStr, clusterName, err := ClusterResourceHcl(projectID, req, specs)
+	clusterTerraformStr, clusterName, err := ClusterResourceHcl(projectID, req)
 	if err != nil {
 		tb.Error(err)
 	}
+	clusterResourceName := "mongodbatlas_advanced_cluster.cluster_info"
 	return ClusterInfo{
 		ProjectIDStr:        fmt.Sprintf("%q", projectID),
 		ProjectID:           projectID,
 		ClusterName:         clusterName,
-		ClusterNameStr:      "mongodbatlas_advanced_cluster.cluster_info.name",
+		ClusterNameStr:      fmt.Sprintf("%s.name", clusterResourceName),
+		ClusterResourceName: clusterResourceName,
 		ClusterTerraformStr: clusterTerraformStr,
 	}
 }

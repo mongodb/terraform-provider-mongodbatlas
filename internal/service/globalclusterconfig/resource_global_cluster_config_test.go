@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
@@ -84,7 +85,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 		specEU      = acc.ReplicationSpec(&acc.ReplicationSpecRequest{ZoneName: "EU", Region: "EU_WEST_1"})
 		specDE      = acc.ReplicationSpec(&acc.ReplicationSpecRequest{ZoneName: "DE", Region: "EU_NORTH_1"})
 		specJP      = acc.ReplicationSpec(&acc.ReplicationSpecRequest{ZoneName: "JP", Region: "AP_NORTHEAST_1"})
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true}, specUS, specEU, specDE, specJP)
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, ReplicationSpecs: []admin.ReplicationSpec{specUS, specEU, specDE, specJP}})
 	)
 
 	resource.Test(t, resource.TestCase{

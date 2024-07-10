@@ -375,7 +375,7 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	var (
 		spec        = acc.ReplicationSpec(&acc.ReplicationSpecRequest{ProviderName: constant.AZURE})
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true}, spec)
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ReplicationSpecs: []admin.ReplicationSpec{spec}})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

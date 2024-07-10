@@ -75,12 +75,13 @@ func ToSnakeCase(str string) string {
 	return strings.ToLower(snake)
 }
 
-func ClusterResourceHcl(projectID string, req *ClusterRequest, specs []admin.ReplicationSpec) (configStr, clusterName string, err error) {
-	if len(specs) == 0 {
-		specs = append(specs, ReplicationSpec(&ReplicationSpecRequest{}))
-	}
+func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clusterName string, err error) {
 	if req == nil {
 		req = new(ClusterRequest)
+	}
+	specs := req.ReplicationSpecs
+	if len(specs) == 0 {
+		specs = append(specs, ReplicationSpec(&ReplicationSpecRequest{}))
 	}
 	clusterName = req.ClusterNameExplicit
 	if clusterName == "" {
@@ -156,7 +157,7 @@ func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec) er
 
 // Helper function for adding "primitive" bool/string/int/float attributes of a struct.
 func addPrimitiveAttributesViaJSON(b *hclwrite.Body, obj any) error {
-	var objMap map[string]interface{}
+	var objMap map[string]any
 	inrec, err := json.Marshal(obj)
 	if err != nil {
 		return err
