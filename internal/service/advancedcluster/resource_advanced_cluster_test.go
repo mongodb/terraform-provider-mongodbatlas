@@ -1354,7 +1354,7 @@ func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, 
 			"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":  "60",
 			"replication_specs.1.region_configs.0.electable_specs.0.disk_size_gb":  "60",
 			"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
-			"replication_specs.0.region_configs.0.read_only_specs.0.disk_size_gb":  "60",
+			"replication_specs.1.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
 			"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec1,
 			"replication_specs.1.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec2,
 		})
