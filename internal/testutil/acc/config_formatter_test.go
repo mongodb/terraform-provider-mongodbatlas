@@ -5,11 +5,9 @@ import (
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 func projectTemplateWithExtra(extra string) string {
@@ -307,16 +305,8 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
 
 func Test_ClusterResourceHcl(t *testing.T) {
 	var (
-		clusterName                 = "my-name"
-		replicationSpecMultiRegions = admin.ReplicationSpec{
-			NumShards: conversion.IntPtr(1),
-			ZoneName:  conversion.StringPtr("Zone 1"),
-			RegionConfigs: &[]admin.CloudRegionConfig{
-				acc.CloudRegionConfig("US_WEST_1", constant.AWS, "M10", 3),
-				acc.CloudRegionConfig("EU_WEST_1", constant.AWS, "M10", 3),
-			},
-		}
-		testCases = map[string]struct {
+		clusterName = "my-name"
+		testCases   = map[string]struct {
 			expected string
 			req      acc.ClusterRequest
 		}{
@@ -334,22 +324,28 @@ func Test_ClusterResourceHcl(t *testing.T) {
 			},
 			"twoReplicationSpecs": {
 				twoReplicationSpecs,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, ReplicationSpecs: []admin.ReplicationSpec{
-					acc.ReplicationSpec(&acc.ReplicationSpecRequest{Region: "US_WEST_1", ZoneName: "Zone 1"}),
-					acc.ReplicationSpec(&acc.ReplicationSpecRequest{Region: "EU_WEST_2", ZoneName: "Zone 2"}),
+				acc.ClusterRequest{ClusterNameExplicit: clusterName, ReplicationSpecs: []acc.ReplicationSpecRequest{
+					{Region: "US_WEST_1", ZoneName: "Zone 1"},
+					{Region: "EU_WEST_2", ZoneName: "Zone 2"},
 				}},
 			},
 			"overrideClusterResource": {
 				overrideClusterResource,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, Geosharded: true, CloudBackup: true, ReplicationSpecs: []admin.ReplicationSpec{
-					acc.ReplicationSpec(&acc.ReplicationSpecRequest{
-						Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: constant.AZURE,
-					}),
+				acc.ClusterRequest{ClusterNameExplicit: clusterName, Geosharded: true, CloudBackup: true, ReplicationSpecs: []acc.ReplicationSpecRequest{
+					{Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: constant.AZURE},
 				}},
 			},
 			"twoRegionConfigs": {
 				twoRegionConfigs,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, ReplicationSpecs: []admin.ReplicationSpec{replicationSpecMultiRegions}},
+				acc.ClusterRequest{ClusterNameExplicit: clusterName, ReplicationSpecs: []acc.ReplicationSpecRequest{
+					{
+						Region:             "US_WEST_1",
+						InstanceSize:       "M10",
+						NodeCount:          3,
+						ExtraRegionConfigs: []acc.ReplicationSpecRequest{{Region: "EU_WEST_1", InstanceSize: "M10", NodeCount: 3, ProviderName: constant.AWS}},
+					},
+				},
+				},
 			},
 		}
 	)

@@ -79,9 +79,13 @@ func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clust
 	if req == nil {
 		req = new(ClusterRequest)
 	}
-	specs := req.ReplicationSpecs
-	if len(specs) == 0 {
-		specs = append(specs, ReplicationSpec(&ReplicationSpecRequest{}))
+	specRequests := req.ReplicationSpecs
+	if len(specRequests) == 0 {
+		specRequests = append(specRequests, ReplicationSpecRequest{})
+	}
+	specs := make([]admin.ReplicationSpec, len(specRequests))
+	for i, specRequest := range specRequests {
+		specs[i] = ReplicationSpec(&specRequest)
 	}
 	clusterName = req.ClusterNameExplicit
 	if clusterName == "" {

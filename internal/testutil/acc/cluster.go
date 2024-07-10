@@ -12,7 +12,7 @@ import (
 type ClusterRequest struct {
 	ResourceDependencyName string
 	ClusterNameExplicit    string
-	ReplicationSpecs       []admin.ReplicationSpec
+	ReplicationSpecs       []ReplicationSpecRequest
 	DiskSizeGb             int
 	CloudBackup            bool
 	Geosharded             bool
@@ -69,11 +69,12 @@ func ExistingClusterUsed() bool {
 }
 
 type ReplicationSpecRequest struct {
-	ZoneName     string
-	Region       string
-	InstanceSize string
-	ProviderName string
-	NodeCount    int
+	ZoneName           string
+	Region             string
+	InstanceSize       string
+	ProviderName       string
+	ExtraRegionConfigs []ReplicationSpecRequest
+	NodeCount          int
 }
 
 func (r *ReplicationSpecRequest) AddDefaults() {
@@ -94,28 +95,36 @@ func (r *ReplicationSpecRequest) AddDefaults() {
 	}
 }
 
+func (r *ReplicationSpecRequest) AllRegionConfigs() []admin.CloudRegionConfig {
+	config := CloudRegionConfig(*r)
+	configs := []admin.CloudRegionConfig{config}
+	for _, extra := range r.ExtraRegionConfigs {
+		configs = append(configs, CloudRegionConfig(extra))
+	}
+	return configs
+}
+
 func ReplicationSpec(req *ReplicationSpecRequest) admin.ReplicationSpec {
 	if req == nil {
 		req = new(ReplicationSpecRequest)
 	}
 	req.AddDefaults()
 	defaultNumShards := 1
-	regionConfig := CloudRegionConfig(req.Region, req.ProviderName, req.InstanceSize, req.NodeCount)
-	configs := []admin.CloudRegionConfig{regionConfig}
+	regionConfigs := req.AllRegionConfigs()
 	return admin.ReplicationSpec{
 		NumShards:     &defaultNumShards,
 		ZoneName:      &req.ZoneName,
-		RegionConfigs: &configs,
+		RegionConfigs: &regionConfigs,
 	}
 }
 
-func CloudRegionConfig(regionName, provider, instanceSize string, nodeCount int) admin.CloudRegionConfig {
+func CloudRegionConfig(req ReplicationSpecRequest) admin.CloudRegionConfig {
 	return admin.CloudRegionConfig{
-		RegionName:   &regionName,
-		ProviderName: &provider,
+		RegionName:   &req.Region,
+		ProviderName: &req.ProviderName,
 		ElectableSpecs: &admin.HardwareSpec{
-			InstanceSize: &instanceSize,
-			NodeCount:    &nodeCount,
+			InstanceSize: &req.InstanceSize,
+			NodeCount:    &req.NodeCount,
 		},
 	}
 }
