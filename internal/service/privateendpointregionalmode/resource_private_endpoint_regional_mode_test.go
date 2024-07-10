@@ -33,15 +33,13 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 		clusterInfo                            = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, DiskSizeGb: 80, ResourceDependencyName: clusterDependsOn}, spec1, spec2)
 		clusterName                            = clusterInfo.ClusterName
 		projectID                              = clusterInfo.ProjectID
-		clusterResourceName                    = clusterInfo.ClusterNameStr
+		clusterResourceName                    = clusterInfo.ClusterResourceName
 		endpointResources                      = testConfigUnmanagedAWS(
 			awsAccessKey, awsSecretKey, projectID, providerName, region, endpointResourceSuffix,
 		)
 		dependencies = []string{clusterInfo.ClusterTerraformStr, endpointResources}
 	)
 
-	configBefore := configWithDependencies(resourceSuffix, projectID, false, dependencies)
-	configAfter := configWithDependencies(resourceSuffix, projectID, true, dependencies)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckAwsEnv(t); acc.PreCheckAwsRegionCases(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
@@ -49,7 +47,7 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBefore,
+				Config: configWithDependencies(resourceSuffix, projectID, false, dependencies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					checkModeClustersUpToDate(projectID, clusterName, clusterResourceName),
@@ -59,7 +57,7 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 				),
 			},
 			{
-				Config: configAfter,
+				Config: configWithDependencies(resourceSuffix, projectID, true, dependencies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					checkModeClustersUpToDate(projectID, clusterName, clusterResourceName),
@@ -172,7 +170,7 @@ func checkModeClustersUpToDate(projectID, clusterName, clusterResourceName strin
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[clusterResourceName]
 		if !ok {
-			return fmt.Errorf("Could not find resource state for cluster (%s) on project (%s)", clusterName, projectID)
+			return fmt.Errorf("Could not find resource state for cluster (%s) on project (%s), resource_name=%s", clusterName, projectID, clusterResourceName)
 		}
 		var rsPrivateEndpointCount int
 		var err error
