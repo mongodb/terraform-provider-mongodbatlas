@@ -64,7 +64,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSingleProvider(projectID, clusterName),
-				Check:  checkSingleProvider(projectID, clusterName),
+				Check:  checkSingleProvider(projectID, clusterName, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -752,18 +752,28 @@ func configSingleProvider(projectID, name string) string {
 	`, projectID, name)
 }
 
-func checkSingleProvider(projectID, name string) resource.TestCheckFunc {
+func checkSingleProvider(projectID, name string, checkDiskSizeGBInnerLevel bool) resource.TestCheckFunc {
+	additionalChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
+		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+	}
+	if checkDiskSizeGBInnerLevel {
+		additionalChecks = append(additionalChecks,
+			checkAggr([]string{}, map[string]string{
+				"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
+				"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": "60",
+			}),
+		)
+	}
 	return checkAggr(
 		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":   projectID,
 			"disk_size_gb": "60",
-			"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
-			"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": "60",
-			"name": name},
-		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
-		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
+			"name":         name},
+		additionalChecks...,
+	)
 }
 
 func configIncorrectTypeGobalClusterSelfManagedSharding(projectID, name string) string {
@@ -1276,7 +1286,8 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel() resource.TestCheckFunc {
 	return checkAggr(
 		[]string{},
 		map[string]string{
-			"replication_specs.0.num_shards":                                      "2",
+			"replication_specs.0.num_shards": "2",
+			"disk_size_gb":                   "60",
 			"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
 			"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": "60",
 		})

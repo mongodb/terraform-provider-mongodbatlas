@@ -150,6 +150,48 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 	}
 }
 
+func TestGetDiskSizeGBFromReplicationSpec(t *testing.T) {
+	diskSizeGBValue := 40.0
+	hardwareSpec := admin.HardwareSpec20240710{
+		DiskSizeGB: admin.PtrFloat64(diskSizeGBValue),
+	}
+	regionConfig := []admin.CloudRegionConfig20240710{{
+		ElectableSpecs: &hardwareSpec,
+	}}
+	replicationSpecsWithValue := []admin.ReplicationSpec20240710{{RegionConfigs: &regionConfig}}
+
+	emptyRegionConfig := []admin.CloudRegionConfig20240710{{}}
+	replicationSpecsEmptyElectable := []admin.ReplicationSpec20240710{{RegionConfigs: &emptyRegionConfig}}
+
+	testCases := map[string]struct {
+		clusterDescription     admin.ClusterDescription20240710
+		expectedDiskSizeResult float64
+	}{
+		"cluster description with disk size gb value at electable spec": {
+			clusterDescription: admin.ClusterDescription20240710{
+				ReplicationSpecs: &replicationSpecsWithValue,
+			},
+			expectedDiskSizeResult: diskSizeGBValue,
+		},
+		"cluster description with no electable spec": {
+			clusterDescription: admin.ClusterDescription20240710{
+				ReplicationSpecs: &replicationSpecsEmptyElectable,
+			},
+			expectedDiskSizeResult: 0,
+		},
+		"cluster description with no replication spec": {
+			clusterDescription:     admin.ClusterDescription20240710{},
+			expectedDiskSizeResult: 0,
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result := advancedcluster.GetDiskSizeGBFromReplicationSpec(&tc.clusterDescription)
+			assert.InEpsilon(t, tc.expectedDiskSizeResult, result, 0.001) // using InEpsilon as type is float64
+		})
+	}
+}
+
 type Result struct {
 	response any
 	error    error

@@ -25,7 +25,7 @@ func TestMigAdvancedCluster_singleAWSProvider(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             checkSingleProvider(projectID, clusterName),
+				Check:             checkSingleProvider(projectID, clusterName, false),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},

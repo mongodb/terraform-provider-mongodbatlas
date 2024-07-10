@@ -539,7 +539,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 
 		// root disk_size_gb defined for backwards compatibility avoiding breaking changes
-		if err := d.Set("disk_size_gb", getDiskSizeGBFromReplicationSpec(cluster)); err != nil {
+		if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(cluster)); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 		}
 
