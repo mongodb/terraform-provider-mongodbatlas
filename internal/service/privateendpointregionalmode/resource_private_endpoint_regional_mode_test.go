@@ -25,10 +25,10 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 		awsAccessKey                           = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey                           = os.Getenv("AWS_SECRET_ACCESS_KEY")
 		providerName                           = "AWS"
-		region                                 = os.Getenv("AWS_REGION")
+		region                                 = os.Getenv("AWS_REGION_LOWERCASE")
 		privatelinkEndpointServiceResourceName = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", endpointResourceSuffix)
 		clusterDependsOn                       = fmt.Sprintf("%s, %s", resourceName, privatelinkEndpointServiceResourceName)
-		spec1                                  = acc.ReplicationSpec(&acc.ReplicationSpecRequest{Region: "US_EAST_1", ProviderName: providerName, ZoneName: "Zone 1"})
+		spec1                                  = acc.ReplicationSpec(&acc.ReplicationSpecRequest{Region: os.Getenv("AWS_REGION_UPPERCASE"), ProviderName: providerName, ZoneName: "Zone 1"})
 		spec2                                  = acc.ReplicationSpec(&acc.ReplicationSpecRequest{Region: "US_WEST_2", ProviderName: providerName, ZoneName: "Zone 2"})
 		clusterInfo                            = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, DiskSizeGb: 80, ResourceDependencyName: clusterDependsOn}, spec1, spec2)
 		clusterName                            = clusterInfo.ClusterName
@@ -43,7 +43,7 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 	configBefore := configWithDependencies(resourceSuffix, projectID, false, dependencies)
 	configAfter := configWithDependencies(resourceSuffix, projectID, true, dependencies)
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckAwsEnv(t); acc.PreCheckAwsRegionCases(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
