@@ -42,7 +42,7 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckAwsEnv(t); acc.PreCheckAwsRegionCases(t) },
+		PreCheck:                 func() { acc.PreCheckAwsEnvBasic(t); acc.PreCheckAwsRegionCases(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
