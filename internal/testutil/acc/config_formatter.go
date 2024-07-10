@@ -155,7 +155,7 @@ func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec) er
 	return err
 }
 
-// Helper function for adding "primitive" bool/string/int/float attributes of a struct.
+// addPrimitiveAttributesViaJSON  adds "primitive" bool/string/int/float attributes of a struct.
 func addPrimitiveAttributesViaJSON(b *hclwrite.Body, obj any) error {
 	var objMap map[string]any
 	inrec, err := json.Marshal(obj)
@@ -178,14 +178,10 @@ func addPrimitiveAttributes(b *hclwrite.Body, values map[string]any) {
 		case bool:
 			b.SetAttributeValue(key, cty.BoolVal(value))
 		case string:
-			if value == "" {
-				continue
+			if value != "" {
+				b.SetAttributeValue(key, cty.StringVal(value))
 			}
-			b.SetAttributeValue(key, cty.StringVal(value))
 		case int:
-			if value == 0 {
-				continue
-			}
 			b.SetAttributeValue(key, cty.NumberIntVal(int64(value)))
 		// int gets parsed as float64 for json
 		case float64:

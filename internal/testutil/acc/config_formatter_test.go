@@ -330,7 +330,7 @@ func Test_ClusterResourceHcl(t *testing.T) {
 			},
 			"dependsOnMulti": {
 				dependsOnMultiResource,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, ResourceDependencyName: fmt.Sprintf("%s, %s", "mongodbatlas_private_endpoint_regional_mode.atlasrm", "mongodbatlas_privatelink_endpoint_service.atlasple")},
+				acc.ClusterRequest{ClusterNameExplicit: clusterName, ResourceDependencyName: "mongodbatlas_private_endpoint_regional_mode.atlasrm, mongodbatlas_privatelink_endpoint_service.atlasple"},
 			},
 			"twoReplicationSpecs": {
 				twoReplicationSpecs,
@@ -343,7 +343,7 @@ func Test_ClusterResourceHcl(t *testing.T) {
 				overrideClusterResource,
 				acc.ClusterRequest{ClusterNameExplicit: clusterName, Geosharded: true, CloudBackup: true, ReplicationSpecs: []admin.ReplicationSpec{
 					acc.ReplicationSpec(&acc.ReplicationSpecRequest{
-						Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: "AZURE",
+						Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: constant.AZURE,
 					}),
 				}},
 			},
