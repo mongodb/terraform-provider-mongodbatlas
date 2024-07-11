@@ -153,16 +153,6 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 
 func TestGetDiskSizeGBFromReplicationSpec(t *testing.T) {
 	diskSizeGBValue := 40.0
-	hardwareSpec := admin.HardwareSpec20250101{
-		DiskSizeGB: admin.PtrFloat64(diskSizeGBValue),
-	}
-	regionConfig := []admin.CloudRegionConfig20250101{{
-		ElectableSpecs: &hardwareSpec,
-	}}
-	replicationSpecsWithValue := []admin.ReplicationSpec20250101{{RegionConfigs: &regionConfig}}
-
-	emptyRegionConfig := []admin.CloudRegionConfig20250101{{}}
-	replicationSpecsEmptyElectable := []admin.ReplicationSpec20250101{{RegionConfigs: &emptyRegionConfig}}
 
 	testCases := map[string]struct {
 		clusterDescription     admin.ClusterDescription20250101
@@ -170,13 +160,21 @@ func TestGetDiskSizeGBFromReplicationSpec(t *testing.T) {
 	}{
 		"cluster description with disk size gb value at electable spec": {
 			clusterDescription: admin.ClusterDescription20250101{
-				ReplicationSpecs: &replicationSpecsWithValue,
+				ReplicationSpecs: &[]admin.ReplicationSpec20250101{{
+					RegionConfigs: &[]admin.CloudRegionConfig20250101{{
+						ElectableSpecs: &admin.HardwareSpec20250101{
+							DiskSizeGB: admin.PtrFloat64(diskSizeGBValue),
+						},
+					}},
+				}},
 			},
 			expectedDiskSizeResult: diskSizeGBValue,
 		},
 		"cluster description with no electable spec": {
 			clusterDescription: admin.ClusterDescription20250101{
-				ReplicationSpecs: &replicationSpecsEmptyElectable,
+				ReplicationSpecs: &[]admin.ReplicationSpec20250101{
+					{RegionConfigs: &[]admin.CloudRegionConfig20250101{{}}},
+				},
 			},
 			expectedDiskSizeResult: 0,
 		},
