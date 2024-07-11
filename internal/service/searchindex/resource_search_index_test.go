@@ -194,11 +194,11 @@ func TestAccSearchIndex_withStoredSourceExclude(t *testing.T) {
 }
 
 func TestAccSearchIndex_withStoredSourceUpdateEmptyType(t *testing.T) {
-	resource.ParallelTest(t, *storedSourceTestCaseUpdate(t, "search"))
+	resource.ParallelTest(t, *storedSourceTestCaseUpdate(t, ""))
 }
 
 func TestAccSearchIndex_withStoredSourceUpdateSearchType(t *testing.T) {
-	resource.ParallelTest(t, *storedSourceTestCaseUpdate(t, ""))
+	resource.ParallelTest(t, *storedSourceTestCaseUpdate(t, "search"))
 }
 
 func storedSourceTestCase(tb testing.TB, storedSource string) *resource.TestCase {
