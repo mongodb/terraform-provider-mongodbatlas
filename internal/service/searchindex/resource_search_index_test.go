@@ -193,50 +193,12 @@ func TestAccSearchIndex_withStoredSourceExclude(t *testing.T) {
 	resource.ParallelTest(t, *storedSourceTestCase(t, storedSourceExcludeJSON))
 }
 
-func TestAccSearchIndex_withStoredSourceUpdate(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
-		indexName              = acc.RandomName()
-		databaseName           = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroySearchIndex,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectID, clusterName, indexName, "", databaseName, "false"),
-				Check:  checkBasic(projectID, clusterName, indexName, "", databaseName, "false"),
-			},
-			{
-				Config: configBasic(projectID, clusterName, indexName, "", databaseName, "true"),
-				Check:  checkBasic(projectID, clusterName, indexName, "", databaseName, "true"),
-			},
-		},
-	})
+func TestAccSearchIndex_withStoredSourceUpdateEmptyType(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCaseUpdate(t, "search"))
 }
 
-func TestAccSearchIndex_withStoredSourceUpdateTEMPORARY_INVALID(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
-		indexName              = acc.RandomName()
-		databaseName           = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroySearchIndex,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
-				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, "false"),
-			},
-			{
-				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "true"),
-				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, "true"),
-			},
-		},
-	})
+func TestAccSearchIndex_withStoredSourceUpdateSearchType(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCaseUpdate(t, ""))
 }
 
 func storedSourceTestCase(tb testing.TB, storedSource string) *resource.TestCase {
@@ -254,6 +216,30 @@ func storedSourceTestCase(tb testing.TB, storedSource string) *resource.TestCase
 			{
 				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, storedSource),
 				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, storedSource),
+			},
+		},
+	}
+}
+
+func storedSourceTestCaseUpdate(tb testing.TB, searchType string) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(tb)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, clusterName, indexName, searchType, databaseName, "false"),
+				Check:  checkBasic(projectID, clusterName, indexName, searchType, databaseName, "false"),
+			},
+			{
+				Config: configBasic(projectID, clusterName, indexName, searchType, databaseName, "true"),
+				Check:  checkBasic(projectID, clusterName, indexName, searchType, databaseName, "true"),
 			},
 		},
 	}
