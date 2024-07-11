@@ -38,7 +38,7 @@ const (
 	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
-	ErrorOperationNotPermitted     = "error operation not permitted (%s): %s"
+	ErrorOperationNotPermitted     = "error operation not permitted"
 	ignoreLabel                    = "Infrastructure Tool"
 )
 
@@ -717,7 +717,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterName := ids["cluster_name"]
 
 	if v, err := isUpdateAllowed(d); !v {
-		return diag.FromErr(fmt.Errorf(ErrorOperationNotPermitted, clusterName, err))
+		return diag.FromErr(fmt.Errorf("%s: %s", ErrorOperationNotPermitted, err))
 	}
 
 	cluster := new(admin20231115.AdvancedClusterDescription)
@@ -863,12 +863,12 @@ func checkNewSchemaCompatibility(specs []any) bool {
 	for _, specRaw := range specs {
 		if specMap, ok := specRaw.(map[string]any); ok && specMap != nil {
 			numShards, _ := specMap["num_shards"].(int)
-			if numShards < 2 {
-				return true
+			if numShards >= 2 {
+				return false
 			}
 		}
 	}
-	return false
+	return true
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
