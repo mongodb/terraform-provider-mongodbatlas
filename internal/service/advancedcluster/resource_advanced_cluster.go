@@ -392,7 +392,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		rootDiskSizeGB = conversion.Pointer(v.(float64))
 	}
 
-	params := &admin.ClusterDescription20240710{
+	params := &admin.ClusterDescription20250101{
 		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
 		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
 		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB),
@@ -505,7 +505,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	var clusterResp *admin.ClusterDescription20240710
+	var clusterResp *admin.ClusterDescription20250101
 
 	var replicationSpecs []map[string]any
 	if isUsingOldAPISchemaStructure(d) {
@@ -573,7 +573,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 // TODO: CLOUDP-259838 this can likely be unified with data source function setRootFields
-func setResourceRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20240710) diag.Diagnostics {
+func setResourceRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20250101) diag.Diagnostics {
 	clusterName := *cluster.Name
 
 	if err := d.Set("cluster_id", cluster.GetId()); err != nil {

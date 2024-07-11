@@ -26,7 +26,7 @@ var (
 	dummyClusterName = "clusterName"
 	dummyProjectID   = "projectId"
 	errGeneric       = errors.New("generic")
-	advancedClusters = []admin.ClusterDescription20240710{{StateName: conversion.StringPtr("NOT IDLE")}}
+	advancedClusters = []admin.ClusterDescription20250101{{StateName: conversion.StringPtr("NOT IDLE")}}
 )
 
 func TestFlattenReplicationSpecs(t *testing.T) {
@@ -295,7 +295,7 @@ func TestUpgradeRefreshFunc(t *testing.T) {
 
 func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 	testCases := []struct {
-		mockCluster    *admin.PaginatedClusterDescription20240710
+		mockCluster    *admin.PaginatedClusterDescription20250101
 		mockResponse   *http.Response
 		expectedResult Result
 		mockError      error
@@ -357,7 +357,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful but with at least one cluster not idle",
-			mockCluster:   &admin.PaginatedClusterDescription20240710{Results: &advancedClusters},
+			mockCluster:   &admin.PaginatedClusterDescription20250101{Results: &advancedClusters},
 			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
@@ -368,11 +368,11 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful",
-			mockCluster:   &admin.PaginatedClusterDescription20240710{},
+			mockCluster:   &admin.PaginatedClusterDescription20250101{},
 			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
-				response: &admin.PaginatedClusterDescription20240710{},
+				response: &admin.PaginatedClusterDescription20250101{},
 				state:    "IDLE",
 				error:    nil,
 			},
