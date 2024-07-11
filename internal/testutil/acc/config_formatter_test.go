@@ -343,7 +343,7 @@ func Test_ClusterResourceHcl(t *testing.T) {
 	var (
 		clusterName = "my-name"
 		testCases   = map[string]struct {
-      expected string
+			expected string
 			req      acc.ClusterRequest
 		}{
 			"defaults": {
