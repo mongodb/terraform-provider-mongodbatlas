@@ -254,7 +254,45 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
+		checkMap    = map[string]string{
+			"cluster_name":                             clusterName,
+			"reference_hour_of_day":                    "3",
+			"reference_minute_of_hour":                 "45",
+			"restore_window_days":                      "1",
+			"policy_item_hourly.#":                     "1",
+			"policy_item_daily.#":                      "1",
+			"policy_item_weekly.#":                     "1",
+			"policy_item_monthly.#":                    "1",
+			"policy_item_yearly.#":                     "1",
+			"policy_item_hourly.0.frequency_interval":  "1",
+			"policy_item_hourly.0.retention_unit":      "days",
+			"policy_item_hourly.0.retention_value":     "1",
+			"policy_item_daily.0.frequency_interval":   "1",
+			"policy_item_daily.0.retention_unit":       "days",
+			"policy_item_daily.0.retention_value":      "2",
+			"policy_item_weekly.0.frequency_interval":  "4",
+			"policy_item_weekly.0.retention_unit":      "weeks",
+			"policy_item_weekly.0.retention_value":     "3",
+			"policy_item_monthly.0.frequency_interval": "5",
+			"policy_item_monthly.0.retention_unit":     "months",
+			"policy_item_monthly.0.retention_value":    "4",
+			"policy_item_yearly.0.frequency_interval":  "1",
+			"policy_item_yearly.0.retention_unit":      "years",
+			"policy_item_yearly.0.retention_value":     "1",
+		}
+		copySettingsChecks = map[string]string{
+			"copy_settings.#":                    "1",
+			"copy_settings.0.cloud_provider":     "AWS",
+			"copy_settings.0.region_name":        "US_EAST_1",
+			"copy_settings.0.should_copy_oplogs": "true",
+		}
+		emptyCopySettingsChecks = map[string]string{
+			"copy_settings.#": "0",
+		}
 	)
+	checksDefault := acc.AddAttrChecks(resourceName, []resource.TestCheckFunc{checkExists(resourceName)}, checkMap)
+	checksCreate := acc.AddAttrChecks(resourceName, checksDefault, copySettingsChecks)
+	checksUpdate := acc.AddAttrChecks(resourceName, checksDefault, emptyCopySettingsChecks)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -262,41 +300,20 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configCopySettings(projectID, clusterName, &admin.DiskBackupSnapshotSchedule{
+				Config: configCopySettings(projectID, clusterName, false, &admin.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(1),
 				}),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
-					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "2"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.frequency_interval", "4"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_unit", "weeks"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_value", "3"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.frequency_interval", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_unit", "years"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.cloud_provider", "AWS"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.region_name", "US_EAST_1"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.should_copy_oplogs", "true"),
-				),
+				Check: resource.ComposeAggregateTestCheckFunc(checksCreate...),
+			},
+			{
+				Config: configCopySettings(projectID, clusterName, true, &admin.DiskBackupSnapshotSchedule{
+					ReferenceHourOfDay:    conversion.Pointer(3),
+					ReferenceMinuteOfHour: conversion.Pointer(45),
+					RestoreWindowDays:     conversion.Pointer(1),
+				}),
+				Check: resource.ComposeAggregateTestCheckFunc(checksUpdate...),
 			},
 		},
 	})
@@ -357,7 +374,8 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 
 func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ProviderName: constant.AZURE})
+		spec        = acc.ReplicationSpecRequest{ProviderName: constant.AZURE}
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ReplicationSpecs: []acc.ReplicationSpecRequest{spec}})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -507,7 +525,23 @@ func configDefault(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) s
 	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configCopySettings(projectID, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
+func configCopySettings(projectID, clusterName string, emptyCopySettings bool, p *admin.DiskBackupSnapshotSchedule) string {
+	var copySettings string
+	if !emptyCopySettings {
+		copySettings = `
+			copy_settings {
+				cloud_provider = "AWS"
+				frequencies = ["HOURLY",
+							"DAILY",
+							"WEEKLY",
+							"MONTHLY",
+							"YEARLY",
+							"ON_DEMAND"]
+				region_name = "US_EAST_1"
+				replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
+				should_copy_oplogs = true
+			}`
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = %[1]q
@@ -564,20 +598,9 @@ func configCopySettings(projectID, clusterName string, p *admin.DiskBackupSnapsh
 				retention_unit     = "years"
 				retention_value    = 1
 			}
-			copy_settings {
-				cloud_provider = "AWS"
-				frequencies = ["HOURLY",
-							"DAILY",
-							"WEEKLY",
-							"MONTHLY",
-							"YEARLY",
-							"ON_DEMAND"]
-				region_name = "US_EAST_1"
-				replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
-				should_copy_oplogs = true
-			}
+			%s
 		}
-	`, projectID, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
+	`, projectID, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), copySettings)
 }
 
 func configOnePolicy(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) string {
