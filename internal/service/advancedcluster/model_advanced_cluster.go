@@ -280,7 +280,7 @@ func IsSharedTier(instanceSize string) bool {
 
 // GetDiskSizeGBFromReplicationSpec obtains the diskSizeGB value by looking into the electable spec of the first replication spec.
 // Independent storage size scaling is not supported (CLOUDP-201331), meaning all electable/analytics/readOnly configs in all replication specs are the same.
-func GetDiskSizeGBFromReplicationSpec(cluster *admin.ClusterDescription20240710) float64 {
+func GetDiskSizeGBFromReplicationSpec(cluster *admin.ClusterDescription20250101) float64 {
 	specs := cluster.GetReplicationSpecs()
 	if len(specs) < 1 {
 		return 0
