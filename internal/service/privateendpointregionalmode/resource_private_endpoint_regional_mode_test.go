@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -28,17 +27,17 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 		providerName                           = "AWS"
 		region                                 = os.Getenv("AWS_REGION_LOWERCASE")
 		privatelinkEndpointServiceResourceName = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", endpointResourceSuffix)
-		clusterDependsOn                       = fmt.Sprintf("%s, %s", resourceName, privatelinkEndpointServiceResourceName)
 		spec1                                  = acc.ReplicationSpecRequest{Region: os.Getenv("AWS_REGION_UPPERCASE"), ProviderName: providerName, ZoneName: "Zone 1"}
 		spec2                                  = acc.ReplicationSpecRequest{Region: "US_WEST_2", ProviderName: providerName, ZoneName: "Zone 2"}
-		clusterInfo                            = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, DiskSizeGb: 80, ResourceDependencyName: clusterDependsOn, ReplicationSpecs: []acc.ReplicationSpecRequest{spec1, spec2}})
-		clusterName                            = clusterInfo.ClusterName
+		clusterInfo                            = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, DiskSizeGb: 80, ReplicationSpecs: []acc.ReplicationSpecRequest{spec1, spec2}})
 		projectID                              = clusterInfo.ProjectID
 		clusterResourceName                    = clusterInfo.ClusterResourceName
+		clusterDataName                        = "data.mongodbatlas_advanced_cluster.test"
 		endpointResources                      = testConfigUnmanagedAWS(
 			awsAccessKey, awsSecretKey, projectID, providerName, region, endpointResourceSuffix,
 		)
-		dependencies = []string{clusterInfo.ClusterTerraformStr, endpointResources}
+		clusterDataSource = modeClusterData(clusterResourceName, resourceName, privatelinkEndpointServiceResourceName)
+		dependencies      = []string{clusterInfo.ClusterTerraformStr, clusterDataSource, endpointResources}
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -51,9 +50,8 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 				Config: configWithDependencies(resourceSuffix, projectID, false, dependencies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					checkModeClustersUpToDate(projectID, clusterName, clusterResourceName),
+					resource.TestCheckResourceAttr(clusterDataName, "connection_strings.0.private_endpoint.#", "0"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
 			},
@@ -61,9 +59,8 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 				Config: configWithDependencies(resourceSuffix, projectID, true, dependencies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					checkModeClustersUpToDate(projectID, clusterName, clusterResourceName),
+					resource.TestCheckResourceAttr(clusterDataName, "connection_strings.0.private_endpoint.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
@@ -110,6 +107,19 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			},
 		},
 	}
+}
+
+func modeClusterData(clusterResourceName, regionalModeResourceName, privateLinkResourceName string) string {
+	return fmt.Sprintf(`
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = %[1]s.project_id
+			name       = %[1]s.name
+			depends_on = [
+				%[2]s,
+				%[3]s
+			]
+		}
+	`, clusterResourceName, regionalModeResourceName, privateLinkResourceName)
 }
 
 func configWithDependencies(resourceName, projectID string, enabled bool, dependencies []string) string {
@@ -164,31 +174,6 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return nil
 		}
 		return fmt.Errorf("regional mode for project_id (%s) does not exist", projectID)
-	}
-}
-
-func checkModeClustersUpToDate(projectID, clusterName, clusterResourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[clusterResourceName]
-		if !ok {
-			return fmt.Errorf("Could not find resource state for cluster (%s) on project (%s), resource_name=%s", clusterName, projectID, clusterResourceName)
-		}
-		var rsPrivateEndpointCount int
-		var err error
-		if rsPrivateEndpointCount, err = strconv.Atoi(rs.Primary.Attributes["connection_strings.0.private_endpoint.#"]); err != nil {
-			return fmt.Errorf("Connection strings private endpoint count is not a number")
-		}
-		c, _, _ := acc.Conn().Clusters.Get(context.Background(), projectID, clusterName)
-		if rsPrivateEndpointCount != len(c.ConnectionStrings.PrivateEndpoint) {
-			return fmt.Errorf("Cluster PrivateEndpoint count does not match resource")
-		}
-		if rs.Primary.Attributes["connection_strings.0.standard"] != c.ConnectionStrings.Standard {
-			return fmt.Errorf("Cluster standard connection_string does not match resource")
-		}
-		if rs.Primary.Attributes["connection_strings.0.standard_srv"] != c.ConnectionStrings.StandardSrv {
-			return fmt.Errorf("Cluster standard connection_string does not match resource")
-		}
-		return nil
 	}
 }
 
