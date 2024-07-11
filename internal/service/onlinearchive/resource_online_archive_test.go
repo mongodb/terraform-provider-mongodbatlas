@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,25 +14,36 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+var (
+	clusterRequest = acc.ClusterRequest{
+		ReplicationSpecs: []acc.ReplicationSpecRequest{
+			// Must US_EAST_1 in dev for online_archive to work
+			{AutoScalingDiskGbEnabled: true, Region: "US_EAST_1"},
+		},
+		Tags: map[string]string{
+			"ArchiveTest": "true", "Owner": "test",
+		},
+	}
+)
+
 func TestAccBackupRSOnlineArchive(t *testing.T) {
 	var (
 		onlineArchiveResourceName    = "mongodbatlas_online_archive.users_archive"
 		onlineArchiveDataSourceName  = "data.mongodbatlas_online_archive.read_archive"
 		onlineArchivesDataSourceName = "data.mongodbatlas_online_archives.all"
-		clusterInfo                  = acc.GetClusterInfo(t, &acc.ClusterRequest{
-			ReplicationSpecs: []acc.ReplicationSpecRequest{
-				{AutoScalingDiskGbEnabled: true},
-			},
-			Tags: map[string]string{
-				"ArchiveTest": "true", "Owner": "test",
-			},
-		})
-		clusterName         = clusterInfo.ClusterName
-		projectID           = clusterInfo.ProjectID
-		clusterTerraformStr = clusterInfo.ClusterTerraformStr
-		clusterResourceName = clusterInfo.ClusterResourceName
+		clusterInfo                  = acc.GetClusterInfo(t, &clusterRequest)
+		clusterName                  = clusterInfo.ClusterName
+		projectID                    = clusterInfo.ProjectID
+		clusterTerraformStr          = clusterInfo.ClusterTerraformStr
+		clusterResourceName          = clusterInfo.ClusterResourceName
 	)
 
+	config1 := clusterTerraformStr
+	config2 := configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 7)
+	config3 := configWithDailySchedule(clusterTerraformStr, clusterResourceName, 2, 8)
+	if config1 != config2 {
+		t.Fatal(strings.Join([]string{config1, "\n#CONFIG2\n", config2, "\n#CONFIG3\n", config3}, "\n"))
+	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -44,7 +56,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 7),
+				Config: config2,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -60,7 +72,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 2, 8),
+				Config: config3,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -122,14 +134,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 
 func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
-			ReplicationSpecs: []acc.ReplicationSpecRequest{
-				{AutoScalingDiskGbEnabled: true},
-			},
-			Tags: map[string]string{
-				"ArchiveTest": "true", "Owner": "test",
-			},
-		})
+		clusterInfo               = acc.GetClusterInfo(t, &clusterRequest)
 		clusterResourceName       = clusterInfo.ClusterResourceName
 		clusterName               = clusterInfo.ClusterName
 		projectID                 = clusterInfo.ProjectID
@@ -177,20 +182,13 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 	var (
 		onlineArchiveResourceName   = "mongodbatlas_online_archive.users_archive"
 		onlineArchiveDataSourceName = "data.mongodbatlas_online_archive.read_archive"
-		clusterInfo                 = acc.GetClusterInfo(t, &acc.ClusterRequest{
-			ReplicationSpecs: []acc.ReplicationSpecRequest{
-				{AutoScalingDiskGbEnabled: true},
-			},
-			Tags: map[string]string{
-				"ArchiveTest": "true", "Owner": "test",
-			},
-		})
-		clusterResourceName = clusterInfo.ClusterResourceName
-		clusterName         = clusterInfo.ClusterName
-		projectID           = clusterInfo.ProjectID
-		clusterTerraformStr = clusterInfo.ClusterTerraformStr
-		cloudProvider       = "AWS"
-		processRegion       = "US_EAST_1"
+		clusterInfo                 = acc.GetClusterInfo(t, &clusterRequest)
+		clusterResourceName         = clusterInfo.ClusterResourceName
+		clusterName                 = clusterInfo.ClusterName
+		projectID                   = clusterInfo.ProjectID
+		clusterTerraformStr         = clusterInfo.ClusterTerraformStr
+		cloudProvider               = "AWS"
+		processRegion               = "US_EAST_1"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -230,14 +228,7 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 
 func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
-			ReplicationSpecs: []acc.ReplicationSpecRequest{
-				{AutoScalingDiskGbEnabled: true},
-			},
-			Tags: map[string]string{
-				"ArchiveTest": "true", "Owner": "test",
-			},
-		})
+		clusterInfo         = acc.GetClusterInfo(t, &clusterRequest)
 		clusterTerraformStr = clusterInfo.ClusterTerraformStr
 		cloudProvider       = "AWS"
 		clusterResourceName = clusterInfo.ClusterResourceName
@@ -377,7 +368,7 @@ func configWithDailySchedule(clusterTerraformStr, clusterResourceName string, st
 
 func configWithoutSchedule(clusterTerraformStr, clusterResourceName string) string {
 	return fmt.Sprintf(`
-	%s
+	%[1]s
 	resource "mongodbatlas_online_archive" "users_archive" {
 		project_id = %[2]s.project_id
 		cluster_name = %[2]s.name
