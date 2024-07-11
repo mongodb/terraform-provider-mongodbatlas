@@ -852,7 +852,7 @@ func isUpdateAllowed(d *schema.ResourceData) (bool, error) {
 		if specMap, ok := specRaw.(map[string]any); ok && specMap != nil {
 			numShards, _ := specMap["num_shards"].(int)
 			if numShards > 1 && isNewSchemaCompatible {
-				return false, fmt.Errorf("Cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; please refer to our examples, documentation, and 1.18.0 migration guide for more details.")
+				return false, fmt.Errorf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; please refer to our examples, documentation, and 1.18.0 migration guide for more details")
 			}
 		}
 	}
