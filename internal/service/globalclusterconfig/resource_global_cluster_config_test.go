@@ -80,7 +80,11 @@ func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
 
 func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, ExtraConfig: zonesStr})
+		specUS      = acc.ReplicationSpecRequest{ZoneName: "US", Region: "US_EAST_1"}
+		specEU      = acc.ReplicationSpecRequest{ZoneName: "EU", Region: "EU_WEST_1"}
+		specDE      = acc.ReplicationSpecRequest{ZoneName: "DE", Region: "EU_NORTH_1"}
+		specJP      = acc.ReplicationSpecRequest{ZoneName: "JP", Region: "AP_NORTHEAST_1"}
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, ReplicationSpecs: []acc.ReplicationSpecRequest{specUS, specEU, specDE, specJP}})
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -266,73 +270,6 @@ const (
 		custom_zone_mappings {
 			location = "JP"
 			zone     = "JP"
-		}
-	`
-
-	zonesStr = `
-		replication_specs {
-			zone_name  = "US"
-			num_shards = 1
-			region_configs {
-				auto_scaling {
-					disk_gb_enabled = false
-				}
-				region_name     = "US_EAST_1"
-				provider_name	= "AWS"
-				priority        = 7
-				electable_specs {
-					instance_size = "M10"
-					node_count = 3
-				}
-			}
-		}
-		replication_specs {
-			zone_name  = "EU"
-			num_shards = 1
-			region_configs {
-				auto_scaling {
-					disk_gb_enabled = false
-				}
-				region_name     = "EU_WEST_1"
-				provider_name	= "AWS"
-				priority        = 7
-				electable_specs {
-					instance_size = "M10"
-					node_count = 3
-				}
-			}
-		}
-		replication_specs {
-			zone_name  = "DE"
-			num_shards = 1
-			region_configs {
-				auto_scaling {
-					disk_gb_enabled = false
-				}
-				region_name     = "EU_NORTH_1"
-				provider_name	= "AWS"
-				priority        = 7
-				electable_specs {
-					instance_size = "M10"
-					node_count = 3
-				}
-			}
-		}
-		replication_specs {
-			zone_name  = "JP"
-			num_shards = 1
-			region_configs {
-				auto_scaling {
-					disk_gb_enabled = false
-				}
-				region_name     = "AP_NORTHEAST_1"
-				provider_name	= "AWS"
-				priority        = 7
-				electable_specs {
-					instance_size = "M10"
-					node_count = 3
-				}
-			}
 		}
 	`
 )
