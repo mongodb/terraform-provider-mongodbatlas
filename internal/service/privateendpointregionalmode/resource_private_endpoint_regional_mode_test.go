@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 func TestAccPrivateEndpointRegionalMode_basic(t *testing.T) {
@@ -19,6 +18,7 @@ func TestAccPrivateEndpointRegionalMode_basic(t *testing.T) {
 }
 
 func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
+	acc.SkipTestForCI(t) // slow test ~90min vs ~15min of the 2nd slowest test in the network group
 	var (
 		endpointResourceSuffix                 = "atlasple"
 		resourceSuffix                         = "atlasrm"
@@ -29,9 +29,9 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 		region                                 = os.Getenv("AWS_REGION_LOWERCASE")
 		privatelinkEndpointServiceResourceName = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", endpointResourceSuffix)
 		clusterDependsOn                       = fmt.Sprintf("%s, %s", resourceName, privatelinkEndpointServiceResourceName)
-		spec1                                  = acc.ReplicationSpec(&acc.ReplicationSpecRequest{Region: os.Getenv("AWS_REGION_UPPERCASE"), ProviderName: providerName, ZoneName: "Zone 1"})
-		spec2                                  = acc.ReplicationSpec(&acc.ReplicationSpecRequest{Region: "US_WEST_2", ProviderName: providerName, ZoneName: "Zone 2"})
-		clusterInfo                            = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, DiskSizeGb: 80, ResourceDependencyName: clusterDependsOn, ReplicationSpecs: []admin.ReplicationSpec{spec1, spec2}})
+		spec1                                  = acc.ReplicationSpecRequest{Region: os.Getenv("AWS_REGION_UPPERCASE"), ProviderName: providerName, ZoneName: "Zone 1"}
+		spec2                                  = acc.ReplicationSpecRequest{Region: "US_WEST_2", ProviderName: providerName, ZoneName: "Zone 2"}
+		clusterInfo                            = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, DiskSizeGb: 80, ResourceDependencyName: clusterDependsOn, ReplicationSpecs: []acc.ReplicationSpecRequest{spec1, spec2}})
 		clusterName                            = clusterInfo.ClusterName
 		projectID                              = clusterInfo.ProjectID
 		clusterResourceName                    = clusterInfo.ClusterResourceName
