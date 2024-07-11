@@ -17,7 +17,6 @@ func TestAccPrivateEndpointRegionalMode_basic(t *testing.T) {
 }
 
 func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
-	acc.SkipTestForCI(t) // slow test ~90min vs ~15min of the 2nd slowest test in the network group
 	var (
 		endpointResourceSuffix                 = "atlasple"
 		resourceSuffix                         = "atlasrm"
