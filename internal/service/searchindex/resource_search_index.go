@@ -1,7 +1,6 @@
 package searchindex
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"

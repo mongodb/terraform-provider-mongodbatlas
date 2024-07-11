@@ -572,7 +572,21 @@ const (
 				]
 			}
 		]
-`
+	`
+
+	incorrectFormatAnalyzersJSON = `
+		[
+			{
+				"wrongField":[
+					{
+							"type":"length",
+							"min":20,
+							"max":33
+					}
+				]
+			}
+		]
+	`
 
 	mappingsFieldsJSON = `
 		{
@@ -616,17 +630,15 @@ const (
 		}]	
 	`
 
-	incorrectFormatAnalyzersJSON = `
-		[
-			{
-				"wrongField":[
-					{
-							"type":"length",
-							"min":20,
-							"max":33
-					}
-				]
-			}
-		]
+	storedSourceIncludeJSON = `
+		{ 
+			"include": ["include1","include2"]
+		}	
+	`
+
+	storedSourceExcludeJSON = `
+		{
+			"exclude": ["exclude1", "exclude2"]
+		}	
 	`
 )
