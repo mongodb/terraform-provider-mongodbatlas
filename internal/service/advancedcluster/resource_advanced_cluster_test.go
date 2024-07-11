@@ -8,12 +8,15 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 const (
@@ -408,7 +411,10 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 				Config: configMultiZoneWithShards(orgID, projectName, clusterName, 1, 1, false),
 				Check:  checkMultiZoneWithShards(clusterName, 1, 1),
 			},
-			// TODO: CLOUDP-259828 updating from single sharded to using old schema should throw an error here
+			{
+				Config:      configMultiZoneWithShards(orgID, projectName, clusterName, 1, 2, false),
+				ExpectError: regexp.MustCompile(advancedcluster.ErrorOperationNotPermitted),
+			},
 		},
 	})
 }

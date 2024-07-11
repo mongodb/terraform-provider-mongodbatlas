@@ -19,11 +19,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/spf13/cast"
 )
 
 const (
@@ -37,6 +38,7 @@ const (
 	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
+	ErrorOperationNotPermitted     = "error operation not permitted (%s): %s"
 	ignoreLabel                    = "Infrastructure Tool"
 )
 
@@ -714,6 +716,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
+	if v, err := isUpdateAllowed(d); !v {
+		return diag.FromErr(fmt.Errorf(ErrorOperationNotPermitted, clusterName, err))
+	}
+
 	cluster := new(admin20231115.AdvancedClusterDescription)
 	clusterChangeDetect := new(admin20231115.AdvancedClusterDescription)
 
@@ -834,6 +840,35 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	return resourceRead(ctx, d, meta)
+}
+
+func isUpdateAllowed(d *schema.ResourceData) (bool, error) {
+	cs, us := d.GetChange("replication_specs")
+	currentSpecs, updatedSpecs := cs.([]any), us.([]any)
+
+	isNewSchemaCompatible := checkNewSchemaCompatibility(currentSpecs)
+
+	for _, specRaw := range updatedSpecs {
+		if specMap, ok := specRaw.(map[string]any); ok && specMap != nil {
+			numShards, _ := specMap["num_shards"].(int)
+			if numShards > 1 && isNewSchemaCompatible {
+				return false, fmt.Errorf("cannot increase num_shards to >1 under the current configuration. Please modify your resource as outlined in our migration guide before updating to add additional shards")
+			}
+		}
+	}
+	return true, nil
+}
+
+func checkNewSchemaCompatibility(specs []any) bool {
+	for _, specRaw := range specs {
+		if specMap, ok := specRaw.(map[string]any); ok && specMap != nil {
+			numShards, _ := specMap["num_shards"].(int)
+			if numShards < 2 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
