@@ -1,10 +1,7 @@
 package onlinearchive_test
 
 import (
-	"os"
 	"testing"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
@@ -14,18 +11,25 @@ import (
 
 func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 	var (
-		cluster                   matlas.Cluster
-		resourceName              = "mongodbatlas_cluster.online_archive_test"
 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName               = acc.RandomProjectName()
-		clusterName               = acc.RandomClusterName()
-		deleteExpirationDays      = 0
+		clusterInfo               = acc.GetClusterInfo(t, &acc.ClusterRequest{
+			ReplicationSpecs: []acc.ReplicationSpecRequest{
+				{AutoScalingDiskGbEnabled: true},
+			},
+			Tags: map[string]string{
+				"ArchiveTest": "true", "Owner": "test",
+			},
+		})
+		clusterName          = clusterInfo.ClusterName
+		projectID            = clusterInfo.ProjectID
+		clusterTerraformStr  = clusterInfo.ClusterTerraformStr
+		clusterResourceName  = clusterInfo.ClusterResourceName
+		deleteExpirationDays = 0
 	)
 	if mig.IsProviderVersionAtLeast("1.12.2") {
 		deleteExpirationDays = 7
 	}
-	config := configWithDailySchedule(orgID, projectName, clusterName, 1, deleteExpirationDays)
+	config := configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, deleteExpirationDays)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -33,9 +37,9 @@ func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configFirstStep(orgID, projectName, clusterName),
+				Config:            clusterTerraformStr,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					populateWithSampleData(resourceName, &cluster),
+					populateWithSampleData(clusterResourceName, projectID, clusterName),
 				),
 			},
 			{
