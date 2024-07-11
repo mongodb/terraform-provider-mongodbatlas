@@ -17,7 +17,7 @@ import (
 var (
 	clusterRequest = acc.ClusterRequest{
 		ReplicationSpecs: []acc.ReplicationSpecRequest{
-			// Must US_EAST_1 in dev for online_archive to work
+			// Must use US_EAST_1 in dev for online_archive to work
 			{AutoScalingDiskGbEnabled: true, Region: "US_EAST_1"},
 		},
 		Tags: map[string]string{
