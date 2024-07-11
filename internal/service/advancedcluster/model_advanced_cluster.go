@@ -634,10 +634,12 @@ func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin.DedicatedHa
 	if len(tfMapObjects) > 0 {
 		tfMapObject := tfMapObjects[0].(map[string]any)
 
-		if providerName == "AWS" {
+		if providerName == constant.AWS || providerName == constant.AZURE {
 			if cast.ToInt64(apiObject.GetDiskIOPS()) > 0 {
 				tfMap["disk_iops"] = apiObject.GetDiskIOPS()
 			}
+		}
+		if providerName == constant.AWS {
 			if v, ok := tfMapObject["ebs_volume_type"]; ok && v.(string) != "" {
 				tfMap["ebs_volume_type"] = apiObject.GetEbsVolumeType()
 			}
@@ -850,10 +852,12 @@ func expandRegionConfig(tfMap map[string]any) *admin.CloudRegionConfig {
 func expandRegionConfigSpec(tfList []any, providerName string) *admin.DedicatedHardwareSpec {
 	tfMap, _ := tfList[0].(map[string]any)
 	apiObject := new(admin.DedicatedHardwareSpec)
-	if providerName == "AWS" {
+	if providerName == constant.AWS || providerName == constant.AZURE {
 		if v, ok := tfMap["disk_iops"]; ok && v.(int) > 0 {
 			apiObject.DiskIOPS = conversion.Pointer(v.(int))
 		}
+	}
+	if providerName == constant.AWS {
 		if v, ok := tfMap["ebs_volume_type"]; ok {
 			apiObject.EbsVolumeType = conversion.StringPtr(v.(string))
 		}
