@@ -116,6 +116,13 @@ func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clust
 			return "", "", fmt.Errorf("error writing hcl for replication spec %d: %w", i, err)
 		}
 	}
+	if len(req.Tags) > 0 {
+		for key, value := range req.Tags {
+			tagBlock := cluster.AppendNewBlock("tags", nil).Body()
+			tagBlock.SetAttributeValue("key", cty.StringVal(key))
+			tagBlock.SetAttributeValue("value", cty.StringVal(value))
+		}
+	}
 	cluster.AppendNewline()
 	if req.ResourceDependencyName != "" {
 		if !strings.Contains(req.ResourceDependencyName, ".") {
@@ -150,7 +157,11 @@ func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec) er
 			autoScalingBlock.SetAttributeValue("disk_gb_enabled", cty.BoolVal(false))
 		} else {
 			autoScaling := rc.GetAutoScaling()
-			return fmt.Errorf("auto_scaling on replication spec is not supportd yet %v", autoScaling)
+			asDisk := autoScaling.GetDiskGB()
+			autoScalingBlock.SetAttributeValue("disk_gb_enabled", cty.BoolVal(asDisk.GetEnabled()))
+			if autoScaling.Compute != nil {
+				return fmt.Errorf("auto_scaling.compute is not supportd yet %v", autoScaling)
+			}
 		}
 		nodeSpec := rc.GetElectableSpecs()
 		nodeSpecBlock := rcBlock.AppendNewBlock("electable_specs", nil).Body()
