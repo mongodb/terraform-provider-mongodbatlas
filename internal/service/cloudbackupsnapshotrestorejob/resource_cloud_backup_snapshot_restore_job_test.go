@@ -152,11 +152,11 @@ func configBasic(terraformStr, clusterResourceName, description, retentionInDays
 	return fmt.Sprintf(`
 		%[1]s
 		resource "mongodbatlas_cloud_backup_snapshot" "test" {
-			project_id        = %[1]s.project_id
-			cluster_name      = %[1]s.name
+			project_id        = %[2]s.project_id
+			cluster_name      = %[2]s.name
 			description       = %[3]q
 			retention_in_days = %[4]q
-			depends_on = [%[1]s]
+			depends_on = [%[2]s]
 		}
 
 		resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
