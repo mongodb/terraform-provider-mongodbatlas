@@ -412,7 +412,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAndShardUpdating(t *tes
 				Check:  checkMultiZoneWithShardsOldSchema(clusterName, 1, 1),
 			},
 			{
-				Config:      configMultiZoneWithShards(orgID, projectName, clusterName, 1, 2, false),
+				Config:      configMultiZoneWithShardsOldSchema(orgID, projectName, clusterName, 1, 2, false),
 				ExpectError: regexp.MustCompile(advancedcluster.ErrorOperationNotPermitted),
 			},
 		},
