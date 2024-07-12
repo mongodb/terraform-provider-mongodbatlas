@@ -303,6 +303,42 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
 }
 `
 
+var autoScalingDiskEnabled = `
+resource "mongodbatlas_advanced_cluster" "cluster_info" {
+  backup_enabled = false
+  cluster_type   = "REPLICASET"
+  name           = "my-name"
+  project_id     = "project"
+
+  replication_specs {
+    num_shards = 1
+    zone_name  = "Zone 1"
+
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_WEST_2"
+      auto_scaling {
+        disk_gb_enabled = true
+      }
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
+  tags {
+    key   = "ArchiveTest"
+    value = "true"
+  }
+  tags {
+    key   = "Owner"
+    value = "test"
+  }
+
+}
+`
+
 func Test_ClusterResourceHcl(t *testing.T) {
 	var (
 		clusterName = "my-name"
@@ -346,6 +382,14 @@ func Test_ClusterResourceHcl(t *testing.T) {
 					},
 				},
 				},
+			},
+			"autoScalingDiskEnabled": {
+				autoScalingDiskEnabled,
+				acc.ClusterRequest{ClusterNameExplicit: clusterName, Tags: map[string]string{
+					"ArchiveTest": "true", "Owner": "test",
+				}, ReplicationSpecs: []acc.ReplicationSpecRequest{
+					{AutoScalingDiskGbEnabled: true},
+				}},
 			},
 		}
 	)

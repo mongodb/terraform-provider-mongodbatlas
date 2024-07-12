@@ -10,6 +10,7 @@ import (
 )
 
 type ClusterRequest struct {
+	Tags                   map[string]string
 	ResourceDependencyName string
 	ClusterNameExplicit    string
 	ReplicationSpecs       []ReplicationSpecRequest
@@ -69,12 +70,13 @@ func ExistingClusterUsed() bool {
 }
 
 type ReplicationSpecRequest struct {
-	ZoneName           string
-	Region             string
-	InstanceSize       string
-	ProviderName       string
-	ExtraRegionConfigs []ReplicationSpecRequest
-	NodeCount          int
+	ZoneName                 string
+	Region                   string
+	InstanceSize             string
+	ProviderName             string
+	ExtraRegionConfigs       []ReplicationSpecRequest
+	NodeCount                int
+	AutoScalingDiskGbEnabled bool
 }
 
 func (r *ReplicationSpecRequest) AddDefaults() {
@@ -125,6 +127,9 @@ func CloudRegionConfig(req ReplicationSpecRequest) admin.CloudRegionConfig {
 		ElectableSpecs: &admin.HardwareSpec{
 			InstanceSize: &req.InstanceSize,
 			NodeCount:    &req.NodeCount,
+		},
+		AutoScaling: &admin.AdvancedAutoScalingSettings{
+			DiskGB: &admin.DiskGBAutoScaling{Enabled: &req.AutoScalingDiskGbEnabled},
 		},
 	}
 }
