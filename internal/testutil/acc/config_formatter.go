@@ -75,7 +75,7 @@ func ToSnakeCase(str string) string {
 	return strings.ToLower(snake)
 }
 
-func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clusterName string, err error) {
+func ClusterResourceHcl(projectID string, req *ClusterRequest, resourceSuffix string) (configStr, clusterName, resourceName string, err error) {
 	if req == nil {
 		req = new(ClusterRequest)
 	}
@@ -98,7 +98,8 @@ func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clust
 
 	f := hclwrite.NewEmptyFile()
 	root := f.Body()
-	cluster := root.AppendNewBlock("resource", []string{"mongodbatlas_advanced_cluster", "cluster_info"}).Body()
+	resourceType := "mongodbatlas_advanced_cluster"
+	cluster := root.AppendNewBlock("resource", []string{resourceType, resourceSuffix}).Body()
 	clusterRootAttributes := map[string]any{
 		"project_id":     projectID,
 		"cluster_type":   clusterTypeStr,
@@ -113,7 +114,7 @@ func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clust
 	for i, spec := range specs {
 		err = writeReplicationSpec(cluster, spec)
 		if err != nil {
-			return "", "", fmt.Errorf("error writing hcl for replication spec %d: %w", i, err)
+			return "", "", "", fmt.Errorf("error writing hcl for replication spec %d: %w", i, err)
 		}
 	}
 	if len(req.Tags) > 0 {
@@ -127,14 +128,15 @@ func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clust
 	cluster.AppendNewline()
 	if req.ResourceDependencyName != "" {
 		if !strings.Contains(req.ResourceDependencyName, ".") {
-			return "", "", fmt.Errorf("req.ResourceDependencyName must have a '.'")
+			return "", "", "", fmt.Errorf("req.ResourceDependencyName must have a '.'")
 		}
 		err = setAttributeHcl(cluster, fmt.Sprintf("depends_on = [%s]", req.ResourceDependencyName))
 		if err != nil {
-			return "", "", err
+			return "", "", "", err
 		}
 	}
-	return "\n" + string(f.Bytes()), clusterName, err
+	clusterResourceName := fmt.Sprintf("%s.%s", resourceType, resourceSuffix)
+	return "\n" + string(f.Bytes()), clusterName, clusterResourceName, err
 }
 
 func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec) error {

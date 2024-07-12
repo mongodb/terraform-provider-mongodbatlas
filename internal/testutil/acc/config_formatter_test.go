@@ -395,8 +395,9 @@ func Test_ClusterResourceHcl(t *testing.T) {
 	)
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			config, actualClusterName, err := acc.ClusterResourceHcl("project", &tc.req)
+			config, actualClusterName, actualResourceName, err := acc.ClusterResourceHcl("project", &tc.req, acc.DefaultClusterResourceSuffix)
 			require.NoError(t, err)
+			assert.Equal(t, "mongodbatlas_advanced_cluster.cluster_info", actualResourceName)
 			assert.Equal(t, clusterName, actualClusterName)
 			assert.Equal(t, tc.expected, config)
 		})

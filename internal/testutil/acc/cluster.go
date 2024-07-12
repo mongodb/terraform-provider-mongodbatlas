@@ -28,6 +28,8 @@ type ClusterInfo struct {
 	ClusterTerraformStr string
 }
 
+const DefaultClusterResourceSuffix = "cluster_info"
+
 // GetClusterInfo is used to obtain a project and cluster configuration resource.
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, creation of resources is avoided. This is useful for local execution but not intended for CI executions.
 // Clusters will be created in project ProjectIDExecution.
@@ -48,11 +50,15 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 		}
 	}
 	projectID = ProjectIDExecution(tb)
-	clusterTerraformStr, clusterName, err := ClusterResourceHcl(projectID, req)
+	return GetClusterInfoWithProject(tb, req, projectID, DefaultClusterResourceSuffix)
+}
+
+func GetClusterInfoWithProject(tb testing.TB, req *ClusterRequest, projectID, resourceSuffix string) ClusterInfo {
+	tb.Helper()
+	clusterTerraformStr, clusterName, clusterResourceName, err := ClusterResourceHcl(projectID, req, resourceSuffix)
 	if err != nil {
 		tb.Error(err)
 	}
-	clusterResourceName := "mongodbatlas_advanced_cluster.cluster_info"
 	return ClusterInfo{
 		ProjectIDStr:        fmt.Sprintf("%q", projectID),
 		ProjectID:           projectID,
