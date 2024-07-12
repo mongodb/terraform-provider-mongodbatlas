@@ -46,7 +46,7 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithVerify(clusterTerraformStr, projectID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
+				Config: configWithVerify(clusterTerraformStr, clusterInfo.ClusterResourceName, projectID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -162,7 +162,7 @@ func configBasic(projectID, hostname, username, password string, authEnabled boo
 	`, projectID, hostname, username, password, authEnabled, port)
 }
 
-func configWithVerify(clusterTerraformStr, projectID, clusterName, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
+func configWithVerify(clusterTerraformStr, clusterResourceName, projectID, clusterName, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
 	return fmt.Sprintf(`
 %[9]s
 
@@ -176,7 +176,7 @@ func configWithVerify(clusterTerraformStr, projectID, clusterName, hostname, use
 %[8]s
 			EOF
 			authz_query_template = "{USER}?memberOf?base"
-			depends_on = [mongodbatlas_cluster.test]
+			depends_on = [%[10]s]
 		}
 
 		resource "mongodbatlas_ldap_configuration" "test" {
@@ -196,5 +196,5 @@ func configWithVerify(clusterTerraformStr, projectID, clusterName, hostname, use
 				ldap_query = "DC=example,DC=com??sub?(userPrincipalName={0})"
 			}
 			depends_on = [mongodbatlas_ldap_verify.test]
-		}`, projectID, clusterName, hostname, username, password, port, authEnabled, caCertificate, clusterTerraformStr)
+		}`, projectID, clusterName, hostname, username, password, port, authEnabled, caCertificate, clusterTerraformStr, clusterResourceName)
 }
