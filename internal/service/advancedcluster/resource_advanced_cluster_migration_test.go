@@ -11,11 +11,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestMigAdvancedCluster_singleAWSProvider(t *testing.T) {
+func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
-		config      = configSingleProvider(projectID, clusterName)
+		config      = configReplicaSetAWSProvider(projectID, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,19 +25,19 @@ func TestMigAdvancedCluster_singleAWSProvider(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             checkSingleProvider(projectID, clusterName, false),
+				Check:             checkReplicaSetAWSProvider(projectID, clusterName, false),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
 
-func TestMigAdvancedCluster_multiCloud(t *testing.T) {
+func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName = acc.RandomClusterName()
-		config      = configMultiCloud(orgID, projectName, clusterName)
+		config      = configReplicaSetMultiCloud(orgID, projectName, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -47,7 +47,7 @@ func TestMigAdvancedCluster_multiCloud(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             checkMultiCloud(clusterName, 3),
+				Check:             checkReplicaSetMultiCloud(clusterName, 3),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
