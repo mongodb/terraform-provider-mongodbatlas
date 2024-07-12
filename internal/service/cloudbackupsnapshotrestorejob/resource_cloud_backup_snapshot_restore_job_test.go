@@ -18,17 +18,26 @@ const (
 	dataSourceName = "data.mongodbatlas_cloud_backup_snapshot_restore_job.test"
 )
 
+var clusterRequest = acc.ClusterRequest{
+	CloudBackup: true,
+	ReplicationSpecs: []acc.ReplicationSpecRequest{
+		{Region: "US_WEST_2"},
+	},
+}
+
 func TestAccCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
 }
 
 func TestAccCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 	var (
-		projectID       = acc.ProjectIDExecution(t)
-		clusterName     = acc.RandomClusterName()
-		description     = fmt.Sprintf("My description in %s", clusterName)
-		retentionInDays = "1"
-		useSnapshotID   = true
+		clusterInfo         = acc.GetClusterInfo(t, &clusterRequest)
+		clusterName         = clusterInfo.ClusterName
+		description         = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays     = "1"
+		useSnapshotID       = true
+		clusterTerraformStr = clusterInfo.ClusterTerraformStr
+		clusterResourceName = clusterInfo.ClusterResourceName
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,14 +46,14 @@ func TestAccCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configDownload(projectID, clusterName, description, retentionInDays, useSnapshotID),
+				Config: configDownload(clusterTerraformStr, clusterResourceName, description, retentionInDays, useSnapshotID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.download", "true"),
 				),
 			},
 			{
-				Config:      configDownload(projectID, clusterName, description, retentionInDays, !useSnapshotID),
+				Config:      configDownload(clusterTerraformStr, clusterResourceName, description, retentionInDays, !useSnapshotID),
 				ExpectError: regexp.MustCompile("SNAPSHOT_NOT_FOUND"),
 			},
 		},
@@ -57,8 +66,8 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	var (
 		snapshotsDataSourceName           = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.test"
 		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
-		projectID                         = acc.ProjectIDExecution(tb)
-		clusterName                       = acc.RandomClusterName()
+		clusterInfo                       = acc.GetClusterInfo(tb, &clusterRequest)
+		clusterName                       = clusterInfo.ClusterName
 		description                       = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays                   = "1"
 	)
@@ -69,7 +78,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, description, retentionInDays),
+				Config: configBasic(clusterInfo.ClusterTerraformStr, clusterInfo.ClusterResourceName, description, retentionInDays),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.automated", "true"),
@@ -139,25 +148,15 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(projectID, clusterName, description, retentionInDays string) string {
+func configBasic(terraformStr, clusterResourceName, description, retentionInDays string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = %[1]q
-			name         = %[2]q
-			
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_region_name        = "US_WEST_2"
-			provider_instance_size_name = "M10"
-			cloud_backup                = true
-		}
-
+		%[1]s
 		resource "mongodbatlas_cloud_backup_snapshot" "test" {
-			project_id        = mongodbatlas_cluster.my_cluster.project_id
-			cluster_name      = mongodbatlas_cluster.my_cluster.name
+			project_id        = %[1]s.project_id
+			cluster_name      = %[1]s.name
 			description       = %[3]q
 			retention_in_days = %[4]q
-			depends_on = [mongodbatlas_cluster.my_cluster]
+			depends_on = [%[1]s]
 		}
 
 		resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
@@ -191,29 +190,20 @@ func configBasic(projectID, clusterName, description, retentionInDays string) st
 			page_num = 1
 			items_per_page = 5
 		}
-	`, projectID, clusterName, description, retentionInDays)
+	`, terraformStr, clusterResourceName, description, retentionInDays)
 }
 
-func configDownload(projectID, clusterName, description, retentionInDays string, useSnapshotID bool) string {
+func configDownload(terraformStr, clusterResourceName, description, retentionInDays string, useSnapshotID bool) string {
 	var snapshotIDField string
 	if useSnapshotID {
 		snapshotIDField = `snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.id`
 	}
 
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = %[1]q
-			name         = %[2]q
-			
-			provider_name               = "AWS"
-			provider_region_name        = "US_WEST_2"
-			provider_instance_size_name = "M10"
-			cloud_backup                = true   // enable cloud provider snapshots
-		}
-
+		%[1]s
 		resource "mongodbatlas_cloud_backup_snapshot" "test" {
-			project_id        = mongodbatlas_cluster.my_cluster.project_id
-			cluster_name      = mongodbatlas_cluster.my_cluster.name
+			project_id        = %[2]s.project_id
+			cluster_name      = %[2]s.name
 			description       = %[3]q
 			retention_in_days = %[4]q
 		}
@@ -227,5 +217,5 @@ func configDownload(projectID, clusterName, description, retentionInDays string,
 				download = true
 			}
 		}
-	`, projectID, clusterName, description, retentionInDays, snapshotIDField)
+	`, terraformStr, clusterResourceName, description, retentionInDays, snapshotIDField)
 }
