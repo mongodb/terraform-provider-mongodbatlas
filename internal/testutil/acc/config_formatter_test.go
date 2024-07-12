@@ -137,11 +137,17 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
 `
 var overrideClusterResource = `
 resource "mongodbatlas_advanced_cluster" "cluster_info" {
-  backup_enabled = true
-  cluster_type   = "GEOSHARDED"
-  name           = "my-name"
-  pit_enabled    = true
-  project_id     = "project"
+  project_id             = mongodbatlas_project.test.id
+  backup_enabled         = true
+  cluster_type           = "GEOSHARDED"
+  mongo_db_major_version = "6.0"
+  name                   = "my-name"
+  pit_enabled            = true
+  retain_backups_enabled = true
+
+  advanced_configuration {
+    oplog_min_retention_hours = 8
+  }
 
   replication_specs {
     num_shards = 1
@@ -155,8 +161,9 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
         disk_gb_enabled = false
       }
       electable_specs {
-        instance_size = "M30"
-        node_count    = 30
+        ebs_volume_type = "STANDARD"
+        instance_size   = "M30"
+        node_count      = 30
       }
     }
   }
@@ -374,9 +381,20 @@ func Test_ClusterResourceHcl(t *testing.T) {
 			},
 			"overrideClusterResource": {
 				overrideClusterResource,
-				acc.ClusterRequest{ClusterName: clusterName, Geosharded: true, PitEnabled: true, CloudBackup: true, ReplicationSpecs: []acc.ReplicationSpecRequest{
-					{Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: constant.AZURE},
-				}},
+				acc.ClusterRequest{
+					ProjectID:            "mongodbatlas_project.test.id",
+					ClusterName:          clusterName,
+					Geosharded:           true,
+					CloudBackup:          true,
+					MongoDBMajorVersion:  "6.0",
+					RetainBackupsEnabled: true,
+					ReplicationSpecs: []acc.ReplicationSpecRequest{
+						{Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: constant.AZURE, EbsVolumeType: "STANDARD"},
+					},
+					AdvancedConfiguration: map[string]any{
+						acc.ClusterAdvConfigOplogMinRetentionHours: 8,
+					},
+				},
 			},
 			"twoRegionConfigs": {
 				twoRegionConfigs,
@@ -403,7 +421,9 @@ func Test_ClusterResourceHcl(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			req := tc.req
-			req.ProjectID = "project"
+      if req.ProjectID == "" {
+        req.ProjectID = "project"
+      }
 			config, actualClusterName, actualResourceName, err := acc.ClusterResourceHcl(&req)
 			require.NoError(t, err)
 			assert.Equal(t, "mongodbatlas_advanced_cluster.cluster_info", actualResourceName)
