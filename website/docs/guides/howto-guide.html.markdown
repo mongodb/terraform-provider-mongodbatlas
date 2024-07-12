@@ -1,5 +1,5 @@
 ---
-page_title: "MongoDB Atlas Provider How-To Guide"
+page_title: "How-To Guide"
 ---
 
 # MongoDB Atlas Provider: How-To Guide

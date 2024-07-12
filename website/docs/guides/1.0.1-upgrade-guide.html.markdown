@@ -1,5 +1,5 @@
 ---
-page_title: "MongoDB Atlas Provider 1.0.1: Upgrade and Information Guide"
+page_title: "Upgrade Guide 1.0.1"
 subcategory: "Older Guides"
 ---
 
