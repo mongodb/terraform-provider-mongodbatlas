@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strings"
 	"testing"
 	"time"
 
@@ -38,12 +37,6 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 		clusterResourceName          = clusterInfo.ClusterResourceName
 	)
 
-	config1 := clusterTerraformStr
-	config2 := configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 7)
-	config3 := configWithDailySchedule(clusterTerraformStr, clusterResourceName, 2, 8)
-	if config1 != config2 {
-		t.Fatal(strings.Join([]string{config1, "\n#CONFIG2\n", config2, "\n#CONFIG3\n", config3}, "\n"))
-	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -56,7 +49,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: config2,
+				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 7),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -72,7 +65,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: config3,
+				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 2, 8),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),

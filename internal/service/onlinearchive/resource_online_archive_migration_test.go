@@ -12,19 +12,12 @@ import (
 func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 	var (
 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-		clusterInfo               = acc.GetClusterInfo(t, &acc.ClusterRequest{
-			ReplicationSpecs: []acc.ReplicationSpecRequest{
-				{AutoScalingDiskGbEnabled: true},
-			},
-			Tags: map[string]string{
-				"ArchiveTest": "true", "Owner": "test",
-			},
-		})
-		clusterName          = clusterInfo.ClusterName
-		projectID            = clusterInfo.ProjectID
-		clusterTerraformStr  = clusterInfo.ClusterTerraformStr
-		clusterResourceName  = clusterInfo.ClusterResourceName
-		deleteExpirationDays = 0
+		clusterInfo               = acc.GetClusterInfo(t, &clusterRequest)
+		clusterName               = clusterInfo.ClusterName
+		projectID                 = clusterInfo.ProjectID
+		clusterTerraformStr       = clusterInfo.ClusterTerraformStr
+		clusterResourceName       = clusterInfo.ClusterResourceName
+		deleteExpirationDays      = 0
 	)
 	if mig.IsProviderVersionAtLeast("1.12.2") {
 		deleteExpirationDays = 7
