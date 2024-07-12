@@ -3,6 +3,7 @@ package advancedcluster_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -146,6 +147,46 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 				assert.Equal(t, expectedID, tfOutputSpecs[0]["id"])
 				assert.Equal(t, expectedZoneName, tfOutputSpecs[0]["zone_name"])
 			}
+		})
+	}
+}
+
+func TestGetDiskSizeGBFromReplicationSpec(t *testing.T) {
+	diskSizeGBValue := 40.0
+
+	testCases := map[string]struct {
+		clusterDescription     admin.ClusterDescription20250101
+		expectedDiskSizeResult float64
+	}{
+		"cluster description with disk size gb value at electable spec": {
+			clusterDescription: admin.ClusterDescription20250101{
+				ReplicationSpecs: &[]admin.ReplicationSpec20250101{{
+					RegionConfigs: &[]admin.CloudRegionConfig20250101{{
+						ElectableSpecs: &admin.HardwareSpec20250101{
+							DiskSizeGB: admin.PtrFloat64(diskSizeGBValue),
+						},
+					}},
+				}},
+			},
+			expectedDiskSizeResult: diskSizeGBValue,
+		},
+		"cluster description with no electable spec": {
+			clusterDescription: admin.ClusterDescription20250101{
+				ReplicationSpecs: &[]admin.ReplicationSpec20250101{
+					{RegionConfigs: &[]admin.CloudRegionConfig20250101{{}}},
+				},
+			},
+			expectedDiskSizeResult: 0,
+		},
+		"cluster description with no replication spec": {
+			clusterDescription:     admin.ClusterDescription20250101{},
+			expectedDiskSizeResult: 0,
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result := advancedcluster.GetDiskSizeGBFromReplicationSpec(&tc.clusterDescription)
+			assert.Equal(t, fmt.Sprintf("%.f", tc.expectedDiskSizeResult), fmt.Sprintf("%.f", result)) // formatting to string to avoid float comparison
 		})
 	}
 }

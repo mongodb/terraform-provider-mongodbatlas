@@ -278,6 +278,20 @@ func IsSharedTier(instanceSize string) bool {
 	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
 }
 
+// GetDiskSizeGBFromReplicationSpec obtains the diskSizeGB value by looking into the electable spec of the first replication spec.
+// Independent storage size scaling is not supported (CLOUDP-201331), meaning all electable/analytics/readOnly configs in all replication specs are the same.
+func GetDiskSizeGBFromReplicationSpec(cluster *admin.ClusterDescription20250101) float64 {
+	specs := cluster.GetReplicationSpecs()
+	if len(specs) < 1 {
+		return 0
+	}
+	configs := specs[0].GetRegionConfigs()
+	if len(configs) < 1 {
+		return 0
+	}
+	return configs[0].ElectableSpecs.GetDiskSizeGB()
+}
+
 func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admin20231115.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		cluster, resp, err := client.GetCluster(ctx, projectID, name).Execute()
@@ -942,8 +956,11 @@ func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *f
 		apiObject.NodeCount = conversion.Pointer(v.(int))
 	}
 
-	// TODO: CLOUDP-258270 once disk_size_gb schema attribute is added at this level, we will check if defined in config and prioritize over value defined at root level (deprecated and to be removed)
 	apiObject.DiskSizeGB = rootDiskSizeGB
+	// disk size gb defined in inner level will take precedence over root level.
+	if v, ok := tfMap["disk_size_gb"]; ok && v.(float64) != 0 {
+		apiObject.DiskSizeGB = conversion.Pointer(v.(float64))
+	}
 
 	return apiObject
 }

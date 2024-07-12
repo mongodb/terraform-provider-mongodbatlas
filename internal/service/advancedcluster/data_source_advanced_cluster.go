@@ -303,6 +303,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		clusterID = clusterDescLatest.GetId()
 
+		// root disk_size_gb defined for backwards compatibility avoiding breaking changes
+		if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(clusterDescLatest)); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+		}
+
 		replicationSpecs, err = flattenAdvancedReplicationSpecsDS(ctx, clusterDescLatest.GetReplicationSpecs(), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
