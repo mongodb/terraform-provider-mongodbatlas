@@ -113,12 +113,17 @@ func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 
 func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_federated_database_instance.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName1 = acc.RandomClusterName()
-		clusterName2 = acc.RandomClusterName()
-		name         = acc.RandomName()
+		clusterRequest = acc.ClusterRequest{
+			ReplicationSpecs: []acc.ReplicationSpecRequest{
+				{Region: "EU_WEST_2"},
+			},
+		}
+		resourceName        = "mongodbatlas_federated_database_instance.test"
+		name                = acc.RandomName()
+		clusterInfo         = acc.GetClusterInfo(t, &clusterRequest)
+		projectID           = clusterInfo.ProjectID
+		cluster2Info        = acc.GetClusterInfoWithProject(t, &clusterRequest, projectID, "cluster2")
+		dependencyTerraform = fmt.Sprintf("%s\n%s", clusterInfo.ClusterTerraformStr, cluster2Info.ClusterTerraformStr)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -127,7 +132,7 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithCluster(orgID, projectName, clusterName1, clusterName2, name),
+				Config:                   configWithCluster(dependencyTerraform, projectID, clusterInfo.ClusterResourceName, cluster2Info.ClusterResourceName, name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -140,34 +145,12 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	})
 }
 
-func configWithCluster(orgID, projectName, clusterName1, clusterName2, name string) string {
+func configWithCluster(terraformStr, projectID, cluster1ResourceName, cluster2ResourceName, name string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "project-tf" {
-			org_id = %[1]q
-			name   = %[2]q
-	  }
-	  
-	  resource "mongodbatlas_cluster" "cluster-1" {
-			project_id = mongodbatlas_project.project-tf.id
-			provider_name               = "AWS"
-			name                        = %[3]q
-			backing_provider_name       = "AWS"
-			provider_region_name        = "EU_WEST_2"
-			provider_instance_size_name = "M10"
-	  }
-	  
-	  
-	  resource "mongodbatlas_cluster" "cluster-2" {
-			project_id = mongodbatlas_project.project-tf.id
-			provider_name               = "AWS"
-			name                        = %[4]q
-			backing_provider_name       = "AWS"
-			provider_region_name        = "EU_WEST_2"
-			provider_instance_size_name = "M10"
-	  }
+	  %[1]s
 
 	  resource "mongodbatlas_federated_database_instance" "test" {
-			project_id = mongodbatlas_project.project-tf.id
+			project_id = %[2]q
 			name       = %[5]q
 			storage_databases {
 				name = "VirtualDatabase0"
@@ -176,21 +159,21 @@ func configWithCluster(orgID, projectName, clusterName1, clusterName2, name stri
 				data_sources {
 					collection = "listingsAndReviews"
 					database   = "sample_airbnb"
-					store_name = mongodbatlas_cluster.cluster-1.name
+					store_name = %[3]s.name
 				}
 				data_sources {
 
 					collection = "listingsAndReviews"
 					database   = "sample_airbnb"
-					store_name = mongodbatlas_cluster.cluster-2.name
+					store_name = %[4]s.name
 				}
 			}
 		}
 	  
 		storage_stores {
-		  name         = mongodbatlas_cluster.cluster-1.name
-		  cluster_name = mongodbatlas_cluster.cluster-1.name
-		  project_id   = mongodbatlas_project.project-tf.id
+		  name         = %[3]s.name
+		  cluster_name = %[3]s.name
+		  project_id   = %[2]q
 		  provider     = "atlas"
 		  read_preference {
 			mode = "secondary"
@@ -218,9 +201,9 @@ func configWithCluster(orgID, projectName, clusterName1, clusterName2, name stri
 		}
 	  
 		storage_stores {
-		  name         = mongodbatlas_cluster.cluster-2.name
-		  cluster_name = mongodbatlas_cluster.cluster-2.name
-		  project_id   = mongodbatlas_project.project-tf.id
+		  name         = %[4]s.name
+		  cluster_name = %[4]s.name
+		  project_id   = %[2]q
 		  provider     = "atlas"
 		  read_preference {
 			mode = "secondary"
@@ -247,7 +230,7 @@ func configWithCluster(orgID, projectName, clusterName1, clusterName2, name stri
 		  }
 		}
 	  }
-	`, orgID, projectName, clusterName1, clusterName2, name)
+	`, terraformStr, projectID, cluster1ResourceName, cluster2ResourceName, name)
 }
 
 func importStateIDFuncS3Bucket(resourceName, s3Bucket string) resource.ImportStateIdFunc {
