@@ -648,6 +648,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_REGION_UPPERCASE: ${{ vars.AWS_REGION_UPPERCASE }}
+          AWS_REGION_LOWERCASE: ${{ vars.AWS_REGION_LOWERCASE }}
           AWS_SECURITY_GROUP_1: ${{ vars.AWS_SECURITY_GROUP_1 }}
           AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}

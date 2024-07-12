@@ -180,6 +180,14 @@ func PreCheckAwsEnv(tb testing.TB) {
 	}
 }
 
+func PreCheckAwsRegionCases(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AWS_REGION_UPPERCASE") == "" ||
+		os.Getenv("AWS_REGION_LOWERCASE") == "" {
+		tb.Fatal("`AWS_REGION_UPPERCASE`, `AWS_REGION_LOWERCASE` must be set for acceptance testing")
+	}
+}
+
 func PreCheckAwsEnvPrivateLinkEndpointService(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
