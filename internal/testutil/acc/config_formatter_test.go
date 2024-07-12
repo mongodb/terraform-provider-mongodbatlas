@@ -391,6 +391,7 @@ func Test_ClusterResourceHcl(t *testing.T) {
 					ReplicationSpecs: []acc.ReplicationSpecRequest{
 						{Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: constant.AZURE, EbsVolumeType: "STANDARD"},
 					},
+					PitEnabled: true,
 					AdvancedConfiguration: map[string]any{
 						acc.ClusterAdvConfigOplogMinRetentionHours: 8,
 					},
@@ -421,9 +422,9 @@ func Test_ClusterResourceHcl(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			req := tc.req
-      if req.ProjectID == "" {
-        req.ProjectID = "project"
-      }
+			if req.ProjectID == "" {
+				req.ProjectID = "project"
+			}
 			config, actualClusterName, actualResourceName, err := acc.ClusterResourceHcl(&req)
 			require.NoError(t, err)
 			assert.Equal(t, "mongodbatlas_advanced_cluster.cluster_info", actualResourceName)

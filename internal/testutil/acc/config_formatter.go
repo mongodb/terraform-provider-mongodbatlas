@@ -84,10 +84,10 @@ var (
 )
 
 func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceName string, err error) {
-	projectID := req.ProjectID
-	if req == nil || projectID == "" {
+	if req == nil || req.ProjectID == "" {
 		return "", "", "", errors.New("must specify a ClusterRequest with at least ProjectID set")
 	}
+	projectID := req.ProjectID
 	req.AddDefaults()
 	specRequests := req.ReplicationSpecs
 	specs := make([]admin.ReplicationSpec, len(specRequests))
@@ -106,10 +106,10 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	resourceType := "mongodbatlas_advanced_cluster"
 	cluster := root.AppendNewBlock("resource", []string{resourceType, resourceSuffix}).Body()
 	clusterRootAttributes := map[string]any{
-		"cluster_type":   clusterTypeStr,
-		"name":           clusterName,
-		"backup_enabled": req.CloudBackup,
-		"pit_enabled":    req.PitEnabled,
+		"cluster_type":           clusterTypeStr,
+		"name":                   clusterName,
+		"backup_enabled":         req.CloudBackup,
+		"pit_enabled":            req.PitEnabled,
 		"mongo_db_major_version": req.MongoDBMajorVersion,
 	}
 	if strings.Contains(req.ProjectID, ".") {
