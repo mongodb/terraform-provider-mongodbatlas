@@ -9,6 +9,12 @@
 - If some deprecated attributes need to be removed in the following release, create a Jira ticket and merge the corresponding PR before starting the release workflow.
 You can search in the code for the constansts in [deprecation.go](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/common/constant/deprecation.go) to find them.
 
+### Move old guides
+
+**Note**: Only applies if the right most version digit is 0 (considered a major or minor version in [semantic versioning](https://semver.org/)).
+
+- Keep only [Guides](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/website/docs/guides) for 12 months. Previous versions must be added in the header `subcategory: "Older Guides"`.
+
 ### Revise jira release
 
 Before triggering a release, view the corresponding [unreleased jira page](https://jira.mongodb.org/projects/CLOUDP?selectedItem=com.atlassian.jira.jira-projects-plugin:release-page&status=unreleased&contains=terraform) to ensure there are no pending tickets. In case there are pending tickets, verify with the team if the expectation is to have them included within the current release. After release workflow is successful the version will be marked as released automatically.

@@ -1,10 +1,6 @@
 ---
-layout: "mongodbatlas"
 page_title: "MongoDB Atlas Provider 0.6.0: Upgrade Guide"
-sidebar_current: "docs-mongodbatlas-guides-060-upgrade-guide"
-description: |-
-    MongoDB Atlas Provider 0.6.0: Upgrade Guide
-    
+subcategory: "Older Guides"    
 ---
 
 # MongoDB Atlas Provider 0.6.0: Upgrade Guide

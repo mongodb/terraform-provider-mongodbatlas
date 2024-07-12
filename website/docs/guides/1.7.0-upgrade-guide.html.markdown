@@ -1,9 +1,6 @@
 ---
-layout: "mongodbatlas"
 page_title: "MongoDB Atlas Provider 1.7.0: Upgrade and Information Guide"
-sidebar_current: "docs-mongodbatlas-guides-170-upgrade-guide"
-description: |-
-MongoDB Atlas Provider 1.7.0: Upgrade and Information Guide
+subcategory: "Older Guides"
 ---
 
 # MongoDB Atlas Provider 1.7.0: Upgrade and Information Guide

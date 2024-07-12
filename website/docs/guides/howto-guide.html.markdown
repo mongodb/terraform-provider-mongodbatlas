@@ -1,9 +1,5 @@
 ---
-layout: "mongodbatlas"
 page_title: "MongoDB Atlas Provider How-To Guide"
-sidebar_current: "docs-mongodbatlas-guides-how-to-guide"
-description: |-
-MongoDB Atlas Provider : How-To Guide
 ---
 
 # MongoDB Atlas Provider: How-To Guide
