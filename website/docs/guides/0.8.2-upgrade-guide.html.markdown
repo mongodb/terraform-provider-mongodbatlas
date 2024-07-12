@@ -1,5 +1,5 @@
 ---
-page_title: "page_title: "Upgrade Guide 0.8.2"
+page_title: "Upgrade Guide 0.8.2"
 subcategory: "Older Guides"
 ---
 
