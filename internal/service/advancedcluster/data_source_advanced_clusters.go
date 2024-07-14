@@ -64,8 +64,9 @@ func PluralDataSource() *schema.Resource {
 							Computed: true,
 						},
 						"disk_size_gb": {
-							Type:     schema.TypeFloat,
-							Computed: true,
+							Type:       schema.TypeFloat,
+							Computed:   true,
+							Deprecated: DeprecationMsgOldSchema,
 						},
 						"encryption_at_rest_provider": {
 							Type:     schema.TypeString,
@@ -116,12 +117,14 @@ func PluralDataSource() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Type:       schema.TypeString,
+										Computed:   true,
+										Deprecated: DeprecationMsgOldSchema,
 									},
 									"num_shards": {
-										Type:     schema.TypeInt,
-										Computed: true,
+										Type:       schema.TypeInt,
+										Computed:   true,
+										Deprecated: DeprecationMsgOldSchema,
 									},
 									"region_configs": {
 										Type:     schema.TypeList,

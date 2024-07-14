@@ -1,0 +1,64 @@
+```release-note:note
+resource/mongodbatlas_advanced_cluster: Deprecates `replication_specs.#.id` attribute
+```
+
+```release-note:note
+resource/mongodbatlas_advanced_cluster: Deprecates `replication_specs.#.num_shards` attribute
+```
+
+```release-note:note
+resource/mongodbatlas_advanced_cluster: Deprecates `disk_size_gb` attribute
+```
+
+```release-note:note
+resource/mongodbatlas_advanced_cluster: Deprecates `advanced_configuration.0.default_read_concern` attribute
+```
+
+```release-note:note
+resource/mongodbatlas_advanced_cluster: Deprecates `advanced_configuration.0.fail_index_key_too_long` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_cluster: Deprecates `replication_specs.#.id` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_cluster: Deprecates `replication_specs.#.num_shards` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_cluster: Deprecates `disk_size_gb` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_cluster: Deprecates `advanced_configuration.0.default_read_concern` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_cluster: Deprecates `advanced_configuration.0.fail_index_key_too_long` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_clusters: Deprecates `replication_specs.#.id` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_clusters: Deprecates `replication_specs.#.num_shards` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_clusters: Deprecates `disk_size_gb` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_clusters: Deprecates `advanced_configuration.0.default_read_concern` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_clusters: Deprecates `advanced_configuration.0.fail_index_key_too_long` attribute
+```
+
+
+
+
+

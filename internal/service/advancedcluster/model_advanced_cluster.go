@@ -63,16 +63,18 @@ func SchemaAdvancedConfigDS() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"default_read_concern": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Type:       schema.TypeString,
+					Computed:   true,
+					Deprecated: DeprecationMsgOldSchema,
 				},
 				"default_write_concern": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
 				"fail_index_key_too_long": {
-					Type:     schema.TypeBool,
-					Computed: true,
+					Type:       schema.TypeBool,
+					Computed:   true,
+					Deprecated: DeprecationMsgOldSchema,
 				},
 				"javascript_enabled": {
 					Type:     schema.TypeBool,
@@ -191,9 +193,10 @@ func SchemaAdvancedConfig() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"default_read_concern": {
-					Type:     schema.TypeString,
-					Optional: true,
-					Computed: true,
+					Type:       schema.TypeString,
+					Optional:   true,
+					Computed:   true,
+					Deprecated: DeprecationMsgOldSchema,
 				},
 				"default_write_concern": {
 					Type:     schema.TypeString,
@@ -201,9 +204,10 @@ func SchemaAdvancedConfig() *schema.Schema {
 					Computed: true,
 				},
 				"fail_index_key_too_long": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Computed: true,
+					Type:       schema.TypeBool,
+					Optional:   true,
+					Computed:   true,
+					Deprecated: DeprecationMsgOldSchema,
 				},
 				"javascript_enabled": {
 					Type:     schema.TypeBool,
