@@ -16,8 +16,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-// replication_specs.id, num_shards, disk_size_gb, default_read_concern, and fail_index_key_too_long
-
 func DataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRead,
