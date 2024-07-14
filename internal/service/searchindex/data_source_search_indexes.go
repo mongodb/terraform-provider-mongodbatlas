@@ -35,7 +35,7 @@ func PluralDataSource() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: returnSearchIndexSchema(),
+					Schema: returnSearchIndexDSSchema(),
 				},
 			},
 			"total_count": {
@@ -131,7 +131,13 @@ func flattenSearchIndexes(searchIndexes []admin.SearchIndexResponse, projectID, 
 			}
 			searchIndexesMap[i]["fields"] = fieldsMarshaled
 		}
-	}
 
+		storedSource := searchIndexes[i].LatestDefinition.GetStoredSource()
+		strStoredSource, errStoredSource := MarshalStoredSource(storedSource)
+		if errStoredSource != nil {
+			return nil, errStoredSource
+		}
+		searchIndexesMap[i]["stored_source"] = strStoredSource
+	}
 	return searchIndexesMap, nil
 }

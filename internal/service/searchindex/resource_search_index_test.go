@@ -28,8 +28,8 @@ func TestAccSearchIndex_withSearchType(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, indexName, "search", databaseName),
-				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName),
+				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, ""),
+				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, ""),
 			},
 		},
 	})
@@ -163,15 +163,83 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, indexName, "", databaseName),
-				Check:  checkBasic(projectID, clusterName, indexName, "", databaseName),
+				Config: configBasic(projectID, clusterName, indexName, "", databaseName, ""),
+				Check:  checkBasic(projectID, clusterName, indexName, "", databaseName, ""),
 			},
 			{
-				Config:            configBasic(projectID, clusterName, indexName, "", databaseName),
+				Config:            configBasic(projectID, clusterName, indexName, "", databaseName, ""),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func TestAccSearchIndex_withStoredSourceFalse(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCase(t, "false"))
+}
+
+func TestAccSearchIndex_withStoredSourceTrue(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCase(t, "true"))
+}
+
+func TestAccSearchIndex_withStoredSourceInclude(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCase(t, storedSourceIncludeJSON))
+}
+
+func TestAccSearchIndex_withStoredSourceExclude(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCase(t, storedSourceExcludeJSON))
+}
+
+func TestAccSearchIndex_withStoredSourceUpdateEmptyType(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCaseUpdate(t, ""))
+}
+
+func TestAccSearchIndex_withStoredSourceUpdateSearchType(t *testing.T) {
+	resource.ParallelTest(t, *storedSourceTestCaseUpdate(t, "search"))
+}
+
+func storedSourceTestCase(tb testing.TB, storedSource string) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(tb)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, storedSource),
+				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, storedSource),
+			},
+		},
+	}
+}
+
+func storedSourceTestCaseUpdate(tb testing.TB, searchType string) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(tb)
+		indexName              = acc.RandomName()
+		databaseName           = acc.RandomName()
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, clusterName, indexName, searchType, databaseName, "false"),
+				Check:  checkBasic(projectID, clusterName, indexName, searchType, databaseName, "false"),
+			},
+			{
+				Config: configBasic(projectID, clusterName, indexName, searchType, databaseName, "true"),
+				Check:  checkBasic(projectID, clusterName, indexName, searchType, databaseName, "true"),
 			},
 		},
 	}
@@ -238,11 +306,19 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func configBasic(projectID, clusterName, indexName, indexType, databaseName string) string {
-	var indexTypeStr string
+func configBasic(projectID, clusterName, indexName, indexType, databaseName, storedSource string) string {
+	var extra string
 	if indexType != "" {
-		indexTypeStr = fmt.Sprintf("type=%q", indexType)
+		extra += fmt.Sprintf("type=%q\n", indexType)
 	}
+	if storedSource != "" {
+		if storedSource == "true" || storedSource == "false" {
+			extra += fmt.Sprintf("stored_source=%q\n", storedSource)
+		} else {
+			extra += fmt.Sprintf("stored_source= <<-EOF\n%s\nEOF\n", storedSource)
+		}
+	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			cluster_name     = %[1]q
@@ -260,12 +336,22 @@ func configBasic(projectID, clusterName, indexName, indexType, databaseName stri
 			project_id       = mongodbatlas_search_index.test.project_id
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, indexTypeStr)
+	`, clusterName, projectID, indexName, databaseName, collectionName, searchAnalyzer, extra)
 }
 
-func checkBasic(projectID, clusterName, indexName, indexType, databaseName string) resource.TestCheckFunc {
+func checkBasic(projectID, clusterName, indexName, indexType, databaseName, storedSource string) resource.TestCheckFunc {
 	mappingsDynamic := "true"
-	return checkAggr(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic)
+	checks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(resourceName, "stored_source", storedSource),
+		resource.TestCheckResourceAttr(datasourceName, "stored_source", storedSource),
+	}
+	if storedSource != "" && storedSource != "true" && storedSource != "false" {
+		checks = []resource.TestCheckFunc{
+			resource.TestCheckResourceAttrWith(resourceName, "stored_source", acc.JSONEquals(storedSource)),
+			resource.TestCheckResourceAttrWith(datasourceName, "stored_source", acc.JSONEquals(storedSource)),
+		}
+	}
+	return checkAggr(projectID, clusterName, indexName, indexType, databaseName, mappingsDynamic, checks...)
 }
 
 func configWithMapping(projectID, indexName, databaseName, clusterName string) string {
@@ -472,7 +558,21 @@ const (
 				]
 			}
 		]
-`
+	`
+
+	incorrectFormatAnalyzersJSON = `
+		[
+			{
+				"wrongField":[
+					{
+							"type":"length",
+							"min":20,
+							"max":33
+					}
+				]
+			}
+		]
+	`
 
 	mappingsFieldsJSON = `
 		{
@@ -516,17 +616,15 @@ const (
 		}]	
 	`
 
-	incorrectFormatAnalyzersJSON = `
-		[
-			{
-				"wrongField":[
-					{
-							"type":"length",
-							"min":20,
-							"max":33
-					}
-				]
-			}
-		]
+	storedSourceIncludeJSON = `
+		{ 
+			"include": ["include1","include2"]
+		}	
+	`
+
+	storedSourceExcludeJSON = `
+		{
+			"exclude": ["exclude1", "exclude2"]
+		}	
 	`
 )
