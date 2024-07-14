@@ -553,7 +553,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		clusterResp = cluster
 	}
 
-	diags := setResourceRootFields(d, clusterResp)
+	diags := setRootFields(d, clusterResp, true)
 	if diags.HasError() {
 		return diags
 	}
@@ -574,8 +574,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	return nil
 }
 
-// TODO: CLOUDP-259838 this can likely be unified with data source function setRootFields
-func setResourceRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20250101) diag.Diagnostics {
+func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20250101, isResourceSchema bool) diag.Diagnostics {
 	clusterName := *cluster.Name
 
 	if err := d.Set("cluster_id", cluster.GetId()); err != nil {
@@ -650,7 +649,7 @@ func setResourceRootFields(d *schema.ResourceData, cluster *admin.ClusterDescrip
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "version_release_system", clusterName, err))
 	}
 
-	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", conversion.TimePtrToStringPtr(cluster.AcceptDataRisksAndForceReplicaSetReconfig)); err != nil {
+	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", conversion.TimePtrToStringPtr(cluster.AcceptDataRisksAndForceReplicaSetReconfig)); isResourceSchema && err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
 	}
 
