@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_search_index: Adds attribute `stored_source` ([#2388](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2388))
+* data-source/mongodbatlas_search_indexes: Adds attribute `stored_source` ([#2388](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2388))
+* resource/mongodbatlas_search_index: Adds attribute `stored_source` ([#2388](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2388))
+
 BUG FIXES:
 
 * resource/mongodbatlas_advanced_cluster: Fixes `disk_iops` attribute for Azure cloud provider ([#2396](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2396))
