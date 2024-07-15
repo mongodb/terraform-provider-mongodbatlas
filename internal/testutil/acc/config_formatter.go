@@ -2,6 +2,7 @@ package acc
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"sort"
@@ -75,22 +76,18 @@ func ToSnakeCase(str string) string {
 	return strings.ToLower(snake)
 }
 
-func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clusterName string, err error) {
-	if req == nil {
-		req = new(ClusterRequest)
+func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceName string, err error) {
+	if req == nil || req.ProjectID == "" {
+		return "", "", "", errors.New("must specify a ClusterRequest with at least ProjectID set")
 	}
+	req.AddDefaults()
 	specRequests := req.ReplicationSpecs
-	if len(specRequests) == 0 {
-		specRequests = append(specRequests, ReplicationSpecRequest{})
-	}
 	specs := make([]admin.ReplicationSpec, len(specRequests))
 	for i, specRequest := range specRequests {
 		specs[i] = ReplicationSpec(&specRequest)
 	}
-	clusterName = req.ClusterNameExplicit
-	if clusterName == "" {
-		clusterName = RandomClusterName()
-	}
+	clusterName = req.ClusterName
+	resourceSuffix := req.ResourceSuffix
 	clusterTypeStr := "REPLICASET"
 	if req.Geosharded {
 		clusterTypeStr = "GEOSHARDED"
@@ -98,9 +95,10 @@ func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clust
 
 	f := hclwrite.NewEmptyFile()
 	root := f.Body()
-	cluster := root.AppendNewBlock("resource", []string{"mongodbatlas_advanced_cluster", "cluster_info"}).Body()
+	resourceType := "mongodbatlas_advanced_cluster"
+	cluster := root.AppendNewBlock("resource", []string{resourceType, resourceSuffix}).Body()
 	clusterRootAttributes := map[string]any{
-		"project_id":     projectID,
+		"project_id":     req.ProjectID,
 		"cluster_type":   clusterTypeStr,
 		"name":           clusterName,
 		"backup_enabled": req.CloudBackup,
@@ -114,7 +112,7 @@ func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clust
 	for i, spec := range specs {
 		err = writeReplicationSpec(cluster, spec)
 		if err != nil {
-			return "", "", fmt.Errorf("error writing hcl for replication spec %d: %w", i, err)
+			return "", "", "", fmt.Errorf("error writing hcl for replication spec %d: %w", i, err)
 		}
 	}
 	if len(req.Tags) > 0 {
@@ -128,14 +126,15 @@ func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clust
 	cluster.AppendNewline()
 	if req.ResourceDependencyName != "" {
 		if !strings.Contains(req.ResourceDependencyName, ".") {
-			return "", "", fmt.Errorf("req.ResourceDependencyName must have a '.'")
+			return "", "", "", fmt.Errorf("req.ResourceDependencyName must have a '.'")
 		}
 		err = setAttributeHcl(cluster, fmt.Sprintf("depends_on = [%s]", req.ResourceDependencyName))
 		if err != nil {
-			return "", "", err
+			return "", "", "", err
 		}
 	}
-	return "\n" + string(f.Bytes()), clusterName, err
+	clusterResourceName := fmt.Sprintf("%s.%s", resourceType, resourceSuffix)
+	return "\n" + string(f.Bytes()), clusterName, clusterResourceName, err
 }
 
 func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec) error {
