@@ -16,24 +16,6 @@ const (
 	dataSourceName = "data.mongodbatlas_cluster_outage_simulation.test"
 )
 
-var (
-	singleRegionRequest = acc.ClusterRequest{
-		ReplicationSpecs: []acc.ReplicationSpecRequest{
-			{Region: "US_WEST_2", InstanceSize: "M10"},
-		},
-	}
-	multiRegionRequest = acc.ClusterRequest{ReplicationSpecs: []acc.ReplicationSpecRequest{
-		{
-			Region:    "US_EAST_1",
-			NodeCount: 3,
-			ExtraRegionConfigs: []acc.ReplicationSpecRequest{
-				{Region: "US_EAST_2", NodeCount: 2, Priority: 6},
-				{Region: "US_WEST_2", NodeCount: 2, Priority: 5, NodeCountReadOnly: 2},
-			},
-		},
-	}}
-)
-
 func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	resource.ParallelTest(t, *singleRegionTestCase(t))
 }
@@ -41,6 +23,11 @@ func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 func singleRegionTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
+		singleRegionRequest = acc.ClusterRequest{
+			ReplicationSpecs: []acc.ReplicationSpecRequest{
+				{Region: "US_WEST_2", InstanceSize: "M10"},
+			},
+		}
 		clusterInfo = acc.GetClusterInfo(t, &singleRegionRequest)
 		clusterName = clusterInfo.ClusterName
 	)
@@ -78,6 +65,16 @@ func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 func multiRegionTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
+		multiRegionRequest = acc.ClusterRequest{ReplicationSpecs: []acc.ReplicationSpecRequest{
+			{
+				Region:    "US_EAST_1",
+				NodeCount: 3,
+				ExtraRegionConfigs: []acc.ReplicationSpecRequest{
+					{Region: "US_EAST_2", NodeCount: 2, Priority: 6},
+					{Region: "US_WEST_2", NodeCount: 2, Priority: 5, NodeCountReadOnly: 2},
+				},
+			},
+		}}
 		clusterInfo = acc.GetClusterInfo(t, &multiRegionRequest)
 		clusterName = clusterInfo.ClusterName
 	)
