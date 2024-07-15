@@ -259,9 +259,11 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 			},
 			PitEnabled: true, // you cannot copy oplogs when pit is not enabled
 		})
-		clusterName = clusterInfo.ClusterName
-		projectID   = clusterInfo.ProjectID
-		checkMap    = map[string]string{
+		clusterName         = clusterInfo.ClusterName
+		terraformStr        = clusterInfo.ClusterTerraformStr
+		clusterResourceName = clusterInfo.ClusterResourceName
+		projectID           = clusterInfo.ProjectID
+		checkMap            = map[string]string{
 			"cluster_name":                             clusterName,
 			"reference_hour_of_day":                    "3",
 			"reference_minute_of_hour":                 "45",
@@ -307,7 +309,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configCopySettings(clusterInfo.ClusterTerraformStr, projectID, clusterInfo.ClusterResourceName, false, &admin.DiskBackupSnapshotSchedule{
+				Config: configCopySettings(terraformStr, projectID, clusterResourceName, false, &admin.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(1),
@@ -315,7 +317,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(checksCreate...),
 			},
 			{
-				Config: configCopySettings(clusterInfo.ClusterTerraformStr, projectID, clusterInfo.ClusterResourceName, true, &admin.DiskBackupSnapshotSchedule{
+				Config: configCopySettings(terraformStr, projectID, clusterResourceName, true, &admin.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(1),
