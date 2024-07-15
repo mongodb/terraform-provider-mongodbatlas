@@ -11,12 +11,26 @@ import (
 
 type ClusterRequest struct {
 	Tags                   map[string]string
+	ProjectID              string
+	ResourceSuffix         string
 	ResourceDependencyName string
-	ClusterNameExplicit    string
+	ClusterName            string
 	ReplicationSpecs       []ReplicationSpecRequest
 	DiskSizeGb             int
 	CloudBackup            bool
 	Geosharded             bool
+}
+
+func (r *ClusterRequest) AddDefaults() {
+	if r.ResourceSuffix == "" {
+		r.ResourceSuffix = defaultClusterResourceSuffix
+	}
+	if len(r.ReplicationSpecs) == 0 {
+		r.ReplicationSpecs = []ReplicationSpecRequest{{}}
+	}
+	if r.ClusterName == "" {
+		r.ClusterName = RandomClusterName()
+	}
 }
 
 type ClusterInfo struct {
@@ -28,7 +42,7 @@ type ClusterInfo struct {
 	ClusterTerraformStr string
 }
 
-const DefaultClusterResourceSuffix = "cluster_info"
+const defaultClusterResourceSuffix = "cluster_info"
 
 // GetClusterInfo is used to obtain a project and cluster configuration resource.
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, creation of resources is avoided. This is useful for local execution but not intended for CI executions.
@@ -38,30 +52,26 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 	if req == nil {
 		req = new(ClusterRequest)
 	}
-	clusterName := os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	if clusterName != "" && projectID != "" {
-		return ClusterInfo{
-			ProjectIDStr:        fmt.Sprintf("%q", projectID),
-			ProjectID:           projectID,
-			ClusterName:         clusterName,
-			ClusterNameStr:      fmt.Sprintf("%q", clusterName),
-			ClusterTerraformStr: "",
+	if req.ProjectID == "" {
+		if ExistingClusterUsed() {
+			projectID, clusterName := existingProjectIDClusterName()
+			return ClusterInfo{
+				ProjectIDStr:        fmt.Sprintf("%q", projectID),
+				ProjectID:           projectID,
+				ClusterName:         clusterName,
+				ClusterNameStr:      fmt.Sprintf("%q", clusterName),
+				ClusterTerraformStr: "",
+			}
 		}
+		req.ProjectID = ProjectIDExecution(tb)
 	}
-	projectID = ProjectIDExecution(tb)
-	return GetClusterInfoWithProject(tb, req, projectID, DefaultClusterResourceSuffix)
-}
-
-func GetClusterInfoWithProject(tb testing.TB, req *ClusterRequest, projectID, resourceSuffix string) ClusterInfo {
-	tb.Helper()
-	clusterTerraformStr, clusterName, clusterResourceName, err := ClusterResourceHcl(projectID, req, resourceSuffix)
+	clusterTerraformStr, clusterName, clusterResourceName, err := ClusterResourceHcl(req)
 	if err != nil {
 		tb.Error(err)
 	}
 	return ClusterInfo{
-		ProjectIDStr:        fmt.Sprintf("%q", projectID),
-		ProjectID:           projectID,
+		ProjectIDStr:        fmt.Sprintf("%q", req.ProjectID),
+		ProjectID:           req.ProjectID,
 		ClusterName:         clusterName,
 		ClusterNameStr:      fmt.Sprintf("%s.name", clusterResourceName),
 		ClusterResourceName: clusterResourceName,
@@ -70,9 +80,12 @@ func GetClusterInfoWithProject(tb testing.TB, req *ClusterRequest, projectID, re
 }
 
 func ExistingClusterUsed() bool {
-	clusterName := os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	projectID, clusterName := existingProjectIDClusterName()
 	return clusterName != "" && projectID != ""
+}
+
+func existingProjectIDClusterName() (projectID, clusterName string) {
+	return os.Getenv("MONGODB_ATLAS_PROJECT_ID"), os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
 }
 
 type ReplicationSpecRequest struct {

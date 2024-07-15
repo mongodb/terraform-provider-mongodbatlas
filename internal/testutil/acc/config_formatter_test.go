@@ -348,32 +348,32 @@ func Test_ClusterResourceHcl(t *testing.T) {
 		}{
 			"defaults": {
 				standardClusterResource,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName},
+				acc.ClusterRequest{ClusterName: clusterName},
 			},
 			"dependsOn": {
 				dependsOnClusterResource,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, ResourceDependencyName: "mongodbatlas_project.project_execution"},
+				acc.ClusterRequest{ClusterName: clusterName, ResourceDependencyName: "mongodbatlas_project.project_execution"},
 			},
 			"dependsOnMulti": {
 				dependsOnMultiResource,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, ResourceDependencyName: "mongodbatlas_private_endpoint_regional_mode.atlasrm, mongodbatlas_privatelink_endpoint_service.atlasple"},
+				acc.ClusterRequest{ClusterName: clusterName, ResourceDependencyName: "mongodbatlas_private_endpoint_regional_mode.atlasrm, mongodbatlas_privatelink_endpoint_service.atlasple"},
 			},
 			"twoReplicationSpecs": {
 				twoReplicationSpecs,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, ReplicationSpecs: []acc.ReplicationSpecRequest{
+				acc.ClusterRequest{ClusterName: clusterName, ReplicationSpecs: []acc.ReplicationSpecRequest{
 					{Region: "US_WEST_1", ZoneName: "Zone 1"},
 					{Region: "EU_WEST_2", ZoneName: "Zone 2"},
 				}},
 			},
 			"overrideClusterResource": {
 				overrideClusterResource,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, Geosharded: true, CloudBackup: true, ReplicationSpecs: []acc.ReplicationSpecRequest{
+				acc.ClusterRequest{ClusterName: clusterName, Geosharded: true, CloudBackup: true, ReplicationSpecs: []acc.ReplicationSpecRequest{
 					{Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: constant.AZURE},
 				}},
 			},
 			"twoRegionConfigs": {
 				twoRegionConfigs,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, ReplicationSpecs: []acc.ReplicationSpecRequest{
+				acc.ClusterRequest{ClusterName: clusterName, ReplicationSpecs: []acc.ReplicationSpecRequest{
 					{
 						Region:             "US_WEST_1",
 						InstanceSize:       "M10",
@@ -395,7 +395,9 @@ func Test_ClusterResourceHcl(t *testing.T) {
 	)
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			config, actualClusterName, actualResourceName, err := acc.ClusterResourceHcl("project", &tc.req, acc.DefaultClusterResourceSuffix)
+			req := tc.req
+			req.ProjectID = "project"
+			config, actualClusterName, actualResourceName, err := acc.ClusterResourceHcl(&req)
 			require.NoError(t, err)
 			assert.Equal(t, "mongodbatlas_advanced_cluster.cluster_info", actualResourceName)
 			assert.Equal(t, clusterName, actualClusterName)

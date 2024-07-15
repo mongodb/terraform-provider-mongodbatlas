@@ -2,6 +2,7 @@ package acc
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"sort"
@@ -75,22 +76,18 @@ func ToSnakeCase(str string) string {
 	return strings.ToLower(snake)
 }
 
-func ClusterResourceHcl(projectID string, req *ClusterRequest, resourceSuffix string) (configStr, clusterName, resourceName string, err error) {
-	if req == nil {
-		req = new(ClusterRequest)
+func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceName string, err error) {
+	if req == nil || req.ProjectID == "" {
+		return "", "", "", errors.New("must specify a ClusterRequest with at least ProjectID set")
 	}
+	req.AddDefaults()
 	specRequests := req.ReplicationSpecs
-	if len(specRequests) == 0 {
-		specRequests = append(specRequests, ReplicationSpecRequest{})
-	}
 	specs := make([]admin.ReplicationSpec, len(specRequests))
 	for i, specRequest := range specRequests {
 		specs[i] = ReplicationSpec(&specRequest)
 	}
-	clusterName = req.ClusterNameExplicit
-	if clusterName == "" {
-		clusterName = RandomClusterName()
-	}
+	clusterName = req.ClusterName
+	resourceSuffix := req.ResourceSuffix
 	clusterTypeStr := "REPLICASET"
 	if req.Geosharded {
 		clusterTypeStr = "GEOSHARDED"
@@ -101,7 +98,7 @@ func ClusterResourceHcl(projectID string, req *ClusterRequest, resourceSuffix st
 	resourceType := "mongodbatlas_advanced_cluster"
 	cluster := root.AppendNewBlock("resource", []string{resourceType, resourceSuffix}).Body()
 	clusterRootAttributes := map[string]any{
-		"project_id":     projectID,
+		"project_id":     req.ProjectID,
 		"cluster_type":   clusterTypeStr,
 		"name":           clusterName,
 		"backup_enabled": req.CloudBackup,

@@ -113,16 +113,22 @@ func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 
 func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	var (
-		clusterRequest = acc.ClusterRequest{
-			ReplicationSpecs: []acc.ReplicationSpecRequest{
-				{Region: "EU_WEST_2"},
-			},
+		specs = []acc.ReplicationSpecRequest{
+			{Region: "EU_WEST_2"},
 		}
-		resourceName        = "mongodbatlas_federated_database_instance.test"
-		name                = acc.RandomName()
-		clusterInfo         = acc.GetClusterInfo(t, &clusterRequest)
-		projectID           = clusterInfo.ProjectID
-		cluster2Info        = acc.GetClusterInfoWithProject(t, &clusterRequest, projectID, "cluster2")
+		clusterRequest = acc.ClusterRequest{
+			ReplicationSpecs: specs,
+		}
+		resourceName    = "mongodbatlas_federated_database_instance.test"
+		name            = acc.RandomName()
+		clusterInfo     = acc.GetClusterInfo(t, &clusterRequest)
+		projectID       = clusterInfo.ProjectID
+		clusterRequest2 = acc.ClusterRequest{
+			ProjectID:        projectID,
+			ReplicationSpecs: specs,
+			ResourceSuffix:   "cluster2",
+		}
+		cluster2Info        = acc.GetClusterInfo(t, &clusterRequest2)
 		dependencyTerraform = fmt.Sprintf("%s\n%s", clusterInfo.ClusterTerraformStr, cluster2Info.ClusterTerraformStr)
 	)
 
