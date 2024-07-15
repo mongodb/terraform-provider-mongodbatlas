@@ -1,14 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: private_endpoint"
-sidebar_current: "docs-mongodbatlas-datasource-private-endpoint"
-description: |-
-    Describes a Private Endpoint.
----
-
 # Data Source: mongodbatlas_privatelink_endpoint
 
-`mongodbatlas_privatelink_endpoint` describe a Private Endpoint. This represents a Private Endpoint Connection to retrieve details regarding a private endpoint by id in an Atlas project
+`mongodbatlas_privatelink_endpoint` describes a Private Endpoint. This represents a Private Endpoint Connection to retrieve details regarding a private endpoint by id in an Atlas project
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 

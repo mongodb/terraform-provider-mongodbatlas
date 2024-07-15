@@ -1,12 +1,5 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_backup_snapshot_export_jobs"
-sidebar_current: "docs-mongodbatlas-datasource-cloud_backup_snapshot_export_jobs"
-description: |-
-    Provides a Cloud Backup Snapshot Export Jobs resource.
----
-
 # Data Source: mongodbatlas_cloud_backup_snapshot_export_jobs
+
 `mongodbatlas_cloud_backup_snapshot_export_jobs` datasource allows you to retrieve all the buckets for the specified project.
 
 

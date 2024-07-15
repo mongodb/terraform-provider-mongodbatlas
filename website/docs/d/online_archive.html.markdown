@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: online_archive"
-sidebar_current: "docs-mongodbatlas-datasource-online-archive"
-description: |-
-    Describes an Online Archive
----
-
 # Data Source: mongodbatlas_online_archive
 
 `mongodbatlas_online_archive` describes an Online Archive

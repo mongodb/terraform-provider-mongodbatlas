@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: api_key"
-sidebar_current: "docs-mongodbatlas-resource-api-key"
-description: |-
-    Provides a API Key resource.
----
-
 # Resource: mongodbatlas_api_key
 
 `mongodbatlas_api_key` provides a Organization API key resource. This allows an Organizational API key to be created.

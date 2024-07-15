@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "Provider: MongoDB Atlas"
-sidebar_current: "docs-mongodbatlas-index"
-description: |-
-  The MongoDB Atlas provider is used to interact with the resources supported by MongoDB Atlas. The provider needs to be configured with the proper credentials before it can be used.
----
-
 # MongoDB Atlas Provider
 
 You can use the MongoDB Atlas provider to interact with the resources supported by [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).

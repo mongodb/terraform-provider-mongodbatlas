@@ -1,15 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_control_plane_ip_addresses"
-sidebar_current: "docs-mongodbatlas-datasource-control-plane-ip-addresses"
-description: |-
-    "Provides a data source that returns all control plane IP addresses"
----
-
 # Data Source: mongodbatlas_control_plane_ip_addresses
 
-
-Provides a data source that returns all control plane IP addresses.
+`mongodbatlas_control_plane_ip_addresses`  provides a data source that returns all control plane IP addresses.
 
 ## Example Usages
 ```terraform

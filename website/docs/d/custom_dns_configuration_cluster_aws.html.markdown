@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: custom_dns_configuration_cluster_aws"
-sidebar_current: "docs-mongodbatlas-datasource-custom_dns_configuration_cluster_aws"
-description: |-
-    Describes a Custom DNS Configuration for Atlas Clusters on AWS.
----
-
 # Data Source: mongodbatlas_custom_dns_configuration_cluster_aws
 
 `mongodbatlas_custom_dns_configuration_cluster_aws` describes a Custom DNS Configuration for Atlas Clusters on AWS.

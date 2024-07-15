@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cluster_outage_simulation"
-sidebar_current: "docs-mongodbatlas-resource-federated-database-instance"
-description: |-
-    Provides a Cluster Outage Simulation resource.
----
-
 # Data Source: mongodbatlas_cluster_outage_simulation
 
 `mongodbatlas_cluster_outage_simulation` provides a Cluster Outage Simulation resource. For more details see https://www.mongodb.com/docs/atlas/tutorial/test-resilience/simulate-regional-outage/

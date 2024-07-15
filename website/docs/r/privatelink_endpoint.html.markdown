@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: private_endpoint"
-sidebar_current: "docs-mongodbatlas-resource-private_endpoint"
-description: |-
-    Provides a Private Endpoint resource.
----
-
 # Resource: mongodbatlas_privatelink_endpoint
 
 `mongodbatlas_privatelink_endpoint` provides a Private Endpoint resource. This represents a [Private Endpoint Service](https://www.mongodb.com/docs/atlas/security-private-endpoint/#private-endpoint-concepts) that can be created in an Atlas project.

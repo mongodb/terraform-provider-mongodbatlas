@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: stream instance"
-sidebar_current: "docs-mongodbatlas-datasource-stream-instance"
-description: |-
-    Describes a Stream Instance.
----
-
 # Data Source: mongodbatlas_stream_instance
 
 `mongodbatlas_stream_instance` describes a stream instance.

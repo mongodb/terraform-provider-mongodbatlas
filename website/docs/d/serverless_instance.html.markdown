@@ -1,14 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: serverless instance"
-sidebar_current: "docs-mongodbatlas-datasource-serverless-instance"
-description: |-
-Provides a Serverless Instance.
----
-
 # Data Source: mongodbatlas_serverless_instance
 
-`mongodbatlas_serverless_instance` describe a single serverless instance. This represents a single serverless instance that have been created.
+`mongodbatlas_serverless_instance` describes a single serverless instance. This represents a single serverless instance that have been created.
 > **NOTE:**  Serverless instances do not support some Atlas features at this time.
 For a full list of unsupported features, see [Serverless Instance Limitations](https://docs.atlas.mongodb.com/reference/serverless-instance-limitations/).
  

@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_shared_tier_restore_job"
-sidebar_current: "docs-mongodbatlas-datasource-mongodbatlas-shared-tier-restore-job"
-description: |-
-    Provides a Cloud Backup Shared Tier Snapshot Restore Jobs Datasource.
----
-
 # Data Source: mongodbatlas_shared_tier_restore_jobs
 
 `mongodbatlas_shared_tier_restore_jobs` provides Cloud Backup Snapshot Restore Jobs data source for Shared Tier Clusters. Gets all the cloud backup snapshot restore jobs for the specified shared tier cluster.

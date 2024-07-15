@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: online_archives"
-sidebar_current: "docs-mongodbatlas-datasource-online-archives"
-description: |-
-    Describes the list of all the online archives for a cluster
----
-
 # Data Source: mongodbatlas_online_archive
 
 `mongodbatlas_online_archive` Describes the list of all the online archives for a cluster

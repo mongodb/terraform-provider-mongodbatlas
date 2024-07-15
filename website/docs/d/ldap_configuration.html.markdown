@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: ldap configuration"
-sidebar_current: "docs-mongodbatlas-datasource-ldap-configuration"
-description: |-
-    Describes a LDAP Configuration.
----
-
 # Data Source: mongodbatlas_ldap_configuration
 
 `mongodbatlas_ldap_configuration` describes a LDAP Configuration.

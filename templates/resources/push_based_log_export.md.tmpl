@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: {{.Name}}"
-sidebar_current: "docs-{{ .ProviderShortName }}-{{ $arr := split .Type " "}}{{ range $element := $arr }}{{ $element | lower}}{{ end }}{{ $name := slice (split .Name "_") 1 }}{{ range $element := $name }}-{{ $element | lower}}{{end}}"
-description: |-
-    "Provides resource for push-based log export feature."
----
-
 # {{.Type}}: {{.Name}}
 
 {{ .Description | trimspace }}

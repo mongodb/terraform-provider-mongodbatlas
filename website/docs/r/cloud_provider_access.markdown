@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_cloud_provider_access"
-sidebar_current: "docs-mongodbatlas-resource-cloud-provider-access"
-description: |-
-    Provides a Cloud Provider Access settings resource for registration, authorization, and deauthorization
----
-
 # Resource: Cloud Provider Access Configuration Paths
 
 The Terraform MongoDB Atlas Provider offers the following path to perform an authorization for a cloud provider role -

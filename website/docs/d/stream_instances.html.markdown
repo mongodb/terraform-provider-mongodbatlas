@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: stream instances"
-sidebar_current: "docs-mongodbatlas-datasource-stream-instances"
-description: |-
-    Describes stream instances of a project.
----
-
 # Data Source: mongodbatlas_stream_instances
 
 `mongodbatlas_stream_instances` describes the stream instances defined in a project.

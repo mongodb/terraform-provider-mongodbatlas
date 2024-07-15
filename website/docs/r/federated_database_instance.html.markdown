@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: federated_database_instance"
-sidebar_current: "docs-mongodbatlas-resource-federated-database-instance"
-description: |-
-    Provides a Federated Database Instance resource.
----
-
 # Resource: mongodbatlas_federated_database_instance
 
 `mongodbatlas_federated_database_instance` provides a Federated Database Instance resource.

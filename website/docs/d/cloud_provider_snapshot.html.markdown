@@ -1,9 +1,5 @@
 ---
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_provider_snapshot"
-sidebar_current: "docs-mongodbatlas-datasource-cloud_provider_snapshot"
-description: |-
-    Provides an Cloud Backup Snapshot Datasource.
+subcategory: "Deprecated"    
 ---
 
 **WARNING:** This datasource is deprecated, use `mongodbatlas_cloud_backup_snapshot`

@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: organization"
-sidebar_current: "docs-mongodbatlas-resource-organization"
-description: |-
-    Provides a Organization resource.
----
-
 # Resource: mongodbatlas_organization
 
 `mongodbatlas_organization` provides programmatic management (including creation) of a MongoDB Atlas Organization resource.

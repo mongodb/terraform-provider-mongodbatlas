@@ -1,14 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: encryption_at_rest"
-sidebar_current: "docs-mongodbatlas-resource-encryption_at_rest"
-description: |-
-    Provides an Encryption At Rest resource.
----
-
 # Resource: mongodbatlas_encryption_at_rest
 
-`mongodbatlas_encryption_at_rest` Allows management of encryption at rest for an Atlas project with one of the following providers:
+`mongodbatlas_encryption_at_rest` allows management of encryption at rest for an Atlas project with one of the following providers:
 
 [Amazon Web Services Key Management Service](https://docs.atlas.mongodb.com/security-aws-kms/#security-aws-kms)
 [Azure Key Vault](https://docs.atlas.mongodb.com/security-azure-kms/#security-azure-kms)

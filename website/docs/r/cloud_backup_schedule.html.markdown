@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_backup_schedule"
-sidebar_current: "docs-mongodbatlas-resource-cloud-backup-schedule"
-description: |-
-    Provides a Cloud Backup Schedule resource.
----
-
 # Resource: mongodbatlas_cloud_backup_schedule
 
 `mongodbatlas_cloud_backup_schedule` provides a cloud backup schedule resource. The resource lets you create, read, update and delete a cloud backup schedule.

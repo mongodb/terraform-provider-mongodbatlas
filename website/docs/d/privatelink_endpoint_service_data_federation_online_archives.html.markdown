@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_privatelink_endpoint_service_data_federation_online_archives"
-sidebar_current: "docs-mongodbatlas-data-source-privatelink-endpoint-service-data-federation-online-archives"
-description: |-
-    Provides a data source for a Private Endpoints Service Data Federation Online Archive.
----
-
 # Data Source: mongodbatlas_privatelink_endpoint_service_data_federation_online_archives
 
 `mongodbatlas_privatelink_endpoint_service_data_federation_online_archives` describes Private Endpoint Service resources for Data Federation and Online Archive.

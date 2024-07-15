@@ -1,13 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_backup_snapshot_export_job"
-sidebar_current: "docs-mongodbatlas-resource-cloud_backup_snapshot_export_job"
-description: |-
-    Provides a Cloud Backup Snapshot Export Job resource.
----
-
 # Resource: mongodbatlas_cloud_backup_snapshot_export_job
-`mongodbatlas_cloud_backup_snapshot_export_job` resource allows you to create a cloud backup snapshot export job for the specified project. 
+
+`mongodbatlas_cloud_backup_snapshot_export_job` allows you to create a cloud backup snapshot export job for the specified project. 
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.

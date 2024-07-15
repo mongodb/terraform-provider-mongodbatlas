@@ -1,13 +1,4 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_search_deployment"
-sidebar_current: "docs-mongodbatlas-datasource-search-deployment"
-description: |-
-    "Provides a Search Deployment data source."
----
-
 # Data Source: mongodbatlas_search_deployment
-
 
 `mongodbatlas_search_deployment` describes a search node deployment.
 

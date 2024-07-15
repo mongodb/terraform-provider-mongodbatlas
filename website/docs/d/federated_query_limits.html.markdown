@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: federated_database_query_limit"
-sidebar_current: "docs-mongodbatlas-resource-federated-query-limits"
-description: |-
-    Provides a Federated Database Instance Query Limit.
----
-
 # Data Source: mongodbatlas_federated_query_limits
 
 `mongodbatlas_federated_query_limits` provides a Federated Database Instance Query Limits data source. To learn more about Atlas Data Federation see https://www.mongodb.com/docs/atlas/data-federation/overview/. 

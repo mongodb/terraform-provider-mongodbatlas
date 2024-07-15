@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: team"
-sidebar_current: "docs-mongodbatlas-datasource-team"
-description: |-
-    Describes a Team.
----
-
 # Data Source: mongodbatlas_team
 
 `mongodbatlas_team` describes a Team. The resource requires your Organization ID, Project ID and Team ID.

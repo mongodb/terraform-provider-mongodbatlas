@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cluster"
-sidebar_current: "docs-mongodbatlas-datasource-clusters"
-description: |-
-    Describe all Advanced Clusters in Project.
----
-
 # Data Source: mongodbatlas_clusters
 
 `mongodbatlas_cluster` describes all Advanced Clusters by the provided project_id. The data source requires your Project ID.

@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: project"
-sidebar_current: "docs-mongodbatlas-resource-project"
-description: |-
-    Provides a Project resource.
----
-
 # Resource: mongodbatlas_project
 
 `mongodbatlas_project` provides a Project resource. This allows project to be created.

@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: ldap-verify"
-sidebar_current: "docs-mongodbatlas-resource-ldap-verify"
-description: |-
-    Provides a LDAP Verify resource.
----
-
 # Resource: mongodbatlas_ldap_verify
 
 `mongodbatlas_ldap_verify` provides an LDAP Verify resource. This allows a a verification of an LDAP configuration over TLS for an Atlas project. Atlas retains only the most recent request for each project.

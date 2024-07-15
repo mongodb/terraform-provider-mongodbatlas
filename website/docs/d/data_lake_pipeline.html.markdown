@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: data_lake"
-sidebar_current: "docs-mongodbatlas-resource-data-lake"
-description: |-
-    Describe a Data Lake Pipeline.
----
-
 # Data Source: mongodbatlas_data_lake_pipeline
 
 `mongodbatlas_data_lake_pipeline` describes a Data Lake Pipeline.

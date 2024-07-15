@@ -1,15 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_federated_settings_org_config"
-sidebar_current: "docs-mongodbatlas-resource-federated-settings-org-config"
-description: |-
-    Provides a federated settings Organization Configuration.
----
-
 # Resource: mongodbatlas_federated_settings_org_config
 
 `mongodbatlas_federated_settings_org_config` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Identity Providers provides federated settings outputs for the configured Identity Providers.
-
 
 ## Example Usage
 

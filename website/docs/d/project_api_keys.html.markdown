@@ -1,14 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: api_keys"
-sidebar_current: "docs-mongodbatlas-api-keys"
-description: |-
-    Describes a API Keys.
----
-
 # Data Source: mongodbatlas_api_keys
 
-`mongodbatlas_api_keys` describe all API Keys. This represents API Keys that have been created.
+`mongodbatlas_api_keys` describes all API Keys. This represents API Keys that have been created.
 
 ~> **IMPORTANT WARNING:** Managing Atlas Programmatic API Keys (PAKs) with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data). You may also want to consider managing your PAKs via a more secure method, such as the [HashiCorp Vault MongoDB Atlas Secrets Engine](https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas).
 

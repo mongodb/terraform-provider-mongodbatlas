@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: maintenance_window"
-sidebar_current: "docs-mongodbatlas-datasource-maintenance_window"
-description: |-
-    Provides a Maintenance Window Datasource.
----
-
 # Data Source: mongodbatlas_maintenance_window
 
 `mongodbatlas_maintenance_window` provides a Maintenance Window entry datasource. Gets information regarding the configured maintenance window for a MongoDB Atlas project.

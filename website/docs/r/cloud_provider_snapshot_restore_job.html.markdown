@@ -1,9 +1,5 @@
 ---
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_provider_snapshot_restore_job"
-sidebar_current: "docs-mongodbatlas-resource-cloud_provider_snapshot_restore_job"
-description: |-
-    Provides a Cloud Backup Snapshot Restore Job resource.
+subcategory: "Deprecated"    
 ---
 
 **WARNING:** This resource is deprecated, use `mongodbatlas_cloud_backup_snapshot_restore_job`

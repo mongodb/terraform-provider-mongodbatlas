@@ -1,14 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: data_lake_pipeline_run"
-sidebar_current: "docs-mongodbatlas-datasource-data-lake-pipeline-run"
-description: |-
-    Describes a Data Lake Pipeline Run.
----
-
 # Data Source: mongodbatlas_data_lake_pipeline_run
 
-`mongodbatlas_data_lake_pipeline_run` describe a Data Lake Pipeline Run.
+`mongodbatlas_data_lake_pipeline_run` describes a Data Lake Pipeline Run.
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.

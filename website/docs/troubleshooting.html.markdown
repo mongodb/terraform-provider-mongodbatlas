@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "Provider: MongoDB Atlas"
-sidebar_current: "docs-mongodbatlas-troubleshooting"
-description: |-
-  The MongoDB Atlas provider is used to interact with the resources supported by MongoDB Atlas. The provider needs to be configured with the proper credentials before it can be used.
----
-
 # Troubleshooting
 
 The following are some of the common issues/errors encountered when using Terraform Provider for MongoDB Atlas:

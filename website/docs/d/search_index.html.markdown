@@ -1,14 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: search index"
-sidebar_current: "docs-mongodbatlas-datasource-search-index"
-description: |-
-Describes a Search Index.
----
-
 # Data Source: mongodbatlas_search_index
 
-`mongodbatlas_search_index` describe a single search indexes. This represents a single search index that have been created.
+`mongodbatlas_search_index` describes a single search indexes. This represents a single search index that have been created.
 
 > **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 

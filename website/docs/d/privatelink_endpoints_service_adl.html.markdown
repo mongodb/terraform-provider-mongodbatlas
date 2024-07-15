@@ -1,14 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: privatelink_endpoints_service_adl"
-sidebar_current: "docs-mongodbatlas-datasource-privatelink-endpoints-service-adl"
-description: |-
-Describes the list of all Atlas Data Lake and Online Archive PrivateLink endpoints.
----
-
 # Data Source: privatelink_endpoints_service_adl
 
-`privatelink_endpoints_service_adl` Describes the list of all Atlas Data Lake (ADL) and Online Archive PrivateLink endpoints resource.
+`privatelink_endpoints_service_adl` describes the list of all Atlas Data Lake (ADL) and Online Archive PrivateLink endpoints resource.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 

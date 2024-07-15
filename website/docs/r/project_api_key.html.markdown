@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: project_api_key"
-sidebar_current: "docs-mongodbatlas-resource-project-api-key"
-description: |-
-    Creates and assigns the specified Atlas Organization API Key to the specified Project. Users with the Project Owner role in the project associated with the API key can use the organization API key to access the resources.
----
-
 # Resource: mongodbatlas_project_api_key
 
 `mongodbatlas_project_api_key` provides a Project API Key resource. This allows project API Key to be created.

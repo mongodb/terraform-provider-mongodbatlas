@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_federated_settings_identity_provider"
-sidebar_current: "docs-mongodbatlas-federated-settings-identity-provider"
-description: |-
-    Provides a federated settings Identity Provider resource.
----
-
 # Resource: mongodbatlas_federated_settings_identity_provider
 
 `mongodbatlas_federated_settings_identity_provider` provides an Atlas federated settings identity provider resource provides a subset of settings to be maintained post import of the existing resource.

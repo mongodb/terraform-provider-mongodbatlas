@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: alert_configuration"
-sidebar_current: "docs-mongodbatlas-datasource-alert-configuration"
-description: |-
-    Describes a Alert Configuration.
----
-
 # Data Source: mongodbatlas_alert_configuration
 
 `mongodbatlas_alert_configuration` describes an Alert Configuration.

@@ -1,10 +1,8 @@
 ---
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: teams"
-sidebar_current: "docs-mongodbatlas-resource-teams"
-description: |-
-    Provides a Team resource.
+subcategory: "Deprecated"    
 ---
+
+**WARNING:** This resource is deprecated, use `mongodbatlas_team`
 
 # Resource: mongodbatlas_teams
 

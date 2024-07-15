@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: network_peering"
-sidebar_current: "docs-mongodbatlas-datasource-network-peering"
-description: |-
-    Describes a Network Peering.
----
-
 # Data Source: mongodbatlas_network_peering
 
 `mongodbatlas_network_peering` describes a Network Peering Connection.

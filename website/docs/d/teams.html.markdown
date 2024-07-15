@@ -1,10 +1,8 @@
 ---
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: teams"
-sidebar_current: "docs-mongodbatlas-datasource-teams"
-description: |-
-    Describes a Team.
+subcategory: "Deprecated"    
 ---
+
+**WARNING:** This datasource is deprecated, use `mongodbatlas_team`
 
 # Data Source: mongodbatlas_teams
 

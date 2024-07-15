@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: org_invitation"
-sidebar_current: "docs-mongodbatlas-datasource-organization-invitation"
-description: |-
-  Provides an Atlas Organization Invitation.
----
-
 # Data Source: mongodbatlas_org_invitation
 
 `mongodbatlas_org_invitation` describes an invitation for a user to join an Atlas organization.

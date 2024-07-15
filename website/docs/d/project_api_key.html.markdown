@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: project_api_key"
-sidebar_current: "docs-mongodbatlas-datasource-project-api-key"
-description: |-
-    Describes a Project API Key.
----
-
 # Data Source: mongodbatlas_project_api_key
 
 `mongodbatlas_project_api_key` describes a MongoDB Atlas Project API Key. This represents a Project API Key that has been created.

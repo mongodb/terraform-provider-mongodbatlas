@@ -1,14 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: organizations"
-sidebar_current: "docs-mongodbatlas-organizations"
-description: |-
-    Describes Organizations.
----
-
 # Data Source: mongodbatlas_organizations
 
-`mongodbatlas_organizations` describe all MongoDB Atlas Organizations. This represents organizations that have been created.
+`mongodbatlas_organizations` describes all MongoDB Atlas Organizations. This represents organizations that have been created.
 
 
 ## Example Usage

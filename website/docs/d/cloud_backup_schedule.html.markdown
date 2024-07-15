@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_backup_schedule"
-sidebar_current: "docs-mongodbatlas-datasource-cloud-backup-schedule"
-description: |-
-    Provides a Cloud Backup Schedule Datasource.
----
-
 # Data Source: mongodbatlas_cloud_backup_schedule
 
 `mongodbatlas_cloud_backup_schedule` provides a Cloud Backup Schedule datasource. An Atlas Cloud Backup Schedule provides the current cloud backup schedule for the cluster. 

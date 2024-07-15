@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: network_container"
-sidebar_current: "docs-mongodbatlas-datasource-network-container"
-description: |-
-    Describes a Cluster resource.
----
-
 # Data Source: mongodbatlas_network_container
 
 `mongodbatlas_network_container` describes a Network Peering Container. The resource requires your Project ID and container ID.

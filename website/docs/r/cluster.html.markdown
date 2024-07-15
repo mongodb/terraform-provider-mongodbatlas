@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cluster"
-sidebar_current: "docs-mongodbatlas-resource-cluster"
-description: |-
-    Provides a Cluster resource.
----
-
 # Resource: mongodbatlas_cluster
 
 `mongodbatlas_cluster` provides a Cluster resource. The resource lets you create, edit and delete clusters. The resource requires your Project ID.

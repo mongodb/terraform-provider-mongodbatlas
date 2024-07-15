@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_backup_snapshots"
-sidebar_current: "docs-mongodbatlas-datasource-cloud_backup_snapshots"
-description: |-
-    Provides an Cloud Backup Snapshot Datasource.
----
-
 # Data Source: mongodbatlas_cloud_backup_snapshots
 
 `mongodbatlas_cloud_backup_snapshots` provides an Cloud Backup Snapshot datasource. Atlas Cloud Backup Snapshots provide localized backup storage using the native snapshot functionality of the cluster’s cloud service.

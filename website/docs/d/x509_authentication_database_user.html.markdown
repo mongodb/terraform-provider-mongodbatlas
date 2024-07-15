@@ -1,14 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: x509_authentication_database_user"
-sidebar_current: "docs-mongodbatlas-datasource-x509-authentication-database-user"
-description: |-
-    Describes a Custom DB Role.
----
-
 # Data Source: mongodbatlas_x509_authentication_database_user
 
-`mongodbatlas_x509_authentication_database_user` describe a X509 Authentication Database User. This represents a X509 Authentication Database User.
+`mongodbatlas_x509_authentication_database_user` describes a X509 Authentication Database User. This represents a X509 Authentication Database User.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 

@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: ldap verify"
-sidebar_current: "docs-mongodbatlas-datasource-ldap-verify"
-description: |-
-    Describes a LDAP Verify.
----
-
 # Data Source: mongodbatlas_ldap_verify
 
 `mongodbatlas_ldap_verify` describes a LDAP Verify.

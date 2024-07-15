@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: backup_compliance_policy"
-sidebar_current: "docs-mongodbatlas-datasource-backup-compliance-policy"
-description: |-
-    Provides a Backup Compliance Policy Datasource.
----
-
 # Data Source: mongodbatlas_backup_compliance_policy
 
 `mongodbatlas_backup_compliance_policy` provides an Atlas Backup Compliance Policy. An Atlas Backup Compliance Policy contains the current protection policy settings for a project. A compliance policy prevents any user, regardless of role, from modifying or deleting specific cluster configurations and backups. To disable a Backup Compliance Policy, you must contact MongoDB support. Backup Compliance Policies are only supported for clusters M10 and higher and are applied as the minimum policy for all clusters.

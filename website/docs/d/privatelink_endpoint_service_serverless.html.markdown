@@ -1,15 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: privatelink_endpoint_service_serverless"
-sidebar_current: "docs-mongodbatlas-datasource-privatelink-endpoint-service-serverless"
-description: |-
-Describes a Serverless PrivateLink Endpoint Service
----
-
-
 # Data Source: privatelink_endpoint_service_serverless
 
-`privatelink_endpoint_service_serverless` Provides a Serverless PrivateLink Endpoint Service resource.
+`privatelink_endpoint_service_serverless` provides a Serverless PrivateLink Endpoint Service resource.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
