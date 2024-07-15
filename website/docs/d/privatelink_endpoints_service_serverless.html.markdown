@@ -1,12 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: privatelink_endpoints_service_serverless"
-sidebar_current: "docs-mongodbatlas-datasource-privatelink-endpoints-service-serverless"
-description: |-
-Describes the list of all Serverless PrivateLink Endpoint Service
----
-
-
 # Data Source: privatelink_endpoints_service_serverless
 
 `privatelink_endpoints_service_serverless` Describes the list of all Serverless PrivateLink Endpoint Service resource.

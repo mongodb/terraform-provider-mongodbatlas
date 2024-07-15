@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_backup_snapshot_restore_jobs"
-sidebar_current: "docs-mongodbatlas-datasource-cloud_backup_snapshot_restore_jobs"
-description: |-
-    Provides a Cloud Backup Snapshot Restore Jobs Datasource.
----
-
 # Data Source: mongodbatlas_cloud_backup_snapshot_restore_jobs
 
 `mongodbatlas_cloud_backup_snapshot_restore_jobs` provides a Cloud Backup Snapshot Restore Jobs datasource. Gets all the cloud backup snapshot restore jobs for the specified cluster.

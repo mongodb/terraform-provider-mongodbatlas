@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: data_lake_pipeline_run"
-sidebar_current: "docs-mongodbatlas-datasource-data-lake-pipeline-run"
-description: |-
-    Describes a Data Lake Pipeline Run.
----
-
 # Data Source: mongodbatlas_data_lake_pipeline_run
 
 `mongodbatlas_data_lake_pipeline_run` describe a Data Lake Pipeline Run.

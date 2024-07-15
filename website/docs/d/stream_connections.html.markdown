@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: stream connections"
-sidebar_current: "docs-mongodbatlas-datasource-stream-connections"
-description: |-
-    Describes all connections of the Atlas Stream Processing instance for the specified project.
----
-
 # Data Source: mongodbatlas_stream_connections
 
 `mongodbatlas_stream_connections` describes all connections of a stream instance for the specified project.

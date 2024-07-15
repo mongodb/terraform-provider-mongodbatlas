@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: auditing"
-sidebar_current: "docs-mongodbatlas-datasource-auditing"
-description: |-
-    Describes a Auditing.
----
-
 # Data Source: mongodbatlas_auditing
 
 `mongodbatlas_auditing` describes a Auditing.

@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: third_party_integration"
-sidebar_current: "docs-mongodbatlas-datasource-third-party-integration"
-description: |-
-    Describes all Third-Party Integration Settings in the project.
----
-
 # Data Source: mongodbatlas_third_party_integration
 
 `mongodbatlas_third_party_integration` describe a Third-Party Integration Settings for the given type.

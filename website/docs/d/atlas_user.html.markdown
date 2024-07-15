@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: atlas_user"
-sidebar_current: "docs-mongodbatlas-datasource-atlas-user"
-description: |-
-    Provides a Atlas User Datasource.
----
-
 # Data Source: mongodbatlas_atlas_user
 
 `mongodbatlas_atlas_user` Provides a MongoDB Atlas User.

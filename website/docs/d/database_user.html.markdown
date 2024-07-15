@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: database_user"
-sidebar_current: "docs-mongodbatlas-datasource-database-user"
-description: |-
-    Describes a Database User.
----
-
 # Data Source: mongodbatlas_database_user
 
 `mongodbatlas_database_user` describe a Database User. This represents a database user which will be applied to all clusters within the project.

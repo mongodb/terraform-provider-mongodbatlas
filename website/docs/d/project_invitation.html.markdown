@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: project_invitation"
-sidebar_current: "docs-mongodbatlas-datasource-project-invitation"
-description: |-
-  Provides an Atlas project invitation.
----
-
 # Data Source: mongodbatlas_project_invitation
 
 `mongodbatlas_project_invitation` describes an invitation to a user to join an Atlas project.

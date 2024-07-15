@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: global_cluster_config"
-sidebar_current: "docs-mongodbatlas-datasource-global-cluster-config"
-description: |-
-    Describes the Global Cluster Configuration.
----
-
 # Data Source: mongodbatlas_global_cluster_config
 
 `mongodbatlas_global_cluster_config` describes all managed namespaces and custom zone mappings associated with the specified Global Cluster.

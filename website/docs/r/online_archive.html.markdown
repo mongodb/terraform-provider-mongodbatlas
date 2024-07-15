@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_online_archive"
-sidebar_current: "docs-mongodbatlas-resource-online-archive"
-description: |-
-    Provides a Online Archive resource for creation, update, and delete
----
-
 # Resource: mongodbatlas_online_archive
 
 `mongodbatlas_online_archive` resource provides access to create, edit, pause and resume an online archive for a collection. 

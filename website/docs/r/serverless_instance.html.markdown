@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: serverless instance"
-sidebar_current: "docs-mongodbatlas-resource-serverless-instance"
-description: |-
-Provides a Serverless Instance resource.
----
-
 # Resource: mongodbatlas_serverless_instance
 
 `mongodbatlas_serverless_instance` provides a Serverless Instance resource. This allows serverless instances to be created.

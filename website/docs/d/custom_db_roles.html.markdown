@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: custom_db_roles"
-sidebar_current: "docs-mongodbatlas-datasource-custom-db-roles"
-description: |-
-    Describes a Custom DB Roles.
----
-
 # Data Source: mongodbatlas_custom_db_roles
 
 `mongodbatlas_custom_db_roles` describe all Custom DB Roles. This represents a custom db roles.

@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_federated_settings_org_role_mapping"
-sidebar_current: "docs-mongodbatlas-resource-federated-settings-org-role-mapping"
-description: |-
-    Provides a federated settings Role Mapping resource.
----
-
 # Resource: mongodbatlas_federated_settings_org_role_mapping
 
 `mongodbatlas_federated_settings_org_role_mapping` provides an Role Mapping resource. This allows organization role mapping to be created.

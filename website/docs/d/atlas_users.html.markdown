@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: atlas_users"
-sidebar_current: "docs-mongodbatlas-datasource-mongodbatlas-atlas_users"
-description: |-
-    Provides a Atlas Users Datasource.
----
-
 # Data Source: atlas_users
 
 `atlas_users` provides Atlas Users associated with a specified Organization, Project, or Team.

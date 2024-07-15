@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: third_party_integrations"
-sidebar_current: "docs-mongodbatlas-datasource-third-party-integrations"
-description: |-
-    Describes all Third-Party Integration Settings in the project.
----
-
 # Data Source: mongodbatlas_third_party_integrations
 
 `mongodbatlas_third_party_integrations` describe all Third-Party Integration Settings. This represents two Third-Party services `PAGER_DUTY` and `DATADOG`

@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: roles_org_id"
-sidebar_current: "docs-mongodbatlas-datasource-roles-org-id"
-description: |-
-    Describes a Roles Org ID.
----
-
 # Data Source: mongodbatlas_roles_org_id
 
 `mongodbatlas_roles_org_id` describes a MongoDB Atlas Roles Org ID. This represents a Roles Org ID.

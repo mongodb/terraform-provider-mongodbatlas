@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: network_containers"
-sidebar_current: "docs-mongodbatlas-datasource-network-containers"
-description: |-
-    Describes all Network Peering Containers in the project.
----
-
 # Data Source: mongodbatlas_network_containers
 
 `mongodbatlas_network_containers` describes all Network Peering Containers. The data source requires your Project ID.

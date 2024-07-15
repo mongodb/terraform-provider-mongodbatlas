@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_backup_snapshot"
-sidebar_current: "docs-mongodbatlas-resource-cloud_backup_snapshot"
-description: |-
-    Provides a Cloud Backup Snapshot resource.
----
-
 # Resource: mongodbatlas_cloud_backup_snapshot
 
 `mongodbatlas_cloud_backup_snapshot` provides a resource to take a cloud backup snapshot on demand.

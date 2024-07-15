@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: network_peering"
-sidebar_current: "docs-mongodbatlas-resource-network-peering"
-description: |-
-    Provides a Network Peering resource.
----
-
 # Resource: mongodbatlas_network_peering
 
 `mongodbatlas_network_peering` provides a Network Peering Connection resource. The resource lets you create, edit and delete network peering connections. The resource requires your Project ID.  

@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: encryption_at_rest"
-sidebar_current: "docs-mongodbatlas-resource-encryption_at_rest"
-description: |-
-    Provides an Encryption At Rest resource.
----
-
 # Resource: mongodbatlas_encryption_at_rest
 
 `mongodbatlas_encryption_at_rest` Allows management of encryption at rest for an Atlas project with one of the following providers:

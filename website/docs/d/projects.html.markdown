@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: projects"
-sidebar_current: "docs-mongodbatlas-projects"
-description: |-
-    Describes a Projects.
----
-
 # Data Source: mongodbatlas_projects
 
 `mongodbatlas_projects` describe all Projects. This represents projects that have been created.

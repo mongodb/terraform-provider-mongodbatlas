@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: global_cluster_config"
-sidebar_current: "docs-mongodbatlas-resource-global-cluster-config"
-description: |-
-    Provides a Global Cluster Configuration resource.
----
-
 # Resource: mongodbatlas_global_cluster_config
 
 `mongodbatlas_global_cluster_config` provides a Global Cluster Configuration resource.

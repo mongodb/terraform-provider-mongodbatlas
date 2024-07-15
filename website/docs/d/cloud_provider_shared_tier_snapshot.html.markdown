@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_shared_tier_snapshot"
-sidebar_current: "docs-mongodbatlas-datasource-cloud_provider_shared_tier_snapshot"
-description: |-
-    Provides an Cloud Backup Snapshot Datasource for Shared Tier Clusters.
----
-
 # Data Source: mongodbatlas_shared_tier_snapshot
 
 `mongodbatlas_shared_tier_snapshot` provides an Cloud Backup Snapshot data source for Shared Tier Clusters. Atlas Cloud Backup Snapshots provide localized backup storage using the native snapshot functionality of the cluster’s cloud service.

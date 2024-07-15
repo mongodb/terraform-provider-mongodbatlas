@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_backup_snapshot_restore_job"
-sidebar_current: "docs-mongodbatlas-resource-cloud_backup_snapshot_restore_job"
-description: |-
-    Provides a Cloud Backup Snapshot Restore Job resource.
----
-
 # Resource: mongodbatlas_cloud_backup_snapshot_restore_job
 
 `mongodbatlas_cloud_backup_snapshot_restore_job` provides a resource to create a new restore job from a cloud backup snapshot of a specified cluster. The restore job must define one of three delivery types: 

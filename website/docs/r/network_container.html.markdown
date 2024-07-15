@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: network_container"
-sidebar_current: "docs-mongodbatlas-resource-network-container"
-description: |-
-    Provides a Network Peering resource.
----
-
 # Resource: mongodbatlas_network_container
 
 `mongodbatlas_network_container` provides a Network Peering Container resource. The resource lets you create, edit and delete network peering containers. You must delete network peering containers before creating clusters in your project. You can't delete a network peering container if your project contains clusters. The resource requires your Project ID.  Each cloud provider requires slightly different attributes so read the argument reference carefully.

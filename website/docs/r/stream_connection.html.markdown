@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: stream connection"
-sidebar_current: "docs-mongodbatlas-resource-stream-connection"
-description: |-
-    Provides a Stream Connection resource.
----
-
 # Resource: mongodbatlas_stream_connection
 
 `mongodbatlas_stream_connection` provides a Stream Connection resource. The resource lets you create, edit, and delete stream instance connections.

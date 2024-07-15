@@ -1,12 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_provider_snapshot_backup_policy"
-sidebar_current: "docs-mongodbatlas-datasource-cloud-provider-snapshot-backup-policy"
-description: |-
-    Provides a Cloud Backup Snapshot Policy Datasource.
----
-
-
  **WARNING:** This data source is deprecated, use `mongodbatlas_cloud_backup_schedule`
  **Note:** This resource have now been fully deprecated as part of v1.10.0 release
 

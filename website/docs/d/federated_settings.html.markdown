@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_federated_settings"
-sidebar_current: "docs-mongodbatlas-datasource-federated-settings"
-description: |-
-    Provides a federated settings data source.
----
-
 # Data Source: mongodbatlas_federated_settings
 
 `mongodbatlas_federated_settings` provides a federated settings data source. Atlas Cloud federated settings provides federated settings outputs.

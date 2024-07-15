@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_push_based_log_export"
-sidebar_current: "docs-mongodbatlas-resource-push-based-log-export"
-description: |-
-    "Provides resource for push-based log export feature."
----
-
 # Resource: mongodbatlas_push_based_log_export
 
 

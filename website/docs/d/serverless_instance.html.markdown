@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: serverless instance"
-sidebar_current: "docs-mongodbatlas-datasource-serverless-instance"
-description: |-
-Provides a Serverless Instance.
----
-
 # Data Source: mongodbatlas_serverless_instance
 
 `mongodbatlas_serverless_instance` describe a single serverless instance. This represents a single serverless instance that have been created.

@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: advanced_cluster"
-sidebar_current: "docs-mongodbatlas-resource-advanced-cluster"
-description: |-
-    Provides an Advanced Cluster resource.
----
-
 # Resource: mongodbatlas_advanced_cluster
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters. The resource requires your Project ID.

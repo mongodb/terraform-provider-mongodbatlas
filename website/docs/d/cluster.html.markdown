@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cluster"
-sidebar_current: "docs-mongodbatlas-datasource-cluster"
-description: |-
-    Describe a Cluster.
----
-
 # Data Source: mongodbatlas_cluster
 
 `mongodbatlas_cluster` describes a Cluster. The data source requires your Project ID.

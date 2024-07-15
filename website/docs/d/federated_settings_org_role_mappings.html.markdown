@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_federated_settings_role_mappings"
-sidebar_current: "docs-mongodbatlas-datasource-federated-settings-role-mappings"
-description: |-
-    Provides a federated settings Role Mapping datasource.
----
-
 # Data Source: mongodbatlas_federated_settings_org_role_mappings
 
 `mongodbatlas_federated_settings_org_role_mappings` provides an Federated Settings Org Role Mapping datasource. Atlas Cloud Federated Settings Org Role Mapping provides federated settings outputs for the configured Org Role Mapping.

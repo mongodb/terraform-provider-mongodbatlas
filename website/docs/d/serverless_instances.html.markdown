@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: serverless instances"
-sidebar_current: "docs-mongodbatlas-datasource-serverless-instances"
-description: |-
-Describes a Serverless Instances.
----
-
 # Data Source: mongodbatlas_serverless_instances
 
 `mongodbatlas_serverless_instances` describe all serverless instances. This represents serverless instances that have been created for the specified group id.

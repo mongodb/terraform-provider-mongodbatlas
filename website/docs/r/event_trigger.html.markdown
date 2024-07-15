@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: event_trigger"
-sidebar_current: "docs-mongodbatlas-resource-event-trigger"
-description: |-
-    Provides a Event Trigger resource.
----
-
 # Resource: mongodbatlas_event_trigger
 
 `mongodbatlas_event_trigger` provides a Event Trigger resource. 

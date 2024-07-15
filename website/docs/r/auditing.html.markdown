@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: auditing"
-sidebar_current: "docs-mongodbatlas-resource-auditing"
-description: |-
-    Provides a Auditing resource.
----
-
 # Resource: mongodbatlas_auditing
 
 `mongodbatlas_auditing` provides an Auditing resource. This allows auditing to be created.

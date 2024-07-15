@@ -1,11 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: access_list_api_keys"
-sidebar_current: "docs-mongodbatlas-datasource-access-list-api-keys"
-description: |-
-    Displays the access list entries for the specified Atlas Organization API Key. Atlas resources require that all API requests originate from IP addresses on the API access list.
----
-
 # Data Source: mongodbatlas_access_list_api_key
 
 `mongodbatlas_access_list_api_keys` describes an Access List API Key entry resource. The access list grants access from IPs, CIDRs) to clusters within the Project.
