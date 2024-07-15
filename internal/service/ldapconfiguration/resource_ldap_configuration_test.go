@@ -30,8 +30,14 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 		password           = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port               = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
 		caCertificate      = os.Getenv("MONGODB_ATLAS_LDAP_CA_CERTIFICATE")
-		projectID          = acc.ProjectIDExecution(t)
-		clusterName        = acc.RandomClusterName()
+		clusterInfo        = acc.GetClusterInfo(t, &acc.ClusterRequest{
+			CloudBackup: true,
+			ReplicationSpecs: []acc.ReplicationSpecRequest{
+				{Region: "US_EAST_2"},
+			},
+		})
+		projectID           = clusterInfo.ProjectID
+		clusterTerraformStr = clusterInfo.ClusterTerraformStr
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -39,7 +45,7 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithVerify(projectID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
+				Config: configWithVerify(clusterTerraformStr, clusterInfo.ClusterResourceName, projectID, hostname, username, password, caCertificate, cast.ToInt(port), true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -155,40 +161,33 @@ func configBasic(projectID, hostname, username, password string, authEnabled boo
 	`, projectID, hostname, username, password, authEnabled, port)
 }
 
-func configWithVerify(projectID, clusterName, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
+func configWithVerify(clusterTerraformStr, clusterResourceName, projectID, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
-			provider_name               = "AWS"
-			provider_region_name        = "US_EAST_2"
-			provider_instance_size_name = "M10"
-			cloud_backup                = true //enable cloud provider snapshots
-		}
+%[8]s
 
 		resource "mongodbatlas_ldap_verify" "test" {
-			project_id                  = %[1]q
-			hostname = %[3]q
-			bind_username                     = %[4]q
-			bind_password                     = %[5]q
-			port                     = %[6]d
+			project_id    = %[1]q
+			hostname      = %[2]q
+			bind_username = %[3]q
+			bind_password = %[4]q
+			port          = %[5]d
 			ca_certificate = <<-EOF
-%[8]s
+%[7]s
 			EOF
 			authz_query_template = "{USER}?memberOf?base"
-			depends_on = [mongodbatlas_cluster.test]
+			depends_on = [%[9]s]
 		}
 
 		resource "mongodbatlas_ldap_configuration" "test" {
-			project_id                  = %[1]q
-			authorization_enabled                = false
-			hostname = %[3]q
-			bind_username                     = %[4]q
-			bind_password                     = %[5]q
-			port                     = %[6]d
-			authentication_enabled                = %[7]t
+			project_id             = %[1]q
+			authorization_enabled  = false
+			hostname               = %[2]q
+			bind_username          = %[3]q
+			bind_password          = %[4]q
+			port                   = %[5]d
+			authentication_enabled = %[6]t
 			ca_certificate = <<-EOF
-%[8]s
+%[7]s
 			EOF
 			authz_query_template = "{USER}?memberOf?base"
 			user_to_dn_mapping{
@@ -196,5 +195,5 @@ func configWithVerify(projectID, clusterName, hostname, username, password, caCe
 				ldap_query = "DC=example,DC=com??sub?(userPrincipalName={0})"
 			}
 			depends_on = [mongodbatlas_ldap_verify.test]
-		}`, projectID, clusterName, hostname, username, password, port, authEnabled, caCertificate)
+		}`, projectID, hostname, username, password, port, authEnabled, caCertificate, clusterTerraformStr, clusterResourceName)
 }
