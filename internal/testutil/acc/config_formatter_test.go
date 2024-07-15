@@ -112,6 +112,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   backup_enabled = false
   cluster_type   = "REPLICASET"
   name           = "my-name"
+  pit_enabled    = false
   project_id     = "project"
 
   replication_specs {
@@ -139,6 +140,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   backup_enabled = true
   cluster_type   = "GEOSHARDED"
   name           = "my-name"
+  pit_enabled    = true
   project_id     = "project"
 
   replication_specs {
@@ -167,6 +169,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   backup_enabled = false
   cluster_type   = "REPLICASET"
   name           = "my-name"
+  pit_enabled    = false
   project_id     = "project"
 
   replication_specs {
@@ -195,6 +198,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   backup_enabled = false
   cluster_type   = "REPLICASET"
   name           = "my-name"
+  pit_enabled    = false
   project_id     = "project"
 
   replication_specs {
@@ -223,6 +227,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   backup_enabled = false
   cluster_type   = "REPLICASET"
   name           = "my-name"
+  pit_enabled    = false
   project_id     = "project"
 
   replication_specs {
@@ -267,6 +272,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   backup_enabled = false
   cluster_type   = "REPLICASET"
   name           = "my-name"
+  pit_enabled    = false
   project_id     = "project"
 
   replication_specs {
@@ -308,6 +314,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   backup_enabled = false
   cluster_type   = "REPLICASET"
   name           = "my-name"
+  pit_enabled    = false
   project_id     = "project"
 
   replication_specs {
@@ -367,7 +374,7 @@ func Test_ClusterResourceHcl(t *testing.T) {
 			},
 			"overrideClusterResource": {
 				overrideClusterResource,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, Geosharded: true, CloudBackup: true, ReplicationSpecs: []acc.ReplicationSpecRequest{
+				acc.ClusterRequest{ClusterNameExplicit: clusterName, Geosharded: true, PitEnabled: true, CloudBackup: true, ReplicationSpecs: []acc.ReplicationSpecRequest{
 					{Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: constant.AZURE},
 				}},
 			},

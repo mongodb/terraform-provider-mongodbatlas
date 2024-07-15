@@ -104,6 +104,7 @@ func ClusterResourceHcl(projectID string, req *ClusterRequest) (configStr, clust
 		"cluster_type":   clusterTypeStr,
 		"name":           clusterName,
 		"backup_enabled": req.CloudBackup,
+		"pit_enabled":    req.PitEnabled,
 	}
 	if req.DiskSizeGb != 0 {
 		clusterRootAttributes["disk_size_gb"] = req.DiskSizeGb

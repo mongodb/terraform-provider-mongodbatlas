@@ -252,9 +252,18 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 
 func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-		checkMap    = map[string]string{
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
+			CloudBackup: true,
+			ReplicationSpecs: []acc.ReplicationSpecRequest{
+				{Region: "US_EAST_2"},
+			},
+			PitEnabled: true, // you cannot copy oplogs when pit is not enabled
+		})
+		clusterName         = clusterInfo.ClusterName
+		terraformStr        = clusterInfo.ClusterTerraformStr
+		clusterResourceName = clusterInfo.ClusterResourceName
+		projectID           = clusterInfo.ProjectID
+		checkMap            = map[string]string{
 			"cluster_name":                             clusterName,
 			"reference_hour_of_day":                    "3",
 			"reference_minute_of_hour":                 "45",
@@ -300,7 +309,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configCopySettings(projectID, clusterName, false, &admin.DiskBackupSnapshotSchedule{
+				Config: configCopySettings(terraformStr, projectID, clusterResourceName, false, &admin.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(1),
@@ -308,7 +317,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(checksCreate...),
 			},
 			{
-				Config: configCopySettings(projectID, clusterName, true, &admin.DiskBackupSnapshotSchedule{
+				Config: configCopySettings(terraformStr, projectID, clusterResourceName, true, &admin.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(1),
@@ -525,10 +534,10 @@ func configDefault(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) s
 	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configCopySettings(projectID, clusterName string, emptyCopySettings bool, p *admin.DiskBackupSnapshotSchedule) string {
+func configCopySettings(terraformStr, projectID, clusterResourceName string, emptyCopySettings bool, p *admin.DiskBackupSnapshotSchedule) string {
 	var copySettings string
 	if !emptyCopySettings {
-		copySettings = `
+		copySettings = fmt.Sprintf(`
 			copy_settings {
 				cloud_provider = "AWS"
 				frequencies = ["HOURLY",
@@ -538,40 +547,19 @@ func configCopySettings(projectID, clusterName string, emptyCopySettings bool, p
 							"YEARLY",
 							"ON_DEMAND"]
 				region_name = "US_EAST_1"
-				replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
+				replication_spec_id = %[1]s.replication_specs.*.id[0]
 				should_copy_oplogs = true
-			}`
+			}`, clusterResourceName)
 	}
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = %[1]q
-			name         = %[2]q
-			
-			cluster_type = "REPLICASET"
-						replication_specs {
-						num_shards = 1
-						regions_config {
-							region_name     = "US_EAST_2"
-							electable_nodes = 3
-							priority        = 7
-							read_only_nodes = 0
-							}
-						}
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_region_name        = "US_EAST_2"
-			provider_instance_size_name = "M10"
-			cloud_backup     = true //enable cloud provider snapshots
-			pit_enabled = true // enable point in time restore. you cannot copy oplogs when pit is not enabled.
-		}
-		
+		%[1]s
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
-			project_id   = %[1]q
-			cluster_name     = %[2]q
+			project_id       = %[2]q
+			cluster_name     = %[3]s.name
 
-			reference_hour_of_day    = %[3]d
-			reference_minute_of_hour = %[4]d
-			restore_window_days      = %[5]d
+			reference_hour_of_day    = %[4]d
+			reference_minute_of_hour = %[5]d
+			restore_window_days      = %[6]d
 
 			policy_item_hourly {
 				frequency_interval = 1
@@ -598,9 +586,9 @@ func configCopySettings(projectID, clusterName string, emptyCopySettings bool, p
 				retention_unit     = "years"
 				retention_value    = 1
 			}
-			%s
+			%[7]s
 		}
-	`, projectID, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), copySettings)
+	`, terraformStr, projectID, clusterResourceName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), copySettings)
 }
 
 func configOnePolicy(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) string {
