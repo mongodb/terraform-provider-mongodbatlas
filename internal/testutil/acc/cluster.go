@@ -19,6 +19,7 @@ type ClusterRequest struct {
 	DiskSizeGb             int
 	CloudBackup            bool
 	Geosharded             bool
+	PitEnabled             bool
 }
 
 func (r *ClusterRequest) AddDefaults() {
