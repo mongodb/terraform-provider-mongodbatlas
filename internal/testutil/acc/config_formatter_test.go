@@ -314,6 +314,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   backup_enabled = false
   cluster_type   = "REPLICASET"
   name           = "my-name"
+  pit_enabled    = false
   project_id     = "project"
 
   replication_specs {
