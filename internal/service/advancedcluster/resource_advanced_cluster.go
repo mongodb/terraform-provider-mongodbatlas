@@ -577,8 +577,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20250101, isResourceSchema bool) diag.Diagnostics {
 	clusterName := *cluster.Name
 
-	if err := d.Set("cluster_id", cluster.GetId()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_id", clusterName, err))
+	if isResourceSchema {
+		if err := d.Set("cluster_id", cluster.GetId()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_id", clusterName, err))
+		}
+
+		if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", conversion.TimePtrToStringPtr(cluster.AcceptDataRisksAndForceReplicaSetReconfig)); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
+		}
 	}
 
 	if err := d.Set("backup_enabled", cluster.GetBackupEnabled()); err != nil {
@@ -647,10 +653,6 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2025
 
 	if err := d.Set("version_release_system", cluster.GetVersionReleaseSystem()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "version_release_system", clusterName, err))
-	}
-
-	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", conversion.TimePtrToStringPtr(cluster.AcceptDataRisksAndForceReplicaSetReconfig)); isResourceSchema && err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
 	}
 
 	if err := d.Set("global_cluster_self_managed_sharding", cluster.GetGlobalClusterSelfManagedSharding()); err != nil {
