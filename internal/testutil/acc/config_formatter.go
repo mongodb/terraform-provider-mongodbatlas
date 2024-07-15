@@ -167,6 +167,12 @@ func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec) er
 		nodeSpec := rc.GetElectableSpecs()
 		nodeSpecBlock := rcBlock.AppendNewBlock("electable_specs", nil).Body()
 		err = addPrimitiveAttributesViaJSON(nodeSpecBlock, nodeSpec)
+
+		readOnlySpecs := rc.GetReadOnlySpecs()
+		if readOnlySpecs.GetNodeCount() != 0 {
+			readOnlyBlock := rcBlock.AppendNewBlock("read_only_specs", nil).Body()
+			err = addPrimitiveAttributesViaJSON(readOnlyBlock, readOnlySpecs)
+		}
 	}
 	return err
 }
