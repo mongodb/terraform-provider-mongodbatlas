@@ -1,3 +1,7 @@
+---
+subcategory: "Deprecated"    
+---
+
 **WARNING:** This resource is deprecated, use `mongodbatlas_cloud_backup_schedule`
 **Note:** This resource have now been fully deprecated as part of v1.10.0 release
 

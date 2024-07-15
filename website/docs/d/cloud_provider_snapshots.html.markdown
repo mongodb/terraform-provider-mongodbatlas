@@ -1,3 +1,7 @@
+---
+subcategory: "Deprecated"    
+---
+
 **WARNING:** This datasource is deprecated, use `mongodbatlas_cloud_backup_snapshots`
 **Note:** This resource have now been fully deprecated as part of v1.10.0 release
 
