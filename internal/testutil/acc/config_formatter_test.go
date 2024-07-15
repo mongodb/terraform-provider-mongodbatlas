@@ -385,7 +385,7 @@ func Test_ClusterResourceHcl(t *testing.T) {
 			},
 			"autoScalingDiskEnabled": {
 				autoScalingDiskEnabled,
-				acc.ClusterRequest{ClusterNameExplicit: clusterName, Tags: map[string]string{
+				acc.ClusterRequest{ClusterName: clusterName, Tags: map[string]string{
 					"ArchiveTest": "true", "Owner": "test",
 				}, ReplicationSpecs: []acc.ReplicationSpecRequest{
 					{AutoScalingDiskGbEnabled: true},
