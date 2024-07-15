@@ -1,9 +1,6 @@
 ---
-layout: "mongodbatlas"
-page_title: "Upgrade Guide for Terraform MongoDB Atlas Provider Programmatic API Key Resource in v1.10.0"
-sidebar_current: "docs-mongodbatlas-guides-Programmatic-API-Key-upgrade-guide"
-description: |-
-MongoDB Atlas Provider : Upgrade and Information Guide
+page_title: "Upgrade Guide 1.10.0 for Programmatic API Key"
+subcategory: "Older Guides"
 ---
 
 # MongoDB Atlas Provider: Programmatic API Key Upgrade Guide in v1.10.0

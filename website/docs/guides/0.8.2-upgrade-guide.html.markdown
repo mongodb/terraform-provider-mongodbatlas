@@ -1,4 +1,11 @@
-## 0.8.2 Upgrade Guide for Privatelink users
+---
+page_title: "Upgrade Guide 0.8.2"
+subcategory: "Older Guides"
+---
+
+# MongoDB Atlas Provider v0.8.2: Upgrade and Information Guide
+
+## Upgrade Guide for Privatelink users
 
 ### Resources are impacted that were created with versions ***v0.8.0/v0.8.1***
 ### Fixed in [#398](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/398)
