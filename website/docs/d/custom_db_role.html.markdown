@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_custom_db_role
 
-`mongodbatlas_custom_db_role` describe a Custom DB Role. This represents a custom db role.
+`mongodbatlas_custom_db_role` describes a Custom DB Role. This represents a custom db role.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 

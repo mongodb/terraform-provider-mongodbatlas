@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_data_lake_pipeline_runs
 
-`mongodbatlas_data_lake_pipeline_run` describe Data Lake Pipeline Runs.
+`mongodbatlas_data_lake_pipeline_run` describes Data Lake Pipeline Runs.
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.

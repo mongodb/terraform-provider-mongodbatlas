@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_event_trigger
 
-`mongodbatlas_event_trigger` describe an Event Trigger. 
+`mongodbatlas_event_trigger` describes an Event Trigger. 
 
 ## Example Usage
 

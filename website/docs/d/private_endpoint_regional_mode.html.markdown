@@ -1,6 +1,6 @@
 # Data Source: private_endpoint_regional_mode
 
-`private_endpoint_regional_mode` describe a Private Endpoint Regional Mode. This represents a Private Endpoint Regional Mode Connection that wants to retrieve settings of an Atlas project.
+`private_endpoint_regional_mode` describes a Private Endpoint Regional Mode. This represents a Private Endpoint Regional Mode Connection that wants to retrieve settings of an Atlas project.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 

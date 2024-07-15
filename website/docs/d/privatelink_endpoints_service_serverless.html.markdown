@@ -1,6 +1,6 @@
 # Data Source: privatelink_endpoints_service_serverless
 
-`privatelink_endpoints_service_serverless` Describes the list of all Serverless PrivateLink Endpoint Service resource.
+`privatelink_endpoints_service_serverless` describes the list of all Serverless PrivateLink Endpoint Service resource.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 

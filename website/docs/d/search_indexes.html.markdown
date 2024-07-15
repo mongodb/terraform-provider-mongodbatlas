@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_search_indexes
 
-`mongodbatlas_search_indexes` describe all search indexes. This represents search indexes that have been created.
+`mongodbatlas_search_indexes` describes all search indexes. This represents search indexes that have been created.
 
 > **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 

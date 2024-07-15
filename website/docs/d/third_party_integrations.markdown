@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_third_party_integrations
 
-`mongodbatlas_third_party_integrations` describe all Third-Party Integration Settings. This represents two Third-Party services `PAGER_DUTY` and `DATADOG`
+`mongodbatlas_third_party_integrations` describes all Third-Party Integration Settings. This represents two Third-Party services `PAGER_DUTY` and `DATADOG`
 applied across the project. 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.

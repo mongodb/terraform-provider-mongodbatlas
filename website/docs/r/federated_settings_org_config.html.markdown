@@ -2,7 +2,6 @@
 
 `mongodbatlas_federated_settings_org_config` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Identity Providers provides federated settings outputs for the configured Identity Providers.
 
-
 ## Example Usage
 
 ~> **IMPORTANT** You **MUST** import this resource before you can manage it with this provider. 

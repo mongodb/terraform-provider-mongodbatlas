@@ -2,7 +2,6 @@
 
 `mongodbatlas_global_cluster_config` provides a Global Cluster Configuration resource.
 
-
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 -> **NOTE:** This resource can only be used with Atlas-managed clusters. See doc for `global_cluster_self_managed_sharding` attribute in [`mongodbatlas_advanced_cluster` resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) for more info.

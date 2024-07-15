@@ -1,4 +1,5 @@
 # Data Source: mongodbatlas_cloud_backup_snapshot_export_bucket
+
 `mongodbatlas_cloud_backup_snapshot_export_bucket` datasource allows you to retrieve all the buckets for the specified project.
 
 

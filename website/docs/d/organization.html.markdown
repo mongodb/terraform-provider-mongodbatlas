@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_organization
 
-`mongodbatlas_organization` describe all MongoDB Atlas Organizations. This represents organizations that have been created.
+`mongodbatlas_organization` describes all MongoDB Atlas Organizations. This represents organizations that have been created.
 
 ## Example Usage
 
