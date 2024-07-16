@@ -1,6 +1,6 @@
 # Documentation
 
-- In our documentation, when a resource field allows a maximum of only one item, we do not format that field as an array. Instead, we create a subsection specifically for this field. Within this new subsection, we enumerate all the attributes of the field. Let's illustrate this with an example: [cloud_backup_schedule.html.markdown](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/cloud_backup_schedule.html.markdown?plain=1#L207)
+- In our documentation, when a resource field allows a maximum of only one item, we do not format that field as an array. Instead, we create a subsection specifically for this field. Within this new subsection, we enumerate all the attributes of the field. Let's illustrate this with an example: [cloud_backup_schedule.html.markdown](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/docs/resources/cloud_backup_schedule.md?plain=1#L207)
 - You can check how the documentation is rendered on the Terraform Registry via [doc-preview](https://registry.terraform.io/tools/doc-preview).
 
 ## Creating Resource and Data source Documentation

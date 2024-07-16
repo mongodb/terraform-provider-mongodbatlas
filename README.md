@@ -57,7 +57,7 @@ We ship binaries but do not prioritize fixes for the following operating system 
 
 
 ## Troubleshooting
-See [Troubleshooting](website/docs/troubleshooting.html.markdown).
+See [Troubleshooting](./docs/troubleshooting.md).
 
 ## Developing the Provider
 See our [contributing guides](./contributing/README.md).
