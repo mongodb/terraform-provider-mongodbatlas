@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_control_plane_ip_addresses
 
-`mongodbatlas_control_plane_ip_addresses`  provides a data source that returns all control plane IP addresses.
+`mongodbatlas_control_plane_ip_addresses` returns all control plane IP addresses.
 
 ## Example Usages
 ```terraform

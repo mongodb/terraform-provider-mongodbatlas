@@ -75,7 +75,6 @@ lint:
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
 	go install github.com/icholy/gomajor@latest
-	go install github.com/client9/misspell/cmd/misspell@latest
 	go install github.com/terraform-linters/tflint@v0.49.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
@@ -86,13 +85,8 @@ tools:  ## Install dev tools
 	go install github.com/hashicorp/go-changelog/cmd/changelog-entry@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
-.PHONY: website-lint
-website-lint:
-	@echo "==> Checking website against linters..."
-	@misspell -error -source=text website/
-
-.PHONY: website
-website:
+.PHONY: docs
+docs:
 	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
 
 .PHONY: tflint

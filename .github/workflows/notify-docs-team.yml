@@ -20,7 +20,7 @@ jobs:
           filters: |
             files:
               - '.changelog/**'
-              - 'website/**'
+              - 'docs/**'
         
   slack-notification:
     needs: check
