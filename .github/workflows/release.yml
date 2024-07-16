@@ -57,7 +57,7 @@ jobs:
     uses: ./.github/workflows/run-script-and-commit.yml
     with:
       script_call: './scripts/update-examples-reference-in-docs.sh ${{inputs.version_number}}'
-      file_to_commit: 'website/docs/index.html.markdown'
+      file_to_commit: 'docs/index.md'
       commit_message: 'chore: Updates examples link in index.html.markdown for ${{ github.event.inputs.version_number }} release'
     secrets:
       apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
