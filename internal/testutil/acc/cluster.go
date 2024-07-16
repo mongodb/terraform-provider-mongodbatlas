@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
-// ClusterRequest contains configuration for a cluster where all fields are optional and AddDefaults are used for required fields.
+// ClusterRequest contains configuration for a cluster where all fields are optional and AddDefaults is used for required fields.
 // Used together with GetClusterInfo which will set ProjectID if it is unset.
 type ClusterRequest struct {
 	Tags                   map[string]string
