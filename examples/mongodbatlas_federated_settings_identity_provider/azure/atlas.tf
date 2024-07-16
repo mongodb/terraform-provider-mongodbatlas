@@ -1,5 +1,5 @@
 locals {
-  mongodb_uri = mongodbatlas_cluster.this.connection_strings[0].standard
+  mongodb_uri = mongodbatlas_advanced_cluster.this.connection_strings[0].standard
 }
 
 data "mongodbatlas_federated_settings" "this" {
@@ -16,25 +16,22 @@ resource "mongodbatlas_project_ip_access_list" "mongo-access" {
   cidr_block = "0.0.0.0/0"
 }
 
-resource "mongodbatlas_cluster" "this" {
-  project_id             = mongodbatlas_project.this.id
-  name                   = var.project_name
-  mongo_db_major_version = "7.0"
-  cluster_type           = "REPLICASET"
+resource "mongodbatlas_advanced_cluster" "this" {
+  project_id     = mongodbatlas_project.this.id
+  name           = var.project_name
+  cluster_type   = "REPLICASET"
+  
   replication_specs {
-    num_shards = 1
-    regions_config {
-      region_name     = var.region
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = var.region
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
-  cloud_backup                 = false
-  auto_scaling_disk_gb_enabled = false
-  provider_name                = "AWS"
-  disk_size_gb                 = 10
-  provider_instance_size_name  = "M10"
 }
 
 resource "mongodbatlas_federated_settings_identity_provider" "oidc" {

@@ -20,8 +20,8 @@ resource "mongodbatlas_cluster" "cluster_test" {
 
 
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
-  project_id        = mongodbatlas_cluster.cluster_test.project_id
-  cluster_name      = mongodbatlas_cluster.cluster_test.name
+  project_id        = mongodbatlas_advanced_cluster.cluster_test.project_id
+  cluster_name      = mongodbatlas_advanced_cluster.cluster_test.name
   description       = "My description"
   retention_in_days = "1"
 }
@@ -34,8 +34,8 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 
   delivery_type_config {
     point_in_time             = true
-    target_cluster_name       = mongodbatlas_cluster.cluster_test.name
-    target_project_id         = mongodbatlas_cluster.cluster_test.project_id
+    target_cluster_name       = mongodbatlas_advanced_cluster.cluster_test.name
+    target_project_id         = mongodbatlas_advanced_cluster.cluster_test.project_id
     point_in_time_utc_seconds = var.point_in_time_utc_seconds
   }
 }

@@ -75,7 +75,7 @@ Or to fetch the connection string using terraform follow the below steps:
 
 ```hcl
 output "atlasclusterstring" {
-    value = mongodbatlas_cluster.cluster.connection_strings
+    value = mongodbatlas_advanced_cluster.cluster.connection_strings
 }
 ```
 **Outputs:**
@@ -100,7 +100,7 @@ To fetch a particular connection string, use the **lookup()** function of terraf
 
 ```
 output "plstring" {
-    value = lookup(mongodbatlas_cluster.cluster.connection_strings[0].aws_private_link_srv, aws_vpc_endpoint.ptfe_service.id)
+    value = lookup(mongodbatlas_advanced_cluster.cluster.connection_strings[0].aws_private_link_srv, aws_vpc_endpoint.ptfe_service.id)
 }
 ```
 **Output:**

@@ -30,7 +30,7 @@ resource "mongodbatlas_cluster" "azure-cluster" {
 # Create the peering connection request
 resource "mongodbatlas_network_peering" "test" {
   project_id            = var.project_id
-  container_id          = mongodbatlas_cluster.azure-cluster.container_id
+  container_id          = mongodbatlas_advanced_cluster.azure-cluster.container_id
   provider_name         = "AZURE"
   azure_directory_id    = data.azurerm_client_config.current.tenant_id
   azure_subscription_id = data.azurerm_client_config.current.subscription_id
