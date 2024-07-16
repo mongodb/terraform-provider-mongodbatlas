@@ -22,7 +22,7 @@ require (
 	github.com/mongodb-forks/digest v1.1.0
 	github.com/spf13/cast v1.6.0
 	github.com/stretchr/testify v1.9.0
-	github.com/zclconf/go-cty v1.14.4
+	github.com/zclconf/go-cty v1.15.0
 	go.mongodb.org/atlas v0.36.0
 	go.mongodb.org/atlas-sdk/v20240530002 v20240530002.0.0
 	go.mongodb.org/realm v0.1.0
