@@ -1,7 +1,5 @@
 # {{ if .Name }}{{.Type}}: {{.Name}}{{ end }}
 
-{{ if .Description }}  {{ .Description | trimspace }} {{ end }}
-
 ## Example Usages
 {{ if .Name }}
     {{ if eq .Name "mongodbatlas_network_peering" }}
