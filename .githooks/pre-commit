@@ -26,9 +26,3 @@ if [ -n "$STAGED_TF_FILES" ]; then
     echo "Checking the format of Terraform files"
     make tflint
 fi
-
-STAGED_WEBSITES_FILES=$(git diff --cached --name-only | grep "docs/")
-if [ -n "$STAGED_WEBSITES_FILES" ]; then
-    echo "Checking the format of website files"
-    make website-lint
-fi
