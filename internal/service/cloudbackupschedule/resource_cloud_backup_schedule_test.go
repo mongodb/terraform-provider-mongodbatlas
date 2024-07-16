@@ -485,7 +485,7 @@ func configNoPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule
 
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 		}	
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
