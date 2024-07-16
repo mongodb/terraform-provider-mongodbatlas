@@ -352,6 +352,38 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
 
 }
 `
+var readOnlyAndPriority = `
+resource "mongodbatlas_advanced_cluster" "cluster_info" {
+  backup_enabled = false
+  cluster_type   = "REPLICASET"
+  name           = "my-name"
+  pit_enabled    = false
+  project_id     = "project"
+
+  replication_specs {
+    num_shards = 1
+    zone_name  = "Zone 1"
+
+    region_configs {
+      priority      = 5
+      provider_name = "AWS"
+      region_name   = "US_EAST_1"
+      auto_scaling {
+        disk_gb_enabled = false
+      }
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 5
+      }
+      read_only_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+    }
+  }
+
+}
+`
 
 func Test_ClusterResourceHcl(t *testing.T) {
 	var (
@@ -416,6 +448,14 @@ func Test_ClusterResourceHcl(t *testing.T) {
 				}, ReplicationSpecs: []acc.ReplicationSpecRequest{
 					{AutoScalingDiskGbEnabled: true},
 				}},
+			},
+			"readOnlyAndPriority": {
+				readOnlyAndPriority,
+				acc.ClusterRequest{
+					ClusterName: clusterName,
+					ReplicationSpecs: []acc.ReplicationSpecRequest{
+						{Priority: 5, NodeCount: 5, Region: "US_EAST_1", NodeCountReadOnly: 1},
+					}},
 			},
 		}
 	)

@@ -101,10 +101,15 @@ type ReplicationSpecRequest struct {
 	EbsVolumeType            string
 	ExtraRegionConfigs       []ReplicationSpecRequest
 	NodeCount                int
+	NodeCountReadOnly        int
+	Priority                 int
 	AutoScalingDiskGbEnabled bool
 }
 
 func (r *ReplicationSpecRequest) AddDefaults() {
+	if r.Priority == 0 {
+		r.Priority = 7
+	}
 	if r.NodeCount == 0 {
 		r.NodeCount = 3
 	}
@@ -146,14 +151,24 @@ func ReplicationSpec(req *ReplicationSpecRequest) admin.ReplicationSpec {
 }
 
 func CloudRegionConfig(req ReplicationSpecRequest) admin.CloudRegionConfig {
+	req.AddDefaults()
+	var readOnly admin.DedicatedHardwareSpec
+	if req.NodeCountReadOnly != 0 {
+		readOnly = admin.DedicatedHardwareSpec{
+			NodeCount:    &req.NodeCountReadOnly,
+			InstanceSize: &req.InstanceSize,
+		}
+	}
 	return admin.CloudRegionConfig{
 		RegionName:   &req.Region,
+		Priority:     &req.Priority,
 		ProviderName: &req.ProviderName,
 		ElectableSpecs: &admin.HardwareSpec{
 			InstanceSize:  &req.InstanceSize,
 			NodeCount:     &req.NodeCount,
 			EbsVolumeType: conversion.StringPtr(req.EbsVolumeType),
 		},
+		ReadOnlySpecs: &readOnly,
 		AutoScaling: &admin.AdvancedAutoScalingSettings{
 			DiskGB: &admin.DiskGBAutoScaling{Enabled: &req.AutoScalingDiskGbEnabled},
 		},
