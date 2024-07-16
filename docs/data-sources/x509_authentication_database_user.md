@@ -10,7 +10,7 @@
 ```terraform
 resource "mongodbatlas_database_user" "user" {
   project_id    = "<PROJECT-ID>"
-  username      = "myUsername"
+  username      = "CN=xxxx.domain.com"
   x509_type     = "MANAGED"
   database_name = "$external"
 
@@ -69,7 +69,7 @@ data "mongodbatlas_x509_authentication_database_user" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Identifier for the Atlas project associated with the X.509 configuration.
-* `username` - (Optional) Username of the database user to create a certificate for.
+* `username` - (Optional) Username of the database user to create a certificate for. e.g. CN=xxx.domain.com, OU=ORGANIZATION
 
 ## Attributes Reference
 In addition to all arguments above, the following attributes are exported:
