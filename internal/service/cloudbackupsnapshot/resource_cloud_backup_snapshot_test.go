@@ -38,8 +38,8 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "type", "replicaSet"),
 					resource.TestCheckResourceAttr(resourceName, "members.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "snapshot_ids.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
-					resource.TestCheckResourceAttr(resourceName, "replica_set_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+					resource.TestCheckResourceAttr(resourceName, "replica_set_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "retention_in_days", retentionInDays),
@@ -47,8 +47,8 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "type", "replicaSet"),
 					resource.TestCheckResourceAttr(dataSourceName, "members.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "snapshot_ids.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.ClusterName),
-					resource.TestCheckResourceAttr(dataSourceName, "replica_set_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.Name),
+					resource.TestCheckResourceAttr(dataSourceName, "replica_set_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(dataSourceName, "cloud_provider", "AWS"),
 					resource.TestCheckResourceAttr(dataSourceName, "description", description),
 					resource.TestCheckResourceAttrSet(dataSourcePluralSimpleName, "results.#"),
@@ -147,10 +147,10 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 }
 
 func configBasic(info *acc.ClusterInfo, description, retentionInDays string) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_snapshot" "test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 			description       = %[3]q
 			retention_in_days = %[4]q
 		}
@@ -158,21 +158,21 @@ func configBasic(info *acc.ClusterInfo, description, retentionInDays string) str
 		data "mongodbatlas_cloud_backup_snapshot" "test" {
 			snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 		}
 
 		data "mongodbatlas_cloud_backup_snapshots" "test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 		}
 
 		data "mongodbatlas_cloud_backup_snapshots" "pagination" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 			page_num = 1
 			items_per_page = 5
 		}
-	`, info.ClusterNameStr, info.ProjectIDStr, description, retentionInDays)
+	`, info.TerraformNameRef, info.ProjectID, description, retentionInDays)
 }
 
 func configSharded(projectID, clusterName, description, retentionInDays string) string {

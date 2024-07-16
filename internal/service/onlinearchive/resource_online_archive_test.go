@@ -13,8 +13,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-var (
-	clusterRequest = acc.ClusterRequest{
+func clusterRequest() *acc.ClusterRequest {
+	return &acc.ClusterRequest{
 		ReplicationSpecs: []acc.ReplicationSpecRequest{
 			// Must use US_EAST_1 in dev for online_archive to work
 			{AutoScalingDiskGbEnabled: true, Region: "US_EAST_1"},
@@ -23,18 +23,17 @@ var (
 			"ArchiveTest": "true", "Owner": "test",
 		},
 	}
-)
-
+}
 func TestAccBackupRSOnlineArchive(t *testing.T) {
 	var (
 		onlineArchiveResourceName    = "mongodbatlas_online_archive.users_archive"
 		onlineArchiveDataSourceName  = "data.mongodbatlas_online_archive.read_archive"
 		onlineArchivesDataSourceName = "data.mongodbatlas_online_archives.all"
-		clusterInfo                  = acc.GetClusterInfo(t, &clusterRequest)
-		clusterName                  = clusterInfo.ClusterName
+		clusterInfo                  = acc.GetClusterInfo(t, clusterRequest())
+		clusterName                  = clusterInfo.Name
 		projectID                    = clusterInfo.ProjectID
-		clusterTerraformStr          = clusterInfo.ClusterTerraformStr
-		clusterResourceName          = clusterInfo.ClusterResourceName
+		clusterTerraformStr          = clusterInfo.TerraformStr
+		clusterResourceName          = clusterInfo.ResourceName
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -127,12 +126,12 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 
 func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 	var (
-		clusterInfo               = acc.GetClusterInfo(t, &clusterRequest)
-		clusterResourceName       = clusterInfo.ClusterResourceName
-		clusterName               = clusterInfo.ClusterName
+		clusterInfo               = acc.GetClusterInfo(t, clusterRequest())
+		clusterResourceName       = clusterInfo.ResourceName
+		clusterName               = clusterInfo.Name
 		projectID                 = clusterInfo.ProjectID
 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-		clusterTerraformStr       = clusterInfo.ClusterTerraformStr
+		clusterTerraformStr       = clusterInfo.TerraformStr
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -175,11 +174,11 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 	var (
 		onlineArchiveResourceName   = "mongodbatlas_online_archive.users_archive"
 		onlineArchiveDataSourceName = "data.mongodbatlas_online_archive.read_archive"
-		clusterInfo                 = acc.GetClusterInfo(t, &clusterRequest)
-		clusterResourceName         = clusterInfo.ClusterResourceName
-		clusterName                 = clusterInfo.ClusterName
+		clusterInfo                 = acc.GetClusterInfo(t, clusterRequest())
+		clusterResourceName         = clusterInfo.ResourceName
+		clusterName                 = clusterInfo.Name
 		projectID                   = clusterInfo.ProjectID
-		clusterTerraformStr         = clusterInfo.ClusterTerraformStr
+		clusterTerraformStr         = clusterInfo.TerraformStr
 		cloudProvider               = "AWS"
 		processRegion               = "US_EAST_1"
 	)
@@ -221,10 +220,10 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 
 func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
 	var (
-		clusterInfo         = acc.GetClusterInfo(t, &clusterRequest)
-		clusterTerraformStr = clusterInfo.ClusterTerraformStr
+		clusterInfo         = acc.GetClusterInfo(t, clusterRequest())
+		clusterTerraformStr = clusterInfo.TerraformStr
 		cloudProvider       = "AWS"
-		clusterResourceName = clusterInfo.ClusterResourceName
+		clusterResourceName = clusterInfo.ResourceName
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

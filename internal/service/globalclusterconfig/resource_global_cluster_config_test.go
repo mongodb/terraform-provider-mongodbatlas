@@ -31,7 +31,7 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "false"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
@@ -64,7 +64,7 @@ func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 				),
 			},
 			{
@@ -103,7 +103,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.IE"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.DE"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 				),
 			},
 			{
@@ -174,10 +174,10 @@ func checkDestroy(s *terraform.State) error {
 }
 
 func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_global_cluster_config" "config" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 
 			managed_namespaces {
 				db               		   = "mydata"
@@ -195,16 +195,16 @@ func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) st
 
 		data "mongodbatlas_global_cluster_config" "config" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 		}	
-	`, info.ClusterNameStr, info.ProjectIDStr, isCustomShard, isShardKeyUnique)
+	`, info.TerraformNameRef, info.ProjectID, isCustomShard, isShardKeyUnique)
 }
 
 func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_global_cluster_config" "config" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 
 			managed_namespaces {
 				db               = "horizonv2-sg"
@@ -233,7 +233,7 @@ func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
 			}
 			%[3]s
 		}
-	`, info.ClusterNameStr, info.ProjectIDStr, zones)
+	`, info.TerraformNameRef, info.ProjectID, zones)
 }
 
 const (
