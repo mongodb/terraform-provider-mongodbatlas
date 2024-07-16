@@ -121,7 +121,7 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	specs := make([]admin.ReplicationSpec, len(specRequests))
 	for i := range specRequests {
 		specRequest := specRequests[i]
-		specs[i] = ReplicationSpec(&specRequest)
+		specs[i] = replicationSpec(&specRequest)
 	}
 	clusterName = req.ClusterName
 	resourceSuffix := req.ResourceSuffix
