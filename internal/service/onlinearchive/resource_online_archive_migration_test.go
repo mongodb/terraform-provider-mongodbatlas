@@ -12,7 +12,7 @@ import (
 func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 	var (
 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-		clusterInfo               = acc.GetClusterInfo(t, &clusterRequest)
+		clusterInfo               = acc.GetClusterInfo(t, clusterRequest())
 		clusterName               = clusterInfo.ClusterName
 		projectID                 = clusterInfo.ProjectID
 		clusterTerraformStr       = clusterInfo.ClusterTerraformStr
