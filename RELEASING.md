@@ -9,12 +9,6 @@
 - If some deprecated attributes need to be removed in the following release, create a Jira ticket and merge the corresponding PR before starting the release workflow.
 You can search in the code for the constansts in [deprecation.go](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/common/constant/deprecation.go) to find them.
 
-### Move old guides
-
-**Note**: Only applies if the right most version digit is 0 (considered a major or minor version in [semantic versioning](https://semver.org/)).
-
-- Keep only [Guides](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/website/docs/guides) for 12 months. Previous versions must be added in the header `subcategory: "Older Guides"`.
-
 ### Revise jira release
 
 Before triggering a release, view the corresponding [unreleased jira page](https://jira.mongodb.org/projects/CLOUDP?selectedItem=com.atlassian.jira.jira-projects-plugin:release-page&status=unreleased&contains=terraform) to ensure there are no pending tickets. In case there are pending tickets, verify with the team if the expectation is to have them included within the current release. After release workflow is successful the version will be marked as released automatically.
@@ -27,7 +21,9 @@ While QA acceptance tests are run in the release process automatically, we check
 
 **Note**: Only applies if the right most version digit is 0 (considered a major or minor version in [semantic versioning](https://semver.org/)).
 
-- A doc in /website/docs/guides/X.Y.0-upgrade-guide.html must be defined containing a summary of the most significant features, breaking changes, and additional information that can be helpful. If not defined the release process will be stopped automatically. The expectation is that this file is created during relevant pull requests (breaking changes, significant features), and not before the release process.
+- A doc ./docs/guides/X.Y.0-upgrade-guide.md must be defined containing a summary of the most significant features, breaking changes, and additional information that can be helpful. If not defined the release process will be stopped automatically. The expectation is that this file is created during relevant pull requests (breaking changes, significant features), and not before the release process.
+
+- We keep [Guides](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/docs/guides) only for 12 months. Add header `subcategory: "Older Guides"` to previous versions.
 
 ### Trigger release workflow
 
