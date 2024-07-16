@@ -76,27 +76,18 @@ if [ ! -f "docs/resources/${resource_name}.md" ]; then
     echo "Error: We cannot find the documentation file for the resource ${resource_name}.md"
     echo "Please, make sure to include the resource template under templates/resources/${resource_name}.md.tmpl"
     printf "Skipping this step: We assume that only a data source is being generated.\n\n"
-else
-    printf "\nMoving the generated file %s.md to the website folder" "${resource_name}"
-    mv "docs/resources/${resource_name}.md" "website/docs/r/${resource_name}.html.markdown"
 fi
 
 if [ ! -f "docs/data-sources/${resource_name}.md" ]; then
     echo "Error: We cannot find the documentation file for the data source ${resource_name}.md"
     echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}.md.tmpl"
     exit 1
-else
-    printf "\nMoving the generated file %s.md to the website folder" "${resource_name}"
-    mv "docs/data-sources/${resource_name}.md" "website/docs/d/${resource_name}.html.markdown"
 fi
 
 if [ ! -f "docs/data-sources/${resource_name}s.md" ]; then
     echo "Warning: We cannot find the documentation file for the data source ${resource_name}s.md."
     echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}s.md.tmpl"
     printf "Skipping this step: We assume that the resource does not have a plural data source.\n\n"
-else
-    printf "\nMoving the generated file %s.md to the website folder" "${resource_name}s"
-    mv "docs/data-sources/${resource_name}s.md" "website/docs/d/${resource_name}s.html.markdown"
 fi
 
 # Delete the docs/ folder

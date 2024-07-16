@@ -89,7 +89,7 @@ tools:  ## Install dev tools
 .PHONY: website-lint
 website-lint:
 	@echo "==> Checking website against linters..."
-	@misspell -error -source=text website/
+	@misspell -error -source=text docs/
 
 .PHONY: website
 website:
