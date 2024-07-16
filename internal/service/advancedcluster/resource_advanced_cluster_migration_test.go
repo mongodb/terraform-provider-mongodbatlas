@@ -15,7 +15,7 @@ func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
-		config      = configReplicaSetAWSProvider(projectID, clusterName)
+		config      = configReplicaSetAWSProvider(projectID, clusterName, 3)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,9 +25,14 @@ func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             checkReplicaSetAWSProvider(projectID, clusterName, false),
+				Check:             checkReplicaSetAWSProvider(projectID, clusterName, 3, false, false),
 			},
 			mig.TestStepCheckEmptyPlan(config),
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   config,
+				Check:                    checkReplicaSetAWSProvider(projectID, clusterName, 3, true, true), // external_id will be present in latest version
+			},
 		},
 	})
 }
@@ -47,7 +52,89 @@ func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             checkReplicaSetMultiCloud(clusterName, 3),
+				Check:             checkReplicaSetMultiCloud(clusterName, 3, false),
+			},
+			mig.TestStepCheckEmptyPlan(config),
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   config,
+				Check:                    checkReplicaSetMultiCloud(clusterName, 3, true), // external_id will be present in latest version
+			},
+		},
+	})
+}
+
+func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+		config      = configSingleShardedMultiCloud(orgID, projectName, clusterName)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { mig.PreCheckBasic(t) },
+		CheckDestroy: acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
+				Check:             checkSingleShardedMultiCloud(clusterName, false),
+			},
+			mig.TestStepCheckEmptyPlan(config),
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   config,
+				Check:                    checkSingleShardedMultiCloud(clusterName, true), // external_id will be present in latest version
+			},
+		},
+	})
+}
+
+func TestMigAdvancedCluster_singleShardPerZoneGeoSharded(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+		config      = configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { mig.PreCheckBasic(t) },
+		CheckDestroy: acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
+				Check:             checkGeoShardedOldSchema(clusterName, 1, 1, false, false),
+			},
+			mig.TestStepCheckEmptyPlan(config),
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   config,
+				Check:                    checkGeoShardedOldSchema(clusterName, 1, 1, true, true), // external_id will be present in latest version
+			},
+		},
+	})
+}
+
+func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
+	acc.SkipTestForCI(t) // TODO: CLOUDP-260154 for ensuring old schema is supported
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+		config      = configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { mig.PreCheckBasic(t) },
+		CheckDestroy: acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
+				Check:             checkGeoShardedOldSchema(clusterName, 2, 2, false, false),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
