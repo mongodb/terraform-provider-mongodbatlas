@@ -60,7 +60,7 @@ const defaultClusterResourceSuffix = "cluster_info"
 
 // GetClusterInfo is used to obtain a project and cluster configuration resource.
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, a data source is created instead. This is useful for local execution but not intended for CI executions.
-// Clusters will be created in project ProjectIDExecution or in req.ProjectID which can be both a direct id, e.g., `664610ec80cc36255e634074` or a config reference`mongodbatlas_project.test.id`.
+// Clusters will be created in project ProjectIDExecution or in req.ProjectID which can be both a direct id, e.g., `664610ec80cc36255e634074` or a config reference `mongodbatlas_project.test.id`.
 func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 	tb.Helper()
 	if req == nil {
