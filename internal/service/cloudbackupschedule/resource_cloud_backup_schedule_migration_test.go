@@ -30,8 +30,8 @@ func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 				Config:            config,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),

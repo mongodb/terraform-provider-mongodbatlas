@@ -37,7 +37,7 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 			},
 		})
 		projectID           = clusterInfo.ProjectID
-		clusterTerraformStr = clusterInfo.ClusterTerraformStr
+		clusterTerraformStr = clusterInfo.TerraformStr
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -45,7 +45,7 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithVerify(clusterTerraformStr, clusterInfo.ClusterResourceName, projectID, hostname, username, password, caCertificate, cast.ToInt(port), true),
+				Config: configWithVerify(clusterTerraformStr, clusterInfo.ResourceName, projectID, hostname, username, password, caCertificate, cast.ToInt(port), true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
