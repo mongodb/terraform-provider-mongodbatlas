@@ -17,7 +17,7 @@ set -euo pipefail
 
 input_array=$(./scripts/get-terraform-supported-versions.sh "true")
 
-indexFile="docs/index.html.md"
+indexFile="docs/index.md"
 
 transform_array() {
     local arr="$1"
