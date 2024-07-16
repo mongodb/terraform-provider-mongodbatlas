@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
@@ -13,12 +14,15 @@ type ClusterRequest struct {
 	Tags                   map[string]string
 	ProjectID              string
 	ResourceSuffix         string
+	AdvancedConfiguration  map[string]any
 	ResourceDependencyName string
 	ClusterName            string
+	MongoDBMajorVersion    string
 	ReplicationSpecs       []ReplicationSpecRequest
 	DiskSizeGb             int
 	CloudBackup            bool
 	Geosharded             bool
+	RetainBackupsEnabled   bool
 	PitEnabled             bool
 }
 
@@ -94,6 +98,7 @@ type ReplicationSpecRequest struct {
 	Region                   string
 	InstanceSize             string
 	ProviderName             string
+	EbsVolumeType            string
 	ExtraRegionConfigs       []ReplicationSpecRequest
 	NodeCount                int
 	AutoScalingDiskGbEnabled bool
@@ -145,8 +150,9 @@ func CloudRegionConfig(req ReplicationSpecRequest) admin.CloudRegionConfig {
 		RegionName:   &req.Region,
 		ProviderName: &req.ProviderName,
 		ElectableSpecs: &admin.HardwareSpec{
-			InstanceSize: &req.InstanceSize,
-			NodeCount:    &req.NodeCount,
+			InstanceSize:  &req.InstanceSize,
+			NodeCount:     &req.NodeCount,
+			EbsVolumeType: conversion.StringPtr(req.EbsVolumeType),
 		},
 		AutoScaling: &admin.AdvancedAutoScalingSettings{
 			DiskGB: &admin.DiskGBAutoScaling{Enabled: &req.AutoScalingDiskGbEnabled},

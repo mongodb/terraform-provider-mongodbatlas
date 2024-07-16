@@ -76,10 +76,18 @@ func ToSnakeCase(str string) string {
 	return strings.ToLower(snake)
 }
 
+var (
+	ClusterAdvConfigOplogMinRetentionHours = "oplog_min_retention_hours"
+	knownAdvancedConfig                    = map[string]bool{
+		ClusterAdvConfigOplogMinRetentionHours: true,
+	}
+)
+
 func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceName string, err error) {
 	if req == nil || req.ProjectID == "" {
 		return "", "", "", errors.New("must specify a ClusterRequest with at least ProjectID set")
 	}
+	projectID := req.ProjectID
 	req.AddDefaults()
 	specRequests := req.ReplicationSpecs
 	specs := make([]admin.ReplicationSpec, len(specRequests))
@@ -98,17 +106,38 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	resourceType := "mongodbatlas_advanced_cluster"
 	cluster := root.AppendNewBlock("resource", []string{resourceType, resourceSuffix}).Body()
 	clusterRootAttributes := map[string]any{
-		"project_id":     req.ProjectID,
-		"cluster_type":   clusterTypeStr,
-		"name":           clusterName,
-		"backup_enabled": req.CloudBackup,
-		"pit_enabled":    req.PitEnabled,
+		"cluster_type":           clusterTypeStr,
+		"name":                   clusterName,
+		"backup_enabled":         req.CloudBackup,
+		"pit_enabled":            req.PitEnabled,
+		"mongo_db_major_version": req.MongoDBMajorVersion,
+	}
+	if strings.Contains(req.ProjectID, ".") {
+		err = setAttributeHcl(cluster, fmt.Sprintf("project_id = %s", projectID))
+		if err != nil {
+			return "", "", "", fmt.Errorf("failed to set project_id = %s", projectID)
+		}
+	} else {
+		clusterRootAttributes["project_id"] = projectID
 	}
 	if req.DiskSizeGb != 0 {
 		clusterRootAttributes["disk_size_gb"] = req.DiskSizeGb
 	}
+	if req.RetainBackupsEnabled {
+		clusterRootAttributes["retain_backups_enabled"] = req.RetainBackupsEnabled
+	}
 	addPrimitiveAttributes(cluster, clusterRootAttributes)
 	cluster.AppendNewline()
+	if len(req.AdvancedConfiguration) > 0 {
+		for _, key := range sortStringMapKeysAny(req.AdvancedConfiguration) {
+			if !knownAdvancedConfig[key] {
+				return "", "", "", fmt.Errorf("unknown key in advanced configuration: %s", key)
+			}
+		}
+		advancedClusterBlock := cluster.AppendNewBlock("advanced_configuration", nil).Body()
+		addPrimitiveAttributes(advancedClusterBlock, req.AdvancedConfiguration)
+		cluster.AppendNewline()
+	}
 	for i, spec := range specs {
 		err = writeReplicationSpec(cluster, spec)
 		if err != nil {
