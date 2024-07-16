@@ -49,7 +49,6 @@ func (r *ClusterRequest) ClusterType() string {
 }
 
 type ClusterInfo struct {
-	ProjectIDStr     string
 	ProjectID        string
 	Name             string
 	ResourceName     string
@@ -83,7 +82,6 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 		tb.Error(err)
 	}
 	return ClusterInfo{
-		ProjectIDStr:     fmt.Sprintf("%q", req.ProjectID),
 		ProjectID:        req.ProjectID,
 		Name:             clusterName,
 		TerraformNameRef: fmt.Sprintf("%s.name", clusterResourceName),
