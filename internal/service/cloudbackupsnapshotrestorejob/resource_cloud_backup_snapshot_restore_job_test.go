@@ -18,11 +18,13 @@ const (
 	dataSourceName = "data.mongodbatlas_cloud_backup_snapshot_restore_job.test"
 )
 
-var clusterRequest = acc.ClusterRequest{
-	CloudBackup: true,
-	ReplicationSpecs: []acc.ReplicationSpecRequest{
-		{Region: "US_WEST_2"},
-	},
+func clusterRequest() *acc.ClusterRequest {
+	return &acc.ClusterRequest{
+		CloudBackup: true,
+		ReplicationSpecs: []acc.ReplicationSpecRequest{
+			{Region: "US_WEST_2"},
+		},
+	}
 }
 
 func TestAccCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
@@ -31,7 +33,7 @@ func TestAccCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 
 func TestAccCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 	var (
-		clusterInfo         = acc.GetClusterInfo(t, &clusterRequest)
+		clusterInfo         = acc.GetClusterInfo(t, clusterRequest())
 		clusterName         = clusterInfo.ClusterName
 		description         = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays     = "1"
@@ -66,7 +68,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	var (
 		snapshotsDataSourceName           = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.test"
 		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
-		clusterInfo                       = acc.GetClusterInfo(tb, &clusterRequest)
+		clusterInfo                       = acc.GetClusterInfo(tb, clusterRequest())
 		clusterName                       = clusterInfo.ClusterName
 		description                       = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays                   = "1"
