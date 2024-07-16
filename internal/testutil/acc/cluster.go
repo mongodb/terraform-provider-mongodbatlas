@@ -38,13 +38,20 @@ func (r *ClusterRequest) AddDefaults() {
 	}
 }
 
+func (r *ClusterRequest) ClusterType() string {
+	if r.Geosharded {
+		return "GEOSHARDED"
+	}
+	return "REPLICASET"
+}
+
 type ClusterInfo struct {
-	ProjectIDStr        string
-	ProjectID           string
-	ClusterName         string
-	ClusterResourceName string
-	ClusterNameStr      string
-	ClusterTerraformStr string
+	ProjectIDStr     string
+	ProjectID        string
+	Name             string
+	ResourceName     string
+	TerraformNameRef string
+	TerraformStr     string
 }
 
 const defaultClusterResourceSuffix = "cluster_info"
@@ -57,30 +64,28 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 	if req == nil {
 		req = new(ClusterRequest)
 	}
+	hclCreator := ClusterResourceHcl
 	if req.ProjectID == "" {
 		if ExistingClusterUsed() {
 			projectID, clusterName := existingProjectIDClusterName()
-			return ClusterInfo{
-				ProjectIDStr:        fmt.Sprintf("%q", projectID),
-				ProjectID:           projectID,
-				ClusterName:         clusterName,
-				ClusterNameStr:      fmt.Sprintf("%q", clusterName),
-				ClusterTerraformStr: "",
-			}
+			req.ProjectID = projectID
+			req.ClusterName = clusterName
+			hclCreator = ClusterDatasourceHcl
+		} else {
+			req.ProjectID = ProjectIDExecution(tb)
 		}
-		req.ProjectID = ProjectIDExecution(tb)
 	}
-	clusterTerraformStr, clusterName, clusterResourceName, err := ClusterResourceHcl(req)
+	clusterTerraformStr, clusterName, clusterResourceName, err := hclCreator(req)
 	if err != nil {
 		tb.Error(err)
 	}
 	return ClusterInfo{
-		ProjectIDStr:        fmt.Sprintf("%q", req.ProjectID),
-		ProjectID:           req.ProjectID,
-		ClusterName:         clusterName,
-		ClusterNameStr:      fmt.Sprintf("%s.name", clusterResourceName),
-		ClusterResourceName: clusterResourceName,
-		ClusterTerraformStr: clusterTerraformStr,
+		ProjectIDStr:     fmt.Sprintf("%q", req.ProjectID),
+		ProjectID:        req.ProjectID,
+		Name:             clusterName,
+		TerraformNameRef: fmt.Sprintf("%s.name", clusterResourceName),
+		ResourceName:     clusterResourceName,
+		TerraformStr:     clusterTerraformStr,
 	}
 }
 
@@ -130,7 +135,8 @@ func (r *ReplicationSpecRequest) AddDefaults() {
 func (r *ReplicationSpecRequest) AllRegionConfigs() []admin.CloudRegionConfig {
 	config := CloudRegionConfig(*r)
 	configs := []admin.CloudRegionConfig{config}
-	for _, extra := range r.ExtraRegionConfigs {
+	for i := range r.ExtraRegionConfigs {
+		extra := r.ExtraRegionConfigs[i]
 		configs = append(configs, CloudRegionConfig(extra))
 	}
 	return configs

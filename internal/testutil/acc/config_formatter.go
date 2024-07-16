@@ -83,6 +83,34 @@ var (
 	}
 )
 
+func ClusterDatasourceHcl(req *ClusterRequest) (configStr, clusterName, resourceName string, err error) {
+	if req == nil || req.ProjectID == "" || req.ClusterName == "" {
+		return "", "", "", errors.New("must specify a ClusterRequest with at least ProjectID and ClusterName set")
+	}
+	req.AddDefaults()
+	f := hclwrite.NewEmptyFile()
+	root := f.Body()
+	resourceType := "mongodbatlas_advanced_cluster"
+	resourceSuffix := req.ResourceSuffix
+	cluster := root.AppendNewBlock("data", []string{resourceType, resourceSuffix}).Body()
+	clusterResourceName := fmt.Sprintf("data.%s.%s", resourceType, resourceSuffix)
+	clusterName = req.ClusterName
+	clusterRootAttributes := map[string]any{
+		"name": clusterName,
+	}
+	projectID := req.ProjectID
+	if strings.Contains(req.ProjectID, ".") {
+		err = setAttributeHcl(cluster, fmt.Sprintf("project_id = %s", projectID))
+		if err != nil {
+			return "", "", "", fmt.Errorf("failed to set project_id = %s", projectID)
+		}
+	} else {
+		clusterRootAttributes["project_id"] = projectID
+	}
+	addPrimitiveAttributes(cluster, clusterRootAttributes)
+	return "\n" + string(f.Bytes()), clusterName, clusterResourceName, err
+}
+
 func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceName string, err error) {
 	if req == nil || req.ProjectID == "" {
 		return "", "", "", errors.New("must specify a ClusterRequest with at least ProjectID set")
@@ -91,22 +119,20 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	req.AddDefaults()
 	specRequests := req.ReplicationSpecs
 	specs := make([]admin.ReplicationSpec, len(specRequests))
-	for i, specRequest := range specRequests {
+	for i := range specRequests {
+		specRequest := specRequests[i]
 		specs[i] = ReplicationSpec(&specRequest)
 	}
 	clusterName = req.ClusterName
 	resourceSuffix := req.ResourceSuffix
-	clusterTypeStr := "REPLICASET"
-	if req.Geosharded {
-		clusterTypeStr = "GEOSHARDED"
-	}
+	clusterType := req.ClusterType()
 
 	f := hclwrite.NewEmptyFile()
 	root := f.Body()
 	resourceType := "mongodbatlas_advanced_cluster"
 	cluster := root.AppendNewBlock("resource", []string{resourceType, resourceSuffix}).Body()
 	clusterRootAttributes := map[string]any{
-		"cluster_type":           clusterTypeStr,
+		"cluster_type":           clusterType,
 		"name":                   clusterName,
 		"backup_enabled":         req.CloudBackup,
 		"pit_enabled":            req.PitEnabled,

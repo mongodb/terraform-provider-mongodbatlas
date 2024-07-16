@@ -473,3 +473,22 @@ func Test_ClusterResourceHcl(t *testing.T) {
 		})
 	}
 }
+
+var expectedDatasource = `
+data "mongodbatlas_advanced_cluster" "cluster_info" {
+  name       = "my-datasource-cluster"
+  project_id = "datasource-project"
+}
+`
+
+func Test_ClusterDatasourceHcl(t *testing.T) {
+	expectedClusterName := "my-datasource-cluster"
+	config, clusterName, resourceName, err := acc.ClusterDatasourceHcl(&acc.ClusterRequest{
+		ClusterName: expectedClusterName,
+		ProjectID:   "datasource-project",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "data.mongodbatlas_advanced_cluster.cluster_info", resourceName)
+	assert.Equal(t, expectedClusterName, clusterName)
+	assert.Equal(t, expectedDatasource, config)
+}
