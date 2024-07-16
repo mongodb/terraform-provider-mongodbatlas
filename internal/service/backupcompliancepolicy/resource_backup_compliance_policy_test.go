@@ -380,7 +380,7 @@ func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectO
 		  retention_value    = 1
 		}
 	  }
-	`, info.ClusterTerraformStr, info.ClusterResourceName)
+	`, info.TerraformStr, info.ResourceName)
 }
 
 func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string, info *acc.ClusterInfo) string {
@@ -402,7 +402,7 @@ func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string, 
 		  should_copy_oplogs  = false
 		}
 	  }
-	`, info.ClusterTerraformStr, info.ClusterResourceName)
+	`, info.TerraformStr, info.ResourceName)
 }
 
 func basicChecks() []resource.TestCheckFunc {

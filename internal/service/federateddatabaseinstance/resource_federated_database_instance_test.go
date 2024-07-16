@@ -129,7 +129,7 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 			ResourceSuffix:   "cluster2",
 		}
 		cluster2Info        = acc.GetClusterInfo(t, &clusterRequest2)
-		dependencyTerraform = fmt.Sprintf("%s\n%s", clusterInfo.ClusterTerraformStr, cluster2Info.ClusterTerraformStr)
+		dependencyTerraform = fmt.Sprintf("%s\n%s", clusterInfo.TerraformStr, cluster2Info.TerraformStr)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -138,7 +138,7 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithCluster(dependencyTerraform, projectID, clusterInfo.ClusterResourceName, cluster2Info.ClusterResourceName, name),
+				Config:                   configWithCluster(dependencyTerraform, projectID, clusterInfo.ResourceName, cluster2Info.ResourceName, name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),

@@ -34,12 +34,12 @@ func TestAccCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 func TestAccCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 	var (
 		clusterInfo         = acc.GetClusterInfo(t, clusterRequest())
-		clusterName         = clusterInfo.ClusterName
+		clusterName         = clusterInfo.Name
 		description         = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays     = "1"
 		useSnapshotID       = true
-		clusterTerraformStr = clusterInfo.ClusterTerraformStr
-		clusterResourceName = clusterInfo.ClusterResourceName
+		clusterTerraformStr = clusterInfo.TerraformStr
+		clusterResourceName = clusterInfo.ResourceName
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +69,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		snapshotsDataSourceName           = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.test"
 		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
 		clusterInfo                       = acc.GetClusterInfo(tb, clusterRequest())
-		clusterName                       = clusterInfo.ClusterName
+		clusterName                       = clusterInfo.Name
 		description                       = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays                   = "1"
 	)
@@ -80,7 +80,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(clusterInfo.ClusterTerraformStr, clusterInfo.ClusterResourceName, description, retentionInDays),
+				Config: configBasic(clusterInfo.TerraformStr, clusterInfo.ResourceName, description, retentionInDays),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.automated", "true"),

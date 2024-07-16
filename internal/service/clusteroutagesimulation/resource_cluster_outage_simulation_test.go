@@ -29,7 +29,7 @@ func singleRegionTestCase(t *testing.T) *resource.TestCase {
 			},
 		}
 		clusterInfo = acc.GetClusterInfo(t, &singleRegionRequest)
-		clusterName = clusterInfo.ClusterName
+		clusterName = clusterInfo.Name
 	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -76,7 +76,7 @@ func multiRegionTestCase(t *testing.T) *resource.TestCase {
 			},
 		}}
 		clusterInfo = acc.GetClusterInfo(t, &multiRegionRequest)
-		clusterName = clusterInfo.ClusterName
+		clusterName = clusterInfo.Name
 	)
 
 	return &resource.TestCase{
@@ -124,7 +124,7 @@ func configSingleRegion(info *acc.ClusterInfo) string {
 				cluster_name = %[3]q
 				depends_on = [mongodbatlas_cluster_outage_simulation.test_outage]
 			}		
-	`, info.ClusterTerraformStr, info.ProjectID, info.ClusterName, info.ClusterResourceName)
+	`, info.TerraformStr, info.ProjectID, info.Name, info.ResourceName)
 }
 
 func configMultiRegion(info *acc.ClusterInfo) string {
@@ -150,7 +150,7 @@ func configMultiRegion(info *acc.ClusterInfo) string {
 			cluster_name = %[3]q
 			depends_on = [mongodbatlas_cluster_outage_simulation.test_outage]
 		}		
-	`, info.ClusterTerraformStr, info.ProjectID, info.ClusterName, info.ClusterResourceName)
+	`, info.TerraformStr, info.ProjectID, info.Name, info.ResourceName)
 }
 
 func checkDestroy(s *terraform.State) error {
