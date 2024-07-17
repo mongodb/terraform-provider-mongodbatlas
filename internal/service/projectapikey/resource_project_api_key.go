@@ -21,12 +21,12 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasProjectAPIKeyCreate,
-		ReadContext:   resourceMongoDBAtlasProjectAPIKeyRead,
-		UpdateContext: resourceMongoDBAtlasProjectAPIKeyUpdate,
-		DeleteContext: resourceMongoDBAtlasProjectAPIKeyDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasProjectAPIKeyImportState,
+			StateContext: resourceImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"api_key_id": {
@@ -77,37 +77,41 @@ type APIProjectAssignmentKeyInput struct {
 
 const errorNoProjectAssignmentDefined = "could not obtain a project id as no assignments are defined"
 
-func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	var apiKey *matlas.APIKey
+	var apiKey *admin.ApiKeyUserDetails
+	var resp *http.Response
 	var err error
-	var resp *matlas.Response
 
-	createRequest := new(matlas.APIKeyInput)
-	createRequest.Desc = d.Get("description").(string)
+	createRequest := &admin.CreateAtlasProjectApiKey{
+		Desc: d.Get("description").(string),
+	}
+
 	if projectAssignments, ok := d.GetOk("project_assignment"); ok {
 		projectAssignmentList := ExpandProjectAssignmentSet(projectAssignments.(*schema.Set))
 
 		// creates api key using project id of first defined project assignment
 		firstAssignment := projectAssignmentList[0]
 		createRequest.Roles = firstAssignment.RoleNames
-		apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, firstAssignment.ProjectID, createRequest)
+		apiKey, resp, err = connV2.ProgrammaticAPIKeysApi.CreateProjectApiKey(ctx, firstAssignment.ProjectID, createRequest).Execute()
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				d.SetId("")
 				return nil
 			}
-
 			return diag.FromErr(err)
 		}
 
 		// assign created api key to remaining project assignments
 		for _, apiKeyList := range projectAssignmentList[1:] {
-			createRequest.Roles = apiKeyList.RoleNames
-			_, err := conn.ProjectAPIKeys.Assign(ctx, apiKeyList.ProjectID, apiKey.ID, &matlas.AssignAPIKey{
-				Roles: createRequest.Roles,
-			})
+			assignment := []admin.UserAccessRoleAssignment{
+				{
+					ApiUserId: apiKey.Id,
+					Roles:     &apiKeyList.RoleNames,
+				},
+			}
+			_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, apiKeyList.ProjectID, apiKey.GetId(), &assignment).Execute()
 			if err != nil {
 				if resp != nil && resp.StatusCode == http.StatusNotFound {
 					d.SetId("")
@@ -126,13 +130,13 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"api_key_id": apiKey.ID,
+		"api_key_id": apiKey.GetId(),
 	}))
 
-	return resourceMongoDBAtlasProjectAPIKeyRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -181,7 +185,7 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
@@ -245,10 +249,10 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 		}
 	}
 
-	return resourceMongoDBAtlasProjectAPIKeyRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
 	apiKeyID := ids["api_key_id"]
@@ -303,7 +307,7 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func resourceMongoDBAtlasProjectAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
