@@ -7,12 +7,6 @@ variable "private_key" {
 variable "project_id" {
   type = string
 }
-variable "provider_instance_size_name" {
-  type = string
-}
-variable "provider_disk_type_name" {
-  type = string
-}
 variable "resource_group_name" {
   type = string
 }
