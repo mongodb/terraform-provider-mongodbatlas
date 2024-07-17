@@ -60,10 +60,10 @@ func DataSource() *schema.Resource {
 				Computed: true,
 			},
 			"disk_size_gb": {
-				Type:       schema.TypeFloat,
-				Computed:   true,
+				Type:        schema.TypeFloat,
+				Computed:    true,
 				Description: "Capacity, in gigabytes, of the host's root volume. If `use_replication_spec_per_shard = true` then this value is equal to `disk_size_gb` of the first `replication_spec.#.region_configs.#.electable_specs`.",
-				Deprecated: DeprecationMsgOldSchema,
+				Deprecated:  DeprecationMsgOldSchema,
 			},
 			"encryption_at_rest_provider": {
 				Type:     schema.TypeString,
