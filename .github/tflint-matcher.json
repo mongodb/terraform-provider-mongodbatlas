@@ -2,6 +2,7 @@
 	"problemMatcher": [
 		{
 			"owner": "tflint-compact",
+			"severity": "warning",
 			"pattern": [
 				{
 					"regexp": "^(.+):(\\d+):(\\d+):\\s(Error|Warning|Notice)\\s-\\s(.+)\\s\\((.+)\\)$",
