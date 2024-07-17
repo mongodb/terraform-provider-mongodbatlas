@@ -1,7 +1,6 @@
 # {{.Type}}: {{.Name}}
 
-{{ .Description | trimspace }}
-Provides a data source that returns all control plane IP addresses.
+`{{.Name}}` returns all control plane IP addresses.
 
 ## Example Usages
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
