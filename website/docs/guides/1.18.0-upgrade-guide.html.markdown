@@ -8,7 +8,9 @@ The Terraform MongoDB Atlas Provider version 1.18.0 has a number of new and exci
 
 **New Resources, Data Sources, and Features:**
 
-- Sharded and geo-sharded cluster defined with `mongodbatlas_advanced_cluster` are now capable of scaling the instance size and disk IOPS independently for each individual shard. For more details and migration guidelines please reference [advanced_cluster - Migration to new sharding schema and leveraging Independent Shard Scaling](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema).
+- Sharded and geo-sharded clusters defined with `mongodbatlas_advanced_cluster` are now capable of scaling the instance size and disk IOPS independently for each individual shard. For more details and migration guidelines please reference [advanced_cluster - Migration to new sharding schema and leveraging Independent Shard Scaling](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema). As part of these changes 2 new attributes have been included:
+    - New attribute `replication_specs.*.zone_id` is added in the resource and data sources to enable identifying the zone of each `replication_specs` object.
+    - New attribute `use_replication_spec_per_shard` defined in both data sources to configure if the users want to obtain `replication_specs` objects for each shard.
 
 **Deprecations:**
 
