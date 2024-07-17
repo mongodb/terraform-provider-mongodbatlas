@@ -38,7 +38,7 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
   [ ! -d "$DIR" ] && continue
   pushd "$DIR"
   echo; echo -e "\e[1;35m===> Example: $DIR <===\e[0m"; echo
-  terraform init
+  terraform init > /dev/null # supress output as it's very verbose
   terraform fmt -check -recursive
   terraform validate
   popd
