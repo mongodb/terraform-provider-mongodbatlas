@@ -403,13 +403,15 @@ func newProjectAssignment(ctx context.Context, connV2 *admin.APIClient, apiKeyID
 
 	var results []map[string]any
 	var atlasRoles []admin.CloudAccessRoleAssignment
-	var atlasRole admin.CloudAccessRoleAssignment
 	if len(projectAssignments) > 0 {
 		results = make([]map[string]any, len(projectAssignments))
 		for k, apiKey := range projectAssignments {
 			for _, roleName := range apiKey.RoleNames {
-				atlasRole.GroupId = &apiKey.ProjectID
-				atlasRole.RoleName = &roleName
+				atlasRole := admin.CloudAccessRoleAssignment{
+					GroupId:  &apiKey.ProjectID,
+					RoleName: &roleName,
+				}
+
 				atlasRoles = append(atlasRoles, atlasRole)
 			}
 			results[k] = map[string]any{
@@ -452,29 +454,29 @@ func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAssignments, c
 func getAPIProjectAssignments(ctx context.Context, connV2 *admin.APIClient, apiKeyOrgList *admin.SystemStatus, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
 	projectAssignments := []APIProjectAssignmentKeyInput{}
 	for idx, role := range *apiKeyOrgList.ApiKey.Roles {
-		if strings.HasPrefix(*role.RoleName, "ORG_") {
-			roles := *apiKeyOrgList.ApiKey.Roles
-			orgKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListApiKeys(ctx, *roles[idx].OrgId).Execute()
-			if err != nil {
-				return nil, fmt.Errorf("error getting api key information: %s", err)
-			}
-			for _, val := range orgKeys.GetResults() {
-				if val.GetId() == apiKeyID {
-					for _, r := range val.GetRoles() {
-						temp := new(APIProjectAssignmentKeyInput)
-						if strings.HasPrefix(r.GetRoleName(), "GROUP_") {
-							temp.ProjectID = r.GetGroupId()
-							for _, l := range val.GetRoles() {
-								if l.GetGroupId() == temp.ProjectID {
-									temp.RoleNames = append(temp.RoleNames, l.GetRoleName())
-								}
+		if !strings.HasPrefix(*role.RoleName, "ORG_") {
+			continue
+		}
+		roles := *apiKeyOrgList.ApiKey.Roles
+		orgKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListApiKeys(ctx, *roles[idx].OrgId).Execute()
+		if err != nil {
+			return nil, fmt.Errorf("error getting api key information: %s", err)
+		}
+		for _, val := range orgKeys.GetResults() {
+			if val.GetId() == apiKeyID {
+				for _, r := range val.GetRoles() {
+					temp := new(APIProjectAssignmentKeyInput)
+					if strings.HasPrefix(r.GetRoleName(), "GROUP_") {
+						temp.ProjectID = r.GetGroupId()
+						for _, l := range val.GetRoles() {
+							if l.GetGroupId() == temp.ProjectID {
+								temp.RoleNames = append(temp.RoleNames, l.GetRoleName())
 							}
-							projectAssignments = append(projectAssignments, *temp)
 						}
+						projectAssignments = append(projectAssignments, *temp)
 					}
 				}
 			}
-			break
 		}
 	}
 	return projectAssignments, nil
