@@ -40,7 +40,7 @@ const (
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
 	ignoreLabel                    = "Infrastructure Tool"
-	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details"
+	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 )
 
 type acCtxKey string
