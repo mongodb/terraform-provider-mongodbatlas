@@ -40,11 +40,13 @@ const (
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
 	ignoreLabel                    = "Infrastructure Tool"
+	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 )
 
 type acCtxKey string
 
 var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
+var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -113,9 +115,10 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"disk_size_gb": {
-				Type:     schema.TypeFloat,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeFloat,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: DeprecationMsgOldSchema,
 			},
 			"encryption_at_rest_provider": {
 				Type:     schema.TypeString,
@@ -172,8 +175,9 @@ func Resource() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: DeprecationMsgOldSchema,
 						},
 						"zone_id": {
 							Type:     schema.TypeString,
@@ -188,6 +192,7 @@ func Resource() *schema.Resource {
 							Optional:     true,
 							Default:      1,
 							ValidateFunc: validation.IntBetween(1, 50),
+							Deprecated:   DeprecationMsgOldSchema,
 						},
 						"region_configs": {
 							Type:     schema.TypeList,
@@ -856,7 +861,7 @@ func isUpdateAllowed(d *schema.ResourceData) (bool, error) {
 		if specMap, ok := specRaw.(map[string]any); ok && specMap != nil {
 			numShards, _ := specMap["num_shards"].(int)
 			if numShards > 1 && isNewSchemaCompatible {
-				return false, fmt.Errorf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; please refer to our examples, documentation, and 1.18.0 migration guide for more details")
+				return false, fmt.Errorf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; %s", DeprecationOldSchemaAction)
 			}
 		}
 	}
