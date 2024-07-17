@@ -25,8 +25,9 @@ func DataSource() *schema.Resource {
 				Required: true,
 			},
 			"use_replication_spec_per_shard": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Set this field to true to allow the data source to use the latest schema leveraging independent shards in the cluster.",
 			},
 			"advanced_configuration": SchemaAdvancedConfigDS(),
 			"backup_enabled": {
@@ -61,8 +62,9 @@ func DataSource() *schema.Resource {
 				Computed: true,
 			},
 			"disk_size_gb": {
-				Type:     schema.TypeFloat,
-				Computed: true,
+				Type:        schema.TypeFloat,
+				Computed:    true,
+				Description: "Capacity, in gigabytes, of the host's root volume. If `use_replication_spec_per_shard = true` then this value is equal to `disk_size_gb` of the first `replication_spec.#.region_configs.#.electable_specs`.",
 			},
 			"encryption_at_rest_provider": {
 				Type:     schema.TypeString,
@@ -119,6 +121,8 @@ func DataSource() *schema.Resource {
 						"zone_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+							// TODO: awaiting confirmation on this - https://github.com/10gen/mms/pull/103397/files#r1678385193
+							Description: "Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. This value is available only if clusterType is GEOSHARDED or `global_cluster_self_managed_sharding` is true. This attribute is only available if using the latest schema of this resource leveraging independent shards in the cluster (i.e. `use_replication_spec_per_shard = true`.",
 						},
 						"external_id": {
 							Type:     schema.TypeString,
