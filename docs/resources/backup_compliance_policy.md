@@ -18,8 +18,8 @@ We first suggest disabling `mongodbatlas_backup_compliance_policy` resource, whi
   * For example, replace:
 	  ```
 	  resource "mongodbatlas_cloud_backup_schedule" "test" {
-		  project_id   = mongodbatlas_cluster.my_cluster.project_id
-		  cluster_name = mongodbatlas_cluster.my_cluster.name
+		  project_id   = mongodbatlas_advanced_cluster.my_cluster.project_id
+		  cluster_name = mongodbatlas_advanced_cluster.my_cluster.name
           ...
       }
 	  ```
