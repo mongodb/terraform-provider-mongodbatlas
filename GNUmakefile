@@ -91,11 +91,11 @@ docs:
 
 .PHONY: tflint
 tflint: fmtcheck
-	@scripts/tflint.sh
+	tflint -f compact --recursive --minimum-failure-severity=warning
 
 .PHONY: tf-validate
 tf-validate: fmtcheck
-	@scripts/tf-validate.sh
+	scripts/tf-validate.sh
 
 .PHONY: link-git-hooks
 link-git-hooks: ## Install git hooks
