@@ -20,7 +20,7 @@ set -Eeou pipefail
 find ./examples -type d -name ".terraform" -exec rm -rf {} +
 find ./examples -type f -name ".terraform.lock.hcl" -exec rm -f {} +
 
-export TF_CLI_CONFIG_FILE="$PWD/scripts/tf-validate.tfrc"
+export TF_CLI_CONFIG_FILE="$PWD/bin-examples/tf-validate.tfrc"
 
 # Use local provider to validate examples
 go build -o bin-examples/terraform-provider-mongodbatlas .
