@@ -49,7 +49,7 @@ In addition to all arguments above, the following attributes are exported:
 * `custom_data` - Custom data to include in the metadata file named `.complete` that Atlas uploads to the bucket when the export job finishes. Custom data can be specified as key and value pairs.
 * `components` - _Returned for sharded clusters only._ Export job details for each replica set in the sharded cluster.
 * `created_at` - Timestamp in ISO 8601 date and time format in UTC when the export job was created.
-* `err_msg` - Error message, only if the export job failed.
+* `err_msg` - Error message, only if the export job failed. **Note:** This attribute is deprecated as it is not being used.
 * `export_status` - _Returned for replica set only._ Status of the export job.
 * `finished_at` - Timestamp in ISO 8601 date and time format in UTC when the export job completes.
 * `export_job_id` - Unique identifier of the export job.
