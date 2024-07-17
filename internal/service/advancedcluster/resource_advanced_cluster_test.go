@@ -66,8 +66,12 @@ func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetAWSProvider(projectID, clusterName),
-				Check:  checkReplicaSetAWSProvider(projectID, clusterName, true),
+				Config: configReplicaSetAWSProvider(projectID, clusterName, 3),
+				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 3, true, true),
+			},
+			{
+				Config: configReplicaSetAWSProvider(projectID, clusterName, 5),
+				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 5, true, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -95,11 +99,11 @@ func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configReplicaSetMultiCloud(orgID, projectName, clusterName),
-				Check:  checkReplicaSetMultiCloud(clusterName, 3),
+				Check:  checkReplicaSetMultiCloud(clusterName, 3, true),
 			},
 			{
 				Config: configReplicaSetMultiCloud(orgID, projectName, clusterNameUpdated),
-				Check:  checkReplicaSetMultiCloud(clusterNameUpdated, 3),
+				Check:  checkReplicaSetMultiCloud(clusterNameUpdated, 3, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -127,11 +131,11 @@ func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSingleShardedMultiCloud(orgID, projectName, clusterName),
-				Check:  checkSingleShardedMultiCloud(clusterName),
+				Check:  checkSingleShardedMultiCloud(clusterName, true),
 			},
 			{
 				Config: configSingleShardedMultiCloud(orgID, projectName, clusterNameUpdated),
-				Check:  checkSingleShardedMultiCloud(clusterNameUpdated),
+				Check:  checkSingleShardedMultiCloud(clusterNameUpdated, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -409,7 +413,7 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 		Steps: []resource.TestStep{
 			{
 				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false),
-				Check:  checkGeoShardedOldSchema(clusterName, 1, 1),
+				Check:  checkGeoShardedOldSchema(clusterName, 1, 1, true, true),
 			},
 			{
 				Config:      configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 2, false),
@@ -509,11 +513,11 @@ func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing
 		Steps: []resource.TestStep{
 			{
 				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false),
-				Check:  checkGeoShardedOldSchema(clusterName, 2, 2),
+				Check:  checkGeoShardedOldSchema(clusterName, 2, 2, true, false),
 			},
 			{
 				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 3, 3, false),
-				Check:  checkGeoShardedOldSchema(clusterName, 3, 3),
+				Check:  checkGeoShardedOldSchema(clusterName, 3, 3, true, false),
 			},
 		},
 	})
@@ -725,7 +729,7 @@ func checkTags(name string, tags ...map[string]string) resource.TestCheckFunc {
 		tagChecks...)
 }
 
-func configReplicaSetAWSProvider(projectID, name string) string {
+func configReplicaSetAWSProvider(projectID, name string, nodeCountElectable int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
@@ -738,7 +742,7 @@ func configReplicaSetAWSProvider(projectID, name string) string {
 				region_configs {
 					electable_specs {
 						instance_size = "M10"
-						node_count    = 3
+						node_count    = %[3]d
 					}
 					analytics_specs {
 						instance_size = "M10"
@@ -755,10 +759,10 @@ func configReplicaSetAWSProvider(projectID, name string) string {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
-	`, projectID, name)
+	`, projectID, name, nodeCountElectable)
 }
 
-func checkReplicaSetAWSProvider(projectID, name string, checkDiskSizeGBInnerLevel bool) resource.TestCheckFunc {
+func checkReplicaSetAWSProvider(projectID, name string, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
@@ -772,12 +776,18 @@ func checkReplicaSetAWSProvider(projectID, name string, checkDiskSizeGBInnerLeve
 			}),
 		)
 	}
+
+	if checkExternalID {
+		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
+	}
+
 	return checkAggr(
 		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":   projectID,
 			"disk_size_gb": "60",
-			"name":         name},
+			"replication_specs.0.region_configs.0.electable_specs.0.node_count": fmt.Sprintf("%d", nodeCountElectable),
+			"name": name},
 		additionalChecks...,
 	)
 }
@@ -869,11 +879,8 @@ func configReplicaSetMultiCloud(orgID, projectName, name string) string {
 	`, orgID, projectName, name)
 }
 
-func checkReplicaSetMultiCloud(name string, regionConfigs int) resource.TestCheckFunc {
-	return checkAggr(
-		[]string{"project_id", "replication_specs.#"},
-		map[string]string{
-			"name": name},
+func checkReplicaSetMultiCloud(name string, regionConfigs int, verifyExternalID bool) resource.TestCheckFunc {
+	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
 		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
@@ -881,6 +888,15 @@ func checkReplicaSetMultiCloud(name string, regionConfigs int) resource.TestChec
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+	}
+	if verifyExternalID {
+		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
+	}
+	return checkAggr(
+		[]string{"project_id", "replication_specs.#"},
+		map[string]string{
+			"name": name},
+		additionalChecks...,
 	)
 }
 
@@ -930,11 +946,18 @@ func configSingleShardedMultiCloud(orgID, projectName, name string) string {
 	`, orgID, projectName, name)
 }
 
-func checkSingleShardedMultiCloud(name string) resource.TestCheckFunc {
+func checkSingleShardedMultiCloud(name string, verifyExternalID bool) resource.TestCheckFunc {
+	additionalChecks := []resource.TestCheckFunc{}
+
+	if verifyExternalID {
+		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
+	}
+
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"name": name})
+			"name": name},
+		additionalChecks...)
 }
 
 func configSingleProviderPaused(projectID, clusterName string, paused bool, instanceSize string) string {
@@ -1233,17 +1256,32 @@ func configGeoShardedOldSchema(orgID, projectName, name string, numShardsFirstZo
 	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
 }
 
-func checkGeoShardedOldSchema(name string, numShardsFirstZone, numShardsSecondZone int) resource.TestCheckFunc {
+func checkGeoShardedOldSchema(name string, numShardsFirstZone, numShardsSecondZone int, verifyDiskSizeGBInnerLevel, verifyExternalID bool) resource.TestCheckFunc {
+	additionalChecks := []resource.TestCheckFunc{}
+
+	if verifyExternalID {
+		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
+	}
+
+	if verifyDiskSizeGBInnerLevel {
+		additionalChecks = append(additionalChecks, checkAggr(
+			[]string{},
+			map[string]string{
+				"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
+				"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": "60",
+			}))
+	}
+
 	return checkAggr(
 		[]string{"project_id"},
 		map[string]string{
-			"name":         name,
-			"disk_size_gb": "60",
-			"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
-			"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": "60",
-			"replication_specs.0.num_shards":                                      strconv.Itoa(numShardsFirstZone),
-			"replication_specs.1.num_shards":                                      strconv.Itoa(numShardsSecondZone),
-		})
+			"name":                           name,
+			"disk_size_gb":                   "60",
+			"replication_specs.0.num_shards": strconv.Itoa(numShardsFirstZone),
+			"replication_specs.1.num_shards": strconv.Itoa(numShardsSecondZone),
+		},
+		additionalChecks...,
+	)
 }
 
 func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name string) string {

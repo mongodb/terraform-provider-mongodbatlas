@@ -40,11 +40,13 @@ const (
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
 	ignoreLabel                    = "Infrastructure Tool"
+	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 )
 
 type acCtxKey string
 
 var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
+var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -113,9 +115,10 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"disk_size_gb": {
-				Type:     schema.TypeFloat,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeFloat,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: DeprecationMsgOldSchema,
 			},
 			"encryption_at_rest_provider": {
 				Type:     schema.TypeString,
@@ -172,8 +175,9 @@ func Resource() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: DeprecationMsgOldSchema,
 						},
 						"zone_id": {
 							Type:        schema.TypeString,
@@ -189,6 +193,7 @@ func Resource() *schema.Resource {
 							Optional:     true,
 							Default:      1,
 							ValidateFunc: validation.IntBetween(1, 50),
+							Deprecated:   DeprecationMsgOldSchema,
 						},
 						"region_configs": {
 							Type:     schema.TypeList,
@@ -554,7 +559,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		clusterResp = cluster
 	}
 
-	diags := setResourceRootFields(d, clusterResp)
+	diags := setRootFields(d, clusterResp, true)
 	if diags.HasError() {
 		return diags
 	}
@@ -575,12 +580,17 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	return nil
 }
 
-// TODO: CLOUDP-259838 this can likely be unified with data source function setRootFields
-func setResourceRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20250101) diag.Diagnostics {
+func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20250101, isResourceSchema bool) diag.Diagnostics {
 	clusterName := *cluster.Name
 
-	if err := d.Set("cluster_id", cluster.GetId()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_id", clusterName, err))
+	if isResourceSchema {
+		if err := d.Set("cluster_id", cluster.GetId()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_id", clusterName, err))
+		}
+
+		if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", conversion.TimePtrToStringPtr(cluster.AcceptDataRisksAndForceReplicaSetReconfig)); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
+		}
 	}
 
 	if err := d.Set("backup_enabled", cluster.GetBackupEnabled()); err != nil {
@@ -649,10 +659,6 @@ func setResourceRootFields(d *schema.ResourceData, cluster *admin.ClusterDescrip
 
 	if err := d.Set("version_release_system", cluster.GetVersionReleaseSystem()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "version_release_system", clusterName, err))
-	}
-
-	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", conversion.TimePtrToStringPtr(cluster.AcceptDataRisksAndForceReplicaSetReconfig)); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
 	}
 
 	if err := d.Set("global_cluster_self_managed_sharding", cluster.GetGlobalClusterSelfManagedSharding()); err != nil {
@@ -856,7 +862,7 @@ func isUpdateAllowed(d *schema.ResourceData) (bool, error) {
 		if specMap, ok := specRaw.(map[string]any); ok && specMap != nil {
 			numShards, _ := specMap["num_shards"].(int)
 			if numShards > 1 && isNewSchemaCompatible {
-				return false, fmt.Errorf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; please refer to our examples, documentation, and 1.18.0 migration guide for more details")
+				return false, fmt.Errorf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; %s", DeprecationOldSchemaAction)
 			}
 		}
 	}
