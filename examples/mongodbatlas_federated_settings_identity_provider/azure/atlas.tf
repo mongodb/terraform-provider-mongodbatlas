@@ -17,10 +17,10 @@ resource "mongodbatlas_project_ip_access_list" "mongo-access" {
 }
 
 resource "mongodbatlas_advanced_cluster" "this" {
-  project_id     = mongodbatlas_project.this.id
-  name           = var.project_name
-  cluster_type   = "REPLICASET"
-  
+  project_id   = mongodbatlas_project.this.id
+  name         = var.project_name
+  cluster_type = "REPLICASET"
+
   replication_specs {
     region_configs {
       priority      = 7
