@@ -70,15 +70,15 @@ terraform destroy
 
 1. Import the cluster using the Project ID and cluster name (e.g. `5beae24579358e0ae95492af-MyCluster`):
 
-        $ terraform import mongodbatlas_cluster.my_cluster ProjectId-ClusterName
+        $ terraform import mongodbatlas_advanced_cluster.my_cluster ProjectId-ClusterName
 
-2. Add any non-default values to the cluster resource *mongodbatlas_cluster.my_cluster* in *main.tf*. And add the following attribute: `encryption_at_rest_provider = "AWS"`
+2. Add any non-default values to the cluster resource *mongodbatlas_advanced_cluster.my_cluster* in *main.tf*. And add the following attribute: `encryption_at_rest_provider = "AWS"`
 3. Run terraform apply to enable encryption at rest for the cluster: `terraform apply`
 4. (Optional) To remove the cluster from TF state, in case you want to disable project-level encryption and delete the role and key without deleting the imported cluster:
-    1. First disable encryption on the cluster by changing the attribute `encryption_at_rest_provider = "NONE"` for the cluster resource *mongodbatlas_cluster.my_cluster* in *main.tf*. If you skip this and the next step, you won't be able to disable encryption on the project-level
+    1. First disable encryption on the cluster by changing the attribute `encryption_at_rest_provider = "NONE"` for the cluster resource *mongodbatlas_advanced_cluster.my_cluster* in *main.tf*. If you skip this and the next step, you won't be able to disable encryption on the project-level
     2. Run terraform apply to disable encryption for the cluster: `terraform apply`
     3. Finally, remove the cluster from TF state:
 
-            terraform state rm mongodbatlas_cluster.my_cluster
+            terraform state rm mongodbatlas_advanced_cluster.my_cluster
 
     4. You should now be able to run terraform destroy without deleting the cluster: `terraform destroy`
