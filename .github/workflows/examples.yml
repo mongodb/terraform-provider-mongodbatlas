@@ -63,4 +63,6 @@ jobs:
         with:
           go-version-file: 'go.mod'
       - name: tflint
-        run: make tools tflint
+        run: | 
+          echo "::add-matcher::.github/tflint-matcher.json"
+          make tools tflint
