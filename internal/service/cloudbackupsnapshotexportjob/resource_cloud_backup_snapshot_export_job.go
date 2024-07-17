@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
@@ -15,11 +16,11 @@ import (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasCloudBackupSnapshotExportJobCreate,
-		ReadContext:   resourceMongoDBAtlasCloudBackupSnapshotExportJobRead,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
 		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasCloudBackupSnapshotExportJobImportState,
+			StateContext: resourceImportState,
 		},
 		Schema: returnCloudBackupSnapshotExportJobSchema(),
 	}
@@ -93,9 +94,10 @@ func returnCloudBackupSnapshotExportJobSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"err_msg": { //TODO: this is no longer returned by the API, could be removed
-			Type:     schema.TypeString,
-			Computed: true,
+		"err_msg": {
+			Type:       schema.TypeString,
+			Computed:   true,
+			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 		},
 		"export_status_exported_collections": {
 			Type:     schema.TypeInt,
@@ -120,7 +122,7 @@ func returnCloudBackupSnapshotExportJobSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	exportJob, err := readExportJob(ctx, meta, d)
 	if err != nil {
 		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
@@ -163,90 +165,94 @@ func getRequiredFields(d *schema.ResourceData) (projectID, clusterName, exportID
 }
 
 func setExportJobFields(d *schema.ResourceData, exportJob *admin.DiskBackupExportJob) diag.Diagnostics {
-	if err := d.Set("export_job_id", exportJob.Id); err != nil {
+	if err := d.Set("export_job_id", exportJob.GetId()); err != nil {
 		return diag.Errorf("error setting `export_job_id` for snapshot export job (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("snapshot_id", exportJob.SnapshotId); err != nil {
+	if err := d.Set("snapshot_id", exportJob.GetSnapshotId()); err != nil {
 		return diag.Errorf("error setting `snapshot_id` for snapshot export job (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("custom_data", flattenExportJobsCustomData(exportJob.CustomData)); err != nil {
+	if err := d.Set("custom_data", flattenExportJobsCustomData(exportJob.GetCustomData())); err != nil {
 		return diag.Errorf("error setting `custom_data` for snapshot export job (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("components", flattenExportJobsComponents(exportJob.Components)); err != nil {
+	if err := d.Set("components", flattenExportJobsComponents(exportJob.GetComponents())); err != nil {
 		return diag.Errorf("error setting `components` for snapshot export job (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("created_at", exportJob.CreatedAt); err != nil {
+	if err := d.Set("created_at", conversion.TimePtrToStringPtr(exportJob.CreatedAt)); err != nil {
 		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("export_bucket_id", exportJob.ExportBucketId); err != nil {
+	if err := d.Set("err_msg", ""); err != nil {
+		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("export_bucket_id", exportJob.GetExportBucketId()); err != nil {
 		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
 	}
 
 	if exportJob.ExportStatus != nil {
-		if err := d.Set("export_status_exported_collections", exportJob.ExportStatus.ExportedCollections); err != nil {
+		if err := d.Set("export_status_exported_collections", exportJob.ExportStatus.GetExportedCollections()); err != nil {
 			return diag.Errorf("error setting `export_status_exported_collections` for snapshot export job (%s): %s", d.Id(), err)
 		}
 
-		if err := d.Set("export_status_total_collections", exportJob.ExportStatus.TotalCollections); err != nil {
+		if err := d.Set("export_status_total_collections", exportJob.ExportStatus.GetTotalCollections()); err != nil {
 			return diag.Errorf("error setting `export_status_total_collections` for snapshot export job (%s): %s", d.Id(), err)
 		}
 	}
 
-	if err := d.Set("finished_at", exportJob.FinishedAt); err != nil {
+	if err := d.Set("finished_at", conversion.TimePtrToStringPtr(exportJob.FinishedAt)); err != nil {
 		return diag.Errorf("error setting `finished_at` for snapshot export job (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("prefix", exportJob.Prefix); err != nil {
+	if err := d.Set("prefix", exportJob.GetPrefix()); err != nil {
 		return diag.Errorf("error setting `prefix` for snapshot export job (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("state", exportJob.State); err != nil {
+	if err := d.Set("state", exportJob.GetState()); err != nil {
 		return diag.Errorf("error setting `prefix` for snapshot export job (%s): %s", d.Id(), err)
 	}
 
 	return nil
 }
 
-func flattenExportJobsComponents(components *[]admin.DiskBackupExportMember) []map[string]any {
-	if len(*components) == 0 {
+func flattenExportJobsComponents(components []admin.DiskBackupExportMember) []map[string]any {
+	if len(components) == 0 {
 		return nil
 	}
 
 	customData := make([]map[string]any, 0)
 
-	for i := range *components {
+	for i := range components {
 		customData = append(customData, map[string]any{
-			"export_id":        (*components)[i].ExportId,
-			"replica_set_name": (*components)[i].ReplicaSetName,
+			"export_id":        (components)[i].GetExportId(),
+			"replica_set_name": (components)[i].GetReplicaSetName(),
 		})
 	}
 
 	return customData
 }
 
-func flattenExportJobsCustomData(data *[]admin.BackupLabel) []map[string]any {
-	if len(*data) == 0 {
+func flattenExportJobsCustomData(data []admin.BackupLabel) []map[string]any {
+	if len(data) == 0 {
 		return nil
 	}
 
 	customData := make([]map[string]any, 0)
 
-	for i := range *data {
+	for i := range data {
 		customData = append(customData, map[string]any{
-			"key":   (*data)[i].Key,
-			"value": (*data)[i].Value,
+			"key":   data[i].GetKey(),
+			"value": data[i].GetValue(),
 		})
 	}
 
 	return customData
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportJobCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -265,7 +271,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportJobCreate(ctx context.Context,
 	if err := d.Set("export_job_id", jobResponse.Id); err != nil {
 		return diag.Errorf("error setting `export_job_id` for snapshot export job (%s): %s", *jobResponse.Id, err)
 	}
-	return resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
 func expandExportJobCustomData(d *schema.ResourceData) *[]admin.BackupLabel {
@@ -283,7 +289,7 @@ func expandExportJobCustomData(d *schema.ResourceData) *[]admin.BackupLabel {
 	return &res
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportJobImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "--", 3)

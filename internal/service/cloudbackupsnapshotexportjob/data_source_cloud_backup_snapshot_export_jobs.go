@@ -2,17 +2,20 @@ package cloudbackupsnapshotexportjob
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobsRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -78,9 +81,10 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"err_msg": { //TODO: this is no longer returned by the API, could be removed
-							Type:     schema.TypeString,
-							Computed: true,
+						"err_msg": {
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 						},
 						"export_bucket_id": {
 							Type:     schema.TypeString,
@@ -117,22 +121,24 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
+	pageNum := d.Get("page_num").(int)
+	itemsPerPage := d.Get("items_per_page").(int)
 
-	jobs, _, err := connV2.CloudBackupsApi.ListBackupExportJobs(ctx, projectID, clusterName).Execute()
+	jobs, _, err := connV2.CloudBackupsApi.ListBackupExportJobs(ctx, projectID, clusterName).PageNum(pageNum).ItemsPerPage(itemsPerPage).Execute()
 	if err != nil {
 		return diag.Errorf("error getting CloudProviderSnapshotExportJobs information: %s", err)
 	}
 
-	if err := d.Set("results", flattenCloudBackupSnapshotExportJobs(jobs.Results)); err != nil {
+	if err := d.Set("results", flattenCloudBackupSnapshotExportJobs(jobs.GetResults())); err != nil {
 		return diag.Errorf("error setting `results`: %s", err)
 	}
 
-	if err := d.Set("total_count", jobs.TotalCount); err != nil {
+	if err := d.Set("total_count", jobs.GetTotalCount()); err != nil {
 		return diag.Errorf("error setting `total_count`: %s", err)
 	}
 
@@ -141,28 +147,29 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobsRead(ctx context.Contex
 	return nil
 }
 
-func flattenCloudBackupSnapshotExportJobs(jobs *[]admin.DiskBackupExportJob) []map[string]any {
+func flattenCloudBackupSnapshotExportJobs(jobs []admin.DiskBackupExportJob) []map[string]any {
 	var results []map[string]any
 
-	if len(*jobs) == 0 {
+	if len(jobs) == 0 {
 		return results
 	}
 
-	results = make([]map[string]any, len(*jobs))
+	results = make([]map[string]any, len(jobs))
 
-	for k, job := range *jobs {
+	for k, job := range jobs {
 		results[k] = map[string]any{
-			"export_job_id":                      job.Id,
-			"created_at":                         job.CreatedAt,
-			"components":                         flattenExportJobsComponents(job.Components),
-			"custom_data":                        flattenExportJobsCustomData(job.CustomData),
-			"export_bucket_id":                   job.ExportBucketId,
-			"export_status_exported_collections": job.ExportStatus.ExportedCollections,
-			"export_status_total_collections":    job.ExportStatus.TotalCollections,
-			"finished_at":                        job.FinishedAt,
-			"prefix":                             job.Prefix,
-			"snapshot_id":                        job.SnapshotId,
-			"state":                              job.State,
+			"export_job_id":                      job.GetId(),
+			"created_at":                         conversion.TimePtrToStringPtr(job.CreatedAt),
+			"components":                         flattenExportJobsComponents(job.GetComponents()),
+			"custom_data":                        flattenExportJobsCustomData(job.GetCustomData()),
+			"export_bucket_id":                   job.GetExportBucketId(),
+			"err_msg":                            "",
+			"export_status_exported_collections": job.ExportStatus.GetExportedCollections(),
+			"export_status_total_collections":    job.ExportStatus.GetTotalCollections(),
+			"finished_at":                        conversion.TimePtrToStringPtr(job.FinishedAt),
+			"prefix":                             job.GetPrefix(),
+			"snapshot_id":                        job.GetSnapshotId(),
+			"state":                              job.GetState(),
 		}
 	}
 
