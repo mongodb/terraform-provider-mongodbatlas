@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_clusters
 
-`mongodbatlas_cluster` describes all Advanced Clusters by the provided project_id. The data source requires your Project ID.
+`mongodbatlas_advanced_cluster` describes all Advanced Clusters by the provided project_id. The data source requires your Project ID.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
@@ -11,7 +11,7 @@
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_cluster" "example" {
+resource "mongodbatlas_advanced_cluster" "example" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "cluster-test"
   cluster_type = "REPLICASET"
@@ -29,8 +29,8 @@ resource "mongodbatlas_cluster" "example" {
   }
 }
 
-data "mongodbatlas_clusters" "example" {
-  project_id = mongodbatlas_cluster.example.project_id
+data "mongodbatlas_advanced_clusters" "example" {
+  project_id = mongodbatlas_advanced_cluster.example.project_id
 }
 ```
 
