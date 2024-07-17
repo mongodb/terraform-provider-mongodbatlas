@@ -97,7 +97,7 @@ func returnCloudBackupSnapshotExportJobSchema() map[string]*schema.Schema {
 		"err_msg": {
 			Type:       schema.TypeString,
 			Computed:   true,
-			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
+			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.20.0"),
 		},
 		"export_status_exported_collections": {
 			Type:     schema.TypeInt,
