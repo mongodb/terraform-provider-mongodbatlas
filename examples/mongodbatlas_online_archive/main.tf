@@ -41,7 +41,7 @@ data "mongodbatlas_online_archives" "all" {
   project_id   = mongodbatlas_online_archive.users_archive.project_id
   cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 }
-
+/*
 output "online_archive_state" {
   value = data.mongodbatlas_online_archive.read_archive.state
 }
@@ -49,3 +49,4 @@ output "online_archive_state" {
 output "online_archives_results" {
   value = data.mongodbatlas_online_archives.all.results
 }
+*/
