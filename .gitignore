@@ -7,7 +7,6 @@ terraform.tfplan
 terraform.tfstate
 .terraform.lock.hcl
 bin/
-modules-dev/
 /pkg/
 .vagrant/
 *.backup
