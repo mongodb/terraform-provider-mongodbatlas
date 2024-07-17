@@ -106,8 +106,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		for _, apiKeyList := range projectAssignmentList[1:] {
 			assignment := []admin.UserAccessRoleAssignment{
 				{
-					ApiUserId: apiKey.Id,
-					Roles:     &apiKeyList.RoleNames,
+					Roles: &apiKeyList.RoleNames,
 				},
 			}
 			_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, apiKeyList.ProjectID, apiKey.GetId(), &assignment).Execute()
@@ -200,8 +199,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				roles := conversion.ExpandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
 				assignment := []admin.UserAccessRoleAssignment{
 					{
-						ApiUserId: &apiKeyID,
-						Roles:     &roles,
+						Roles: &roles,
 					},
 				}
 				_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, &assignment).Execute()
@@ -229,8 +227,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			roles := conversion.ExpandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
 			assignment := []admin.UserAccessRoleAssignment{
 				{
-					ApiUserId: &apiKeyID,
-					Roles:     &roles,
+					Roles: &roles,
 				},
 			}
 			_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, &assignment).Execute()
