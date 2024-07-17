@@ -1,0 +1,11 @@
+```release-note:note
+resource/mongodbatlas_cloud_backup_snapshot_export_job: Deprecates the `err_msg` attribute. The attribute is no longer returned from the backend and was considered low value for customers
+```
+
+```release-note:note
+data-source/mongodbatlas_cloud_backup_snapshot_export_job: Deprecates the `err_msg` attribute. The attribute is no longer returned from the backend and was considered low value for customers
+```
+
+```release-note:note
+data-source/mongodbatlas_cloud_backup_snapshot_export_jobs: Deprecates the `err_msg` attribute. The attribute is no longer returned from the backend and was considered low value for customers
+```
