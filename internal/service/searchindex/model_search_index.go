@@ -5,9 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"reflect"
 	"strconv"
 
-	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -131,8 +131,7 @@ func diffSuppressJSON(k, old, newStr string, d *schema.ResourceData) bool {
 	if err := json.Unmarshal([]byte(newStr), &j2); err != nil {
 		log.Printf("[ERROR] cannot unmarshal new search index analyzer json %v", err)
 	}
-	if diff := deep.Equal(&j, &j2); diff != nil {
-		log.Printf("[DEBUG] deep equal not passed: %v", diff)
+	if !reflect.DeepEqual(&j, &j2) {
 		return false
 	}
 
