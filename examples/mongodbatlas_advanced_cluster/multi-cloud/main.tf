@@ -9,8 +9,8 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type   = "SHARDED"
   backup_enabled = true
 
-  replication_specs {    # shard 1
-    region_configs { 
+  replication_specs { # shard 1
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 3
@@ -24,7 +24,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_name   = "US_EAST_1"
     }
 
-     region_configs { 
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
@@ -37,10 +37,10 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       priority      = 6
       region_name   = "US_EAST_2"
     }
-	}
+  }
 
-  replication_specs {    # shard 2
-    region_configs { 
+  replication_specs { # shard 2
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 3
@@ -54,7 +54,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_name   = "US_EAST_1"
     }
 
-     region_configs { 
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
@@ -67,7 +67,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       priority      = 6
       region_name   = "US_EAST_2"
     }
-	}
+  }
 
   advanced_configuration {
     javascript_enabled                   = true

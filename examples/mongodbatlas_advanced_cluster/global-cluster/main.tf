@@ -14,7 +14,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   backup_enabled = true
 
   replication_specs { # shard 1 - zone n1
-    zone_name  = "zone n1"
+    zone_name = "zone n1"
 
     region_configs {
       electable_specs {
@@ -45,8 +45,8 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
   }
 
-   replication_specs {  # shard 2 - zone n1
-    zone_name  = "zone n1"
+  replication_specs { # shard 2 - zone n1
+    zone_name = "zone n1"
 
     region_configs {
       electable_specs {
@@ -77,10 +77,10 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
   }
 
-  replication_specs {  # shard 1 - zone n2
-    zone_name  = "zone n2"
+  replication_specs { # shard 1 - zone n2
+    zone_name = "zone n2"
 
-    region_configs { 
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 3
@@ -109,10 +109,10 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
   }
 
-  replication_specs {  # shard 2 - zone n2
-    zone_name  = "zone n2"
+  replication_specs { # shard 2 - zone n2
+    zone_name = "zone n2"
 
-    region_configs { 
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 3

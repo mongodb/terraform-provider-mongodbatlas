@@ -1,5 +1,5 @@
 # MongoDB Atlas Provider -- Global Cluster 
-This example creates a project and a Global Cluster with 2 zones
+This example creates a project and a Global Cluster with 2 zones.
 
 
 ## Dependencies
