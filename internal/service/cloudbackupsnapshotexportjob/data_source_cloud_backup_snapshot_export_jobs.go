@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -78,7 +78,7 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"err_msg": {
+						"err_msg": { //TODO: this is no longer returned by the API, could be removed
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -118,18 +118,12 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
-	}
-
-	jobs, _, err := conn.CloudProviderSnapshotExportJobs.List(ctx, projectID, clusterName, options)
+	jobs, _, err := connV2.CloudBackupsApi.ListBackupExportJobs(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.Errorf("error getting CloudProviderSnapshotExportJobs information: %s", err)
 	}
@@ -147,28 +141,27 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobsRead(ctx context.Contex
 	return nil
 }
 
-func flattenCloudBackupSnapshotExportJobs(jobs []*matlas.CloudProviderSnapshotExportJob) []map[string]any {
+func flattenCloudBackupSnapshotExportJobs(jobs *[]admin.DiskBackupExportJob) []map[string]any {
 	var results []map[string]any
 
-	if len(jobs) == 0 {
+	if len(*jobs) == 0 {
 		return results
 	}
 
-	results = make([]map[string]any, len(jobs))
+	results = make([]map[string]any, len(*jobs))
 
-	for k, job := range jobs {
+	for k, job := range *jobs {
 		results[k] = map[string]any{
-			"export_job_id":                      job.ID,
+			"export_job_id":                      job.Id,
 			"created_at":                         job.CreatedAt,
 			"components":                         flattenExportJobsComponents(job.Components),
 			"custom_data":                        flattenExportJobsCustomData(job.CustomData),
-			"err_msg":                            job.ErrMsg,
-			"export_bucket_id":                   job.ExportBucketID,
+			"export_bucket_id":                   job.ExportBucketId,
 			"export_status_exported_collections": job.ExportStatus.ExportedCollections,
 			"export_status_total_collections":    job.ExportStatus.TotalCollections,
 			"finished_at":                        job.FinishedAt,
 			"prefix":                             job.Prefix,
-			"snapshot_id":                        job.SnapshotID,
+			"snapshot_id":                        job.SnapshotId,
 			"state":                              job.State,
 		}
 	}

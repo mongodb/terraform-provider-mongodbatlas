@@ -70,7 +70,7 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"err_msg": {
+			"err_msg": { //TODO: this is no longer returned by the API, could be removed
 				Type:     schema.TypeString,
 				Computed: true,
 			},
