@@ -178,7 +178,6 @@ func Resource() *schema.Resource {
 						"zone_id": {
 							Type:     schema.TypeString,
 							Computed: true,
-							// TODO: awaiting confirmation on this - https://github.com/10gen/mms/pull/103397/files#r1678385193
 							Description: "Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. If clusterType is GEOSHARDED or `global_cluster_self_managed_sharding` is true, this value indicates the zone that the given shard belongs to and can be used to configure Global Cluster backup policies. This attribute is only available if using the latest schema of this resource leveraging independent shards in the cluster.",
 						},
 						"external_id": {
