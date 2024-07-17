@@ -15,50 +15,23 @@ env:
 jobs:
   tf-validate:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        terraform_version: ["${{vars.TF_VERSION_LATEST}}"]
     permissions: {}
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-        with:
-          fetch-depth: 0
-      - run: echo "GO_VERSION=$(cat .go-version)" >> "${GITHUB_ENV}"
       - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
-      - name: go build
-        run: go build -o terraform-plugin-dir/terraform-provider-mongodbatlas-dev_v99.99.99_x5 .
-      - name: override plugin
-        run: |
-          # For newer versions
-          mkdir -p ~/.terraform.d/plugins/registry.terraform.io/hashicorp/mongodbatlas-dev/99.99.99/"$(go env GOOS)"_"$(go env GOARCH)"/
-          cp terraform-plugin-dir/terraform-provider-mongodbatlas-dev_v99.99.99_x5 ~/.terraform.d/plugins/registry.terraform.io/hashicorp/mongodbatlas-dev/99.99.99/"$(go env GOOS)"_"$(go env GOARCH)"/
-      - name: replace names of provider for local development
-        run: grep --include=\*versions.tf -rnl './examples' -e 'source  = "mongodb/mongodbatlas"' | xargs sed -i s@mongodb/mongodbatlas@hashicorp/mongodbatlas-dev@g
-      - name: remove version of provider for local development
-        run: grep --include=\*versions.tf -rnl './examples' -e 'version =' | xargs sed -i '/^\s*version =/d'
-      - name: Fix format after substitutions
-        run: grep --include=\*versions.tf -rnl './examples' -e 'source[[:space:]]\+=' | xargs sed -i 's@\(\([[:space:]]*\)source\)[[:space:]]\+=[[:space:]]*@\2source = @g'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
         with:
-          terraform_version: ${{ matrix.terraform_version }}
-          # Needed to use the output of `terraform validate -json`
+          terraform_version: ${{ vars.TF_VERSION_LATEST }}
           terraform_wrapper: false
       - name: tf-validate
         run: make tools tf-validate
   tflint:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        terraform_version: ["${{vars.TF_VERSION_LATEST}}"]
     permissions: {}
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-        with:
-          fetch-depth: 0
       - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'

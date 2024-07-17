@@ -1,0 +1,6 @@
+provider_installation { 
+  dev_overrides {
+    "mongodb/mongodbatlas" = "/Users/leo.antoli/Documents/GitHub/terraform-provider-mongodbatlas/bin-examples"
+  }
+  direct {} 
+}
