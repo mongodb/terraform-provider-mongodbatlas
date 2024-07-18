@@ -17,7 +17,7 @@ resource "mongodbatlas_advanced_cluster" "azure-cluster" {
       provider_name = "AZURE"
       region_name   = var.provider_region_name
       electable_specs {
-        instance_size = "M10"
+        instance_size = var.provider_instance_size_name
         node_count    = 3
       }
     }
