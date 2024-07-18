@@ -931,7 +931,6 @@ func configSingleShardedMultiCloud(orgID, projectName, name string) string {
 					electable_specs {
 						instance_size = "M30"
 						node_count    = 2
-						disk_size_gb  = 16
 					}
 					provider_name = "AZURE"
 					priority      = 6
