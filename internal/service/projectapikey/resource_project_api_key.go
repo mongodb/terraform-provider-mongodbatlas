@@ -104,11 +104,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		// assign created api key to remaining project assignments
 		for _, apiKeyList := range projectAssignmentList[1:] {
-			assignment := []admin.UserAccessRoleAssignment{
-				{
-					Roles: &apiKeyList.RoleNames,
-				},
-			}
+			assignment := []admin.UserAccessRoleAssignment{{Roles: &apiKeyList.RoleNames}}
 			_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, apiKeyList.ProjectID, apiKey.GetId(), &assignment).Execute()
 			if err != nil {
 				if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -119,11 +115,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	if err := d.Set("public_key", apiKey.PublicKey); err != nil {
+	if err := d.Set("public_key", apiKey.GetPublicKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	if err := d.Set("private_key", apiKey.PrivateKey); err != nil {
+	if err := d.Set("private_key", apiKey.GetPrivateKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
@@ -197,11 +193,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			for _, apiKey := range newAssignments {
 				projectID := apiKey.(map[string]any)["project_id"].(string)
 				roles := conversion.ExpandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
-				assignment := []admin.UserAccessRoleAssignment{
-					{
-						Roles: &roles,
-					},
-				}
+				assignment := []admin.UserAccessRoleAssignment{{Roles: &roles}}
 				_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, &assignment).Execute()
 				if err != nil {
 					return diag.Errorf("error assigning api_keys into the project(%s): %s", projectID, err)
@@ -225,11 +217,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		for _, apiKey := range changedAssignments {
 			projectID := apiKey.(map[string]any)["project_id"].(string)
 			roles := conversion.ExpandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
-			assignment := []admin.UserAccessRoleAssignment{
-				{
-					Roles: &roles,
-				},
-			}
+			assignment := []admin.UserAccessRoleAssignment{{Roles: &roles}}
 			_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, &assignment).Execute()
 			if err != nil {
 				return diag.Errorf("error updating role names for the api_key(%s): %s", apiKey, err)
@@ -450,11 +438,11 @@ func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAssignments, c
 
 func getAPIProjectAssignments(ctx context.Context, connV2 *admin.APIClient, apiKeyOrgList *admin.SystemStatus, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
 	projectAssignments := []APIProjectAssignmentKeyInput{}
-	for idx, role := range *apiKeyOrgList.ApiKey.Roles {
+	for idx, role := range apiKeyOrgList.ApiKey.GetRoles() {
 		if !strings.HasPrefix(*role.RoleName, "ORG_") {
 			continue
 		}
-		roles := *apiKeyOrgList.ApiKey.Roles
+		roles := apiKeyOrgList.ApiKey.GetRoles()
 		orgKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListApiKeys(ctx, *roles[idx].OrgId).Execute()
 		if err != nil {
 			return nil, fmt.Errorf("error getting api key information: %s", err)
