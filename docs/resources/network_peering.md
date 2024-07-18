@@ -220,7 +220,7 @@ resource "aws_default_vpc" "default" {
 resource "mongodbatlas_network_peering" "mongo_peer" {
   accepter_region_name   = "us-east-2"
   project_id             = local.project_id
-  container_id           = mongodbatlas_advanced_cluster.test.container_id
+  container_id           = one(values(mongodbatlas_advanced_cluster.test.container_id))
   provider_name          = "AWS"
   route_table_cidr_block = "172.31.0.0/16"
   vpc_id                 = aws_default_vpc.default.id
