@@ -91,6 +91,15 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     key   = "environment"
     value = "dev"
   }
+
+  lifecycle {
+    ignore_changes = [
+      replication_specs[0].region_configs[0].electable_specs[0].instance_size,
+      replication_specs[1].region_configs[0].electable_specs[0].instance_size,
+      replication_specs[2].region_configs[0].electable_specs[0].instance_size,
+      replication_specs[3].region_configs[0].electable_specs[0].instance_size,
+    ]
+  }
 }
 
 resource "mongodbatlas_project" "project" {
