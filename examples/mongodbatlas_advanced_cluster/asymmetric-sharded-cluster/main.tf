@@ -9,7 +9,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type   = "SHARDED"
   backup_enabled = true
 
-  replication_specs {
+  replication_specs {     # shard 1 - M30 instance size
     region_configs {
       electable_specs {
         instance_size = "M30"
@@ -27,7 +27,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
   }
 
-  replication_specs {
+  replication_specs {     # shard 2 - M20 instance size
     region_configs {
       electable_specs {
         instance_size = "M20"
@@ -45,7 +45,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
   }
 
-  replication_specs {
+  replication_specs {     # shard 3 - M10 instance size
     region_configs {
       electable_specs {
         instance_size = "M10"
@@ -63,7 +63,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
   }
 
-  replication_specs {
+  replication_specs {     # shard 4 - M10 instance size
     region_configs {
       electable_specs {
         instance_size = "M10"
