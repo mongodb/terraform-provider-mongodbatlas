@@ -1,6 +1,6 @@
-# Data Source: mongodbatlas_clusters
+# Data Source: mongodbatlas_advanced_clusters
 
-`mongodbatlas_advanced_cluster` describes all Advanced Clusters by the provided project_id. The data source requires your Project ID.
+`mongodbatlas_advanced_clusters` describes all Advanced Clusters by the provided project_id. The data source requires your Project ID.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
