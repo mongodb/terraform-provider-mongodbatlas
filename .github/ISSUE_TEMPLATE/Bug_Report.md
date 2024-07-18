@@ -19,7 +19,7 @@ Our support will prioritise issues that contain all the required information tha
 
 
 ### Terraform CLI and Terraform MongoDB Atlas Provider Version
-Please ensure your issue is reproducible on a supported Terraform version. You may review our [Terraform version compatibility matrix](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/index.html.markdown#hashicorp-terraform-version-compatibility-matrix) to know more.
+Please ensure your issue is reproducible on a supported Terraform version. You may review our [Terraform version compatibility matrix](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/docs/index.md#hashicorp-terraform-version-compatibility-matrix) to know more.
 <!---
 Run `terraform version` to show the version, and paste the result for Terraform and the MongoDB Atlas Provider between the ``` marks below.
 

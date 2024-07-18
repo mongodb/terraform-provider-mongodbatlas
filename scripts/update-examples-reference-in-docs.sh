@@ -4,7 +4,7 @@ set -euo pipefail
 
 : "${1?"Tag of new release must be provided"}"
 
-FILE_PATH="./website/docs/index.html.markdown"
+FILE_PATH="./docs/index.md"
 RELEASE_TAG=$1
 
 # Define the old URL pattern and new URL

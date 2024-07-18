@@ -6,95 +6,179 @@ import (
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
+// ClusterRequest contains configuration for a cluster where all fields are optional and AddDefaults is used for required fields.
+// Used together with GetClusterInfo which will set ProjectID if it is unset.
 type ClusterRequest struct {
-	ProviderName           string
-	ExtraConfig            string
+	Tags                   map[string]string
+	ProjectID              string
+	ResourceSuffix         string
+	AdvancedConfiguration  map[string]any
 	ResourceDependencyName string
+	ClusterName            string
+	MongoDBMajorVersion    string
+	ReplicationSpecs       []ReplicationSpecRequest
+	DiskSizeGb             int
 	CloudBackup            bool
 	Geosharded             bool
+	RetainBackupsEnabled   bool
+	PitEnabled             bool
+}
+
+// AddDefaults ensures the required fields are populated to generate a resource.
+func (r *ClusterRequest) AddDefaults() {
+	if r.ResourceSuffix == "" {
+		r.ResourceSuffix = defaultClusterResourceSuffix
+	}
+	if len(r.ReplicationSpecs) == 0 {
+		r.ReplicationSpecs = []ReplicationSpecRequest{{}}
+	}
+	if r.ClusterName == "" {
+		r.ClusterName = RandomClusterName()
+	}
+}
+
+func (r *ClusterRequest) ClusterType() string {
+	if r.Geosharded {
+		return "GEOSHARDED"
+	}
+	return "REPLICASET"
 }
 
 type ClusterInfo struct {
-	ProjectIDStr        string
-	ProjectID           string
-	ClusterName         string
-	ClusterNameStr      string
-	ClusterTerraformStr string
+	ProjectID        string
+	Name             string
+	ResourceName     string
+	TerraformNameRef string
+	TerraformStr     string
 }
 
+const defaultClusterResourceSuffix = "cluster_info"
+
 // GetClusterInfo is used to obtain a project and cluster configuration resource.
-// When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, creation of resources is avoided. This is useful for local execution but not intended for CI executions.
-// Clusters will be created in project ProjectIDExecution.
+// When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined, a data source is created instead. This is useful for local execution but not intended for CI executions.
+// Clusters will be created in project ProjectIDExecution or in req.ProjectID which can be both a direct id, e.g., `664610ec80cc36255e634074` or a config reference `mongodbatlas_project.test.id`.
 func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 	tb.Helper()
 	if req == nil {
 		req = new(ClusterRequest)
 	}
-	if req.ProviderName == "" {
-		req.ProviderName = constant.AWS
-	}
-	clusterName := os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	if clusterName != "" && projectID != "" {
-		return ClusterInfo{
-			ProjectIDStr:        fmt.Sprintf("%q", projectID),
-			ProjectID:           projectID,
-			ClusterName:         clusterName,
-			ClusterNameStr:      fmt.Sprintf("%q", clusterName),
-			ClusterTerraformStr: "",
+	hclCreator := ClusterResourceHcl
+	if req.ProjectID == "" {
+		if ExistingClusterUsed() {
+			projectID, clusterName := existingProjectIDClusterName()
+			req.ProjectID = projectID
+			req.ClusterName = clusterName
+			hclCreator = ClusterDatasourceHcl
+		} else {
+			req.ProjectID = ProjectIDExecution(tb)
 		}
 	}
-	projectID = ProjectIDExecution(tb)
-	clusterName = RandomClusterName()
-	clusterTypeStr := "REPLICASET"
-	if req.Geosharded {
-		clusterTypeStr = "GEOSHARDED"
+	clusterTerraformStr, clusterName, clusterResourceName, err := hclCreator(req)
+	if err != nil {
+		tb.Error(err)
 	}
-	dependsOnClause := ""
-	if req.ResourceDependencyName != "" {
-		dependsOnClause = fmt.Sprintf(`
-           depends_on = [
-              %[1]s	
-           ]
-		`, req.ResourceDependencyName)
-	}
-	clusterTerraformStr := fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test_cluster" {
-			project_id                   = %[1]q
-			name                         = %[2]q
-			cloud_backup                 = %[3]t
-			auto_scaling_disk_gb_enabled = false
-			provider_name                = %[4]q
-			provider_instance_size_name  = "M10"
-		
-			cluster_type = %[5]q
-			replication_specs {
-				num_shards = 1
-				zone_name  = "Zone 1"
-				regions_config {
-					region_name     = "US_WEST_2"
-					electable_nodes = 3
-					priority        = 7
-					read_only_nodes = 0
-				}
-			}
-			%[6]s
-			%[7]s
-		}
-	`, projectID, clusterName, req.CloudBackup, req.ProviderName, clusterTypeStr, req.ExtraConfig, dependsOnClause)
 	return ClusterInfo{
-		ProjectIDStr:        fmt.Sprintf("%q", projectID),
-		ProjectID:           projectID,
-		ClusterName:         clusterName,
-		ClusterNameStr:      "mongodbatlas_cluster.test_cluster.name",
-		ClusterTerraformStr: clusterTerraformStr,
+		ProjectID:        req.ProjectID,
+		Name:             clusterName,
+		TerraformNameRef: fmt.Sprintf("%s.name", clusterResourceName),
+		ResourceName:     clusterResourceName,
+		TerraformStr:     clusterTerraformStr,
 	}
 }
 
 func ExistingClusterUsed() bool {
-	clusterName := os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	projectID, clusterName := existingProjectIDClusterName()
 	return clusterName != "" && projectID != ""
+}
+
+func existingProjectIDClusterName() (projectID, clusterName string) {
+	return os.Getenv("MONGODB_ATLAS_PROJECT_ID"), os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
+}
+
+// ReplicationSpecRequest can be used to customize the ReplicationSpecs of a Cluster.
+// No fields are required.
+// Use `ExtraRegionConfigs` to specify multiple region configs.
+type ReplicationSpecRequest struct {
+	ZoneName                 string
+	Region                   string
+	InstanceSize             string
+	ProviderName             string
+	EbsVolumeType            string
+	ExtraRegionConfigs       []ReplicationSpecRequest
+	NodeCount                int
+	NodeCountReadOnly        int
+	Priority                 int
+	AutoScalingDiskGbEnabled bool
+}
+
+func (r *ReplicationSpecRequest) AddDefaults() {
+	if r.Priority == 0 {
+		r.Priority = 7
+	}
+	if r.NodeCount == 0 {
+		r.NodeCount = 3
+	}
+	if r.ZoneName == "" {
+		r.ZoneName = "Zone 1"
+	}
+	if r.Region == "" {
+		r.Region = "US_WEST_2"
+	}
+	if r.InstanceSize == "" {
+		r.InstanceSize = "M10"
+	}
+	if r.ProviderName == "" {
+		r.ProviderName = constant.AWS
+	}
+}
+
+func (r *ReplicationSpecRequest) AllRegionConfigs() []admin.CloudRegionConfig20250101 {
+	config := cloudRegionConfig(*r)
+	configs := []admin.CloudRegionConfig20250101{config}
+	for i := range r.ExtraRegionConfigs {
+		extra := r.ExtraRegionConfigs[i]
+		configs = append(configs, cloudRegionConfig(extra))
+	}
+	return configs
+}
+
+func replicationSpec(req *ReplicationSpecRequest) admin.ReplicationSpec20250101 {
+	if req == nil {
+		req = new(ReplicationSpecRequest)
+	}
+	req.AddDefaults()
+	regionConfigs := req.AllRegionConfigs()
+	return admin.ReplicationSpec20250101{
+		ZoneName:      &req.ZoneName,
+		RegionConfigs: &regionConfigs,
+	}
+}
+
+func cloudRegionConfig(req ReplicationSpecRequest) admin.CloudRegionConfig20250101 {
+	req.AddDefaults()
+	var readOnly admin.DedicatedHardwareSpec20250101
+	if req.NodeCountReadOnly != 0 {
+		readOnly = admin.DedicatedHardwareSpec20250101{
+			NodeCount:    &req.NodeCountReadOnly,
+			InstanceSize: &req.InstanceSize,
+		}
+	}
+	return admin.CloudRegionConfig20250101{
+		RegionName:   &req.Region,
+		Priority:     &req.Priority,
+		ProviderName: &req.ProviderName,
+		ElectableSpecs: &admin.HardwareSpec20250101{
+			InstanceSize:  &req.InstanceSize,
+			NodeCount:     &req.NodeCount,
+			EbsVolumeType: conversion.StringPtr(req.EbsVolumeType),
+		},
+		ReadOnlySpecs: &readOnly,
+		AutoScaling: &admin.AdvancedAutoScalingSettings{
+			DiskGB: &admin.DiskGBAutoScaling{Enabled: &req.AutoScalingDiskGbEnabled},
+		},
+	}
 }

@@ -57,8 +57,8 @@ jobs:
     uses: ./.github/workflows/run-script-and-commit.yml
     with:
       script_call: './scripts/update-examples-reference-in-docs.sh ${{inputs.version_number}}'
-      file_to_commit: 'website/docs/index.html.markdown'
-      commit_message: 'chore: Updates examples link in index.html.markdown for ${{ github.event.inputs.version_number }} release'
+      file_to_commit: 'docs/index.md'
+      commit_message: 'chore: Updates examples link in index.md for ${{ github.event.inputs.version_number }} release'
     secrets:
       apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
       remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
@@ -135,7 +135,7 @@ jobs:
         with:
           ref: ${{ inputs.version_number }}
       - name: Set up Go
-        uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - name: Import GPG key

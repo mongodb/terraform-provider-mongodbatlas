@@ -26,10 +26,6 @@ variable "region" {
   type        = string
   description = "MongoDB Atlas Cluster Region, must be a region for the provider given"
 }
-variable "mongodbversion" {
-  type        = string
-  description = "The Major MongoDB Version"
-}
 variable "dbuser" {
   type        = string
   description = "MongoDB Atlas Database User Name"

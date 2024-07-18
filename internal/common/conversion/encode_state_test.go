@@ -1,9 +1,9 @@
 package conversion_test
 
 import (
+	"reflect"
 	"testing"
 
-	"github.com/go-test/deep"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
@@ -16,8 +16,8 @@ func TestEncodeDecodeID(t *testing.T) {
 
 	got := conversion.DecodeStateID(conversion.EncodeStateID(expected))
 
-	if diff := deep.Equal(expected, got); diff != nil {
-		t.Fatalf("Bad testEncodeDecodeID return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
+	if !reflect.DeepEqual(expected, got) {
+		t.Fatalf("Bad testEncodeDecodeID return \n got = %#v\nwant = %#v", got, expected)
 	}
 }
 
@@ -28,7 +28,7 @@ func TestDecodeID(t *testing.T) {
 	got := conversion.DecodeStateID(expected)
 	got2 := conversion.DecodeStateID(expected2)
 
-	if diff := deep.Equal(got, got2); diff != nil {
-		t.Fatalf("Bad TestDecodeID return \n got = %#v\nwant = %#v \ndiff = %#v", got, got2, diff)
+	if !reflect.DeepEqual(got, got2) {
+		t.Fatalf("Bad TestDecodeID return \n got = %#v\nwant = %#v", got, got2)
 	}
 }
