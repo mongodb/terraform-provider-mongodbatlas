@@ -27,16 +27,6 @@ resource "mongodbatlas_advanced_cluster" "example" {
   }
 }
 
-resource "mongodbatlas_search_deployment" "example" {
-  project_id   = mongodbatlas_project.example.id
-  cluster_name = mongodbatlas_advanced_cluster.example.name
-  specs = [
-    {
-      instance_size = "S20_HIGHCPU_NVME"
-      node_count    = 2
-    }
-  ]
-}
 
 data "mongodbatlas_search_deployment" "example" {
   project_id   = mongodbatlas_search_deployment.example.project_id
