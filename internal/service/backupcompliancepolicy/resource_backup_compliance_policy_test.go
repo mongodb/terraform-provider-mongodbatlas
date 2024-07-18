@@ -398,7 +398,7 @@ func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string, 
 		  cloud_provider      = "AWS"
 		  frequencies         = ["DAILY"]
 		  region_name         = "US_WEST_1"
-		  replication_spec_id = one(%[2]s.replication_specs).external_id
+		  replication_spec_id = one(%[2]s.replication_specs).id
 		  should_copy_oplogs  = false
 		}
 	  }
