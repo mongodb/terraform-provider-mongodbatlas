@@ -65,11 +65,13 @@ jobs:
     permissions: {}
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-      - run: | # all resources with auto-generated doc must be specified here 
-          make tools
-          export resource_name=control_plane_ip_addresses && make generate-doc
-          export resource_name=push_based_log_export && make generate-doc
-          export resource_name=search_deployment && make generate-doc
+      - run: make tools # all resources with auto-generated doc must be specified below here 
+      - name: Doc for control_plane_ip_addresses
+        run: export resource_name=control_plane_ip_addresses && make generate-doc
+      - name: Doc for push_based_log_export
+        run: export resource_name=push_based_log_export && make generate-doc
+      - name: Doc for search_deployment
+        run: export resource_name=search_deployment && make generate-doc
   call-acceptance-tests-workflow:
     needs: [build, lint, shellcheck, unit-test, generate-doc]
     secrets: inherit
