@@ -1,5 +1,5 @@
 # MongoDB Atlas Provider -- Global Cluster 
-This example creates a project and a Global Cluster.
+This example creates a project and a Sharded Cluster with 4 independent shards with varying cluster tiers and auto-scaling enabled.
 
 
 ## Dependencies
@@ -42,7 +42,7 @@ $ terraform plan
 This project currently supports the below deployments:
 
 - An Atlas Project
-- A Global Cluster
+- A Sharded Cluster with independent shards with varying cluster tiers
 
 **3\. Execute the Terraform apply.**
 
