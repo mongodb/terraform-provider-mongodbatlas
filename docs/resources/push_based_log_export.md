@@ -1,6 +1,6 @@
 # Resource: mongodbatlas_push_based_log_export
 
-`mongodbatlas_push_based_log_export` provide a resource for push-based log export feature. The resource lets you configure, enable & disable the project level settings for the push-based log export feature. Using this resource you 
+`mongodbatlas_push_based_log_export` provides a resource for push-based log export feature. The resource lets you configure, enable & disable the project level settings for the push-based log export feature. Using this resource you 
 can continually push logs from mongod, mongos, and audit logs to an Amazon S3 bucket. Atlas exports logs every 5 minutes.
 
 

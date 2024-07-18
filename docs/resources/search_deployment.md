@@ -4,6 +4,8 @@
 
 -> **NOTE:** For details on supported cloud providers and existing limitations you can visit the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-nodes-for-workload-isolation).
 
+-> **NOTE:** Only a single search deployment resource can be defined for each cluster.
+
 ## Example Usages
 
 ```terraform
