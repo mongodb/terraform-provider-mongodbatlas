@@ -53,7 +53,10 @@ jobs:
         with:
           version: v1.59.0 # Also update GOLANGCI_VERSION variable in GNUmakefile when updating this version
       - name: actionlint
-        run: make tools && actionlint -verbose -color
+        run: |
+          make tools
+          echo "::add-matcher::.github/actionlint-matcher.json"
+          actionlint -color
         shell: bash  
   shellcheck:
     runs-on: ubuntu-latest
