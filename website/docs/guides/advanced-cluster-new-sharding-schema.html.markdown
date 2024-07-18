@@ -13,7 +13,7 @@ page_title: "advanced_cluster - Migration to new sharding schema and leveraging 
 <a id="overview"></a>
 # Overview of schema changes
 
-`replication_specs` attribute has been modified to now be able to represent each individual shard of a cluster with a unique replication spec element. This implies that when using the new sharding schema the existing attribute `num_shards` will no longer be defined, and instead the number of shards will be defined by the number of `replication_specs` elements.
+`replication_specs` attribute has been modified to now be able to represent each individual shard of a cluster with a unique replication spec element. As such, when using the new sharding schema the existing attribute `num_shards` will no longer be defined, and instead the number of shards will be defined by the number of `replication_specs` elements.
 
 <a id="migration-sharded"></a>
 ## Migrating existing advanced_cluster type SHARDED
@@ -42,7 +42,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-In order to update our configuration to the new schema we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these 2 changes must be done at the same time.
+In order to update our configuration to the new schema, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these 2 changes must be done at the same time.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -78,7 +78,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-This  updated configuration will trigger a terraform update plan, however the underlying cluster will not face any changes after the apply as both configurations represent a sharded cluster composed of 2 shards.
+This updated configuration will trigger a terraform update plan. However, the underlying cluster will not face any changes after the apply, as both configurations represent a sharded cluster composed of 2 shards.
 
 <a id="migration-geosharded"></a>
 ## Migrating existing advanced_cluster type GEOSHARDED
@@ -122,7 +122,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-In order to update our configuration to the new schema we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these 2 changes must be done at the same time.
+In order to update our configuration to the new schema, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these 2 changes must be done at the same time.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -186,7 +186,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 
 
-This  updated configuration will trigger a terraform update plan, however the underlying cluster will not face any changes after the apply as both configurations represent a geo sharded cluster with 2 zones and 2 shards in each one.
+This updated configuration will trigger a terraform update plan. However, the underlying cluster will not face any changes after the apply, as both configurations represent a geo sharded cluster with 2 zones and 2 shards in each one.
 
 <a id="migration-replicaset"></a>
 ## Migrating existing advanced_cluster type REPLICASET
@@ -214,7 +214,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-To transition a replica set to sharded cluster 2 separate updates must be applied. First the cluster type must be adjusted to SHARDED, and apply this change without any other additional changes.
+To transition a replica set to sharded cluster 2 separate updates must be applied. First, update the `cluster_type` to SHARDED, and apply this change to the cluster.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -273,14 +273,12 @@ resource "mongodbatlas_advanced_cluster" "test" {
 <a id="leveraging-iss"></a>
 ## Leveraging Independent Shard Scaling 
 
-Prerequisite: The new sharding schema must be used, meaning the advanced_cluster configuration is not using `num_shards` and therefore each shard is represented with a unique `replication_specs` element. Please refer to documentation above to transition into this schema if not already.
-
-Considering the following configuration of a SHARDED cluster that has a symmetric configuration for its 2 shards:
+The new sharding schema must be used. Each shard must be represented with a unique replication_specs element and `num_shards` must not be used, as illustrated in the following example.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = var.project_id
-  name         = "SymmetricShardedCluster"
+  name         = "ShardedCluster"
   cluster_type = "SHARDED"
 
   replication_specs { # first shard
@@ -309,12 +307,14 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-It is now possible to define a different `instance_size`, and `disk_iops` in the case of AWS, for each individual shard. In the following update we will define an upgraded instance size of M40 only for the first shard. One criteria for defining which shard to scaling independently is by looking into the metrics dashboard in the UI (e.g. https://cloud.mongodb.com/v2/<PROJECT-ID>#/clusters/detail/SymmetricShardedCluster)
+With each shard's `replication_specs` defined independently, we can now define distinct `instance_size`, and `disk_iops` (only for AWS) values for each shard in the cluster. In the following example, we define an upgraded instance size of M40 only for the first shard in the cluster.
+
+Consider reviewing the Metrics Dashboard in the MongoDB Atlas UI (e.g. https://cloud.mongodb.com/v2/<PROJECT-ID>#/clusters/detail/ShardedCluster) for insight into how each shard within your cluster is currently performing, which will inform any shard-specific resource allocation changes you might require.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = var.project_id
-  name         = "SymmetricShardedCluster"
+  name         = "ShardedCluster"
   cluster_type = "SHARDED"
 
   replication_specs { # first shard upgraded to M40
