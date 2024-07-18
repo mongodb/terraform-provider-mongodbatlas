@@ -23,6 +23,8 @@ jobs:
         go-version-file: 'go.mod'
     - name: Build
       run: make build
+    - name: Set the user terminal
+      run: export GPG_TTY=$(tty)
   unit-test:
     needs: build
     runs-on: ubuntu-latest
