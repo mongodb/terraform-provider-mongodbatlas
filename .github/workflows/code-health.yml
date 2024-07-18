@@ -60,7 +60,30 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
       - name: Run ShellCheck
         uses: bewuethr/shellcheck-action@d01912909579c4b1a335828b8fca197fbb8e0aa4
+  generate-doc-check:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - run: make tools # all resources with auto-generated doc must be specified below here 
+      - name: Doc for control_plane_ip_addresses
+        run: export resource_name=control_plane_ip_addresses && make generate-doc
+      - name: Doc for push_based_log_export
+        run: export resource_name=push_based_log_export && make generate-doc
+      - name: Doc for search_deployment
+        run: export resource_name=search_deployment && make generate-doc
+      - name: Find mutations
+        id: self_mutation
+        run: |-
+          git add .
+          git diff --staged --patch --exit-code > .repo.patch || echo "self_mutation_happened=true" >> "${GITHUB_OUTPUT}"
+      - name: Fail build on mutation
+        if: steps.self_mutation.outputs.self_mutation_happened
+        run: |-
+          echo "::error::Files were changed during build (see build log). If this was triggered from a fork, you will need to update your branch."
+          cat .repo.patch
+          exit 1
   call-acceptance-tests-workflow:
-    needs: [build, lint, shellcheck, unit-test]
+    needs: [build, lint, shellcheck, unit-test, generate-doc-check]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
