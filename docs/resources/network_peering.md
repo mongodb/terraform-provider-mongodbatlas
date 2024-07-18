@@ -266,7 +266,7 @@ resource "mongodbatlas_network_peering" "test" {
   project_id       = local.project_id
   atlas_cidr_block = "192.168.0.0/18"
 
-  container_id   = mongodbatlas_advanced_cluster.test.replication_specs[0].container_id
+  container_id   = one(values(mongodbatlas_advanced_cluster.test.replication_specs[0].container_id))
   provider_name  = "GCP"
   gcp_project_id = local.GCP_PROJECT_ID
   network_name   = "default"
@@ -316,7 +316,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 # Create the peering connection request
 resource "mongodbatlas_network_peering" "test" {
   project_id            = local.project_id
-  container_id          = mongodbatlas_advanced_cluster.test.replication_specs[0].container_id
+  container_id          = one(values(mongodbatlas_advanced_cluster.test.replication_specs[0].container_id))
   provider_name         = "AZURE"
   azure_directory_id    = local.AZURE_DIRECTORY_ID
   azure_subscription_id = local.AZURE_SUBSCRIPTION_ID
