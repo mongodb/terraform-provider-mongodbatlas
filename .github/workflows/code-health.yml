@@ -60,7 +60,17 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
       - name: Run ShellCheck
         uses: bewuethr/shellcheck-action@d01912909579c4b1a335828b8fca197fbb8e0aa4
+  generate-doc:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - run: | # all resources with auto-generated doc must be specified here 
+          make tools
+          export resource_name=control_plane_ip_addresses && make generate-doc
+          export resource_name=push_based_log_export && make generate-doc
+          export resource_name=search_deployment && make generate-doc
   call-acceptance-tests-workflow:
-    needs: [build, lint, shellcheck, unit-test]
+    needs: [build, lint, shellcheck, unit-test, generate-doc]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
