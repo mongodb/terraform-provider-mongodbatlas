@@ -21,7 +21,7 @@ resource "mongodbatlas_data_lake_pipeline" "pipeline" {
       }
       source {
         type = "ON_DEMAND_CPS"
-        cluster_name = mongodbatlas_cluster.clusterTest.name
+        cluster_name = mongodbatlas_advanced_cluster.clusterTest.name
         database_name = "sample_airbnb"
         collection_name = "listingsAndReviews"
       }

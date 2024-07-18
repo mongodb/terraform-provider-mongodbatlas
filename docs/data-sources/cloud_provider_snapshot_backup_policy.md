@@ -14,20 +14,28 @@ subcategory: "Deprecated"
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = "<PROJECT-ID>"
-  name         = "clusterTest"
+resource "mongodbatlas_advanced_cluster" "my_cluster" {
+  project_id     = "<PROJECT-ID>"
+  name           = "clusterTest"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true # enable cloud backup snapshots
 
-  //Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "EU_CENTRAL_1"
-  provider_instance_size_name = "M10"
-  cloud_backup                = true // enable cloud backup snapshots
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_CENTRAL_1"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
 }
 
 resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
-  project_id   = mongodbatlas_cluster.my_cluster.project_id
-  cluster_name = mongodbatlas_cluster.my_cluster.name
+  project_id   = mongodbatlas_advanced_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_advanced_cluster.my_cluster.name
 
   reference_hour_of_day    = 3
   reference_minute_of_hour = 45
@@ -35,31 +43,31 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
 
 
   policies {
-    id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
+    id = mongodbatlas_advanced_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
 
     policy_item {
-      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.0.id
+      id                 = mongodbatlas_advanced_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.0.id
       frequency_interval = 1
       frequency_type     = "hourly"
       retention_unit     = "days"
       retention_value    = 1
     }
     policy_item {
-      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.1.id
+      id                 = mongodbatlas_advanced_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.1.id
       frequency_interval = 1
       frequency_type     = "daily"
       retention_unit     = "days"
       retention_value    = 2
     }
     policy_item {
-      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.2.id
+      id                 = mongodbatlas_advanced_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.2.id
       frequency_interval = 4
       frequency_type     = "weekly"
       retention_unit     = "weeks"
       retention_value    = 3
     }
     policy_item {
-      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.3.id
+      id                 = mongodbatlas_advanced_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.3.id
       frequency_interval = 5
       frequency_type     = "monthly"
       retention_unit     = "months"

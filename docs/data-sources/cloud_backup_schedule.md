@@ -7,20 +7,28 @@
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = "<PROJECT-ID>"
-  name         = "clusterTest"
+resource "mongodbatlas_advanced_cluster" "my_cluster" {
+  project_id     = "<PROJECT-ID>"
+  name           = "clusterTest"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true # enable cloud backup snapshots
 
-  //Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "EU_CENTRAL_1"
-  provider_instance_size_name = "M10"
-  cloud_backup     = true // enable cloud backup snapshots
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_CENTRAL_1"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
-  project_id   = mongodbatlas_cluster.my_cluster.project_id
-  cluster_name = mongodbatlas_cluster.my_cluster.name
+  project_id   = mongodbatlas_advanced_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_advanced_cluster.my_cluster.name
 
   reference_hour_of_day    = 3
   reference_minute_of_hour = 45

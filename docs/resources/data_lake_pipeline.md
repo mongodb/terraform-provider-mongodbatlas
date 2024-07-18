@@ -38,7 +38,7 @@ resource "mongodbatlas_data_lake_pipeline" "pipeline" {
 
       source {
         type = "ON_DEMAND_CPS"
-        cluster_name = mongodbatlas_cluster.automated_backup_test.name
+        cluster_name = mongodbatlas_advanced_cluster.automated_backup_test.name
         database_name = "sample_airbnb"
         collection_name = "listingsAndReviews"
       }

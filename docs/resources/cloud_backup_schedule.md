@@ -6,7 +6,7 @@
 
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
--> **NOTE:** When creating a backup schedule you **must either** use the `depends_on` clause to indicate the cluster to which it refers **or** specify the values of `project_id` and `cluster_name` as reference of the cluster resource (e.g. `cluster_name = mongodbatlas_cluster.my_cluster.name` - see the example below). Failure in doing so will result in an error when executing the plan.
+-> **NOTE:** When creating a backup schedule you **must either** use the `depends_on` clause to indicate the cluster to which it refers **or** specify the values of `project_id` and `cluster_name` as reference of the cluster resource (e.g. `cluster_name = mongodbatlas_advanced_cluster.my_cluster.name` - see the example below). Failure in doing so will result in an error when executing the plan.
 
 In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in which Cloud Backup Policies are manged with Terraform to significantly reduce the complexity. Due to this change we've provided multiple examples below to help express how this new resource functions.
 
@@ -16,20 +16,28 @@ In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in 
 You can create a new cluster with `cloud_backup` enabled and then immediately overwrite the default cloud backup policy that Atlas creates by default at the same time with this example.
 
 ```terraform
-resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = "<PROJECT-ID>"
-  name         = "clusterTest"
+resource "mongodbatlas_advanced_cluster" "my_cluster" {
+  project_id     = "<PROJECT-ID>"
+  name           = "clusterTest"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true # must be enabled in order to use cloud_backup_schedule resource
 
-  //Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "EU_CENTRAL_1"
-  provider_instance_size_name = "M10"
-  cloud_backup     = true // must be enabled in order to use cloud_backup_schedule resource
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_CENTRAL_1"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
-  project_id   = mongodbatlas_cluster.my_cluster.project_id
-  cluster_name = mongodbatlas_cluster.my_cluster.name
+  project_id   = mongodbatlas_advanced_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_advanced_cluster.my_cluster.name
 
   reference_hour_of_day    = 3
   reference_minute_of_hour = 45
@@ -55,20 +63,28 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 You can enable `cloud_backup` in the Cluster resource and then use the `cloud_backup_schedule` resource with no policy items to remove the default policy that Atlas creates when you enable Cloud Backup. This allows you to then create a policy when you are ready to via Terraform.
 
 ```terraform
-resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = "<PROJECT-ID>"
-  name         = "clusterTest"
+resource "mongodbatlas_advanced_cluster" "my_cluster" {
+  project_id     = "<PROJECT-ID>"
+  name           = "clusterTest"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true # must be enabled in order to use cloud_backup_schedule resource
 
-  //Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "EU_CENTRAL_1"
-  provider_instance_size_name = "M10"
-  cloud_backup     = true // must be enabled in order to use cloud_backup_schedule resource
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_CENTRAL_1"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
-  project_id   = mongodbatlas_cluster.my_cluster.project_id
-  cluster_name = mongodbatlas_cluster.my_cluster.name
+  project_id   = mongodbatlas_advanced_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_advanced_cluster.my_cluster.name
 
   reference_hour_of_day    = 3
   reference_minute_of_hour = 45
@@ -83,20 +99,28 @@ If you followed the example to Create a Cluster with Cloud Backup Enabled but No
 
 The cluster already exists with `cloud_backup` enabled
 ```terraform
-resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = "<PROJECT-ID>"
-  name         = "clusterTest"
+resource "mongodbatlas_advanced_cluster" "my_cluster" {
+  project_id     = "<PROJECT-ID>"
+  name           = "clusterTest"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true # must be enabled in order to use cloud_backup_schedule resource
 
-  //Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "EU_CENTRAL_1"
-  provider_instance_size_name = "M10"
-  cloud_backup     = true // must be enabled in order to use cloud_backup_schedule resource
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_CENTRAL_1"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
-  project_id   = mongodbatlas_cluster.my_cluster.project_id
-  cluster_name = mongodbatlas_cluster.my_cluster.name
+  project_id   = mongodbatlas_advanced_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_advanced_cluster.my_cluster.name
 
   reference_hour_of_day    = 3
   reference_minute_of_hour = 45
@@ -138,20 +162,28 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 You can enable `cloud_backup` in the Cluster resource and then use the `cloud_backup_schedule` resource with a basic policy for Cloud Backup.
 
 ```terraform
-resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = "<PROJECT-ID>"
-  name         = "clusterTest"
+resource "mongodbatlas_advanced_cluster" "my_cluster" {
+  project_id     = "<PROJECT-ID>"
+  name           = "clusterTest"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true # must be enabled in order to use cloud_backup_schedule resource
 
-  //Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "US_EAST_2"
-  provider_instance_size_name = "M10"
-  cloud_backup     = true // must be enabled in order to use cloud_backup_schedule resource
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_CENTRAL_1"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
-  project_id   = mongodbatlas_cluster.my_cluster.project_id
-  cluster_name = mongodbatlas_cluster.my_cluster.name
+  project_id   = mongodbatlas_advanced_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_advanced_cluster.my_cluster.name
 
   reference_hour_of_day    = 3
   reference_minute_of_hour = 45
@@ -172,7 +204,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
                    "YEARLY",
 		   "ON_DEMAND"]
     region_name = "US_EAST_1"
-    replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
+    replication_spec_id = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.id[0]
     should_copy_oplogs = false
   }
 

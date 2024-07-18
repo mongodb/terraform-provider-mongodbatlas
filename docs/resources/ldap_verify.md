@@ -10,15 +10,23 @@ resource "mongodbatlas_project" "test" {
 	org_id = "ORG ID"
 }
 
-resource "mongodbatlas_cluster" "test" {
-    project_id   = mongodbatlas_project.test.id
-    name         = "NAME OF THE CLUSTER"
-    
-    // Provider Settings "block"
-    provider_name               = "AWS"
-    provider_region_name        = "US_EAST_2"
-    provider_instance_size_name = "M10"
-    cloud_backup                = true //enable cloud provider snapshots
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id     = mongodbatlas_project.test.id
+  name           = "NAME OF THE CLUSTER"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true # enable cloud backup snapshots
+
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_EAST_1"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
 }
 
 resource "mongodbatlas_ldap_verify" "test" {
@@ -27,7 +35,7 @@ resource "mongodbatlas_ldap_verify" "test" {
     port                     = 636
     bind_username                     = "USERNAME"
     bind_password                     = "PASSWORD"
-    depends_on = [mongodbatlas_cluster.test]
+    depends_on = [ mongodbatlas_advanced_cluster.test ]
 }
 ```
 

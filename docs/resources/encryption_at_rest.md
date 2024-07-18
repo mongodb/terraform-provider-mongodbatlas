@@ -84,25 +84,26 @@ resource "mongodbatlas_encryption_at_rest" "example" {
   }
 }
 
-resource "mongodbatlas_cluster" "example_cluster" {
-  project_id   = mongodbatlas_encryption_at_rest.example.project_id
-  name         = "CLUSTER NAME"
-  cluster_type = "REPLICASET"
+resource "mongodbatlas_advanced_cluster" "example_cluster" {
+  project_id                  = mongodbatlas_encryption_at_rest.example.project_id
+  name                        = "CLUSTER NAME"
+  cluster_type                = "REPLICASET"
+  backup_enabled              = true
+  encryption_at_rest_provider = "AZURE"
+
   replication_specs {
-    num_shards = 1
-    regions_config {
-      region_name     = "REGION"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
+    region_configs {
+      priority      = 7
+      provider_name = "AZURE"
+      region_name   = "REGION"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
-
-  provider_name               = "AZURE"
-  provider_instance_size_name = "M10"
-  mongo_db_major_version      = "7.0"
-  encryption_at_rest_provider = "AZURE"
 }
+
 ```
 
 ## Argument Reference

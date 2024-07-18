@@ -19,85 +19,107 @@
 ### Example automated delivery type
 
 ```terraform
-  resource "mongodbatlas_cluster" "my_cluster" {
-    project_id   = "5cf5a45a9ccf6400e60981b6"
-    name         = "MyCluster"
+resource "mongodbatlas_advanced_cluster" "my_cluster" {
+  project_id     = "<PROJECT-ID>"
+  name           = "MyCluster"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true # enable cloud backup snapshots
 
-  //Provider Settings "block"
-    provider_name               = "AWS"
-    provider_region_name        = "EU_WEST_2"
-    provider_instance_size_name = "M10"
-    cloud_backup                = true   // enable cloud backup snapshots
-  }
-
-  resource "mongodbatlas_cloud_provider_snapshot" "test" {
-    project_id        = mongodbatlas_cluster.my_cluster.project_id
-    cluster_name      = mongodbatlas_cluster.my_cluster.name
-    description       = "myDescription"
-    retention_in_days = 1
-  }
-
-  resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
-    project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
-    cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-    snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
-    delivery_type_config   {
-      automated           = true
-      target_cluster_name = "MyCluster"
-      target_project_id   = "5cf5a45a9ccf6400e60981b6"
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_WEST_2"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
+}
+
+resource "mongodbatlas_cloud_provider_snapshot" "test" {
+  project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
+  cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
+  description       = "myDescription"
+  retention_in_days = 1
+}
+
+resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
+  project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
+  cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+  snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+  delivery_type_config   {
+    automated           = true
+    target_cluster_name = "MyCluster"
+    target_project_id   = "5cf5a45a9ccf6400e60981b6"
+  }
+}
 ```
 
 ### Example download delivery type
 
 ```terraform
-  resource "mongodbatlas_cluster" "my_cluster" {
-    project_id   = "5cf5a45a9ccf6400e60981b6"
-    name         = "MyCluster"
+resource "mongodbatlas_advanced_cluster" "my_cluster" {
+  project_id     = "<PROJECT-ID>"
+  name           = "MyCluster"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true # enable cloud backup snapshots
 
-  //Provider Settings "block"
-    provider_name               = "AWS"
-    provider_region_name        = "EU_WEST_2"
-    provider_instance_size_name = "M10"
-    cloud_backup                = true   // enable cloud backup snapshots
-  }
-
-  resource "mongodbatlas_cloud_provider_snapshot" "test" {
-    project_id        = mongodbatlas_cluster.my_cluster.project_id
-    cluster_name      = mongodbatlas_cluster.my_cluster.name
-    description       = "myDescription"
-    retention_in_days = 1
-  }
-  
-  resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
-    project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
-    cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-    snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
-    delivery_type_config {
-      download = true
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_WEST_2"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
+}
+
+resource "mongodbatlas_cloud_provider_snapshot" "test" {
+  project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
+  cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
+  description       = "myDescription"
+  retention_in_days = 1
+}
+
+resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
+  project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
+  cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+  snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+  delivery_type_config {
+    download = true
+  }
+}
 ```
 
 ### Example of a point in time restore
 ```
-resource "mongodbatlas_cluster" "cluster_test" {
-  project_id   = mongodbatlas_project.project_test.id
-  name         = var.cluster_name
+resource "mongodbatlas_advanced_cluster" "my_cluster" {
+  project_id     = "<PROJECT-ID>"
+  name           = "MyCluster"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true # enable cloud backup snapshots
 
-  # Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "US_EAST_1"
-  provider_instance_size_name = "M10"
-  cloud_backup                = true # enable cloud provider snapshots
-  pit_enabled                 = true
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_WEST_2"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
 }
 
-
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
-  project_id        = mongodbatlas_cluster.cluster_test.project_id
-  cluster_name      = mongodbatlas_cluster.cluster_test.name
+  project_id        = mongodbatlas_advanced_cluster.cluster_test.project_id
+  cluster_name      = mongodbatlas_advanced_cluster.cluster_test.name
   description       = "My description"
   retention_in_days = "1"
 }
@@ -110,8 +132,8 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 
   delivery_type_config {
     point_in_time             = true
-    target_cluster_name       = mongodbatlas_cluster.cluster_test.name
-    target_project_id         = mongodbatlas_cluster.cluster_test.project_id
+    target_cluster_name       = mongodbatlas_advanced_cluster.cluster_test.name
+    target_project_id         = mongodbatlas_advanced_cluster.cluster_test.project_id
     point_in_time_utc_seconds = var.point_in_time_utc_seconds
   }
 }

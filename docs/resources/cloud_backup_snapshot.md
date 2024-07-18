@@ -10,32 +10,40 @@ On-demand snapshots happen immediately, unlike scheduled snapshots which occur a
 ## Example Usage
 
 ```terraform
-  resource "mongodbatlas_cluster" "my_cluster" {
-    project_id   = "5cf5a45a9ccf6400e60981b6"
-    name         = "MyCluster"
+resource "mongodbatlas_advanced_cluster" "my_cluster" {
+  project_id     = "<PROJECT-ID>"
+  name           = "MyCluster"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true # enable cloud backup snapshots
 
-  //Provider Settings "block"
-    provider_name               = "AWS"
-    provider_region_name        = "EU_WEST_2"
-    provider_instance_size_name = "M10"
-    cloud_backup                = true   // enable cloud backup snapshots
-  }
-
-  resource "mongodbatlas_cloud_backup_snapshot" "test" {
-    project_id        = mongodbatlas_cluster.my_cluster.project_id
-    cluster_name      = mongodbatlas_cluster.my_cluster.name
-    description       = "myDescription"
-    retention_in_days = 1
-  }
-  
-  resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
-    project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
-    cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
-    snapshot_id     = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
-    delivery_type_config {
-      download = true
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_WEST_2"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
+}
+
+resource "mongodbatlas_cloud_backup_snapshot" "test" {
+  project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
+  cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
+  description       = "myDescription"
+  retention_in_days = 1
+}
+
+resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
+  project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+  cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+  snapshot_id     = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
+  delivery_type_config {
+    download = true
+  }
+}
 ```
 
 ## Argument Reference
