@@ -75,7 +75,7 @@ lint:
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
 	go install github.com/icholy/gomajor@latest
-	go install github.com/terraform-linters/tflint@v0.49.0
+	go install github.com/terraform-linters/tflint@v0.52.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
@@ -91,11 +91,11 @@ docs:
 
 .PHONY: tflint
 tflint: fmtcheck
-	@scripts/tflint.sh
+	tflint -f compact --recursive --minimum-failure-severity=warning
 
 .PHONY: tf-validate
 tf-validate: fmtcheck
-	@scripts/tf-validate.sh
+	scripts/tf-validate.sh
 
 .PHONY: link-git-hooks
 link-git-hooks: ## Install git hooks

@@ -19,12 +19,12 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                                           = "testsubnet"
-  resource_group_name                            = var.resource_group_name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.0.1.0/24"]
-  enforce_private_link_service_network_policies  = true
-  enforce_private_link_endpoint_network_policies = true
+  name                                          = "testsubnet"
+  resource_group_name                           = var.resource_group_name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.0.1.0/24"]
+  private_link_service_network_policies_enabled = true
+  private_endpoint_network_policies_enabled     = true
 }
 
 resource "mongodbatlas_privatelink_endpoint" "test" {

@@ -102,30 +102,25 @@ resource "google_compute_network_peering" "peering" {
 }
 
 # Create the cluster once the peering connection is completed
-resource "mongodbatlas_cluster" "test" {
-  project_id   = local.project_id
-  name         = "terraform-manually-test"
-  num_shards   = 1
-  
-  cluster_type = "REPLICASET"
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id     = local.project_id
+  name           = "terraform-manually-test"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true
+
   replication_specs {
-    num_shards = 1
-    regions_config {
-      region_name     = "US_EAST_4"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
+    region_configs {
+      priority      = 7
+      provider_name = "GCP"
+      region_name   = "US_EAST_4"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
-  
-  auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "7.0"
 
-  # Provider Settings "block"
-  provider_name               = "GCP"
-  provider_instance_size_name = "M10"
-
-  depends_on = ["google_compute_network_peering.peering"]
+  depends_on = [ google_compute_network_peering.peering ]
 }
 
 #  Private connection strings are not available w/ GCP until the reciprocal
@@ -166,32 +161,26 @@ resource "mongodbatlas_network_peering" "test" {
 }
 
 # Create the cluster once the peering connection is completed
-resource "mongodbatlas_cluster" "test" {
-  project_id = local.project_id
-  name       = "terraform-manually-test"
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id     = local.project_id
+  name           = "terraform-manually-test"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true
 
-  cluster_type = "REPLICASET"
   replication_specs {
-    num_shards = 1
-    regions_config {
-      region_name     = "US_EAST_2"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
+    region_configs {
+      priority      = 7
+      provider_name = "AZURE"
+      region_name   = "US_EAST_2"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
 
-  auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "7.0"
-
-  # Provider Settings "block"
-  provider_name               = "AZURE"
-  provider_disk_type_name     = "P4"
-  provider_instance_size_name = "M10"
-
-  depends_on = ["mongodbatlas_network_peering.test"]
+  depends_on = [ mongodbatlas_network_peering.test ]
 }
-
 ```
 
 ## Example Usage - Peering Connection Only, Container Exists
@@ -201,27 +190,23 @@ You can create a peering connection if an appropriate container for your cloud p
 ```terraform
 # Create an Atlas cluster, this creates a container if one
 # does not yet exist for this AWS region
-resource "mongodbatlas_cluster" "test" {
-  project_id   = local.project_id
-  name         = "terraform-test"
-  
-  cluster_type = "REPLICASET"
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id     = local.project_id
+  name           = "terraform-manually-test"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true
+
   replication_specs {
-    num_shards = 1
-    regions_config {
-      region_name     = "US_EAST_2"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_EAST_1"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
-
-  auto_scaling_disk_gb_enabled = false
-  mongo_db_major_version       = "7.0"
-
-  //Provider Settings "block"
-  provider_name               = "AWS"
-  provider_instance_size_name = "M10"
 }
 
 # the following assumes an AWS provider is configured
@@ -235,7 +220,7 @@ resource "aws_default_vpc" "default" {
 resource "mongodbatlas_network_peering" "mongo_peer" {
   accepter_region_name   = "us-east-2"
   project_id             = local.project_id
-  container_id           = mongodbatlas_cluster.test.container_id
+  container_id           = one(values(mongodbatlas_advanced_cluster.test.container_id))
   provider_name          = "AWS"
   route_table_cidr_block = "172.31.0.0/16"
   vpc_id                 = aws_default_vpc.default.id
@@ -257,27 +242,23 @@ resource "aws_vpc_peering_connection_accepter" "aws_peer" {
 ```terraform
 # Create an Atlas cluster, this creates a container if one
 # does not yet exist for this GCP 
-resource "mongodbatlas_cluster" "test" {
-  project_id   = local.project_id
-  name         = "terraform-manually-test"
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id     = local.project_id
+  name           = "terraform-manually-test"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true
 
-  cluster_type = "REPLICASET"
   replication_specs {
-    num_shards = 1
-    regions_config {
-      region_name     = "US_EAST_2"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
+    region_configs {
+      priority      = 7
+      provider_name = "GCP"
+      region_name   = "US_EAST_2"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
-
-  auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "7.0"
-
-  //Provider Settings "block"
-  provider_name               = "GCP"
-  provider_instance_size_name = "M10"
 }
 
 # Create the peering connection request
@@ -285,7 +266,7 @@ resource "mongodbatlas_network_peering" "test" {
   project_id       = local.project_id
   atlas_cidr_block = "192.168.0.0/18"
 
-  container_id   = mongodbatlas_cluster.test.container_id
+  container_id   = one(values(mongodbatlas_advanced_cluster.test.replication_specs[0].container_id))
   provider_name  = "GCP"
   gcp_project_id = local.GCP_PROJECT_ID
   network_name   = "default"
@@ -313,33 +294,29 @@ resource "google_compute_network_peering" "peering" {
 
 # Create an Atlas cluster, this creates a container if one
 # does not yet exist for this AZURE region
-resource "mongodbatlas_cluster" "test" {
-  project_id = local.project_id
-  name       = "cluster-azure"
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id     = local.project_id
+  name           = "cluster-azure"
+  cluster_type   = "REPLICASET"
+  backup_enabled = true
 
-  cluster_type = "REPLICASET"
   replication_specs {
-    num_shards = 1
-    regions_config {
-      region_name     = "US_EAST_2"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
+    region_configs {
+      priority      = 7
+      provider_name = "AZURE"
+      region_name   = "US_EAST_2"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
-
-  auto_scaling_disk_gb_enabled = false
-  mongo_db_major_version       = "7.0"
-
-  //Provider Settings "block"
-  provider_name               = "AZURE"
-  provider_instance_size_name = "M10"
 }
 
 # Create the peering connection request
 resource "mongodbatlas_network_peering" "test" {
   project_id            = local.project_id
-  container_id          = mongodbatlas_cluster.test.container_id
+  container_id          = one(values(mongodbatlas_advanced_cluster.test.replication_specs[0].container_id))
   provider_name         = "AZURE"
   azure_directory_id    = local.AZURE_DIRECTORY_ID
   azure_subscription_id = local.AZURE_SUBSCRIPTION_ID

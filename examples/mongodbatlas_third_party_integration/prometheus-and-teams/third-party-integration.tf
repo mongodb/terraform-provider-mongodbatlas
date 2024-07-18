@@ -10,7 +10,6 @@ resource "mongodbatlas_third_party_integration" "test_prometheus" {
   user_name         = var.user_name
   password          = var.password
   service_discovery = "file"
-  scheme            = "https"
   enabled           = true
 }
 
