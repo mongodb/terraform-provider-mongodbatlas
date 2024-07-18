@@ -547,7 +547,7 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 							"YEARLY",
 							"ON_DEMAND"]
 				region_name = "US_EAST_1"
-				replication_spec_id = %[1]s.replication_specs.*.id[0]
+				replication_spec_id = %[1]s.replication_specs.*.external_id[0]
 				should_copy_oplogs = true
 			}`, clusterResourceName)
 	}
