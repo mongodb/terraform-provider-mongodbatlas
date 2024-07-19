@@ -558,7 +558,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T)
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M30", 3000, 3000),
-				Check:  checkShardedNewSchema("M30", "M30", "3000", "3000"),
+				Check:  checkShardedNewSchema("M30", "M30", "3000", "3000", true),
 			},
 		},
 	})
@@ -578,7 +578,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M40", 3000, 3000), // TODO: disk iops is failing if value is different
-				Check:  checkShardedNewSchema("M30", "M40", "3000", "3000"),
+				Check:  checkShardedNewSchema("M30", "M40", "3000", "3000", false),                        // replication spec old ids not populated for asymmetric cluster
 			},
 		},
 	})
@@ -644,7 +644,7 @@ func configTenant(projectID, name string) string {
 
 func checkTenant(projectID, name string) resource.TestCheckFunc {
 	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
-		[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
+		[]string{"results.#", "results.0.replication_specs.#", "replication_specs.0.id", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
 	return checkAggr(
 		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
@@ -782,7 +782,7 @@ func checkReplicaSetAWSProvider(projectID, name string, nodeCountElectable int, 
 	}
 
 	return checkAggr(
-		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
+		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":   projectID,
 			"disk_size_gb": "60",
@@ -893,7 +893,7 @@ func checkReplicaSetMultiCloud(name string, regionConfigs int, verifyExternalID 
 		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
 	}
 	return checkAggr(
-		[]string{"project_id", "replication_specs.#"},
+		[]string{"project_id", "replication_specs.#", "replication_specs.0.id"},
 		map[string]string{
 			"name": name},
 		additionalChecks...,
@@ -962,7 +962,7 @@ func checkSingleShardedMultiCloud(name string, verifyExternalID bool) resource.T
 	}
 
 	return checkAggr(
-		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
+		[]string{"project_id", "replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"name": name},
 		additionalChecks...)
@@ -1281,7 +1281,7 @@ func checkGeoShardedOldSchema(name string, numShardsFirstZone, numShardsSecondZo
 	}
 
 	return checkAggr(
-		[]string{"project_id"},
+		[]string{"project_id", "replication_specs.0.id", "replication_specs.1.id"},
 		map[string]string{
 			"name":                           name,
 			"disk_size_gb":                   "60",
@@ -1405,13 +1405,23 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 	`, orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2)
 }
 
-func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string) resource.TestCheckFunc {
+func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string, replicationSpecOldIDDefined bool) resource.TestCheckFunc {
+	additionalChecks := []resource.TestCheckFunc{}
+
+	if replicationSpecOldIDDefined {
+		additionalChecks = append(additionalChecks, checkAggr([]string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
+	} else {
+		additionalChecks = append(additionalChecks, checkAggr([]string{}, map[string]string{
+			"replication_specs.0.id": "",
+			"replication_specs.1.id": "",
+		}))
+	}
+
 	return checkAggr(
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
 		map[string]string{
-			"disk_size_gb":           "60",
-			"replication_specs.#":    "2",
-			"replication_specs.0.id": "",
+			"disk_size_gb":        "60",
+			"replication_specs.#": "2",
 			"replication_specs.0.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec1,
 			"replication_specs.1.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec2,
 			"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":  "60",
@@ -1420,5 +1430,7 @@ func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, 
 			"replication_specs.1.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
 			"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec1,
 			"replication_specs.1.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec2,
-		})
+		},
+		additionalChecks...,
+	)
 }

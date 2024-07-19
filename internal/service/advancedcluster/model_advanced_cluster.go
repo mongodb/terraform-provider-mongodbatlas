@@ -469,6 +469,7 @@ func flattenProcessArgs(p *admin20231115.ClusterDescriptionProcessArgs) []map[st
 
 func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []admin20231115.ReplicationSpec, rootDiskSizeGB float64, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
+	// for flattening old model we need information of value defined at root disk_size_gb so we set the value in new location under hardware specs
 	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin20231115.ReplicationSpec, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
 		return flattenAdvancedReplicationSpecOldSDK(ctx, sdkModel, rootDiskSizeGB, tfModel, resourceData, connV2)
 	}
@@ -476,10 +477,14 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 		doesAdvancedReplicationSpecMatchAPIOldSDK, replicationSpecFlattener, connV2)
 }
 
-func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec20250101, tfMapObjects []any,
+func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec20250101, zoneNameToOldReplicationSpecIDs map[string]string, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
+	// for flattening new model we need information of replication spec ids associated to old API to avoid breaking changes for users referencing replication_specs.*.id
+	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin.ReplicationSpec20250101, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
+		return flattenAdvancedReplicationSpec(ctx, sdkModel, zoneNameToOldReplicationSpecIDs, tfModel, resourceData, connV2)
+	}
 	return flattenAdvancedReplicationSpecsLogic[admin.ReplicationSpec20250101](ctx, apiObjects, tfMapObjects, d,
-		doesAdvancedReplicationSpecMatchAPI, flattenAdvancedReplicationSpec, connV2)
+		doesAdvancedReplicationSpecMatchAPI, replicationSpecFlattener, connV2)
 }
 
 type ReplicationSpecSDKModel interface {
@@ -1004,7 +1009,7 @@ func expandRegionConfigAutoScaling(tfList []any) *admin.AdvancedAutoScalingSetti
 	return &settings
 }
 
-func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.ReplicationSpec20250101, d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
+func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.ReplicationSpec20250101, zoneNameToOldReplicationSpecIDs map[string]string, d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	if len(apiRepSpecs) == 0 {
 		return nil, nil
 	}
@@ -1012,7 +1017,7 @@ func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.
 	tfList := make([]map[string]any, len(apiRepSpecs))
 
 	for i, apiRepSpec := range apiRepSpecs {
-		tfReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiRepSpec, nil, d, connV2)
+		tfReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiRepSpec, zoneNameToOldReplicationSpecIDs, nil, d, connV2)
 		if err != nil {
 			return nil, err
 		}
@@ -1021,7 +1026,7 @@ func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.
 	return tfList, nil
 }
 
-func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.ReplicationSpec20250101, tfMapObject map[string]any,
+func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.ReplicationSpec20250101, zoneNameToOldReplicationSpecIDs map[string]string, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
 		return nil, nil
@@ -1029,6 +1034,10 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 
 	tfMap := map[string]any{}
 	tfMap["external_id"] = apiObject.GetId()
+
+	if oldID, ok := zoneNameToOldReplicationSpecIDs[apiObject.GetZoneName()]; ok {
+		tfMap["id"] = oldID // id stores replicationSpecs.*.id value associated to old cluster API (2023-02-01)
+	}
 
 	// define num_shards for backwards compatibility as this attribute has default value of 1.
 	tfMap["num_shards"] = 1
