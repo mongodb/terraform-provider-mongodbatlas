@@ -18,6 +18,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
+const (
+	errorListRead = "error reading advanced cluster list for project(%s): %s"
+)
+
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourcePluralRead,
@@ -280,7 +284,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return nil
 			}
-			return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
+			return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))
 		}
 		if err := d.Set("results", flattenAdvancedClustersOldSDK(ctx, connV220231115, connV2, list.GetResults(), d)); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
@@ -291,7 +295,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return nil
 			}
-			return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
+			return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))
 		}
 		if err := d.Set("results", flattenAdvancedClusters(ctx, connV220231115, connV2, list.GetResults(), d)); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
