@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 	"strings"
 
-	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -118,8 +118,7 @@ func Resource() *schema.Resource {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
 						return false
 					}
-					if diff := deep.Equal(&j, &j2); diff != nil {
-						log.Printf("[DEBUG] deep equal not passed: %v", diff)
+					if !reflect.DeepEqual(&j, &j2) {
 						return false
 					}
 
@@ -140,8 +139,7 @@ func Resource() *schema.Resource {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
 						return false
 					}
-					if diff := deep.Equal(&j, &j2); diff != nil {
-						log.Printf("[DEBUG] deep equal not passed: %v", diff)
+					if !reflect.DeepEqual(&j, &j2) {
 						return false
 					}
 

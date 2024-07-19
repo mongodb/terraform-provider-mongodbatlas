@@ -17,18 +17,27 @@ const (
 )
 
 func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-	)
+	resource.ParallelTest(t, *singleRegionTestCase(t))
+}
 
-	resource.ParallelTest(t, resource.TestCase{
+func singleRegionTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+	var (
+		singleRegionRequest = acc.ClusterRequest{
+			ReplicationSpecs: []acc.ReplicationSpecRequest{
+				{Region: "US_WEST_2", InstanceSize: "M10"},
+			},
+		}
+		clusterInfo = acc.GetClusterInfo(t, &singleRegionRequest)
+		clusterName = clusterInfo.Name
+	)
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleRegion(projectID, clusterName),
+				Config: configSingleRegion(&clusterInfo),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -46,22 +55,37 @@ func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 				),
 			},
 		},
-	})
+	}
 }
 
 func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
+	resource.ParallelTest(t, *multiRegionTestCase(t))
+}
+
+func multiRegionTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
+		multiRegionRequest = acc.ClusterRequest{ReplicationSpecs: []acc.ReplicationSpecRequest{
+			{
+				Region:    "US_EAST_1",
+				NodeCount: 3,
+				ExtraRegionConfigs: []acc.ReplicationSpecRequest{
+					{Region: "US_EAST_2", NodeCount: 2, Priority: 6},
+					{Region: "US_WEST_2", NodeCount: 2, Priority: 5, NodeCountReadOnly: 2},
+				},
+			},
+		}}
+		clusterInfo = acc.GetClusterInfo(t, &multiRegionRequest)
+		clusterName = clusterInfo.Name
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultiRegion(projectID, clusterName),
+				Config: configMultiRegion(&clusterInfo),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -79,73 +103,36 @@ func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 				),
 			},
 		},
-	})
+	}
 }
 
-func configSingleRegion(projectID, clusterName string) string {
+func configSingleRegion(info *acc.ClusterInfo) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test" {
-				project_id                  = %[1]q
-				name                        = %[2]q
-				provider_name               = "AWS"
-				provider_region_name        = "US_WEST_2"
-				provider_instance_size_name = "M10"
-			}
-
+			%[1]s
 			resource "mongodbatlas_cluster_outage_simulation" "test_outage" {
-				project_id = %[1]q
-				cluster_name = %[2]q
+				project_id = %[2]q
+				cluster_name = %[3]q
 				outage_filters {
 					cloud_provider = "AWS"
 					region_name    = "US_WEST_2"
 				}
-				depends_on = ["mongodbatlas_cluster.test"]
+				depends_on = [%[4]s]
 			}
 
 			data "mongodbatlas_cluster_outage_simulation" "test" {
-				project_id = %[1]q
-				cluster_name = %[2]q
+				project_id = %[2]q
+				cluster_name = %[3]q
 				depends_on = [mongodbatlas_cluster_outage_simulation.test_outage]
 			}		
-	`, projectID, clusterName)
+	`, info.TerraformStr, info.ProjectID, info.Name, info.ResourceName)
 }
 
-func configMultiRegion(projectID, clusterName string) string {
+func configMultiRegion(info *acc.ClusterInfo) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
-			cluster_type = "REPLICASET"
-			
-			provider_name               = "AWS"
-			provider_instance_size_name = "M10"
-			
-			replication_specs {
-				num_shards = 1
-				regions_config {
-				region_name     = "US_EAST_1"
-				electable_nodes = 3
-				priority        = 7
-				read_only_nodes = 0
-				}
-				regions_config {
-				region_name     = "US_EAST_2"
-				electable_nodes = 2
-				priority        = 6
-				read_only_nodes = 0
-				}
-				regions_config {
-				region_name     = "US_WEST_2"
-				electable_nodes = 2
-				priority        = 5
-				read_only_nodes = 2
-				}
-			}
-		}
-
+		%[1]s
 		resource "mongodbatlas_cluster_outage_simulation" "test_outage" {
-			project_id   = %[1]q
-			cluster_name = %[2]q
+			project_id   = %[2]q
+			cluster_name = %[3]q
 
 			outage_filters {
 				cloud_provider = "AWS"
@@ -155,15 +142,15 @@ func configMultiRegion(projectID, clusterName string) string {
 					cloud_provider = "AWS"
 					region_name    = "US_EAST_2"
 			}
-			depends_on = ["mongodbatlas_cluster.test"]
+			depends_on = [%[4]s]
 		}
 
 		data "mongodbatlas_cluster_outage_simulation" "test" {
-			project_id = %[1]q
-			cluster_name = %[2]q
+			project_id = %[2]q
+			cluster_name = %[3]q
 			depends_on = [mongodbatlas_cluster_outage_simulation.test_outage]
 		}		
-	`, projectID, clusterName)
+	`, info.TerraformStr, info.ProjectID, info.Name, info.ResourceName)
 }
 
 func checkDestroy(s *terraform.State) error {

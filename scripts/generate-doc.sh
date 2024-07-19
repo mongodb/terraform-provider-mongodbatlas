@@ -32,7 +32,7 @@
 
 set -euo pipefail
 
-TF_VERSION="${TF_VERSION:-"1.7"}" # TF version to use when running tfplugindocs. Default: 1.7
+TF_VERSION="${TF_VERSION:-"1.9.2"}" # TF version to use when running tfplugindocs. Default: 1.9.2
 TEMPLATE_FOLDER_PATH="${TEMPLATE_FOLDER_PATH:-"templates"}" # PATH to the templates folder. Default: templates
 
 
@@ -67,39 +67,35 @@ if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}s.md.tmpl" ]; th
     printf "Skipping this check: We assume that the resource does not have a plural data source.\n\n"
 fi
 
-# tfplugindocs uses this folder to generate the documentations
-mkdir -p docs
+tfplugindocs generate --tf-version "${TF_VERSION}" --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out"
 
-tfplugindocs generate --tf-version "${TF_VERSION}" --website-source-dir "${TEMPLATE_FOLDER_PATH}"
-
-if [ ! -f "docs/resources/${resource_name}.md" ]; then
+if [ ! -f "docs-out/resources/${resource_name}.md" ]; then
     echo "Error: We cannot find the documentation file for the resource ${resource_name}.md"
     echo "Please, make sure to include the resource template under templates/resources/${resource_name}.md.tmpl"
     printf "Skipping this step: We assume that only a data source is being generated.\n\n"
 else
-    printf "\nMoving the generated file %s.md to the website folder" "${resource_name}"
-    mv "docs/resources/${resource_name}.md" "website/docs/r/${resource_name}.html.markdown"
+    printf "Moving the generated resource file %s.md to the website folder.\n" "${resource_name}"
+    mv "docs-out/resources/${resource_name}.md" "docs/resources/${resource_name}.md"
 fi
 
-if [ ! -f "docs/data-sources/${resource_name}.md" ]; then
+if [ ! -f "docs-out/data-sources/${resource_name}.md" ]; then
     echo "Error: We cannot find the documentation file for the data source ${resource_name}.md"
     echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}.md.tmpl"
     exit 1
 else
-    printf "\nMoving the generated file %s.md to the website folder" "${resource_name}"
-    mv "docs/data-sources/${resource_name}.md" "website/docs/d/${resource_name}.html.markdown"
+    printf "Moving the generated data-source file %s.md to the website folder.\n" "${resource_name}"
+    mv "docs-out/data-sources/${resource_name}.md" "docs/data-sources/${resource_name}.md"
 fi
 
-if [ ! -f "docs/data-sources/${resource_name}s.md" ]; then
-    echo "Warning: We cannot find the documentation file for the data source ${resource_name}s.md."
+if [ ! -f "docs-out/data-sources/${resource_name}s.md" ]; then
+    echo "Warning: We cannot find the documentation file for the plural data source ${resource_name}s.md."
     echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}s.md.tmpl"
     printf "Skipping this step: We assume that the resource does not have a plural data source.\n\n"
 else
-    printf "\nMoving the generated file %s.md to the website folder" "${resource_name}s"
-    mv "docs/data-sources/${resource_name}s.md" "website/docs/d/${resource_name}s.html.markdown"
+    printf "\nMoving the generated plural data-source file %s.md to the website folder.\n" "${resource_name}s"
+    mv "docs-out/data-sources/${resource_name}s.md" "docs/data-sources/${resource_name}s.md"
 fi
 
-# Delete the docs/ folder
-rm -R docs/
+rm -R docs-out/
 
 printf "\nThe documentation for %s has been created.\n" "${resource_name}"

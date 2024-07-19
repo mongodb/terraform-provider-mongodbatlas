@@ -32,7 +32,7 @@ private_key          = "22b722a9-34f4-3b1b-aada-298329a5c128"
 atlas_org_id         = "63f4d4a47baeac59406dc131"
 ```
 
-... or use [AWS Secrets Manager](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/index.html.markdown#aws-secrets-manager)
+... or use [AWS Secrets Manager](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/docs/index.md#aws-secrets-manager)
 
 
 **2\. Set your AWS access key & secret via environment variables:
