@@ -644,9 +644,9 @@ func configTenant(projectID, name string) string {
 
 func checkTenant(projectID, name string) resource.TestCheckFunc {
 	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
-		[]string{"results.#", "results.0.replication_specs.#", "replication_specs.0.id", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
+		[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
 	return checkAggr(
-		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
+		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":                           projectID,
 			"name":                                 name,
