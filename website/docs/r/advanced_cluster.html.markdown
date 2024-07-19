@@ -575,6 +575,8 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
     * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
     * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
 * `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
+* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** Using disk_size_gb with Standard IOPS could lead to errors and configuration issues. Therefore, it should be used only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED). When using Provisioned IOPS, the disk_size_gb parameter specifies the storage capacity, but the IOPS are set independently. Ensuring that disk_size_gb is used exclusively with Provisioned IOPS will help avoid these issues.
+
 
 ### analytics_specs
 
@@ -584,6 +586,7 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
     * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
 * `instance_size` - (Optional) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size.
 * `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
+* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** Using disk_size_gb with Standard IOPS could lead to errors and configuration issues. Therefore, it should be used only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED). When using Provisioned IOPS, the disk_size_gb parameter specifies the storage capacity, but the IOPS are set independently. Ensuring that disk_size_gb is used exclusively with Provisioned IOPS will help avoid these issues.
 
 ### read_only_specs
 
@@ -593,6 +596,7 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
     * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
 * `instance_size` - (Optional) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size.
 * `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
+* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** Using disk_size_gb with Standard IOPS could lead to errors and configuration issues. Therefore, it should be used only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED). When using Provisioned IOPS, the disk_size_gb parameter specifies the storage capacity, but the IOPS are set independently. Ensuring that disk_size_gb is used exclusively with Provisioned IOPS will help avoid these issues.
 
 ### auto_scaling
 
@@ -685,7 +689,7 @@ In addition to all arguments above, the following attributes are exported:
     - DELETING
     - DELETED
     - REPAIRING
-* `replication_specs` - List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. Primary usage is covered under the [replication_specs argument reference](#replication_specs), though there are some computed attributes:
+* `replication_specs` - List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. If for each replication_spec `num_shards` is configured >1 (i.e. using legacy sharding schema), then each object represents a zone with one or more shards.  Primary usage is covered under the [replication_specs argument reference](#replication_specs), though there are some computed attributes:
   - `replication_specs.#.container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 
 ## Import

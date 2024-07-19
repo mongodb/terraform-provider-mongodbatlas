@@ -99,13 +99,13 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The cluster ID.
 * `bi_connector_config` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector_config). **NOTE** Prior version of provider had parameter as `bi_connector`
 * `cluster_type` - Type of the cluster that you want to create.
-* `disk_size_gb` - Capacity, in gigabytes, of the host's root volume. If `use_replication_spec_per_shard = true` then this value is equal to `disk_size_gb` of the first `replication_spec.#.region_configs.#.electable_specs`. **(DEPRECATED)** Use `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` instead. Please refer [1.18.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown) for more details.
+* `disk_size_gb` - Capacity, in gigabytes, of the host's root volume. **(DEPRECATED)** Use `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` instead. Please refer [1.18.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown) for more details.
 * `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE. 
 * `tags` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 * `labels` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
 * `mongo_db_major_version` - Version of the cluster to deploy.
 * `pit_enabled` - Flag that indicates if the cluster uses Continuous Cloud Backup.
-* `replication_specs` - List of settings that configure your cluster regions. If `use_replication_spec_per_shard` is defined to true, this array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. See [below](#replication_specs).
+* `replication_specs` - List of settings that configure your cluster regions. If `use_replication_spec_per_shard = true`, this array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. See [below](#replication_specs).
 * `root_cert_type` - Certificate Authority that MongoDB Atlas clusters use. 
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
