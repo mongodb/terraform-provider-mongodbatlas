@@ -171,7 +171,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
   * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
 * `instance_size` - Hardware specification for the instance sizes in this region.
 * `node_count` - Number of nodes of the given type for MongoDB Atlas to deploy to the region.
-* `disk_size_gb` - Storage capacity that the host's root volume possesses expressed in gigabytes. Increase this number to add capacity. MongoDB Cloud requires this parameter if you set **replication_specs**. If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
+* `disk_size_gb` - Storage capacity that the host's root volume possesses expressed in gigabytes. Increase this number to add capacity. If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
 
 ### auto_scaling
 
