@@ -1412,7 +1412,7 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 
 func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string) resource.TestCheckFunc {
 	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
-		[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
+		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
 	return checkAggr(
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
 		map[string]string{
