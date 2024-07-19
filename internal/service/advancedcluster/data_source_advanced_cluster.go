@@ -23,8 +23,8 @@ func DataSource() *schema.Resource {
 				Required: true,
 			},
 			"use_replication_spec_per_shard": {
-				Type:        schema.TypeBool,
-				Optional:    true,
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 			"advanced_configuration": SchemaAdvancedConfigDS(),
 			"backup_enabled": {
@@ -59,9 +59,9 @@ func DataSource() *schema.Resource {
 				Computed: true,
 			},
 			"disk_size_gb": {
-				Type:        schema.TypeFloat,
-				Computed:    true,
-				Deprecated:  DeprecationMsgOldSchema,
+				Type:       schema.TypeFloat,
+				Computed:   true,
+				Deprecated: DeprecationMsgOldSchema,
 			},
 			"encryption_at_rest_provider": {
 				Type:     schema.TypeString,
@@ -117,8 +117,8 @@ func DataSource() *schema.Resource {
 							Deprecated: DeprecationMsgOldSchema,
 						},
 						"zone_id": {
-							Type:        schema.TypeString,
-							Computed:    true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"external_id": {
 							Type:     schema.TypeString,

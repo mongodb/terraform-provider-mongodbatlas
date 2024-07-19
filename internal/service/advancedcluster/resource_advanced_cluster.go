@@ -180,8 +180,8 @@ func Resource() *schema.Resource {
 							Deprecated: DeprecationMsgOldSchema,
 						},
 						"zone_id": {
-							Type:        schema.TypeString,
-							Computed:    true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"external_id": {
 							Type:     schema.TypeString,
