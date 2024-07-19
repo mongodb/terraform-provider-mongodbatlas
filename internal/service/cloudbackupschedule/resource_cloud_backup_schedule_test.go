@@ -251,7 +251,6 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
-	acc.SkipTestForCI(t) // TODO: CLOUDP-262014 for ensuring replicationSpec.id is being populated for replica set and symmetric sharded clusters
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
 			CloudBackup: true,
