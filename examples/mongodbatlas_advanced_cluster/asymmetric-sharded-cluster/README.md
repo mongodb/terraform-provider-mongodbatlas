@@ -1,5 +1,5 @@
 # MongoDB Atlas Provider -- Global Cluster 
-This example creates a project and a Sharded Cluster with 4 independent shards with varying cluster tiers and auto-scaling enabled.
+This example creates a project and a Sharded Cluster with 4 independent shards with varying cluster tiers.
 
 
 ## Dependencies

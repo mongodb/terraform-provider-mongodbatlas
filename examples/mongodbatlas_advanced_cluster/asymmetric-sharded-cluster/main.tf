@@ -16,11 +16,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         disk_iops     = 3000
         node_count    = 3
       }
-      auto_scaling {
-        compute_enabled           = true
-        disk_gb_enabled           = true
-        compute_max_instance_size = "M40"
-      }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
@@ -33,11 +28,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         instance_size = "M20"
         disk_iops     = 3000
         node_count    = 3
-      }
-      auto_scaling {
-        compute_enabled           = true
-        disk_gb_enabled           = true
-        compute_max_instance_size = "M40"
       }
       provider_name = "AWS"
       priority      = 7
@@ -52,11 +42,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         disk_iops     = 3000
         node_count    = 3
       }
-      auto_scaling {
-        compute_enabled           = true
-        disk_gb_enabled           = true
-        compute_max_instance_size = "M40"
-      }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_SOUTH_2"
@@ -69,11 +54,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         instance_size = "M10"
         disk_iops     = 3000
         node_count    = 3
-      }
-      auto_scaling {
-        compute_enabled           = true
-        disk_gb_enabled           = true
-        compute_max_instance_size = "M40"
       }
       provider_name = "AWS"
       priority      = 7
@@ -90,15 +70,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   tags {
     key   = "environment"
     value = "dev"
-  }
-
-  lifecycle {
-    ignore_changes = [
-      replication_specs[0].region_configs[0].electable_specs[0].instance_size,
-      replication_specs[1].region_configs[0].electable_specs[0].instance_size,
-      replication_specs[2].region_configs[0].electable_specs[0].instance_size,
-      replication_specs[3].region_configs[0].electable_specs[0].instance_size,
-    ]
   }
 }
 
