@@ -4,12 +4,12 @@ This example creates a project and a Sharded Cluster with 4 independent shards w
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.10.0
+* Terraform MongoDB Atlas Provider v1.18.0
 * A MongoDB Atlas account 
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.10.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v1.18.0
 ```
 
 
