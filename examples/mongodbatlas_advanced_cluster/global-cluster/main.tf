@@ -21,10 +21,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
@@ -34,10 +30,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AZURE"
       priority      = 6
@@ -53,10 +45,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
@@ -66,10 +54,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AZURE"
       priority      = 6
@@ -85,10 +69,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
@@ -98,10 +78,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AZURE"
       priority      = 6
@@ -117,10 +93,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
@@ -130,10 +102,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AZURE"
       priority      = 6
