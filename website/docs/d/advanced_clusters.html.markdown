@@ -59,11 +59,6 @@ resource "mongodbatlas_advanced_cluster" "example" {
         node_count    = 3
         disk_size_gb  = 60
       }
-      analytics_specs {
-        instance_size = "M30"
-        node_count    = 1
-        disk_size_gb  = 60
-      }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
@@ -76,11 +71,6 @@ resource "mongodbatlas_advanced_cluster" "example" {
         instance_size = "M40"
         disk_iops     = 3000
         node_count    = 3
-        disk_size_gb  = 60
-      }
-      analytics_specs {
-        instance_size = "M40"
-        node_count    = 1
         disk_size_gb  = 60
       }
       provider_name = "AWS"
