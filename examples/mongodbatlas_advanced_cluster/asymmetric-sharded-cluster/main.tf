@@ -44,7 +44,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "EU_SOUTH_2"
+      region_name   = "EU_WEST_1"
     }
   }
 
@@ -57,7 +57,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "EU_SOUTH_2"
+      region_name   = "EU_WEST_1"
     }
   }
 
