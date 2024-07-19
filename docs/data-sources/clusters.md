@@ -2,7 +2,7 @@
 subcategory: "Deprecated"    
 ---
 
-**WARNING:** This data source is deprecated, use `mongodbatlas_advanced_clusters`
+**WARNING:** This data source is deprecated, use `mongodbatlas_advanced_clusters`. In order to learn more about how to migrate, please read the [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
 # Data Source: mongodbatlas_clusters
 
