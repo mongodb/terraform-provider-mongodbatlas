@@ -2,14 +2,12 @@ package searchindex
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -63,7 +61,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		"analyzers": {
 			Type:             schema.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: validateSearchAnalyzersDiff,
+			DiffSuppressFunc: diffSuppressJSON,
 		},
 		"collection_name": {
 			Type:     schema.TypeString,
@@ -88,7 +86,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		"mappings_fields": {
 			Type:             schema.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: validateSearchIndexMappingDiff,
+			DiffSuppressFunc: diffSuppressJSON,
 		},
 		"synonyms": {
 			Type:     schema.TypeSet,
@@ -125,7 +123,12 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		"fields": {
 			Type:             schema.TypeString,
 			Optional:         true,
-			DiffSuppressFunc: validateSearchIndexMappingDiff,
+			DiffSuppressFunc: diffSuppressJSON,
+		},
+		"stored_source": {
+			Type:             schema.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: diffSuppressJSON,
 		},
 	}
 }
@@ -257,6 +260,14 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		searchIndex.Definition.Synonyms = &synonyms
 	}
 
+	if d.HasChange("stored_source") {
+		obj, err := UnmarshalStoredSource(d.Get("stored_source").(string))
+		if err != nil {
+			return err
+		}
+		searchIndex.Definition.StoredSource = obj
+	}
+
 	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
 		return diag.Errorf("error updating search index (%s): %s", indexName, err)
 	}
@@ -371,24 +382,16 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 	}
 
-	return nil
-}
-
-func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
-	synonymsMap := make([]map[string]any, len(synonyms))
-	for i, s := range synonyms {
-		synonymsMap[i] = map[string]any{
-			"name":              s.Name,
-			"analyzer":          s.Analyzer,
-			"source_collection": s.Source.Collection,
-		}
+	storedSource := searchIndex.LatestDefinition.GetStoredSource()
+	strStoredSource, errStoredSource := MarshalStoredSource(storedSource)
+	if errStoredSource != nil {
+		return diag.FromErr(errStoredSource)
 	}
-	return synonymsMap
-}
+	if err := d.Set("stored_source", strStoredSource); err != nil {
+		return diag.Errorf("error setting `stored_source` for search index (%s): %s", d.Id(), err)
+	}
 
-func marshalSearchIndex(fields any) (string, error) {
-	bytes, err := json.Marshal(fields)
-	return string(bytes), err
+	return nil
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -432,6 +435,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		searchIndexRequest.Definition.Synonyms = &synonyms
 	}
 
+	objStoredSource, errStoredSource := UnmarshalStoredSource(d.Get("stored_source").(string))
+	if errStoredSource != nil {
+		return errStoredSource
+	}
+	searchIndexRequest.Definition.StoredSource = objStoredSource
+
 	dbSearchIndexRes, _, err := connV2.AtlasSearchApi.CreateAtlasSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
 	if err != nil {
 		return diag.Errorf("error creating index: %s", err)
@@ -468,117 +477,4 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}))
 
 	return resourceRead(ctx, d, meta)
-}
-
-func expandSearchIndexSynonyms(d *schema.ResourceData) []admin.SearchSynonymMappingDefinition {
-	var synonymsList []admin.SearchSynonymMappingDefinition
-	if vSynonyms, ok := d.GetOk("synonyms"); ok {
-		for _, s := range vSynonyms.(*schema.Set).List() {
-			synonym := s.(map[string]any)
-			synonymsDoc := admin.SearchSynonymMappingDefinition{
-				Name:     synonym["name"].(string),
-				Analyzer: synonym["analyzer"].(string),
-				Source: admin.SynonymSource{
-					Collection: synonym["source_collection"].(string),
-				},
-			}
-			synonymsList = append(synonymsList, synonymsDoc)
-		}
-	}
-	return synonymsList
-}
-
-func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceData) bool {
-	var j, j2 any
-
-	if old == "" {
-		old = "{}"
-	}
-
-	if newStr == "" {
-		newStr = "{}"
-	}
-
-	if err := json.Unmarshal([]byte(old), &j); err != nil {
-		log.Printf("[ERROR] cannot unmarshal old search index mapping json %v", err)
-	}
-	if err := json.Unmarshal([]byte(newStr), &j2); err != nil {
-		log.Printf("[ERROR] cannot unmarshal new search index mapping json %v", err)
-	}
-	if diff := deep.Equal(&j, &j2); diff != nil {
-		log.Printf("[DEBUG] deep equal not passed: %v", diff)
-		return false
-	}
-
-	return true
-}
-
-func validateSearchAnalyzersDiff(k, old, newStr string, d *schema.ResourceData) bool {
-	var j, j2 any
-
-	if old == "" {
-		old = "{}"
-	}
-
-	if newStr == "" {
-		newStr = "{}"
-	}
-
-	if err := json.Unmarshal([]byte(old), &j); err != nil {
-		log.Printf("[ERROR] cannot unmarshal old search index analyzer json %v", err)
-	}
-	if err := json.Unmarshal([]byte(newStr), &j2); err != nil {
-		log.Printf("[ERROR] cannot unmarshal new search index analyzer json %v", err)
-	}
-	if diff := deep.Equal(&j, &j2); diff != nil {
-		log.Printf("[DEBUG] deep equal not passed: %v", diff)
-		return false
-	}
-
-	return true
-}
-
-func unmarshalSearchIndexMappingFields(str string) (map[string]any, diag.Diagnostics) {
-	fields := map[string]any{}
-	if str == "" {
-		return fields, nil
-	}
-	if err := json.Unmarshal([]byte(str), &fields); err != nil {
-		return nil, diag.Errorf("cannot unmarshal search index attribute `mappings_fields` because it has an incorrect format")
-	}
-	return fields, nil
-}
-
-func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics) {
-	fields := []map[string]any{}
-	if str == "" {
-		return fields, nil
-	}
-	if err := json.Unmarshal([]byte(str), &fields); err != nil {
-		return nil, diag.Errorf("cannot unmarshal search index attribute `fields` because it has an incorrect format")
-	}
-
-	return fields, nil
-}
-
-func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyzer, diag.Diagnostics) {
-	fields := []admin.AtlasSearchAnalyzer{}
-	if str == "" {
-		return fields, nil
-	}
-	if err := json.Unmarshal([]byte(str), &fields); err != nil {
-		return nil, diag.Errorf("cannot unmarshal search index attribute `analyzers` because it has an incorrect format")
-	}
-	return fields, nil
-}
-
-func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
-		if err != nil {
-			return nil, "ERROR", err
-		}
-		status := conversion.SafeString(searchIndex.Status)
-		return searchIndex, status, nil
-	}
 }

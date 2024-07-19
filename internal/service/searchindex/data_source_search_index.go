@@ -32,37 +32,35 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 		},
 		"analyzer": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"analyzers": {
-			Type:             schema.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: validateSearchAnalyzersDiff,
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"collection_name": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"database": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"name": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"search_analyzer": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"mappings_dynamic": {
 			Type:     schema.TypeBool,
-			Optional: true,
+			Computed: true,
 		},
 		"mappings_fields": {
-			Type:             schema.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: validateSearchIndexMappingDiff,
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"synonyms": {
 			Type:     schema.TypeSet,
@@ -90,12 +88,15 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 		},
 		"type": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"fields": {
-			Type:             schema.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: validateSearchIndexMappingDiff,
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"stored_source": {
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 	}
 }
@@ -183,6 +184,15 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		if err := d.Set("fields", fieldsMarshaled); err != nil {
 			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
 		}
+	}
+
+	storedSource := searchIndex.LatestDefinition.GetStoredSource()
+	strStoredSource, errStoredSource := MarshalStoredSource(storedSource)
+	if errStoredSource != nil {
+		return diag.FromErr(errStoredSource)
+	}
+	if err := d.Set("stored_source", strStoredSource); err != nil {
+		return diag.Errorf("error setting `stored_source` for search index (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

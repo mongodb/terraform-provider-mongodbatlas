@@ -1,15 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: {{.Name}}"
-sidebar_current: "docs-{{ .ProviderShortName }}-{{ $arr := split .Type " "}}{{ range $element := $arr }}{{ $element | lower}}{{ end }}{{ $name := slice (split .Name "_") 1 }}{{ range $element := $name }}-{{ $element | lower}}{{end}}"
-description: |-
-    "Provides a data source for push-based log export feature."
----
-
 # {{.Type}}: {{.Name}}
 
-{{ .Description | trimspace }}
-`mongodbatlas_push_based_log_export` describes the configured project level settings for the push-based log export feature.
+`{{.Name}}` describes the configured project level settings for the push-based log export feature.
 
 ## Example Usages
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
