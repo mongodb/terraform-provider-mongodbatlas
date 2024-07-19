@@ -608,7 +608,7 @@ After adding the `lifecycle` block to explicitly change `replication_specs.#.reg
 // Example: ignore disk_size_gb and instance_size changes in a replica set
 lifecycle {
   ignore_changes = [
-    replication_specs.0.region_config.0.electable_specs.disk_size_gb,
+    replication_specs[0].region_configs[0].electable_specs[0].disk_size_gb,
     replication_specs[0].region_configs[0].electable_specs[0].instance_size,
     replication_specs[0].region_configs[1].electable_specs[0].instance_size,
     replication_specs[0].region_configs[2].electable_specs[0].instance_size,
