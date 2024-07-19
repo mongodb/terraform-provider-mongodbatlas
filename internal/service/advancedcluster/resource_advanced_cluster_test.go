@@ -1402,10 +1402,17 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 			name 	     = mongodbatlas_advanced_cluster.test.name
 			use_replication_spec_per_shard = true
 		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			use_replication_spec_per_shard = true
+		}
 	`, orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2)
 }
 
 func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string) resource.TestCheckFunc {
+	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
+		[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
 	return checkAggr(
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
 		map[string]string{
@@ -1419,6 +1426,6 @@ func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, 
 			"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
 			"replication_specs.1.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
 			"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec1,
-			"replication_specs.1.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec2,
-		})
+			"replication_specs.1.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec2},
+		pluralChecks...)
 }

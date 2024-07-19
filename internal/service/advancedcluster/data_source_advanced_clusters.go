@@ -339,7 +339,6 @@ func flattenAdvancedClusters(ctx context.Context, connV220231115 *admin20231115.
 		results = append(results, result)
 	}
 	return results
-
 }
 
 func flattenAdvancedClustersOldSDK(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, clusters []admin20231115.AdvancedClusterDescription, d *schema.ResourceData) []map[string]any {
