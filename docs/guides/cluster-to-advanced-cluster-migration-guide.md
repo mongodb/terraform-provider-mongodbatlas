@@ -79,4 +79,11 @@ resource "mongodbatlas_cluster" "standard_cluster" {
 
 ## How to change
 
-TODO: Will continue from here
+TODO: Will continue from here by creating a step-by-step guide
+
+1. find the id of clusters to replace
+2. add import blocks and execute command to generate config
+3. remove unused default attributes
+4. import new cluster
+5. change output references
+6. delete old cluster block
