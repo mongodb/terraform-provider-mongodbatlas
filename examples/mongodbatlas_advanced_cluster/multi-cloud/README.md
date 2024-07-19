@@ -1,5 +1,5 @@
 # MongoDB Atlas Provider -- Multi-Cloud Advanced Cluster 
-This example creates a project and a Multi Cloud Advanced Cluster in all the available cloud providers.
+This example creates a project and a Multi Cloud Advanced Cluster with 2 shards.
 
 
 ## Dependencies
