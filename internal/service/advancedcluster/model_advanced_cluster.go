@@ -1036,7 +1036,7 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 	tfMap["external_id"] = apiObject.GetId()
 
 	if oldID, ok := zoneNameToOldReplicationSpecIDs[apiObject.GetZoneName()]; ok {
-		tfMap["id"] = oldID // id stores replicationSpecs.*.id value associated to old cluster API (2023-02-01)
+		tfMap["id"] = oldID // replicationSpecs.*.id stores value associated to old cluster API (2023-02-01)
 	}
 
 	// define num_shards for backwards compatibility as this attribute has default value of 1.
