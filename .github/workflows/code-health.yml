@@ -18,7 +18,7 @@ jobs:
     permissions: {}
     steps:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-    - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+    - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
       with:
         go-version-file: 'go.mod'
     - name: Build
@@ -30,7 +30,7 @@ jobs:
       pull-requests: write # Needed by sticky-pull-request-comment
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - name: Unit Test
@@ -42,27 +42,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
       - name: Install Go
-        uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
           cache: false # see https://github.com/golangci/golangci-lint-action/issues/807
       - name: golangci-lint
         uses: golangci/golangci-lint-action@a4f60bb28d35aeee14e6880718e0c85ff1882e64
         with:
-          version: v1.59.0 # Also update GOLANGCI_VERSION variable in GNUmakefile when updating this version
+          version: v1.59.1 # Also update GOLANGCI_VERSION variable in GNUmakefile when updating this version
       - name: actionlint
-        run: make tools && actionlint -verbose -color
+        run: |
+          make tools
+          echo "::add-matcher::.github/actionlint-matcher.json"
+          actionlint -color
         shell: bash  
-  website-lint:
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
-        with:
-          go-version-file: 'go.mod'
-      - name: website lint
-        run: make tools && make website-lint
   shellcheck:
     runs-on: ubuntu-latest
     permissions: {}
@@ -70,7 +63,30 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
       - name: Run ShellCheck
         uses: bewuethr/shellcheck-action@d01912909579c4b1a335828b8fca197fbb8e0aa4
+  generate-doc-check:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - run: make tools # all resources with auto-generated doc must be specified below here 
+      - name: Doc for control_plane_ip_addresses
+        run: export resource_name=control_plane_ip_addresses && make generate-doc
+      - name: Doc for push_based_log_export
+        run: export resource_name=push_based_log_export && make generate-doc
+      - name: Doc for search_deployment
+        run: export resource_name=search_deployment && make generate-doc
+      - name: Find mutations
+        id: self_mutation
+        run: |-
+          git add .
+          git diff --staged --patch --exit-code > .repo.patch || echo "self_mutation_happened=true" >> "${GITHUB_OUTPUT}"
+      - name: Fail build on mutation
+        if: steps.self_mutation.outputs.self_mutation_happened
+        run: |-
+          echo "::error::Files were changed during build (see build log). If this was triggered from a fork, you will need to update your branch."
+          cat .repo.patch
+          exit 1
   call-acceptance-tests-workflow:
-    needs: [build, lint, shellcheck, unit-test, website-lint]
+    needs: [build, lint, shellcheck, unit-test, generate-doc-check]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml

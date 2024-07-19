@@ -83,7 +83,7 @@ $ terraform destroy
 2. `mongodbatlas_privatelink_endpoint` is dependent on the `mongodbatlas_project`
 3. `aws_vpc_endpoint` is dependent on the `mongodbatlas_privatelink_endpoint`, and its dependencies.
 4. `mongodbatlas_privatelink_endpoint_service` is dependent on `aws_vpc_endpoint` and its dependencies.
-5. `mongodbatlas_cluster` is dependent only on the `mongodbatlas_project`, howerver; its `connection_strings` are sourced from the `mongodbatlas_privatelink_endpoint_service`. `mongodbatlas_privatelink_endpoint_service` has explicitly been added to the `mongodbatlas_cluster` `depends_on` to ensure the private connection strings are correct following `terraform apply`.
+5. `mongodbatlas_advanced_cluster` is dependent only on the `mongodbatlas_project`, howerver; its `connection_strings` are sourced from the `mongodbatlas_privatelink_endpoint_service`. `mongodbatlas_privatelink_endpoint_service` has explicitly been added to the `mongodbatlas_advanced_cluster` `depends_on` to ensure the private connection strings are correct following `terraform apply`.
 
 **Important Point**
 
@@ -123,7 +123,7 @@ Cluster `connection_strings` is a list of maps matching the signature below. `aw
 In order to output the `private_endpoint.#.srv_connection_string` for the `aws_vpc_endpoint`, utilize locals such as the [following](output.tf):
 ```
 locals {
-  private_endpoints = flatten([for cs in mongodbatlas_cluster.aws_private_connection.connection_strings : cs.private_endpoint])
+  private_endpoints = flatten([for cs in mongodbatlas_advanced_cluster.aws_private_connection.connection_strings : cs.private_endpoint])
 
   connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string

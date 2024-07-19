@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	resourceName   = "mongodbatlas_backup_compliance_policy.backup_policy_res"
-	dataSourceName = "data.mongodbatlas_backup_compliance_policy.backup_policy"
+	resourceName       = "mongodbatlas_backup_compliance_policy.backup_policy_res"
+	dataSourceName     = "data.mongodbatlas_backup_compliance_policy.backup_policy"
+	projectIDTerraform = "mongodbatlas_project.test.id"
 )
 
 func TestAccBackupCompliancePolicy_basic(t *testing.T) {
@@ -57,10 +58,25 @@ func TestAccBackupCompliancePolicy_update(t *testing.T) {
 }
 
 func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
+	acc.SkipTestForCI(t) // TODO: CLOUDP-262014 for ensuring replicationSpec.id is being populated for replica set and symmetric sharded clusters
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup compliance policy
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		req            = acc.ClusterRequest{
+			AdvancedConfiguration: map[string]any{
+				acc.ClusterAdvConfigOplogMinRetentionHours: 8,
+			},
+			ProjectID:            projectIDTerraform,
+			MongoDBMajorVersion:  "6.0",
+			CloudBackup:          true,
+			DiskSizeGb:           12,
+			RetainBackupsEnabled: true,
+			ReplicationSpecs: []acc.ReplicationSpecRequest{
+				{EbsVolumeType: "STANDARD", AutoScalingDiskGbEnabled: true, NodeCount: 3},
+			},
+		}
+		clusterInfo = acc.GetClusterInfo(t, &req)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,10 +84,10 @@ func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configClusterWithBackupSchedule(projectName, orgID, projectOwnerID),
+				Config: configClusterWithBackupSchedule(projectName, orgID, projectOwnerID, &clusterInfo),
 			},
 			{
-				Config:      configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectOwnerID),
+				Config:      configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectOwnerID, &clusterInfo),
 				ExpectError: regexp.MustCompile(`BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS`),
 			},
 		},
@@ -324,39 +340,11 @@ func configWithoutRestoreDays(projectName, orgID, projectOwnerID string) string 
 	`
 }
 
-func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectOwnerID string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
-	resource "mongodbatlas_cluster" "test" {
-		project_id                 = mongodbatlas_project.test.id
-		name                         = "test1"
-		provider_name                = "AWS"
-		cluster_type                 = "REPLICASET"
-		mongo_db_major_version       = "6.0"
-		provider_instance_size_name  = "M10"
-		auto_scaling_compute_enabled = false
-		cloud_backup                 = true
-		auto_scaling_disk_gb_enabled = true
-		disk_size_gb                 = 12
-		provider_volume_type         = "STANDARD"
-		retain_backups_enabled       = true
-	  
-		advanced_configuration {
-		  oplog_min_retention_hours = 8
-		}
-	  
-		replication_specs {
-		  num_shards = 1
-		  regions_config {
-			region_name     = "US_EAST_1"
-			electable_nodes = 3
-			priority        = 7
-			read_only_nodes = 0
-		  }
-		}
-	  }
-
+func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectOwnerID string, info *acc.ClusterInfo) string {
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + fmt.Sprintf(`	  
+	  %[1]s
 	  resource "mongodbatlas_cloud_backup_schedule" "test" {
-		cluster_name = mongodbatlas_cluster.test.name
+		cluster_name 			   = %[2]s.name
 		project_id                 = mongodbatlas_project.test.id
 	  
 		reference_hour_of_day    = 3
@@ -367,7 +355,7 @@ func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectO
 		  cloud_provider      = "AWS"
 		  frequencies         = ["DAILY"]
 		  region_name         = "US_WEST_1"
-		  replication_spec_id = one(mongodbatlas_cluster.test.replication_specs).id
+		  replication_spec_id = one(%[2]s.replication_specs).id
 		  should_copy_oplogs  = false
 		}
 	  }
@@ -393,42 +381,14 @@ func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectO
 		  retention_value    = 1
 		}
 	  }
-	`
+	`, info.TerraformStr, info.ResourceName)
 }
 
-func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
-	resource "mongodbatlas_cluster" "test" {
-		project_id                 = mongodbatlas_project.test.id
-		name                         = "test1"
-		provider_name                = "AWS"
-		cluster_type                 = "REPLICASET"
-		mongo_db_major_version       = "6.0"
-		provider_instance_size_name  = "M10"
-		auto_scaling_compute_enabled = false
-		cloud_backup                 = true
-		auto_scaling_disk_gb_enabled = true
-		disk_size_gb                 = 12
-		provider_volume_type         = "STANDARD"
-		retain_backups_enabled       = true
-	  
-		advanced_configuration {
-		  oplog_min_retention_hours = 8
-		}
-	  
-		replication_specs {
-		  num_shards = 1
-		  regions_config {
-			region_name     = "US_EAST_1"
-			electable_nodes = 3
-			priority        = 7
-			read_only_nodes = 0
-		  }
-		}
-	  }
-
+func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string, info *acc.ClusterInfo) string {
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + fmt.Sprintf(`	  
+	  %[1]s
 	  resource "mongodbatlas_cloud_backup_schedule" "test" {
-		cluster_name = mongodbatlas_cluster.test.name
+		cluster_name 			  = %[2]s.name
 		project_id                 = mongodbatlas_project.test.id
 	  
 		reference_hour_of_day    = 3
@@ -439,11 +399,11 @@ func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string) 
 		  cloud_provider      = "AWS"
 		  frequencies         = ["DAILY"]
 		  region_name         = "US_WEST_1"
-		  replication_spec_id = one(mongodbatlas_cluster.test.replication_specs).id
+		  replication_spec_id = one(%[2]s.replication_specs).id
 		  should_copy_oplogs  = false
 		}
 	  }
-	`
+	`, info.TerraformStr, info.ResourceName)
 }
 
 func basicChecks() []resource.TestCheckFunc {

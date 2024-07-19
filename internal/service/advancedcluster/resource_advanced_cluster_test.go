@@ -950,7 +950,15 @@ func checkSingleShardedMultiCloud(name string, verifyExternalID bool) resource.T
 	additionalChecks := []resource.TestCheckFunc{}
 
 	if verifyExternalID {
-		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
+		additionalChecks = append(
+			additionalChecks,
+			resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"),
+			resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
 	}
 
 	return checkAggr(

@@ -16,29 +16,30 @@
 
 set -Eeou pipefail
 
-arch_name=$(uname -m)
+# Delete Terraform execution files so the script can be run multiple times
+find ./examples -type d -name ".terraform" -exec rm -rf {} +
+find ./examples -type f -name ".terraform.lock.hcl" -exec rm -f {} +
+
+export TF_CLI_CONFIG_FILE="$PWD/bin-examples/tf-validate.tfrc"
+
+# Use local provider to validate examples
+go build -o bin-examples/terraform-provider-mongodbatlas .
+
+cat << EOF > "$TF_CLI_CONFIG_FILE"
+provider_installation { 
+  dev_overrides {
+    "mongodb/mongodbatlas" = "$PWD/bin-examples"
+  }
+  direct {} 
+}
+EOF
 
 for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u); do
   [ ! -d "$DIR" ] && continue
-  
-  
-  # Skip directories with "v08" or "v09" in their name for ARM64
-  if [[ "$arch_name" == "arm64" ]] && echo "$DIR" | grep -qE "v08|v09"; then
-      echo "Skip directories with \"v08\" or \"v09\" in their name for ARM64"
-      echo "TF provider does not have a package available for ARM64 for version < 1.0"
-      echo "Skipping directory: $DIR"
-      continue
-  fi
-
   pushd "$DIR"
-
-  echo; echo -e "\e[1;35m===> Initializing Example: $DIR <===\e[0m"; echo
-  terraform init
-  
-  echo; echo -e "\e[1;35m===> Format Checking Example: $DIR <===\e[0m"; echo
+  echo; echo -e "\e[1;35m===> Example: $DIR <===\e[0m"; echo
+  terraform init > /dev/null # supress output as it's very verbose
   terraform fmt -check -recursive
-
-  echo; echo -e "\e[1;35m===> Validating Example: $DIR <===\e[0m"; echo
   terraform validate
   popd
 done

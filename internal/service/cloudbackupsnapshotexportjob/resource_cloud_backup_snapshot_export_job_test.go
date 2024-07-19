@@ -58,7 +58,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, bucketName, roleName, policyName, clusterInfo.ClusterNameStr, clusterInfo.ClusterTerraformStr),
+				Config: configBasic(projectID, bucketName, roleName, policyName, clusterInfo.TerraformNameRef, clusterInfo.TerraformStr),
 				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{

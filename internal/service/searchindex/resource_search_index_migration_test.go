@@ -7,6 +7,7 @@ import (
 )
 
 func TestMigSearchIndex_basic(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "1.17.4")
 	mig.CreateAndRunTest(t, basicTestCase(t))
 }
 

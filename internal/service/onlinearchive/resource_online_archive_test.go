@@ -4,29 +4,36 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"regexp"
 	"testing"
 	"time"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+func clusterRequest() *acc.ClusterRequest {
+	return &acc.ClusterRequest{
+		ReplicationSpecs: []acc.ReplicationSpecRequest{
+			// Must use US_EAST_1 in dev for online_archive to work
+			{AutoScalingDiskGbEnabled: true, Region: "US_EAST_1"},
+		},
+		Tags: map[string]string{
+			"ArchiveTest": "true", "Owner": "test",
+		},
+	}
+}
 func TestAccBackupRSOnlineArchive(t *testing.T) {
 	var (
-		cluster                      matlas.Cluster
-		resourceName                 = "mongodbatlas_cluster.online_archive_test"
 		onlineArchiveResourceName    = "mongodbatlas_online_archive.users_archive"
 		onlineArchiveDataSourceName  = "data.mongodbatlas_online_archive.read_archive"
 		onlineArchivesDataSourceName = "data.mongodbatlas_online_archives.all"
-		orgID                        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName                  = acc.RandomProjectName()
-		clusterName                  = acc.RandomClusterName()
+		clusterInfo                  = acc.GetClusterInfo(t, clusterRequest())
+		clusterName                  = clusterInfo.Name
+		projectID                    = clusterInfo.ProjectID
+		clusterTerraformStr          = clusterInfo.TerraformStr
+		clusterResourceName          = clusterInfo.ResourceName
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -35,15 +42,13 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				// We need this step to pupulate the cluster with Sample Data
-				// The online archive won't work if the cluster does not have data
-				Config: configFirstStep(orgID, projectName, clusterName),
+				Config: clusterTerraformStr,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					populateWithSampleData(resourceName, &cluster),
+					populateWithSampleData(clusterResourceName, projectID, clusterName),
 				),
 			},
 			{
-				Config: configWithDailySchedule(orgID, projectName, clusterName, 1, 7),
+				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 7),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -59,7 +64,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithDailySchedule(orgID, projectName, clusterName, 2, 8),
+				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 2, 8),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -75,7 +80,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, clusterName, 2),
+				Config: testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(clusterTerraformStr, clusterResourceName, 2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -88,7 +93,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, clusterName, 2),
+				Config: testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(clusterTerraformStr, clusterResourceName, 2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -101,7 +106,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithoutSchedule(orgID, projectName, clusterName),
+				Config: configWithoutSchedule(clusterTerraformStr, clusterResourceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -110,7 +115,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithoutSchedule(orgID, projectName, clusterName),
+				Config: configWithoutSchedule(clusterTerraformStr, clusterResourceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),
@@ -121,12 +126,12 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 
 func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 	var (
-		cluster                   matlas.Cluster
-		resourceName              = "mongodbatlas_cluster.online_archive_test"
+		clusterInfo               = acc.GetClusterInfo(t, clusterRequest())
+		clusterResourceName       = clusterInfo.ResourceName
+		clusterName               = clusterInfo.Name
+		projectID                 = clusterInfo.ProjectID
 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName               = acc.RandomProjectName()
-		clusterName               = acc.RandomClusterName()
+		clusterTerraformStr       = clusterInfo.TerraformStr
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -135,15 +140,13 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				// We need this step to pupulate the cluster with Sample Data
-				// The online archive won't work if the cluster does not have data
-				Config: configFirstStep(orgID, projectName, clusterName),
+				Config: clusterTerraformStr,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					populateWithSampleData(resourceName, &cluster),
+					populateWithSampleData(clusterResourceName, projectID, clusterName),
 				),
 			},
 			{
-				Config: configWithoutSchedule(orgID, projectName, clusterName),
+				Config: configWithoutSchedule(clusterTerraformStr, clusterResourceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -151,7 +154,7 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithDailySchedule(orgID, projectName, clusterName, 1, 1),
+				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -169,13 +172,13 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 
 func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 	var (
-		cluster                     matlas.Cluster
-		resourceName                = "mongodbatlas_cluster.online_archive_test"
 		onlineArchiveResourceName   = "mongodbatlas_online_archive.users_archive"
 		onlineArchiveDataSourceName = "data.mongodbatlas_online_archive.read_archive"
-		orgID                       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName                 = acc.RandomProjectName()
-		clusterName                 = acc.RandomClusterName()
+		clusterInfo                 = acc.GetClusterInfo(t, clusterRequest())
+		clusterResourceName         = clusterInfo.ResourceName
+		clusterName                 = clusterInfo.Name
+		projectID                   = clusterInfo.ProjectID
+		clusterTerraformStr         = clusterInfo.TerraformStr
 		cloudProvider               = "AWS"
 		processRegion               = "US_EAST_1"
 	)
@@ -186,15 +189,13 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				// We need this step to pupulate the cluster with Sample Data
-				// The online archive won't work if the cluster does not have data
-				Config: configFirstStep(orgID, projectName, clusterName),
+				Config: clusterTerraformStr,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					populateWithSampleData(resourceName, &cluster),
+					populateWithSampleData(clusterResourceName, projectID, clusterName),
 				),
 			},
 			{
-				Config: configWithDataProcessRegion(orgID, projectName, clusterName, cloudProvider, processRegion),
+				Config: configWithDataProcessRegion(clusterTerraformStr, clusterResourceName, cloudProvider, processRegion),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", cloudProvider),
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", processRegion),
@@ -203,11 +204,11 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 				),
 			},
 			{
-				Config:      configWithDataProcessRegion(orgID, projectName, clusterName, cloudProvider, "AP_SOUTH_1"),
+				Config:      configWithDataProcessRegion(clusterTerraformStr, clusterResourceName, cloudProvider, "AP_SOUTH_1"),
 				ExpectError: regexp.MustCompile("data_process_region can't be modified"),
 			},
 			{
-				Config: configWithoutSchedule(orgID, projectName, clusterName),
+				Config: configWithoutSchedule(clusterTerraformStr, clusterResourceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", cloudProvider),
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", processRegion),
@@ -219,10 +220,10 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 
 func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
 	var (
-		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName   = acc.RandomProjectName()
-		clusterName   = acc.RandomClusterName()
-		cloudProvider = "AWS"
+		clusterInfo         = acc.GetClusterInfo(t, clusterRequest())
+		clusterTerraformStr = clusterInfo.TerraformStr
+		cloudProvider       = "AWS"
+		clusterResourceName = clusterInfo.ResourceName
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -231,14 +232,15 @@ func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configWithDataProcessRegion(orgID, projectName, clusterName, cloudProvider, "UNKNOWN"),
+				Config:      configWithDataProcessRegion(clusterTerraformStr, clusterResourceName, cloudProvider, "UNKNOWN"),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 		},
 	})
 }
 
-func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
+// populateWithSampleData adds Sample Data to the cluster otherwise online archive won't work
+func populateWithSampleData(resourceName, projectID, clusterName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -247,18 +249,18 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		log.Printf("[DEBUG] projectID: %s, name %s", ids["project_id"], ids["cluster_name"])
-		clusterResp, _, err := acc.Conn().Clusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
+		conn := acc.ConnV2()
+		ctx := context.Background()
+		_, _, err := conn.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 		if err != nil {
-			return fmt.Errorf("cluster(%s:%s) does not exist %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
+			return fmt.Errorf("cluster(%s:%s) does not exist %s", projectID, clusterName, err)
 		}
-		*cluster = *clusterResp
-
-		job, _, err := acc.Conn().Clusters.LoadSampleDataset(context.Background(), ids["project_id"], ids["cluster_name"])
-
+		job, _, err := conn.ClustersApi.LoadSampleDataset(context.Background(), projectID, clusterName).Execute()
 		if err != nil {
-			return fmt.Errorf("cluster(%s:%s) loading sample data set error %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
+			return fmt.Errorf("cluster(%s:%s) loading sample data set error %s", projectID, clusterName, err)
+		}
+		if job == nil {
+			return fmt.Errorf("cluster(%s:%s) loading sample data set error, no job found", projectID, clusterName)
 		}
 		ticker := time.NewTicker(30 * time.Second)
 
@@ -268,26 +270,28 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 			case <-time.After(20 * time.Second):
 				log.Println("timeout elapsed ....")
 			case <-ticker.C:
-				job, _, err = acc.Conn().Clusters.GetSampleDatasetStatus(context.Background(), ids["project_id"], job.ID)
+				job, _, err = conn.ClustersApi.GetSampleDatasetLoadStatus(ctx, projectID, job.GetId()).Execute()
 				fmt.Println("querying for job ")
-				if job.State != "WORKING" {
+				if err != nil {
+					return fmt.Errorf("cluster(%s:%s) failed to query for job, %s", projectID, clusterName, err)
+				}
+				if job == nil {
+					return fmt.Errorf("cluster(%s:%s) failed to query for job, no job found", projectID, clusterName)
+				}
+				if job.GetState() != "WORKING" {
 					break JOB
 				}
 			}
 		}
 
-		if err != nil {
-			return fmt.Errorf("cluster(%s:%s) loading sample data set error %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
-		}
-
-		if job.State != "COMPLETED" {
-			return fmt.Errorf("cluster(%s:%s) working sample data set error %s", rs.Primary.Attributes["project_id"], job.ID, job.State)
+		if job.GetState() != "COMPLETED" {
+			return fmt.Errorf("cluster(%s:%s) working sample data set error %s", projectID, job.GetId(), job.GetState())
 		}
 		return nil
 	}
 }
 
-func configWithDailySchedule(orgID, projectName, clusterName string, startHour, deleteExpirationDays int) string {
+func configWithDailySchedule(clusterTerraformStr, clusterResourceName string, startHour, deleteExpirationDays int) string {
 	var dataExpirationRuleBlock string
 	if deleteExpirationDays > 0 {
 		dataExpirationRuleBlock = fmt.Sprintf(`
@@ -300,8 +304,8 @@ func configWithDailySchedule(orgID, projectName, clusterName string, startHour, 
 	return fmt.Sprintf(`
 	%[1]s
 	resource "mongodbatlas_online_archive" "users_archive" {
-		project_id = mongodbatlas_cluster.online_archive_test.project_id
-		cluster_name = mongodbatlas_cluster.online_archive_test.name
+		project_id = %[4]s.project_id
+		cluster_name = %[4]s.name
 		coll_name = "listingsAndReviews"
 		collection_type = "STANDARD"
 		db_name = "sample_airbnb"
@@ -351,15 +355,15 @@ func configWithDailySchedule(orgID, projectName, clusterName string, startHour, 
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, configFirstStep(orgID, projectName, clusterName), startHour, dataExpirationRuleBlock)
+	`, clusterTerraformStr, startHour, dataExpirationRuleBlock, clusterResourceName)
 }
 
-func configWithoutSchedule(orgID, projectName, clusterName string) string {
+func configWithoutSchedule(clusterTerraformStr, clusterResourceName string) string {
 	return fmt.Sprintf(`
-	%s
+	%[1]s
 	resource "mongodbatlas_online_archive" "users_archive" {
-		project_id = mongodbatlas_cluster.online_archive_test.project_id
-		cluster_name = mongodbatlas_cluster.online_archive_test.name
+		project_id = %[2]s.project_id
+		cluster_name = %[2]s.name
 		coll_name = "listingsAndReviews"
 		collection_type = "STANDARD"
 		db_name = "sample_airbnb"
@@ -399,15 +403,15 @@ func configWithoutSchedule(orgID, projectName, clusterName string) string {
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, configFirstStep(orgID, projectName, clusterName))
+	`, clusterTerraformStr, clusterResourceName)
 }
 
-func configWithDataProcessRegion(orgID, projectName, clusterName, cloudProvider, region string) string {
+func configWithDataProcessRegion(clusterTerraformStr, clusterResourceName, cloudProvider, region string) string {
 	return fmt.Sprintf(`
-	%s
+	%[1]s
 	resource "mongodbatlas_online_archive" "users_archive" {
-		project_id = mongodbatlas_cluster.online_archive_test.project_id
-		cluster_name = mongodbatlas_cluster.online_archive_test.name
+		project_id = %[4]s.project_id
+		cluster_name = %[4]s.name
 		coll_name = "listingsAndReviews"
 		collection_type = "STANDARD"
 		db_name = "sample_airbnb"
@@ -452,58 +456,15 @@ func configWithDataProcessRegion(orgID, projectName, clusterName, cloudProvider,
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, configFirstStep(orgID, projectName, clusterName), cloudProvider, region)
+	`, clusterTerraformStr, cloudProvider, region, clusterResourceName)
 }
 
-func configFirstStep(orgID, projectName, clusterName string) string {
+func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(clusterTerraformStr, clusterResourceName string, startHour int) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "cluster_project" {
-		name   = %[2]q
-		org_id = %[1]q
-	}
-	resource "mongodbatlas_cluster" "online_archive_test" {
-		project_id   = mongodbatlas_project.cluster_project.id
-		name         = %[3]q
-		disk_size_gb = 10
-
-		cluster_type = "REPLICASET"
-		replication_specs {
-		  num_shards = 1
-		  regions_config {
-			 region_name     = "US_EAST_1"
-			 electable_nodes = 3
-			 priority        = 7
-			 read_only_nodes = 0
-		   }
-		}
-
-		cloud_backup                 = false
-		auto_scaling_disk_gb_enabled = true
-
-		// Provider Settings "block"
-		provider_name               = "AWS"
-		provider_instance_size_name = "M10"
-
-		labels {
-			key   = "ArchiveTest"
-			value = "true"
-		}
-		labels {
-			key   = "Owner"
-			value = "test"
-		}
-	}
-
-	
-	`, orgID, projectName, clusterName)
-}
-
-func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, clusterName string, startHour int) string {
-	return fmt.Sprintf(`
-	%s
+	%[1]s
 	resource "mongodbatlas_online_archive" "users_archive" {
-		project_id = mongodbatlas_cluster.online_archive_test.project_id
-		cluster_name = mongodbatlas_cluster.online_archive_test.name
+		project_id = %[3]s.project_id
+		cluster_name = %[3]s.name
 		coll_name = "listingsAndReviews"
 		collection_type = "STANDARD"
 		db_name = "sample_airbnb"
@@ -520,7 +481,7 @@ func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, cl
 			day_of_week = 1
 			end_hour = 1
 			end_minute = 1
-			start_hour = %d
+			start_hour = %[2]d
 			start_minute = 1
 		}
 
@@ -552,15 +513,15 @@ func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, cl
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, configFirstStep(orgID, projectName, clusterName), startHour)
+	`, clusterTerraformStr, startHour, clusterResourceName)
 }
 
-func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, clusterName string, startHour int) string {
+func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(clusterTerraformStr, clusterResourceName string, startHour int) string {
 	return fmt.Sprintf(`
-	%s
+	%[1]s
 	resource "mongodbatlas_online_archive" "users_archive" {
-		project_id = mongodbatlas_cluster.online_archive_test.project_id
-		cluster_name = mongodbatlas_cluster.online_archive_test.name
+		project_id = %[3]s.project_id
+		cluster_name = %[3]s.name
 		coll_name = "listingsAndReviews"
 		collection_type = "STANDARD"
 		db_name = "sample_airbnb"
@@ -577,7 +538,7 @@ func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, c
 			day_of_month = 1
 			end_hour = 1
 			end_minute = 1
-			start_hour = %d
+			start_hour = %[2]d
 			start_minute = 1
 		}
 
@@ -611,5 +572,5 @@ func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, c
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, configFirstStep(orgID, projectName, clusterName), startHour)
+	`, clusterTerraformStr, startHour, clusterResourceName)
 }
