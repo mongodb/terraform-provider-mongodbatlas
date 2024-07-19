@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.17.4 (July 19, 2024)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_search_index: Adds attribute `stored_source` ([#2388](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2388))
