@@ -26,6 +26,10 @@ func PluralDataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"use_replication_spec_per_shard": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"results": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -120,6 +124,14 @@ func PluralDataSource() *schema.Resource {
 										Type:       schema.TypeString,
 										Computed:   true,
 										Deprecated: DeprecationMsgOldSchema,
+									},
+									"zone_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"external_id": {
+										Type:     schema.TypeString,
+										Computed: true,
 									},
 									"num_shards": {
 										Type:       schema.TypeInt,
@@ -254,23 +266,83 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
+	useReplicationSpecPerShard := false
+
 	d.SetId(id.UniqueId())
 
-	list, resp, err := connV220231115.ClustersApi.ListClusters(ctx, projectID).Execute()
-	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			return nil
-		}
-		return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
-	}
-	if err := d.Set("results", flattenAdvancedClusters(ctx, connV220231115, connV2, list.GetResults(), d)); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
+	if v, ok := d.GetOk("use_replication_spec_per_shard"); ok {
+		useReplicationSpecPerShard = v.(bool)
 	}
 
+	if !useReplicationSpecPerShard {
+		list, resp, err := connV220231115.ClustersApi.ListClusters(ctx, projectID).Execute()
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+			return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
+		}
+		if err := d.Set("results", flattenAdvancedClustersOldSDK(ctx, connV220231115, connV2, list.GetResults(), d)); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
+		}
+	} else {
+		list, resp, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+			return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
+		}
+		if err := d.Set("results", flattenAdvancedClusters(ctx, connV220231115, connV2, list.GetResults(), d)); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
+		}
+	}
 	return nil
 }
 
-func flattenAdvancedClusters(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, clusters []admin20231115.AdvancedClusterDescription, d *schema.ResourceData) []map[string]any {
+func flattenAdvancedClusters(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, clusters []admin.ClusterDescription20250101, d *schema.ResourceData) []map[string]any {
+	results := make([]map[string]any, 0, len(clusters))
+	for i := range clusters {
+		cluster := &clusters[i]
+		processArgs, _, err := connV220231115.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		if err != nil {
+			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
+		}
+		replicationSpecs, err := flattenAdvancedReplicationSpecsDS(ctx, cluster.GetReplicationSpecs(), d, connV2)
+		if err != nil {
+			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
+		}
+
+		result := map[string]any{
+			"advanced_configuration":               flattenProcessArgs(processArgs),
+			"backup_enabled":                       cluster.GetBackupEnabled(),
+			"bi_connector_config":                  flattenBiConnectorConfig(cluster.BiConnector),
+			"cluster_type":                         cluster.GetClusterType(),
+			"create_date":                          conversion.TimePtrToStringPtr(cluster.CreateDate),
+			"connection_strings":                   flattenConnectionStrings(cluster.GetConnectionStrings()),
+			"disk_size_gb":                         GetDiskSizeGBFromReplicationSpec(cluster),
+			"encryption_at_rest_provider":          cluster.GetEncryptionAtRestProvider(),
+			"labels":                               flattenLabels(cluster.GetLabels()),
+			"tags":                                 conversion.FlattenTags(cluster.GetTags()),
+			"mongo_db_major_version":               cluster.GetMongoDBMajorVersion(),
+			"mongo_db_version":                     cluster.GetMongoDBVersion(),
+			"name":                                 cluster.GetName(),
+			"paused":                               cluster.GetPaused(),
+			"pit_enabled":                          cluster.GetPitEnabled(),
+			"replication_specs":                    replicationSpecs,
+			"root_cert_type":                       cluster.GetRootCertType(),
+			"state_name":                           cluster.GetStateName(),
+			"termination_protection_enabled":       cluster.GetTerminationProtectionEnabled(),
+			"version_release_system":               cluster.GetVersionReleaseSystem(),
+			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
+		}
+		results = append(results, result)
+	}
+	return results
+
+}
+
+func flattenAdvancedClustersOldSDK(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, clusters []admin20231115.AdvancedClusterDescription, d *schema.ResourceData) []map[string]any {
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
