@@ -584,6 +584,30 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 	})
 }
 
+func TestAccClusterAdvancedClusterConfig_pluralDatasource(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false),
+				Check:  checkGeoShardedOldSchema(clusterName, 1, 1, true, true),
+			},
+			{
+				Config:      configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 2, false),
+				ExpectError: regexp.MustCompile(advancedcluster.ErrorOperationNotPermitted),
+			},
+		},
+	})
+}
+
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
@@ -1411,8 +1435,22 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 }
 
 func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string) resource.TestCheckFunc {
-	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
+	pluralSetChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
+
+	pluralChecks := acc.AddAttrChecks(dataSourcePluralName, pluralSetChecks,
+		map[string]string{
+			"results.0.disk_size_gb":           "60",
+			"results.0.replication_specs.#":    "2",
+			"results.0.replication_specs.0.id": "",
+			"results.0.replication_specs.0.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec1,
+			"results.0.replication_specs.1.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec2,
+			"results.0.replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":  "60",
+			"results.0.replication_specs.1.region_configs.0.electable_specs.0.disk_size_gb":  "60",
+			"results.0.replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
+			"results.0.replication_specs.1.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
+			"results.0.replication_specs.0.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec1,
+			"results.0.replication_specs.1.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec2})
 	return checkAggr(
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
 		map[string]string{
