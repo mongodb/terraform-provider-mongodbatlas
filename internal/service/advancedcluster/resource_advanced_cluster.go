@@ -15,7 +15,6 @@ import (
 	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -590,11 +589,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName string, connV220231115 *admin20231115.APIClient) (map[string]string, error) {
 	clusterOldAPI, _, err := connV220231115.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if apiError, ok := admin20231115.AsError(err); ok {
-		readErrorMsg := "error reading  advanced cluster with 2023-02-01 API (%s): %s"
 		if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
-			tflog.Info(ctx, fmt.Sprintf(readErrorMsg, clusterName, err))
 			return nil, nil // if its the case of an asymmetric shard an error is expected in old API, replication_specs.*.id attribute will not be populated
 		}
+		readErrorMsg := "error reading  advanced cluster with 2023-02-01 API (%s): %s"
 		return nil, fmt.Errorf(readErrorMsg, clusterName, err)
 	}
 	specs := clusterOldAPI.GetReplicationSpecs()
