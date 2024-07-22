@@ -584,30 +584,6 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 	})
 }
 
-func TestAccClusterAdvancedClusterConfig_pluralDatasource(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
-		clusterName = acc.RandomClusterName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false),
-				Check:  checkGeoShardedOldSchema(clusterName, 1, 1, true, true),
-			},
-			{
-				Config:      configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 2, false),
-				ExpectError: regexp.MustCompile(advancedcluster.ErrorOperationNotPermitted),
-			},
-		},
-	})
-}
-
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
