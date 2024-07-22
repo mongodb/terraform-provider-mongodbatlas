@@ -33,7 +33,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 
-	replication_specs {
+  replication_specs {
     zone_name = "Zone 2"
 
     region_configs {

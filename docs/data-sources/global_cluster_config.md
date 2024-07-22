@@ -29,7 +29,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 
-	replication_specs { # Zone 1, shard 2
+  replication_specs { # Zone 1, shard 2
     zone_name = "Zone 1"
 
     region_configs {
@@ -43,7 +43,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 
-	replication_specs { # Zone 2, shard 1
+  replication_specs { # Zone 2, shard 1
     zone_name = "Zone 2"
 
     region_configs {
@@ -57,7 +57,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 
-	replication_specs { # Zone 2, shard 2
+  replication_specs { # Zone 2, shard 2
     zone_name = "Zone 2"
 
     region_configs {
