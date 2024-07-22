@@ -104,7 +104,7 @@ resource "aws_vpc_endpoint" "test_west" {
 resource "mongodbatlas_privatelink_endpoint" "test_east" {
   project_id    = "var.atlasprojectid
   provider_name = "AWS"
-  region        = "US_WEST_1"
+  region        = "US_EAST_1"
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "test_east" {
