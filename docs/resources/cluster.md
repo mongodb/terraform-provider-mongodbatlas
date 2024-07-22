@@ -9,7 +9,7 @@ subcategory: "Deprecated"
 `mongodbatlas_cluster` provides a Cluster resource. The resource lets you create, edit and delete clusters. The resource requires your Project ID.
 
 ~> **IMPORTANT:**
-<br> &#8226; New Users: If you are not already using `mongodbatlas_cluster` for your deployment we recommend starting with the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster).  `mongodbatlas_advanced_cluster` has all the same functionality as `mongodbatlas_cluster` but also supports multi-cloud clusters.  
+<br> &#8226; New Users: If you are not already using `mongodbatlas_cluster` for your deployment we recommend starting with the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster).  `mongodbatlas_advanced_cluster` has the same functionality as `mongodbatlas_cluster` but also supports multi-cloud clusters.  
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
