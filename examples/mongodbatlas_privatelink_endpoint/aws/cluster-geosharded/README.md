@@ -5,7 +5,7 @@ Setup [regionalized private endpoints](https://www.mongodb.com/docs/atlas/securi
 
 ## Gotchas
 - Ensure `mongodbatlas_advanced_cluster` depends_on `mongodbatlas_private_endpoint_regional_mode`
-- Despite being properly output, connection strings _may not be applied_ to `mongodbatlas_advanced_cluster` resource when changing regional mode enabled. This means the connection_strings may not exist in terraform state until the next `terraform apply`.
+- Despite being properly output, connection strings _may not be applied_ to `mongodbatlas_advanced_cluster` resource when changing regional mode enabled. This means the `connection_strings` may not exist in the Terraform state until the next `terraform apply`.
 
 ## Dependencies
 
@@ -83,10 +83,10 @@ $ terraform destroy
 
 **What's the resource dependency chain?**
 1. `mongodbatlas_project` must exist for any of the following
-2. `mongodbatlas_privatelink_endpoint` is dependent on the `mongodbatlas_project`
-3. `aws_vpc_endpoint` is dependent on the `mongodbatlas_privatelink_endpoint`, and its dependencies.
-4. `mongodbatlas_privatelink_endpoint_service` is dependent on `aws_vpc_endpoint` and its dependencies.
-5. `mongodbatlas_advanced_cluster` is dependent only on the `mongodbatlas_project`, howerver; its `connection_strings` are sourced from the `mongodbatlas_privatelink_endpoint_service`. `mongodbatlas_privatelink_endpoint_service` has explicitly been added to the `mongodbatlas_advanced_cluster` `depends_on` to ensure the private connection strings are correct following `terraform apply`.
+2. `mongodbatlas_privatelink_endpoint` depends on `mongodbatlas_project`
+3. `aws_vpc_endpoint` depends on `mongodbatlas_privatelink_endpoint`.
+4. `mongodbatlas_privatelink_endpoint_service` depends on `aws_vpc_endpoint`.
+5. `mongodbatlas_advanced_cluster` depends only on `mongodbatlas_project`. However, its `connection_strings` are sourced from `mongodbatlas_privatelink_endpoint_service`. Add `mongodbatlas_privatelink_endpoint_service` explicitly to `mongodbatlas_advanced_cluster.depends_on` to ensure that the private connection strings are correct when running `terraform apply`.
 
 **Important Point**
 
