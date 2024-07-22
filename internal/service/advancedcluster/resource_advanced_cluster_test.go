@@ -584,8 +584,8 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 3000, 3000, false), // TODO: disk iops is failing if value is different
-				Check:  checkShardedNewSchema(50, "M30", "M40", "3000", "3000", true, false),                         // replication spec old ids not populated for asymmetric cluster
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 3000, 3500, false),
+				Check:  checkShardedNewSchema(50, "M30", "M40", "3000", "3500", true, false),
 			},
 		},
 	})
@@ -1393,6 +1393,7 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, ins
 					electable_specs {
 						instance_size = %[4]q
 						disk_iops = %[6]d
+						ebs_volume_type = "PROVISIONED"
 						node_count    = 3
 						disk_size_gb  = %[9]d
 					}
@@ -1412,6 +1413,7 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, ins
 					electable_specs {
 						instance_size = %[5]q
 						disk_iops = %[7]d
+						ebs_volume_type = "PROVISIONED"
 						node_count    = 3
 						disk_size_gb  = %[9]d
 					}
