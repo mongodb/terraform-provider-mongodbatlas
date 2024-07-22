@@ -4,8 +4,8 @@ Setup [regionalized private endpoints](https://www.mongodb.com/docs/atlas/securi
 
 
 ## Gotchas
-- Ensure `mongodbatlas_cluster` depends_on `mongodbatlas_private_endpoint_regional_mode`
-- Despite being properly output, connection strings _may not be applied_ to `mongodbatlas_cluster` resource when changing regional mode enabled. This means the connection_strings may not exist in terraform state until the next `terraform apply`.
+- Ensure `mongodbatlas_advanced_cluster` depends_on `mongodbatlas_private_endpoint_regional_mode`
+- Despite being properly output, connection strings _may not be applied_ to `mongodbatlas_advanced_cluster` resource when changing regional mode enabled. This means the connection_strings may not exist in terraform state until the next `terraform apply`.
 
 ## Dependencies
 
@@ -86,7 +86,7 @@ $ terraform destroy
 2. `mongodbatlas_privatelink_endpoint` is dependent on the `mongodbatlas_project`
 3. `aws_vpc_endpoint` is dependent on the `mongodbatlas_privatelink_endpoint`, and its dependencies.
 4. `mongodbatlas_privatelink_endpoint_service` is dependent on `aws_vpc_endpoint` and its dependencies.
-5. `mongodbatlas_cluster` is dependent only on the `mongodbatlas_project`, howerver; its `connection_strings` are sourced from the `mongodbatlas_privatelink_endpoint_service`. `mongodbatlas_privatelink_endpoint_service` has explicitly been added to the `mongodbatlas_cluster` `depends_on` to ensure the private connection strings are correct following `terraform apply`.
+5. `mongodbatlas_advanced_cluster` is dependent only on the `mongodbatlas_project`, howerver; its `connection_strings` are sourced from the `mongodbatlas_privatelink_endpoint_service`. `mongodbatlas_privatelink_endpoint_service` has explicitly been added to the `mongodbatlas_advanced_cluster` `depends_on` to ensure the private connection strings are correct following `terraform apply`.
 
 **Important Point**
 
@@ -139,7 +139,7 @@ If you've properly enabled regionalized private endpoints, `connection_strings` 
 To output the `srv_connection_string`s, follow the [example output.tf](output.tf):
 ```
 locals {
-  private_endpoints = flatten([for cs in mongodbatlas_cluster.geosharded.connection_strings : cs.private_endpoint])
+  private_endpoints = flatten([for cs in mongodbatlas_advanced_cluster.geosharded.connection_strings : cs.private_endpoint])
 
   connection_strings_east = [
     for pe in local.private_endpoints : pe.srv_connection_string
