@@ -18,7 +18,7 @@ resource "mongodbatlas_private_endpoint_regional_mode" "test" {
   enabled    = true
 }
 
-resource "mongodbatlas_advanced_cluster" "cluster-atlas" {
+resource "mongodbatlas_advanced_cluster" "cluster_atlas" {
   project_id     = var.atlasprojectid
   name           = var.cluster_name
   cluster_type   = "GEOSHARDED"
@@ -137,8 +137,8 @@ You can create only sharded clusters when you enable the regionalized private en
 ## Additional Reference
 
 In addition to the example shown above, keep in mind:
-* `mongodbatlas_advanced_cluster.cluster-atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint/cluster-geosharded). 
-* `mongodbatlas_advanced_cluster.cluster-atlas.connection_strings` will differ based on the value of `mongodbatlas_private_endpoint_regional_mode.test.enabled`.
+* `mongodbatlas_advanced_cluster.cluster_atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint/cluster-geosharded). 
+* `mongodbatlas_advanced_cluster.cluster_atlas.connection_strings` will differ based on the value of `mongodbatlas_private_endpoint_regional_mode.test.enabled`.
 * For more information on usage with GCP, see [our Privatelink Endpoint Service documentation: Example with GCP](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-gcp)
 * For more information on usage with Azure, see [our Privatelink Endpoint Service documentation: Examples with Azure](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-azure)
 
