@@ -558,7 +558,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T)
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M30", 3000, 3000),
-				Check:  checkShardedNewSchema("M30", "M30", "3000", "3000", true),
+				Check:  checkShardedNewSchema("M30", "M30", "3000", "3000", false),
 			},
 		},
 	})
@@ -578,7 +578,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M40", 3000, 3000), // TODO: disk iops is failing if value is different
-				Check:  checkShardedNewSchema("M30", "M40", "3000", "3000", false),                        // replication spec old ids not populated for asymmetric cluster
+				Check:  checkShardedNewSchema("M30", "M40", "3000", "3000", true),                         // replication spec old ids not populated for asymmetric cluster
 			},
 		},
 	})
@@ -1435,10 +1435,10 @@ func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, 
 			"replication_specs.0.id": "",
 			"replication_specs.1.id": "",
 		}))
-		acc.AddNoAttrSetChecks(dataSourcePluralName, additionalChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+		additionalChecks = acc.AddNoAttrSetChecks(dataSourcePluralName, additionalChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
 	} else {
 		additionalChecks = append(additionalChecks, checkAggr([]string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
-		acc.AddAttrSetChecks(dataSourcePluralName, additionalChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+		additionalChecks = acc.AddAttrSetChecks(dataSourcePluralName, additionalChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
 	}
 
 	return checkAggr(
