@@ -1383,6 +1383,7 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 					electable_specs {
 						instance_size = %[5]q
 						disk_iops = %[7]d
+						ebs_volume_type = "PROVISIONED"
 						node_count    = 3
 						disk_size_gb  = 60
 					}

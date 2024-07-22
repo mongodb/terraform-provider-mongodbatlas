@@ -562,7 +562,7 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
 ### electable_specs
 
 * `instance_size` - (Required) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size.
-* `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster.
+* `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider, and `ebs_volume_type` is set to PROVISIONED. You can't set this parameter for a multi-cloud cluster. 
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
     * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
     * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
@@ -572,7 +572,7 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
 
 ### analytics_specs
 
-* `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster.
+* `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider, and `ebs_volume_type` is set to PROVISIONED. You can't set this parameter for a multi-cloud cluster. 
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
     * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
     * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
@@ -582,7 +582,7 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
 
 ### read_only_specs
 
-* `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster.
+* `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider, and `ebs_volume_type` is set to PROVISIONED. You can't set this parameter for a multi-cloud cluster. 
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
     * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
     * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
