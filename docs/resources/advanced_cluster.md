@@ -125,7 +125,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }
 }
 ```
-### Example of a Multi-Cloud Cluster
+### Example of a Multi Cloud Sharded Cluster with 2 shards
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
@@ -134,61 +134,59 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type = "SHARDED"
   backup_enabled = true
 
-  replication_specs {
-    num_shards = 3 
-
-    region_configs { # shard n1
+  replication_specs {   # shard 1
+    region_configs { 
       electable_specs {
         instance_size = "M10"
         node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
     }
 
-    region_configs { # shard n2
+     region_configs { 
       electable_specs {
         instance_size = "M10"
         node_count    = 2
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AZURE"
       priority      = 6
       region_name   = "US_EAST_2"
     }
+	}
 
-    region_configs { # shard n3
+  replication_specs {   # shard 2
+    region_configs { 
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+
+     region_configs { 
       electable_specs {
         instance_size = "M10"
         node_count    = 2
       }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "GCP"
-      priority      = 5
-      region_name   = "US_EAST_4"
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "US_EAST_2"
     }
-  }
+	}
 
   advanced_configuration {
     javascript_enabled                   = true
-    oplog_size_mb                        = 30
+    oplog_size_mb                        = 991
     sample_refresh_interval_bi_connector = 300
   }
 }
 ```
 
-### Example of a Global Cluster
+### Example of a Global Cluster with 2 zones
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id     = mongodbatlas_project.project.id
@@ -196,97 +194,99 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type   = "GEOSHARDED"
   backup_enabled = true
 
-  replication_specs { # zone n1
+  replication_specs { # shard 1 - zone n1
     zone_name  = "zone n1"
-    num_shards = 3 # 3-shard Multi-Cloud Cluster
 
-    region_configs { # shard n1 
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
     }
 
-    region_configs { # shard n2
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AZURE"
       priority      = 6
       region_name   = "US_EAST_2"
     }
-
-    region_configs { # shard n3
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 2
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "GCP"
-      priority      = 5
-      region_name   = "US_EAST_4"
-    }
   }
 
-  replication_specs { # zone n2
-    zone_name  = "zone n2"
-    num_shards = 2 # 2-shard Multi-Cloud Cluster
+   replication_specs {  # shard 2 - zone n1
+    zone_name  = "zone n1"
 
-    region_configs { # shard n1 
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+
+    region_configs {
+      electable_specs {
         instance_size = "M10"
-        node_count    = 1
+        node_count    = 2
+      }
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "US_EAST_2"
+    }
+  }
+
+  replication_specs {  # shard 1 - zone n2
+    zone_name  = "zone n2"
+
+    region_configs { 
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
     }
 
-    region_configs { # shard n2
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AZURE"
       priority      = 6
       region_name   = "EUROPE_NORTH"
     }
+  }
 
-    region_configs { # shard n3
+  replication_specs {  # shard 2 - zone n2
+    zone_name  = "zone n2"
+
+    region_configs { 
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "EU_WEST_1"
+    }
+
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
       }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "GCP"
-      priority      = 5
-      region_name   = "US_EAST_4"
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "EUROPE_NORTH"
     }
   }
 
@@ -536,6 +536,7 @@ https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/
 If you are upgrading a replica set to a sharded cluster, you cannot increase the number of shards in the same update request. You should wait until after the cluster has completed upgrading to sharded and you have reconnected all application clients to the MongoDB router before adding additional shards. Otherwise, your data might become inconsistent once MongoDB Cloud begins distributing data across shards. To learn more, see [Convert a replica set to a sharded cluster documentation](https://www.mongodb.com/docs/atlas/scale-cluster/#convert-a-replica-set-to-a-sharded-cluster) and [Convert a replica set to a sharded cluster tutorial](https://www.mongodb.com/docs/upcoming/tutorial/convert-replica-set-to-replicated-shard-cluster). **(DEPRECATED)** Please refer [1.18.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown) for more details. 
 * `region_configs` - (Optional) Configuration for the hardware specifications for nodes set for a given regionEach `region_configs` object describes the region's priority in elections and the number and type of MongoDB nodes that Atlas deploys to the region. Each `region_configs` object must have either an `analytics_specs` object, `electable_specs` object, or `read_only_specs` object. See [below](#region_configs)
 * `zone_name` - (Optional) Name for the zone in a Global Cluster.
+* `zone_id` - Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. If clusterType is GEOSHARDED, this value indicates the zone that the given shard belongs to and can be used to configure Global Cluster backup policies.
 
 
 ### region_configs
@@ -566,6 +567,8 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
     * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
     * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
 * `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
+* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** Using disk_size_gb with Standard IOPS could lead to errors and configuration issues. Therefore, it should be used only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED). When using Provisioned IOPS, the disk_size_gb parameter specifies the storage capacity, but the IOPS are set independently. Ensuring that disk_size_gb is used exclusively with Provisioned IOPS will help avoid these issues.
+
 
 ### analytics_specs
 
@@ -575,6 +578,7 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
     * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
 * `instance_size` - (Optional) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size.
 * `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
+* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** Using disk_size_gb with Standard IOPS could lead to errors and configuration issues. Therefore, it should be used only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED). When using Provisioned IOPS, the disk_size_gb parameter specifies the storage capacity, but the IOPS are set independently. Ensuring that disk_size_gb is used exclusively with Provisioned IOPS will help avoid these issues.
 
 ### read_only_specs
 
@@ -584,6 +588,7 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
     * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
 * `instance_size` - (Optional) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size.
 * `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
+* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** Using disk_size_gb with Standard IOPS could lead to errors and configuration issues. Therefore, it should be used only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED). When using Provisioned IOPS, the disk_size_gb parameter specifies the storage capacity, but the IOPS are set independently. Ensuring that disk_size_gb is used exclusively with Provisioned IOPS will help avoid these issues.
 
 ### auto_scaling
 
@@ -592,18 +597,18 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
     - Set to `false` to disable disk auto-scaling.
 
 ~> **IMPORTANT:** If `disk_gb_enabled` is true, then Atlas will automatically scale disk size up and down.
-This will cause the value of `disk_size_gb` returned to potentially be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster disk size back to the original `disk_size_gb` value.
+This will cause the value of `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` returned to potentially be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster disk size back to the original `disk_size_gb` value.
 To prevent this a lifecycle customization should be used, i.e.:  
 `lifecycle {
-  ignore_changes = [disk_size_gb]
+  ignore_changes = [replication_specs.#.region_config.#.electable_specs.disk_size_gb]
 }`
-After adding the `lifecycle` block to explicitly change `disk_size_gb` comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
+After adding the `lifecycle` block to explicitly change `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
 
 ```terraform
 // Example: ignore disk_size_gb and instance_size changes in a replica set
 lifecycle {
   ignore_changes = [
-    disk_size_gb,
+    replication_specs[0].region_configs[0].electable_specs[0].disk_size_gb,
     replication_specs[0].region_configs[0].electable_specs[0].instance_size,
     replication_specs[0].region_configs[1].electable_specs[0].instance_size,
     replication_specs[0].region_configs[2].electable_specs[0].instance_size,
@@ -676,7 +681,7 @@ In addition to all arguments above, the following attributes are exported:
     - DELETING
     - DELETED
     - REPAIRING
-* `replication_specs` - Set of replication specifications for the cluster. Primary usage is covered under the [replication_specs argument reference](#replication_specs), though there are some computed attributes:
+* `replication_specs` - List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. If for each replication_spec `num_shards` is configured >1 (i.e. using legacy sharding schema), then each object represents a zone with one or more shards.  Primary usage is covered under the [replication_specs argument reference](#replication_specs), though there are some computed attributes:
   - `replication_specs.#.container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 
 ## Import
@@ -688,3 +693,6 @@ $ terraform import mongodbatlas_advanced_cluster.my_cluster 1112222b3bf99403840e
 ```
 
 See detailed information for arguments and attributes: [MongoDB API Advanced Clusters](https://docs.atlas.mongodb.com/reference/api/cluster-advanced/create-one-cluster-advanced/)
+
+~> **IMPORTANT:**
+<br> &#8226; When a cluster is imported, the resulting schema structure will always return the new schema including `replication_specs` per independent shards of the cluster.

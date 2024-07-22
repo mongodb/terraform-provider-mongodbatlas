@@ -9,63 +9,55 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type   = "SHARDED"
   backup_enabled = true
 
-  replication_specs { # shard 1
+  replication_specs { # shard 1 - M30 instance size
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
+        disk_iops     = 3000
         node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "US_EAST_1"
-    }
-
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 2
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
+      region_name   = "EU_WEST_1"
     }
   }
 
-  replication_specs { # shard 2
+  replication_specs { # shard 2 - M20 instance size
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M20"
+        disk_iops     = 3000
         node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AWS"
       priority      = 7
-      region_name   = "US_EAST_1"
+      region_name   = "EU_WEST_1"
     }
+  }
 
+  replication_specs { # shard 3 - M10 instance size
     region_configs {
       electable_specs {
         instance_size = "M10"
-        node_count    = 2
+        disk_iops     = 3000
+        node_count    = 3
       }
-      analytics_specs {
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "EU_WEST_1"
+    }
+  }
+
+  replication_specs { # shard 4 - M10 instance size
+    region_configs {
+      electable_specs {
         instance_size = "M10"
-        node_count    = 1
+        disk_iops     = 3000
+        node_count    = 3
       }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "EU_WEST_1"
     }
   }
 
@@ -82,6 +74,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 }
 
 resource "mongodbatlas_project" "project" {
-  name   = "Multi-Cloud Cluster"
+  name   = "Asymmetric Sharded Cluster"
   org_id = var.atlas_org_id
 }

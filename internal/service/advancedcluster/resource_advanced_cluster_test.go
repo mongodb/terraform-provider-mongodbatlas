@@ -1402,35 +1402,48 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 			name 	     = mongodbatlas_advanced_cluster.test.name
 			use_replication_spec_per_shard = true
 		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			use_replication_spec_per_shard = true
+		}
 	`, orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2)
 }
 
-func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string, replicationSpecOldIDDefined bool) resource.TestCheckFunc {
-	additionalChecks := []resource.TestCheckFunc{}
+func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string, isAsymmetricCluster bool) resource.TestCheckFunc {
+	clusterChecks := map[string]string{
+		"disk_size_gb":        "60",
+		"replication_specs.#": "2",
+		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec1,
+		"replication_specs.1.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec2,
+		"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":  "60",
+		"replication_specs.1.region_configs.0.electable_specs.0.disk_size_gb":  "60",
+		"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
+		"replication_specs.1.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
+		"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec1,
+		"replication_specs.1.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec2,
+	}
 
-	if replicationSpecOldIDDefined {
-		additionalChecks = append(additionalChecks, checkAggr([]string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
-	} else {
+	// plural data source checks
+	additionalChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
+		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
+	additionalChecks = acc.AddAttrChecksPrefix(dataSourcePluralName, additionalChecks, clusterChecks, "results.0")
+
+	// expected id attribute only if cluster is symmetric
+	if isAsymmetricCluster {
 		additionalChecks = append(additionalChecks, checkAggr([]string{}, map[string]string{
 			"replication_specs.0.id": "",
 			"replication_specs.1.id": "",
 		}))
+		acc.AddNoAttrSetChecks(dataSourcePluralName, additionalChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+	} else {
+		additionalChecks = append(additionalChecks, checkAggr([]string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
+		acc.AddAttrSetChecks(dataSourcePluralName, additionalChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
 	}
 
 	return checkAggr(
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
-		map[string]string{
-			"disk_size_gb":        "60",
-			"replication_specs.#": "2",
-			"replication_specs.0.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec1,
-			"replication_specs.1.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec2,
-			"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":  "60",
-			"replication_specs.1.region_configs.0.electable_specs.0.disk_size_gb":  "60",
-			"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
-			"replication_specs.1.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
-			"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec1,
-			"replication_specs.1.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec2,
-		},
+		clusterChecks,
 		additionalChecks...,
 	)
 }

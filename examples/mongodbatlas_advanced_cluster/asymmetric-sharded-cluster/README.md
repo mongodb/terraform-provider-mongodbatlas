@@ -1,15 +1,15 @@
-# MongoDB Atlas Provider -- Multi-Cloud Advanced Cluster 
-This example creates a project and a Multi Cloud Advanced Cluster with 2 shards.
+# MongoDB Atlas Provider -- Global Cluster 
+This example creates a project and a Sharded Cluster with 4 independent shards with varying cluster tiers.
 
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.10.0
+* Terraform MongoDB Atlas Provider v1.18.0
 * A MongoDB Atlas account 
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.10.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v1.18.0
 ```
 
 
@@ -30,7 +30,7 @@ private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
 atlas_org_id         = "<MONGODB_ATLAS_ORG_ID>"
 ```
 
-... or use [AWS Secrets Manager](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/docs/index.md#aws-secrets-manager)
+... or use [AWS Secrets Manager](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/index.html.markdown#aws-secrets-manager)
 
 **2\. Review the Terraform plan.**
 
@@ -42,7 +42,7 @@ $ terraform plan
 This project currently supports the below deployments:
 
 - An Atlas Project
-- A Multi-Cloud Cluster
+- A Sharded Cluster with independent shards with varying cluster tiers
 
 **3\. Execute the Terraform apply.**
 
