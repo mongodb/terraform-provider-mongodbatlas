@@ -26,9 +26,9 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 		providerName                           = "AWS"
 		region                                 = os.Getenv("AWS_REGION_LOWERCASE")
 		privatelinkEndpointServiceResourceName = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", endpointResourceSuffix)
-		spec1                                  = acc.ReplicationSpecRequest{Region: os.Getenv("AWS_REGION_UPPERCASE"), ProviderName: providerName, ZoneName: "Zone 1"}
-		spec2                                  = acc.ReplicationSpecRequest{Region: "US_WEST_2", ProviderName: providerName, ZoneName: "Zone 2"}
-		clusterInfo                            = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, DiskSizeGb: 80, ReplicationSpecs: []acc.ReplicationSpecRequest{spec1, spec2}})
+		spec1                                  = acc.ReplicationSpecRequest{Region: os.Getenv("AWS_REGION_UPPERCASE"), ProviderName: providerName, ZoneName: "Zone 1", DiskSizeGb: 80}
+		spec2                                  = acc.ReplicationSpecRequest{Region: "US_WEST_2", ProviderName: providerName, ZoneName: "Zone 2", DiskSizeGb: 80}
+		clusterInfo                            = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, ReplicationSpecs: []acc.ReplicationSpecRequest{spec1, spec2}})
 		projectID                              = clusterInfo.ProjectID
 		clusterResourceName                    = clusterInfo.ResourceName
 		clusterDataName                        = "data.mongodbatlas_advanced_cluster.test"
