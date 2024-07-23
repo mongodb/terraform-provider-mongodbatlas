@@ -205,7 +205,7 @@ func testConfigUnmanagedAWS(awsAccessKey, awsSecretKey, projectID, providerName,
 			vpc_id             = aws_vpc.primary.id
 			service_name       = mongodbatlas_privatelink_endpoint.test.endpoint_service_name
 			vpc_endpoint_type  = "Interface"
-			subnet_ids         = [aws_subnet.primary-az1.id, aws_subnet.primary-az2.id]
+			subnet_ids         = [aws_subnet.primary-az1.id]
 			security_group_ids = [aws_security_group.primary_default.id]
 			
 		}
