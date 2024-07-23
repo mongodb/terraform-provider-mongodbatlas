@@ -2,7 +2,7 @@
 
 **Objective**: Guide users to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource.
 
-**Note**: This guide focus on the resource migration as the data source migration is only requiring a resource_type change from `data.mongodbatlas_cluster` to `data.mongodbatlas_advanced_cluster`.  However, pay attention to the [output changes.](#output-changes)
+-> **NOTE:** This guide focus on the resource migration as the data source migration is only requiring a resource_type change from `data.mongodbatlas_cluster` to `data.mongodbatlas_advanced_cluster`.  However, pay attention to the [output changes.](#output-changes)
 
 ## Main Changes Between `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`
 
@@ -12,9 +12,9 @@ Key differences in the configuration:
 2. Provider Settings: Moved from the top level to the replication spec allowing you to create multi-cloud clusters.
 3. Auto Scaling: Moved from the top level to the replication spec allowing you to scale replication specs individually.
 4. Backup Configuration: Renamed from `cloud_backup` to `backup_enabled`.
-5. See also ["Migration to new sharding schema and leveraging Independent Shard Scaling"](advanced-cluster-new-sharding-schema.md#migration-sharded)
+5. See also ["Migration to new sharding schema and leveraging Independent Shard Scaling"](/guides/advanced-cluster-new-sharding-schema#migration-sharded)
 
-### Example1: Old Configuration
+### Example 1: Old Configuration (`mongodbatlas_cluster`)
 
 ```terraform
 resource "mongodbatlas_cluster" "this" {
@@ -43,7 +43,7 @@ resource "mongodbatlas_cluster" "this" {
     }
 ```
 
-### Example2: New Configuration
+### Example 2: New Configuration (`mongodbatlas_advanced_cluster`)
 
 ```terraform
     resource "mongodbatlas_advanced_cluster" "this" {
