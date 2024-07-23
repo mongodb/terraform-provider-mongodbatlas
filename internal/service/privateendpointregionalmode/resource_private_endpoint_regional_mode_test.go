@@ -17,6 +17,7 @@ func TestAccPrivateEndpointRegionalMode_basic(t *testing.T) {
 }
 
 func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
+	acc.SkipTestForCI(t) // needs AWS configuration
 	var (
 		endpointResourceSuffix                 = "atlasple"
 		resourceSuffix                         = "atlasrm"
