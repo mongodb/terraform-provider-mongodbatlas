@@ -1435,7 +1435,10 @@ func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, 
 			"replication_specs.0.id": "",
 			"replication_specs.1.id": "",
 		}))
-		additionalChecks = acc.AddNoAttrSetChecks(dataSourcePluralName, additionalChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+		additionalChecks = acc.AddAttrChecks(dataSourcePluralName, additionalChecks, map[string]string{
+			"results.0.replication_specs.0.id": "",
+			"results.0.replication_specs.1.id": "",
+		})
 	} else {
 		additionalChecks = append(additionalChecks, checkAggr([]string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
 		additionalChecks = acc.AddAttrSetChecks(dataSourcePluralName, additionalChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
