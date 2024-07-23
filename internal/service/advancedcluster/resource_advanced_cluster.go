@@ -420,8 +420,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	// Validate oplog_size_mb to show the error before the cluster is created.
 	if oplogSizeMB, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
-		if cast.ToInt64(oplogSizeMB) <= 0 {
-			return diag.FromErr(fmt.Errorf("`advanced_configuration.oplog_size_mb` cannot be <= 0"))
+		if cast.ToInt64(oplogSizeMB) < 0 {
+			return diag.FromErr(fmt.Errorf("`advanced_configuration.oplog_size_mb` cannot be < 0"))
 		}
 	}
 
