@@ -290,7 +290,7 @@ func expandExportJobCustomData(d *schema.ResourceData) *[]admin.BackupLabel {
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "--", 3)
 	if len(parts) != 3 {
@@ -301,7 +301,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	clusterName := parts[1]
 	exportID := parts[2]
 
-	_, _, err := conn.CloudProviderSnapshotExportJobs.Get(ctx, projectID, clusterName, exportID)
+	_, _, err := connV2.CloudBackupsApi.GetBackupExportJob(ctx, projectID, clusterName, exportID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import snapshot export job %s in project %s and cluster %s, error: %s", exportID, projectID, clusterName, err)
 	}

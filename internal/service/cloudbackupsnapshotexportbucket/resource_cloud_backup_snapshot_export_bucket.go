@@ -162,14 +162,14 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, id, err := splitImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	_, _, err = conn.CloudProviderSnapshotExportBuckets.Get(ctx, *projectID, *id)
+	_, _, err = conn.CloudBackupsApi.GetExportBucket(ctx, *projectID, *id).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import snapshot export bucket %s in project %s, error: %s", *id, *projectID, err)
 	}

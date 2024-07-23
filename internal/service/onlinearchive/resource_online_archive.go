@@ -633,8 +633,6 @@ func mapCriteria(d *schema.ResourceData) admin.Criteria {
 }
 
 func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
-	// scheduleInput := &matlas.OnlineArchiveSchedule{
-
 	// We have to provide schedule.type="DEFAULT" when the schedule block is not provided or removed
 	scheduleInput := &admin.OnlineArchiveSchedule{
 		Type: scheduleTypeDefault,
