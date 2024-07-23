@@ -58,7 +58,6 @@ func TestAccBackupCompliancePolicy_update(t *testing.T) {
 }
 
 func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
-	acc.SkipTestForCI(t) // TODO: CLOUDP-262014 for ensuring replicationSpec.id is being populated for replica set and symmetric sharded clusters
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup compliance policy
