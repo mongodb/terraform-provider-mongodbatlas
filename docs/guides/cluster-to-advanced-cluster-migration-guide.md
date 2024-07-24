@@ -6,7 +6,7 @@ page_title: "Migration - Cluster to Advanced Cluster"
 
 **Objective**: Guide users to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource.
 
--> **NOTE:** This guide focus on the resource migration as the data source migration is only requiring a `resource_type` change from `data.mongodbatlas_cluster` to `data.mongodbatlas_advanced_cluster`.  However, pay attention to the [output changes.](#output-changes)
+-> **NOTE:** This guide focuses on the resource migration, as the data source migration only requires a `resource_type` change from `data.mongodbatlas_cluster` to `data.mongodbatlas_advanced_cluster`.  However, pay attention to the [output changes.](#output-changes)
 
 ## Main Changes Between `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`
 
@@ -80,15 +80,15 @@ resource "mongodbatlas_cluster" "this" {
   - before: `mongodbatlas_cluster.this.replication_specs[0].container_id` was a flat string, e.g., `669644ae01bf814e3d25b963`
   - after: `mongodbatlas_advanced_cluster.this.replication_specs[0].container_id` is a map, e.g., `{"AWS:US_EAST_1": "669644ae01bf814e3d25b963"}`
 
-## How to Change
+## Best Practices Before Migrating
 Before doing any migration it is recommended to make a backup of your [Terraform state files.](https://developer.hashicorp.com/terraform/cli/commands/state)
 
-### Method 1: `terraform plan -generate-config-out=cluster.tf`
+## Migration using `terraform plan -generate-config-out=cluster.tf`
 This method uses only Terraform native tools and are ideal for customers who:
 1. Have an existing cluster without any Terraform configuration and want to manage their cluster with Terraform.
 2. Have existing `mongodbatlas_cluster` resource(s) and don't want to use an external script for migrating.
 
-#### Steps
+### Steps
 
 1. Find the import IDs of the clusters you want to migrate: `{PROJECT_ID}-{CLUSTER_NAME}`, e.g., `664619d870c247237f4b86a6-legacy-cluster`
 2. Add an import block per cluster to one of your `.tf` files:
