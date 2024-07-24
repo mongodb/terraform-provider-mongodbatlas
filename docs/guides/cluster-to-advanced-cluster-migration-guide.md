@@ -85,7 +85,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 Before doing any migration it is recommended to make a backup of your [Terraform state file.](https://developer.hashicorp.com/terraform/cli/commands/state)
 
 ## Migration using `terraform plan -generate-config-out=adv_cluster.tf`
-This method uses only Terraform native tools and are ideal for customers who:
+This method uses only Terraform native tools and is ideal for customers who:
 1. Have an existing cluster without any Terraform configuration and want to manage their cluster with Terraform.
 2. Have existing `mongodbatlas_cluster` resource(s) and don't want to use an external script for migrating.
 
