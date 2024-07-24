@@ -398,5 +398,3 @@ $ terraform import mongodbatlas_network_peering.my_peering 1112222b3bf99403840e8
 ```
 
 See detailed information for arguments and attributes: [MongoDB API Network Peering Connection](https://docs.atlas.mongodb.com/reference/api/vpc-create-peering-connection/)
-
--> **NOTE:** If you need to get an existing container ID see the [How-To Guide](../guides/howto-guide.html).

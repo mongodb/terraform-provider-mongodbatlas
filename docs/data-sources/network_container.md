@@ -51,5 +51,3 @@ In addition to all arguments above, the following attributes are exported:
 
 
 See detailed information for arguments and attributes: [MongoDB API Network Peering Container](https://docs.atlas.mongodb.com/reference/api/vpc-create-container/)
-
--> **NOTE:** If you need to get an existing container ID see the [How-To Guide](../guides/howto-guide.html).

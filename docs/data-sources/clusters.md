@@ -121,8 +121,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `container_id` - The Network Peering Container ID. 
   
--> **NOTE:** If you need to get an existing container ID see the [How-To Guide](../guides/howto-guide.html).
-
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
 
 * `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
