@@ -1,18 +1,20 @@
+---
+page_title: "Migration - Cluster to Advanced Cluster"
+---
+
 # Cluster to Advanced Cluster Migration Guide
 
 **Objective**: Guide users to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource.
 
--> **NOTE:** This guide focus on the resource migration as the data source migration is only requiring a resource_type change from `data.mongodbatlas_cluster` to `data.mongodbatlas_advanced_cluster`.  However, pay attention to the [output changes.](#output-changes)
+-> **NOTE:** This guide focus on the resource migration as the data source migration is only requiring a `resource_type` change from `data.mongodbatlas_cluster` to `data.mongodbatlas_advanced_cluster`.  However, pay attention to the [output changes.](#output-changes)
 
 ## Main Changes Between `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`
-
-Key differences in the configuration:
 
 1. Replication Spec Configuration: Supports different node types (electable, analytics, read_only) where hardware configuration can differ between node types.
 2. Provider Settings: Moved from the top level to the replication spec allowing you to create multi-cloud clusters.
 3. Auto Scaling: Moved from the top level to the replication spec allowing you to scale replication specs individually.
 4. Backup Configuration: Renamed from `cloud_backup` to `backup_enabled`.
-5. See also ["Migration to new sharding schema and leveraging Independent Shard Scaling"](/guides/advanced-cluster-new-sharding-schema#migration-sharded)
+5. See also ["Migration to new sharding schema and leveraging Independent Shard Scaling"](advanced-cluster-new-sharding-schema#migration-sharded)
 
 ### Example 1: Old Configuration (`mongodbatlas_cluster`)
 
@@ -22,7 +24,6 @@ resource "mongodbatlas_cluster" "this" {
     name                         = "legacy-cluster"
     cluster_type                 = "REPLICASET"
 
-    # Provider Settings "block"
     provider_instance_size_name = "M10" # 1 Replication Spec Configuration
     provider_name               = "AWS" # 2 Provider Settings
     
@@ -52,7 +53,6 @@ resource "mongodbatlas_cluster" "this" {
     cluster_type           = "REPLICASET"
     backup_enabled         = true # 4 Backup Configuration
 
-    # Replication specs
     replication_specs {
       auto_scaling { # 3 Auto Scaling
         disk_gb_enabled = true
@@ -81,7 +81,7 @@ resource "mongodbatlas_cluster" "this" {
   - after: `mongodbatlas_advanced_cluster.this.replication_specs[0].container_id` is a map, e.g., `{"AWS:US_EAST_1": "669644ae01bf814e3d25b963"}`
 
 ## How to Change
-Before doing any migration it is recommended to make a backup of your Terraform state files. (ADD_LINK_HERE)
+Before doing any migration it is recommended to make a backup of your [Terraform state files.](https://developer.hashicorp.com/terraform/cli/commands/state)
 
 ### Method 1: `terraform plan -generate-config-out=cluster.tf`
 This method uses only Terraform native tools and are ideal for customers who:
@@ -98,7 +98,7 @@ This method uses only Terraform native tools and are ideal for customers who:
     id = "664619d870c247237f4b86a6-legacy-cluster" # from step 1
   }
   ```
-3. Run `terraform plan -generate-config-out=cluster.tf`, should generate a `cluster.tf` file and display a message similar to `Plan: 1 to import, 0 to add, 0 to change, 0 to destroy`:
+3. Run `terraform plan -generate-config-out=cluster.tf`. This should generate a `cluster.tf` file and display a message similar to `Plan: 1 to import, 0 to add, 0 to change, 0 to destroy`:
   ```terraform
   resource "mongodbatlas_advanced_cluster" "this" {
     # ... most attributes are removed for readability of this guide
@@ -162,14 +162,14 @@ This method uses only Terraform native tools and are ideal for customers who:
     }
   }
   ```
-4. Run a `terraform apply`, you should expect to see the resource imported.
-5. Remove the "default" fields. Many fields of this resource are optional, look for fields with a `null` or `0` value or blocks you didn't specify before, e.g:
+4. Run `terraform apply`. You should expect to see the resource imported.
+5. Remove the "default" fields. Many fields of this resource are optional. Look for fields with a `null` or `0` value or blocks you didn't specify before, e.g:
    - `advanced_configuration`
    - `connection_strings`
    - `cluster_id`
    - `bi_connector_config`
 6. Re-run `terraform apply` to ensure you have no plan changes.
 7. Update the references from your old cluster resource: `mongodbatlas_cluster.this.XXXX` to the new `mongodbatlas_advanced_cluster.this.XXX`.
-   - Double check [output-changes](#output-changes) to ensure the meaning stays unchanged
+   - Double check [output-changes](#output-changes) to ensure the underlying configuration stays unchanged.
 8. Replace your existing clusters with the ones from `cluster.tf` and run `terraform state rm mongodbatlas_cluster.this`.
 9. Re-run `terraform apply` to ensure you have no plan changes.
