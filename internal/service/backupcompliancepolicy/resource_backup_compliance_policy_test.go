@@ -69,10 +69,9 @@ func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 			ProjectID:            projectIDTerraform,
 			MongoDBMajorVersion:  "6.0",
 			CloudBackup:          true,
-			DiskSizeGb:           12,
 			RetainBackupsEnabled: true,
 			ReplicationSpecs: []acc.ReplicationSpecRequest{
-				{EbsVolumeType: "STANDARD", AutoScalingDiskGbEnabled: true, NodeCount: 3},
+				{EbsVolumeType: "STANDARD", AutoScalingDiskGbEnabled: true, NodeCount: 3, DiskSizeGb: 12},
 			},
 		}
 		clusterInfo = acc.GetClusterInfo(t, &req)

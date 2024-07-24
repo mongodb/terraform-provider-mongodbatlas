@@ -73,9 +73,6 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	} else {
 		clusterRootAttributes["project_id"] = projectID
 	}
-	if req.DiskSizeGb != 0 {
-		clusterRootAttributes["disk_size_gb"] = req.DiskSizeGb
-	}
 	if req.RetainBackupsEnabled {
 		clusterRootAttributes["retain_backups_enabled"] = req.RetainBackupsEnabled
 	}

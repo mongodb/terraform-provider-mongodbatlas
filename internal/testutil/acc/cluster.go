@@ -21,7 +21,6 @@ type ClusterRequest struct {
 	ClusterName            string
 	MongoDBMajorVersion    string
 	ReplicationSpecs       []ReplicationSpecRequest
-	DiskSizeGb             int
 	CloudBackup            bool
 	Geosharded             bool
 	RetainBackupsEnabled   bool
@@ -112,6 +111,7 @@ type ReplicationSpecRequest struct {
 	NodeCount                int
 	NodeCountReadOnly        int
 	Priority                 int
+	DiskSizeGb               int
 	AutoScalingDiskGbEnabled bool
 }
 
@@ -167,16 +167,21 @@ func cloudRegionConfig(req ReplicationSpecRequest) admin.CloudRegionConfig202501
 			InstanceSize: &req.InstanceSize,
 		}
 	}
+	electableSpec := admin.HardwareSpec20250101{
+		InstanceSize:  &req.InstanceSize,
+		NodeCount:     &req.NodeCount,
+		EbsVolumeType: conversion.StringPtr(req.EbsVolumeType),
+	}
+	if req.DiskSizeGb != 0 {
+		diskSizeGb := float64(req.DiskSizeGb)
+		electableSpec.DiskSizeGB = &diskSizeGb
+	}
 	return admin.CloudRegionConfig20250101{
-		RegionName:   &req.Region,
-		Priority:     &req.Priority,
-		ProviderName: &req.ProviderName,
-		ElectableSpecs: &admin.HardwareSpec20250101{
-			InstanceSize:  &req.InstanceSize,
-			NodeCount:     &req.NodeCount,
-			EbsVolumeType: conversion.StringPtr(req.EbsVolumeType),
-		},
-		ReadOnlySpecs: &readOnly,
+		RegionName:     &req.Region,
+		Priority:       &req.Priority,
+		ProviderName:   &req.ProviderName,
+		ElectableSpecs: &electableSpec,
+		ReadOnlySpecs:  &readOnly,
 		AutoScaling: &admin.AdvancedAutoScalingSettings{
 			DiskGB: &admin.DiskGBAutoScaling{Enabled: &req.AutoScalingDiskGbEnabled},
 		},
