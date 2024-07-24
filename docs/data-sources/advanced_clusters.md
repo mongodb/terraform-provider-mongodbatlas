@@ -34,9 +34,53 @@ data "mongodbatlas_advanced_clusters" "example" {
 }
 ```
 
+## Example using latest sharding schema with independent shard scaling in the cluster
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "example" {
+  project_id     = "<YOUR-PROJECT-ID>"
+  name           = "cluster-test"
+  backup_enabled = false
+  cluster_type   = "SHARDED"
+
+  replication_specs {    # Sharded cluster with 2 asymmetric shards (M30 and M40)
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        disk_iops     = 3000
+        node_count    = 3
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "EU_WEST_1"
+    }
+  }
+
+  replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M40"
+        disk_iops     = 3000
+        node_count    = 3
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "EU_WEST_1"
+    }
+  }
+}
+
+data "mongodbatlas_advanced_cluster" "example-asym" {
+  project_id                     = mongodbatlas_advanced_cluster.example.project_id
+  name                           = mongodbatlas_advanced_cluster.example.name
+  use_replication_spec_per_shard = true
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to get the clusters.
+* `use_replication_spec_per_shard` - (Optional) Set this field to true to allow the data source to use the latest schema representing each shard with an individual `replication_specs` object. This enables representing clusters with independent shard scaling. **Note:** If not set to true, this data source return all clusters except clusters with asymmetric shards.
 
 ## Attributes Reference
 
@@ -55,7 +99,7 @@ In addition to all arguments above, the following attributes are exported:
 * `labels` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels).
 * `mongo_db_major_version` - Version of the cluster to deploy.
 * `pit_enabled` - Flag that indicates if the cluster uses Continuous Cloud Backup.
-* `replication_specs` - Configuration for cluster regions and the hardware provisioned in them. See [below](#replication_specs)
+* `replication_specs` - List of settings that configure your cluster regions. If `use_replication_spec_per_shard = true`, this array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. See [below](#replication_specs)
 * `root_cert_type` - Certificate Authority that MongoDB Atlas clusters use.
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
@@ -96,6 +140,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 * `region_configs` - Configuration for the hardware specifications for nodes set for a given regionEach `region_configs` object describes the region's priority in elections and the number and type of MongoDB nodes that Atlas deploys to the region. Each `region_configs` object must have either an `analytics_specs` object, `electable_specs` object, or `read_only_specs` object. See [below](#region_configs)
 *  `container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container either created programmatically by the user before any clusters existed in a project or when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 * `zone_name` - Name for the zone in a Global Cluster.
+* `zone_id` - Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. If clusterType is GEOSHARDED, this value indicates the zone that the given shard belongs to and can be used to configure Global Cluster backup policies.
 
 
 ### region_configs
@@ -118,6 +163,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
   * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
 * `instance_size` - Hardware specification for the instance sizes in this region.
 * `node_count` - Number of nodes of the given type for MongoDB Atlas to deploy to the region.
+* `disk_size_gb` - Storage capacity that the host's root volume possesses expressed in gigabytes. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
 
 ### auto_scaling
 

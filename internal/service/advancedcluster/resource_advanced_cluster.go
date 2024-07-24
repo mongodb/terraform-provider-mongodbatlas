@@ -550,7 +550,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 		}
 
-		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connV2)
+		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220231115)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecIDs, d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
@@ -577,6 +582,25 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	return nil
+}
+
+// getReplicationSpecIDsFromOldAPI returns the id values of replication specs coming from old API. This is used to populate old replication_specs.*.id attribute avoiding breaking changes.
+// In the old API each replications spec has a 1:1 relation with each zone, so ids are returned in a map from zoneName to id.
+func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName string, connV220231115 *admin20231115.APIClient) (map[string]string, error) {
+	clusterOldAPI, _, err := connV220231115.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	if apiError, ok := admin20231115.AsError(err); ok {
+		if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
+			return nil, nil // if its the case of an asymmetric shard an error is expected in old API, replication_specs.*.id attribute will not be populated
+		}
+		readErrorMsg := "error reading  advanced cluster with 2023-02-01 API (%s): %s"
+		return nil, fmt.Errorf(readErrorMsg, clusterName, err)
+	}
+	specs := clusterOldAPI.GetReplicationSpecs()
+	result := make(map[string]string, len(specs))
+	for _, spec := range specs {
+		result[spec.GetZoneName()] = spec.GetId()
+	}
+	return result, nil
 }
 
 func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription20250101, isResourceSchema bool) diag.Diagnostics {
