@@ -2,7 +2,7 @@
 page_title: "Migration - Cluster to Advanced Cluster"
 ---
 
-# Cluster to Advanced Cluster Migration Guide
+# Migration - Cluster to Advanced Cluster
 
 **Objective**: Guide users to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource.
 
