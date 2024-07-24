@@ -6,7 +6,7 @@ The Terraform MongoDB Atlas Provider offers the following path to perform an aut
 the initial configuration (create, delete operations). The second resource, `mongodbatlas_cloud_provider_access_authorization`, helps to perform the authorization using the role_id of the first resource. This path is helpful in a multi-provider Terraform file, and allows for a single and decoupled apply. See example of this Two Resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/aws) and AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/azure). 
 
 
--> **IMPORTANT** If you want to move from the single resource path to the two resources path see the [migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/0.9.1-upgrade-guide#migration-to-cloud-provider-access-setup)
+-> **IMPORTANT** If you want to move from the single resource path to the two resources path see the [migration guide](../guides/0.9.1-upgrade-guide#migration-to-cloud-provider-access-setup)
 
 
 ## mongodbatlas_cloud_provider_access_setup

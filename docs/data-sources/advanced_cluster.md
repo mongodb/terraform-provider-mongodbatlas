@@ -91,7 +91,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The cluster ID.
 * `bi_connector_config` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector_config). **NOTE** Prior version of provider had parameter as `bi_connector`
 * `cluster_type` - Type of the cluster that you want to create.
-* `disk_size_gb` - Capacity, in gigabytes, of the host's root volume. **(DEPRECATED)** Use `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` instead. Please refer [1.18.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown) for more details.
+* `disk_size_gb` - Capacity, in gigabytes, of the host's root volume. **(DEPRECATED)** Use `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` instead. Please refer [1.18.0 upgrade guide](../guides/1.18.0-upgrade-guide.html.markdown) for more details.
 * `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE. 
 * `tags` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 * `labels` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
@@ -134,7 +134,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ### replication_specs
 
-* `num_shards` - Provide this value if you set a `cluster_type` of SHARDED or GEOSHARDED. **(DEPRECATED)** Please refer [1.18.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown) for more details. 
+* `num_shards` - Provide this value if you set a `cluster_type` of SHARDED or GEOSHARDED. **(DEPRECATED)** Please refer [1.18.0 upgrade guide](../guides/1.18.0-upgrade-guide.html.markdown) for more details. 
 * `region_configs` - Configuration for the hardware specifications for nodes set for a given regionEach `region_configs` object describes the region's priority in elections and the number and type of MongoDB nodes that Atlas deploys to the region. Each `region_configs` object must have either an `analytics_specs` object, `electable_specs` object, or `read_only_specs` object. See [below](#region_configs)
 *  `container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container either created programmatically by the user before any clusters existed in a project or when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 * `zone_name` - Name for the zone in a Global Cluster.
