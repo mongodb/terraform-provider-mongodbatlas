@@ -181,4 +181,4 @@ This method uses only Terraform native tools and are ideal for customers who:
 11. Re-run `terraform apply` to ensure you have no plan changes: `No changes. Your infrastructure matches the configuration.`
 
 ### Explanation
-Using the `project_id` and `cluster.name` Terraform imports your cluster and use the new `mongodbatlas_advanced_cluster` schema to dump a configuration file. This dump includes all configurable values in the schema, but non of the configuration defined for your `mongodbatlas_cluster`. Therefore, it will likely be a lot more verbose and contain non of your original [Terraform expressions.](https://developer.hashicorp.com/terraform/language/expressions)
+Using the `project_id` and `cluster.name` Terraform imports your cluster and uses the new `mongodbatlas_advanced_cluster` schema to dump a configuration file. This dump includes all configurable values in the schema, but none of the configuration defined for your `mongodbatlas_cluster`. Therefore, it will likely be a lot more verbose and contain none of your original [Terraform expressions.](https://developer.hashicorp.com/terraform/language/expressions)
