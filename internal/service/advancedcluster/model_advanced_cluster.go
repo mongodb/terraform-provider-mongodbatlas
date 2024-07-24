@@ -888,7 +888,9 @@ func expandAdvancedReplicationSpec(tfMap map[string]any, rootDiskSizeGB *float64
 		ZoneName:      conversion.StringPtr(tfMap["zone_name"].(string)),
 		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]any), rootDiskSizeGB),
 	}
-	// TODO: CLOUDP-259836 here we will populate id value using external_id value from the state (relevant for update request)
+	if tfMap["external_id"].(string) != "" {
+		apiObject.Id = conversion.StringPtr(tfMap["external_id"].(string))
+	}
 	return apiObject
 }
 
