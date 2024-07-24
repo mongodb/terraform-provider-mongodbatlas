@@ -162,7 +162,7 @@ This method uses only Terraform native tools and are ideal for customers who:
     }
   }
   ```
-4. Run `terraform apply`. You should expect to see the resource imported.
+4. Run `terraform apply`. You should see the resource imported.
 5. Remove the "default" fields. Many fields of this resource are optional. Look for fields with a `null` or `0` value or blocks you didn't specify before, e.g:
    - `advanced_configuration`
    - `connection_strings`
