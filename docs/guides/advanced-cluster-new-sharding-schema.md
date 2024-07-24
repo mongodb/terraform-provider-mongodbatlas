@@ -13,12 +13,12 @@ page_title: "Migration - Advanced Cluster New Sharding Schema"
 - [Leveraging Independent Shard Scaling](#leveraging-iss)
 
 <a id="overview"></a>
-# Overview of schema changes
+## Overview of schema changes
 
 `replication_specs` attribute has been modified to now be able to represent each individual shard of a cluster with a unique replication spec element. As such, when using the new sharding schema the existing attribute `num_shards` will no longer be defined, and instead the number of shards will be defined by the number of `replication_specs` elements.
 
 <a id="migration-sharded"></a>
-## Migrating existing advanced_cluster type SHARDED
+### Migrating existing advanced_cluster type SHARDED
 
 Considering the following configuration of a SHARDED cluster using the deprecated `num_shards`:
 ```
@@ -83,7 +83,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 This updated configuration will trigger a terraform update plan. However, the underlying cluster will not face any changes after the apply, as both configurations represent a sharded cluster composed of 2 shards.
 
 <a id="migration-geosharded"></a>
-## Migrating existing advanced_cluster type GEOSHARDED
+### Migrating existing advanced_cluster type GEOSHARDED
 
 Considering the following configuration of a GEOSHARDED cluster using the deprecated `num_shards`:
 
@@ -191,7 +191,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 This updated configuration will trigger a terraform update plan. However, the underlying cluster will not face any changes after the apply, as both configurations represent a geo sharded cluster with 2 zones and 2 shards in each one.
 
 <a id="migration-replicaset"></a>
-## Migrating existing advanced_cluster type REPLICASET
+### Migrating existing advanced_cluster type REPLICASET
 
 -> **NOTE:**  Please consider the following complementary documentation providing details on transitioning from a replicaset to a sharded cluster: https://www.mongodb.com/docs/atlas/scale-cluster/#convert-a-replica-set-to-a-sharded-cluster.
 
@@ -273,7 +273,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 ```
 
 <a id="leveraging-iss"></a>
-## Leveraging Independent Shard Scaling 
+### Leveraging Independent Shard Scaling 
 
 The new sharding schema must be used. Each shard must be represented with a unique replication_specs element and `num_shards` must not be used, as illustrated in the following example.
 
