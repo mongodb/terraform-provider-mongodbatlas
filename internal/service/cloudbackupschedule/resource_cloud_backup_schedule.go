@@ -9,10 +9,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
 
 const (
@@ -25,7 +27,10 @@ const (
 	errorSnapshotBackupScheduleUpdate  = "error updating a Cloud Backup Schedule: %s"
 	errorSnapshotBackupScheduleRead    = "error getting a Cloud Backup Schedule for the cluster(%s): %s"
 	errorSnapshotBackupScheduleSetting = "error setting `%s` for Cloud Backup Schedule(%s): %s"
+	DeprecationOldSchemaAction         = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 )
+
+var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", fmt.Sprintf("%s %s ", constant.DeprecationParamWithReplacement, "`copy_settings.#.zone_id`"), DeprecationOldSchemaAction)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -85,6 +90,12 @@ func Resource() *schema.Resource {
 							Computed: true,
 						},
 						"replication_spec_id": {
+							Type:       schema.TypeString,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: DeprecationMsgOldSchema,
+						},
+						"zone_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
@@ -308,6 +319,7 @@ func Resource() *schema.Resource {
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115 // Adopting latest API to be investigated in CLOUDP-260714
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
@@ -315,7 +327,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// MongoDB Atlas automatically generates a default backup policy for that cluster.
 	// As a result, we need to first delete the default policies to avoid having
 	// the infrastructure differs from the TF configuration file.
-	if _, _, err := connV220231115.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, _, err := connV2.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute(); err != nil {
 		diagWarning := diag.Diagnostic{
 			Severity: diag.Warning,
 			Summary:  "Error deleting default backup schedule",
@@ -324,7 +336,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		diags = append(diags, diagWarning)
 	}
 
-	if err := cloudBackupScheduleCreateOrUpdate(ctx, connV220231115, d, projectID, clusterName); err != nil {
+	if err := cloudBackupScheduleCreateOrUpdate(ctx, connV220231115, connV2, d, projectID, clusterName); err != nil {
 		diags = append(diags, diag.Errorf(errorSnapshotBackupScheduleCreate, err)...)
 		return diags
 	}
@@ -339,6 +351,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+	// connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -418,6 +431,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -429,7 +443,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	err := cloudBackupScheduleCreateOrUpdate(ctx, connV220231115, d, projectID, clusterName)
+	err := cloudBackupScheduleCreateOrUpdate(ctx, connV220231115, connV2, d, projectID, clusterName)
 	if err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleUpdate, err)
 	}
@@ -485,50 +499,36 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admin20231115.APIClient, d *schema.ResourceData, projectID, clusterName string) error {
-	resp, _, err := connV220231115.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
-	}
-
-	req := &admin20231115.DiskBackupSnapshotSchedule{}
+func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string) error {
+	var err error
+	shouldUseOldAPI := false
 	copySettings := d.Get("copy_settings")
-	if copySettings != nil && (conversion.HasElementsSliceOrMap(copySettings) || d.HasChange("copy_settings")) {
-		req.CopySettings = expandCopySettings(copySettings.([]any))
+
+	// only if copy_settings are set and using replication_spec_id, we use the old API, for all other cases we default to using the new API
+	if isCopySettingsNonEmptyOrChanged(d) {
+		shouldUseOldAPI, err = checkOnlyReplicationSpecIDSet(copySettings.([]any))
+		if err != nil {
+			return err
+		}
 	}
 
-	var policiesItem []admin20231115.DiskBackupApiPolicyItem
+	req := &admin.DiskBackupSnapshotSchedule20250101{}
 
+	var policiesItem []admin.DiskBackupApiPolicyItem
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
-		item := v.([]any)
-		itemObj := item[0].(map[string]any)
-		policiesItem = append(policiesItem, expandPolicyItem(itemObj, Hourly))
+		policiesItem = append(policiesItem, *expandPolicyItems(v.([]any), Hourly)...)
 	}
 	if v, ok := d.GetOk("policy_item_daily"); ok {
-		item := v.([]any)
-		itemObj := item[0].(map[string]any)
-		policiesItem = append(policiesItem, expandPolicyItem(itemObj, Daily))
+		policiesItem = append(policiesItem, *expandPolicyItems(v.([]any), Daily)...)
 	}
 	if v, ok := d.GetOk("policy_item_weekly"); ok {
-		items := v.([]any)
-		for _, s := range items {
-			itemObj := s.(map[string]any)
-			policiesItem = append(policiesItem, expandPolicyItem(itemObj, Weekly))
-		}
+		policiesItem = append(policiesItem, *expandPolicyItems(v.([]any), Weekly)...)
 	}
 	if v, ok := d.GetOk("policy_item_monthly"); ok {
-		items := v.([]any)
-		for _, s := range items {
-			itemObj := s.(map[string]any)
-			policiesItem = append(policiesItem, expandPolicyItem(itemObj, Monthly))
-		}
+		policiesItem = append(policiesItem, *expandPolicyItems(v.([]any), Monthly)...)
 	}
 	if v, ok := d.GetOk("policy_item_yearly"); ok {
-		items := v.([]any)
-		for _, s := range items {
-			itemObj := s.(map[string]any)
-			policiesItem = append(policiesItem, expandPolicyItem(itemObj, Yearly))
-		}
+		policiesItem = append(policiesItem, *expandPolicyItems(v.([]any), Yearly)...)
 	}
 
 	if d.HasChange("auto_export_enabled") {
@@ -536,28 +536,11 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 	}
 
 	if v, ok := d.GetOk("export"); ok {
-		item := v.([]any)
-		itemObj := item[0].(map[string]any)
-		if autoExportEnabled := d.Get("auto_export_enabled"); autoExportEnabled != nil && autoExportEnabled.(bool) {
-			req.Export = &admin20231115.AutoExportPolicy{
-				ExportBucketId: conversion.StringPtr(itemObj["export_bucket_id"].(string)),
-				FrequencyType:  conversion.StringPtr(itemObj["frequency_type"].(string)),
-			}
-		}
+		req.Export = expandAutoExportPolicy(v.([]any), d)
 	}
 
 	if d.HasChange("use_org_and_group_names_in_export_prefix") {
 		req.UseOrgAndGroupNamesInExportPrefix = conversion.Pointer(d.Get("use_org_and_group_names_in_export_prefix").(bool))
-	}
-
-	if len(policiesItem) > 0 {
-		policy := admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy{
-			PolicyItems: &policiesItem,
-		}
-		if len(resp.GetPolicies()) == 1 {
-			policy.Id = resp.GetPolicies()[0].Id
-		}
-		req.Policies = &[]admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
 	}
 
 	if v, ok := d.GetOkExists("reference_hour_of_day"); ok {
@@ -575,7 +558,40 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 		req.UpdateSnapshots = value
 	}
 
-	_, _, err = connV220231115.CloudBackupsApi.UpdateBackupSchedule(context.Background(), projectID, clusterName, req).Execute()
+	if shouldUseOldAPI {
+		resp, _, err := connV220231115.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
+			// TODO handle asymmetric error, ask user to set zone_id for asymmetric cluster
+		}
+		var copySettingsOldSDK *[]admin20231115.DiskBackupCopySetting
+		if isCopySettingsNonEmptyOrChanged(d) {
+			copySettingsOldSDK = expandCopySettingsOldSDK(copySettings.([]any))
+		}
+
+		policiesOldSDK := getRequestPoliciesOldSDK(convertPolicyItemsToOldSDK(&policiesItem), resp.GetPolicies())
+
+		reqOld := convertBackupScheduleReqToOldSDK(req, copySettingsOldSDK, policiesOldSDK)
+		_, _, err = connV220231115.CloudBackupsApi.UpdateBackupSchedule(context.Background(), projectID, clusterName, reqOld).Execute()
+		if err != nil {
+			return err
+			// TODO handle asymmetric error, ask user to set zone_id for asymmetric cluster
+		}
+
+		return nil
+	}
+
+	resp, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
+	}
+	if isCopySettingsNonEmptyOrChanged(d) {
+		req.CopySettings = expandCopySettings(copySettings.([]any))
+	}
+
+	req.Policies = getRequestPolicies(policiesItem, resp.GetPolicies())
+
+	_, _, err = connV2.CloudBackupsApi.UpdateBackupSchedule(context.Background(), projectID, clusterName, req).Execute()
 	if err != nil {
 		return err
 	}
@@ -625,7 +641,51 @@ func flattenCopySettings(copySettingList []admin20231115.DiskBackupCopySetting) 
 	return copySettings
 }
 
-func expandCopySetting(tfMap map[string]any) *admin20231115.DiskBackupCopySetting {
+func expandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting20250101 {
+	if tfMap == nil {
+		return nil
+	}
+
+	frequencies := conversion.ExpandStringList(tfMap["frequencies"].(*schema.Set).List())
+	copySetting := &admin.DiskBackupCopySetting20250101{
+		CloudProvider:    conversion.Pointer(tfMap["cloud_provider"].(string)),
+		Frequencies:      &frequencies,
+		RegionName:       conversion.Pointer(tfMap["region_name"].(string)),
+		ZoneId:           tfMap["zone_id"].(string),
+		ShouldCopyOplogs: conversion.Pointer(tfMap["should_copy_oplogs"].(bool)),
+	}
+	return copySetting
+}
+
+func expandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting20250101 {
+	copySettings := make([]admin.DiskBackupCopySetting20250101, 0)
+
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]any)
+		if !ok {
+			continue
+		}
+		apiObject := expandCopySetting(tfMap)
+		copySettings = append(copySettings, *apiObject)
+	}
+	return &copySettings
+}
+
+func expandCopySettingsOldSDK(tfList []any) *[]admin20231115.DiskBackupCopySetting {
+	copySettings := make([]admin20231115.DiskBackupCopySetting, 0)
+
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]any)
+		if !ok {
+			continue
+		}
+		apiObject := expandCopySettingOldSDK(tfMap)
+		copySettings = append(copySettings, *apiObject)
+	}
+	return &copySettings
+}
+
+func expandCopySettingOldSDK(tfMap map[string]any) *admin20231115.DiskBackupCopySetting {
 	if tfMap == nil {
 		return nil
 	}
@@ -641,22 +701,18 @@ func expandCopySetting(tfMap map[string]any) *admin20231115.DiskBackupCopySettin
 	return copySetting
 }
 
-func expandCopySettings(tfList []any) *[]admin20231115.DiskBackupCopySetting {
-	copySettings := make([]admin20231115.DiskBackupCopySetting, 0)
+func expandPolicyItems(items []any, frequencyType string) *[]admin.DiskBackupApiPolicyItem {
+	results := make([]admin.DiskBackupApiPolicyItem, len(items))
 
-	for _, tfMapRaw := range tfList {
-		tfMap, ok := tfMapRaw.(map[string]any)
-		if !ok {
-			continue
-		}
-		apiObject := expandCopySetting(tfMap)
-		copySettings = append(copySettings, *apiObject)
+	for _, s := range items {
+		itemObj := s.(map[string]any)
+		results = append(results, expandPolicyItem(itemObj, frequencyType))
 	}
-	return &copySettings
+	return &results
 }
 
-func expandPolicyItem(itemObj map[string]any, frequencyType string) admin20231115.DiskBackupApiPolicyItem {
-	return admin20231115.DiskBackupApiPolicyItem{
+func expandPolicyItem(itemObj map[string]any, frequencyType string) admin.DiskBackupApiPolicyItem {
+	return admin.DiskBackupApiPolicyItem{
 		Id:                policyItemID(itemObj),
 		RetentionUnit:     itemObj["retention_unit"].(string),
 		RetentionValue:    itemObj["retention_value"].(int),
@@ -673,4 +729,32 @@ func policyItemID(policyState map[string]any) *string {
 		}
 	}
 	return nil
+}
+
+func isCopySettingsNonEmptyOrChanged(d *schema.ResourceData) bool {
+	copySettings := d.Get("copy_settings")
+	return copySettings != nil && (conversion.HasElementsSliceOrMap(copySettings) || d.HasChange("copy_settings"))
+}
+
+// checkReplicationSpecOnly verifies that all elements in tfList use either `replication_spec_id` or `zone_id`
+// Returns an error if any element has both `replication_spec_id` and `zone_id` set.
+func checkOnlyReplicationSpecIDSet(tfList []any) (bool, error) {
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]any)
+		if !ok {
+			return false, fmt.Errorf("element is not a valid map[string]any")
+		}
+
+		repSpecID, repOk := tfMap["replication_spec_id"].(string)
+		zoneID, zoneOk := tfMap["zone_id"].(string)
+
+		switch {
+		case repOk && repSpecID != "" && zoneOk && zoneID != "":
+			return false, fmt.Errorf("both 'replication_spec_id' and 'zone_id' are set for an element")
+		case !repOk || repSpecID == "":
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
