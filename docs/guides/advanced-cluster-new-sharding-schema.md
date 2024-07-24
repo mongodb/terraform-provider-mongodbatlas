@@ -6,12 +6,11 @@ page_title: "Migration - Advanced Cluster New Sharding Schema"
 
 **Objective**: Guide users to migrate their existing advanced_cluster configurations to use the new sharding schema which was introduced in version `1.18.0`. Additionally, a section is included to describe how Independent Shard Scaling can be used once the new sharding schema is adopted. Exiting sharding configurations will continue to work but will have deprecation messages if not using the new sharding schema.
 
-- [Migration - Advanced Cluster New Sharding Schema](#migration---advanced-cluster-new-sharding-schema)
-- [Overview of schema changes](#overview-of-schema-changes)
-  - [Migrating existing advanced\_cluster type SHARDED](#migrating-existing-advanced_cluster-type-sharded)
-  - [Migrating existing advanced\_cluster type GEOSHARDED](#migrating-existing-advanced_cluster-type-geosharded)
-  - [Migrating existing advanced\_cluster type REPLICASET](#migrating-existing-advanced_cluster-type-replicaset)
-  - [Leveraging Independent Shard Scaling](#leveraging-independent-shard-scaling)
+- [Overview of schema changes](#overview)
+- [Migrating existing advanced_cluster type SHARDED](#migration-sharded)
+- [Migrating existing advanced_cluster type GEOSHARDED](#migration-geosharded)
+- [Migrating existing advanced_cluster type REPLICASET](#migration-replicaset)
+- [Leveraging Independent Shard Scaling](#leveraging-iss)
 
 <a id="overview"></a>
 # Overview of schema changes
