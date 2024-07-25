@@ -296,7 +296,7 @@ func GetDiskSizeGBFromReplicationSpec(cluster *admin.ClusterDescription20250101)
 	return configs[0].ElectableSpecs.GetDiskSizeGB()
 }
 
-func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admin20231115.ClustersApi) retry.StateRefreshFunc {
+func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		cluster, resp, err := client.GetCluster(ctx, projectID, name).Execute()
 

@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	mockadmin20231115 "go.mongodb.org/atlas-sdk/v20231115014/mockadmin"
 
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 	"go.mongodb.org/atlas-sdk/v20240530002/mockadmin"
@@ -199,7 +198,7 @@ type Result struct {
 
 func TestUpgradeRefreshFunc(t *testing.T) {
 	testCases := []struct {
-		mockCluster    *admin20231115.AdvancedClusterDescription
+		mockCluster    *admin.ClusterDescription20250101
 		mockResponse   *http.Response
 		expectedResult Result
 		mockError      error
@@ -261,11 +260,11 @@ func TestUpgradeRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful",
-			mockCluster:   &admin20231115.AdvancedClusterDescription{StateName: conversion.StringPtr("stateName")},
+			mockCluster:   &admin.ClusterDescription20250101{StateName: conversion.StringPtr("stateName")},
 			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
-				response: &admin20231115.AdvancedClusterDescription{StateName: conversion.StringPtr("stateName")},
+				response: &admin.ClusterDescription20250101{StateName: conversion.StringPtr("stateName")},
 				state:    "stateName",
 				error:    nil,
 			},
@@ -274,9 +273,9 @@ func TestUpgradeRefreshFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := mockadmin20231115.NewClustersApi(t)
+			testObject := mockadmin.NewClustersApi(t)
 
-			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin20231115.GetClusterApiRequest{ApiService: testObject}).Once()
+			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetClusterApiRequest{ApiService: testObject}).Once()
 			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
 
 			result, stateName, err := advancedcluster.UpgradeRefreshFunc(context.Background(), dummyClusterName, dummyProjectID, testObject)()

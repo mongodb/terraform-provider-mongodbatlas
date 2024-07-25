@@ -43,9 +43,6 @@ const (
 	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 )
 
-type acCtxKey string
-
-var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
 var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
 
 func Resource() *schema.Resource {
@@ -710,26 +707,18 @@ func isUsingOldAPISchemaStructure(d *schema.ResourceData) bool {
 
 func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
-		upgradeCtx := context.WithValue(ctx, upgradeRequestCtxKey, upgradeRequest)
-		return resourceUpgrade(upgradeCtx, d, meta)
+		return resourceUpgrade(ctx, upgradeRequest, d, meta)
 	}
-
 	return resourceUpdate(ctx, d, meta)
 }
 
-func resourceUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	upgradeRequest := ctx.Value(upgradeRequestCtxKey).(*admin20231115.LegacyAtlasTenantClusterUpgradeRequest)
-
-	if upgradeRequest == nil {
-		return diag.FromErr(fmt.Errorf("upgrade called without %s in ctx", string(upgradeRequestCtxKey)))
-	}
-
-	upgradeResponse, _, err := upgradeCluster(ctx, connV220231115, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
+	upgradeResponse, _, err := upgradeCluster(ctx, connV2, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
@@ -1074,7 +1063,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func upgradeCluster(ctx context.Context, connV2 *admin20231115.APIClient, request *admin20231115.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin20231115.LegacyAtlasCluster, *http.Response, error) {
+func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *http.Response, error) {
 	request.Name = name
 
 	cluster, resp, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
@@ -1150,7 +1139,7 @@ func replicationSpecsHashSet(v any) int {
 	return schema.HashString(buf.String())
 }
 
-func getUpgradeRequest(d *schema.ResourceData) *admin20231115.LegacyAtlasTenantClusterUpgradeRequest {
+func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUpgradeRequest {
 	if !d.HasChange("replication_specs") {
 		return nil
 	}
@@ -1171,8 +1160,8 @@ func getUpgradeRequest(d *schema.ResourceData) *admin20231115.LegacyAtlasTenantC
 		return nil
 	}
 
-	return &admin20231115.LegacyAtlasTenantClusterUpgradeRequest{
-		ProviderSettings: &admin20231115.ClusterProviderSettings{
+	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+		ProviderSettings: &admin.ClusterProviderSettings{
 			ProviderName:     updatedRegion.GetProviderName(),
 			InstanceSizeName: updatedRegion.ElectableSpecs.InstanceSize,
 			RegionName:       updatedRegion.RegionName,
