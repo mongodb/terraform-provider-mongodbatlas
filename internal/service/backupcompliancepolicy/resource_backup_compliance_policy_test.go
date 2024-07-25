@@ -58,7 +58,6 @@ func TestAccBackupCompliancePolicy_update(t *testing.T) {
 }
 
 func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
-	acc.SkipTestForCI(t) // TODO: CLOUDP-262014 for ensuring replicationSpec.id is being populated for replica set and symmetric sharded clusters
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup compliance policy
@@ -70,10 +69,9 @@ func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 			ProjectID:            projectIDTerraform,
 			MongoDBMajorVersion:  "6.0",
 			CloudBackup:          true,
-			DiskSizeGb:           12,
 			RetainBackupsEnabled: true,
 			ReplicationSpecs: []acc.ReplicationSpecRequest{
-				{EbsVolumeType: "STANDARD", AutoScalingDiskGbEnabled: true, NodeCount: 3},
+				{EbsVolumeType: "STANDARD", AutoScalingDiskGbEnabled: true, NodeCount: 3, DiskSizeGb: 12},
 			},
 		}
 		clusterInfo = acc.GetClusterInfo(t, &req)
