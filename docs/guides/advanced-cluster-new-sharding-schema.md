@@ -8,9 +8,9 @@ page_title: "Migration Guide: Advanced Cluster New Sharding Schema"
 
 - [Migration Guide: Advanced Cluster New Sharding Schema](#migration-guide-advanced-cluster-new-sharding-schema)
   - [Overview of schema changes](#overview-of-schema-changes)
-    - [Migrate existing advanced\_cluster type SHARDED](#migrate-existing-advanced_cluster-type-sharded)
+    - [Migrate existing advanced\_cluster type `SHARDED`](#migrate-existing-advanced_cluster-type-sharded)
     - [Migrate existing advanced\_cluster type `GEOSHARDED`](#migrate-existing-advanced_cluster-type-geosharded)
-    - [Migrate existing advanced\_cluster type REPLICASET](#migrate-existing-advanced_cluster-type-replicaset)
+    - [Migrate existing advanced\_cluster type `REPLICASET`](#migrate-existing-advanced_cluster-type-replicaset)
     - [Use Independent Shard Scaling](#use-independent-shard-scaling)
 
 <a id="overview"></a>
@@ -20,9 +20,9 @@ page_title: "Migration Guide: Advanced Cluster New Sharding Schema"
 When you use the new sharding schema, the schema no longer uses the existing attribute `num_shards`, and instead the number of shards are defined by the number of `replication_specs` elements.
 
 <a id="migration-sharded"></a>
-### Migrate existing advanced_cluster type SHARDED
+### Migrate existing advanced_cluster type `SHARDED`
 
-Consider the following configuration of a SHARDED cluster using the deprecated `num_shards`:
+Consider the following configuration of a `SHARDED` cluster using the deprecated `num_shards`:
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = var.project_id
@@ -193,7 +193,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 This updated configuration triggers a Terraform update plan. However, the underlying cluster will not face any changes after the `apply` command, as both configurations represent a geo sharded cluster with 2 zones and 2 shards in each one.
 
 <a id="migration-replicaset"></a>
-### Migrate existing advanced_cluster type REPLICASET
+### Migrate existing advanced_cluster type `REPLICASET`
 
 To learn more, see the documentation on [transitioning from a replicaset to a sharded cluster](https://www.mongodb.com/docs/atlas/scale-cluster/#convert-a-replica-set-to-a-sharded-cluster).
 
