@@ -902,6 +902,10 @@ func updateRequestOldAPI(d *schema.ResourceData, clusterName string) (*admin2023
 		cluster.DiskSizeGB = conversion.Pointer(d.Get("disk_size_gb").(float64))
 	}
 
+	if changedValue := obtainChangeForDiskSizeGBInFirstSpec(d); changedValue != nil {
+		cluster.DiskSizeGB = changedValue
+	}
+
 	if d.HasChange("encryption_at_rest_provider") {
 		cluster.EncryptionAtRestProvider = conversion.StringPtr(d.Get("encryption_at_rest_provider").(string))
 	}
@@ -989,6 +993,18 @@ func checkNewSchemaCompatibility(specs []any) bool {
 		}
 	}
 	return true
+}
+
+// When legacy schema structure is used we invoke the old API for updates. This API sends diskSizeGB at root level.
+// This function is used to detect if changes are made in the inner spec levels. It assumes that all disk_size_gb values at the inner spec level have the same value.
+func obtainChangeForDiskSizeGBInFirstSpec(d *schema.ResourceData) *float64 {
+	if d.HasChange("replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb") {
+		return admin.PtrFloat64(d.Get("replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb").(float64))
+	}
+	if d.HasChange("replication_specs.0.region_configs.0.read_only_specs.0.disk_size_gb") {
+		return admin.PtrFloat64(d.Get("replication_specs.0.region_configs.0.read_only_specs.0.disk_size_gb").(float64))
+	}
+	return nil
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
