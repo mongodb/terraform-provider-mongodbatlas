@@ -971,10 +971,13 @@ func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *f
 		apiObject.NodeCount = conversion.Pointer(v.(int))
 	}
 
-	apiObject.DiskSizeGB = rootDiskSizeGB
-	// disk size gb defined in inner level will take precedence over root level.
 	if v, ok := tfMap["disk_size_gb"]; ok && v.(float64) != 0 {
 		apiObject.DiskSizeGB = conversion.Pointer(v.(float64))
+	}
+
+	// value defined in root is set if it is defined in the create, or value has changed in the update.
+	if rootDiskSizeGB != nil {
+		apiObject.DiskSizeGB = rootDiskSizeGB
 	}
 
 	return apiObject
