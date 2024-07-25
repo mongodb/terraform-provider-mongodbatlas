@@ -560,12 +560,12 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M30", 3000, 3000),
-				Check:  checkShardedNewSchema("M30", "M30", "3000", "3000", false),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M30", 3000, 3000, false),
+				Check:  checkShardedNewSchema("M30", "M30", "3000", "3000", false, false),
 			},
-			{ // TODO: add additional replication spec
-				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M40", 3000, 3000),
-				Check:  checkShardedNewSchema("M30", "M40", "3000", "3000", true),
+			{
+				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M40", 3000, 3000, true),
+				Check:  checkShardedNewSchema("M30", "M40", "3000", "3000", true, true),
 			},
 		},
 	})
@@ -584,8 +584,8 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M40", 3000, 3000), // TODO: disk iops is failing if value is different
-				Check:  checkShardedNewSchema("M30", "M40", "3000", "3000", true),                         // replication spec old ids not populated for asymmetric cluster
+				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M40", 3000, 3000, false), // TODO: disk iops is failing if value is different
+				Check:  checkShardedNewSchema("M30", "M40", "3000", "3000", true, false),                         // replication spec old ids not populated for asymmetric cluster
 			},
 		},
 	})
@@ -1352,7 +1352,30 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel(diskSizeGB int) resource.Test
 		})
 }
 
-func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2 string, diskIopsSpec1, diskIopsSpec2 int) string {
+func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2 string, diskIopsSpec1, diskIopsSpec2 int, includeThirdSpec bool) string {
+	var thirdReplicationSpec string
+	if includeThirdSpec {
+		thirdReplicationSpec = fmt.Sprintf(`
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = %[1]q
+						disk_iops = %[2]d
+						node_count    = 3
+						disk_size_gb  = 60
+					}
+					analytics_specs {
+						instance_size = %[1]q
+						node_count    = 1
+						disk_size_gb  = 60
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
+				}
+			}
+		`, instanceSizeSpec1, diskIopsSpec1)
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1402,6 +1425,8 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 					region_name   = "EU_WEST_1"
 				}
 			}
+
+			%[8]s
 		}
 
 		data "mongodbatlas_advanced_cluster" "test" {
@@ -1414,13 +1439,19 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
 		}
-	`, orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2)
+	`, orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2, thirdReplicationSpec)
 }
 
-func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string, isAsymmetricCluster bool) resource.TestCheckFunc {
+func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string, isAsymmetricCluster, includesThirdSpec bool) resource.TestCheckFunc {
+	var amtOfReplicationSpecs int
+	if includesThirdSpec {
+		amtOfReplicationSpecs = 3
+	} else {
+		amtOfReplicationSpecs = 2
+	}
 	clusterChecks := map[string]string{
 		"disk_size_gb":        "60",
-		"replication_specs.#": "2",
+		"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
 		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec1,
 		"replication_specs.1.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec2,
 		"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":  "60",
