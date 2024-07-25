@@ -4,7 +4,9 @@ subcategory: "Older Guides"
 ---
 
 # Migration Guide: Programmatic API Key (v1.10.0)
-In Terraform MongoDB Atlas Provider v1.10.0, we've focused on refining the management of MongoDB Atlas Programmatic API Keys (PAK) for enhanced sustainability and ease of use over the long term. Hence, rather than embedding the PAK project assignment lifecycle in the `mongodbatlas_project` resource, as done previously, we've implemented a more efficient and intuitive assignment process by including in `mongodbatlas_project_api_key` resource. This guide aims to provide you with a smooth transition from the initial release version of PAK management in v1.8.0 to the new version as part of v1.10.0.
+In Terraform MongoDB Atlas Provider v1.10.0, we improved MongoDB Atlas Programmatic API Keys (PAK) management.
+
+. Previously, you embedded the PAK project assignment lifecycle in the `mongodbatlas_project` resource. In this release, we added a new resource, `mongodbatlas_project_api_key`. Use this guide to start using this new PAK resource.
 
 To learn more, see the [1.10.0 Upgrade Guide](1.10.0-upgrade-guide).
 

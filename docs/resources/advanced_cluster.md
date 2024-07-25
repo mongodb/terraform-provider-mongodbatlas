@@ -594,9 +594,9 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
     - Set to `true` to enable disk auto-scaling.
     - Set to `false` to disable disk auto-scaling.
 
-~> **IMPORTANT:** If `disk_gb_enabled` is true, then Atlas will automatically scale disk size up and down.
-This will cause the value of `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` returned to potentially be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster disk size back to the original `disk_size_gb` value.
-To prevent this a lifecycle customization should be used:  
+~> **IMPORTANT:** If `disk_gb_enabled` is true, Atlas automatically scales the cluster up or down.
+This will cause the value of `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` returned to potentially be different than what is specified in the Terraform config and if you use, and then apply, not noting this, Terraform will scale the cluster disk size back to the original `disk_size_gb` value.
+To prevent disk scaling use a lifecycle customization:
 `lifecycle {
   ignore_changes = [replication_specs.#.region_config.#.electable_specs.disk_size_gb]
 }`
@@ -616,9 +616,9 @@ lifecycle {
 
 * `compute_enabled` - (Optional) Flag that indicates whether instance size auto-scaling is enabled. This parameter defaults to false.
 
-~> **IMPORTANT:** If `compute_enabled` is true, then Atlas will automatically scale up to the maximum provided and down to the minimum, if provided.
-This will cause the value of `instance_size` returned to potentially be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster back to the original `instance_size` value.
-To prevent this a lifecycle customization should be used:  
+~> **IMPORTANT:** If `compute_enabled` is true, Atlas automatically scales the cluster to the maximum provided and down to the minimum, if provided.
+This will cause the value of `instance_size` returned to potentially be different than what is specified in the Terraform config and if you then apply a plan, not noting this, Terraform will scale the cluster back to the original `instance_size` value.
+To prevent disk scaling, use a lifecycle customization, as in the following example:
 `lifecycle {
   ignore_changes = [instance_size]
 }`
@@ -634,8 +634,8 @@ After adding the `lifecycle` block to explicitly change `instance_size` comment 
 * `compute_enabled` - (Optional) Flag that indicates whether instance size auto-scaling is enabled. This parameter defaults to false.
 
 ~> **IMPORTANT:** If `compute_enabled` is true, then Atlas will automatically scale up to the maximum provided and down to the minimum, if provided.
-This will cause the value of `instance_size` returned to potential be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster back down to the original `instance_size` value.
-To prevent this a lifecycle customization should be used:  
+This will cause the value of `instance_size` returned to potential be different than what is specified in the Terraform config and if you then apply a plan, not noting this, Terraform will scale the cluster back down to the original `instance_size` value.
+To prevent compute scaling, use a lifecycle customization, as in the following example:  
 `lifecycle {
   ignore_changes = [instance_size]
 }`
@@ -679,7 +679,7 @@ In addition to all arguments above, the following attributes are exported:
     - DELETING
     - DELETED
     - REPAIRING
-* `replication_specs` - List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. If for each replication_spec `num_shards` is configured > 1 (using legacy sharding schema), then each object represents a zone with one or more shards.  Primary usage is covered under the [replication_specs argument reference](#replication_specs), though there are some computed attributes:
+* `replication_specs` - List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. If for each replication_spec `num_shards` is configured > 1 (using legacy sharding schema), then each object represents a zone with one or more shards. To learn more see the [replication_specs argument reference](#replication_specs). This setting relies on the following computed attributes:
   - `replication_specs.#.container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 
 ## Import
