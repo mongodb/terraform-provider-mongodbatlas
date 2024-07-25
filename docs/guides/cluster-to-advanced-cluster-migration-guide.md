@@ -1,12 +1,10 @@
 ---
-page_title: "Migration - Cluster to Advanced Cluster"
+page_title: "Migration Guide: Cluster to Advanced Cluster"
 ---
 
-# Migration - Cluster to Advanced Cluster
+# Migration Guide: Cluster to Advanced Cluster
 
-**Objective**: Guide users to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource.
-
--> **NOTE:** This guide focuses on the resource migration, as the data source migration only requires a `resource_type` change from `data.mongodbatlas_cluster` to `data.mongodbatlas_advanced_cluster`.  However, pay attention to the [output changes.](#output-changes)
+**Objective**: This guide explains how to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource. The data source(s) migration only requires [output changes](#output-changes) updates as they don't manage actual clusters.
 
 ## Main Changes Between `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`
 
@@ -14,7 +12,7 @@ page_title: "Migration - Cluster to Advanced Cluster"
 2. Provider Settings: Moved from the top level to the replication spec allowing you to create multi-cloud clusters.
 3. Auto Scaling: Moved from the top level to the replication spec allowing you to scale replication specs individually.
 4. Backup Configuration: Renamed from `cloud_backup` to `backup_enabled`.
-5. See also ["Migration to new sharding schema and leveraging Independent Shard Scaling"](advanced-cluster-new-sharding-schema#migration-sharded)
+5. See the ["Migration Guide: Advanced Cluster New Sharding Schema"](advanced-cluster-new-sharding-schema#migration-sharded) for changes to `num_shards` and the new `zone_id`.
 
 ### Example 1: Old Configuration (`mongodbatlas_cluster`)
 
@@ -77,21 +75,21 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ### Output Changes
 
 - `container_id`:
-  - before: `mongodbatlas_cluster.this.replication_specs[0].container_id` was a flat string, e.g., `669644ae01bf814e3d25b963`
-  - after: `mongodbatlas_advanced_cluster.this.replication_specs[0].container_id` is a map, e.g., `{"AWS:US_EAST_1": "669644ae01bf814e3d25b963"}`
-  - tip: If you have a single region you can access the `container_id` directly with: `one(values(mongodbatlas_advanced_cluster.this.replication_specs[0].container_id))`
+  - Before: `mongodbatlas_cluster.this.replication_specs[0].container_id` was a flat string, such as: `669644ae01bf814e3d25b963`
+  - After: `mongodbatlas_advanced_cluster.this.replication_specs[0].container_id` is a map, such as: `{"AWS:US_EAST_1": "669644ae01bf814e3d25b963"}`
+  - If you have a single region you can access the `container_id` directly with: `one(values(mongodbatlas_advanced_cluster.this.replication_specs[0].container_id))`
 
 ## Best Practices Before Migrating
-Before doing any migration it is recommended to make a backup of your [Terraform state file.](https://developer.hashicorp.com/terraform/cli/commands/state)
+Before doing any migration create a backup of your [Terraform state file.](https://developer.hashicorp.com/terraform/cli/commands/state)
 
 ## Migration using `terraform plan -generate-config-out=adv_cluster.tf`
-This method uses only Terraform native tools and is ideal for customers who:
-1. Have an existing cluster without any Terraform configuration and want to manage their cluster with Terraform.
+This method uses only Terraform native tools and is ideal if you:
+1. Have an existing cluster without any Terraform configuration and want to manage your cluster with Terraform.
 2. Have existing `mongodbatlas_cluster` resource(s) and don't want to use an external script for migrating.
 
-### Steps
+### Procedure
 
-1. Find the import IDs of the clusters you want to migrate: `{PROJECT_ID}-{CLUSTER_NAME}`, e.g., `664619d870c247237f4b86a6-legacy-cluster`
+1. Find the import IDs of the clusters you want to migrate: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6-legacy-cluster`
 2. Add an import block per cluster to one of your `.tf` files:
   ```terraform
   import {
@@ -164,21 +162,20 @@ This method uses only Terraform native tools and is ideal for customers who:
   }
   ```
 4. Run `terraform apply`. You should see the resource(s) imported: `Apply complete! Resources: 1 imported, 0 added, 0 changed, 0 destroyed.`
-5. Remove the "default" fields. Many fields of this resource are optional. Look for fields with a `null` or `0` value or blocks you didn't specify before, e.g:
+5. Remove the "default" fields. Many fields of this resource are optional. Look for fields with a `null` or `0` value or blocks you didn't specify before, for example:
    - `advanced_configuration`
    - `connection_strings`
    - `cluster_id`
    - `bi_connector_config`
-6. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated config will have static values. Look in your old configuration for:
-   - variables, e.g., `var.project_id`
-   - Terraform keywords, e.g., `for_each`, `count`, `depends_on`, etc.
-7. Re-run `terraform apply` to ensure you have no plan changes: `No changes. Your infrastructure matches the configuration.`
-8. Update the references from your old cluster resource: `mongodbatlas_cluster.this.XXXX` to the new `mongodbatlas_advanced_cluster.this.XXX`.
+6. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration will have static values. Look in your previous configuration for:
+   - variables, for example: `var.project_id`
+   - Terraform keywords, for example: `for_each`, `count`, and `depends_on`
+7. Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
+8. Update the references from your previous cluster resource: `mongodbatlas_cluster.this.XXXX` to the new `mongodbatlas_advanced_cluster.this.XXX`.
    - Double check [output-changes](#output-changes) to ensure the underlying configuration stays unchanged.
-9.  Replace your existing clusters with the ones from `adv_cluster.tf` and run `terraform state rm mongodbatlas_cluster.this`.
-   - Without this step, Terraform will create a plan to destroy your existing cluster.
-10. Remove the import block created in step 2.
-11. Re-run `terraform apply` to ensure you have no plan changes: `No changes. Your infrastructure matches the configuration.`
+9.  Replace your existing clusters with the ones from `adv_cluster.tf` and run `terraform state rm mongodbatlas_cluster.this`. Without this step, Terraform will create a plan to delete your existing cluster.
+1.  Remove the import block created in step 2.
+2.  Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
 
 ### Explanation
-Using the `project_id` and `cluster.name` Terraform imports your cluster and uses the new `mongodbatlas_advanced_cluster` schema to dump a configuration file. This dump includes all configurable values in the schema, but none of the configuration defined for your `mongodbatlas_cluster`. Therefore, it will likely be a lot more verbose and contain none of your original [Terraform expressions.](https://developer.hashicorp.com/terraform/language/expressions)
+Using the `project_id` and `cluster.name`, Terraform imports your cluster and uses the new `mongodbatlas_advanced_cluster` schema to generate a configuration file. This file includes all configurable values in the schema, but none of the previous configuration defined for your `mongodbatlas_cluster`. Therefore, the new configuration will likely be a lot more verbose and contain none of your original [Terraform expressions.](https://developer.hashicorp.com/terraform/language/expressions)

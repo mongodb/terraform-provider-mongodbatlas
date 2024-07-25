@@ -2,7 +2,7 @@
 subcategory: "Deprecated"    
 ---
 
-**WARNING:** This data source is deprecated, use `mongodbatlas_advanced_clusters`. To learn more about how to migrate, please read the [Migration Guide](../guides/cluster-to-advanced-cluster-migration-guide).
+**WARNING:** This data source is deprecated, use `mongodbatlas_advanced_clusters`. To learn more see the [Migration Guide: Cluster to Advanced Cluster](../guides/cluster-to-advanced-cluster-migration-guide).
 
 # Data Source: mongodbatlas_clusters
 
