@@ -318,7 +318,7 @@ func Resource() *schema.Resource {
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var diags diag.Diagnostics
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115 // Adopting latest API to be investigated in CLOUDP-260714
+	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -336,7 +336,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		diags = append(diags, diagWarning)
 	}
 
-	if err := cloudBackupScheduleCreateOrUpdate(ctx, connV220231115, connV2, d, projectID, clusterName); err != nil {
+	if err := cloudBackupScheduleCreateOrUpdate(ctx, connV220231115, connV2, d, projectID, clusterName, true); err != nil {
 		diags = append(diags, diag.Errorf(errorSnapshotBackupScheduleCreate, err)...)
 		return diags
 	}
@@ -362,13 +362,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	var resp *http.Response
 	var err error
 
-	useOldAPI, err := shouldUseOldAPI(d)
+	useOldAPI, err := shouldUseOldAPI(d, false)
 	if err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
 
 	if useOldAPI {
 		backupScheduleOldSDK, resp, err = connV220231115.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+		// TODO handle asymmetric error, ask user to set zone_id for asymmetric cluster ????
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				d.SetId("")
@@ -477,7 +478,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	err := cloudBackupScheduleCreateOrUpdate(ctx, connV220231115, connV2, d, projectID, clusterName)
+	err := cloudBackupScheduleCreateOrUpdate(ctx, connV220231115, connV2, d, projectID, clusterName, false)
 	if err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleUpdate, err)
 	}
@@ -533,11 +534,11 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string) error {
+func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string, isCreate bool) error {
 	var err error
 	copySettings := d.Get("copy_settings")
 
-	useOldAPI, err := shouldUseOldAPI(d)
+	useOldAPI, err := shouldUseOldAPI(d, isCreate)
 	if err != nil {
 		return err
 	}
@@ -675,11 +676,12 @@ func flattenCopySettings(copySettingList []admin.DiskBackupCopySetting20250101) 
 	copySettings := make([]map[string]any, 0)
 	for _, v := range copySettingList {
 		copySettings = append(copySettings, map[string]any{
-			"cloud_provider":     v.GetCloudProvider(),
-			"frequencies":        v.GetFrequencies(),
-			"region_name":        v.GetRegionName(),
-			"zone_id":            v.GetZoneId(),
-			"should_copy_oplogs": v.GetShouldCopyOplogs(),
+			"cloud_provider":      v.GetCloudProvider(),
+			"frequencies":         v.GetFrequencies(),
+			"region_name":         v.GetRegionName(),
+			"zone_id":             v.GetZoneId(),
+			"replication_spec_id": nil,
+			"should_copy_oplogs":  v.GetShouldCopyOplogs(),
 		})
 	}
 	return copySettings
@@ -775,10 +777,10 @@ func policyItemID(policyState map[string]any) *string {
 	return nil
 }
 
-func shouldUseOldAPI(d *schema.ResourceData) (bool, error) {
+func shouldUseOldAPI(d *schema.ResourceData, isCreate bool) (bool, error) {
 	copySettings := d.Get("copy_settings")
 	if isCopySettingsNonEmptyOrChanged(d) {
-		return checkCopySettingsHasReplicationSpecIDOnly(copySettings.([]any))
+		return checkCopySettings(copySettings.([]any), isCreate)
 	}
 	return false, nil
 }
@@ -788,12 +790,10 @@ func isCopySettingsNonEmptyOrChanged(d *schema.ResourceData) bool {
 	return copySettings != nil && (conversion.HasElementsSliceOrMap(copySettings) || d.HasChange("copy_settings"))
 }
 
-// checkReplicationSpecOnly verifies that all elements in tfList use either `replication_spec_id` or `zone_id`
-// Returns an error if any element has both `replication_spec_id` and `zone_id` set.
-func checkCopySettingsHasReplicationSpecIDOnly(tfList []any) (bool, error) {
-	if !conversion.HasElementsSliceOrMap(tfList) {
-		return false, nil
-	}
+// checkCopySettings verifies that all elements in tfList use either `replication_spec_id` or `zone_id`
+// Returns an error if any element has both `replication_spec_id` and `zone_id` set during create
+func checkCopySettings(tfList []any, isCreate bool) (bool, error) {
+	allHaveRepID := true
 
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
@@ -804,13 +804,26 @@ func checkCopySettingsHasReplicationSpecIDOnly(tfList []any) (bool, error) {
 		repSpecID, repOk := tfMap["replication_spec_id"].(string)
 		zoneID, zoneOk := tfMap["zone_id"].(string)
 
-		switch {
-		case repOk && repSpecID != "" && zoneOk && zoneID != "":
-			return false, fmt.Errorf("both 'replication_spec_id' and 'zone_id' are set for an element")
-		case !repOk || repSpecID == "":
-			return false, nil
+		if repOk && repSpecID != "" && zoneOk && zoneID != "" {
+			if isCreate {
+				return false, fmt.Errorf("both 'replication_spec_id' and 'zone_id' cannot be set unless resource is being updated")
+			} else {
+				return false, nil
+			}
+		}
+
+		if (repOk && repSpecID != "" && zoneOk && zoneID != "") || (!repOk && !zoneOk) {
+			return false, fmt.Errorf("each element must have either 'replication_spec_id' or 'zone_id' set, but not both")
+		}
+
+		if !repOk || repSpecID == "" {
+			allHaveRepID = false
 		}
 	}
 
-	return true, nil
+	if allHaveRepID {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
