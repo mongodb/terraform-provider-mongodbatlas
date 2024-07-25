@@ -12,7 +12,7 @@ page_title: "Migration Guide: Cluster to Advanced Cluster"
 2. Provider Settings: Moved from the top level to the replication spec allowing you to create multi-cloud clusters.
 3. Auto Scaling: Moved from the top level to the replication spec allowing you to scale replication specs individually.
 4. Backup Configuration: Renamed from `cloud_backup` to `backup_enabled`.
-5. See the ["Migration Guide: Advanced Cluster New Sharding Schema"](advanced-cluster-new-sharding-schema#migration-sharded) for changes to `num_shards` and the new `zone_id`.
+5. See the [Migration Guide: Advanced Cluster New Sharding Schema](advanced-cluster-new-sharding-schema#migration-sharded) for changes to `num_shards` and the new `zone_id`.
 
 ### Example 1: Old Configuration (`mongodbatlas_cluster`)
 
@@ -83,7 +83,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 Before doing any migration create a backup of your [Terraform state file.](https://developer.hashicorp.com/terraform/cli/commands/state)
 
 ## Migration using `terraform plan -generate-config-out=adv_cluster.tf`
-This method uses only Terraform native tools and is ideal if you:
+This method uses only [Terraform native tools](https://developer.hashicorp.com/terraform/language/import/generating-configuration) and is ideal if you:
 1. Have an existing cluster without any Terraform configuration and want to manage your cluster with Terraform.
 2. Have existing `mongodbatlas_cluster` resource(s) and don't want to use an external script for migrating.
 
@@ -177,5 +177,5 @@ This method uses only Terraform native tools and is ideal if you:
 1.  Remove the import block created in step 2.
 2.  Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
 
-### Explanation
+### Terraform Actions
 Using the `project_id` and `cluster.name`, Terraform imports your cluster and uses the new `mongodbatlas_advanced_cluster` schema to generate a configuration file. This file includes all configurable values in the schema, but none of the previous configuration defined for your `mongodbatlas_cluster`. Therefore, the new configuration will likely be a lot more verbose and contain none of your original [Terraform expressions.](https://developer.hashicorp.com/terraform/language/expressions)

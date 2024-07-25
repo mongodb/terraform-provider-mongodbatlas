@@ -54,4 +54,4 @@ In addition to all arguments above, the following attributes are exported:
 * `network_name` - Name of the network peer to which Atlas connects.
 * `error_message` - When `"status" : "FAILED"`, Atlas provides a description of the error.
 
-To learn more about arguments and attributes, see the [MongoDB API Network Peering Connection documentation.](https://docs.atlas.mongodb.com/reference/api/vpc-get-connection/)
+To learn more about arguments and attributes, see the [MongoDB API Network Peering Connection](https://docs.atlas.mongodb.com/reference/api/vpc-get-connection/) documentation.
