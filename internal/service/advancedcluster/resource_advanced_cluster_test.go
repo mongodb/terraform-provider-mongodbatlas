@@ -563,6 +563,10 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T)
 				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M30", 3000, 3000),
 				Check:  checkShardedNewSchema("M30", "M30", "3000", "3000", false),
 			},
+			{ // TODO: add additional replication spec
+				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M40", 3000, 3000),
+				Check:  checkShardedNewSchema("M30", "M40", "3000", "3000", false),
+			},
 		},
 	})
 }
