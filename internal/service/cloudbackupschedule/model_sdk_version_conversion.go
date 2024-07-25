@@ -30,6 +30,42 @@ func convertPolicyItemsToOldSDK(slice *[]admin.DiskBackupApiPolicyItem) []admin2
 	return results
 }
 
+func convertPoliciesToLatest(slice *[]admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy) *[]admin.AdvancedDiskBackupSnapshotSchedulePolicy {
+	if slice == nil {
+		return nil
+	}
+
+	policySlice := *slice
+	results := make([]admin.AdvancedDiskBackupSnapshotSchedulePolicy, len(policySlice))
+	for i := range len(policySlice) {
+		policyItem := policySlice[i]
+		results[i] = admin.AdvancedDiskBackupSnapshotSchedulePolicy{
+			Id:          policyItem.Id,
+			PolicyItems: convertPolicyItemsToLatest(policyItem.PolicyItems),
+		}
+	}
+	return &results
+}
+
+func convertPolicyItemsToLatest(slice *[]admin20231115.DiskBackupApiPolicyItem) *[]admin.DiskBackupApiPolicyItem {
+	if slice == nil {
+		return nil
+	}
+	policyItemsSlice := *slice
+	results := make([]admin.DiskBackupApiPolicyItem, len(policyItemsSlice))
+	for i := range len(policyItemsSlice) {
+		policyItem := policyItemsSlice[i]
+		results[i] = admin.DiskBackupApiPolicyItem{
+			FrequencyInterval: policyItem.FrequencyInterval,
+			FrequencyType:     policyItem.FrequencyType,
+			Id:                policyItem.Id,
+			RetentionUnit:     policyItem.RetentionUnit,
+			RetentionValue:    policyItem.RetentionValue,
+		}
+	}
+	return &results
+}
+
 func expandAutoExportPolicy(items []any, d *schema.ResourceData) *admin.AutoExportPolicy {
 	itemObj := items[0].(map[string]any)
 
@@ -48,6 +84,17 @@ func convertAutoExportPolicyToOldSDK(exportPolicy *admin.AutoExportPolicy) *admi
 	}
 
 	return &admin20231115.AutoExportPolicy{
+		ExportBucketId: exportPolicy.ExportBucketId,
+		FrequencyType:  exportPolicy.FrequencyType,
+	}
+}
+
+func convertAutoExportPolicyToLatest(exportPolicy *admin20231115.AutoExportPolicy) *admin.AutoExportPolicy {
+	if exportPolicy == nil {
+		return nil
+	}
+
+	return &admin.AutoExportPolicy{
 		ExportBucketId: exportPolicy.ExportBucketId,
 		FrequencyType:  exportPolicy.FrequencyType,
 	}
@@ -82,7 +129,6 @@ func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolici
 func convertBackupScheduleReqToOldSDK(req *admin.DiskBackupSnapshotSchedule20250101,
 	copySettingsOldSDK *[]admin20231115.DiskBackupCopySetting,
 	policiesOldSDK *[]admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy) *admin20231115.DiskBackupSnapshotSchedule {
-
 	return &admin20231115.DiskBackupSnapshotSchedule{
 		CopySettings:                      copySettingsOldSDK,
 		Policies:                          policiesOldSDK,
@@ -93,5 +139,19 @@ func convertBackupScheduleReqToOldSDK(req *admin.DiskBackupSnapshotSchedule20250
 		ReferenceMinuteOfHour:             req.ReferenceMinuteOfHour,
 		RestoreWindowDays:                 req.RestoreWindowDays,
 		UpdateSnapshots:                   req.UpdateSnapshots,
+	}
+}
+
+func convertBackupScheduleToLatestExcludeCopySettings(backupSchedule *admin20231115.DiskBackupSnapshotSchedule) *admin.DiskBackupSnapshotSchedule20250101 {
+	return &admin.DiskBackupSnapshotSchedule20250101{
+		// CopySettings:                      copySettingsOldSDK,
+		Policies:                          convertPoliciesToLatest(backupSchedule.Policies),
+		AutoExportEnabled:                 backupSchedule.AutoExportEnabled,
+		Export:                            convertAutoExportPolicyToLatest(backupSchedule.Export),
+		UseOrgAndGroupNamesInExportPrefix: backupSchedule.UseOrgAndGroupNamesInExportPrefix,
+		ReferenceHourOfDay:                backupSchedule.ReferenceHourOfDay,
+		ReferenceMinuteOfHour:             backupSchedule.ReferenceMinuteOfHour,
+		RestoreWindowDays:                 backupSchedule.RestoreWindowDays,
+		UpdateSnapshots:                   backupSchedule.UpdateSnapshots,
 	}
 }

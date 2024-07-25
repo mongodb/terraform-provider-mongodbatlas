@@ -351,21 +351,60 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
-	// connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
+	var backupSchedule *admin.DiskBackupSnapshotSchedule20250101
+	var backupScheduleOldSDK *admin20231115.DiskBackupSnapshotSchedule
+	var copySettings []map[string]any
+	var resp *http.Response
+	var err error
 
-	backupPolicy, resp, err := connV220231115.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+	useOldAPI, err := shouldUseOldAPI(d)
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
-			return nil
-		}
 		return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
 
+	if useOldAPI {
+		backupScheduleOldSDK, resp, err = connV220231115.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				d.SetId("")
+				return nil
+			}
+			return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
+		}
+
+		copySettings = flattenCopySettingsOldSDK(backupScheduleOldSDK.GetCopySettings())
+		backupSchedule = convertBackupScheduleToLatestExcludeCopySettings(backupScheduleOldSDK)
+	} else {
+		backupSchedule, resp, err = connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				d.SetId("")
+				return nil
+			}
+			return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
+		}
+		copySettings = flattenCopySettings(backupSchedule.GetCopySettings())
+	}
+
+	diags := setSchemaFieldsExceptCopySettings(d, backupSchedule)
+	if diags.HasError() {
+		return diags
+	}
+
+	if err := d.Set("copy_settings", copySettings); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
+	}
+
+	return nil
+}
+
+func setSchemaFieldsExceptCopySettings(d *schema.ResourceData, backupPolicy *admin.DiskBackupSnapshotSchedule20250101) diag.Diagnostics {
+	clusterName := backupPolicy.GetClusterName()
 	if err := d.Set("cluster_id", backupPolicy.GetClusterId()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "cluster_id", clusterName, err)
 	}
@@ -421,11 +460,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err := d.Set("policy_item_yearly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Yearly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_yearly", clusterName, err)
 	}
-
-	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.GetCopySettings())); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
-	}
-
 	return nil
 }
 
@@ -501,15 +535,11 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string) error {
 	var err error
-	shouldUseOldAPI := false
 	copySettings := d.Get("copy_settings")
 
-	// only if copy_settings are set and using replication_spec_id, we use the old API, for all other cases we default to using the new API
-	if isCopySettingsNonEmptyOrChanged(d) {
-		shouldUseOldAPI, err = checkOnlyReplicationSpecIDSet(copySettings.([]any))
-		if err != nil {
-			return err
-		}
+	useOldAPI, err := shouldUseOldAPI(d)
+	if err != nil {
+		return err
 	}
 
 	req := &admin.DiskBackupSnapshotSchedule20250101{}
@@ -558,7 +588,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 		req.UpdateSnapshots = value
 	}
 
-	if shouldUseOldAPI {
+	if useOldAPI {
 		resp, _, err := connV220231115.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
@@ -599,7 +629,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 	return nil
 }
 
-func flattenPolicyItem(items []admin20231115.DiskBackupApiPolicyItem, frequencyType string) []map[string]any {
+func flattenPolicyItem(items []admin.DiskBackupApiPolicyItem, frequencyType string) []map[string]any {
 	policyItems := make([]map[string]any, 0)
 	for _, v := range items {
 		if frequencyType == v.GetFrequencyType() {
@@ -615,9 +645,9 @@ func flattenPolicyItem(items []admin20231115.DiskBackupApiPolicyItem, frequencyT
 	return policyItems
 }
 
-func flattenExport(roles *admin20231115.DiskBackupSnapshotSchedule) []map[string]any {
+func flattenExport(roles *admin.DiskBackupSnapshotSchedule20250101) []map[string]any {
 	exportList := make([]map[string]any, 0)
-	emptyStruct := admin20231115.DiskBackupSnapshotSchedule{}
+	emptyStruct := admin.DiskBackupSnapshotSchedule20250101{}
 	if emptyStruct.GetExport() != roles.GetExport() {
 		exportList = append(exportList, map[string]any{
 			"frequency_type":   roles.Export.GetFrequencyType(),
@@ -627,7 +657,7 @@ func flattenExport(roles *admin20231115.DiskBackupSnapshotSchedule) []map[string
 	return exportList
 }
 
-func flattenCopySettings(copySettingList []admin20231115.DiskBackupCopySetting) []map[string]any {
+func flattenCopySettingsOldSDK(copySettingList []admin20231115.DiskBackupCopySetting) []map[string]any {
 	copySettings := make([]map[string]any, 0)
 	for _, v := range copySettingList {
 		copySettings = append(copySettings, map[string]any{
@@ -636,6 +666,20 @@ func flattenCopySettings(copySettingList []admin20231115.DiskBackupCopySetting) 
 			"region_name":         v.GetRegionName(),
 			"replication_spec_id": v.GetReplicationSpecId(),
 			"should_copy_oplogs":  v.GetShouldCopyOplogs(),
+		})
+	}
+	return copySettings
+}
+
+func flattenCopySettings(copySettingList []admin.DiskBackupCopySetting20250101) []map[string]any {
+	copySettings := make([]map[string]any, 0)
+	for _, v := range copySettingList {
+		copySettings = append(copySettings, map[string]any{
+			"cloud_provider":     v.GetCloudProvider(),
+			"frequencies":        v.GetFrequencies(),
+			"region_name":        v.GetRegionName(),
+			"zone_id":            v.GetZoneId(),
+			"should_copy_oplogs": v.GetShouldCopyOplogs(),
 		})
 	}
 	return copySettings
@@ -704,9 +748,9 @@ func expandCopySettingOldSDK(tfMap map[string]any) *admin20231115.DiskBackupCopy
 func expandPolicyItems(items []any, frequencyType string) *[]admin.DiskBackupApiPolicyItem {
 	results := make([]admin.DiskBackupApiPolicyItem, len(items))
 
-	for _, s := range items {
+	for i, s := range items {
 		itemObj := s.(map[string]any)
-		results = append(results, expandPolicyItem(itemObj, frequencyType))
+		results[i] = expandPolicyItem(itemObj, frequencyType)
 	}
 	return &results
 }
@@ -731,6 +775,14 @@ func policyItemID(policyState map[string]any) *string {
 	return nil
 }
 
+func shouldUseOldAPI(d *schema.ResourceData) (bool, error) {
+	copySettings := d.Get("copy_settings")
+	if isCopySettingsNonEmptyOrChanged(d) {
+		return checkCopySettingsHasReplicationSpecIDOnly(copySettings.([]any))
+	}
+	return false, nil
+}
+
 func isCopySettingsNonEmptyOrChanged(d *schema.ResourceData) bool {
 	copySettings := d.Get("copy_settings")
 	return copySettings != nil && (conversion.HasElementsSliceOrMap(copySettings) || d.HasChange("copy_settings"))
@@ -738,7 +790,11 @@ func isCopySettingsNonEmptyOrChanged(d *schema.ResourceData) bool {
 
 // checkReplicationSpecOnly verifies that all elements in tfList use either `replication_spec_id` or `zone_id`
 // Returns an error if any element has both `replication_spec_id` and `zone_id` set.
-func checkOnlyReplicationSpecIDSet(tfList []any) (bool, error) {
+func checkCopySettingsHasReplicationSpecIDOnly(tfList []any) (bool, error) {
+	if !conversion.HasElementsSliceOrMap(tfList) {
+		return false, nil
+	}
+
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
 		if !ok {
