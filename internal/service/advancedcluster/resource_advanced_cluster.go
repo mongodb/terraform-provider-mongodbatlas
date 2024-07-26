@@ -902,7 +902,7 @@ func updateRequestOldAPI(d *schema.ResourceData, clusterName string) (*admin2023
 		cluster.DiskSizeGB = conversion.Pointer(d.Get("disk_size_gb").(float64))
 	}
 
-	if changedValue := obtainChangeForDiskSizeGBInFirstSpec(d); changedValue != nil {
+	if changedValue := obtainChangeForDiskSizeGBInFirstRegion(d); changedValue != nil {
 		cluster.DiskSizeGB = changedValue
 	}
 
@@ -996,13 +996,19 @@ func checkNewSchemaCompatibility(specs []any) bool {
 }
 
 // When legacy schema structure is used we invoke the old API for updates. This API sends diskSizeGB at root level.
-// This function is used to detect if changes are made in the inner spec levels. It assumes that all disk_size_gb values at the inner spec level have the same value.
-func obtainChangeForDiskSizeGBInFirstSpec(d *schema.ResourceData) *float64 {
-	if d.HasChange("replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb") {
-		return admin.PtrFloat64(d.Get("replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb").(float64))
+// This function is used to detect if changes are made in the inner spec levels. It assumes that all disk_size_gb values at the inner spec level have the same value, so it looks into first region config.
+func obtainChangeForDiskSizeGBInFirstRegion(d *schema.ResourceData) *float64 {
+	electableLocation := "replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb"
+	readOnlyLocation := "replication_specs.0.region_configs.0.read_only_specs.0.disk_size_gb"
+	analyticsLocation := "replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb"
+	if d.HasChange(electableLocation) {
+		return admin.PtrFloat64(d.Get(electableLocation).(float64))
 	}
-	if d.HasChange("replication_specs.0.region_configs.0.read_only_specs.0.disk_size_gb") {
-		return admin.PtrFloat64(d.Get("replication_specs.0.region_configs.0.read_only_specs.0.disk_size_gb").(float64))
+	if d.HasChange(readOnlyLocation) {
+		return admin.PtrFloat64(d.Get(readOnlyLocation).(float64))
+	}
+	if d.HasChange(analyticsLocation) {
+		return admin.PtrFloat64(d.Get(analyticsLocation).(float64))
 	}
 	return nil
 }
