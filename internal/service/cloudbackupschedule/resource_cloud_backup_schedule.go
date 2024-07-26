@@ -807,9 +807,8 @@ func checkCopySettings(tfList []any, isCreate bool) (bool, error) {
 		if repOk && repSpecID != "" && zoneOk && zoneID != "" {
 			if isCreate {
 				return false, fmt.Errorf("both 'replication_spec_id' and 'zone_id' cannot be set unless resource is being updated")
-			} else {
-				return false, nil
 			}
+			return false, nil
 		}
 
 		if (repOk && repSpecID != "" && zoneOk && zoneID != "") || (!repOk && !zoneOk) {
@@ -823,7 +822,6 @@ func checkCopySettings(tfList []any, isCreate bool) (bool, error) {
 
 	if allHaveRepID {
 		return true, nil
-	} else {
-		return false, nil
 	}
+	return false, nil
 }
