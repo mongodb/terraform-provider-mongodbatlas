@@ -234,21 +234,21 @@ func NewTFThresholdConfigModel(t *admin.GreaterThanRawThreshold, currStateSlice 
 	if len(currStateSlice) == 0 { // threshold was created elsewhere from terraform, or import statement is being called
 		return []TfThresholdConfigModel{
 			{
-				Operator:  conversion.StringNullIfEmpty(*t.Operator),
-				Threshold: types.Float64Value(float64(*t.Threshold)), // int in new SDK but keeping float64 for backward compatibility
-				Units:     conversion.StringNullIfEmpty(*t.Units),
+				Operator:  conversion.StringNullIfEmpty(t.GetOperator()),
+				Threshold: types.Float64Value(float64(t.GetThreshold())), // int in new SDK but keeping float64 for backward compatibility
+				Units:     conversion.StringNullIfEmpty(t.GetUnits()),
 			},
 		}
 	}
 	currState := currStateSlice[0]
 	newState := TfThresholdConfigModel{}
 	if !currState.Operator.IsNull() {
-		newState.Operator = conversion.StringNullIfEmpty(*t.Operator)
+		newState.Operator = conversion.StringNullIfEmpty(t.GetOperator())
 	}
 	if !currState.Units.IsNull() {
-		newState.Units = conversion.StringNullIfEmpty(*t.Units)
+		newState.Units = conversion.StringNullIfEmpty(t.GetUnits())
 	}
-	newState.Threshold = types.Float64Value(float64(*t.Threshold))
+	newState.Threshold = types.Float64Value(float64(t.GetThreshold()))
 
 	return []TfThresholdConfigModel{newState}
 }
