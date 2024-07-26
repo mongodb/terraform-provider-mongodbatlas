@@ -1,8 +1,6 @@
 package cloudbackupschedule
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 )
@@ -66,18 +64,6 @@ func convertPolicyItemsToLatest(slice *[]admin20231115.DiskBackupApiPolicyItem) 
 	return &results
 }
 
-func expandAutoExportPolicy(items []any, d *schema.ResourceData) *admin.AutoExportPolicy {
-	itemObj := items[0].(map[string]any)
-
-	if autoExportEnabled := d.Get("auto_export_enabled"); autoExportEnabled != nil && autoExportEnabled.(bool) {
-		return &admin.AutoExportPolicy{
-			ExportBucketId: conversion.StringPtr(itemObj["export_bucket_id"].(string)),
-			FrequencyType:  conversion.StringPtr(itemObj["frequency_type"].(string)),
-		}
-	}
-	return nil
-}
-
 func convertAutoExportPolicyToOldSDK(exportPolicy *admin.AutoExportPolicy) *admin20231115.AutoExportPolicy {
 	if exportPolicy == nil {
 		return nil
@@ -100,32 +86,6 @@ func convertAutoExportPolicyToLatest(exportPolicy *admin20231115.AutoExportPolic
 	}
 }
 
-func getRequestPoliciesOldSDK(policiesItem []admin20231115.DiskBackupApiPolicyItem, respPolicies []admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy) *[]admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy {
-	if len(policiesItem) > 0 {
-		policy := admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy{
-			PolicyItems: &policiesItem,
-		}
-		if len(respPolicies) == 1 {
-			policy.Id = respPolicies[0].Id
-		}
-		return &[]admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
-	}
-	return nil
-}
-
-func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolicies []admin.AdvancedDiskBackupSnapshotSchedulePolicy) *[]admin.AdvancedDiskBackupSnapshotSchedulePolicy {
-	if len(policiesItem) > 0 {
-		policy := admin.AdvancedDiskBackupSnapshotSchedulePolicy{
-			PolicyItems: &policiesItem,
-		}
-		if len(respPolicies) == 1 {
-			policy.Id = respPolicies[0].Id
-		}
-		return &[]admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
-	}
-	return nil
-}
-
 func convertBackupScheduleReqToOldSDK(req *admin.DiskBackupSnapshotSchedule20250101,
 	copySettingsOldSDK *[]admin20231115.DiskBackupCopySetting,
 	policiesOldSDK *[]admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy) *admin20231115.DiskBackupSnapshotSchedule {
@@ -144,7 +104,6 @@ func convertBackupScheduleReqToOldSDK(req *admin.DiskBackupSnapshotSchedule20250
 
 func convertBackupScheduleToLatestExcludeCopySettings(backupSchedule *admin20231115.DiskBackupSnapshotSchedule) *admin.DiskBackupSnapshotSchedule20250101 {
 	return &admin.DiskBackupSnapshotSchedule20250101{
-		// CopySettings:                      copySettingsOldSDK,
 		Policies:                          convertPoliciesToLatest(backupSchedule.Policies),
 		AutoExportEnabled:                 backupSchedule.AutoExportEnabled,
 		Export:                            convertAutoExportPolicyToLatest(backupSchedule.Export),
