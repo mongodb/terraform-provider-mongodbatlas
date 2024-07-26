@@ -536,12 +536,12 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 60),
-				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(60),
-			},
-			{
 				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 50),
 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(50),
+			},
+			{
+				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 55),
+				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(55),
 			},
 		},
 	})
@@ -560,8 +560,8 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 60, "M30", "M30", 3000, 3000, false),
-				Check:  checkShardedNewSchema(60, "M30", "M30", "3000", "3000", false, false),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M30", 3000, 3000, false),
+				Check:  checkShardedNewSchema(50, "M30", "M30", "3000", "3000", false, false),
 			},
 			{
 				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 3000, 3000, true),
@@ -584,8 +584,8 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 60, "M30", "M40", 3000, 3000, false), // TODO: disk iops is failing if value is different
-				Check:  checkShardedNewSchema(60, "M30", "M40", "3000", "3000", true, false),                         // replication spec old ids not populated for asymmetric cluster
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 3000, 3000, false), // TODO: disk iops is failing if value is different
+				Check:  checkShardedNewSchema(50, "M30", "M40", "3000", "3000", true, false),                         // replication spec old ids not populated for asymmetric cluster
 			},
 		},
 	})
