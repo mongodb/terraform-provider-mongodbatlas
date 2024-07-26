@@ -1347,8 +1347,8 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel(diskSizeGB int) resource.Test
 		map[string]string{
 			"replication_specs.0.num_shards": "2",
 			"disk_size_gb":                   fmt.Sprintf("%d", diskSizeGB),
-			"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
-			"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": "60",
+			"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
+			"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 		})
 }
 
