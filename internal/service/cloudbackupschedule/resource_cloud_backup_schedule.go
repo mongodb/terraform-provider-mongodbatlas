@@ -743,7 +743,7 @@ func policyItemID(policyState map[string]any) *string {
 func shouldUseOldAPI(d *schema.ResourceData, isCreate bool) (bool, error) {
 	copySettings := d.Get("copy_settings")
 	if isCopySettingsNonEmptyOrChanged(d) {
-		return checkCopySettingsToUseOldAPI(copySettings.([]any), isCreate)
+		return CheckCopySettingsToUseOldAPI(copySettings.([]any), isCreate)
 	}
 	return false, nil
 }
@@ -753,10 +753,10 @@ func isCopySettingsNonEmptyOrChanged(d *schema.ResourceData) bool {
 	return copySettings != nil && (conversion.HasElementsSliceOrMap(copySettings) || d.HasChange("copy_settings"))
 }
 
-// checkCopySettingsToUseOldAPI verifies that all elements in tfList use either `replication_spec_id` or `zone_id`
+// CheckCopySettingsToUseOldAPI verifies that all elements in tfList use either `replication_spec_id` or `zone_id`
 // Returns an error if any element has both `replication_spec_id` and `zone_id` set during create
 // and returns a bool if the old API should be used or not
-func checkCopySettingsToUseOldAPI(tfList []any, isCreate bool) (bool, error) {
+func CheckCopySettingsToUseOldAPI(tfList []any, isCreate bool) (bool, error) {
 	allHaveRepID := true
 
 	for _, tfMapRaw := range tfList {
@@ -776,7 +776,7 @@ func checkCopySettingsToUseOldAPI(tfList []any, isCreate bool) (bool, error) {
 		}
 
 		if (repOk && repSpecID != "" && zoneOk && zoneID != "") || (!repOk && !zoneOk) {
-			return false, fmt.Errorf("each element must have either 'replication_spec_id' or 'zone_id' set, but not both")
+			return false, fmt.Errorf("each element must have either 'replication_spec_id' or 'zone_id' set")
 		}
 
 		if !repOk || repSpecID == "" {
