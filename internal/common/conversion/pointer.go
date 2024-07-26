@@ -17,7 +17,3 @@ func StringPtr(v string) *string {
 	}
 	return nil
 }
-
-func BoolPtr(v bool) *bool {
-	return &v
-}

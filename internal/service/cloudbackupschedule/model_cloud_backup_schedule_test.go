@@ -98,21 +98,21 @@ func TestFlattenCopySettings(t *testing.T) {
 				{
 					CloudProvider:    conversion.StringPtr("AWS"),
 					Frequencies:      &[]string{"daily", "weekly"},
-					RegionName:       conversion.StringPtr("us-west-1"),
-					ZoneId:           "zone1",
-					ShouldCopyOplogs: conversion.BoolPtr(true),
+					RegionName:       conversion.StringPtr("US_WEST_1"),
+					ZoneId:           "12345",
+					ShouldCopyOplogs: conversion.Pointer(true),
 				},
 				{
 					CloudProvider:    conversion.StringPtr("Azure"),
 					Frequencies:      &[]string{"monthly"},
-					RegionName:       conversion.StringPtr("east-us"),
-					ZoneId:           "zone2",
-					ShouldCopyOplogs: conversion.BoolPtr(false),
+					RegionName:       conversion.StringPtr("EAST_US"),
+					ZoneId:           "67895",
+					ShouldCopyOplogs: conversion.Pointer(false),
 				},
 			},
 			expected: []map[string]any{
-				{"cloud_provider": "AWS", "frequencies": []string{"daily", "weekly"}, "region_name": "us-west-1", "zone_id": "zone1", "should_copy_oplogs": true},
-				{"cloud_provider": "Azure", "frequencies": []string{"monthly"}, "region_name": "east-us", "zone_id": "zone2", "should_copy_oplogs": false},
+				{"cloud_provider": "AWS", "frequencies": []string{"daily", "weekly"}, "region_name": "US_WEST_1", "zone_id": "12345", "should_copy_oplogs": true},
+				{"cloud_provider": "Azure", "frequencies": []string{"monthly"}, "region_name": "EAST_US", "zone_id": "67895", "should_copy_oplogs": false},
 			},
 		},
 		{
@@ -127,6 +127,111 @@ func TestFlattenCopySettings(t *testing.T) {
 			result := cloudbackupschedule.FlattenCopySettings(tc.settings)
 			if !reflect.DeepEqual(result, tc.expected) {
 				t.Errorf("Test %s failed: expected %+v, got %+v", tc.name, tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestExpandCopySetting(t *testing.T) {
+	testCases := []struct {
+		input    map[string]any
+		expected *admin.DiskBackupCopySetting20250101
+		name     string
+	}{
+		{
+			name: "Valid Input",
+			input: map[string]any{
+				"cloud_provider":     "AWS",
+				"frequencies":        []string{"DAILY", "WEEKLY"},
+				"region_name":        "US_WEST_1",
+				"zone_id":            "zone1",
+				"should_copy_oplogs": true,
+			},
+			expected: &admin.DiskBackupCopySetting20250101{
+				CloudProvider:    conversion.StringPtr("AWS"),
+				Frequencies:      &[]string{"DAILY", "WEEKLY"},
+				RegionName:       conversion.StringPtr("US_WEST_1"),
+				ZoneId:           "zone1",
+				ShouldCopyOplogs: conversion.Pointer(true),
+			},
+		},
+		{
+			name:     "Nil Input Map",
+			input:    nil,
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := cloudbackupschedule.ExpandCopySetting(tc.input)
+			if !reflect.DeepEqual(result, tc.expected) {
+				t.Errorf("Test %s failed: expected %+v, got %+v", tc.name, tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestExpandCopySettings(t *testing.T) {
+	testCases := []struct {
+		expected *[]admin.DiskBackupCopySetting20250101
+		name     string
+		input    []any
+	}{
+		{
+			name: "Valid Input",
+			input: []any{
+				map[string]any{"cloud_provider": "AWS", "frequencies": []string{"DAILY"}, "region_name": "US_WEST_1", "zone_id": "zone1", "should_copy_oplogs": true},
+				map[string]any{"cloud_provider": "Azure", "frequencies": []string{"WEEKLY"}, "region_name": "EAST_US", "zone_id": "zone2", "should_copy_oplogs": false},
+			},
+			expected: &[]admin.DiskBackupCopySetting20250101{
+				{CloudProvider: conversion.StringPtr("AWS"), Frequencies: &[]string{"DAILY"}, RegionName: conversion.StringPtr("US_WEST_1"), ZoneId: "zone1", ShouldCopyOplogs: conversion.Pointer(true)},
+				{CloudProvider: conversion.StringPtr("Azure"), Frequencies: &[]string{"WEEKLY"}, RegionName: conversion.StringPtr("EAST_US"), ZoneId: "zone2", ShouldCopyOplogs: conversion.Pointer(false)},
+			},
+		},
+		{
+			name:     "Empty Input List",
+			input:    []any{},
+			expected: &[]admin.DiskBackupCopySetting20250101{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := cloudbackupschedule.ExpandCopySettings(tc.input)
+			if !reflect.DeepEqual(result, tc.expected) {
+				t.Errorf("Test %s failed: expected %+v, got %+v", tc.name, tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestExpandPolicyItems(t *testing.T) {
+	testCases := []struct {
+		expected      *[]admin.DiskBackupApiPolicyItem
+		name          string
+		frequencyType string
+		items         []any
+	}{
+		{
+			name: "Valid Input",
+			items: []any{
+				map[string]any{"id": "123", "retention_unit": "days", "retention_value": 30, "frequency_interval": 1},
+				map[string]any{"id": "456", "retention_unit": "weeks", "retention_value": 52, "frequency_interval": 1},
+			},
+			frequencyType: "monthly",
+			expected: &[]admin.DiskBackupApiPolicyItem{
+				{Id: conversion.StringPtr("123"), RetentionUnit: "days", RetentionValue: 30, FrequencyInterval: 1, FrequencyType: "monthly"},
+				{Id: conversion.StringPtr("456"), RetentionUnit: "weeks", RetentionValue: 52, FrequencyInterval: 1, FrequencyType: "monthly"},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := cloudbackupschedule.ExpandPolicyItems(tc.items, tc.frequencyType)
+			if !reflect.DeepEqual(result, tc.expected) {
+				t.Errorf("Test %s failed: expected %+v, got %+v", tc.name, *tc.expected, *result)
 			}
 		})
 	}

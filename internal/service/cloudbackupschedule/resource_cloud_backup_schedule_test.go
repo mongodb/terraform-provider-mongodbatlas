@@ -301,8 +301,8 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_repSpecId(t *testing.T) {
 		}
 	)
 	checksDefault := acc.AddAttrChecks(resourceName, []resource.TestCheckFunc{checkExists(resourceName)}, checkMap)
-	checksCreate2 := acc.AddAttrChecks(resourceName, checksDefault, copySettingsChecks)
-	checksCreate := acc.AddAttrSetChecks(resourceName, checksCreate2, "copy_settings.0.replication_spec_id")
+	checksCreate := acc.AddAttrChecks(resourceName, checksDefault, copySettingsChecks)
+	checksCreateAll := acc.AddAttrSetChecks(resourceName, checksCreate, "copy_settings.0.replication_spec_id")
 	checksUpdate := acc.AddAttrChecks(resourceName, checksDefault, emptyCopySettingsChecks)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -316,7 +316,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_repSpecId(t *testing.T) {
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(1),
 				}),
-				Check: resource.ComposeAggregateTestCheckFunc(checksCreate...),
+				Check: resource.ComposeAggregateTestCheckFunc(checksCreateAll...),
 			},
 			{
 				Config: configCopySettings(terraformStr, projectID, clusterResourceName, true, true, &admin20231115.DiskBackupSnapshotSchedule{
@@ -380,8 +380,8 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
 		}
 	)
 	checksDefault := acc.AddAttrChecks(resourceName, []resource.TestCheckFunc{checkExists(resourceName)}, checkMap)
-	checksCreate2 := acc.AddAttrChecks(resourceName, checksDefault, copySettingsChecks)
-	checksCreate := acc.AddAttrSetChecks(resourceName, checksCreate2, "copy_settings.0.zone_id")
+	checksCreate := acc.AddAttrChecks(resourceName, checksDefault, copySettingsChecks)
+	checksCreateAll := acc.AddAttrSetChecks(resourceName, checksCreate, "copy_settings.0.zone_id")
 	checksUpdate := acc.AddAttrChecks(resourceName, checksDefault, emptyCopySettingsChecks)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -395,7 +395,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(1),
 				}),
-				Check: resource.ComposeAggregateTestCheckFunc(checksCreate...),
+				Check: resource.ComposeAggregateTestCheckFunc(checksCreateAll...),
 			},
 			{
 				Config: configCopySettings(terraformStr, projectID, clusterResourceName, true, false, &admin20231115.DiskBackupSnapshotSchedule{

@@ -372,8 +372,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	if useOldAPI {
 		backupScheduleOldSDK, resp, err = connV220231115.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
-		// TODO handle asymmetric error, ask user to set zone_id for asymmetric cluster ????
-
+		if apiError, ok := admin20231115.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
+			return diag.Errorf("%s : %s : %s", errorSnapshotBackupScheduleRead, ErrorOperationNotPermitted, AsymmetricShardsUnsupportedAction)
+		}
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				d.SetId("")
@@ -551,19 +552,19 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 
 	var policiesItem []admin.DiskBackupApiPolicyItem
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
-		policiesItem = append(policiesItem, *expandPolicyItems(v.([]any), Hourly)...)
+		policiesItem = append(policiesItem, *ExpandPolicyItems(v.([]any), Hourly)...)
 	}
 	if v, ok := d.GetOk("policy_item_daily"); ok {
-		policiesItem = append(policiesItem, *expandPolicyItems(v.([]any), Daily)...)
+		policiesItem = append(policiesItem, *ExpandPolicyItems(v.([]any), Daily)...)
 	}
 	if v, ok := d.GetOk("policy_item_weekly"); ok {
-		policiesItem = append(policiesItem, *expandPolicyItems(v.([]any), Weekly)...)
+		policiesItem = append(policiesItem, *ExpandPolicyItems(v.([]any), Weekly)...)
 	}
 	if v, ok := d.GetOk("policy_item_monthly"); ok {
-		policiesItem = append(policiesItem, *expandPolicyItems(v.([]any), Monthly)...)
+		policiesItem = append(policiesItem, *ExpandPolicyItems(v.([]any), Monthly)...)
 	}
 	if v, ok := d.GetOk("policy_item_yearly"); ok {
-		policiesItem = append(policiesItem, *expandPolicyItems(v.([]any), Yearly)...)
+		policiesItem = append(policiesItem, *ExpandPolicyItems(v.([]any), Yearly)...)
 	}
 
 	if d.HasChange("auto_export_enabled") {
@@ -597,7 +598,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 		resp, _, err := connV220231115.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			if apiError, ok := admin20231115.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
-				return fmt.Errorf("%s %s", ErrorOperationNotPermitted, AsymmetricShardsUnsupportedAction)
+				return fmt.Errorf("%s : %s", ErrorOperationNotPermitted, AsymmetricShardsUnsupportedAction)
 			}
 			return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 		}
@@ -612,7 +613,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 		_, _, err = connV220231115.CloudBackupsApi.UpdateBackupSchedule(context.Background(), projectID, clusterName, reqOld).Execute()
 		if err != nil {
 			if apiError, ok := admin20231115.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
-				return fmt.Errorf("%s %s", ErrorOperationNotPermitted, AsymmetricShardsUnsupportedAction)
+				return fmt.Errorf("%s : %s", ErrorOperationNotPermitted, AsymmetricShardsUnsupportedAction)
 			}
 			return err
 		}
@@ -625,7 +626,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 		return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 	if isCopySettingsNonEmptyOrChanged(d) {
-		req.CopySettings = expandCopySettings(copySettings.([]any))
+		req.CopySettings = ExpandCopySettings(copySettings.([]any))
 	}
 
 	req.Policies = getRequestPolicies(policiesItem, resp.GetPolicies())
@@ -638,7 +639,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 	return nil
 }
 
-func expandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting20250101 {
+func ExpandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting20250101 {
 	if tfMap == nil {
 		return nil
 	}
@@ -654,7 +655,7 @@ func expandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting2025010
 	return copySetting
 }
 
-func expandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting20250101 {
+func ExpandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting20250101 {
 	copySettings := make([]admin.DiskBackupCopySetting20250101, 0)
 
 	for _, tfMapRaw := range tfList {
@@ -662,7 +663,7 @@ func expandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting20250101 {
 		if !ok {
 			continue
 		}
-		apiObject := expandCopySetting(tfMap)
+		apiObject := ExpandCopySetting(tfMap)
 		copySettings = append(copySettings, *apiObject)
 	}
 	return &copySettings
@@ -710,7 +711,7 @@ func expandAutoExportPolicy(items []any, d *schema.ResourceData) *admin.AutoExpo
 	return nil
 }
 
-func expandPolicyItems(items []any, frequencyType string) *[]admin.DiskBackupApiPolicyItem {
+func ExpandPolicyItems(items []any, frequencyType string) *[]admin.DiskBackupApiPolicyItem {
 	results := make([]admin.DiskBackupApiPolicyItem, len(items))
 
 	for i, s := range items {
