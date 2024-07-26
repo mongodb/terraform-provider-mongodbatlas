@@ -16,7 +16,7 @@ import (
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasOrganizationsRead,
+		ReadContext: pluralDataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -86,8 +86,7 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	organizationOptions := &admin.ListOrganizationsApiParams{
