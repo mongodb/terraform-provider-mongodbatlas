@@ -284,26 +284,26 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err := d.Set("id_policy", backupPolicy.GetPolicies()[0].GetId()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
 	}
-	if err := d.Set("export", flattenExport(convertBackupScheduleToLatestExcludeCopySettings(backupPolicy))); err != nil {
+	if err := d.Set("export", FlattenExport(convertBackupScheduleToLatestExcludeCopySettings(backupPolicy))); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "export", clusterName, err)
 	}
-	if err := d.Set("policy_item_hourly", flattenPolicyItem(*convertPolicyItemsToLatest(backupPolicy.GetPolicies()[0].PolicyItems), Hourly)); err != nil {
+	if err := d.Set("policy_item_hourly", FlattenPolicyItem(*convertPolicyItemsToLatest(backupPolicy.GetPolicies()[0].PolicyItems), Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_daily", flattenPolicyItem(*convertPolicyItemsToLatest(backupPolicy.GetPolicies()[0].PolicyItems), Daily)); err != nil {
+	if err := d.Set("policy_item_daily", FlattenPolicyItem(*convertPolicyItemsToLatest(backupPolicy.GetPolicies()[0].PolicyItems), Daily)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_daily", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_weekly", flattenPolicyItem(*convertPolicyItemsToLatest(backupPolicy.GetPolicies()[0].PolicyItems), Weekly)); err != nil {
+	if err := d.Set("policy_item_weekly", FlattenPolicyItem(*convertPolicyItemsToLatest(backupPolicy.GetPolicies()[0].PolicyItems), Weekly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_weekly", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_monthly", flattenPolicyItem(*convertPolicyItemsToLatest(backupPolicy.GetPolicies()[0].PolicyItems), Monthly)); err != nil {
+	if err := d.Set("policy_item_monthly", FlattenPolicyItem(*convertPolicyItemsToLatest(backupPolicy.GetPolicies()[0].PolicyItems), Monthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
 
-	if err := d.Set("policy_item_yearly", flattenPolicyItem(*convertPolicyItemsToLatest(backupPolicy.GetPolicies()[0].PolicyItems), Yearly)); err != nil {
+	if err := d.Set("policy_item_yearly", FlattenPolicyItem(*convertPolicyItemsToLatest(backupPolicy.GetPolicies()[0].PolicyItems), Yearly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_yearly", clusterName, err)
 	}
 
