@@ -612,8 +612,8 @@ func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedNewSchemaAddingRemov
 				Check:  checkGeoShardedNewSchema(true),
 			},
 			{
-				Config: configGeoShardedNewSchema(orgID, projectName, clusterName, true),
-				Check:  checkGeoShardedNewSchema(true),
+				Config: configGeoShardedNewSchema(orgID, projectName, clusterName, false),
+				Check:  checkGeoShardedNewSchema(false),
 			},
 		},
 	})
