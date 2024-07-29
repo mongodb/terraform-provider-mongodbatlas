@@ -66,12 +66,12 @@ func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetAWSProvider(projectID, clusterName, 3),
-				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 3, true, true),
+				Config: configReplicaSetAWSProvider(projectID, clusterName, 60, 3),
+				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, true, true),
 			},
 			{
-				Config: configReplicaSetAWSProvider(projectID, clusterName, 5),
-				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 5, true, true),
+				Config: configReplicaSetAWSProvider(projectID, clusterName, 50, 5),
+				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 50, 5, true, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -524,7 +524,6 @@ func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
-	acc.SkipTestForCI(t) // TODO: CLOUDP-260154 for ensuring this use case is supported
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -537,8 +536,12 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName),
-				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(),
+				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 50),
+				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(50),
+			},
+			{
+				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 55),
+				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(55),
 			},
 		},
 	})
@@ -557,8 +560,12 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M30", 3000, 3000),
-				Check:  checkShardedNewSchema("M30", "M30", "3000", "3000", false),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M30", 3000, 3000, false),
+				Check:  checkShardedNewSchema(50, "M30", "M30", "3000", "3000", false, false),
+			},
+			{
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 3000, 3000, true),
+				Check:  checkShardedNewSchema(55, "M30", "M40", "3000", "3000", true, true),
 			},
 		},
 	})
@@ -577,8 +584,8 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, "M30", "M40", 3000, 3000), // TODO: disk iops is failing if value is different
-				Check:  checkShardedNewSchema("M30", "M40", "3000", "3000", true),                         // replication spec old ids not populated for asymmetric cluster
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 3000, 3000, false), // TODO: disk iops is failing if value is different
+				Check:  checkShardedNewSchema(50, "M30", "M40", "3000", "3000", true, false),                         // replication spec old ids not populated for asymmetric cluster
 			},
 		},
 	})
@@ -729,20 +736,20 @@ func checkTags(name string, tags ...map[string]string) resource.TestCheckFunc {
 		tagChecks...)
 }
 
-func configReplicaSetAWSProvider(projectID, name string, nodeCountElectable int) string {
+func configReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountElectable int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
 			cluster_type = "REPLICASET"
 			retain_backups_enabled = "true"
-			disk_size_gb = 60
+			disk_size_gb = %[3]d
 
 			replication_specs {
 				region_configs {
 					electable_specs {
 						instance_size = "M10"
-						node_count    = %[3]d
+						node_count    = %[4]d
 					}
 					analytics_specs {
 						instance_size = "M10"
@@ -759,10 +766,10 @@ func configReplicaSetAWSProvider(projectID, name string, nodeCountElectable int)
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
-	`, projectID, name, nodeCountElectable)
+	`, projectID, name, diskSizeGB, nodeCountElectable)
 }
 
-func checkReplicaSetAWSProvider(projectID, name string, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
+func checkReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
@@ -771,8 +778,8 @@ func checkReplicaSetAWSProvider(projectID, name string, nodeCountElectable int, 
 	if checkDiskSizeGBInnerLevel {
 		additionalChecks = append(additionalChecks,
 			checkAggr([]string{}, map[string]string{
-				"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
-				"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": "60",
+				"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
+				"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 			}),
 		)
 	}
@@ -785,7 +792,7 @@ func checkReplicaSetAWSProvider(projectID, name string, nodeCountElectable int, 
 		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":   projectID,
-			"disk_size_gb": "60",
+			"disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 			"replication_specs.0.region_configs.0.electable_specs.0.node_count": fmt.Sprintf("%d", nodeCountElectable),
 			"name": name},
 		additionalChecks...,
@@ -1292,7 +1299,7 @@ func checkGeoShardedOldSchema(name string, numShardsFirstZone, numShardsSecondZo
 	)
 }
 
-func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name string) string {
+func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name string, diskSizeGB int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1313,12 +1320,12 @@ func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name str
 				electable_specs {
 					instance_size = "M10"
 					node_count    = 3
-					disk_size_gb  = 60
+					disk_size_gb  = %[4]d
 				}
 				analytics_specs {
 					instance_size = "M10"
 					node_count    = 0
-					disk_size_gb  = 60
+					disk_size_gb  = %[4]d
 				}
 				provider_name = "AWS"
 				priority      = 7
@@ -1331,21 +1338,44 @@ func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name str
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
-	`, orgID, projectName, name)
+	`, orgID, projectName, name, diskSizeGB)
 }
 
-func checkShardedOldSchemaDiskSizeGBElectableLevel() resource.TestCheckFunc {
+func checkShardedOldSchemaDiskSizeGBElectableLevel(diskSizeGB int) resource.TestCheckFunc {
 	return checkAggr(
 		[]string{},
 		map[string]string{
 			"replication_specs.0.num_shards": "2",
-			"disk_size_gb":                   "60",
-			"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
-			"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": "60",
+			"disk_size_gb":                   fmt.Sprintf("%d", diskSizeGB),
+			"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
+			"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 		})
 }
 
-func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2 string, diskIopsSpec1, diskIopsSpec2 int) string {
+func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, instanceSizeSpec1, instanceSizeSpec2 string, diskIopsSpec1, diskIopsSpec2 int, includeThirdSpec bool) string {
+	var thirdReplicationSpec string
+	if includeThirdSpec {
+		thirdReplicationSpec = fmt.Sprintf(`
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = %[1]q
+						disk_iops = %[2]d
+						node_count    = 3
+						disk_size_gb  = %[3]d
+					}
+					analytics_specs {
+						instance_size = %[1]q
+						node_count    = 1
+						disk_size_gb  = %[3]d
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
+				}
+			}
+		`, instanceSizeSpec1, diskIopsSpec1, diskSizeGB)
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1364,12 +1394,12 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 						instance_size = %[4]q
 						disk_iops = %[6]d
 						node_count    = 3
-						disk_size_gb  = 60
+						disk_size_gb  = %[9]d
 					}
 					analytics_specs {
 						instance_size = %[4]q
 						node_count    = 1
-						disk_size_gb  = 60
+						disk_size_gb  = %[9]d
 					}
 					provider_name = "AWS"
 					priority      = 7
@@ -1383,18 +1413,20 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 						instance_size = %[5]q
 						disk_iops = %[7]d
 						node_count    = 3
-						disk_size_gb  = 60
+						disk_size_gb  = %[9]d
 					}
 					analytics_specs {
 						instance_size = %[5]q
 						node_count    = 1
-						disk_size_gb  = 60
+						disk_size_gb  = %[9]d
 					}
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "EU_WEST_1"
 				}
 			}
+
+			%[8]s
 		}
 
 		data "mongodbatlas_advanced_cluster" "test" {
@@ -1407,19 +1439,25 @@ func configShardedNewSchema(orgID, projectName, name, instanceSizeSpec1, instanc
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
 		}
-	`, orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2)
+	`, orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2, thirdReplicationSpec, diskSizeGB)
 }
 
-func checkShardedNewSchema(instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string, isAsymmetricCluster bool) resource.TestCheckFunc {
+func checkShardedNewSchema(diskSizeGB int, instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string, isAsymmetricCluster, includesThirdSpec bool) resource.TestCheckFunc {
+	var amtOfReplicationSpecs int
+	if includesThirdSpec {
+		amtOfReplicationSpecs = 3
+	} else {
+		amtOfReplicationSpecs = 2
+	}
 	clusterChecks := map[string]string{
-		"disk_size_gb":        "60",
-		"replication_specs.#": "2",
+		"disk_size_gb":        fmt.Sprintf("%d", diskSizeGB),
+		"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
 		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec1,
 		"replication_specs.1.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec2,
-		"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":  "60",
-		"replication_specs.1.region_configs.0.electable_specs.0.disk_size_gb":  "60",
-		"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
-		"replication_specs.1.region_configs.0.analytics_specs.0.disk_size_gb":  "60",
+		"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":  fmt.Sprintf("%d", diskSizeGB),
+		"replication_specs.1.region_configs.0.electable_specs.0.disk_size_gb":  fmt.Sprintf("%d", diskSizeGB),
+		"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":  fmt.Sprintf("%d", diskSizeGB),
+		"replication_specs.1.region_configs.0.analytics_specs.0.disk_size_gb":  fmt.Sprintf("%d", diskSizeGB),
 		"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec1,
 		"replication_specs.1.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec2,
 	}

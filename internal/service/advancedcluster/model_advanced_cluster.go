@@ -296,7 +296,7 @@ func GetDiskSizeGBFromReplicationSpec(cluster *admin.ClusterDescription20250101)
 	return configs[0].ElectableSpecs.GetDiskSizeGB()
 }
 
-func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admin20231115.ClustersApi) retry.StateRefreshFunc {
+func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		cluster, resp, err := client.GetCluster(ctx, projectID, name).Execute()
 
@@ -888,7 +888,9 @@ func expandAdvancedReplicationSpec(tfMap map[string]any, rootDiskSizeGB *float64
 		ZoneName:      conversion.StringPtr(tfMap["zone_name"].(string)),
 		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]any), rootDiskSizeGB),
 	}
-	// TODO: CLOUDP-259836 here we will populate id value using external_id value from the state (relevant for update request)
+	if tfMap["external_id"].(string) != "" {
+		apiObject.Id = conversion.StringPtr(tfMap["external_id"].(string))
+	}
 	return apiObject
 }
 
@@ -969,10 +971,13 @@ func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *f
 		apiObject.NodeCount = conversion.Pointer(v.(int))
 	}
 
-	apiObject.DiskSizeGB = rootDiskSizeGB
-	// disk size gb defined in inner level will take precedence over root level.
 	if v, ok := tfMap["disk_size_gb"]; ok && v.(float64) != 0 {
 		apiObject.DiskSizeGB = conversion.Pointer(v.(float64))
+	}
+
+	// value defined in root is set if it is defined in the create, or value has changed in the update.
+	if rootDiskSizeGB != nil {
+		apiObject.DiskSizeGB = rootDiskSizeGB
 	}
 
 	return apiObject

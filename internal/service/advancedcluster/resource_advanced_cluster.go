@@ -43,9 +43,6 @@ const (
 	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 )
 
-type acCtxKey string
-
-var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
 var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
 
 func Resource() *schema.Resource {
@@ -476,11 +473,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if v := d.Get("paused").(bool); v {
-		request := &admin20231115.AdvancedClusterDescription{
+		request := &admin.ClusterDescription20250101{
 			Paused: conversion.Pointer(v),
 		}
-		_, _, err = updateAdvancedCluster(ctx, connV220231115, connV2, request, projectID, d.Get("name").(string), timeout)
-		if err != nil {
+		if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, d.Get("name").(string), request).Execute(); err != nil {
+			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
+		}
+		if err = waitForUpdateToFinish(ctx, connV2, projectID, d.Get("name").(string), timeout); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
 	}
@@ -708,26 +707,18 @@ func isUsingOldAPISchemaStructure(d *schema.ResourceData) bool {
 
 func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
-		upgradeCtx := context.WithValue(ctx, upgradeRequestCtxKey, upgradeRequest)
-		return resourceUpgrade(upgradeCtx, d, meta)
+		return resourceUpgrade(ctx, upgradeRequest, d, meta)
 	}
-
 	return resourceUpdate(ctx, d, meta)
 }
 
-func resourceUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	upgradeRequest := ctx.Value(upgradeRequestCtxKey).(*admin20231115.LegacyAtlasTenantClusterUpgradeRequest)
-
-	if upgradeRequest == nil {
-		return diag.FromErr(fmt.Errorf("upgrade called without %s in ctx", string(upgradeRequestCtxKey)))
-	}
-
-	upgradeResponse, _, err := upgradeCluster(ctx, connV220231115, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
+	upgradeResponse, _, err := upgradeCluster(ctx, connV2, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
@@ -753,8 +744,147 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("%s: %s", ErrorOperationNotPermitted, err))
 	}
 
+	timeout := d.Timeout(schema.TimeoutUpdate)
+
+	if isUsingOldAPISchemaStructure(d) {
+		req, diags := updateRequestOldAPI(d, clusterName)
+		if diags != nil {
+			return diags
+		}
+		clusterChangeDetect := new(admin20231115.AdvancedClusterDescription)
+		if !reflect.DeepEqual(req, clusterChangeDetect) {
+			if _, _, err := connV220231115.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			}
+			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			}
+		}
+	} else {
+		req, diags := updateRequest(d, clusterName)
+		if diags != nil {
+			return diags
+		}
+		clusterChangeDetect := new(admin.ClusterDescription20250101)
+		if !reflect.DeepEqual(req, clusterChangeDetect) {
+			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			}
+			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			}
+		}
+	}
+
+	if d.HasChange("advanced_configuration") {
+		ac := d.Get("advanced_configuration")
+		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
+			params := expandProcessArgs(d, aclist[0].(map[string]any))
+			if !reflect.DeepEqual(params, admin20231115.ClusterDescriptionProcessArgs{}) {
+				_, _, err := connV220231115.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
+				if err != nil {
+					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
+				}
+			}
+		}
+	}
+
+	if d.Get("paused").(bool) {
+		clusterRequest := &admin.ClusterDescription20250101{
+			Paused: conversion.Pointer(true),
+		}
+		if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, clusterRequest).Execute(); err != nil {
+			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+		}
+		if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+		}
+	}
+
+	return resourceRead(ctx, d, meta)
+}
+
+func updateRequest(d *schema.ResourceData, clusterName string) (*admin.ClusterDescription20250101, diag.Diagnostics) {
+	cluster := new(admin.ClusterDescription20250101)
+
+	if d.HasChange("backup_enabled") {
+		cluster.BackupEnabled = conversion.Pointer(d.Get("backup_enabled").(bool))
+	}
+
+	if d.HasChange("bi_connector_config") {
+		cluster.BiConnector = expandBiConnectorConfig(d)
+	}
+
+	if d.HasChange("cluster_type") {
+		cluster.ClusterType = conversion.StringPtr(d.Get("cluster_type").(string))
+	}
+
+	if d.HasChange("encryption_at_rest_provider") {
+		cluster.EncryptionAtRestProvider = conversion.StringPtr(d.Get("encryption_at_rest_provider").(string))
+	}
+
+	if d.HasChange("labels") {
+		labels, err := expandLabelSliceFromSetSchema(d)
+		if err != nil {
+			return nil, err
+		}
+		cluster.Labels = &labels
+	}
+
+	if d.HasChange("tags") {
+		cluster.Tags = conversion.ExpandTagsFromSetSchema(d)
+	}
+
+	if d.HasChange("mongo_db_major_version") {
+		cluster.MongoDBMajorVersion = conversion.StringPtr(FormatMongoDBMajorVersion(d.Get("mongo_db_major_version")))
+	}
+
+	if d.HasChange("pit_enabled") {
+		cluster.PitEnabled = conversion.Pointer(d.Get("pit_enabled").(bool))
+	}
+
+	if d.HasChange("replication_specs") || d.HasChange("disk_size_gb") {
+		var updatedDiskSizeGB *float64
+		if d.HasChange("disk_size_gb") {
+			updatedDiskSizeGB = conversion.Pointer(d.Get("disk_size_gb").(float64))
+		}
+		cluster.ReplicationSpecs = expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), updatedDiskSizeGB)
+	}
+
+	if d.HasChange("root_cert_type") {
+		cluster.RootCertType = conversion.StringPtr(d.Get("root_cert_type").(string))
+	}
+
+	if d.HasChange("termination_protection_enabled") {
+		cluster.TerminationProtectionEnabled = conversion.Pointer(d.Get("termination_protection_enabled").(bool))
+	}
+
+	if d.HasChange("version_release_system") {
+		cluster.VersionReleaseSystem = conversion.StringPtr(d.Get("version_release_system").(string))
+	}
+
+	if d.HasChange("global_cluster_self_managed_sharding") {
+		cluster.GlobalClusterSelfManagedSharding = conversion.Pointer(d.Get("global_cluster_self_managed_sharding").(bool))
+	}
+
+	if d.HasChange("accept_data_risks_and_force_replica_set_reconfig") {
+		if strTime := d.Get("accept_data_risks_and_force_replica_set_reconfig").(string); strTime != "" {
+			t, ok := conversion.StringToTime(strTime)
+			if !ok {
+				return nil, diag.FromErr(fmt.Errorf(errorUpdate, clusterName, "accept_data_risks_and_force_replica_set_reconfig time format is incorrect"))
+			}
+			cluster.AcceptDataRisksAndForceReplicaSetReconfig = &t
+		}
+	}
+
+	if d.HasChange("paused") && !d.Get("paused").(bool) {
+		cluster.Paused = conversion.Pointer(d.Get("paused").(bool))
+	}
+	return cluster, nil
+}
+
+func updateRequestOldAPI(d *schema.ResourceData, clusterName string) (*admin20231115.AdvancedClusterDescription, diag.Diagnostics) {
 	cluster := new(admin20231115.AdvancedClusterDescription)
-	clusterChangeDetect := new(admin20231115.AdvancedClusterDescription)
 
 	if d.HasChange("backup_enabled") {
 		cluster.BackupEnabled = conversion.Pointer(d.Get("backup_enabled").(bool))
@@ -772,6 +902,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		cluster.DiskSizeGB = conversion.Pointer(d.Get("disk_size_gb").(float64))
 	}
 
+	if changedValue := obtainChangeForDiskSizeGBInFirstRegion(d); changedValue != nil {
+		cluster.DiskSizeGB = changedValue
+	}
+
 	if d.HasChange("encryption_at_rest_provider") {
 		cluster.EncryptionAtRestProvider = conversion.StringPtr(d.Get("encryption_at_rest_provider").(string))
 	}
@@ -779,7 +913,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.HasChange("labels") {
 		labels, err := convertLabelSliceToOldSDK(expandLabelSliceFromSetSchema(d))
 		if err != nil {
-			return err
+			return nil, err
 		}
 		cluster.Labels = &labels
 	}
@@ -820,7 +954,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if strTime := d.Get("accept_data_risks_and_force_replica_set_reconfig").(string); strTime != "" {
 			t, ok := conversion.StringToTime(strTime)
 			if !ok {
-				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, "accept_data_risks_and_force_replica_set_reconfig time format is incorrect"))
+				return nil, diag.FromErr(fmt.Errorf(errorUpdate, clusterName, "accept_data_risks_and_force_replica_set_reconfig time format is incorrect"))
 			}
 			cluster.AcceptDataRisksAndForceReplicaSetReconfig = &t
 		}
@@ -829,50 +963,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.HasChange("paused") && !d.Get("paused").(bool) {
 		cluster.Paused = conversion.Pointer(d.Get("paused").(bool))
 	}
-
-	timeout := d.Timeout(schema.TimeoutUpdate)
-
-	if d.HasChange("advanced_configuration") {
-		ac := d.Get("advanced_configuration")
-		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
-			params := expandProcessArgs(d, aclist[0].(map[string]any))
-			if !reflect.DeepEqual(params, admin20231115.ClusterDescriptionProcessArgs{}) {
-				_, _, err := connV220231115.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
-				if err != nil {
-					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
-				}
-			}
-		}
-	}
-
-	// Has changes
-	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
-		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-			_, resp, err := updateAdvancedCluster(ctx, connV220231115, connV2, cluster, projectID, clusterName, timeout)
-			if err != nil {
-				if resp == nil || resp.StatusCode == 400 {
-					return retry.NonRetryableError(fmt.Errorf(errorUpdate, clusterName, err))
-				}
-				return retry.RetryableError(fmt.Errorf(errorUpdate, clusterName, err))
-			}
-			return nil
-		})
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
-		}
-	}
-
-	if d.Get("paused").(bool) {
-		clusterRequest := &admin20231115.AdvancedClusterDescription{
-			Paused: conversion.Pointer(true),
-		}
-		_, _, err := updateAdvancedCluster(ctx, connV220231115, connV2, clusterRequest, projectID, clusterName, timeout)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
-		}
-	}
-
-	return resourceRead(ctx, d, meta)
+	return cluster, nil
 }
 
 func isUpdateAllowed(d *schema.ResourceData) (bool, error) {
@@ -902,6 +993,24 @@ func checkNewSchemaCompatibility(specs []any) bool {
 		}
 	}
 	return true
+}
+
+// When legacy schema structure is used we invoke the old API for updates. This API sends diskSizeGB at root level.
+// This function is used to detect if changes are made in the inner spec levels. It assumes that all disk_size_gb values at the inner spec level have the same value, so it looks into first region config.
+func obtainChangeForDiskSizeGBInFirstRegion(d *schema.ResourceData) *float64 {
+	electableLocation := "replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb"
+	readOnlyLocation := "replication_specs.0.region_configs.0.read_only_specs.0.disk_size_gb"
+	analyticsLocation := "replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb"
+	if d.HasChange(electableLocation) {
+		return admin.PtrFloat64(d.Get(electableLocation).(float64))
+	}
+	if d.HasChange(readOnlyLocation) {
+		return admin.PtrFloat64(d.Get(readOnlyLocation).(float64))
+	}
+	if d.HasChange(analyticsLocation) {
+		return admin.PtrFloat64(d.Get(analyticsLocation).(float64))
+	}
+	return nil
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -976,7 +1085,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func upgradeCluster(ctx context.Context, connV2 *admin20231115.APIClient, request *admin20231115.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin20231115.LegacyAtlasCluster, *http.Response, error) {
+func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *http.Response, error) {
 	request.Name = name
 
 	cluster, resp, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
@@ -1052,7 +1161,7 @@ func replicationSpecsHashSet(v any) int {
 	return schema.HashString(buf.String())
 }
 
-func getUpgradeRequest(d *schema.ResourceData) *admin20231115.LegacyAtlasTenantClusterUpgradeRequest {
+func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUpgradeRequest {
 	if !d.HasChange("replication_specs") {
 		return nil
 	}
@@ -1073,8 +1182,8 @@ func getUpgradeRequest(d *schema.ResourceData) *admin20231115.LegacyAtlasTenantC
 		return nil
 	}
 
-	return &admin20231115.LegacyAtlasTenantClusterUpgradeRequest{
-		ProviderSettings: &admin20231115.ClusterProviderSettings{
+	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+		ProviderSettings: &admin.ClusterProviderSettings{
 			ProviderName:     updatedRegion.GetProviderName(),
 			InstanceSizeName: updatedRegion.ElectableSpecs.InstanceSize,
 			RegionName:       updatedRegion.RegionName,
@@ -1082,19 +1191,7 @@ func getUpgradeRequest(d *schema.ResourceData) *admin20231115.LegacyAtlasTenantC
 	}
 }
 
-func updateAdvancedCluster(
-	ctx context.Context,
-	connV220231115 *admin20231115.APIClient,
-	connV2 *admin.APIClient,
-	request *admin20231115.AdvancedClusterDescription,
-	projectID, name string,
-	timeout time.Duration,
-) (*admin20231115.AdvancedClusterDescription, *http.Response, error) {
-	cluster, resp, err := connV220231115.ClustersApi.UpdateCluster(ctx, projectID, name, request).Execute()
-	if err != nil {
-		return nil, nil, err
-	}
-
+func waitForUpdateToFinish(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) error {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
@@ -1104,10 +1201,6 @@ func updateAdvancedCluster(
 		Delay:      1 * time.Minute,
 	}
 
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return cluster, resp, nil
+	_, err := stateConf.WaitForStateContext(ctx)
+	return err
 }

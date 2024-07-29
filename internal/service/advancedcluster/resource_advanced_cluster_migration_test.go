@@ -15,7 +15,7 @@ func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
-		config      = configReplicaSetAWSProvider(projectID, clusterName, 3)
+		config      = configReplicaSetAWSProvider(projectID, clusterName, 60, 3)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,13 +25,13 @@ func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             checkReplicaSetAWSProvider(projectID, clusterName, 3, false, false),
+				Check:             checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, false, false),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   config,
-				Check:                    checkReplicaSetAWSProvider(projectID, clusterName, 3, true, true), // external_id will be present in latest version
+				Check:                    checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, true, true), // external_id will be present in latest version
 			},
 		},
 	})
