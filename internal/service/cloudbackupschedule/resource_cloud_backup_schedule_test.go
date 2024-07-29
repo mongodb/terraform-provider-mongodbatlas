@@ -548,7 +548,7 @@ func TestCheckCopySettingsToUseOldAPI(t *testing.T) {
 			isCreate:                true,
 			expectedShouldUseOldAPI: false,
 			expectErr:               true,
-			errMsg:                  "both 'replication_spec_id' and 'zone_id' cannot be set unless resource is being updated",
+			errMsg:                  "both 'replication_spec_id' and 'zone_id' cannot be set",
 		},
 		{
 			name: "Valid - Both IDs set on Update/Read",
