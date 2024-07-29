@@ -771,7 +771,7 @@ func CheckCopySettingsToUseOldAPI(tfList []any, isCreate bool) (bool, error) {
 
 		if repOk && repSpecID != "" && zoneOk && zoneID != "" {
 			if isCreate {
-				return false, fmt.Errorf("both 'replication_spec_id' and 'zone_id' cannot be set unless resource is being updated")
+				return false, fmt.Errorf("both 'replication_spec_id' and 'zone_id' cannot be set")
 			}
 			return false, nil
 		}
