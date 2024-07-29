@@ -26,7 +26,7 @@ func TestMigConfigRSOrganization_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, roleName),
+				Config:            configBasic(orgOwnerID, name, description, roleName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
@@ -35,7 +35,7 @@ func TestMigConfigRSOrganization_Basic(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, roleName),
+				Config:                   configBasic(orgOwnerID, name, description, roleName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
