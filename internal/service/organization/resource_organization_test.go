@@ -33,12 +33,12 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasOrganizationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, roleName),
+				Config: configBasic(orgOwnerID, name, description, roleName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
@@ -47,9 +47,9 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, updatedName, description, roleName),
+				Config: configBasic(orgOwnerID, updatedName, description, roleName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
@@ -74,10 +74,10 @@ func TestAccConfigRSOrganization_BasicAccess(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasOrganizationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, roleName),
+				Config:      configBasic(orgOwnerID, name, description, roleName),
 				ExpectError: regexp.MustCompile("API Key must have the ORG_OWNER role"),
 			},
 		},
@@ -106,12 +106,12 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasOrganizationDestroy,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasOrganizationConfigWithSettings(orgOwnerID, name, description, roleName, settingsConfig),
+				Config: configWithSettings(orgOwnerID, name, description, roleName, settingsConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
@@ -120,9 +120,9 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasOrganizationConfigWithSettings(orgOwnerID, name, description, roleName, settingsConfigUpdated),
+				Config: configWithSettings(orgOwnerID, name, description, roleName, settingsConfigUpdated),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
@@ -131,9 +131,9 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, "org-name-updated", description, roleName),
+				Config: configBasic(orgOwnerID, "org-name-updated", description, roleName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
+					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
@@ -143,7 +143,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasOrganizationExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -174,7 +174,7 @@ func testAccCheckMongoDBAtlasOrganizationExists(resourceName string) resource.Te
 	}
 }
 
-func testAccCheckMongoDBAtlasOrganizationDestroy(s *terraform.State) error {
+func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_organization" {
 			continue
@@ -200,7 +200,7 @@ func testAccCheckMongoDBAtlasOrganizationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, roleNames string) string {
+func configBasic(orgOwnerID, name, description, roleNames string) string {
 	return fmt.Sprintf(`
 	  resource "mongodbatlas_organization" "test" {
 		org_owner_id = "%s"
@@ -211,7 +211,7 @@ func testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, r
 	`, orgOwnerID, name, description, roleNames)
 }
 
-func testAccMongoDBAtlasOrganizationConfigWithSettings(orgOwnerID, name, description, roleNames, settingsConfig string) string {
+func configWithSettings(orgOwnerID, name, description, roleNames, settingsConfig string) string {
 	return fmt.Sprintf(`
 	  resource "mongodbatlas_organization" "test" {
 		org_owner_id = "%s"
