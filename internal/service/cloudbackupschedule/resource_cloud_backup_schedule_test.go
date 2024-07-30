@@ -726,7 +726,7 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 				should_copy_oplogs = true
 			}`, clusterResourceName)
 
-			dataSourceConfig = `data "mongodbatlas_cloud_backup_schedule" "schedule_test_old" {
+			dataSourceConfig = `data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 				cluster_name     = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
 				project_id       = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
 			}`
