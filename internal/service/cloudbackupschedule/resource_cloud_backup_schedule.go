@@ -29,11 +29,11 @@ const (
 	ErrorOperationNotPermitted          = "error operation not permitted"
 	AsymmetricShardsUnsupportedAction   = "Ensure resource schema uses copy_settings.#.zone_id instead of copy_settings.#.replication_spec_id for asymmetric sharded clusters. Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 	errorSnapshotBackupScheduleSetting  = "error setting `%s` for Cloud Backup Schedule(%s): %s"
-	DeprecationOldSchemaAction          = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
+	DeprecationOldSchemaAction          = "To learn more, see our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 	AsymmetricShardsUnsupportedAPIError = "ASYMMETRIC_SHARD_BACKUP_UNSUPPORTED"
 )
 
-var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", fmt.Sprintf("%s %s ", constant.DeprecationParamWithReplacement, "`copy_settings.#.zone_id`"), DeprecationOldSchemaAction)
+var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", fmt.Sprintf(constant.DeprecationParamWithReplacement, "`copy_settings.#.zone_id`"), DeprecationOldSchemaAction)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
