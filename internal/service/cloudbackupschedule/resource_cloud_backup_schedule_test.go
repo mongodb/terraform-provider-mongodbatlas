@@ -1055,15 +1055,3 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
 	}
 }
-
-// func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
-// 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
-// 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
-// 	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
-// 	checks = acc.AddAttrChecks(dataSourceNameOld, checks, attrsMap)
-// 	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
-// 	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
-// 	checks = acc.AddAttrSetChecks(dataSourceNameOld, checks, attrsSet...)
-// 	checks = append(checks, extra...)
-// 	return resource.ComposeAggregateTestCheckFunc(checks...)
-// }
