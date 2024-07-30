@@ -564,14 +564,14 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricNe
 				Check:  checkShardedNewSchema(50, "M30", "M30", "3000", "3000", false, false),
 			},
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 3000, 3000, true),
-				Check:  checkShardedNewSchema(55, "M30", "M40", "3000", "3000", true, true),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 3000, 3000, false),
+				Check:  checkShardedNewSchema(55, "M30", "M40", "3000", "3000", true, false),
 			},
 		},
 	})
 }
 
-func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
+func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchemaAddingRemovingShards(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -585,7 +585,15 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 3000, 3000, false), // TODO: disk iops is failing if value is different
-				Check:  checkShardedNewSchema(50, "M30", "M40", "3000", "3000", true, false),                         // replication spec old ids not populated for asymmetric cluster
+				Check:  checkShardedNewSchema(50, "M30", "M40", "3000", "3000", true, false),
+			},
+			{
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 3000, 3000, true),
+				Check:  checkShardedNewSchema(50, "M30", "M40", "3000", "3000", true, true),
+			},
+			{
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 3000, 3000, false),
+				Check:  checkShardedNewSchema(50, "M30", "M40", "3000", "3000", true, false),
 			},
 		},
 	})
@@ -1435,6 +1443,8 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, ins
 				}
 			}
 
+			%[8]s
+
 			replication_specs {
 				region_configs {
 					electable_specs {
@@ -1453,8 +1463,6 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, ins
 					region_name   = "EU_WEST_1"
 				}
 			}
-
-			%[8]s
 		}
 
 		data "mongodbatlas_advanced_cluster" "test" {
