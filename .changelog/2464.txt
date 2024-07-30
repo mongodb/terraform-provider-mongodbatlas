@@ -1,0 +1,4 @@
+
+```release-note:enhancement
+data-source/mongodbatlas_cloud_backup_schedule: Adds new attributes `use_zone_id_for_copy_settings` and `copy_settings.#.zone_id` and deprecates `copy_settings.#.replication_spec_id`. These new attributes enable referencing zones of clusters using independent shard scaling which no longer support `replication_spec.*.id`.
+```
