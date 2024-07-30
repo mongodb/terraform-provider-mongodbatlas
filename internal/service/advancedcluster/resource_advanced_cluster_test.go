@@ -1547,11 +1547,11 @@ func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useN
 			%[1]s
 			region_configs {
 				electable_specs {
-					instance_size = M10
+					instance_size = "M10"
 					node_count    = 3
 				}
 				analytics_specs {
-					instance_size = M10
+					instance_size = "M10"
 					node_count    = 1
 				}
 				provider_name = "AWS"
@@ -1639,11 +1639,11 @@ func configGeoShardedTransitionOldToNewSchema(orgID, projectName, name string, u
 			%[1]s
 			region_configs {
 				electable_specs {
-					instance_size = M10
+					instance_size = "M10"
 					node_count    = 3
 				}
 				analytics_specs {
-					instance_size = M10
+					instance_size = "M10"
 					node_count    = 1
 				}
 				provider_name = "AWS"
