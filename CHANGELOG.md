@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.17.5 (July 30, 2024)
+
 NOTES:
 
 * data-source/mongodbatlas_cloud_backup_snapshot_export_job: Deprecates the `err_msg` attribute ([#2436](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2436))
