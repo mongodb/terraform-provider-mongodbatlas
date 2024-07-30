@@ -767,8 +767,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		clusterChangeDetect := new(admin.ClusterDescription20250101)
 		if !reflect.DeepEqual(req, clusterChangeDetect) {
-			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
+			updatedCluster, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute()
+			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			}
+			if geoClusterWithChangeInNumberOfReplicationSpecs(d) { // location of ids is altered during patch request, setting new values before read operation
+				setIDsFromResponseInState(updatedCluster, d)
 			}
 			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
@@ -804,6 +808,21 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
+func setIDsFromResponseInState(updatedCluster *admin.ClusterDescription20250101, d *schema.ResourceData) {
+	updatedSpecs := updatedCluster.GetReplicationSpecs()
+	currentSpecs := d.Get("replication_specs").([]any)
+	for i, tfMapRaw := range currentSpecs {
+		tfMap, ok := tfMapRaw.(map[string]any)
+		if !ok || tfMap == nil {
+			continue
+		}
+		if len(updatedSpecs) > i {
+			tfMap["external_id"] = updatedSpecs[i].GetId()
+		}
+	}
+	d.Set("replication_specs", currentSpecs) // TODO handle error
+}
+
 func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clusterName string, connV2 *admin.APIClient) (*admin.ClusterDescription20250101, diag.Diagnostics) {
 	cluster := new(admin.ClusterDescription20250101)
 
@@ -814,10 +833,9 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 		}
 		updatedReplicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), updatedDiskSizeGB)
 
-		// case where sharding schema is transitioning from legacy to new structure (external_id was not present in the state)
-		if noIDsPopulatedInReplicationSpecs(updatedReplicationSpecs) {
+		if geoClusterWithChangeInNumberOfReplicationSpecs(d) {
 			// ids need to be populated to avoid error in the update request
-			specsWithIDs, diags := populateIDValuesUsingNewAPI(ctx, projectID, clusterName, connV2.ClustersApi, updatedReplicationSpecs)
+			specsWithIDs, diags := populateIDValuesUsingAPI(ctx, projectID, clusterName, connV2.ClustersApi, updatedReplicationSpecs)
 			if diags != nil {
 				return nil, diags
 			}
@@ -978,19 +996,18 @@ func updateRequestOldAPI(d *schema.ResourceData, clusterName string) (*admin2023
 	return cluster, nil
 }
 
-func noIDsPopulatedInReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec20250101) bool {
-	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
-		return false
+// ids present in state cannot be used directly as this leads to errors in the API for ineficient PATCH requests (CLOUDP-264333)
+func geoClusterWithChangeInNumberOfReplicationSpecs(d *schema.ResourceData) bool {
+	cs, us := d.GetChange("replication_specs")
+	clusterType := d.Get("cluster_type").(string)
+	currentSpecs, updatedSpecs := cs.([]any), us.([]any)
+	if clusterType == "GEOSHARDED" && len(currentSpecs) != len(updatedSpecs) {
+		return true
 	}
-	for _, spec := range *replicationSpecs {
-		if conversion.IsStringPresent(spec.Id) {
-			return false
-		}
-	}
-	return true
+	return false
 }
 
-func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2CLusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20250101) (*[]admin.ReplicationSpec20250101, diag.Diagnostics) {
+func populateIDValuesUsingAPI(ctx context.Context, projectID, clusterName string, connV2CLusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20250101) (*[]admin.ReplicationSpec20250101, diag.Diagnostics) {
 	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
 		return replicationSpecs, nil
 	}
@@ -1005,6 +1022,9 @@ func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName str
 }
 
 func addIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20250101, zoneToReplicationSpecsIDs map[string][]string) []admin.ReplicationSpec20250101 {
+	for i := range replicationSpecs {
+		replicationSpecs[i].Id = nil
+	}
 	for zoneName, availableIDs := range zoneToReplicationSpecsIDs {
 		var indexOfIDToUse = 0
 		for i := range replicationSpecs {
