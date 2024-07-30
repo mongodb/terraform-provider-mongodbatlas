@@ -300,10 +300,17 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_repSpecId(t *testing.T) {
 			"copy_settings.#": "0",
 		}
 	)
-	checksDefault := acc.AddAttrChecks(resourceName, []resource.TestCheckFunc{checkExists(resourceName)}, checkMap)
-	checksCreate := acc.AddAttrChecks(resourceName, checksDefault, copySettingsChecks)
-	checksCreateAll := acc.AddAttrSetChecks(resourceName, checksCreate, "copy_settings.0.replication_spec_id")
-	checksUpdate := acc.AddAttrChecks(resourceName, checksDefault, emptyCopySettingsChecks)
+	checksDefaultRS := acc.AddAttrChecks(resourceName, []resource.TestCheckFunc{checkExists(resourceName)}, checkMap)
+	checksCreateRS := acc.AddAttrChecks(resourceName, checksDefaultRS, copySettingsChecks)
+	checksCreateAll := acc.AddAttrSetChecks(resourceName, checksCreateRS, "copy_settings.0.replication_spec_id")
+
+	checksDefaultDS := acc.AddAttrChecks(dataSourceName, []resource.TestCheckFunc{}, checkMap)
+	checksCreateDS := acc.AddAttrChecks(dataSourceName, checksDefaultDS, copySettingsChecks)
+	checksCreateDSAll := acc.AddAttrSetChecks(dataSourceName, checksCreateDS, "copy_settings.0.replication_spec_id")
+
+	checksCreateAll = append(checksCreateAll, checksCreateDSAll...)
+
+	checksUpdate := acc.AddAttrChecks(resourceName, checksDefaultRS, emptyCopySettingsChecks)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -379,10 +386,17 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
 			"copy_settings.#": "0",
 		}
 	)
-	checksDefault := acc.AddAttrChecks(resourceName, []resource.TestCheckFunc{checkExists(resourceName)}, checkMap)
-	checksCreate := acc.AddAttrChecks(resourceName, checksDefault, copySettingsChecks)
-	checksCreateAll := acc.AddAttrSetChecks(resourceName, checksCreate, "copy_settings.0.zone_id")
-	checksUpdate := acc.AddAttrChecks(resourceName, checksDefault, emptyCopySettingsChecks)
+	checksDefaultRS := acc.AddAttrChecks(resourceName, []resource.TestCheckFunc{checkExists(resourceName)}, checkMap)
+	checksCreateRS := acc.AddAttrChecks(resourceName, checksDefaultRS, copySettingsChecks)
+	checksCreateAll := acc.AddAttrSetChecks(resourceName, checksCreateRS, "copy_settings.0.zone_id")
+
+	checksDefaultDS := acc.AddAttrChecks(dataSourceName, []resource.TestCheckFunc{}, checkMap)
+	checksCreateDS := acc.AddAttrChecks(dataSourceName, checksDefaultDS, copySettingsChecks)
+	checksCreateDSAll := acc.AddAttrSetChecks(dataSourceName, checksCreateDS, "copy_settings.0.zone_id")
+
+	checksCreateAll = append(checksCreateAll, checksCreateDSAll...)
+
+	checksUpdate := acc.AddAttrChecks(resourceName, checksDefaultRS, emptyCopySettingsChecks)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -694,6 +708,8 @@ func configDefault(info *acc.ClusterInfo, p *admin20231115.DiskBackupSnapshotSch
 
 func configCopySettings(terraformStr, projectID, clusterResourceName string, emptyCopySettings, useRepSpecID bool, p *admin20231115.DiskBackupSnapshotSchedule) string {
 	var copySettings string
+	var dataSourceConfig string
+
 	if !emptyCopySettings {
 		if useRepSpecID {
 			copySettings = fmt.Sprintf(`
@@ -709,6 +725,11 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 				replication_spec_id = %[1]s.replication_specs.*.id[0]
 				should_copy_oplogs = true
 			}`, clusterResourceName)
+
+			dataSourceConfig = `data "mongodbatlas_cloud_backup_schedule" "schedule_test_old" {
+				cluster_name     = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
+				project_id       = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
+			}`
 		} else {
 			copySettings = fmt.Sprintf(`
 			copy_settings {
@@ -723,6 +744,12 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 				zone_id = %[1]s.replication_specs.*.zone_id[0]
 				should_copy_oplogs = true
 			}`, clusterResourceName)
+
+			dataSourceConfig = `data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+				cluster_name     = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
+				project_id       = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
+				use_zone_id_for_copy_settings = true
+			}`
 		}
 	}
 	return fmt.Sprintf(`
@@ -762,7 +789,9 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 			}
 			%[7]s
 		}
-	`, terraformStr, projectID, clusterResourceName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), copySettings)
+
+		%[8]s
+	`, terraformStr, projectID, clusterResourceName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), copySettings, dataSourceConfig)
 }
 
 func configOnePolicy(info *acc.ClusterInfo, p *admin20231115.DiskBackupSnapshotSchedule) string {
@@ -1026,3 +1055,15 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
 	}
 }
+
+// func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+// 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+// 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
+// 	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
+// 	checks = acc.AddAttrChecks(dataSourceNameOld, checks, attrsMap)
+// 	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
+// 	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+// 	checks = acc.AddAttrSetChecks(dataSourceNameOld, checks, attrsSet...)
+// 	checks = append(checks, extra...)
+// 	return resource.ComposeAggregateTestCheckFunc(checks...)
+// }
