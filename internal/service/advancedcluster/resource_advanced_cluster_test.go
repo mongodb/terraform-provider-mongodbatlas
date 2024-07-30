@@ -560,11 +560,11 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M30", 3000, 3000, false),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M30", 2000, 2000, false),
 				Check:  checkShardedNewSchema(50, "M30", "M30", "3000", "3000", false, false),
 			},
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 3000, 3000, true),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 2000, 2000, true),
 				Check:  checkShardedNewSchema(55, "M30", "M40", "3000", "3000", true, true),
 			},
 		},
@@ -584,7 +584,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 3000, 3500, false),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 2000, 2500, false),
 				Check:  checkShardedNewSchema(50, "M30", "M40", "3000", "3500", true, false),
 			},
 		},
