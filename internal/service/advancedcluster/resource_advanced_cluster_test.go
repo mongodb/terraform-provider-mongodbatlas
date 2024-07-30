@@ -591,6 +591,54 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 	})
 }
 
+func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
+				Check:  checkShardedTransitionOldToNewSchema(false),
+			},
+			{
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				Check:  checkShardedTransitionOldToNewSchema(true),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
+				Check:  checkGeoShardedTransitionOldToNewSchema(false),
+			},
+			{
+				Config: configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				Check:  checkGeoShardedTransitionOldToNewSchema(true),
+			},
+		},
+	})
+}
+
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
@@ -1486,5 +1534,191 @@ func checkShardedNewSchema(diskSizeGB int, instanceSizeSpec1, instanceSizeSpec2,
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
 		clusterChecks,
 		additionalChecks...,
+	)
+}
+
+func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useNewSchema bool) string {
+	var numShardsStr string
+	if !useNewSchema {
+		numShardsStr = `num_shards = 2`
+	}
+	replicationSpec := fmt.Sprintf(`
+		replication_specs {
+			%[1]s
+			region_configs {
+				electable_specs {
+					instance_size = M10
+					node_count    = 3
+				}
+				analytics_specs {
+					instance_size = M10
+					node_count    = 1
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+			}
+		}
+	`, numShardsStr)
+
+	var replicationSpecs string
+	if useNewSchema {
+		replicationSpecs = fmt.Sprintf(`
+			%[1]s
+			%[1]s
+		`, replicationSpec)
+	} else {
+		replicationSpecs = replicationSpec
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
+			backup_enabled = false
+			cluster_type   = "SHARDED"
+
+			%[4]s
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+			use_replication_spec_per_shard = true
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			use_replication_spec_per_shard = true
+		}
+	`, orgID, projectName, name, replicationSpecs)
+}
+
+func checkShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestCheckFunc {
+	var amtOfReplicationSpecs int
+	if useNewSchema {
+		amtOfReplicationSpecs = 2
+	} else {
+		amtOfReplicationSpecs = 1
+	}
+	var checksForNewSchema []resource.TestCheckFunc
+	if useNewSchema {
+		checksForNewSchema = []resource.TestCheckFunc{
+			checkAggr([]string{"replication_specs.1.id", "replication_specs.0.external_id", "replication_specs.1.external_id"},
+				map[string]string{
+					"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
+					"replication_specs.1.region_configs.0.electable_specs.0.instance_size": "M10",
+					"replication_specs.1.region_configs.0.analytics_specs.0.instance_size": "M10",
+				}),
+		}
+	}
+
+	return checkAggr(
+		[]string{"replication_specs.0.id"},
+		map[string]string{
+			"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
+			"replication_specs.0.region_configs.0.electable_specs.0.instance_size": "M10",
+			"replication_specs.0.region_configs.0.analytics_specs.0.instance_size": "M10",
+		},
+		checksForNewSchema...,
+	)
+}
+
+func configGeoShardedTransitionOldToNewSchema(orgID, projectName, name string, useNewSchema bool) string {
+	var numShardsStr string
+	if !useNewSchema {
+		numShardsStr = `num_shards = 2`
+	}
+	replicationSpec := `
+		replication_specs {
+			%[1]s
+			region_configs {
+				electable_specs {
+					instance_size = M10
+					node_count    = 3
+				}
+				analytics_specs {
+					instance_size = M10
+					node_count    = 1
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = %[2]q
+			}
+			zone_name = %[3]q
+		}
+	`
+
+	var replicationSpecs string
+	if !useNewSchema {
+		replicationSpecs = fmt.Sprintf(`
+			%[1]s
+			%[2]s
+		`, fmt.Sprintf(replicationSpec, numShardsStr, "US_EAST_1", "zone 1"), fmt.Sprintf(replicationSpec, numShardsStr, "EU_WEST_1", "zone 2"))
+	} else {
+		replicationSpecs = fmt.Sprintf(`
+			%[1]s
+			%[2]s
+			%[3]s
+			%[4]s
+		`, fmt.Sprintf(replicationSpec, numShardsStr, "US_EAST_1", "zone 1"), fmt.Sprintf(replicationSpec, numShardsStr, "US_EAST_1", "zone 1"),
+			fmt.Sprintf(replicationSpec, numShardsStr, "EU_WEST_1", "zone 2"), fmt.Sprintf(replicationSpec, numShardsStr, "EU_WEST_1", "zone 2"))
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
+			backup_enabled = false
+			cluster_type   = "GEOSHARDED"
+
+			%[4]s
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+			use_replication_spec_per_shard = true
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			use_replication_spec_per_shard = true
+		}
+	`, orgID, projectName, name, replicationSpecs)
+}
+
+func checkGeoShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestCheckFunc {
+	if useNewSchema {
+		return checkAggr(
+			[]string{"replication_specs.0.id", "replication_specs.1.id", "replication_specs.2.id", "replication_specs.3.id",
+				"replication_specs.0.external_id", "replication_specs.1.external_id", "replication_specs.2.external_id", "replication_specs.3.external_id",
+			},
+			map[string]string{
+				"replication_specs.#":           "4",
+				"replication_specs.0.zone_name": "zone 1",
+				"replication_specs.1.zone_name": "zone 1",
+				"replication_specs.3.zone_name": "zone 2",
+				"replication_specs.4.zone_name": "zone 2",
+			},
+		)
+	}
+	return checkAggr(
+		[]string{"replication_specs.0.id", "replication_specs.1.id"},
+		map[string]string{
+			"replication_specs.#":           "2",
+			"replication_specs.0.zone_name": "zone 1",
+			"replication_specs.1.zone_name": "zone 2",
+		},
 	)
 }
