@@ -2,13 +2,14 @@
 
 NOTES:
 
-* data-source/mongodbatlas_cloud_backup_snapshot_export_job: Deprecates the `err_msg` attribute. ([#2436](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2436))
-* data-source/mongodbatlas_cloud_backup_snapshot_export_jobs: Deprecates the `err_msg` attribute. ([#2436](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2436))
-* resource/mongodbatlas_cloud_backup_snapshot_export_job: Deprecates the `err_msg` attribute. ([#2436](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2436))
+* data-source/mongodbatlas_cloud_backup_snapshot_export_job: Deprecates the `err_msg` attribute ([#2436](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2436))
+* data-source/mongodbatlas_cloud_backup_snapshot_export_jobs: Deprecates the `err_msg` attribute ([#2436](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2436))
+* resource/mongodbatlas_cloud_backup_snapshot_export_job: Deprecates the `err_msg` attribute ([#2436](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2436))
 
 BUG FIXES:
 
-* resource/mongodbatlas_organization: Fixes a bug in organization resource creation where the provider crashed. ([#2462](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2462))
+* resource/mongodbatlas_alert_configuration: Fixes an issue where the `terraform apply` command crashes if you attempt to edit an existing `mongodbatlas_alert_configuration` by adding a value to `threshold_config` ([#2463](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2463))
+* resource/mongodbatlas_organization: Fixes a bug in organization resource creation where the provider crashed ([#2462](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2462))
 
 ## 1.17.4 (July 19, 2024)
 
