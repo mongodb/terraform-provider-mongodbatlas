@@ -65,7 +65,7 @@ data "mongodbatlas_cloud_backup_schedule" "test" {
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshots backup policy you want to retrieve.
-* `use_zone_id_for_copy_settings` - Set this field to `true` to allow the data source to use the latest schema that populates `copy_settings.#.zone_id` instead of the deprecated `copy_settings.#.replication_spec_id`. These also enables you to reference cluster zones using independent shard scaling, which no longer supports `replication_spec.*.id`. To learn more, see the [1.18.0 upgrade guide](../guides/1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
+* `use_zone_id_for_copy_settings` - Set this field to `true` to allow the data source to use the latest schema that populates `copy_settings.#.zone_id` instead of the deprecated `copy_settings.#.replication_spec_id`. These fields also enable you to reference cluster zones using independent shard scaling, which no longer supports `replication_spec.*.id`. To learn more, see the [1.18.0 upgrade guide](../guides/1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
 
 
 ## Attributes Reference
