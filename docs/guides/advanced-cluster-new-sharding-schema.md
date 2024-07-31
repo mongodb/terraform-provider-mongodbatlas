@@ -346,3 +346,5 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }
 }
 ```
+
+-> **NOTE:** For any cluster leveraging the new schema and supporting independent shards, users should also update corresponding `mongodbatlas_cloud_backup_schedule` resource & data sources. This involves updating any existing Terraform configurations of the resource to use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id`. To learn more, review the [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
