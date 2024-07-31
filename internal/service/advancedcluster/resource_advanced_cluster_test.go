@@ -560,12 +560,12 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M30", 3000, 3000, false),
-				Check:  checkShardedNewSchema(50, "M30", "M30", "3000", "3000", false, false),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M30", 2000, 2000, false),
+				Check:  checkShardedNewSchema(50, "M30", "M30", "2000", "2000", false, false),
 			},
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 3000, 3000, true),
-				Check:  checkShardedNewSchema(55, "M30", "M40", "3000", "3000", true, true),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 2000, 2000, true),
+				Check:  checkShardedNewSchema(55, "M30", "M40", "2000", "2000", true, true),
 			},
 		},
 	})
@@ -584,8 +584,8 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 3000, 3000, false), // TODO: disk iops is failing if value is different
-				Check:  checkShardedNewSchema(50, "M30", "M40", "3000", "3000", true, false),                         // replication spec old ids not populated for asymmetric cluster
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 2000, 2500, false),
+				Check:  checkShardedNewSchema(50, "M30", "M40", "2000", "2500", true, false),
 			},
 		},
 	})
@@ -1360,7 +1360,6 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, ins
 				region_configs {
 					electable_specs {
 						instance_size = %[1]q
-						disk_iops = %[2]d
 						node_count    = 3
 						disk_size_gb  = %[3]d
 					}
@@ -1393,6 +1392,7 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, ins
 					electable_specs {
 						instance_size = %[4]q
 						disk_iops = %[6]d
+						ebs_volume_type = "PROVISIONED"
 						node_count    = 3
 						disk_size_gb  = %[9]d
 					}
@@ -1412,6 +1412,7 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, ins
 					electable_specs {
 						instance_size = %[5]q
 						disk_iops = %[7]d
+						ebs_volume_type = "PROVISIONED"
 						node_count    = 3
 						disk_size_gb  = %[9]d
 					}
