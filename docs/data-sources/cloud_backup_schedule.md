@@ -46,7 +46,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 		   "DAILY",
 		   "WEEKLY",
 		   "MONTHLY",
-       "YEARLY",
+		   "YEARLY",
 		   "ON_DEMAND"]
     region_name = "US_EAST_1"
     zone_id = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.zone_id[0]
