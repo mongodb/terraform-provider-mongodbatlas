@@ -7,10 +7,12 @@ import (
 	"regexp"
 	"strconv"
 	"testing"
+	"time"
 
 	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
@@ -659,11 +661,26 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		if _, _, err := acc.ConnV2().ClustersApi.GetCluster(context.Background(), ids["project_id"], ids["cluster_name"]).Execute(); err == nil {
+		err := getClusterHandlingRetry(ids["project_id"], ids["cluster_name"])
+		if err == nil {
 			return nil
 		}
-		return fmt.Errorf("cluster(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.ID)
+		return fmt.Errorf("cluster(%s:%s) does not exist: %w", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
 	}
+}
+
+func getClusterHandlingRetry(projectID, clusterName string) error {
+	return retry.RetryContext(context.Background(), 3*time.Minute, func() *retry.RetryError {
+		_, _, err := acc.ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
+		if apiError, ok := admin.AsError(err); ok {
+			if apiError.GetErrorCode() == "SERVICE_UNAVAILABLE" {
+				// retrying get operation because for migration test it can be the first time new API is called for a cluster so API responds with temporary error as it transition to enabling ISS FF
+				return retry.RetryableError(err)
+			}
+			return retry.NonRetryableError(err)
+		}
+		return nil
+	})
 }
 
 func configTenant(projectID, name string) string {
@@ -1718,8 +1735,8 @@ func checkGeoShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestChe
 				"replication_specs.#":           "4",
 				"replication_specs.0.zone_name": "zone 1",
 				"replication_specs.1.zone_name": "zone 1",
+				"replication_specs.2.zone_name": "zone 2",
 				"replication_specs.3.zone_name": "zone 2",
-				"replication_specs.4.zone_name": "zone 2",
 			},
 		)
 	}
