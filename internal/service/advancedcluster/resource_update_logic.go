@@ -21,11 +21,11 @@ func noIDsPopulatedInReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec2
 	return true
 }
 
-func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2CLusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20250101) (*[]admin.ReplicationSpec20250101, diag.Diagnostics) {
+func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2ClusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20250101) (*[]admin.ReplicationSpec20250101, diag.Diagnostics) {
 	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
 		return replicationSpecs, nil
 	}
-	cluster, _, err := connV2CLusterAPI.GetCluster(ctx, projectID, clusterName).Execute()
+	cluster, _, err := connV2ClusterAPI.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return nil, diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 	}
