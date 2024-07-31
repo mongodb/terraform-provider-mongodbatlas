@@ -1571,6 +1571,11 @@ func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useN
 		replicationSpecs = replicationSpec
 	}
 
+	var dataSourceFlag string
+	if useNewSchema {
+		dataSourceFlag = `use_replication_spec_per_shard = true`
+	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1589,14 +1594,14 @@ func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useN
 		data "mongodbatlas_advanced_cluster" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
-			use_replication_spec_per_shard = true
+			%[5]s
 		}
 
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
-			use_replication_spec_per_shard = true
+			%[5]s
 		}
-	`, orgID, projectName, name, replicationSpecs)
+	`, orgID, projectName, name, replicationSpecs, dataSourceFlag)
 }
 
 func checkShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestCheckFunc {
@@ -1670,6 +1675,11 @@ func configGeoShardedTransitionOldToNewSchema(orgID, projectName, name string, u
 			fmt.Sprintf(replicationSpec, numShardsStr, "EU_WEST_1", "zone 2"), fmt.Sprintf(replicationSpec, numShardsStr, "EU_WEST_1", "zone 2"))
 	}
 
+	var dataSourceFlag string
+	if useNewSchema {
+		dataSourceFlag = `use_replication_spec_per_shard = true`
+	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1688,14 +1698,14 @@ func configGeoShardedTransitionOldToNewSchema(orgID, projectName, name string, u
 		data "mongodbatlas_advanced_cluster" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
-			use_replication_spec_per_shard = true
+			%[5]s
 		}
 
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
-			use_replication_spec_per_shard = true
+			%[5]s
 		}
-	`, orgID, projectName, name, replicationSpecs)
+	`, orgID, projectName, name, replicationSpecs, dataSourceFlag)
 }
 
 func checkGeoShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestCheckFunc {
