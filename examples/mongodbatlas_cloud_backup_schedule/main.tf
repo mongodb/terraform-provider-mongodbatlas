@@ -55,7 +55,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
       "YEARLY",
     "ON_DEMAND"]
     region_name        = "US_WEST_1"
-    zone_id            = mongodbatlas_advanced_cluster.automated_backup_test_cluster[each.key].replication_specs.*.zone_id[0]
+    zone_id            = mongodbatlas_advanced_cluster.automated_backup_test_cluster[each.key].replication_specs[0].zone_id[0]
     should_copy_oplogs = true
   }
 
