@@ -814,7 +814,7 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 		}
 		updatedReplicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), updatedDiskSizeGB)
 
-		// case where sharding schema is transitioning from legacy to new structure (external_id was not present in the state)
+		// case where sharding schema is transitioning from legacy to new structure (external_id is not present in the state so no ids are are currently present)
 		if noIDsPopulatedInReplicationSpecs(updatedReplicationSpecs) {
 			// ids need to be populated to avoid error in the update request
 			specsWithIDs, diags := populateIDValuesUsingNewAPI(ctx, projectID, clusterName, connV2.ClustersApi, updatedReplicationSpecs)
