@@ -119,7 +119,6 @@ func TestMigAdvancedCluster_singleShardPerZoneGeoSharded(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
-	acc.SkipTestForCI(t) // TODO: CLOUDP-260154 for ensuring old schema is supported
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
