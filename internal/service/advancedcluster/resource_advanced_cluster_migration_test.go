@@ -69,7 +69,7 @@ func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName = acc.RandomClusterName()
-		config      = configSingleShardedMultiCloud(orgID, projectName, clusterName)
+		config      = configShardedMultiCloud(orgID, projectName, clusterName, 1, "M30")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -79,13 +79,13 @@ func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             checkSingleShardedMultiCloud(clusterName, false),
+				Check:             checkShardedMultiCloud(clusterName, 1, "M30", false),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   config,
-				Check:                    checkSingleShardedMultiCloud(clusterName, true), // external_id will be present in latest version
+				Check:                    checkShardedMultiCloud(clusterName, 1, "M30", true), // external_id will be present in latest version
 			},
 		},
 	})

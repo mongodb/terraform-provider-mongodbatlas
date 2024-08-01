@@ -132,12 +132,12 @@ func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleShardedMultiCloud(orgID, projectName, clusterName),
-				Check:  checkSingleShardedMultiCloud(clusterName, true),
+				Config: configShardedMultiCloud(orgID, projectName, clusterName, 1, "M30"),
+				Check:  checkShardedMultiCloud(clusterName, 1, "M30", true),
 			},
 			{
-				Config: configSingleShardedMultiCloud(orgID, projectName, clusterNameUpdated),
-				Check:  checkSingleShardedMultiCloud(clusterNameUpdated, true),
+				Config: configShardedMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M30"),
+				Check:  checkShardedMultiCloud(clusterNameUpdated, 1, "M30", true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -495,6 +495,30 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 			{
 				Config:      configIncorrectTypeGobalClusterSelfManagedSharding(projectID, clusterName),
 				ExpectError: regexp.MustCompile("CANNOT_SET_SELF_MANAGED_SHARDING_FOR_NON_GLOBAL_CLUSTER"),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedMultiCloud(orgID, projectName, clusterName, 2, "M30"),
+				Check:  checkShardedMultiCloud(clusterName, 2, "M30", true),
+			},
+			{
+				Config: configShardedMultiCloud(orgID, projectName, clusterName, 2, "M40"),
+				Check:  checkShardedMultiCloud(clusterName, 2, "M40", true),
 			},
 		},
 	})
@@ -971,7 +995,7 @@ func checkReplicaSetMultiCloud(name string, regionConfigs int, verifyExternalID 
 	)
 }
 
-func configSingleShardedMultiCloud(orgID, projectName, name string) string {
+func configShardedMultiCloud(orgID, projectName, name string, numShards int, analyticsSize string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -984,14 +1008,14 @@ func configSingleShardedMultiCloud(orgID, projectName, name string) string {
 			cluster_type = "SHARDED"
 
 			replication_specs {
-				num_shards = 1
+				num_shards = %[4]d
 				region_configs {
 					electable_specs {
 						instance_size = "M30"
 						node_count    = 3
 					}
 					analytics_specs {
-						instance_size = "M30"
+						instance_size = %[5]q
 						node_count    = 1
 					}
 					provider_name = "AWS"
@@ -1014,10 +1038,10 @@ func configSingleShardedMultiCloud(orgID, projectName, name string) string {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
-	`, orgID, projectName, name)
+	`, orgID, projectName, name, numShards, analyticsSize)
 }
 
-func checkSingleShardedMultiCloud(name string, verifyExternalID bool) resource.TestCheckFunc {
+func checkShardedMultiCloud(name string, numShards int, analyticsSize string, verifyExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{}
 
 	if verifyExternalID {
@@ -1035,7 +1059,10 @@ func checkSingleShardedMultiCloud(name string, verifyExternalID bool) resource.T
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"name": name},
+			"name":                           name,
+			"replication_specs.0.num_shards": strconv.Itoa(numShards),
+			"replication_specs.0.analytics_specs.0.instance_size": analyticsSize,
+		},
 		additionalChecks...)
 }
 
