@@ -397,6 +397,12 @@ Network Peering Connections can be imported using project ID and network peering
 $ terraform import mongodbatlas_network_peering.my_peering 1112222b3bf99403840e8934-5cbf563d87d9d67253be590a-AWS
 ```
 
+To obtain `project_id` and `peering_id` can be obtained using atlas cli. Attention: `atlas networking peering list` needs the `--provider` parameter for AZURE and GCP as it returns only `AWS` peerings by default. 
+
+```
+atlas projects list
+atlas networking peering list --projectId <projectId> --provider <AZURE|GCP|AWS>
+```
 See detailed information for arguments and attributes: [MongoDB API Network Peering Connection](https://docs.atlas.mongodb.com/reference/api/vpc-create-peering-connection/)
 
 -> **NOTE:** If you need to get an existing container ID see the [How-To Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/howto-guide.html).
