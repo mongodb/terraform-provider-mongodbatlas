@@ -18,11 +18,15 @@ var (
 	dataSourcePluralName = "data.mongodbatlas_cloud_backup_snapshot_export_buckets.test"
 )
 
-func TestAccBackupSnapshotExportBucket_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+func TestAccBackupSnapshotExportBucket_basicAWS(t *testing.T) {
+	resource.ParallelTest(t, *basicAWSTestCase(t))
 }
 
-func basicTestCase(tb testing.TB) *resource.TestCase {
+func TestAccBackupSnapshotExportBucket_basicAzure(t *testing.T) {
+	resource.ParallelTest(t, *basicAzureTestCase(t))
+}
+
+func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 
 	var (
@@ -39,7 +43,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, bucketName, policyName, roleName),
+				Config: configAWSBasic(projectID, bucketName, policyName, roleName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -64,6 +68,65 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func basicAzureTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
+	var (
+		projectID          = acc.ProjectIDExecution(t)
+		tenantID           = os.Getenv("AZURE_TENANT_ID")
+		bucketName         = os.Getenv("AZURE_BLOB_STORAGE_CONTAINER_NAME")
+		serviceURL         = os.Getenv("AZURE_SERVICE_URL")
+		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
+		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
+	)
+
+	return &resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckBasic(t)
+			acc.PreCheckCloudProviderAccessAzure(t)
+			acc.PreCheckAzureExportBucket(t)
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configAzureBasic(projectID, atlasAzureAppID, servicePrincipalID, tenantID, bucketName, serviceURL),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "bucket_name", bucketName),
+					resource.TestCheckResourceAttr(resourceName, "service_url", serviceURL),
+					resource.TestCheckResourceAttr(resourceName, "tenant_id", tenantID),
+					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AZURE"),
+					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
+
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "bucket_name", bucketName),
+					resource.TestCheckResourceAttr(dataSourceName, "service_url", serviceURL),
+					resource.TestCheckResourceAttr(dataSourceName, "tenant_id", tenantID),
+					resource.TestCheckResourceAttr(dataSourceName, "cloud_provider", "AZURE"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "role_id"),
+
+					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", "1"),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.bucket_name", bucketName),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.service_url", serviceURL),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tenant_id", tenantID),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.cloud_provider", "AZURE"),
+					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.role_id"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"container_id"},
 			},
 		},
 	}
@@ -112,7 +175,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(projectID, bucketName, policyName, roleName string) string {
+func configAWSBasic(projectID, bucketName, policyName, roleName string) string {
 	return fmt.Sprintf(`
     resource "aws_iam_role_policy" "test_policy" {
         name = %[3]q
@@ -192,4 +255,49 @@ func configBasic(projectID, bucketName, policyName, roleName string) string {
             project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
         }
     `, projectID, bucketName, policyName, roleName)
+}
+
+func configAzureBasic(projectID, atlasAzureAppID, servicePrincipalID, tenantID, bucketName, serviceURL string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+			project_id    = %[1]q
+			provider_name = "AZURE"
+			azure_config {
+				atlas_azure_app_id = %[2]q
+				service_principal_id = %[3]q
+				tenant_id = %[4]q
+			}
+      	}
+
+		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+			project_id = %[1]q
+			role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+			
+			azure {
+				atlas_azure_app_id = %[2]q
+				service_principal_id = %[3]q
+				tenant_id = %[4]q
+			}
+		}
+
+
+        resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
+            project_id     = %[1]q
+            bucket_name    = %[5]q
+            cloud_provider = "AZURE"
+			service_url	   = %[6]q
+			role_id		   = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+			tenant_id	   = %[4]q
+        }
+
+        data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
+            project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
+            export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
+            id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
+        }
+
+        data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
+            project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
+        }
+	`, projectID, atlasAzureAppID, servicePrincipalID, tenantID, bucketName, serviceURL)
 }
