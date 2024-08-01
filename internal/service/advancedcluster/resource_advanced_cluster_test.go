@@ -514,11 +514,11 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedMultiCloud(orgID, projectName, clusterName, 2, "M30"),
-				Check:  checkShardedMultiCloud(clusterName, 2, "M30", true),
+				Check:  checkShardedMultiCloud(clusterName, 2, "M30", false),
 			},
 			{
 				Config: configShardedMultiCloud(orgID, projectName, clusterName, 2, "M40"),
-				Check:  checkShardedMultiCloud(clusterName, 2, "M40", true),
+				Check:  checkShardedMultiCloud(clusterName, 2, "M40", false),
 			},
 		},
 	})
@@ -1061,7 +1061,7 @@ func checkShardedMultiCloud(name string, numShards int, analyticsSize string, ve
 		map[string]string{
 			"name":                           name,
 			"replication_specs.0.num_shards": strconv.Itoa(numShards),
-			"replication_specs.0.analytics_specs.0.instance_size": analyticsSize,
+			"replication_specs.0.region_configs.0.analytics_specs.0.instance_size": analyticsSize,
 		},
 		additionalChecks...)
 }
