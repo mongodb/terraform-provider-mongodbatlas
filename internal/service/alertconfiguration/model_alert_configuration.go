@@ -200,28 +200,28 @@ func NewTFMetricThresholdConfigModel(t *admin.ServerlessMetricThreshold, currSta
 		return []TfMetricThresholdConfigModel{
 			{
 				MetricName: conversion.StringNullIfEmpty(t.MetricName),
-				Operator:   conversion.StringNullIfEmpty(*t.Operator),
-				Threshold:  types.Float64Value(*t.Threshold),
-				Units:      conversion.StringNullIfEmpty(*t.Units),
-				Mode:       conversion.StringNullIfEmpty(*t.Mode),
+				Operator:   conversion.StringNullIfEmpty(t.GetOperator()),
+				Threshold:  types.Float64Value(t.GetThreshold()),
+				Units:      conversion.StringNullIfEmpty(t.GetUnits()),
+				Mode:       conversion.StringNullIfEmpty(t.GetMode()),
 			},
 		}
 	}
 	currState := currStateSlice[0]
 	newState := TfMetricThresholdConfigModel{
-		Threshold: types.Float64Value(*t.Threshold),
+		Threshold: types.Float64Value(t.GetThreshold()),
 	}
 	if !currState.MetricName.IsNull() {
 		newState.MetricName = conversion.StringNullIfEmpty(t.MetricName)
 	}
 	if !currState.Operator.IsNull() {
-		newState.Operator = conversion.StringNullIfEmpty(*t.Operator)
+		newState.Operator = conversion.StringNullIfEmpty(t.GetOperator())
 	}
 	if !currState.Units.IsNull() {
-		newState.Units = conversion.StringNullIfEmpty(*t.Units)
+		newState.Units = conversion.StringNullIfEmpty(t.GetUnits())
 	}
 	if !currState.Mode.IsNull() {
-		newState.Mode = conversion.StringNullIfEmpty(*t.Mode)
+		newState.Mode = conversion.StringNullIfEmpty(t.GetMode())
 	}
 	return []TfMetricThresholdConfigModel{newState}
 }
@@ -234,21 +234,21 @@ func NewTFThresholdConfigModel(t *admin.GreaterThanRawThreshold, currStateSlice 
 	if len(currStateSlice) == 0 { // threshold was created elsewhere from terraform, or import statement is being called
 		return []TfThresholdConfigModel{
 			{
-				Operator:  conversion.StringNullIfEmpty(*t.Operator),
-				Threshold: types.Float64Value(float64(*t.Threshold)), // int in new SDK but keeping float64 for backward compatibility
-				Units:     conversion.StringNullIfEmpty(*t.Units),
+				Operator:  conversion.StringNullIfEmpty(t.GetOperator()),
+				Threshold: types.Float64Value(float64(t.GetThreshold())), // int in new SDK but keeping float64 for backward compatibility
+				Units:     conversion.StringNullIfEmpty(t.GetUnits()),
 			},
 		}
 	}
 	currState := currStateSlice[0]
 	newState := TfThresholdConfigModel{}
 	if !currState.Operator.IsNull() {
-		newState.Operator = conversion.StringNullIfEmpty(*t.Operator)
+		newState.Operator = conversion.StringNullIfEmpty(t.GetOperator())
 	}
 	if !currState.Units.IsNull() {
-		newState.Units = conversion.StringNullIfEmpty(*t.Units)
+		newState.Units = conversion.StringNullIfEmpty(t.GetUnits())
 	}
-	newState.Threshold = types.Float64Value(float64(*t.Threshold))
+	newState.Threshold = types.Float64Value(float64(t.GetThreshold()))
 
 	return []TfThresholdConfigModel{newState}
 }
