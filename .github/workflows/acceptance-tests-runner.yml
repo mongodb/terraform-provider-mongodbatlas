@@ -103,6 +103,10 @@ on:
         required: true
       aws_s3_bucket_backup:
         required: true
+      azure_service_url_backup:
+        required: true
+      azure_blob_storage_container_backup:
+        required: true
       mongodb_atlas_ldap_hostname:
         required: true
       mongodb_atlas_ldap_username:
@@ -364,6 +368,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_backup }}
+          AZURE_BLOB_STORAGE_CONTAINER_NAME: ${{ secrets.azure_blob_storage_container_backup }}
+          AZURE_SERVICE_URL: ${{ secrets.azure_service_url_backup }}
+          AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
+          AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
           ACCTEST_PACKAGES: |
             ./internal/service/cloudbackupschedule
             ./internal/service/cloudbackupsnapshot
