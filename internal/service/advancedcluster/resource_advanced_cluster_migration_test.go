@@ -141,6 +141,56 @@ func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
 	})
 }
 
+func TestMigAdvancedCluster_shardedTransitionFromOldToNewSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { mig.PreCheckBasic(t) },
+		CheckDestroy: acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
+				Check:             checkShardedTransitionOldToNewSchema(false),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				Check:                    checkShardedTransitionOldToNewSchema(true),
+			},
+		},
+	})
+}
+
+func TestMigAdvancedCluster_geoShardedTransitionFromOldToNewSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { mig.PreCheckBasic(t) },
+		CheckDestroy: acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
+				Check:             checkGeoShardedTransitionOldToNewSchema(false),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				Check:                    checkGeoShardedTransitionOldToNewSchema(true),
+			},
+		},
+	})
+}
+
 func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)

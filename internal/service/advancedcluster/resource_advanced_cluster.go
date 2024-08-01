@@ -761,7 +761,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 		}
 	} else {
-		req, diags := updateRequest(d, clusterName)
+		req, diags := updateRequest(ctx, d, projectID, clusterName, connV2)
 		if diags != nil {
 			return diags
 		}
@@ -804,8 +804,28 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
-func updateRequest(d *schema.ResourceData, clusterName string) (*admin.ClusterDescription20250101, diag.Diagnostics) {
+func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clusterName string, connV2 *admin.APIClient) (*admin.ClusterDescription20250101, diag.Diagnostics) {
 	cluster := new(admin.ClusterDescription20250101)
+
+	if d.HasChange("replication_specs") || d.HasChange("disk_size_gb") {
+		var updatedDiskSizeGB *float64
+		if d.HasChange("disk_size_gb") {
+			updatedDiskSizeGB = conversion.Pointer(d.Get("disk_size_gb").(float64))
+		}
+		updatedReplicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), updatedDiskSizeGB)
+
+		// case where sharding schema is transitioning from legacy to new structure (external_id is not present in the state so no ids are are currently present)
+		if noIDsPopulatedInReplicationSpecs(updatedReplicationSpecs) {
+			// ids need to be populated to avoid error in the update request
+			specsWithIDs, diags := populateIDValuesUsingNewAPI(ctx, projectID, clusterName, connV2.ClustersApi, updatedReplicationSpecs)
+			if diags != nil {
+				return nil, diags
+			}
+			updatedReplicationSpecs = specsWithIDs
+		}
+
+		cluster.ReplicationSpecs = updatedReplicationSpecs
+	}
 
 	if d.HasChange("backup_enabled") {
 		cluster.BackupEnabled = conversion.Pointer(d.Get("backup_enabled").(bool))
@@ -843,14 +863,6 @@ func updateRequest(d *schema.ResourceData, clusterName string) (*admin.ClusterDe
 		cluster.PitEnabled = conversion.Pointer(d.Get("pit_enabled").(bool))
 	}
 
-	if d.HasChange("replication_specs") || d.HasChange("disk_size_gb") {
-		var updatedDiskSizeGB *float64
-		if d.HasChange("disk_size_gb") {
-			updatedDiskSizeGB = conversion.Pointer(d.Get("disk_size_gb").(float64))
-		}
-		cluster.ReplicationSpecs = expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), updatedDiskSizeGB)
-	}
-
 	if d.HasChange("root_cert_type") {
 		cluster.RootCertType = conversion.StringPtr(d.Get("root_cert_type").(string))
 	}
@@ -886,6 +898,18 @@ func updateRequest(d *schema.ResourceData, clusterName string) (*admin.ClusterDe
 func updateRequestOldAPI(d *schema.ResourceData, clusterName string) (*admin20231115.AdvancedClusterDescription, diag.Diagnostics) {
 	cluster := new(admin20231115.AdvancedClusterDescription)
 
+	if d.HasChange("replication_specs") {
+		cluster.ReplicationSpecs = expandAdvancedReplicationSpecsOldSDK(d.Get("replication_specs").([]any))
+	}
+
+	if d.HasChange("disk_size_gb") {
+		cluster.DiskSizeGB = conversion.Pointer(d.Get("disk_size_gb").(float64))
+	}
+
+	if changedValue := obtainChangeForDiskSizeGBInFirstRegion(d); changedValue != nil {
+		cluster.DiskSizeGB = changedValue
+	}
+
 	if d.HasChange("backup_enabled") {
 		cluster.BackupEnabled = conversion.Pointer(d.Get("backup_enabled").(bool))
 	}
@@ -896,14 +920,6 @@ func updateRequestOldAPI(d *schema.ResourceData, clusterName string) (*admin2023
 
 	if d.HasChange("cluster_type") {
 		cluster.ClusterType = conversion.StringPtr(d.Get("cluster_type").(string))
-	}
-
-	if d.HasChange("disk_size_gb") {
-		cluster.DiskSizeGB = conversion.Pointer(d.Get("disk_size_gb").(float64))
-	}
-
-	if changedValue := obtainChangeForDiskSizeGBInFirstRegion(d); changedValue != nil {
-		cluster.DiskSizeGB = changedValue
 	}
 
 	if d.HasChange("encryption_at_rest_provider") {
@@ -928,10 +944,6 @@ func updateRequestOldAPI(d *schema.ResourceData, clusterName string) (*admin2023
 
 	if d.HasChange("pit_enabled") {
 		cluster.PitEnabled = conversion.Pointer(d.Get("pit_enabled").(bool))
-	}
-
-	if d.HasChange("replication_specs") {
-		cluster.ReplicationSpecs = expandAdvancedReplicationSpecsOldSDK(d.Get("replication_specs").([]any))
 	}
 
 	if d.HasChange("root_cert_type") {
