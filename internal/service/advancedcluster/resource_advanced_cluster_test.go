@@ -1,18 +1,15 @@
 package advancedcluster_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"testing"
-	"time"
 
 	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
@@ -132,12 +129,12 @@ func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleShardedMultiCloud(orgID, projectName, clusterName),
-				Check:  checkSingleShardedMultiCloud(clusterName, true),
+				Config: configShardedMultiCloud(orgID, projectName, clusterName, 1, "M30"),
+				Check:  checkShardedMultiCloud(clusterName, 1, "M30", true),
 			},
 			{
-				Config: configSingleShardedMultiCloud(orgID, projectName, clusterNameUpdated),
-				Check:  checkSingleShardedMultiCloud(clusterNameUpdated, true),
+				Config: configShardedMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M30"),
+				Check:  checkShardedMultiCloud(clusterNameUpdated, 1, "M30", true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -500,6 +497,30 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 	})
 }
 
+func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedMultiCloud(orgID, projectName, clusterName, 2, "M30"),
+				Check:  checkShardedMultiCloud(clusterName, 2, "M30", false),
+			},
+			{
+				Config: configShardedMultiCloud(orgID, projectName, clusterName, 2, "M40"),
+				Check:  checkShardedMultiCloud(clusterName, 2, "M40", false),
+			},
+		},
+	})
+}
+
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -660,26 +681,12 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		err := getClusterHandlingRetry(ids["project_id"], ids["cluster_name"])
+		err := acc.CheckClusterExistsHandlingRetry(ids["project_id"], ids["cluster_name"])
 		if err == nil {
 			return nil
 		}
 		return fmt.Errorf("cluster(%s:%s) does not exist: %w", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
 	}
-}
-
-func getClusterHandlingRetry(projectID, clusterName string) error {
-	return retry.RetryContext(context.Background(), 3*time.Minute, func() *retry.RetryError {
-		_, _, err := acc.ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
-		if apiError, ok := admin.AsError(err); ok {
-			if apiError.GetErrorCode() == "SERVICE_UNAVAILABLE" {
-				// retrying get operation because for migration test it can be the first time new API is called for a cluster so API responds with temporary error as it transition to enabling ISS FF
-				return retry.RetryableError(err)
-			}
-			return retry.NonRetryableError(err)
-		}
-		return nil
-	})
 }
 
 func configTenant(projectID, name string) string {
@@ -971,7 +978,7 @@ func checkReplicaSetMultiCloud(name string, regionConfigs int, verifyExternalID 
 	)
 }
 
-func configSingleShardedMultiCloud(orgID, projectName, name string) string {
+func configShardedMultiCloud(orgID, projectName, name string, numShards int, analyticsSize string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -984,14 +991,14 @@ func configSingleShardedMultiCloud(orgID, projectName, name string) string {
 			cluster_type = "SHARDED"
 
 			replication_specs {
-				num_shards = 1
+				num_shards = %[4]d
 				region_configs {
 					electable_specs {
 						instance_size = "M30"
 						node_count    = 3
 					}
 					analytics_specs {
-						instance_size = "M30"
+						instance_size = %[5]q
 						node_count    = 1
 					}
 					provider_name = "AWS"
@@ -1014,10 +1021,10 @@ func configSingleShardedMultiCloud(orgID, projectName, name string) string {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
-	`, orgID, projectName, name)
+	`, orgID, projectName, name, numShards, analyticsSize)
 }
 
-func checkSingleShardedMultiCloud(name string, verifyExternalID bool) resource.TestCheckFunc {
+func checkShardedMultiCloud(name string, numShards int, analyticsSize string, verifyExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{}
 
 	if verifyExternalID {
@@ -1035,7 +1042,10 @@ func checkSingleShardedMultiCloud(name string, verifyExternalID bool) resource.T
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"name": name},
+			"name":                           name,
+			"replication_specs.0.num_shards": strconv.Itoa(numShards),
+			"replication_specs.0.region_configs.0.analytics_specs.0.instance_size": analyticsSize,
+		},
 		additionalChecks...)
 }
 
