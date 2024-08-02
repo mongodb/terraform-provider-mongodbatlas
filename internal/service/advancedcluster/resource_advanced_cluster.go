@@ -824,6 +824,8 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 			updatedReplicationSpecs = specsWithIDs
 		}
 
+		syncAutoScalingConfigs(updatedReplicationSpecs)
+
 		cluster.ReplicationSpecs = updatedReplicationSpecs
 	}
 
@@ -893,6 +895,41 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 		cluster.Paused = conversion.Pointer(d.Get("paused").(bool))
 	}
 	return cluster, nil
+}
+
+func syncAutoScalingConfigs(replicationSpecs *[]admin.ReplicationSpec20250101) {
+	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
+		return
+	}
+
+	var defaultAnalyticsAutoScaling, defaultAutoScaling *admin.AdvancedAutoScalingSettings
+
+	for _, spec := range *replicationSpecs {
+		for i := range *spec.RegionConfigs {
+			regionConfig := &(*spec.RegionConfigs)[i]
+			if regionConfig.AutoScaling != nil && defaultAutoScaling == nil {
+				defaultAutoScaling = regionConfig.AutoScaling
+			}
+			if regionConfig.AnalyticsAutoScaling != nil && defaultAnalyticsAutoScaling == nil {
+				defaultAnalyticsAutoScaling = regionConfig.AnalyticsAutoScaling
+			}
+		}
+	}
+	applyDefaultAutoScaling(replicationSpecs, defaultAutoScaling, defaultAnalyticsAutoScaling)
+}
+
+func applyDefaultAutoScaling(replicationSpecs *[]admin.ReplicationSpec20250101, defaultAutoScaling, defaultAnalyticsAutoScaling *admin.AdvancedAutoScalingSettings) {
+	for _, spec := range *replicationSpecs {
+		for i := range *spec.RegionConfigs {
+			regionConfig := &(*spec.RegionConfigs)[i]
+			if regionConfig.AutoScaling == nil && defaultAutoScaling != nil {
+				regionConfig.AutoScaling = defaultAutoScaling
+			}
+			if regionConfig.AnalyticsAutoScaling == nil && defaultAnalyticsAutoScaling != nil {
+				regionConfig.AnalyticsAutoScaling = defaultAnalyticsAutoScaling
+			}
+		}
+	}
 }
 
 func updateRequestOldAPI(d *schema.ResourceData, clusterName string) (*admin20231115.AdvancedClusterDescription, diag.Diagnostics) {
