@@ -153,6 +153,11 @@ func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bo
 		    config = {
 		    	"auto.offset.reset": %[5]q
 		    }
+			networking = {
+				access = {
+					type = "PUBLIC"
+				}
+			}
 		    %[6]s
 		}
 	`, projectAndStreamInstanceConfig, username, password, bootstrapServers, configValue, securityConfig)

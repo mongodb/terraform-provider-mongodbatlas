@@ -67,6 +67,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Config:          types.MapNull(types.StringType),
 				Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
 				DBRoleToExecute: tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
+				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 			},
 		},
 		{
@@ -98,6 +99,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Config:           tfConfigMap(t, configMap),
 				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
 				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 			},
 		},
 		{
@@ -118,6 +120,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Config:          types.MapNull(types.StringType),
 				Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
 				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 			},
 		},
 		{
@@ -149,6 +152,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Config:           tfConfigMap(t, configMap),
 				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
 				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 			},
 		},
 		{
@@ -168,6 +172,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Config:          types.MapNull(types.StringType),
 				Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
 				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 			},
 		},
 	}
