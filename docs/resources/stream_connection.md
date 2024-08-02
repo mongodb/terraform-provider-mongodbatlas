@@ -82,6 +82,7 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 * `bootstrap_servers` - Comma separated list of server addresses.
 * `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
 * `security` - Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. See [security](#security).
+* `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
 
 ### Authentication
 
@@ -98,6 +99,13 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 
 * `role` - The name of the role to use. Can be a built in role or a custom role.
 * `type` - Type of the DB role. Can be either BUILT_IN or CUSTOM.
+
+### Networking
+* `access` - Information about the networking access. See [access](#access).
+
+### Access
+* `name` - Id of the vpc peer when the type is `VPC`.
+* `type` - Selected networking type. Either `PUBLIC` or `VPC`. Defaults to `PUBLIC`.
 
 ## Import
 
