@@ -155,7 +155,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ### specs
 
-* `disk_iops` - Target throughput (IOPS) desired for AWS storage attached to your cluster. 
+* `disk_iops` - Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. This parameter defaults to the cluster tier's standard IOPS value.
 * `ebs_volume_type` - Type of storage you want to attach to your AWS-provisioned cluster. 
   * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
   * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
