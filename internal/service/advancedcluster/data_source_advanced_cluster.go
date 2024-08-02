@@ -284,7 +284,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 		}
 
-		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterDescOld.GetReplicationSpecs(), clusterDescOld.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connV2)
+		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(ctx, projectID, clusterName, connV2)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterDescOld.GetReplicationSpecs(), zoneNameToZoneIDs, clusterDescOld.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}

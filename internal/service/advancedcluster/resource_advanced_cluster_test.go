@@ -501,7 +501,6 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
-	acc.SkipTestForCI(t) // TODO: CLOUDP-260154 for ensuring this use case is supported
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -1336,16 +1335,16 @@ func configGeoShardedOldSchema(orgID, projectName, name string, numShardsFirstZo
 	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
 }
 
-func checkGeoShardedOldSchema(name string, numShardsFirstZone, numShardsSecondZone int, verifyDiskSizeGBInnerLevel, verifyExternalID bool) resource.TestCheckFunc {
+func checkGeoShardedOldSchema(name string, numShardsFirstZone, numShardsSecondZone int, isLatestProviderVersion, verifyExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{}
 
 	if verifyExternalID {
 		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
 	}
 
-	if verifyDiskSizeGBInnerLevel {
+	if isLatestProviderVersion { // checks that will not apply if doing migration test with older version
 		additionalChecks = append(additionalChecks, checkAggr(
-			[]string{},
+			[]string{"replication_specs.0.zone_id", "replication_specs.0.zone_id"},
 			map[string]string{
 				"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
 				"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": "60",

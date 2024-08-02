@@ -528,7 +528,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 		}
 
-		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterOldSDK.GetReplicationSpecs(), clusterOldSDK.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connV2)
+		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(ctx, projectID, clusterName, connV2)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterOldSDK.GetReplicationSpecs(), zoneNameToZoneIDs, clusterOldSDK.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
@@ -598,6 +603,20 @@ func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName
 	result := make(map[string]string, len(specs))
 	for _, spec := range specs {
 		result[spec.GetZoneName()] = spec.GetId()
+	}
+	return result, nil
+}
+
+// getZoneIDsFromNewAPI returns the zone id values of replication specs coming from new API. This is used to populate zone_id when old API is called in the read.
+func getZoneIDsFromNewAPI(ctx context.Context, projectID, clusterName string, connV2 *admin.APIClient) (map[string]string, error) {
+	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return nil, fmt.Errorf("error reading  advanced cluster for fetching zone ids (%s): %s", clusterName, err)
+	}
+	specs := cluster.GetReplicationSpecs()
+	result := make(map[string]string, len(specs))
+	for _, spec := range specs {
+		result[spec.GetZoneName()] = spec.GetZoneId()
 	}
 	return result, nil
 }
@@ -690,6 +709,7 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2025
 	return nil
 }
 
+// For both read and update operations if old sharding schema structure is used (at least one replication spec with numShards > 1) we continue to invoke the old API
 func isUsingOldAPISchemaStructure(d *schema.ResourceData) bool {
 	tfList := d.Get("replication_specs").([]any)
 	for _, tfMapRaw := range tfList {

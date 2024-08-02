@@ -138,7 +138,7 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 			}
 			resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]any{"project_id": "p1"})
 
-			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldSDK(context.Background(), tc.adminSpecs, 0, tc.tfInputSpecs, resourceData, client)
+			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldSDK(context.Background(), tc.adminSpecs, nil, 0, tc.tfInputSpecs, resourceData, client)
 
 			require.NoError(t, err)
 			assert.Len(t, tfOutputSpecs, tc.expectedLen)
