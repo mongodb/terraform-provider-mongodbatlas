@@ -36,6 +36,11 @@ resource "mongodbatlas_stream_connection" "example-kafka-plaintext" {
   security = {
     protocol = "PLAINTEXT"
   }
+  networking = {
+    access = {
+      type = "PUBLIC"
+    }
+  }
 }
 
 resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
