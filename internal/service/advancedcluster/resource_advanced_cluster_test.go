@@ -501,7 +501,6 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
-	acc.SkipTestForCI(t) // TODO: CLOUDP-260154 for ensuring this use case is supported
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -1353,7 +1352,7 @@ func checkGeoShardedOldSchema(name string, numShardsFirstZone, numShardsSecondZo
 	}
 
 	return checkAggr(
-		[]string{"project_id", "replication_specs.0.id", "replication_specs.1.id"},
+		[]string{"project_id", "replication_specs.0.id", "replication_specs.1.id", "replication_specs.0.zone_id", "replication_specs.0.zone_id"},
 		map[string]string{
 			"name":                           name,
 			"disk_size_gb":                   "60",
