@@ -1,11 +1,11 @@
 ```release-note:enhancement
-resource/mongodbatlas_stream_connection: Supports new networking attribute
+resource/mongodbatlas_stream_connection: Supports new `networking` attribute
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_stream_connection: Supports new networking attribute
+data-source/mongodbatlas_stream_connection: Supports new `networking` attribute
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_stream_connections: Supports new networking attribute
+data-source/mongodbatlas_stream_connections: Supports new `networking` attribute
 ```
