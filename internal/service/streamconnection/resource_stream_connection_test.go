@@ -26,11 +26,11 @@ func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, true),
 				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, true),
 			},
 			{
-				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false, true),
 				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false, true),
 			},
 			{
@@ -56,7 +56,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
 				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
 			},
 			{
@@ -121,7 +121,7 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	})
 }
 
-func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bootstrapServers, configValue string, useSSL bool) string {
+func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bootstrapServers, configValue string, useSSL, useNetworking bool) string {
 	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 	securityConfig := `
 		security = {
@@ -134,6 +134,16 @@ func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bo
 		    broker_public_certificate = %q
 		    protocol = "SSL"
 		}`, DummyCACert)
+	}
+
+	networkingConfig := ""
+	if useNetworking {
+		networkingConfig = `
+		networking = {
+				access = {
+					type = "PUBLIC"
+				}
+		}`
 	}
 
 	return fmt.Sprintf(`
@@ -153,14 +163,10 @@ func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bo
 		    config = {
 		    	"auto.offset.reset": %[5]q
 		    }
-			networking = {
-				access = {
-					type = "PUBLIC"
-				}
-			}
 		    %[6]s
+			%[7]s
 		}
-	`, projectAndStreamInstanceConfig, username, password, bootstrapServers, configValue, securityConfig)
+	`, projectAndStreamInstanceConfig, username, password, bootstrapServers, configValue, networkingConfig, securityConfig)
 }
 
 func sampleStreamConnectionConfig(projectID, instanceName, sampleName string) string {
