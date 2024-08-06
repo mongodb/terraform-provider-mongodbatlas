@@ -263,7 +263,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	err := updateOrCreateDataProtectionSetting(ctx, d, connV2)
+	err := updateOrCreateDataProtectionSetting(ctx, d, connV2, projectID)
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyUpdate, projectID, err))
@@ -367,7 +367,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 
-	err := updateOrCreateDataProtectionSetting(ctx, d, connV2)
+	err := updateOrCreateDataProtectionSetting(ctx, d, connV2, projectID)
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyUpdate, projectID, err))
@@ -457,10 +457,7 @@ func flattenBackupPolicyItems(items []admin.BackupComplianceScheduledPolicyItem,
 	return policyItems
 }
 
-func updateOrCreateDataProtectionSetting(ctx context.Context, d *schema.ResourceData, connV2 *admin.APIClient) error {
-	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
-
+func updateOrCreateDataProtectionSetting(ctx context.Context, d *schema.ResourceData, connV2 *admin.APIClient, projectID string) error {
 	dataProtectionSettings := &admin.DataProtectionSettings20231001{
 		ProjectId:               conversion.StringPtr(projectID),
 		AuthorizedEmail:         d.Get("authorized_email").(string),
