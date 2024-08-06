@@ -286,7 +286,11 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 			}
 			return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))
 		}
-		if err := d.Set("results", flattenAdvancedClustersOldSDK(ctx, connV220231115, connV2, list.GetResults(), d)); err != nil {
+		results, diags := flattenAdvancedClustersOldSDK(ctx, connV220231115, connV2, list.GetResults(), d)
+		if len(diags) > 0 {
+			return diags
+		}
+		if err := d.Set("results", results); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
 		}
 	} else {
@@ -297,7 +301,6 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 			}
 			return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))
 		}
-
 		results, diags := flattenAdvancedClusters(ctx, connV220231115, connV2, list.GetResults(), d)
 		if len(diags) > 0 {
 			return diags
@@ -356,7 +359,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220231115 *admin20231115.
 	return results, nil
 }
 
-func flattenAdvancedClustersOldSDK(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, clusters []admin20231115.AdvancedClusterDescription, d *schema.ResourceData) []map[string]any {
+func flattenAdvancedClustersOldSDK(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, clusters []admin20231115.AdvancedClusterDescription, d *schema.ResourceData) ([]map[string]any, diag.Diagnostics) {
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
@@ -364,7 +367,13 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV220231115 *admin202
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
-		replicationSpecs, err := FlattenAdvancedReplicationSpecsOldSDK(ctx, cluster.GetReplicationSpecs(), cluster.GetDiskSizeGB(), nil, d, connV2)
+
+		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, cluster.GetGroupId(), cluster.GetName(), connV220231115)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		replicationSpecs, err := FlattenAdvancedReplicationSpecsOldSDK(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecIDs, cluster.GetDiskSizeGB(), nil, d, connV2)
 		if err != nil {
 			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
 		}
@@ -394,5 +403,5 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV220231115 *admin202
 		}
 		results = append(results, result)
 	}
-	return results
+	return results, nil
 }

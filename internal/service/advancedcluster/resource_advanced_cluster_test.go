@@ -1,18 +1,15 @@
 package advancedcluster_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"testing"
-	"time"
 
 	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
 	"go.mongodb.org/atlas-sdk/v20240530002/admin"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
@@ -132,12 +129,12 @@ func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleShardedMultiCloud(orgID, projectName, clusterName),
-				Check:  checkSingleShardedMultiCloud(clusterName, true),
+				Config: configShardedMultiCloud(orgID, projectName, clusterName, 1, "M30"),
+				Check:  checkShardedMultiCloud(clusterName, 1, "M30", true),
 			},
 			{
-				Config: configSingleShardedMultiCloud(orgID, projectName, clusterNameUpdated),
-				Check:  checkSingleShardedMultiCloud(clusterNameUpdated, true),
+				Config: configShardedMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M30"),
+				Check:  checkShardedMultiCloud(clusterNameUpdated, 1, "M30", true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -500,8 +497,31 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 	})
 }
 
+func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedMultiCloud(orgID, projectName, clusterName, 2, "M30"),
+				Check:  checkShardedMultiCloud(clusterName, 2, "M30", false),
+			},
+			{
+				Config: configShardedMultiCloud(orgID, projectName, clusterName, 2, "M40"),
+				Check:  checkShardedMultiCloud(clusterName, 2, "M40", false),
+			},
+		},
+	})
+}
+
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
-	acc.SkipTestForCI(t) // TODO: CLOUDP-260154 for ensuring this use case is supported
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -549,7 +569,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 	})
 }
 
-func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T) {
+func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAddingRemovingShard(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -566,8 +586,12 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchema(t *testing.T)
 				Check:  checkShardedNewSchema(50, "M30", "M30", "2000", "2000", false, false),
 			},
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 2000, 2000, true),
-				Check:  checkShardedNewSchema(55, "M30", "M40", "2000", "2000", true, true),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 2000, 2500, true),
+				Check:  checkShardedNewSchema(55, "M30", "M40", "2000", "2500", true, true),
+			},
+			{
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 2000, 2500, false), // removes middle replication spec
+				Check:  checkShardedNewSchema(55, "M30", "M40", "2000", "2500", true, false),
 			},
 		},
 	})
@@ -588,6 +612,34 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 			{
 				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 2000, 2500, false),
 				Check:  checkShardedNewSchema(50, "M30", "M40", "2000", "2500", true, false),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemovingShard(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configGeoShardedNewSchema(orgID, projectName, clusterName, false),
+				Check:  checkGeoShardedNewSchema(false),
+			},
+			{
+				Config: configGeoShardedNewSchema(orgID, projectName, clusterName, true),
+				Check:  checkGeoShardedNewSchema(true),
+			},
+			{
+				Config: configGeoShardedNewSchema(orgID, projectName, clusterName, false),
+				Check:  checkGeoShardedNewSchema(false),
 			},
 		},
 	})
@@ -661,26 +713,12 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		err := getClusterHandlingRetry(ids["project_id"], ids["cluster_name"])
+		err := acc.CheckClusterExistsHandlingRetry(ids["project_id"], ids["cluster_name"])
 		if err == nil {
 			return nil
 		}
 		return fmt.Errorf("cluster(%s:%s) does not exist: %w", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
 	}
-}
-
-func getClusterHandlingRetry(projectID, clusterName string) error {
-	return retry.RetryContext(context.Background(), 3*time.Minute, func() *retry.RetryError {
-		_, _, err := acc.ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
-		if apiError, ok := admin.AsError(err); ok {
-			if apiError.GetErrorCode() == "SERVICE_UNAVAILABLE" {
-				// retrying get operation because for migration test it can be the first time new API is called for a cluster so API responds with temporary error as it transition to enabling ISS FF
-				return retry.RetryableError(err)
-			}
-			return retry.NonRetryableError(err)
-		}
-		return nil
-	})
 }
 
 func configTenant(projectID, name string) string {
@@ -972,7 +1010,7 @@ func checkReplicaSetMultiCloud(name string, regionConfigs int, verifyExternalID 
 	)
 }
 
-func configSingleShardedMultiCloud(orgID, projectName, name string) string {
+func configShardedMultiCloud(orgID, projectName, name string, numShards int, analyticsSize string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -985,14 +1023,14 @@ func configSingleShardedMultiCloud(orgID, projectName, name string) string {
 			cluster_type = "SHARDED"
 
 			replication_specs {
-				num_shards = 1
+				num_shards = %[4]d
 				region_configs {
 					electable_specs {
 						instance_size = "M30"
 						node_count    = 3
 					}
 					analytics_specs {
-						instance_size = "M30"
+						instance_size = %[5]q
 						node_count    = 1
 					}
 					provider_name = "AWS"
@@ -1015,10 +1053,10 @@ func configSingleShardedMultiCloud(orgID, projectName, name string) string {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
-	`, orgID, projectName, name)
+	`, orgID, projectName, name, numShards, analyticsSize)
 }
 
-func checkSingleShardedMultiCloud(name string, verifyExternalID bool) resource.TestCheckFunc {
+func checkShardedMultiCloud(name string, numShards int, analyticsSize string, verifyExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{}
 
 	if verifyExternalID {
@@ -1036,7 +1074,10 @@ func checkSingleShardedMultiCloud(name string, verifyExternalID bool) resource.T
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"name": name},
+			"name":                           name,
+			"replication_specs.0.num_shards": strconv.Itoa(numShards),
+			"replication_specs.0.region_configs.0.analytics_specs.0.instance_size": analyticsSize,
+		},
 		additionalChecks...)
 }
 
@@ -1336,16 +1377,16 @@ func configGeoShardedOldSchema(orgID, projectName, name string, numShardsFirstZo
 	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
 }
 
-func checkGeoShardedOldSchema(name string, numShardsFirstZone, numShardsSecondZone int, verifyDiskSizeGBInnerLevel, verifyExternalID bool) resource.TestCheckFunc {
+func checkGeoShardedOldSchema(name string, numShardsFirstZone, numShardsSecondZone int, isLatestProviderVersion, verifyExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{}
 
 	if verifyExternalID {
 		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
 	}
 
-	if verifyDiskSizeGBInnerLevel {
+	if isLatestProviderVersion { // checks that will not apply if doing migration test with older version
 		additionalChecks = append(additionalChecks, checkAggr(
-			[]string{},
+			[]string{"replication_specs.0.zone_id", "replication_specs.0.zone_id"},
 			map[string]string{
 				"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
 				"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": "60",
@@ -1417,28 +1458,28 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel(diskSizeGB int) resource.Test
 		})
 }
 
-func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, instanceSizeSpec1, instanceSizeSpec2 string, diskIopsSpec1, diskIopsSpec2 int, includeThirdSpec bool) string {
+func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops int, includeMiddleSpec bool) string {
 	var thirdReplicationSpec string
-	if includeThirdSpec {
+	if includeMiddleSpec {
 		thirdReplicationSpec = fmt.Sprintf(`
 			replication_specs {
 				region_configs {
 					electable_specs {
 						instance_size = %[1]q
 						node_count    = 3
-						disk_size_gb  = %[3]d
+						disk_size_gb  = %[2]d
 					}
 					analytics_specs {
 						instance_size = %[1]q
 						node_count    = 1
-						disk_size_gb  = %[3]d
+						disk_size_gb  = %[2]d
 					}
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "EU_WEST_1"
 				}
 			}
-		`, instanceSizeSpec1, diskIopsSpec1, diskSizeGB)
+		`, firstInstanceSize, diskSizeGB)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
@@ -1472,6 +1513,8 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, ins
 				}
 			}
 
+			%[8]s
+
 			replication_specs {
 				region_configs {
 					electable_specs {
@@ -1491,8 +1534,6 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, ins
 					region_name   = "EU_WEST_1"
 				}
 			}
-
-			%[8]s
 		}
 
 		data "mongodbatlas_advanced_cluster" "test" {
@@ -1505,27 +1546,31 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, ins
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
 		}
-	`, orgID, projectName, name, instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2, thirdReplicationSpec, diskSizeGB)
+	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIops, lastDiskIops, thirdReplicationSpec, diskSizeGB)
 }
 
-func checkShardedNewSchema(diskSizeGB int, instanceSizeSpec1, instanceSizeSpec2, diskIopsSpec1, diskIopsSpec2 string, isAsymmetricCluster, includesThirdSpec bool) resource.TestCheckFunc {
-	var amtOfReplicationSpecs int
-	if includesThirdSpec {
+func checkShardedNewSchema(diskSizeGB int, firstInstanceSize, lastInstanceSize, firstDiskIops, lastDiskIops string, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
+	amtOfReplicationSpecs := 2
+	if includeMiddleSpec {
 		amtOfReplicationSpecs = 3
-	} else {
-		amtOfReplicationSpecs = 2
 	}
+
+	lastSpecIndex := 1
+	if includeMiddleSpec {
+		lastSpecIndex = 2
+	}
+
 	clusterChecks := map[string]string{
 		"disk_size_gb":        fmt.Sprintf("%d", diskSizeGB),
 		"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
-		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec1,
-		"replication_specs.1.region_configs.0.electable_specs.0.instance_size": instanceSizeSpec2,
-		"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":  fmt.Sprintf("%d", diskSizeGB),
-		"replication_specs.1.region_configs.0.electable_specs.0.disk_size_gb":  fmt.Sprintf("%d", diskSizeGB),
-		"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":  fmt.Sprintf("%d", diskSizeGB),
-		"replication_specs.1.region_configs.0.analytics_specs.0.disk_size_gb":  fmt.Sprintf("%d", diskSizeGB),
-		"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec1,
-		"replication_specs.1.region_configs.0.electable_specs.0.disk_iops":     diskIopsSpec2,
+		"replication_specs.0.region_configs.0.electable_specs.0.instance_size":                              firstInstanceSize,
+		fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.instance_size", lastSpecIndex): lastInstanceSize,
+		"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":                               fmt.Sprintf("%d", diskSizeGB),
+		fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.disk_size_gb", lastSpecIndex):  fmt.Sprintf("%d", diskSizeGB),
+		"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":                               fmt.Sprintf("%d", diskSizeGB),
+		fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.disk_size_gb", lastSpecIndex):  fmt.Sprintf("%d", diskSizeGB),
+		"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":                                  firstDiskIops,
+		fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.disk_iops", lastSpecIndex):     lastDiskIops,
 	}
 
 	// plural data source checks
@@ -1552,6 +1597,90 @@ func checkShardedNewSchema(diskSizeGB int, instanceSizeSpec1, instanceSizeSpec2,
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
 		clusterChecks,
 		additionalChecks...,
+	)
+}
+
+func configGeoShardedNewSchema(orgID, projectName, name string, includeThirdShardInFirstZone bool) string {
+	var thirdReplicationSpec string
+	if includeThirdShardInFirstZone {
+		thirdReplicationSpec = `
+			replication_specs {
+				zone_name  = "zone n1"
+				region_configs {
+				electable_specs {
+					instance_size = "M10"
+					node_count    = 3
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "US_EAST_1"
+				}
+			}
+		`
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
+			backup_enabled = false
+			mongo_db_major_version = "7.0"
+			cluster_type   = "GEOSHARDED"
+			replication_specs {
+				zone_name  = "zone n1"
+				region_configs {
+				electable_specs {
+					instance_size = "M10"
+					node_count    = 3
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "US_EAST_1"
+				}
+			}
+			%[4]s
+			replication_specs {
+				zone_name  = "zone n2"
+				region_configs {
+				electable_specs {
+					instance_size = "M20"
+					node_count    = 3
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+				}
+			}
+    	}
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+			use_replication_spec_per_shard = true
+		}
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			use_replication_spec_per_shard = true
+		}
+	`, orgID, projectName, name, thirdReplicationSpec)
+}
+
+func checkGeoShardedNewSchema(includeThirdShardInFirstZone bool) resource.TestCheckFunc {
+	var amtOfReplicationSpecs int
+	if includeThirdShardInFirstZone {
+		amtOfReplicationSpecs = 3
+	} else {
+		amtOfReplicationSpecs = 2
+	}
+	clusterChecks := map[string]string{
+		"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
+	}
+
+	return checkAggr(
+		[]string{},
+		clusterChecks,
 	)
 }
 
