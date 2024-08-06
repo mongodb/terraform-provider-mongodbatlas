@@ -88,9 +88,9 @@ func replicaSetAWSProviderTestCase(t *testing.T, checkNewAttributes bool) resour
 }
 
 func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t))
+	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t, true))
 }
-func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
+func replicaSetMultiCloudTestCase(t *testing.T, verifyExternalID bool) resource.TestCase {
 	t.Helper()
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -106,11 +106,11 @@ func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configReplicaSetMultiCloud(orgID, projectName, clusterName),
-				Check:  checkReplicaSetMultiCloud(clusterName, 3, true),
+				Check:  checkReplicaSetMultiCloud(clusterName, 3, verifyExternalID),
 			},
 			{
 				Config: configReplicaSetMultiCloud(orgID, projectName, clusterNameUpdated),
-				Check:  checkReplicaSetMultiCloud(clusterNameUpdated, 3, true),
+				Check:  checkReplicaSetMultiCloud(clusterNameUpdated, 3, verifyExternalID),
 			},
 			{
 				ResourceName:            resourceName,
@@ -124,10 +124,10 @@ func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t))
+	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t, true))
 }
 
-func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
+func singleShardedMultiCloudTestCase(t *testing.T, verifyExternalID bool) resource.TestCase {
 	t.Helper()
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -142,12 +142,12 @@ func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedMultiCloud(orgID, projectName, clusterName, 1, "M30"),
-				Check:  checkShardedMultiCloud(clusterName, 1, "M30", true),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 1, "M30"),
+				Check:  checkShardedMultiCloud(clusterName, 1, "M30", verifyExternalID),
 			},
 			{
-				Config: configShardedMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M30"),
-				Check:  checkShardedMultiCloud(clusterNameUpdated, 1, "M30", true),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M30"),
+				Check:  checkShardedMultiCloud(clusterNameUpdated, 1, "M30", verifyExternalID),
 			},
 			{
 				ResourceName:            resourceName,
@@ -523,11 +523,11 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedMultiCloud(orgID, projectName, clusterName, 2, "M30"),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M30"),
 				Check:  checkShardedMultiCloud(clusterName, 2, "M30", false),
 			},
 			{
-				Config: configShardedMultiCloud(orgID, projectName, clusterName, 2, "M40"),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M40"),
 				Check:  checkShardedMultiCloud(clusterName, 2, "M40", false),
 			},
 		},
@@ -1033,7 +1033,7 @@ func checkReplicaSetMultiCloud(name string, regionConfigs int, verifyExternalID 
 	)
 }
 
-func configShardedMultiCloud(orgID, projectName, name string, numShards int, analyticsSize string) string {
+func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards int, analyticsSize string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1080,18 +1080,19 @@ func configShardedMultiCloud(orgID, projectName, name string, numShards int, ana
 }
 
 func checkShardedMultiCloud(name string, numShards int, analyticsSize string, verifyExternalID bool) resource.TestCheckFunc {
-	additionalChecks := []resource.TestCheckFunc{}
+	additionalChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+	}
 
 	if verifyExternalID {
 		additionalChecks = append(
 			additionalChecks,
-			resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"),
-			resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-			resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-			resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
+			resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
 	}
 
 	return checkAggr(

@@ -18,12 +18,14 @@ func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	testCase := replicaSetMultiCloudTestCase(t)
+	// once 1.18.0 is released we can adjust this to always check new attributes - CLOUDP-266096
+	testCase := replicaSetMultiCloudTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	testCase := singleShardedMultiCloudTestCase(t)
+	// once 1.18.0 is released we can adjust this to always check new attributes - CLOUDP-266096
+	testCase := singleShardedMultiCloudTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
