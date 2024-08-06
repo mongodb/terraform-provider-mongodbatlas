@@ -12,118 +12,37 @@ import (
 )
 
 func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-		config      = configReplicaSetAWSProvider(projectID, clusterName, 60, 3)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            config,
-				Check:             checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, false, false),
-			},
-			mig.TestStepCheckEmptyPlan(config),
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   config,
-				Check:                    checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, true, true), // external_id will be present in latest version
-			},
-		},
-	})
+	// once 1.18.0 is released we can adjust this to always check new attributes - CLOUDP-266096
+	testCase := replicaSetAWSProviderTestCase(t, false)
+	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
-		clusterName = acc.RandomClusterName()
-		config      = configReplicaSetMultiCloud(orgID, projectName, clusterName)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            config,
-				Check:             checkReplicaSetMultiCloud(clusterName, 3, false),
-			},
-			mig.TestStepCheckEmptyPlan(config),
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   config,
-				Check:                    checkReplicaSetMultiCloud(clusterName, 3, true), // external_id will be present in latest version
-			},
-		},
-	})
+	testCase := replicaSetMultiCloudTestCase(t)
+	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
-		clusterName = acc.RandomClusterName()
-		config      = configShardedMultiCloud(orgID, projectName, clusterName, 1, "M30")
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            config,
-				Check:             checkShardedMultiCloud(clusterName, 1, "M30", false),
-			},
-			mig.TestStepCheckEmptyPlan(config),
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   config,
-				Check:                    checkShardedMultiCloud(clusterName, 1, "M30", true), // external_id will be present in latest version
-			},
-		},
-	})
-}
-
-func TestMigAdvancedCluster_singleShardPerZoneGeoSharded(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
-		clusterName = acc.RandomClusterName()
-		config      = configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            config,
-				Check:             checkGeoShardedOldSchema(clusterName, 1, 1, false, false),
-			},
-			mig.TestStepCheckEmptyPlan(config),
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   config,
-				Check:                    checkGeoShardedOldSchema(clusterName, 1, 1, true, true), // external_id will be present in latest version
-			},
-		},
-	})
+	testCase := singleShardedMultiCloudTestCase(t)
+	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
+	// once 1.18.0 is released we can adjust this to always check new attributes - CLOUDP-266096
+	testCase := symmetricGeoShardedOldSchemaTestCase(t, false)
+	mig.CreateAndRunTest(t, &testCase)
+}
+
+func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
+	acc.SkipTestForCI(t) // latest release does not support ISS, to be adjusted in CLOUDP-266096
+	testCase := asymmetricShardedNewSchemaTestCase(t)
+	mig.CreateAndRunTest(t, &testCase)
+}
+
+func TestMigAdvancedCluster_replicaSetAWSProviderUpdateAfterVerisonUpgrade(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
-		config      = configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -131,16 +50,45 @@ func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            config,
-				Check:             checkGeoShardedOldSchema(clusterName, 2, 2, false, false),
+				ExternalProviders: acc.ExternalProviders("1.17.5"), // last version that did not support new sharding schema or attributes
+				Config:            configReplicaSetAWSProvider(projectID, clusterName, 60, 3),
+				Check:             checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, false, false),
 			},
-			mig.TestStepCheckEmptyPlan(config),
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configReplicaSetAWSProvider(projectID, clusterName, 60, 5),
+				Check:                    checkReplicaSetAWSProvider(projectID, clusterName, 60, 5, true, true),
+			},
 		},
 	})
 }
 
-func TestMigAdvancedCluster_shardedTransitionFromOldToNewSchema(t *testing.T) {
+func TestMigAdvancedCluster_geoShardedOldSchemaUpdateAfterVerisonUpgrade(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { mig.PreCheckBasic(t) },
+		CheckDestroy: acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: acc.ExternalProviders("1.17.5"), // last version that did not support new sharding schema or attributes
+				Config:            configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false),
+				Check:             checkGeoShardedOldSchema(clusterName, 2, 2, false, false),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 1, false),
+				Check:                    checkGeoShardedOldSchema(clusterName, 2, 1, true, false),
+			},
+		},
+	})
+}
+
+func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -152,7 +100,7 @@ func TestMigAdvancedCluster_shardedTransitionFromOldToNewSchema(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders("1.17.5"), // last version that did not support new sharding schema or attributes
 				Config:            configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
 				Check:             checkShardedTransitionOldToNewSchema(false),
 			},
@@ -165,7 +113,7 @@ func TestMigAdvancedCluster_shardedTransitionFromOldToNewSchema(t *testing.T) {
 	})
 }
 
-func TestMigAdvancedCluster_geoShardedTransitionFromOldToNewSchema(t *testing.T) {
+func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -177,7 +125,7 @@ func TestMigAdvancedCluster_geoShardedTransitionFromOldToNewSchema(t *testing.T)
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders("1.17.5"), // last version that did not support new sharding schema or attributes
 				Config:            configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
 				Check:             checkGeoShardedTransitionOldToNewSchema(false),
 			},

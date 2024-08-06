@@ -54,23 +54,27 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
+	resource.ParallelTest(t, replicaSetAWSProviderTestCase(t, true))
+}
+func replicaSetAWSProviderTestCase(t *testing.T, checkNewAttributes bool) resource.TestCase {
+	t.Helper()
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: configReplicaSetAWSProvider(projectID, clusterName, 60, 3),
-				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, true, true),
+				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, checkNewAttributes, checkNewAttributes),
 			},
 			{
 				Config: configReplicaSetAWSProvider(projectID, clusterName, 50, 5),
-				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 50, 5, true, true),
+				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 50, 5, checkNewAttributes, checkNewAttributes),
 			},
 			{
 				ResourceName:            resourceName,
@@ -80,10 +84,14 @@ func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"replication_specs", "retain_backups_enabled"},
 			},
 		},
-	})
+	}
 }
 
 func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
+	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t))
+}
+func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
+	t.Helper()
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -91,7 +99,7 @@ func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 		clusterNameUpdated = acc.RandomClusterName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
@@ -112,10 +120,15 @@ func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"replication_specs", "retain_backups_enabled"},
 			},
 		},
-	})
+	}
 }
 
 func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
+	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t))
+}
+
+func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
+	t.Helper()
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -123,7 +136,7 @@ func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 		clusterNameUpdated = acc.RandomClusterName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
@@ -144,7 +157,7 @@ func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"replication_specs"},
 			},
 		},
-	})
+	}
 }
 
 func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
@@ -522,27 +535,32 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
+	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t, true))
+}
+
+func symmetricGeoShardedOldSchemaTestCase(t *testing.T, checkNewAttributes bool) resource.TestCase {
+	t.Helper()
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName = acc.RandomClusterName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false),
-				Check:  checkGeoShardedOldSchema(clusterName, 2, 2, true, false),
+				Check:  checkGeoShardedOldSchema(clusterName, 2, 2, checkNewAttributes, false),
 			},
 			{
 				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 3, 3, false),
-				Check:  checkGeoShardedOldSchema(clusterName, 3, 3, true, false),
+				Check:  checkGeoShardedOldSchema(clusterName, 3, 3, checkNewAttributes, false),
 			},
 		},
-	})
+	}
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
@@ -598,13 +616,18 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
+	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t))
+}
+
+func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
+	t.Helper()
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
 		clusterName = acc.RandomClusterName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
@@ -614,7 +637,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 				Check:  checkShardedNewSchema(50, "M30", "M40", "2000", "2500", true, false),
 			},
 		},
-	})
+	}
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemovingShard(t *testing.T) {
