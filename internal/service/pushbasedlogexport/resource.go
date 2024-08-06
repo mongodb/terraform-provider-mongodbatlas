@@ -7,7 +7,7 @@ import (
 	"slices"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240530005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
