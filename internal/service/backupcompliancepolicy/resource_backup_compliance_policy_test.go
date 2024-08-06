@@ -458,7 +458,7 @@ func basicChecks() []resource.TestCheckFunc {
 
 func configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID string) string {
 	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) +
-		`resource "mongodbatlas_backup_compliance_policy" "backup_policy_update" {
+		`resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 		project_id                 = mongodbatlas_project.test.id
 		authorized_email           = "test@example.com"
 		authorized_user_first_name = "First"
