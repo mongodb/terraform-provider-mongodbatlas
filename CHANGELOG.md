@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.17.6 (August 07, 2024)
+
 BUG FIXES:
 
 * resource/mongodbatlas_backup_compliance_policy: Fixes an issue where the update operation modified attributes that were not supposed to be modified" ([#2480](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2480))
