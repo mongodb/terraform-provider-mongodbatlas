@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -111,6 +112,41 @@ func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccBackupCompliancePolicy_UpdateSetsAllAttributes(t *testing.T) {
+	var (
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup compliance policy
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
+					resource.TestCheckResourceAttr(resourceName, "authorized_user_last_name", "Last"),
+					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "true"),
+				),
+			},
+			{
+				Config: configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						acc.DebugPlan(),
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 		},
 	})
@@ -418,4 +454,49 @@ func basicChecks() []resource.TestCheckFunc {
 	checks = acc.AddAttrChecks(dataSourceName, checks, commonChecks)
 	checks = append(checks, checkExists(resourceName), checkExists(dataSourceName))
 	return checks
+}
+
+func configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID string) string {
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) +
+		`resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
+		project_id                 = mongodbatlas_project.test.id
+		authorized_email           = "test@example.com"
+		authorized_user_first_name = "First"
+		authorized_user_last_name  = "Last"
+		copy_protection_enabled    = true
+		pit_enabled                = false
+		encryption_at_rest_enabled = false
+		
+		restore_window_days = 7
+		
+		on_demand_policy_item {
+			frequency_interval = 0
+			retention_unit     = "days"
+			retention_value    = 3
+		}
+		
+		policy_item_hourly {
+			frequency_interval = 6
+			retention_unit     = "days"
+			retention_value    = 7
+		}
+		
+		policy_item_daily {
+			frequency_interval = 0
+			retention_unit     = "days"
+			retention_value    = 7
+		}
+		
+		policy_item_weekly {
+			frequency_interval = 0
+			retention_unit     = "weeks"
+			retention_value    = 4
+		}
+		
+		policy_item_monthly {
+			frequency_interval = 0
+			retention_unit     = "months"
+			retention_value    = 12
+		}
+  }`
 }
