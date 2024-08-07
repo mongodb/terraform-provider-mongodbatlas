@@ -24,7 +24,7 @@ resource "azurerm_storage_container" "test_storage_container" {
 }
 
 resource "azurerm_role_assignment" "test_role_assignment" {
-  principal_id   = azuread_service_principal.mongo.id
+  principal_id         = azuread_service_principal.mongo.id
   role_definition_name = "Storage Blob Data Contributor"
-  scope          = azurerm_storage_account.test_storage_account.id
+  scope                = azurerm_storage_account.test_storage_account.id
 }
