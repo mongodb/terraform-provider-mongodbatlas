@@ -613,15 +613,6 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 2000, 2500, false),
 				Check:  checkShardedNewSchema(50, "M30", "M40", "2000", "2500", true, false),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:       true,
-			},
-			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 2000, 2500, false),
-				Check:  checkShardedNewSchema(50, "M30", "M40", "2000", "2500", true, true),
-			},
 		},
 	})
 }

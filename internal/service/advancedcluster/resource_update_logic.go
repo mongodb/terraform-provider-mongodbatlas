@@ -59,3 +59,42 @@ func groupIDsByZone(specs []admin.ReplicationSpec20250101) map[string][]string {
 	}
 	return result
 }
+
+// Having the following considerations:
+// - Existing replication specs can have the autoscaling values present in the state with default values even if not defined in the config (case when cluster is imported)
+// - API expects autoScaling and analyticsAutoScaling aligned cross all region configs in the PATCH request
+// This function is needed to avoid errors if a new replication spec is added, ensuring the PATCH request will have the auto scaling aligned with other replication specs when not present in config.
+func SyncAutoScalingConfigs(replicationSpecs *[]admin.ReplicationSpec20250101) {
+	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
+		return
+	}
+
+	var defaultAnalyticsAutoScaling, defaultAutoScaling *admin.AdvancedAutoScalingSettings
+
+	for _, spec := range *replicationSpecs {
+		for i := range *spec.RegionConfigs {
+			regionConfig := &(*spec.RegionConfigs)[i]
+			if regionConfig.AutoScaling != nil && defaultAutoScaling == nil {
+				defaultAutoScaling = regionConfig.AutoScaling
+			}
+			if regionConfig.AnalyticsAutoScaling != nil && defaultAnalyticsAutoScaling == nil {
+				defaultAnalyticsAutoScaling = regionConfig.AnalyticsAutoScaling
+			}
+		}
+	}
+	applyDefaultAutoScaling(replicationSpecs, defaultAutoScaling, defaultAnalyticsAutoScaling)
+}
+
+func applyDefaultAutoScaling(replicationSpecs *[]admin.ReplicationSpec20250101, defaultAutoScaling, defaultAnalyticsAutoScaling *admin.AdvancedAutoScalingSettings) {
+	for _, spec := range *replicationSpecs {
+		for i := range *spec.RegionConfigs {
+			regionConfig := &(*spec.RegionConfigs)[i]
+			if regionConfig.AutoScaling == nil && defaultAutoScaling != nil {
+				regionConfig.AutoScaling = defaultAutoScaling
+			}
+			if regionConfig.AnalyticsAutoScaling == nil && defaultAnalyticsAutoScaling != nil {
+				regionConfig.AnalyticsAutoScaling = defaultAnalyticsAutoScaling
+			}
+		}
+	}
+}
