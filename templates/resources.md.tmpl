@@ -32,7 +32,31 @@
         {{ tffile (printf "examples/%s/create-and-assign-pak/main.tf" .Name )}}
     {{ else if eq .Name "mongodbatlas_cloud_backup_snapshot_export_bucket" }}
         {{ tffile "examples/mongodbatlas_cloud_backup_snapshot_export_bucket/aws/main.tf" }}
+    {{ else if eq .Name "mongodbatlas_backup_compliance_policy" }}
+    {{ else if eq .Name "mongodbatlas_event_trigger" }}
     {{ else if eq .Name "mongodbatlas_access_list_api_key" }}
+    {{ else if eq .Name "mongodbatlas_custom_dns_configuration_cluster_aws" }}
+    {{ else if eq .Name "mongodbatlas_search_index" }}
+    {{ else if eq .Name "mongodbatlas_team" }}
+    {{ else if eq .Name "mongodbatlas_project_invitation" }}
+    {{ else if eq .Name "mongodbatlas_org_invitation" }}
+    {{ else if eq .Name "mongodbatlas_project_api_key" }}
+    {{ else if eq .Name "mongodbatlas_global_cluster_config" }}
+    {{ else if eq .Name "mongodbatlas_network_container" }}
+    {{ else if eq .Name "mongodbatlas_custom_db_role" }}
+    {{ else if eq .Name "mongodbatlas_federated_settings_identity_provider" }}
+    {{ else if eq .Name "mongodbatlas_cloud_backup_snapshot_restore_job" }}
+    {{ else if eq .Name "mongodbatlas_private_endpoint_regional_mode" }}
+    {{ else if eq .Name "mongodbatlas_auditing" }}
+    {{ else if eq .Name "mongodbatlas_encryption_at_rest" }}
+    {{ else if eq .Name "mongodbatlas_ldap_configuration" }}
+    {{ else if eq .Name "mongodbatlas_teams" }}
+    {{ else if eq .Name "mongodbatlas_serverless_instance" }}
+    {{ else if eq .Name "mongodbatlas_maintenance_window" }}
+    {{ else if eq .Name "mongodbatlas_ldap_verify" }}
+    {{ else if eq .Name "mongodbatlas_third_party_integration" }}
+    {{ else if eq .Name "mongodbatlas_x509_authentication_database_user" }}
+    {{ else if eq .Name "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" }}
     {{ else }}
         {{ tffile (printf "examples/%s/main.tf" .Name )}}
     {{ end }}
