@@ -129,7 +129,7 @@ func TestAccBackupCompliancePolicy_UpdateSetsAllAttributes(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID),
+				Config: configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID, "7"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
@@ -140,7 +140,18 @@ func TestAccBackupCompliancePolicy_UpdateSetsAllAttributes(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID),
+				Config: configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID, "8"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
+					resource.TestCheckResourceAttr(resourceName, "authorized_user_last_name", "Last"),
+					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "true"),
+				),
+			},
+			{
+				Config: configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID, "8"),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
@@ -456,9 +467,9 @@ func basicChecks() []resource.TestCheckFunc {
 	return checks
 }
 
-func configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID string) string {
+func configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID, restreWindowDays string) string {
 	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) +
-		`resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
+		fmt.Sprintf(`resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 		project_id                 = mongodbatlas_project.test.id
 		authorized_email           = "test@example.com"
 		authorized_user_first_name = "First"
@@ -467,7 +478,7 @@ func configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, p
 		pit_enabled                = false
 		encryption_at_rest_enabled = false
 		
-		restore_window_days = 7
+		restore_window_days = %[1]s
 		
 		on_demand_policy_item {
 			frequency_interval = 0
@@ -498,5 +509,5 @@ func configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, p
 			retention_unit     = "months"
 			retention_value    = 12
 		}
-  }`
+  }`, restreWindowDays)
 }
