@@ -7,14 +7,14 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
 
 func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		useYearly   = mig.IsProviderVersionAtLeast("1.16.0") // attribute introduced in this version
-		config      = configNewPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
+		config      = configNewPolicies(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
 			ReferenceHourOfDay:    conversion.Pointer(0),
 			ReferenceMinuteOfHour: conversion.Pointer(0),
 			RestoreWindowDays:     conversion.Pointer(7),

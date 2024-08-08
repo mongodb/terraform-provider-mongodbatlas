@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
 
 const (
@@ -307,7 +307,7 @@ func Resource() *schema.Resource {
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var diags diag.Diagnostics
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
@@ -315,7 +315,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// MongoDB Atlas automatically generates a default backup policy for that cluster.
 	// As a result, we need to first delete the default policies to avoid having
 	// the infrastructure differs from the TF configuration file.
-	if _, _, err := connV2.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, _, err := connV220240530.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute(); err != nil {
 		diagWarning := diag.Diagnostic{
 			Severity: diag.Warning,
 			Summary:  "Error deleting default backup schedule",
@@ -324,7 +324,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		diags = append(diags, diagWarning)
 	}
 
-	if err := cloudBackupScheduleCreateOrUpdate(ctx, connV2, d, projectID, clusterName); err != nil {
+	if err := cloudBackupScheduleCreateOrUpdate(ctx, connV220240530, d, projectID, clusterName); err != nil {
 		diags = append(diags, diag.Errorf(errorSnapshotBackupScheduleCreate, err)...)
 		return diags
 	}
@@ -338,13 +338,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	backupPolicy, resp, err := connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+	backupPolicy, resp, err := connV220240530.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -417,7 +417,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -429,7 +429,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	err := cloudBackupScheduleCreateOrUpdate(ctx, connV2, d, projectID, clusterName)
+	err := cloudBackupScheduleCreateOrUpdate(ctx, connV220240530, d, projectID, clusterName)
 	if err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleUpdate, err)
 	}
@@ -438,12 +438,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, _, err := connV2.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute()
+	_, _, err := connV220240530.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
@@ -454,7 +454,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
@@ -464,7 +464,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	projectID := parts[0]
 	clusterName := parts[1]
 
-	_, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+	_, _, err := connV220240530.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
@@ -485,19 +485,19 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string) error {
-	resp, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220240530 *admin20240530.APIClient, d *schema.ResourceData, projectID, clusterName string) error {
+	resp, _, err := connV220240530.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
-	req := &admin.DiskBackupSnapshotSchedule{}
+	req := &admin20240530.DiskBackupSnapshotSchedule{}
 	copySettings := d.Get("copy_settings")
 	if copySettings != nil && (conversion.HasElementsSliceOrMap(copySettings) || d.HasChange("copy_settings")) {
 		req.CopySettings = expandCopySettings(copySettings.([]any))
 	}
 
-	var policiesItem []admin.DiskBackupApiPolicyItem
+	var policiesItem []admin20240530.DiskBackupApiPolicyItem
 
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]any)
@@ -539,7 +539,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		item := v.([]any)
 		itemObj := item[0].(map[string]any)
 		if autoExportEnabled := d.Get("auto_export_enabled"); autoExportEnabled != nil && autoExportEnabled.(bool) {
-			req.Export = &admin.AutoExportPolicy{
+			req.Export = &admin20240530.AutoExportPolicy{
 				ExportBucketId: conversion.StringPtr(itemObj["export_bucket_id"].(string)),
 				FrequencyType:  conversion.StringPtr(itemObj["frequency_type"].(string)),
 			}
@@ -551,13 +551,13 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	}
 
 	if len(policiesItem) > 0 {
-		policy := admin.AdvancedDiskBackupSnapshotSchedulePolicy{
+		policy := admin20240530.AdvancedDiskBackupSnapshotSchedulePolicy{
 			PolicyItems: &policiesItem,
 		}
 		if len(resp.GetPolicies()) == 1 {
 			policy.Id = resp.GetPolicies()[0].Id
 		}
-		req.Policies = &[]admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
+		req.Policies = &[]admin20240530.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
 	}
 
 	if v, ok := d.GetOkExists("reference_hour_of_day"); ok {
@@ -575,7 +575,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		req.UpdateSnapshots = value
 	}
 
-	_, _, err = connV2.CloudBackupsApi.UpdateBackupSchedule(context.Background(), projectID, clusterName, req).Execute()
+	_, _, err = connV220240530.CloudBackupsApi.UpdateBackupSchedule(context.Background(), projectID, clusterName, req).Execute()
 	if err != nil {
 		return err
 	}
@@ -583,7 +583,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	return nil
 }
 
-func flattenPolicyItem(items []admin.DiskBackupApiPolicyItem, frequencyType string) []map[string]any {
+func flattenPolicyItem(items []admin20240530.DiskBackupApiPolicyItem, frequencyType string) []map[string]any {
 	policyItems := make([]map[string]any, 0)
 	for _, v := range items {
 		if frequencyType == v.GetFrequencyType() {
@@ -599,9 +599,9 @@ func flattenPolicyItem(items []admin.DiskBackupApiPolicyItem, frequencyType stri
 	return policyItems
 }
 
-func flattenExport(roles *admin.DiskBackupSnapshotSchedule) []map[string]any {
+func flattenExport(roles *admin20240530.DiskBackupSnapshotSchedule) []map[string]any {
 	exportList := make([]map[string]any, 0)
-	emptyStruct := admin.DiskBackupSnapshotSchedule{}
+	emptyStruct := admin20240530.DiskBackupSnapshotSchedule{}
 	if emptyStruct.GetExport() != roles.GetExport() {
 		exportList = append(exportList, map[string]any{
 			"frequency_type":   roles.Export.GetFrequencyType(),
@@ -611,7 +611,7 @@ func flattenExport(roles *admin.DiskBackupSnapshotSchedule) []map[string]any {
 	return exportList
 }
 
-func flattenCopySettings(copySettingList []admin.DiskBackupCopySetting) []map[string]any {
+func flattenCopySettings(copySettingList []admin20240530.DiskBackupCopySetting) []map[string]any {
 	copySettings := make([]map[string]any, 0)
 	for _, v := range copySettingList {
 		copySettings = append(copySettings, map[string]any{
@@ -625,13 +625,13 @@ func flattenCopySettings(copySettingList []admin.DiskBackupCopySetting) []map[st
 	return copySettings
 }
 
-func expandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting {
+func expandCopySetting(tfMap map[string]any) *admin20240530.DiskBackupCopySetting {
 	if tfMap == nil {
 		return nil
 	}
 
 	frequencies := conversion.ExpandStringList(tfMap["frequencies"].(*schema.Set).List())
-	copySetting := &admin.DiskBackupCopySetting{
+	copySetting := &admin20240530.DiskBackupCopySetting{
 		CloudProvider:     conversion.Pointer(tfMap["cloud_provider"].(string)),
 		Frequencies:       &frequencies,
 		RegionName:        conversion.Pointer(tfMap["region_name"].(string)),
@@ -641,8 +641,8 @@ func expandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting {
 	return copySetting
 }
 
-func expandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting {
-	copySettings := make([]admin.DiskBackupCopySetting, 0)
+func expandCopySettings(tfList []any) *[]admin20240530.DiskBackupCopySetting {
+	copySettings := make([]admin20240530.DiskBackupCopySetting, 0)
 
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
@@ -655,8 +655,8 @@ func expandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting {
 	return &copySettings
 }
 
-func expandPolicyItem(itemObj map[string]any, frequencyType string) admin.DiskBackupApiPolicyItem {
-	return admin.DiskBackupApiPolicyItem{
+func expandPolicyItem(itemObj map[string]any, frequencyType string) admin20240530.DiskBackupApiPolicyItem {
+	return admin20240530.DiskBackupApiPolicyItem{
 		Id:                policyItemID(itemObj),
 		RetentionUnit:     itemObj["retention_unit"].(string),
 		RetentionValue:    itemObj["retention_value"].(int),
