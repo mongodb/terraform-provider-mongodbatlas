@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin" // fixed to old API due to CLOUDP-263795
 )
 
 const (
@@ -101,7 +101,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
@@ -109,10 +109,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		for _, m := range v.(*schema.Set).List() {
 			mn := m.(map[string]any)
 
-			addManagedNamespace := &admin.ManagedNamespaces{
-				Collection:     mn["collection"].(string),
-				Db:             mn["db"].(string),
-				CustomShardKey: mn["custom_shard_key"].(string),
+			addManagedNamespace := &admin20240530.ManagedNamespace{
+				Collection:     conversion.StringPtr(mn["collection"].(string)),
+				Db:             conversion.StringPtr(mn["db"].(string)),
+				CustomShardKey: conversion.StringPtr(mn["custom_shard_key"].(string)),
 			}
 
 			if isCustomShardKeyHashed, okCustomShard := mn["is_custom_shard_key_hashed"]; okCustomShard {
@@ -124,10 +124,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 
 			err := retry.RetryContext(ctx, 2*time.Minute, func() *retry.RetryError {
-				_, _, err := connV2.GlobalClustersApi.CreateManagedNamespace(ctx, projectID, clusterName, addManagedNamespace).Execute()
+				_, _, err := connV220240530.GlobalClustersApi.CreateManagedNamespace(ctx, projectID, clusterName, addManagedNamespace).Execute()
 				if err != nil {
-					if admin.IsErrorCode(err, "DUPLICATE_MANAGED_NAMESPACE") {
-						if err := removeManagedNamespaces(ctx, connV2, v.(*schema.Set).List(), projectID, clusterName); err != nil {
+					if admin20240530.IsErrorCode(err, "DUPLICATE_MANAGED_NAMESPACE") {
+						if err := removeManagedNamespaces(ctx, connV220240530, v.(*schema.Set).List(), projectID, clusterName); err != nil {
 							return retry.NonRetryableError(fmt.Errorf(errorGlobalClusterCreate, err))
 						}
 						return retry.RetryableError(err)
@@ -143,13 +143,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if v, ok := d.GetOk("custom_zone_mappings"); ok {
-		_, _, err := connV2.GlobalClustersApi.CreateCustomZoneMapping(ctx, projectID, clusterName, &admin.CustomZoneMappings{
+		_, _, err := connV220240530.GlobalClustersApi.CreateCustomZoneMapping(ctx, projectID, clusterName, &admin20240530.CustomZoneMappings{
 			CustomZoneMappings: newCustomZoneMappings(v.(*schema.Set).List()),
 		}).Execute()
 
 		if err != nil {
 			if v2, ok2 := d.GetOk("managed_namespaces"); ok2 {
-				if err := removeManagedNamespaces(ctx, connV2, v2.(*schema.Set).List(), projectID, clusterName); err != nil {
+				if err := removeManagedNamespaces(ctx, connV220240530, v2.(*schema.Set).List(), projectID, clusterName); err != nil {
 					return diag.FromErr(fmt.Errorf(errorGlobalClusterCreate, err))
 				}
 			}
@@ -166,12 +166,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530 // fixed to old API due to CLOUDP-263795
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	globalCluster, resp, err := connV2.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
+	globalCluster, resp, err := connV220240530.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -199,20 +199,20 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
 	if v, ok := d.GetOk("managed_namespaces"); ok {
-		if err := removeManagedNamespaces(ctx, connV2, v.(*schema.Set).List(), projectID, clusterName); err != nil {
+		if err := removeManagedNamespaces(ctx, connV220240530, v.(*schema.Set).List(), projectID, clusterName); err != nil {
 			return diag.FromErr(fmt.Errorf(errorGlobalClusterDelete, clusterName, err))
 		}
 	}
 
 	if v, ok := d.GetOk("custom_zone_mappings"); ok {
 		if v.(*schema.Set).Len() > 0 {
-			if _, _, err := connV2.GlobalClustersApi.DeleteAllCustomZoneMappings(ctx, projectID, clusterName).Execute(); err != nil {
+			if _, _, err := connV220240530.GlobalClustersApi.DeleteAllCustomZoneMappings(ctx, projectID, clusterName).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorGlobalClusterDelete, clusterName, err))
 			}
 		}
@@ -221,7 +221,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return nil
 }
 
-func flattenManagedNamespaces(managedNamespaces []admin.ManagedNamespaces) []map[string]any {
+func flattenManagedNamespaces(managedNamespaces []admin20240530.ManagedNamespaces) []map[string]any {
 	var results []map[string]any
 
 	if len(managedNamespaces) > 0 {
@@ -265,17 +265,17 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func removeManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, remove []any, projectID, clusterName string) error {
+func removeManagedNamespaces(ctx context.Context, connV220240530 *admin20240530.APIClient, remove []any, projectID, clusterName string) error {
 	for _, m := range remove {
 		mn := m.(map[string]any)
-		managedNamespace := &admin.DeleteManagedNamespaceApiParams{
+		managedNamespace := &admin20240530.DeleteManagedNamespaceApiParams{
 			Collection:  conversion.StringPtr(mn["collection"].(string)),
 			Db:          conversion.StringPtr(mn["db"].(string)),
 			ClusterName: clusterName,
 			GroupId:     projectID,
 		}
 
-		_, _, err := connV2.GlobalClustersApi.DeleteManagedNamespaceWithParams(ctx, managedNamespace).Execute()
+		_, _, err := connV220240530.GlobalClustersApi.DeleteManagedNamespaceWithParams(ctx, managedNamespace).Execute()
 
 		if err != nil {
 			return err
@@ -284,12 +284,12 @@ func removeManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, remov
 	return nil
 }
 
-func newCustomZoneMapping(tfMap map[string]any) *admin.ZoneMapping {
+func newCustomZoneMapping(tfMap map[string]any) *admin20240530.ZoneMapping {
 	if tfMap == nil {
 		return nil
 	}
 
-	apiObject := &admin.ZoneMapping{
+	apiObject := &admin20240530.ZoneMapping{
 		Location: tfMap["location"].(string),
 		Zone:     tfMap["zone"].(string),
 	}
@@ -297,12 +297,12 @@ func newCustomZoneMapping(tfMap map[string]any) *admin.ZoneMapping {
 	return apiObject
 }
 
-func newCustomZoneMappings(tfList []any) *[]admin.ZoneMapping {
+func newCustomZoneMappings(tfList []any) *[]admin20240530.ZoneMapping {
 	if len(tfList) == 0 {
 		return nil
 	}
 
-	apiObjects := make([]admin.ZoneMapping, len(tfList))
+	apiObjects := make([]admin20240530.ZoneMapping, len(tfList))
 	if len(tfList) > 0 {
 		for i, tfMapRaw := range tfList {
 			if tfMap, ok := tfMapRaw.(map[string]any); ok {
