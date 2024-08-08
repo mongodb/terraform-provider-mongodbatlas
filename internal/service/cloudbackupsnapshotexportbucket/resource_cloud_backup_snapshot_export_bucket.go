@@ -56,7 +56,22 @@ func Schema() map[string]*schema.Schema {
 		},
 		"iam_role_id": {
 			Type:     schema.TypeString,
-			Required: true,
+			Optional: true,
+			ForceNew: true,
+		},
+		"role_id": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"service_url": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"tenant_id": {
+			Type:     schema.TypeString,
+			Optional: true,
 			ForceNew: true,
 		},
 	}
@@ -68,13 +83,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 
 	cloudProvider := d.Get("cloud_provider").(string)
-	if cloudProvider != "AWS" {
-		return diag.Errorf("atlas only supports AWS")
-	}
 
 	request := &admin.DiskBackupSnapshotExportBucket{
 		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
 		BucketName:    conversion.StringPtr(d.Get("bucket_name").(string)),
+		RoleId:        conversion.StringPtr(d.Get("role_id").(string)),
+		ServiceUrl:    conversion.StringPtr(d.Get("service_url").(string)),
+		TenantId:      conversion.StringPtr(d.Get("tenant_id").(string)),
 		CloudProvider: &cloudProvider,
 	}
 
@@ -127,6 +142,18 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	if err := d.Set("project_id", projectID); err != nil {
 		return diag.Errorf("error setting `project_id` for snapshot export bucket (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("service_url", exportBackup.ServiceUrl); err != nil {
+		return diag.Errorf("error setting `service_url` for snapshot export bucket (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("role_id", exportBackup.RoleId); err != nil {
+		return diag.Errorf("error setting `role_id` for snapshot export bucket (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("tenant_id", exportBackup.TenantId); err != nil {
+		return diag.Errorf("error setting `tenant_id` for snapshot export bucket (%s): %s", d.Id(), err)
 	}
 
 	return nil

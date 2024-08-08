@@ -47,6 +47,18 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"role_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"service_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -98,6 +110,9 @@ func flattenBuckets(buckets []admin.DiskBackupSnapshotExportBucket) []map[string
 			"bucket_name":      bucket.GetBucketName(),
 			"cloud_provider":   bucket.GetCloudProvider(),
 			"iam_role_id":      bucket.GetIamRoleId(),
+			"role_id":          bucket.GetRoleId(),
+			"service_url":      bucket.GetServiceUrl(),
+			"tenant_id":        bucket.GetTenantId(),
 		}
 	}
 

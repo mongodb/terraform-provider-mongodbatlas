@@ -63,6 +63,8 @@ jobs:
       aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       aws_s3_bucket_federation: ${{ secrets.AWS_S3_BUCKET_FEDERATION }}
       aws_s3_bucket_backup: ${{ secrets.AWS_S3_BUCKET_BACKUP }}
+      azure_service_url_backup: ${{ secrets.AZURE_SERVICE_URL_BACKUP }}
+      azure_blob_storage_container_backup: ${{ secrets.AZURE_BLOB_STORAGE_CONTAINER_BACKUP }}
       mongodb_atlas_ldap_hostname: ${{ secrets.MONGODB_ATLAS_LDAP_HOSTNAME }}
       mongodb_atlas_ldap_username: ${{ secrets.MONGODB_ATLAS_LDAP_USERNAME }}
       mongodb_atlas_ldap_password: ${{ secrets.MONGODB_ATLAS_LDAP_PASSWORD }}
