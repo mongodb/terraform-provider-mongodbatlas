@@ -98,8 +98,8 @@ func basicAzureTestCase(t *testing.T) *resource.TestCase {
 			"project_id":               projectID,
 			"results.#":                "1",
 			"results.0.bucket_name":    bucketName,
-			"results.0.service_url":    bucketName,
-			"results.0.tenant_id":      bucketName,
+			"results.0.service_url":    serviceURL,
+			"results.0.tenant_id":      tenantID,
 			"results.0.cloud_provider": "AZURE",
 		}
 		attrsSet = []string{
@@ -128,11 +128,10 @@ func basicAzureTestCase(t *testing.T) *resource.TestCase {
 				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"container_id"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	}
