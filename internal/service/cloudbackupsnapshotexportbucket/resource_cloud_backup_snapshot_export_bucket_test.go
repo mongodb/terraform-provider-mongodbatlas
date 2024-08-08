@@ -30,11 +30,32 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 
 	var (
-		projectID  = acc.ProjectIDExecution(tb)
-		bucketName = os.Getenv("AWS_S3_BUCKET")
-		policyName = acc.RandomName()
-		roleName   = acc.RandomIAMRole()
+		projectID    = acc.ProjectIDExecution(tb)
+		bucketName   = os.Getenv("AWS_S3_BUCKET")
+		policyName   = acc.RandomName()
+		roleName     = acc.RandomIAMRole()
+		attrMapCheck = map[string]string{
+			"project_id":     projectID,
+			"bucket_name":    bucketName,
+			"cloud_provider": "AWS",
+		}
+		pluralAttrMapCheck = map[string]string{
+			"project_id":               projectID,
+			"results.#":                "1",
+			"results.0.bucket_name":    bucketName,
+			"results.0.cloud_provider": "AWS",
+		}
+		attrsSet = []string{
+			"iam_role_id",
+		}
 	)
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, attrMapCheck)
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrMapCheck)
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralAttrMapCheck)
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, []string{"results.0.iam_role_id"}...)
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckS3Bucket(tb) },
@@ -44,24 +65,7 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configAWSBasic(projectID, bucketName, policyName, roleName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "bucket_name", bucketName),
-					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AWS"),
-					resource.TestCheckResourceAttrSet(resourceName, "iam_role_id"),
-
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "bucket_name", bucketName),
-					resource.TestCheckResourceAttr(dataSourceName, "cloud_provider", "AWS"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "iam_role_id"),
-
-					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", "1"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.bucket_name", bucketName),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.cloud_provider", "AWS"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.iam_role_id"),
-				),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				ResourceName:      resourceName,
@@ -83,7 +87,32 @@ func basicAzureTestCase(t *testing.T) *resource.TestCase {
 		serviceURL         = os.Getenv("AZURE_SERVICE_URL")
 		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
 		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
+		attrMapCheck       = map[string]string{
+			"project_id":     projectID,
+			"bucket_name":    bucketName,
+			"service_url":    serviceURL,
+			"tenant_id":      tenantID,
+			"cloud_provider": "AZURE",
+		}
+		pluralAttrMapCheck = map[string]string{
+			"project_id":               projectID,
+			"results.#":                "1",
+			"results.0.bucket_name":    bucketName,
+			"results.0.service_url":    bucketName,
+			"results.0.tenant_id":      bucketName,
+			"results.0.cloud_provider": "AZURE",
+		}
+		attrsSet = []string{
+			"role_id",
+		}
 	)
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, attrMapCheck)
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrMapCheck)
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralAttrMapCheck)
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, []string{"results.0.role_id"}...)
 
 	return &resource.TestCase{
 		PreCheck: func() {
@@ -96,30 +125,7 @@ func basicAzureTestCase(t *testing.T) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configAzureBasic(projectID, atlasAzureAppID, servicePrincipalID, tenantID, bucketName, serviceURL),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "bucket_name", bucketName),
-					resource.TestCheckResourceAttr(resourceName, "service_url", serviceURL),
-					resource.TestCheckResourceAttr(resourceName, "tenant_id", tenantID),
-					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AZURE"),
-					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
-
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "bucket_name", bucketName),
-					resource.TestCheckResourceAttr(dataSourceName, "service_url", serviceURL),
-					resource.TestCheckResourceAttr(dataSourceName, "tenant_id", tenantID),
-					resource.TestCheckResourceAttr(dataSourceName, "cloud_provider", "AZURE"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "role_id"),
-
-					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", "1"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.bucket_name", bucketName),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.service_url", serviceURL),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tenant_id", tenantID),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.cloud_provider", "AZURE"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.role_id"),
-				),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				ResourceName:            resourceName,
