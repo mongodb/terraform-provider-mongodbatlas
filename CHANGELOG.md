@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Adds Azure support ([#2486](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2486))
+* data-source/mongodbatlas_cloud_backup_snapshot_export_buckets: Adds Azure support ([#2486](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2486))
+* resource/mongodbatlas_cloud_backup_snapshot_export_bucket: Adds Azure support ([#2486](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2486))
+
 ## 1.17.6 (August 07, 2024)
 
 BUG FIXES:
