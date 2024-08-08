@@ -142,12 +142,12 @@ func singleShardedMultiCloudTestCase(t *testing.T, verifyExternalID bool) resour
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 1, "M30"),
-				Check:  checkShardedMultiCloud(clusterName, 1, "M30", verifyExternalID),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 1, "M10"),
+				Check:  checkShardedOldSchemaMultiCloud(clusterName, 1, "M10", verifyExternalID),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M30"),
-				Check:  checkShardedMultiCloud(clusterNameUpdated, 1, "M30", verifyExternalID),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M10"),
+				Check:  checkShardedOldSchemaMultiCloud(clusterNameUpdated, 1, "M10", verifyExternalID),
 			},
 			{
 				ResourceName:            resourceName,
@@ -523,12 +523,12 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M30"),
-				Check:  checkShardedMultiCloud(clusterName, 2, "M30", false),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M10"),
+				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M10", false),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M40"),
-				Check:  checkShardedMultiCloud(clusterName, 2, "M40", false),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M20"),
+				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M20", false),
 			},
 		},
 	})
@@ -1049,7 +1049,7 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 				num_shards = %[4]d
 				region_configs {
 					electable_specs {
-						instance_size = "M30"
+						instance_size = "M10"
 						node_count    = 3
 					}
 					analytics_specs {
@@ -1062,7 +1062,7 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 				}
 				region_configs {
 					electable_specs {
-						instance_size = "M30"
+						instance_size = "M10"
 						node_count    = 2
 					}
 					provider_name = "AZURE"
@@ -1079,7 +1079,7 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 	`, orgID, projectName, name, numShards, analyticsSize)
 }
 
-func checkShardedMultiCloud(name string, numShards int, analyticsSize string, verifyExternalID bool) resource.TestCheckFunc {
+func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize string, verifyExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
