@@ -57,19 +57,19 @@ func deleteCluster(projectID, name string) {
 	}
 }
 
-func clusterReq(name, projectID string) admin.AdvancedClusterDescription {
-	return admin.AdvancedClusterDescription{
+func clusterReq(name, projectID string) admin.ClusterDescription20240805 {
+	return admin.ClusterDescription20240805{
 		Name:        admin.PtrString(name),
 		GroupId:     admin.PtrString(projectID),
 		ClusterType: admin.PtrString("REPLICASET"),
-		ReplicationSpecs: &[]admin.ReplicationSpec{
+		ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 			{
-				RegionConfigs: &[]admin.CloudRegionConfig{
+				RegionConfigs: &[]admin.CloudRegionConfig20240805{
 					{
 						ProviderName: admin.PtrString(constant.AWS),
 						RegionName:   admin.PtrString(constant.UsWest2),
 						Priority:     admin.PtrInt(7),
-						ElectableSpecs: &admin.HardwareSpec{
+						ElectableSpecs: &admin.HardwareSpec20240805{
 							InstanceSize: admin.PtrString(constant.M10),
 							NodeCount:    admin.PtrInt(3),
 						},

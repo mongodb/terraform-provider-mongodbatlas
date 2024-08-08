@@ -109,10 +109,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		for _, m := range v.(*schema.Set).List() {
 			mn := m.(map[string]any)
 
-			addManagedNamespace := &admin.ManagedNamespace{
-				Collection:     conversion.StringPtr(mn["collection"].(string)),
-				Db:             conversion.StringPtr(mn["db"].(string)),
-				CustomShardKey: conversion.StringPtr(mn["custom_shard_key"].(string)),
+			addManagedNamespace := &admin.ManagedNamespaces{
+				Collection:     mn["collection"].(string),
+				Db:             mn["db"].(string),
+				CustomShardKey: mn["custom_shard_key"].(string),
 			}
 
 			if isCustomShardKeyHashed, okCustomShard := mn["is_custom_shard_key_hashed"]; okCustomShard {

@@ -86,11 +86,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	request := &admin.DiskBackupSnapshotExportBucket{
 		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
-		BucketName:    conversion.StringPtr(d.Get("bucket_name").(string)),
+		BucketName:    d.Get("bucket_name").(string),
 		RoleId:        conversion.StringPtr(d.Get("role_id").(string)),
 		ServiceUrl:    conversion.StringPtr(d.Get("service_url").(string)),
 		TenantId:      conversion.StringPtr(d.Get("tenant_id").(string)),
-		CloudProvider: &cloudProvider,
+		CloudProvider: cloudProvider,
 	}
 
 	bucketResponse, _, err := conn.CloudBackupsApi.CreateExportBucket(ctx, projectID, request).Execute()
