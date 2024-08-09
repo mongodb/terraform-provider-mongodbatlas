@@ -9,3 +9,7 @@ data-source/mongodbatlas_third_party_integration: Removes `scheme` attribute
 ```release-note:breaking-change
 data-source/mongodbatlas_third_party_integrations: Removes `scheme` attribute
 ```
+
+```release-note:breaking-change
+data-source/mongodbatlas_federated_settings_identity_providers: Removes `page_num` and `items_per_page` attributes
+```
