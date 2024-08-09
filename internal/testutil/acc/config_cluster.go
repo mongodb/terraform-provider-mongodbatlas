@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func ClusterDatasourceHcl(req *ClusterRequest) (configStr, clusterName, resourceName string, err error) {
@@ -45,7 +45,7 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	projectID := req.ProjectID
 	req.AddDefaults()
 	specRequests := req.ReplicationSpecs
-	specs := make([]admin.ReplicationSpec20250101, len(specRequests))
+	specs := make([]admin.ReplicationSpec20240805, len(specRequests))
 	for i := range specRequests {
 		specRequest := specRequests[i]
 		specs[i] = replicationSpec(&specRequest)
@@ -72,6 +72,9 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 		}
 	} else {
 		clusterRootAttributes["project_id"] = projectID
+	}
+	if req.DiskSizeGb != 0 {
+		clusterRootAttributes["disk_size_gb"] = req.DiskSizeGb
 	}
 	if req.RetainBackupsEnabled {
 		clusterRootAttributes["retain_backups_enabled"] = req.RetainBackupsEnabled
@@ -116,7 +119,7 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	return "\n" + string(f.Bytes()), clusterName, clusterResourceName, err
 }
 
-func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec20250101) error {
+func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec20240805) error {
 	replicationBlock := cluster.AppendNewBlock("replication_specs", nil).Body()
 	err := addPrimitiveAttributesViaJSON(replicationBlock, spec)
 	if err != nil {

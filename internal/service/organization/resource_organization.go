@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -18,10 +18,10 @@ import (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasOrganizationCreate,
-		ReadContext:   resourceMongoDBAtlasOrganizationRead,
-		UpdateContext: resourceMongoDBAtlasOrganizationUpdate,
-		DeleteContext: resourceMongoDBAtlasOrganizationDelete,
+		CreateContext: resourceCreate,
+		ReadContext:   resourceRead,
+		UpdateContext: resourceUpdate,
+		DeleteContext: resourceDelete,
 		Importer:      nil, // import is not supported. See CLOUDP-215155
 		Schema: map[string]*schema.Schema{
 			"org_owner_id": {
@@ -80,7 +80,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if err := ValidateAPIKeyIsOrgOwner(conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())); err != nil {
 		return diag.FromErr(err)
 	}
@@ -104,7 +104,7 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		PublicKey:        *organization.ApiKey.PublicKey,
 		PrivateKey:       *organization.ApiKey.PrivateKey,
 		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
-		TerraformVersion: meta.(*config.Config).TerraformVersion,
+		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -136,16 +136,16 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		"org_id": organization.Organization.GetId(),
 	}))
 
-	return resourceMongoDBAtlasOrganizationRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	cfg := config.Config{
 		PublicKey:        d.Get("public_key").(string),
 		PrivateKey:       d.Get("private_key").(string),
 		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
-		TerraformVersion: meta.(*config.Config).TerraformVersion,
+		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -189,13 +189,13 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 	return nil
 }
 
-func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	cfg := config.Config{
 		PublicKey:        d.Get("public_key").(string),
 		PrivateKey:       d.Get("private_key").(string),
 		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
-		TerraformVersion: meta.(*config.Config).TerraformVersion,
+		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -218,16 +218,16 @@ func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.Resou
 		}
 	}
 
-	return resourceMongoDBAtlasOrganizationRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	cfg := config.Config{
 		PublicKey:        d.Get("public_key").(string),
 		PrivateKey:       d.Get("private_key").(string),
 		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
-		TerraformVersion: meta.(*config.Config).TerraformVersion,
+		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
 	}
 
 	clients, _ := cfg.NewClient(ctx)

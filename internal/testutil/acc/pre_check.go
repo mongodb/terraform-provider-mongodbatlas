@@ -296,3 +296,11 @@ func PreCheckS3Bucket(tb testing.TB) {
 		tb.Fatal("`AWS_S3_BUCKET` must be set ")
 	}
 }
+
+func PreCheckAzureExportBucket(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AZURE_SERVICE_URL") == "" ||
+		os.Getenv("AZURE_BLOB_STORAGE_CONTAINER_NAME") == "" {
+		tb.Fatal("`AZURE_SERVICE_URL` and `AZURE_SERVICE_URL`must be set for Cloud Backup Snapshot Export Bucket acceptance testing")
+	}
+}

@@ -332,13 +332,13 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		autoScaling        = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+		autoScaling        = &admin20240530.AdvancedAutoScalingSettings{
+			Compute: &admin20240530.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
+			DiskGB:  &admin20240530.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
-		autoScalingUpdated = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+		autoScalingUpdated = &admin20240530.AdvancedAutoScalingSettings{
+			Compute: &admin20240530.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
+			DiskGB:  &admin20240530.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
 	)
 
@@ -374,13 +374,13 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		autoScaling        = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+		autoScaling        = &admin20240530.AdvancedAutoScalingSettings{
+			Compute: &admin20240530.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
+			DiskGB:  &admin20240530.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
-		autoScalingUpdated = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+		autoScalingUpdated = &admin20240530.AdvancedAutoScalingSettings{
+			Compute: &admin20240530.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
+			DiskGB:  &admin20240530.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
 	)
 
@@ -1277,7 +1277,7 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
 }
 
-func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
+func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin20240530.AdvancedAutoScalingSettings) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
@@ -1308,7 +1308,7 @@ func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.A
 	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
 }
 
-func configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
+func configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName string, p *admin20240530.AdvancedAutoScalingSettings) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q

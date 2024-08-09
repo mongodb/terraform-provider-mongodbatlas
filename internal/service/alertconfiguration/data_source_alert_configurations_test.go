@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
@@ -141,11 +140,7 @@ func checkCount(resourceName string) resource.TestCheckFunc {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 
-		alertResp, _, err := acc.Conn().AlertConfigurations.List(context.Background(), projectID, &matlas.ListOptions{
-			PageNum:      0,
-			ItemsPerPage: 100,
-			IncludeCount: true,
-		})
+		alertResp, _, err := acc.ConnV2().AlertConfigurationsApi.ListAlertConfigurations(context.Background(), projectID).Execute()
 
 		if err != nil {
 			return fmt.Errorf("the Alert Configurations List for project (%s) could not be read", projectID)
@@ -157,8 +152,8 @@ func checkCount(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("%s results count is somehow not a number %s", resourceName, resultsCountAttr)
 		}
 
-		if resultsCount != len(alertResp) {
-			return fmt.Errorf("%s results count (%d) did not match that of current Alert Configurations (%d)", resourceName, resultsCount, len(alertResp))
+		if resultsCount != len(alertResp.GetResults()) {
+			return fmt.Errorf("%s results count (%d) did not match that of current Alert Configurations (%d)", resourceName, resultsCount, len(alertResp.GetResults()))
 		}
 
 		if totalCountAttr := rs.Primary.Attributes["total_count"]; totalCountAttr != "" {

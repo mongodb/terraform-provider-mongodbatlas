@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
@@ -633,8 +633,6 @@ func mapCriteria(d *schema.ResourceData) admin.Criteria {
 }
 
 func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
-	// scheduleInput := &matlas.OnlineArchiveSchedule{
-
 	// We have to provide schedule.type="DEFAULT" when the schedule block is not provided or removed
 	scheduleInput := &admin.OnlineArchiveSchedule{
 		Type: scheduleTypeDefault,

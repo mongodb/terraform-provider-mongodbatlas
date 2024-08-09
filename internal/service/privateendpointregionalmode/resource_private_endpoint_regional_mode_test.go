@@ -17,6 +17,7 @@ func TestAccPrivateEndpointRegionalMode_basic(t *testing.T) {
 }
 
 func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
+	acc.SkipTestForCI(t) // needs AWS configuration
 	var (
 		endpointResourceSuffix                 = "atlasple"
 		resourceSuffix                         = "atlasrm"
@@ -26,9 +27,9 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 		providerName                           = "AWS"
 		region                                 = os.Getenv("AWS_REGION_LOWERCASE")
 		privatelinkEndpointServiceResourceName = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", endpointResourceSuffix)
-		spec1                                  = acc.ReplicationSpecRequest{Region: os.Getenv("AWS_REGION_UPPERCASE"), ProviderName: providerName, ZoneName: "Zone 1", DiskSizeGb: 80}
-		spec2                                  = acc.ReplicationSpecRequest{Region: "US_WEST_2", ProviderName: providerName, ZoneName: "Zone 2", DiskSizeGb: 80}
-		clusterInfo                            = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, ReplicationSpecs: []acc.ReplicationSpecRequest{spec1, spec2}})
+		spec1                                  = acc.ReplicationSpecRequest{Region: os.Getenv("AWS_REGION_UPPERCASE"), ProviderName: providerName, ZoneName: "Zone 1"}
+		spec2                                  = acc.ReplicationSpecRequest{Region: "US_WEST_2", ProviderName: providerName, ZoneName: "Zone 2"}
+		clusterInfo                            = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, DiskSizeGb: 80, ReplicationSpecs: []acc.ReplicationSpecRequest{spec1, spec2}})
 		projectID                              = clusterInfo.ProjectID
 		clusterResourceName                    = clusterInfo.ResourceName
 		clusterDataName                        = "data.mongodbatlas_advanced_cluster.test"
@@ -168,7 +169,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		projectID := rs.Primary.ID
-		_, _, err := acc.Conn().PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), projectID)
+		_, _, err := acc.ConnV2().PrivateEndpointServicesApi.GetRegionalizedPrivateEndpointSetting(context.Background(), projectID).Execute()
 		if err == nil {
 			return nil
 		}
@@ -181,7 +182,7 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_private_endpoint_regional_mode" {
 			continue
 		}
-		setting, _, _ := acc.Conn().PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), rs.Primary.ID)
+		setting, _, _ := acc.ConnV2().PrivateEndpointServicesApi.GetRegionalizedPrivateEndpointSetting(context.Background(), rs.Primary.ID).Execute()
 		if setting != nil && setting.Enabled != false {
 			return fmt.Errorf("Regionalized private endpoint setting for project %q was not properly disabled", rs.Primary.ID)
 		}

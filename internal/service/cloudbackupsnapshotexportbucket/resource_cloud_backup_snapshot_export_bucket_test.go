@@ -18,19 +18,44 @@ var (
 	dataSourcePluralName = "data.mongodbatlas_cloud_backup_snapshot_export_buckets.test"
 )
 
-func TestAccBackupSnapshotExportBucket_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+func TestAccBackupSnapshotExportBucket_basicAWS(t *testing.T) {
+	resource.ParallelTest(t, *basicAWSTestCase(t))
 }
 
-func basicTestCase(tb testing.TB) *resource.TestCase {
+func TestAccBackupSnapshotExportBucket_basicAzure(t *testing.T) {
+	resource.ParallelTest(t, *basicAzureTestCase(t))
+}
+
+func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 
 	var (
-		projectID  = acc.ProjectIDExecution(tb)
-		bucketName = os.Getenv("AWS_S3_BUCKET")
-		policyName = acc.RandomName()
-		roleName   = acc.RandomIAMRole()
+		projectID    = acc.ProjectIDExecution(tb)
+		bucketName   = os.Getenv("AWS_S3_BUCKET")
+		policyName   = acc.RandomName()
+		roleName     = acc.RandomIAMRole()
+		attrMapCheck = map[string]string{
+			"project_id":     projectID,
+			"bucket_name":    bucketName,
+			"cloud_provider": "AWS",
+		}
+		pluralAttrMapCheck = map[string]string{
+			"project_id":               projectID,
+			"results.#":                "1",
+			"results.0.bucket_name":    bucketName,
+			"results.0.cloud_provider": "AWS",
+		}
+		attrsSet = []string{
+			"iam_role_id",
+		}
 	)
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, attrMapCheck)
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrMapCheck)
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralAttrMapCheck)
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, []string{"results.0.iam_role_id"}...)
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckS3Bucket(tb) },
@@ -39,25 +64,68 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, bucketName, policyName, roleName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "bucket_name", bucketName),
-					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AWS"),
-					resource.TestCheckResourceAttrSet(resourceName, "iam_role_id"),
+				Config: configAWSBasic(projectID, bucketName, policyName, roleName),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
 
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "bucket_name", bucketName),
-					resource.TestCheckResourceAttr(dataSourceName, "cloud_provider", "AWS"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "iam_role_id"),
+func basicAzureTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
 
-					resource.TestCheckResourceAttr(dataSourcePluralName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", "1"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.bucket_name", bucketName),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.cloud_provider", "AWS"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.iam_role_id"),
-				),
+	var (
+		projectID          = acc.ProjectIDExecution(t)
+		tenantID           = os.Getenv("AZURE_TENANT_ID")
+		bucketName         = os.Getenv("AZURE_BLOB_STORAGE_CONTAINER_NAME")
+		serviceURL         = os.Getenv("AZURE_SERVICE_URL")
+		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
+		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
+		attrMapCheck       = map[string]string{
+			"project_id":     projectID,
+			"bucket_name":    bucketName,
+			"service_url":    serviceURL,
+			"tenant_id":      tenantID,
+			"cloud_provider": "AZURE",
+		}
+		pluralAttrMapCheck = map[string]string{
+			"project_id":               projectID,
+			"results.#":                "1",
+			"results.0.bucket_name":    bucketName,
+			"results.0.service_url":    serviceURL,
+			"results.0.tenant_id":      tenantID,
+			"results.0.cloud_provider": "AZURE",
+		}
+		attrsSet = []string{
+			"role_id",
+		}
+	)
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, attrMapCheck)
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrMapCheck)
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralAttrMapCheck)
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, []string{"results.0.role_id"}...)
+
+	return &resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckBasic(t)
+			acc.PreCheckCloudProviderAccessAzure(t)
+			acc.PreCheckAzureExportBucket(t)
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configAzureBasic(projectID, atlasAzureAppID, servicePrincipalID, tenantID, bucketName, serviceURL),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				ResourceName:      resourceName,
@@ -112,7 +180,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(projectID, bucketName, policyName, roleName string) string {
+func configAWSBasic(projectID, bucketName, policyName, roleName string) string {
 	return fmt.Sprintf(`
     resource "aws_iam_role_policy" "test_policy" {
         name = %[3]q
@@ -192,4 +260,49 @@ func configBasic(projectID, bucketName, policyName, roleName string) string {
             project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
         }
     `, projectID, bucketName, policyName, roleName)
+}
+
+func configAzureBasic(projectID, atlasAzureAppID, servicePrincipalID, tenantID, bucketName, serviceURL string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+			project_id    = %[1]q
+			provider_name = "AZURE"
+			azure_config {
+				atlas_azure_app_id = %[2]q
+				service_principal_id = %[3]q
+				tenant_id = %[4]q
+			}
+      	}
+
+		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+			project_id = %[1]q
+			role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+			
+			azure {
+				atlas_azure_app_id = %[2]q
+				service_principal_id = %[3]q
+				tenant_id = %[4]q
+			}
+		}
+
+
+        resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
+            project_id     = %[1]q
+            bucket_name    = %[5]q
+            cloud_provider = "AZURE"
+			service_url	   = %[6]q
+			role_id		   = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+			tenant_id	   = %[4]q
+        }
+
+        data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
+            project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
+            export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
+            id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
+        }
+
+        data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
+            project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
+        }
+	`, projectID, atlasAzureAppID, servicePrincipalID, tenantID, bucketName, serviceURL)
 }

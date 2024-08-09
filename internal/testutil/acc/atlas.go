@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func createProject(tb testing.TB, name string) string {
@@ -38,7 +38,7 @@ func createCluster(tb testing.TB, projectID, name string) string {
 	_, _, err := ConnV2().ClustersApi.CreateCluster(context.Background(), projectID, &req).Execute()
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 
-	stateConf := advancedcluster.CreateStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
+	stateConf := advancedcluster.CreateStateChangeConfig(context.Background(), ConnV220240530(), projectID, name, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(context.Background())
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 
@@ -50,26 +50,26 @@ func deleteCluster(projectID, name string) {
 	if err != nil {
 		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)
 	}
-	stateConf := advancedcluster.DeleteStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
+	stateConf := advancedcluster.DeleteStateChangeConfig(context.Background(), ConnV220240530(), projectID, name, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(context.Background())
 	if err != nil {
 		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)
 	}
 }
 
-func clusterReq(name, projectID string) admin.ClusterDescription20250101 {
-	return admin.ClusterDescription20250101{
+func clusterReq(name, projectID string) admin.ClusterDescription20240805 {
+	return admin.ClusterDescription20240805{
 		Name:        admin.PtrString(name),
 		GroupId:     admin.PtrString(projectID),
 		ClusterType: admin.PtrString("REPLICASET"),
-		ReplicationSpecs: &[]admin.ReplicationSpec20250101{
+		ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 			{
-				RegionConfigs: &[]admin.CloudRegionConfig20250101{
+				RegionConfigs: &[]admin.CloudRegionConfig20240805{
 					{
 						ProviderName: admin.PtrString(constant.AWS),
 						RegionName:   admin.PtrString(constant.UsWest2),
 						Priority:     admin.PtrInt(7),
-						ElectableSpecs: &admin.HardwareSpec20250101{
+						ElectableSpecs: &admin.HardwareSpec20240805{
 							InstanceSize: admin.PtrString(constant.M10),
 							NodeCount:    admin.PtrInt(3),
 						},

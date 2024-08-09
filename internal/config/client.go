@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -31,7 +31,7 @@ const (
 type MongoDBClient struct {
 	Atlas           *matlasClient.Client
 	AtlasV2         *admin.APIClient
-	AtlasV220231115 *admin20231115.APIClient
+	AtlasV220240530 *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes
 	Config          *Config
 }
 
@@ -105,7 +105,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		return nil, err
 	}
 
-	sdkV220231115Client, err := c.newSDKV220231115Client(client)
+	sdkV220240530Client, err := c.newSDKV220240530Client(client)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	clients := &MongoDBClient{
 		Atlas:           atlasClient,
 		AtlasV2:         sdkV2Client,
-		AtlasV220231115: sdkV220231115Client,
+		AtlasV220240530: sdkV220240530Client,
 		Config:          c,
 	}
 
@@ -136,15 +136,15 @@ func (c *Config) newSDKV2Client(client *http.Client) (*admin.APIClient, error) {
 	return sdkv2, nil
 }
 
-func (c *Config) newSDKV220231115Client(client *http.Client) (*admin20231115.APIClient, error) {
-	opts := []admin20231115.ClientModifier{
-		admin20231115.UseHTTPClient(client),
-		admin20231115.UseUserAgent(userAgent(c)),
-		admin20231115.UseBaseURL(c.BaseURL),
-		admin20231115.UseDebug(false)}
+func (c *Config) newSDKV220240530Client(client *http.Client) (*admin20240530.APIClient, error) {
+	opts := []admin20240530.ClientModifier{
+		admin20240530.UseHTTPClient(client),
+		admin20240530.UseUserAgent(userAgent(c)),
+		admin20240530.UseBaseURL(c.BaseURL),
+		admin20240530.UseDebug(false)}
 
 	// Initialize the MongoDB Versioned Atlas Client.
-	sdkv2, err := admin20231115.NewClient(opts...)
+	sdkv2, err := admin20240530.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}

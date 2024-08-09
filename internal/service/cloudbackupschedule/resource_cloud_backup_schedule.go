@@ -330,7 +330,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// MongoDB Atlas automatically generates a default backup policy for that cluster.
 	// As a result, we need to first delete the default policies to avoid having
 	// the infrastructure differs from the TF configuration file.
-	if _, _, err := connV2.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, _, err := connV220240530.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute(); err != nil {
 		diagWarning := diag.Diagnostic{
 			Severity: diag.Warning,
 			Summary:  "Error deleting default backup schedule",
@@ -492,12 +492,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, _, err := connV2.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute()
+	_, _, err := connV220240530.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
@@ -508,7 +508,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
@@ -518,7 +518,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	projectID := parts[0]
 	clusterName := parts[1]
 
-	_, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+	_, _, err := connV220240530.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
@@ -721,8 +721,8 @@ func ExpandPolicyItems(items []any, frequencyType string) *[]admin.DiskBackupApi
 	return &results
 }
 
-func expandPolicyItem(itemObj map[string]any, frequencyType string) admin.DiskBackupApiPolicyItem {
-	return admin.DiskBackupApiPolicyItem{
+func expandPolicyItem(itemObj map[string]any, frequencyType string) admin20240530.DiskBackupApiPolicyItem {
+	return admin20240530.DiskBackupApiPolicyItem{
 		Id:                policyItemID(itemObj),
 		RetentionUnit:     itemObj["retention_unit"].(string),
 		RetentionValue:    itemObj["retention_value"].(int),

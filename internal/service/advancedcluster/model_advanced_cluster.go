@@ -321,7 +321,7 @@ func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admi
 	}
 }
 
-func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
+func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin20240530.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()
 
@@ -360,7 +360,7 @@ func FormatMongoDBMajorVersion(val any) string {
 	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
 }
 
-func flattenLabels(l []admin.ComponentLabel) []map[string]string {
+func flattenLabels(l []admin20240530.ComponentLabel) []map[string]string {
 	labels := make([]map[string]string, 0, len(l))
 	for _, item := range l {
 		if item.GetKey() == ignoreLabel {
@@ -398,7 +398,7 @@ func flattenConnectionStrings(str admin.ClusterConnectionStrings) []map[string]a
 	}
 }
 
-func flattenPrivateEndpoint(privateEndpoints []admin.ClusterDescriptionConnectionStringsPrivateEndpoint) []map[string]any {
+func flattenPrivateEndpoint(privateEndpoints []admin20240530.ClusterDescriptionConnectionStringsPrivateEndpoint) []map[string]any {
 	endpoints := make([]map[string]any, 0, len(privateEndpoints))
 	for _, endpoint := range privateEndpoints {
 		endpoints = append(endpoints, map[string]any{
@@ -412,7 +412,7 @@ func flattenPrivateEndpoint(privateEndpoints []admin.ClusterDescriptionConnectio
 	return endpoints
 }
 
-func flattenEndpoints(listEndpoints []admin.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint) []map[string]any {
+func flattenEndpoints(listEndpoints []admin20240530.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint) []map[string]any {
 	endpoints := make([]map[string]any, 0, len(listEndpoints))
 	for _, endpoint := range listEndpoints {
 		endpoints = append(endpoints, map[string]any{
@@ -433,11 +433,11 @@ func flattenBiConnectorConfig(biConnector *admin.BiConnector) []map[string]any {
 	}
 }
 
-func expandBiConnectorConfig(d *schema.ResourceData) *admin.BiConnector {
+func expandBiConnectorConfig(d *schema.ResourceData) *admin20240530.BiConnector {
 	if v, ok := d.GetOk("bi_connector_config"); ok {
 		if biConn := v.([]any); len(biConn) > 0 {
 			biConnMap := biConn[0].(map[string]any)
-			return &admin.BiConnector{
+			return &admin20240530.BiConnector{
 				Enabled:        conversion.Pointer(cast.ToBool(biConnMap["enabled"])),
 				ReadPreference: conversion.StringPtr(cast.ToString(biConnMap["read_preference"])),
 			}
@@ -579,11 +579,11 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects
 		}
 
 		if apiObject.GetProviderName() != "TENANT" {
-			params := &admin.ListPeeringContainerByCloudProviderApiParams{
+			params := &admin20240530.ListPeeringContainerByCloudProviderApiParams{
 				GroupId:      d.Get("project_id").(string),
 				ProviderName: apiObject.ProviderName,
 			}
-			containers, _, err := connV2.NetworkPeeringApi.ListPeeringContainerByCloudProviderWithParams(ctx, params).Execute()
+			containers, _, err := connV220240530.NetworkPeeringApi.ListPeeringContainerByCloudProviderWithParams(ctx, params).Execute()
 			if err != nil {
 				return nil, nil, err
 			}
@@ -672,9 +672,12 @@ func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin.DedicatedHa
 		tfMapObject := tfMapObjects[0].(map[string]any)
 
 		if providerName == constant.AWS || providerName == constant.AZURE {
+		if providerName == constant.AWS || providerName == constant.AZURE {
 			if cast.ToInt64(apiObject.GetDiskIOPS()) > 0 {
 				tfMap["disk_iops"] = apiObject.GetDiskIOPS()
 			}
+		}
+		if providerName == constant.AWS {
 		}
 		if providerName == constant.AWS {
 			if v, ok := tfMapObject["ebs_volume_type"]; ok && v.(string) != "" {
@@ -702,7 +705,7 @@ func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *admin.DedicatedHa
 	return tfList
 }
 
-func flattenAdvancedReplicationSpecAutoScaling(apiObject *admin.AdvancedAutoScalingSettings) []map[string]any {
+func flattenAdvancedReplicationSpecAutoScaling(apiObject *admin20240530.AdvancedAutoScalingSettings) []map[string]any {
 	if apiObject == nil {
 		return nil
 	}
@@ -799,16 +802,16 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) admin20231115.C
 	return res
 }
 
-func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLabel, diag.Diagnostics) {
+func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin20240530.ComponentLabel, diag.Diagnostics) {
 	list := d.Get("labels").(*schema.Set)
-	res := make([]admin.ComponentLabel, list.Len())
+	res := make([]admin20240530.ComponentLabel, list.Len())
 	for i, val := range list.List() {
 		v := val.(map[string]any)
 		key := v["key"].(string)
 		if key == ignoreLabel {
 			return nil, diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 		}
-		res[i] = admin.ComponentLabel{
+		res[i] = admin20240530.ComponentLabel{
 			Key:   conversion.StringPtr(key),
 			Value: conversion.StringPtr(v["value"].(string)),
 		}
@@ -931,6 +934,8 @@ func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *f
 		}
 	}
 	if providerName == constant.AWS {
+	}
+	if providerName == constant.AWS {
 		if v, ok := tfMap["ebs_volume_type"]; ok {
 			apiObject.EbsVolumeType = conversion.StringPtr(v.(string))
 		}
@@ -954,11 +959,11 @@ func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *f
 	return apiObject
 }
 
-func expandRegionConfigAutoScaling(tfList []any) *admin.AdvancedAutoScalingSettings {
+func expandRegionConfigAutoScaling(tfList []any) *admin20240530.AdvancedAutoScalingSettings {
 	tfMap, _ := tfList[0].(map[string]any)
-	settings := admin.AdvancedAutoScalingSettings{
-		DiskGB:  new(admin.DiskGBAutoScaling),
-		Compute: new(admin.AdvancedComputeAutoScaling),
+	settings := admin20240530.AdvancedAutoScalingSettings{
+		DiskGB:  new(admin20240530.DiskGBAutoScaling),
+		Compute: new(admin20240530.AdvancedComputeAutoScaling),
 	}
 
 	if v, ok := tfMap["disk_gb_enabled"]; ok {

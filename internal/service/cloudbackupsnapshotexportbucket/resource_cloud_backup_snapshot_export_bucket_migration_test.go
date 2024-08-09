@@ -7,5 +7,5 @@ import (
 )
 
 func TestMigBackupSnapshotExportBucket_basic(t *testing.T) {
-	mig.CreateTestAndRunUseExternalProviderNonParallel(t, basicTestCase(t), mig.ExternalProvidersWithAWS(), nil)
+	mig.CreateTestAndRunUseExternalProviderNonParallel(t, basicAWSTestCase(t), mig.ExternalProvidersWithAWS(), nil)
 }
