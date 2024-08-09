@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func Resource() *schema.Resource {
@@ -86,11 +86,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	request := &admin.DiskBackupSnapshotExportBucket{
 		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
-		BucketName:    conversion.StringPtr(d.Get("bucket_name").(string)),
+		BucketName:    d.Get("bucket_name").(string),
 		RoleId:        conversion.StringPtr(d.Get("role_id").(string)),
 		ServiceUrl:    conversion.StringPtr(d.Get("service_url").(string)),
 		TenantId:      conversion.StringPtr(d.Get("tenant_id").(string)),
-		CloudProvider: &cloudProvider,
+		CloudProvider: cloudProvider,
 	}
 
 	bucketResponse, _, err := conn.CloudBackupsApi.CreateExportBucket(ctx, projectID, request).Execute()

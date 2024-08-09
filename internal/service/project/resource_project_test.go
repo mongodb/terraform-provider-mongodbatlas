@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
-	"go.mongodb.org/atlas-sdk/v20240530002/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -451,7 +451,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 		{
 			name: "Error not from the API",
 			mockResponses: AdvancedClusterDescriptionResponse{
-				AdvancedClusterDescription: &admin.PaginatedAdvancedClusterDescription{},
+				AdvancedClusterDescription: &admin.PaginatedClusterDescription20240805{},
 				Err:                        errors.New("Non-API error"),
 			},
 			expectedError: true,
@@ -459,7 +459,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 		{
 			name: "Error from the API",
 			mockResponses: AdvancedClusterDescriptionResponse{
-				AdvancedClusterDescription: &admin.PaginatedAdvancedClusterDescription{},
+				AdvancedClusterDescription: &admin.PaginatedClusterDescription20240805{},
 				Err:                        &admin.GenericOpenAPIError{},
 			},
 			expectedError: true,
@@ -467,9 +467,9 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 		{
 			name: "Successful API call",
 			mockResponses: AdvancedClusterDescriptionResponse{
-				AdvancedClusterDescription: &admin.PaginatedAdvancedClusterDescription{
+				AdvancedClusterDescription: &admin.PaginatedClusterDescription20240805{
 					TotalCount: conversion.IntPtr(2),
-					Results: &[]admin.AdvancedClusterDescription{
+					Results: &[]admin.ClusterDescription20240805{
 						{StateName: conversion.StringPtr("IDLE")},
 						{StateName: conversion.StringPtr("DELETING")},
 					},
@@ -1259,7 +1259,7 @@ type DeleteProjectLimitResponse struct {
 	Err                error
 }
 type AdvancedClusterDescriptionResponse struct {
-	AdvancedClusterDescription *admin.PaginatedAdvancedClusterDescription
+	AdvancedClusterDescription *admin.PaginatedClusterDescription20240805
 	HTTPResponse               *http.Response
 	Err                        error
 }

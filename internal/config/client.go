@@ -9,7 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -28,9 +29,10 @@ const (
 
 // MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
-	Atlas   *matlasClient.Client
-	AtlasV2 *admin.APIClient
-	Config  *Config
+	Atlas           *matlasClient.Client
+	AtlasV2         *admin.APIClient
+	AtlasV220240530 *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes
+	Config          *Config
 }
 
 // Config contains the configurations needed to use SDKs
@@ -103,10 +105,16 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		return nil, err
 	}
 
+	sdkV220240530Client, err := c.newSDKV220240530Client(client)
+	if err != nil {
+		return nil, err
+	}
+
 	clients := &MongoDBClient{
-		Atlas:   atlasClient,
-		AtlasV2: sdkV2Client,
-		Config:  c,
+		Atlas:           atlasClient,
+		AtlasV2:         sdkV2Client,
+		AtlasV220240530: sdkV220240530Client,
+		Config:          c,
 	}
 
 	return clients, nil
@@ -121,6 +129,22 @@ func (c *Config) newSDKV2Client(client *http.Client) (*admin.APIClient, error) {
 
 	// Initialize the MongoDB Versioned Atlas Client.
 	sdkv2, err := admin.NewClient(opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return sdkv2, nil
+}
+
+func (c *Config) newSDKV220240530Client(client *http.Client) (*admin20240530.APIClient, error) {
+	opts := []admin20240530.ClientModifier{
+		admin20240530.UseHTTPClient(client),
+		admin20240530.UseUserAgent(userAgent(c)),
+		admin20240530.UseBaseURL(c.BaseURL),
+		admin20240530.UseDebug(false)}
+
+	// Initialize the MongoDB Versioned Atlas Client.
+	sdkv2, err := admin20240530.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}

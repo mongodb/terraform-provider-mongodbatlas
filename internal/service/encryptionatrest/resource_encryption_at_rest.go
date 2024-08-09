@@ -24,7 +24,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (

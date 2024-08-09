@@ -21,7 +21,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
 
 const (
@@ -366,10 +366,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
 		}
 	}
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	projectID := d.Get("project_id").(string)
 
-	params := &admin.AdvancedClusterDescription{
+	params := &admin20240530.AdvancedClusterDescription{
 		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
 		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
 		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any)),
@@ -397,7 +397,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
-		params.Tags = conversion.ExpandTagsFromSetSchema(d)
+		params.Tags = conversion.ExpandTagsFromSetSchemaOldSDK(d)
 	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
 		params.MongoDBMajorVersion = conversion.StringPtr(FormatMongoDBMajorVersion(v.(string)))
@@ -425,13 +425,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	cluster, _, err := connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
+	cluster, _, err := connV220240530.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, d.Get("name").(string), timeout)
+	stateConf := CreateStateChangeConfig(ctx, connV220240530, projectID, d.Get("name").(string), timeout)
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
@@ -440,7 +440,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
 			params := expandProcessArgs(d, aclist[0].(map[string]any))
-			_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params).Execute()
+			_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params).Execute()
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
 			}
@@ -448,10 +448,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if v := d.Get("paused").(bool); v {
-		request := &admin.AdvancedClusterDescription{
+		request := &admin20240530.AdvancedClusterDescription{
 			Paused: conversion.Pointer(v),
 		}
-		_, _, err = updateAdvancedCluster(ctx, connV2, request, projectID, d.Get("name").(string), timeout)
+		_, _, err = updateAdvancedCluster(ctx, connV220240530, request, projectID, d.Get("name").(string), timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
@@ -466,11 +466,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
-func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) retry.StateChangeConf {
+func CreateStateChangeConfig(ctx context.Context, connV220240530 *admin20240530.APIClient, projectID, name string, timeout time.Duration) retry.StateChangeConf {
 	return retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
+		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV220240530),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -478,12 +478,12 @@ func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	cluster, resp, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -528,7 +528,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 
-	if err := d.Set("tags", conversion.FlattenTags(cluster.GetTags())); err != nil {
+	if err := d.Set("tags", conversion.FlattenTagsOldSDK(cluster.GetTags())); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "tags", clusterName, err))
 	}
 
@@ -552,7 +552,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	replicationSpecs, err := FlattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connV2)
+	replicationSpecs, err := FlattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), d.Get("replication_specs").([]any), d, connV220240530)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
@@ -585,7 +585,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "global_cluster_self_managed_sharding", clusterName, err))
 	}
 
-	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	processArgs, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
 	}
@@ -606,18 +606,18 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 }
 
 func resourceUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	upgradeRequest := ctx.Value(upgradeRequestCtxKey).(*admin.LegacyAtlasTenantClusterUpgradeRequest)
+	upgradeRequest := ctx.Value(upgradeRequestCtxKey).(*admin20240530.LegacyAtlasTenantClusterUpgradeRequest)
 
 	if upgradeRequest == nil {
 		return diag.FromErr(fmt.Errorf("upgrade called without %s in ctx", string(upgradeRequestCtxKey)))
 	}
 
-	upgradeResponse, _, err := upgradeCluster(ctx, connV2, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
+	upgradeResponse, _, err := upgradeCluster(ctx, connV220240530, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
@@ -633,13 +633,13 @@ func resourceUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	cluster := new(admin.AdvancedClusterDescription)
-	clusterChangeDetect := new(admin.AdvancedClusterDescription)
+	cluster := new(admin20240530.AdvancedClusterDescription)
+	clusterChangeDetect := new(admin20240530.AdvancedClusterDescription)
 
 	if d.HasChange("backup_enabled") {
 		cluster.BackupEnabled = conversion.Pointer(d.Get("backup_enabled").(bool))
@@ -670,7 +670,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("tags") {
-		cluster.Tags = conversion.ExpandTagsFromSetSchema(d)
+		cluster.Tags = conversion.ExpandTagsFromSetSchemaOldSDK(d)
 	}
 
 	if d.HasChange("mongo_db_major_version") {
@@ -721,8 +721,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ac := d.Get("advanced_configuration")
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
 			params := expandProcessArgs(d, aclist[0].(map[string]any))
-			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs{}) {
-				_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
+			if !reflect.DeepEqual(params, admin20240530.ClusterDescriptionProcessArgs{}) {
+				_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 				}
@@ -733,7 +733,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// Has changes
 	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-			_, resp, err := updateAdvancedCluster(ctx, connV2, cluster, projectID, clusterName, timeout)
+			_, resp, err := updateAdvancedCluster(ctx, connV220240530, cluster, projectID, clusterName, timeout)
 			if err != nil {
 				if resp == nil || resp.StatusCode == 400 {
 					return retry.NonRetryableError(fmt.Errorf(errorUpdate, clusterName, err))
@@ -748,10 +748,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.Get("paused").(bool) {
-		clusterRequest := &admin.AdvancedClusterDescription{
+		clusterRequest := &admin20240530.AdvancedClusterDescription{
 			Paused: conversion.Pointer(true),
 		}
-		_, _, err := updateAdvancedCluster(ctx, connV2, clusterRequest, projectID, clusterName, timeout)
+		_, _, err := updateAdvancedCluster(ctx, connV220240530, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
@@ -761,12 +761,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	params := &admin.DeleteClusterApiParams{
+	params := &admin20240530.DeleteClusterApiParams{
 		GroupId:     projectID,
 		ClusterName: clusterName,
 	}
@@ -774,14 +774,14 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.RetainBackups = conversion.Pointer(v.(bool))
 	}
 
-	_, err := connV2.ClustersApi.DeleteClusterWithParams(ctx, params).Execute()
+	_, err := connV220240530.ClustersApi.DeleteClusterWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDelete, clusterName, err))
 	}
 
 	log.Println("[INFO] Waiting for MongoDB ClusterAdvanced to be destroyed")
 
-	stateConf := DeleteStateChangeConfig(ctx, connV2, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
+	stateConf := DeleteStateChangeConfig(ctx, connV220240530, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
@@ -791,11 +791,11 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return nil
 }
 
-func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) retry.StateChangeConf {
+func DeleteStateChangeConfig(ctx context.Context, connV220240530 *admin20240530.APIClient, projectID, name string, timeout time.Duration) retry.StateChangeConf {
 	return retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
+		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV220240530),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -803,14 +803,14 @@ func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 
 	projectID, name, err := splitSClusterAdvancedImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, *projectID, *name).Execute()
+	cluster, _, err := connV220240530.ClustersApi.GetCluster(ctx, *projectID, *name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
 	}
@@ -832,10 +832,10 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *http.Response, error) {
+func upgradeCluster(ctx context.Context, connV220240530 *admin20240530.APIClient, request *admin20240530.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin20240530.LegacyAtlasCluster, *http.Response, error) {
 	request.Name = name
 
-	cluster, resp, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
+	cluster, resp, err := connV220240530.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -843,7 +843,7 @@ func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, connV2.ClustersApi),
+		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, connV220240530.ClustersApi),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -873,9 +873,9 @@ func splitSClusterAdvancedImportID(id string) (projectID, clusterName *string, e
 	return
 }
 
-func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, name, projectID string, connV220240530 *admin20240530.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, name).Execute()
+		cluster, resp, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, name).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
 		}
@@ -908,7 +908,7 @@ func replicationSpecsHashSet(v any) int {
 	return schema.HashString(buf.String())
 }
 
-func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+func getUpgradeRequest(d *schema.ResourceData) *admin20240530.LegacyAtlasTenantClusterUpgradeRequest {
 	if !d.HasChange("replication_specs") {
 		return nil
 	}
@@ -929,8 +929,8 @@ func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUp
 		return nil
 	}
 
-	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
-		ProviderSettings: &admin.ClusterProviderSettings{
+	return &admin20240530.LegacyAtlasTenantClusterUpgradeRequest{
+		ProviderSettings: &admin20240530.ClusterProviderSettings{
 			ProviderName:     updatedRegion.GetProviderName(),
 			InstanceSizeName: updatedRegion.ElectableSpecs.InstanceSize,
 			RegionName:       updatedRegion.RegionName,
@@ -940,12 +940,12 @@ func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUp
 
 func updateAdvancedCluster(
 	ctx context.Context,
-	connV2 *admin.APIClient,
-	request *admin.AdvancedClusterDescription,
+	connV220240530 *admin20240530.APIClient,
+	request *admin20240530.AdvancedClusterDescription,
 	projectID, name string,
 	timeout time.Duration,
-) (*admin.AdvancedClusterDescription, *http.Response, error) {
-	cluster, resp, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, name, request).Execute()
+) (*admin20240530.AdvancedClusterDescription, *http.Response, error) {
+	cluster, resp, err := connV220240530.ClustersApi.UpdateCluster(ctx, projectID, name, request).Execute()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -953,7 +953,7 @@ func updateAdvancedCluster(
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
+		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV220240530),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,

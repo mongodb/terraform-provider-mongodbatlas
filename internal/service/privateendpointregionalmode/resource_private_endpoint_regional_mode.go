@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 type permCtxKey string
@@ -89,6 +89,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 
 	projectID := d.Id()
 	enabled := d.Get("enabled").(bool)
@@ -114,7 +115,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn.ClustersApi),
+		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV220240530.ClustersApi),
 		Timeout:    d.Timeout(timeoutKey.(string)),
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
 
 const (
@@ -219,7 +219,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		processArgs        = &admin.ClusterDescriptionProcessArgs{
+		processArgs        = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
@@ -231,7 +231,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
-		processArgsUpdated = &admin.ClusterDescriptionProcessArgs{
+		processArgsUpdated = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("0"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
@@ -267,7 +267,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		processArgs        = &admin.ClusterDescriptionProcessArgs{
+		processArgs        = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			JavascriptEnabled:                conversion.Pointer(true),
@@ -277,7 +277,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
 			SampleSizeBIConnector:            conversion.Pointer(110),
 		}
-		processArgsUpdated = &admin.ClusterDescriptionProcessArgs{
+		processArgsUpdated = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("majority"),
 			JavascriptEnabled:                conversion.Pointer(true),
@@ -312,13 +312,13 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		autoScaling        = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+		autoScaling        = &admin20240530.AdvancedAutoScalingSettings{
+			Compute: &admin20240530.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
+			DiskGB:  &admin20240530.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
-		autoScalingUpdated = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+		autoScalingUpdated = &admin20240530.AdvancedAutoScalingSettings{
+			Compute: &admin20240530.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
+			DiskGB:  &admin20240530.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
 	)
 
@@ -354,13 +354,13 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		autoScaling        = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+		autoScaling        = &admin20240530.AdvancedAutoScalingSettings{
+			Compute: &admin20240530.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
+			DiskGB:  &admin20240530.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
-		autoScalingUpdated = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+		autoScalingUpdated = &admin20240530.AdvancedAutoScalingSettings{
+			Compute: &admin20240530.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
+			DiskGB:  &admin20240530.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
 	)
 
@@ -881,7 +881,7 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 			"paused": strconv.FormatBool(paused)})
 }
 
-func configAdvanced(projectID, clusterName string, p *admin.ClusterDescriptionProcessArgs) string {
+func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
@@ -947,7 +947,7 @@ func checkAdvanced(name, tls string) resource.TestCheckFunc {
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
 }
 
-func configAdvancedDefaultWrite(projectID, clusterName string, p *admin.ClusterDescriptionProcessArgs) string {
+func configAdvancedDefaultWrite(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
@@ -1013,7 +1013,7 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
 }
 
-func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
+func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin20240530.AdvancedAutoScalingSettings) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
@@ -1044,7 +1044,7 @@ func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.A
 	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
 }
 
-func configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
+func configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName string, p *admin20240530.AdvancedAutoScalingSettings) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q

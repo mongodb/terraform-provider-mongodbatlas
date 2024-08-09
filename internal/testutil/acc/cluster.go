@@ -7,7 +7,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 // ClusterRequest contains configuration for a cluster where all fields are optional and AddDefaults is used for required fields.
@@ -136,9 +136,9 @@ func (r *ReplicationSpecRequest) AddDefaults() {
 	}
 }
 
-func (r *ReplicationSpecRequest) AllRegionConfigs() []admin.CloudRegionConfig {
+func (r *ReplicationSpecRequest) AllRegionConfigs() []admin.CloudRegionConfig20240805 {
 	config := cloudRegionConfig(*r)
-	configs := []admin.CloudRegionConfig{config}
+	configs := []admin.CloudRegionConfig20240805{config}
 	for i := range r.ExtraRegionConfigs {
 		extra := r.ExtraRegionConfigs[i]
 		configs = append(configs, cloudRegionConfig(extra))
@@ -146,34 +146,32 @@ func (r *ReplicationSpecRequest) AllRegionConfigs() []admin.CloudRegionConfig {
 	return configs
 }
 
-func replicationSpec(req *ReplicationSpecRequest) admin.ReplicationSpec {
+func replicationSpec(req *ReplicationSpecRequest) admin.ReplicationSpec20240805 {
 	if req == nil {
 		req = new(ReplicationSpecRequest)
 	}
 	req.AddDefaults()
-	defaultNumShards := 1
 	regionConfigs := req.AllRegionConfigs()
-	return admin.ReplicationSpec{
-		NumShards:     &defaultNumShards,
+	return admin.ReplicationSpec20240805{
 		ZoneName:      &req.ZoneName,
 		RegionConfigs: &regionConfigs,
 	}
 }
 
-func cloudRegionConfig(req ReplicationSpecRequest) admin.CloudRegionConfig {
+func cloudRegionConfig(req ReplicationSpecRequest) admin.CloudRegionConfig20240805 {
 	req.AddDefaults()
-	var readOnly admin.DedicatedHardwareSpec
+	var readOnly admin.DedicatedHardwareSpec20240805
 	if req.NodeCountReadOnly != 0 {
-		readOnly = admin.DedicatedHardwareSpec{
+		readOnly = admin.DedicatedHardwareSpec20240805{
 			NodeCount:    &req.NodeCountReadOnly,
 			InstanceSize: &req.InstanceSize,
 		}
 	}
-	return admin.CloudRegionConfig{
+	return admin.CloudRegionConfig20240805{
 		RegionName:   &req.Region,
 		Priority:     &req.Priority,
 		ProviderName: &req.ProviderName,
-		ElectableSpecs: &admin.HardwareSpec{
+		ElectableSpecs: &admin.HardwareSpec20240805{
 			InstanceSize:  &req.InstanceSize,
 			NodeCount:     &req.NodeCount,
 			EbsVolumeType: conversion.StringPtr(req.EbsVolumeType),

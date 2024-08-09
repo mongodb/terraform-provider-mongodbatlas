@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -245,33 +245,33 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	projectID := d.Get("project_id").(string)
 	d.SetId(id.UniqueId())
 
-	list, resp, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
+	list, resp, err := connV220240530.ClustersApi.ListClusters(ctx, projectID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
 		return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
 	}
-	if err := d.Set("results", flattenAdvancedClusters(ctx, connV2, list.GetResults(), d)); err != nil {
+	if err := d.Set("results", flattenAdvancedClusters(ctx, connV220240530, list.GetResults(), d)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenAdvancedClusters(ctx context.Context, connV2 *admin.APIClient, clusters []admin.AdvancedClusterDescription, d *schema.ResourceData) []map[string]any {
+func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.APIClient, clusters []admin20240530.AdvancedClusterDescription, d *schema.ResourceData) []map[string]any {
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
-		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		processArgs, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
-		replicationSpecs, err := FlattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), nil, d, connV2)
+		replicationSpecs, err := FlattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), nil, d, connV220240530)
 		if err != nil {
 			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
 		}
@@ -286,7 +286,7 @@ func flattenAdvancedClusters(ctx context.Context, connV2 *admin.APIClient, clust
 			"disk_size_gb":                         cluster.GetDiskSizeGB(),
 			"encryption_at_rest_provider":          cluster.GetEncryptionAtRestProvider(),
 			"labels":                               flattenLabels(cluster.GetLabels()),
-			"tags":                                 conversion.FlattenTags(cluster.GetTags()),
+			"tags":                                 conversion.FlattenTagsOldSDK(cluster.GetTags()),
 			"mongo_db_major_version":               cluster.GetMongoDBMajorVersion(),
 			"mongo_db_version":                     cluster.GetMongoDBVersion(),
 			"name":                                 cluster.GetName(),

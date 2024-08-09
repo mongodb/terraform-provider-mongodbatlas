@@ -12,15 +12,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
-	"go.mongodb.org/atlas-sdk/v20240530002/mockadmin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
 )
 
 var (
 	dummyClusterName = "clusterName"
 	dummyProjectID   = "projectId"
 	errGeneric       = errors.New("generic")
-	advancedClusters = []admin.AdvancedClusterDescription{{StateName: conversion.StringPtr("NOT IDLE")}}
+	advancedClusters = []admin20240530.AdvancedClusterDescription{{StateName: conversion.StringPtr("NOT IDLE")}}
 )
 
 func TestFlattenReplicationSpecs(t *testing.T) {
@@ -31,7 +31,7 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 		unexpectedID       = "id2"
 		expectedZoneName   = "z1"
 		unexpectedZoneName = "z2"
-		regionConfigAdmin  = []admin.CloudRegionConfig{{
+		regionConfigAdmin  = []admin20240530.CloudRegionConfig{{
 			ProviderName: &providerName,
 			RegionName:   &regionName,
 		}}
@@ -44,8 +44,8 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 			"region_name":   regionName,
 			"zone_name":     unexpectedZoneName,
 		}
-		apiSpecExpected  = admin.ReplicationSpec{Id: &expectedID, ZoneName: &expectedZoneName, RegionConfigs: &regionConfigAdmin}
-		apiSpecDifferent = admin.ReplicationSpec{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &regionConfigAdmin}
+		apiSpecExpected  = admin20240530.ReplicationSpec{Id: &expectedID, ZoneName: &expectedZoneName, RegionConfigs: &regionConfigAdmin}
+		apiSpecDifferent = admin20240530.ReplicationSpec{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &regionConfigAdmin}
 		testSchema       = map[string]*schema.Schema{
 			"project_id": {Type: schema.TypeString},
 		}
@@ -75,60 +75,60 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 		}
 	)
 	testCases := map[string]struct {
-		adminSpecs   []admin.ReplicationSpec
+		adminSpecs   []admin20240530.ReplicationSpec
 		tfInputSpecs []any
 		expectedLen  int
 	}{
 		"empty admin spec should return empty list": {
-			[]admin.ReplicationSpec{},
+			[]admin20240530.ReplicationSpec{},
 			[]any{tfSameIDSameZone},
 			0,
 		},
 		"existing id, should match admin": {
-			[]admin.ReplicationSpec{apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecExpected},
 			[]any{tfSameIDSameZone},
 			1,
 		},
 		"existing different id, should change to admin spec": {
-			[]admin.ReplicationSpec{apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecExpected},
 			[]any{tfdiffIDDiffZone},
 			1,
 		},
 		"missing id, should be set when zone_name matches": {
-			[]admin.ReplicationSpec{apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecExpected},
 			[]any{tfNoIDSameZone},
 			1,
 		},
 		"missing id and diff zone, should change to admin spec": {
-			[]admin.ReplicationSpec{apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecExpected},
 			[]any{tfNoIDDiffZone},
 			1,
 		},
 		"existing id, should match correct api spec using `id` and extra api spec added": {
-			[]admin.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
 			[]any{tfSameIDSameZone},
 			2,
 		},
 		"missing id, should match correct api spec using `zone_name` and extra api spec added": {
-			[]admin.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
 			[]any{tfNoIDSameZone},
 			2,
 		},
 		"two matching specs should be set to api specs": {
-			[]admin.ReplicationSpec{apiSpecExpected, apiSpecDifferent},
+			[]admin20240530.ReplicationSpec{apiSpecExpected, apiSpecDifferent},
 			[]any{tfSameIDSameZone, tfdiffIDDiffZone},
 			2,
 		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			peeringAPI := mockadmin.NetworkPeeringApi{}
+			peeringAPI := mockadmin20240530.NetworkPeeringApi{}
 
-			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderWithParams(mock.Anything, mock.Anything).Return(admin.ListPeeringContainerByCloudProviderApiRequest{ApiService: &peeringAPI})
-			containerResult := []admin.CloudProviderContainer{{Id: conversion.StringPtr("c1"), RegionName: &regionName, ProviderName: &providerName}}
-			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderExecute(mock.Anything).Return(&admin.PaginatedCloudProviderContainer{Results: &containerResult}, nil, nil)
+			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderWithParams(mock.Anything, mock.Anything).Return(admin20240530.ListPeeringContainerByCloudProviderApiRequest{ApiService: &peeringAPI})
+			containerResult := []admin20240530.CloudProviderContainer{{Id: conversion.StringPtr("c1"), RegionName: &regionName, ProviderName: &providerName}}
+			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderExecute(mock.Anything).Return(&admin20240530.PaginatedCloudProviderContainer{Results: &containerResult}, nil, nil)
 
-			client := &admin.APIClient{
+			client := &admin20240530.APIClient{
 				NetworkPeeringApi: &peeringAPI,
 			}
 			resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]any{"project_id": "p1"})
@@ -153,7 +153,7 @@ type Result struct {
 
 func TestUpgradeRefreshFunc(t *testing.T) {
 	testCases := []struct {
-		mockCluster    *admin.AdvancedClusterDescription
+		mockCluster    *admin20240530.AdvancedClusterDescription
 		mockResponse   *http.Response
 		expectedResult Result
 		mockError      error
@@ -215,11 +215,11 @@ func TestUpgradeRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful",
-			mockCluster:   &admin.AdvancedClusterDescription{StateName: conversion.StringPtr("stateName")},
+			mockCluster:   &admin20240530.AdvancedClusterDescription{StateName: conversion.StringPtr("stateName")},
 			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
-				response: &admin.AdvancedClusterDescription{StateName: conversion.StringPtr("stateName")},
+				response: &admin20240530.AdvancedClusterDescription{StateName: conversion.StringPtr("stateName")},
 				state:    "stateName",
 				error:    nil,
 			},
@@ -228,9 +228,9 @@ func TestUpgradeRefreshFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := mockadmin.NewClustersApi(t)
+			testObject := mockadmin20240530.NewClustersApi(t)
 
-			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetClusterApiRequest{ApiService: testObject}).Once()
+			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin20240530.GetClusterApiRequest{ApiService: testObject}).Once()
 			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
 
 			result, stateName, err := advancedcluster.UpgradeRefreshFunc(context.Background(), dummyClusterName, dummyProjectID, testObject)()
@@ -247,7 +247,7 @@ func TestUpgradeRefreshFunc(t *testing.T) {
 
 func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 	testCases := []struct {
-		mockCluster    *admin.PaginatedAdvancedClusterDescription
+		mockCluster    *admin20240530.PaginatedAdvancedClusterDescription
 		mockResponse   *http.Response
 		expectedResult Result
 		mockError      error
@@ -309,7 +309,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful but with at least one cluster not idle",
-			mockCluster:   &admin.PaginatedAdvancedClusterDescription{Results: &advancedClusters},
+			mockCluster:   &admin20240530.PaginatedAdvancedClusterDescription{Results: &advancedClusters},
 			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
@@ -320,11 +320,11 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful",
-			mockCluster:   &admin.PaginatedAdvancedClusterDescription{},
+			mockCluster:   &admin20240530.PaginatedAdvancedClusterDescription{},
 			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
-				response: &admin.PaginatedAdvancedClusterDescription{},
+				response: &admin20240530.PaginatedAdvancedClusterDescription{},
 				state:    "IDLE",
 				error:    nil,
 			},
@@ -333,9 +333,9 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testObject := mockadmin.NewClustersApi(t)
+			testObject := mockadmin20240530.NewClustersApi(t)
 
-			testObject.EXPECT().ListClusters(mock.Anything, mock.Anything).Return(admin.ListClustersApiRequest{ApiService: testObject}).Once()
+			testObject.EXPECT().ListClusters(mock.Anything, mock.Anything).Return(admin20240530.ListClustersApiRequest{ApiService: testObject}).Once()
 			testObject.EXPECT().ListClustersExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
 
 			result, stateName, err := advancedcluster.ResourceClusterListAdvancedRefreshFunc(context.Background(), dummyProjectID, testObject)()
