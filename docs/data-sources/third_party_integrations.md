@@ -75,7 +75,6 @@ Additional values based on Type
 * `PROMETHEUS`
   * `user_name` - Your Prometheus username.
   * `service_discovery` - Indicates which service discovery method is used, either file or http.
-  * `scheme` - Your Prometheus protocol scheme configured for requests. **Note** This attribute is deprecated as it is not being used.
   * `enabled` - Whether your cluster has Prometheus enabled.
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Third-Party-Integrations/operation/createThirdPartyIntegration) Documentation for more information.

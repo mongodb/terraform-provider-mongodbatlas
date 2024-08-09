@@ -1,0 +1,11 @@
+```release-note:breaking-change
+resource/mongodbatlas_third_party_integration: Removes `scheme` attribute
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_third_party_integration: Removes `scheme` attribute
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_third_party_integrations: Removes `scheme` attribute
+```
