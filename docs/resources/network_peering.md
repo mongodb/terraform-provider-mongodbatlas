@@ -397,7 +397,7 @@ Network Peering Connections can be imported using project ID and network peering
 $ terraform import mongodbatlas_network_peering.my_peering 1112222b3bf99403840e8934-5cbf563d87d9d67253be590a-AWS
 ```
 
-To obtain `project_id` and `peering_id` can be obtained using atlas cli. Attention: `atlas networking peering list` needs the `--provider` parameter for AZURE and GCP as it returns only `AWS` peerings by default. 
+To obtain your `project_id` and `peering_id` with the (MongoDB Atlas CLI)[https://www.mongodb.com/docs/atlas/cli/current/command/atlas-networking-peering-list/#std-label-atlas-networking-peering-list]. Attention: The `atlas networking peering list` command returns `AWS` peerings by default. You must include the the `--provider` parameter: Name of your cloud service provider. Valid values are AWS, AZURE, or GCP. This value defaults to "AWS".
 
 ```
 atlas projects list
