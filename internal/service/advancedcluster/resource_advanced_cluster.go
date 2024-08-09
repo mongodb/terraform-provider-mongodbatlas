@@ -843,7 +843,7 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 			}
 			updatedReplicationSpecs = specsWithIDs
 		}
-
+		SyncAutoScalingConfigs(updatedReplicationSpecs)
 		cluster.ReplicationSpecs = updatedReplicationSpecs
 	}
 

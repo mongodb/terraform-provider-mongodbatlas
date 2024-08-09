@@ -11,6 +11,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
+// last version that did not support new sharding schema or attributes
+const versionBeforeISSRelease = "1.17.6"
+
 func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	// once 1.18.0 is released we can adjust this to always check new attributes - CLOUDP-266096
 	testCase := replicaSetAWSProviderTestCase(t, false)
@@ -41,7 +44,7 @@ func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
 	mig.CreateAndRunTest(t, &testCase)
 }
 
-func TestMigAdvancedCluster_replicaSetAWSProviderUpdateAfterVerisonUpgrade(t *testing.T) {
+func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -52,7 +55,7 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdateAfterVerisonUpgrade(t *te
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: acc.ExternalProviders("1.17.5"), // last version that did not support new sharding schema or attributes
+				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
 				Config:            configReplicaSetAWSProvider(projectID, clusterName, 60, 3),
 				Check:             checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, false, false),
 			},
@@ -65,7 +68,7 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdateAfterVerisonUpgrade(t *te
 	})
 }
 
-func TestMigAdvancedCluster_geoShardedOldSchemaUpdateAfterVerisonUpgrade(t *testing.T) {
+func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -77,7 +80,7 @@ func TestMigAdvancedCluster_geoShardedOldSchemaUpdateAfterVerisonUpgrade(t *test
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: acc.ExternalProviders("1.17.5"), // last version that did not support new sharding schema or attributes
+				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
 				Config:            configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false),
 				Check:             checkGeoShardedOldSchema(clusterName, 2, 2, false, false),
 			},
@@ -102,7 +105,7 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: acc.ExternalProviders("1.17.5"), // last version that did not support new sharding schema or attributes
+				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
 				Config:            configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
 				Check:             checkShardedTransitionOldToNewSchema(false),
 			},
@@ -127,7 +130,7 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: acc.ExternalProviders("1.17.5"), // last version that did not support new sharding schema or attributes
+				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
 				Config:            configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
 				Check:             checkGeoShardedTransitionOldToNewSchema(false),
 			},
