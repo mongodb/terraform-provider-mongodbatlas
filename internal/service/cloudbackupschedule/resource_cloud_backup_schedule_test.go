@@ -660,7 +660,6 @@ func configNoPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshot
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
 			project_id       = %[2]q
-			project_id       = %[2]q
 
 			reference_hour_of_day    = %[3]d
 			reference_minute_of_hour = %[4]d
@@ -670,7 +669,6 @@ func configNoPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshot
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
 			project_id       = %[2]q
-			project_id       = %[2]q
 		}	
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
@@ -679,7 +677,6 @@ func configDefault(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSch
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]q
 			project_id       = %[2]q
 
 			reference_hour_of_day    = %[3]d
@@ -715,7 +712,6 @@ func configDefault(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSch
 
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]q
 			project_id       = %[2]q
 		 }	
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
@@ -772,8 +768,6 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			project_id       = %[2]q
 			cluster_name     = %[3]s.name
-			project_id       = %[2]q
-			cluster_name     = %[3]s.name
 
 			reference_hour_of_day    = %[4]d
 			reference_minute_of_hour = %[5]d
@@ -819,7 +813,6 @@ func configOnePolicy(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotS
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
 			project_id       = %[2]q
-			project_id       = %[2]q
 
 			reference_hour_of_day    = %[3]d
 			reference_minute_of_hour = %[4]d
@@ -849,7 +842,6 @@ func configNewPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapsho
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]q
 			project_id       = %[2]q
 
 			reference_hour_of_day    = %[3]d
@@ -882,7 +874,6 @@ func configNewPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapsho
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
 			project_id       = %[2]q
-			project_id       = %[2]q
 		 }	
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), strYearly)
 }
@@ -891,7 +882,6 @@ func configAzure(info *acc.ClusterInfo, policy *admin20240530.DiskBackupApiPolic
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]q
 			project_id       = %[2]q
 
 			policy_item_hourly {
@@ -904,7 +894,6 @@ func configAzure(info *acc.ClusterInfo, policy *admin20240530.DiskBackupApiPolic
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
 			project_id       = %[2]q
-			project_id       = %[2]q
 		}	
 	`, info.TerraformNameRef, info.ProjectID, policy.GetFrequencyInterval(), policy.GetRetentionUnit(), policy.GetRetentionValue())
 }
@@ -913,7 +902,6 @@ func configAdvancedPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSn
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]q
 			project_id       = %[2]q
 
 			auto_export_enabled = false
@@ -965,7 +953,6 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
     resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
         cluster_name             = %[1]s
         project_id               = %[2]q
-        project_id               = %[2]q
         auto_export_enabled      = true
         reference_hour_of_day    = 20
         reference_minute_of_hour = "05"
@@ -1006,12 +993,10 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
 
     resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
         project_id      = %[2]q
-        project_id      = %[2]q
         provider_name   = "AWS"
     }
 
     resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-        project_id  = %[2]q
         project_id  = %[2]q
         role_id     = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
         aws {
@@ -1020,7 +1005,6 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
     }
 
     resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-        project_id     = %[2]q
         project_id     = %[2]q
         iam_role_id    = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
         bucket_name    = aws_s3_bucket.backup.bucket
