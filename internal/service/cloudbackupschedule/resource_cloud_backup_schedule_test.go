@@ -38,7 +38,6 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
@@ -67,7 +66,6 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 				}, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
@@ -112,7 +110,6 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
@@ -174,7 +171,6 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "20"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "5"),
@@ -206,7 +202,6 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
@@ -241,7 +236,6 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
@@ -450,7 +444,6 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
@@ -506,7 +499,6 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1")),
@@ -519,7 +511,6 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "2"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
@@ -769,9 +760,6 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 			project_id       = %[2]q
 			cluster_name     = %[3]s.name
 
-			reference_hour_of_day    = %[4]d
-			reference_minute_of_hour = %[5]d
-			restore_window_days      = %[6]d
 			reference_hour_of_day    = %[4]d
 			reference_minute_of_hour = %[5]d
 			restore_window_days      = %[6]d
