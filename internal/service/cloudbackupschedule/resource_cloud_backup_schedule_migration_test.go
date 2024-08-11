@@ -7,14 +7,14 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
 
 func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		useYearly   = mig.IsProviderVersionAtLeast("1.16.0") // attribute introduced in this version
-		config      = configNewPolicies(&clusterInfo, &admin20231115.DiskBackupSnapshotSchedule{
+		config      = configNewPolicies(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
 			ReferenceHourOfDay:    conversion.Pointer(0),
 			ReferenceMinuteOfHour: conversion.Pointer(0),
 			RestoreWindowDays:     conversion.Pointer(7),
@@ -28,7 +28,6 @@ func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeAggregateTestCheckFunc(
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
@@ -63,12 +62,12 @@ func TestMigBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 		terraformStr                    = clusterInfo.TerraformStr
 		clusterResourceName             = clusterInfo.ResourceName
 		projectID                       = clusterInfo.ProjectID
-		copySettingsConfigWithRepSpecID = configCopySettings(terraformStr, projectID, clusterResourceName, false, true, &admin20231115.DiskBackupSnapshotSchedule{
+		copySettingsConfigWithRepSpecID = configCopySettings(terraformStr, projectID, clusterResourceName, false, true, &admin20240530.DiskBackupSnapshotSchedule{
 			ReferenceHourOfDay:    conversion.Pointer(3),
 			ReferenceMinuteOfHour: conversion.Pointer(45),
 			RestoreWindowDays:     conversion.Pointer(1),
 		})
-		copySettingsConfigWithZoneID = configCopySettings(terraformStr, projectID, clusterResourceName, false, false, &admin20231115.DiskBackupSnapshotSchedule{
+		copySettingsConfigWithZoneID = configCopySettings(terraformStr, projectID, clusterResourceName, false, false, &admin20240530.DiskBackupSnapshotSchedule{
 			ReferenceHourOfDay:    conversion.Pointer(3),
 			ReferenceMinuteOfHour: conversion.Pointer(45),
 			RestoreWindowDays:     conversion.Pointer(1),

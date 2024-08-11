@@ -89,7 +89,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 
 	projectID := d.Id()
 	enabled := d.Get("enabled").(bool)
@@ -115,7 +114,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV220240530.ClustersApi),
+		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn.ClustersApi),
 		Timeout:    d.Timeout(timeoutKey.(string)),
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,

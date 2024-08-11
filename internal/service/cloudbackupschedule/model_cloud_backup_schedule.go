@@ -1,8 +1,8 @@
 package cloudbackupschedule
 
 import (
-	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func FlattenPolicyItem(items []admin.DiskBackupApiPolicyItem, frequencyType string) []map[string]any {
@@ -21,9 +21,9 @@ func FlattenPolicyItem(items []admin.DiskBackupApiPolicyItem, frequencyType stri
 	return policyItems
 }
 
-func FlattenExport(roles *admin.DiskBackupSnapshotSchedule20250101) []map[string]any {
+func FlattenExport(roles *admin.DiskBackupSnapshotSchedule20240805) []map[string]any {
 	exportList := make([]map[string]any, 0)
-	emptyStruct := admin.DiskBackupSnapshotSchedule20250101{}
+	emptyStruct := admin.DiskBackupSnapshotSchedule20240805{}
 	if emptyStruct.GetExport() != roles.GetExport() {
 		exportList = append(exportList, map[string]any{
 			"frequency_type":   roles.Export.GetFrequencyType(),
@@ -33,7 +33,7 @@ func FlattenExport(roles *admin.DiskBackupSnapshotSchedule20250101) []map[string
 	return exportList
 }
 
-func flattenCopySettingsOldSDK(copySettingList []admin20231115.DiskBackupCopySetting) []map[string]any {
+func flattenCopySettingsOldSDK(copySettingList []admin20240530.DiskBackupCopySetting) []map[string]any {
 	copySettings := make([]map[string]any, 0)
 	for _, v := range copySettingList {
 		copySettings = append(copySettings, map[string]any{
@@ -47,7 +47,7 @@ func flattenCopySettingsOldSDK(copySettingList []admin20231115.DiskBackupCopySet
 	return copySettings
 }
 
-func FlattenCopySettings(copySettingList []admin.DiskBackupCopySetting20250101) []map[string]any {
+func FlattenCopySettings(copySettingList []admin.DiskBackupCopySetting20240805) []map[string]any {
 	copySettings := make([]map[string]any, 0)
 	for _, v := range copySettingList {
 		copySettings = append(copySettings, map[string]any{

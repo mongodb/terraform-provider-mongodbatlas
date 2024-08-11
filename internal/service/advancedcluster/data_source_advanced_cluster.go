@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -251,7 +251,7 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
@@ -265,13 +265,13 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if !useReplicationSpecPerShard {
-		clusterDescOld, resp, err := connV220231115.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+		clusterDescOld, resp, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			if resp != nil {
 				if resp.StatusCode == http.StatusNotFound {
 					return nil
 				}
-				if admin20231115.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
+				if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
 					return diag.FromErr(fmt.Errorf("please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details. %s", err))
 				}
 			}
@@ -314,7 +314,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 		}
 
-		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220231115)
+		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -334,7 +334,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
 
-	processArgs, _, err := connV220231115.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	processArgs, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorAdvancedConfRead, clusterName, err))
 	}

@@ -1,8 +1,8 @@
 package advancedcluster
 
 import (
-	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 )
@@ -11,7 +11,7 @@ import (
 // - These functions must not contain any business logic.
 // - All will be removed once we rely on a single API version.
 
-func convertTagsPtrToLatest(tags *[]admin20231115.ResourceTag) *[]admin.ResourceTag {
+func convertTagsPtrToLatest(tags *[]admin20240530.ResourceTag) *[]admin.ResourceTag {
 	if tags == nil {
 		return nil
 	}
@@ -19,15 +19,15 @@ func convertTagsPtrToLatest(tags *[]admin20231115.ResourceTag) *[]admin.Resource
 	return &result
 }
 
-func convertTagsPtrToOldSDK(tags *[]admin.ResourceTag) *[]admin20231115.ResourceTag {
+func convertTagsPtrToOldSDK(tags *[]admin.ResourceTag) *[]admin20240530.ResourceTag {
 	if tags == nil {
 		return nil
 	}
 	tagsSlice := *tags
-	results := make([]admin20231115.ResourceTag, len(tagsSlice))
+	results := make([]admin20240530.ResourceTag, len(tagsSlice))
 	for i := range len(tagsSlice) {
 		tag := tagsSlice[i]
-		results[i] = admin20231115.ResourceTag{
+		results[i] = admin20240530.ResourceTag{
 			Key:   tag.Key,
 			Value: tag.Value,
 		}
@@ -35,7 +35,7 @@ func convertTagsPtrToOldSDK(tags *[]admin.ResourceTag) *[]admin20231115.Resource
 	return &results
 }
 
-func convertTagsToLatest(tags []admin20231115.ResourceTag) []admin.ResourceTag {
+func convertTagsToLatest(tags []admin20240530.ResourceTag) []admin.ResourceTag {
 	results := make([]admin.ResourceTag, len(tags))
 	for i := range len(tags) {
 		tag := tags[i]
@@ -47,24 +47,24 @@ func convertTagsToLatest(tags []admin20231115.ResourceTag) []admin.ResourceTag {
 	return results
 }
 
-func convertBiConnectToOldSDK(biconnector *admin.BiConnector) *admin20231115.BiConnector {
+func convertBiConnectToOldSDK(biconnector *admin.BiConnector) *admin20240530.BiConnector {
 	if biconnector == nil {
 		return nil
 	}
-	return &admin20231115.BiConnector{
+	return &admin20240530.BiConnector{
 		Enabled:        biconnector.Enabled,
 		ReadPreference: biconnector.ReadPreference,
 	}
 }
 
-func convertBiConnectToLatest(biconnector *admin20231115.BiConnector) *admin.BiConnector {
+func convertBiConnectToLatest(biconnector *admin20240530.BiConnector) *admin.BiConnector {
 	return &admin.BiConnector{
 		Enabled:        biconnector.Enabled,
 		ReadPreference: biconnector.ReadPreference,
 	}
 }
 
-func convertConnectionStringToLatest(connStrings *admin20231115.ClusterConnectionStrings) *admin.ClusterConnectionStrings {
+func convertConnectionStringToLatest(connStrings *admin20240530.ClusterConnectionStrings) *admin.ClusterConnectionStrings {
 	return &admin.ClusterConnectionStrings{
 		AwsPrivateLink:    connStrings.AwsPrivateLink,
 		AwsPrivateLinkSrv: connStrings.AwsPrivateLinkSrv,
@@ -76,7 +76,7 @@ func convertConnectionStringToLatest(connStrings *admin20231115.ClusterConnectio
 	}
 }
 
-func convertPrivateEndpointToLatest(privateEndpoints *[]admin20231115.ClusterDescriptionConnectionStringsPrivateEndpoint) *[]admin.ClusterDescriptionConnectionStringsPrivateEndpoint {
+func convertPrivateEndpointToLatest(privateEndpoints *[]admin20240530.ClusterDescriptionConnectionStringsPrivateEndpoint) *[]admin.ClusterDescriptionConnectionStringsPrivateEndpoint {
 	if privateEndpoints == nil {
 		return nil
 	}
@@ -95,7 +95,7 @@ func convertPrivateEndpointToLatest(privateEndpoints *[]admin20231115.ClusterDes
 	return &results
 }
 
-func convertEndpointsToLatest(privateEndpoints *[]admin20231115.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint) *[]admin.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint {
+func convertEndpointsToLatest(privateEndpoints *[]admin20240530.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint) *[]admin.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint {
 	if privateEndpoints == nil {
 		return nil
 	}
@@ -112,7 +112,7 @@ func convertEndpointsToLatest(privateEndpoints *[]admin20231115.ClusterDescripti
 	return &results
 }
 
-func convertLabelsToLatest(labels *[]admin20231115.ComponentLabel) *[]admin.ComponentLabel {
+func convertLabelsToLatest(labels *[]admin20240530.ComponentLabel) *[]admin.ComponentLabel {
 	labelSlice := *labels
 	results := make([]admin.ComponentLabel, len(labelSlice))
 	for i := range len(labelSlice) {
@@ -125,14 +125,14 @@ func convertLabelsToLatest(labels *[]admin20231115.ComponentLabel) *[]admin.Comp
 	return &results
 }
 
-func convertLabelSliceToOldSDK(slice []admin.ComponentLabel, err diag.Diagnostics) ([]admin20231115.ComponentLabel, diag.Diagnostics) {
+func convertLabelSliceToOldSDK(slice []admin.ComponentLabel, err diag.Diagnostics) ([]admin20240530.ComponentLabel, diag.Diagnostics) {
 	if err != nil {
 		return nil, err
 	}
-	results := make([]admin20231115.ComponentLabel, len(slice))
+	results := make([]admin20240530.ComponentLabel, len(slice))
 	for i := range len(slice) {
 		label := slice[i]
-		results[i] = admin20231115.ComponentLabel{
+		results[i] = admin20240530.ComponentLabel{
 			Key:   label.Key,
 			Value: label.Value,
 		}
@@ -140,15 +140,15 @@ func convertLabelSliceToOldSDK(slice []admin.ComponentLabel, err diag.Diagnostic
 	return results, nil
 }
 
-func convertRegionConfigSliceToOldSDK(slice *[]admin.CloudRegionConfig20250101) *[]admin20231115.CloudRegionConfig {
+func convertRegionConfigSliceToOldSDK(slice *[]admin.CloudRegionConfig20240805) *[]admin20240530.CloudRegionConfig {
 	if slice == nil {
 		return nil
 	}
 	cloudRegionSlice := *slice
-	results := make([]admin20231115.CloudRegionConfig, len(cloudRegionSlice))
+	results := make([]admin20240530.CloudRegionConfig, len(cloudRegionSlice))
 	for i := range len(cloudRegionSlice) {
 		cloudRegion := cloudRegionSlice[i]
-		results[i] = admin20231115.CloudRegionConfig{
+		results[i] = admin20240530.CloudRegionConfig{
 			ElectableSpecs:       convertHardwareSpecToOldSDK(cloudRegion.ElectableSpecs),
 			Priority:             cloudRegion.Priority,
 			ProviderName:         cloudRegion.ProviderName,
@@ -163,11 +163,11 @@ func convertRegionConfigSliceToOldSDK(slice *[]admin.CloudRegionConfig20250101) 
 	return &results
 }
 
-func convertHardwareSpecToOldSDK(hwspec *admin.HardwareSpec20250101) *admin20231115.HardwareSpec {
+func convertHardwareSpecToOldSDK(hwspec *admin.HardwareSpec20240805) *admin20240530.HardwareSpec {
 	if hwspec == nil {
 		return nil
 	}
-	return &admin20231115.HardwareSpec{
+	return &admin20240530.HardwareSpec{
 		DiskIOPS:      hwspec.DiskIOPS,
 		EbsVolumeType: hwspec.EbsVolumeType,
 		InstanceSize:  hwspec.InstanceSize,
@@ -175,21 +175,21 @@ func convertHardwareSpecToOldSDK(hwspec *admin.HardwareSpec20250101) *admin20231
 	}
 }
 
-func convertAdvancedAutoScalingSettingsToOldSDK(settings *admin.AdvancedAutoScalingSettings) *admin20231115.AdvancedAutoScalingSettings {
+func convertAdvancedAutoScalingSettingsToOldSDK(settings *admin.AdvancedAutoScalingSettings) *admin20240530.AdvancedAutoScalingSettings {
 	if settings == nil {
 		return nil
 	}
-	return &admin20231115.AdvancedAutoScalingSettings{
+	return &admin20240530.AdvancedAutoScalingSettings{
 		Compute: convertAdvancedComputeAutoScalingToOldSDK(settings.Compute),
 		DiskGB:  convertDiskGBAutoScalingToOldSDK(settings.DiskGB),
 	}
 }
 
-func convertAdvancedComputeAutoScalingToOldSDK(settings *admin.AdvancedComputeAutoScaling) *admin20231115.AdvancedComputeAutoScaling {
+func convertAdvancedComputeAutoScalingToOldSDK(settings *admin.AdvancedComputeAutoScaling) *admin20240530.AdvancedComputeAutoScaling {
 	if settings == nil {
 		return nil
 	}
-	return &admin20231115.AdvancedComputeAutoScaling{
+	return &admin20240530.AdvancedComputeAutoScaling{
 		Enabled:          settings.Enabled,
 		MaxInstanceSize:  settings.MaxInstanceSize,
 		MinInstanceSize:  settings.MinInstanceSize,
@@ -197,20 +197,20 @@ func convertAdvancedComputeAutoScalingToOldSDK(settings *admin.AdvancedComputeAu
 	}
 }
 
-func convertDiskGBAutoScalingToOldSDK(settings *admin.DiskGBAutoScaling) *admin20231115.DiskGBAutoScaling {
+func convertDiskGBAutoScalingToOldSDK(settings *admin.DiskGBAutoScaling) *admin20240530.DiskGBAutoScaling {
 	if settings == nil {
 		return nil
 	}
-	return &admin20231115.DiskGBAutoScaling{
+	return &admin20240530.DiskGBAutoScaling{
 		Enabled: settings.Enabled,
 	}
 }
 
-func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec20250101) *admin20231115.DedicatedHardwareSpec {
+func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec20240805) *admin20240530.DedicatedHardwareSpec {
 	if spec == nil {
 		return nil
 	}
-	return &admin20231115.DedicatedHardwareSpec{
+	return &admin20240530.DedicatedHardwareSpec{
 		NodeCount:     spec.NodeCount,
 		DiskIOPS:      spec.DiskIOPS,
 		EbsVolumeType: spec.EbsVolumeType,
@@ -218,11 +218,11 @@ func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec20250
 	}
 }
 
-func convertDedicatedHwSpecToLatest(spec *admin20231115.DedicatedHardwareSpec, rootDiskSizeGB float64) *admin.DedicatedHardwareSpec20250101 {
+func convertDedicatedHwSpecToLatest(spec *admin20240530.DedicatedHardwareSpec, rootDiskSizeGB float64) *admin.DedicatedHardwareSpec20240805 {
 	if spec == nil {
 		return nil
 	}
-	return &admin.DedicatedHardwareSpec20250101{
+	return &admin.DedicatedHardwareSpec20240805{
 		NodeCount:     spec.NodeCount,
 		DiskIOPS:      spec.DiskIOPS,
 		EbsVolumeType: spec.EbsVolumeType,
@@ -231,7 +231,7 @@ func convertDedicatedHwSpecToLatest(spec *admin20231115.DedicatedHardwareSpec, r
 	}
 }
 
-func convertAdvancedAutoScalingSettingsToLatest(settings *admin20231115.AdvancedAutoScalingSettings) *admin.AdvancedAutoScalingSettings {
+func convertAdvancedAutoScalingSettingsToLatest(settings *admin20240530.AdvancedAutoScalingSettings) *admin.AdvancedAutoScalingSettings {
 	if settings == nil {
 		return nil
 	}
@@ -241,7 +241,7 @@ func convertAdvancedAutoScalingSettingsToLatest(settings *admin20231115.Advanced
 	}
 }
 
-func convertAdvancedComputeAutoScalingToLatest(settings *admin20231115.AdvancedComputeAutoScaling) *admin.AdvancedComputeAutoScaling {
+func convertAdvancedComputeAutoScalingToLatest(settings *admin20240530.AdvancedComputeAutoScaling) *admin.AdvancedComputeAutoScaling {
 	if settings == nil {
 		return nil
 	}
@@ -253,7 +253,7 @@ func convertAdvancedComputeAutoScalingToLatest(settings *admin20231115.AdvancedC
 	}
 }
 
-func convertDiskGBAutoScalingToLatest(settings *admin20231115.DiskGBAutoScaling) *admin.DiskGBAutoScaling {
+func convertDiskGBAutoScalingToLatest(settings *admin20240530.DiskGBAutoScaling) *admin.DiskGBAutoScaling {
 	if settings == nil {
 		return nil
 	}
@@ -262,11 +262,11 @@ func convertDiskGBAutoScalingToLatest(settings *admin20231115.DiskGBAutoScaling)
 	}
 }
 
-func convertHardwareSpecToLatest(hwspec *admin20231115.HardwareSpec, rootDiskSizeGB float64) *admin.HardwareSpec20250101 {
+func convertHardwareSpecToLatest(hwspec *admin20240530.HardwareSpec, rootDiskSizeGB float64) *admin.HardwareSpec20240805 {
 	if hwspec == nil {
 		return nil
 	}
-	return &admin.HardwareSpec20250101{
+	return &admin.HardwareSpec20240805{
 		DiskIOPS:      hwspec.DiskIOPS,
 		EbsVolumeType: hwspec.EbsVolumeType,
 		InstanceSize:  hwspec.InstanceSize,
@@ -275,15 +275,15 @@ func convertHardwareSpecToLatest(hwspec *admin20231115.HardwareSpec, rootDiskSiz
 	}
 }
 
-func convertRegionConfigSliceToLatest(slice *[]admin20231115.CloudRegionConfig, rootDiskSizeGB float64) *[]admin.CloudRegionConfig20250101 {
+func convertRegionConfigSliceToLatest(slice *[]admin20240530.CloudRegionConfig, rootDiskSizeGB float64) *[]admin.CloudRegionConfig20240805 {
 	if slice == nil {
 		return nil
 	}
 	cloudRegionSlice := *slice
-	results := make([]admin.CloudRegionConfig20250101, len(cloudRegionSlice))
+	results := make([]admin.CloudRegionConfig20240805, len(cloudRegionSlice))
 	for i := range len(cloudRegionSlice) {
 		cloudRegion := cloudRegionSlice[i]
-		results[i] = admin.CloudRegionConfig20250101{
+		results[i] = admin.CloudRegionConfig20240805{
 			ElectableSpecs:       convertHardwareSpecToLatest(cloudRegion.ElectableSpecs, rootDiskSizeGB),
 			Priority:             cloudRegion.Priority,
 			ProviderName:         cloudRegion.ProviderName,
@@ -298,8 +298,8 @@ func convertRegionConfigSliceToLatest(slice *[]admin20231115.CloudRegionConfig, 
 	return &results
 }
 
-func convertClusterDescToLatestExcludeRepSpecs(oldClusterDesc *admin20231115.AdvancedClusterDescription) *admin.ClusterDescription20250101 {
-	return &admin.ClusterDescription20250101{
+func convertClusterDescToLatestExcludeRepSpecs(oldClusterDesc *admin20240530.AdvancedClusterDescription) *admin.ClusterDescription20240805 {
+	return &admin.ClusterDescription20240805{
 		BackupEnabled: oldClusterDesc.BackupEnabled,
 		AcceptDataRisksAndForceReplicaSetReconfig: oldClusterDesc.AcceptDataRisksAndForceReplicaSetReconfig,
 		ClusterType:                      oldClusterDesc.ClusterType,
