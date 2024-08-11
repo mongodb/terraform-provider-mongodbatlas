@@ -1088,14 +1088,14 @@ func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, name, err := splitSClusterAdvancedImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	cluster, _, err := connV220240530.ClustersApi.GetCluster(ctx, *projectID, *name).Execute()
+	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, *projectID, *name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
 	}
