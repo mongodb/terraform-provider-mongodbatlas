@@ -123,6 +123,10 @@ issues:
     - linters:
         - gocritic
       text: "^hugeParam: req is heavy"
+    - path: "internal/service/encryptionatrestprivateendpoint/.*" # TODO: remove after resource integration with API is complete
+      linters:
+        - gocritic
+      text: "^commentedOutCode"
 run:
   timeout: 10m
   tests: true
