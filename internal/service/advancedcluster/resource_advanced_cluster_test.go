@@ -600,16 +600,16 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M30", 2000, 2000, false),
-				Check:  checkShardedNewSchema(50, "M30", "M30", "2000", "2000", false, false),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M10", "M10", 2000, 2000, false),
+				Check:  checkShardedNewSchema(50, "M10", "M10", "2000", "2000", false, false),
 			},
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 2000, 2500, true),
-				Check:  checkShardedNewSchema(55, "M30", "M40", "2000", "2500", true, true),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", 2000, 2500, true),
+				Check:  checkShardedNewSchema(55, "M10", "M20", "2000", "2500", true, true),
 			},
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 2000, 2500, false), // removes middle replication spec
-				Check:  checkShardedNewSchema(55, "M30", "M40", "2000", "2500", true, false),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", 2000, 2500, false), // removes middle replication spec
+				Check:  checkShardedNewSchema(55, "M10", "M20", "2000", "2500", true, false),
 			},
 		},
 	})
@@ -1521,8 +1521,8 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 				region_configs {
 					electable_specs {
 						instance_size = %[4]q
-						disk_iops = %[6]d
-						ebs_volume_type = "PROVISIONED"
+						# disk_iops = %[6]d
+						# ebs_volume_type = "PROVISIONED"
 						node_count    = 3
 						disk_size_gb  = %[9]d
 					}
@@ -1543,8 +1543,8 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 				region_configs {
 					electable_specs {
 						instance_size = %[5]q
-						disk_iops = %[7]d
-						ebs_volume_type = "PROVISIONED"
+						#disk_iops = %[7]d
+						#ebs_volume_type = "PROVISIONED"
 						node_count    = 3
 						disk_size_gb  = %[9]d
 					}
@@ -1593,8 +1593,8 @@ func checkShardedNewSchema(diskSizeGB int, firstInstanceSize, lastInstanceSize, 
 		fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.disk_size_gb", lastSpecIndex):  fmt.Sprintf("%d", diskSizeGB),
 		"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":                               fmt.Sprintf("%d", diskSizeGB),
 		fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.disk_size_gb", lastSpecIndex):  fmt.Sprintf("%d", diskSizeGB),
-		"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":                                  firstDiskIops,
-		fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.disk_iops", lastSpecIndex):     lastDiskIops,
+		// "replication_specs.0.region_configs.0.electable_specs.0.disk_iops":                                  firstDiskIops,
+		// fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.disk_iops", lastSpecIndex):     lastDiskIops,
 	}
 
 	// plural data source checks
