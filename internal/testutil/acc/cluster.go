@@ -7,7 +7,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 // ClusterRequest contains configuration for a cluster where all fields are optional and AddDefaults is used for required fields.
@@ -21,6 +21,7 @@ type ClusterRequest struct {
 	ClusterName            string
 	MongoDBMajorVersion    string
 	ReplicationSpecs       []ReplicationSpecRequest
+	DiskSizeGb             int
 	CloudBackup            bool
 	Geosharded             bool
 	RetainBackupsEnabled   bool
@@ -111,7 +112,6 @@ type ReplicationSpecRequest struct {
 	NodeCount                int
 	NodeCountReadOnly        int
 	Priority                 int
-	DiskSizeGb               int
 	AutoScalingDiskGbEnabled bool
 }
 
@@ -136,9 +136,9 @@ func (r *ReplicationSpecRequest) AddDefaults() {
 	}
 }
 
-func (r *ReplicationSpecRequest) AllRegionConfigs() []admin.CloudRegionConfig20250101 {
+func (r *ReplicationSpecRequest) AllRegionConfigs() []admin.CloudRegionConfig20240805 {
 	config := cloudRegionConfig(*r)
-	configs := []admin.CloudRegionConfig20250101{config}
+	configs := []admin.CloudRegionConfig20240805{config}
 	for i := range r.ExtraRegionConfigs {
 		extra := r.ExtraRegionConfigs[i]
 		configs = append(configs, cloudRegionConfig(extra))
@@ -146,42 +146,37 @@ func (r *ReplicationSpecRequest) AllRegionConfigs() []admin.CloudRegionConfig202
 	return configs
 }
 
-func replicationSpec(req *ReplicationSpecRequest) admin.ReplicationSpec20250101 {
+func replicationSpec(req *ReplicationSpecRequest) admin.ReplicationSpec20240805 {
 	if req == nil {
 		req = new(ReplicationSpecRequest)
 	}
 	req.AddDefaults()
 	regionConfigs := req.AllRegionConfigs()
-	return admin.ReplicationSpec20250101{
+	return admin.ReplicationSpec20240805{
 		ZoneName:      &req.ZoneName,
 		RegionConfigs: &regionConfigs,
 	}
 }
 
-func cloudRegionConfig(req ReplicationSpecRequest) admin.CloudRegionConfig20250101 {
+func cloudRegionConfig(req ReplicationSpecRequest) admin.CloudRegionConfig20240805 {
 	req.AddDefaults()
-	var readOnly admin.DedicatedHardwareSpec20250101
+	var readOnly admin.DedicatedHardwareSpec20240805
 	if req.NodeCountReadOnly != 0 {
-		readOnly = admin.DedicatedHardwareSpec20250101{
+		readOnly = admin.DedicatedHardwareSpec20240805{
 			NodeCount:    &req.NodeCountReadOnly,
 			InstanceSize: &req.InstanceSize,
 		}
 	}
-	electableSpec := admin.HardwareSpec20250101{
-		InstanceSize:  &req.InstanceSize,
-		NodeCount:     &req.NodeCount,
-		EbsVolumeType: conversion.StringPtr(req.EbsVolumeType),
-	}
-	if req.DiskSizeGb != 0 {
-		diskSizeGb := float64(req.DiskSizeGb)
-		electableSpec.DiskSizeGB = &diskSizeGb
-	}
-	return admin.CloudRegionConfig20250101{
-		RegionName:     &req.Region,
-		Priority:       &req.Priority,
-		ProviderName:   &req.ProviderName,
-		ElectableSpecs: &electableSpec,
-		ReadOnlySpecs:  &readOnly,
+	return admin.CloudRegionConfig20240805{
+		RegionName:   &req.Region,
+		Priority:     &req.Priority,
+		ProviderName: &req.ProviderName,
+		ElectableSpecs: &admin.HardwareSpec20240805{
+			InstanceSize:  &req.InstanceSize,
+			NodeCount:     &req.NodeCount,
+			EbsVolumeType: conversion.StringPtr(req.EbsVolumeType),
+		},
+		ReadOnlySpecs: &readOnly,
 		AutoScaling: &admin.AdvancedAutoScalingSettings{
 			DiskGB: &admin.DiskGBAutoScaling{Enabled: &req.AutoScalingDiskGbEnabled},
 		},

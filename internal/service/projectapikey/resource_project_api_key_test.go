@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -236,13 +235,13 @@ func TestAccProjectAPIKey_invalidRole(t *testing.T) {
 }
 
 func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
-	list, _, err := acc.Conn().APIKeys.List(context.Background(), orgID, &matlas.ListOptions{})
+	list, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListApiKeys(context.Background(), orgID).Execute()
 	if err != nil {
 		return err
 	}
-	for _, key := range list {
-		if strings.HasPrefix(key.Desc, descriptionPrefix) {
-			if _, err := acc.Conn().APIKeys.Delete(context.Background(), orgID, key.ID); err != nil {
+	for _, key := range list.GetResults() {
+		if strings.HasPrefix(key.GetDesc(), descriptionPrefix) {
+			if _, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteApiKey(context.Background(), orgID, key.GetId()).Execute(); err != nil {
 				return err
 			}
 		}
@@ -256,13 +255,13 @@ func checkDestroy(projectID string) resource.TestCheckFunc {
 			if rs.Type != "mongodbatlas_project_api_key" {
 				continue
 			}
-			projectAPIKeys, _, err := acc.Conn().ProjectAPIKeys.List(context.Background(), projectID, nil)
+			projectAPIKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListProjectApiKeys(context.Background(), projectID).Execute()
 			if err != nil {
 				return nil
 			}
 			ids := conversion.DecodeStateID(rs.Primary.ID)
-			for _, val := range projectAPIKeys {
-				if val.ID == ids["api_key_id"] {
+			for _, val := range projectAPIKeys.GetResults() {
+				if val.GetId() == ids["api_key_id"] {
 					return fmt.Errorf("Project API Key (%s) still exists", ids["role_name"])
 				}
 			}

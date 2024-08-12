@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func Resource() *schema.Resource {
@@ -56,7 +56,22 @@ func Schema() map[string]*schema.Schema {
 		},
 		"iam_role_id": {
 			Type:     schema.TypeString,
-			Required: true,
+			Optional: true,
+			ForceNew: true,
+		},
+		"role_id": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"service_url": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"tenant_id": {
+			Type:     schema.TypeString,
+			Optional: true,
 			ForceNew: true,
 		},
 	}
@@ -68,14 +83,14 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 
 	cloudProvider := d.Get("cloud_provider").(string)
-	if cloudProvider != "AWS" {
-		return diag.Errorf("atlas only supports AWS")
-	}
 
 	request := &admin.DiskBackupSnapshotExportBucket{
 		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
-		BucketName:    conversion.StringPtr(d.Get("bucket_name").(string)),
-		CloudProvider: &cloudProvider,
+		BucketName:    d.Get("bucket_name").(string),
+		RoleId:        conversion.StringPtr(d.Get("role_id").(string)),
+		ServiceUrl:    conversion.StringPtr(d.Get("service_url").(string)),
+		TenantId:      conversion.StringPtr(d.Get("tenant_id").(string)),
+		CloudProvider: cloudProvider,
 	}
 
 	bucketResponse, _, err := conn.CloudBackupsApi.CreateExportBucket(ctx, projectID, request).Execute()
@@ -129,6 +144,18 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf("error setting `project_id` for snapshot export bucket (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("service_url", exportBackup.ServiceUrl); err != nil {
+		return diag.Errorf("error setting `service_url` for snapshot export bucket (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("role_id", exportBackup.RoleId); err != nil {
+		return diag.Errorf("error setting `role_id` for snapshot export bucket (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("tenant_id", exportBackup.TenantId); err != nil {
+		return diag.Errorf("error setting `tenant_id` for snapshot export bucket (%s): %s", d.Id(), err)
+	}
+
 	return nil
 }
 
@@ -162,14 +189,14 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).Atlas
+	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID, id, err := splitImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	_, _, err = conn.CloudProviderSnapshotExportBuckets.Get(ctx, *projectID, *id)
+	_, _, err = conn.CloudBackupsApi.GetExportBucket(ctx, *projectID, *id).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import snapshot export bucket %s in project %s, error: %s", *id, *projectID, err)
 	}

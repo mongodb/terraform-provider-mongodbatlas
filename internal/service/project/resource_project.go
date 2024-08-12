@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -130,7 +130,7 @@ var TfLimitObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 
 // Resources that need to be cleaned up before a project can be deleted
 type AtlasProjectDependants struct {
-	AdvancedClusters *admin.PaginatedClusterDescription20250101
+	AdvancedClusters *admin.PaginatedClusterDescription20240805
 }
 
 func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

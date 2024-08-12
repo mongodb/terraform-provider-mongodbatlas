@@ -5,17 +5,17 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func TestAddIDsToReplicationSpecs(t *testing.T) {
 	testCases := map[string]struct {
-		ReplicationSpecs          []admin.ReplicationSpec20250101
+		ReplicationSpecs          []admin.ReplicationSpec20240805
 		ZoneToReplicationSpecsIDs map[string][]string
-		ExpectedReplicationSpecs  []admin.ReplicationSpec20250101
+		ExpectedReplicationSpecs  []admin.ReplicationSpec20240805
 	}{
 		"two zones with same amount of available ids and replication specs to populate": {
-			ReplicationSpecs: []admin.ReplicationSpec20250101{
+			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 				},
@@ -33,7 +33,7 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 				"Zone 1": {"zone1-id1", "zone1-id2"},
 				"Zone 2": {"zone2-id1", "zone2-id2"},
 			},
-			ExpectedReplicationSpecs: []admin.ReplicationSpec20250101{
+			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 					Id:       admin.PtrString("zone1-id1"),
@@ -53,7 +53,7 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 			},
 		},
 		"less available ids than replication specs to populate": {
-			ReplicationSpecs: []admin.ReplicationSpec20250101{
+			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 				},
@@ -71,7 +71,7 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 				"Zone 1": {"zone1-id1"},
 				"Zone 2": {"zone2-id1"},
 			},
-			ExpectedReplicationSpecs: []admin.ReplicationSpec20250101{
+			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 					Id:       admin.PtrString("zone1-id1"),
@@ -91,7 +91,7 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 			},
 		},
 		"more available ids than replication specs to populate": {
-			ReplicationSpecs: []admin.ReplicationSpec20250101{
+			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 				},
@@ -103,7 +103,7 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 				"Zone 1": {"zone1-id1", "zone1-id2"},
 				"Zone 2": {"zone2-id1", "zone2-id2"},
 			},
-			ExpectedReplicationSpecs: []admin.ReplicationSpec20250101{
+			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 					Id:       admin.PtrString("zone1-id1"),
@@ -126,14 +126,14 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 
 func TestSyncAutoScalingConfigs(t *testing.T) {
 	testCases := map[string]struct {
-		ReplicationSpecs         []admin.ReplicationSpec20250101
-		ExpectedReplicationSpecs []admin.ReplicationSpec20250101
+		ReplicationSpecs         []admin.ReplicationSpec20240805
+		ExpectedReplicationSpecs []admin.ReplicationSpec20240805
 	}{
 		"apply same autoscaling options for new replication spec which does not have autoscaling defined": {
-			ReplicationSpecs: []admin.ReplicationSpec20250101{
+			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					Id: admin.PtrString("id-1"),
-					RegionConfigs: &[]admin.CloudRegionConfig20250101{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
 							AutoScaling: &admin.AdvancedAutoScalingSettings{
 								Compute: &admin.AdvancedComputeAutoScaling{
@@ -152,7 +152,7 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 				},
 				{
 					Id: admin.PtrString("id-2"),
-					RegionConfigs: &[]admin.CloudRegionConfig20250101{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
 							AutoScaling:          nil,
 							AnalyticsAutoScaling: nil,
@@ -160,10 +160,10 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 					},
 				},
 			},
-			ExpectedReplicationSpecs: []admin.ReplicationSpec20250101{
+			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					Id: admin.PtrString("id-1"),
-					RegionConfigs: &[]admin.CloudRegionConfig20250101{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
 							AutoScaling: &admin.AdvancedAutoScalingSettings{
 								Compute: &admin.AdvancedComputeAutoScaling{
@@ -182,7 +182,7 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 				},
 				{
 					Id: admin.PtrString("id-2"),
-					RegionConfigs: &[]admin.CloudRegionConfig20250101{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
 							AutoScaling: &admin.AdvancedAutoScalingSettings{
 								Compute: &admin.AdvancedComputeAutoScaling{
@@ -203,10 +203,10 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 		},
 		// for this case the API will respond with an error and guide the user to align autoscaling options cross all nodes
 		"when different autoscaling options are defined values will not be changed": {
-			ReplicationSpecs: []admin.ReplicationSpec20250101{
+			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					Id: admin.PtrString("id-1"),
-					RegionConfigs: &[]admin.CloudRegionConfig20250101{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
 							AutoScaling: &admin.AdvancedAutoScalingSettings{
 								Compute: &admin.AdvancedComputeAutoScaling{
@@ -225,7 +225,7 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 				},
 				{
 					Id: admin.PtrString("id-2"),
-					RegionConfigs: &[]admin.CloudRegionConfig20250101{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
 							AutoScaling: &admin.AdvancedAutoScalingSettings{
 								Compute: &admin.AdvancedComputeAutoScaling{
@@ -241,10 +241,10 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 					},
 				},
 			},
-			ExpectedReplicationSpecs: []admin.ReplicationSpec20250101{
+			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					Id: admin.PtrString("id-1"),
-					RegionConfigs: &[]admin.CloudRegionConfig20250101{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
 							AutoScaling: &admin.AdvancedAutoScalingSettings{
 								Compute: &admin.AdvancedComputeAutoScaling{
@@ -263,7 +263,7 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 				},
 				{
 					Id: admin.PtrString("id-2"),
-					RegionConfigs: &[]admin.CloudRegionConfig20250101{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
 							AutoScaling: &admin.AdvancedAutoScalingSettings{
 								Compute: &admin.AdvancedComputeAutoScaling{

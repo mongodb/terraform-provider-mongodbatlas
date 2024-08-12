@@ -1,6 +1,6 @@
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id     = mongodbatlas_project.project1.id
-  name           = "MongoDB_Atlas"
+  name           = "MongoDBAtlas"
   cluster_type   = "REPLICASET"
   backup_enabled = true
 

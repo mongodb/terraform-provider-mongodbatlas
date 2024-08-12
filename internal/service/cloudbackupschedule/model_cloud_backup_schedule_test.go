@@ -6,7 +6,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func TestFlattenPolicyItem(t *testing.T) {
@@ -59,12 +59,12 @@ func TestFlattenPolicyItem(t *testing.T) {
 func TestFlattenExport(t *testing.T) {
 	testCases := []struct {
 		name     string
-		roles    *admin.DiskBackupSnapshotSchedule20250101
+		roles    *admin.DiskBackupSnapshotSchedule20240805
 		expected []map[string]any
 	}{
 		{
 			name: "Non-empty Export",
-			roles: &admin.DiskBackupSnapshotSchedule20250101{
+			roles: &admin.DiskBackupSnapshotSchedule20240805{
 				Export: &admin.AutoExportPolicy{
 					FrequencyType:  conversion.StringPtr("daily"),
 					ExportBucketId: conversion.StringPtr("bucket123"),
@@ -89,12 +89,12 @@ func TestFlattenExport(t *testing.T) {
 func TestFlattenCopySettings(t *testing.T) {
 	testCases := []struct {
 		name     string
-		settings []admin.DiskBackupCopySetting20250101
+		settings []admin.DiskBackupCopySetting20240805
 		expected []map[string]any
 	}{
 		{
 			name: "Multiple Copy Settings",
-			settings: []admin.DiskBackupCopySetting20250101{
+			settings: []admin.DiskBackupCopySetting20240805{
 				{
 					CloudProvider:    conversion.StringPtr("AWS"),
 					Frequencies:      &[]string{"daily", "weekly"},
@@ -117,7 +117,7 @@ func TestFlattenCopySettings(t *testing.T) {
 		},
 		{
 			name:     "Empty Copy Settings List",
-			settings: []admin.DiskBackupCopySetting20250101{},
+			settings: []admin.DiskBackupCopySetting20240805{},
 			expected: []map[string]any{},
 		},
 	}

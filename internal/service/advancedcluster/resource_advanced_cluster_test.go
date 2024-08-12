@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"testing"
 
-	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -239,7 +239,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		processArgs        = &admin20231115.ClusterDescriptionProcessArgs{
+		processArgs        = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
@@ -251,7 +251,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
-		processArgsUpdated = &admin20231115.ClusterDescriptionProcessArgs{
+		processArgsUpdated = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("0"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
@@ -287,7 +287,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		processArgs        = &admin20231115.ClusterDescriptionProcessArgs{
+		processArgs        = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			JavascriptEnabled:                conversion.Pointer(true),
@@ -297,7 +297,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
 			SampleSizeBIConnector:            conversion.Pointer(110),
 		}
-		processArgsUpdated = &admin20231115.ClusterDescriptionProcessArgs{
+		processArgsUpdated = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("majority"),
 			JavascriptEnabled:                conversion.Pointer(true),
@@ -1145,7 +1145,7 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 			"paused": strconv.FormatBool(paused)})
 }
 
-func configAdvanced(projectID, clusterName string, p *admin20231115.ClusterDescriptionProcessArgs) string {
+func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
@@ -1211,7 +1211,7 @@ func checkAdvanced(name, tls string) resource.TestCheckFunc {
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
 }
 
-func configAdvancedDefaultWrite(projectID, clusterName string, p *admin20231115.ClusterDescriptionProcessArgs) string {
+func configAdvancedDefaultWrite(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q

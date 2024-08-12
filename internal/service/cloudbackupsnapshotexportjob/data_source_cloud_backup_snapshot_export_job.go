@@ -71,8 +71,9 @@ func DataSource() *schema.Resource {
 				Computed: true,
 			},
 			"err_msg": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.20.0"),
 			},
 			"export_bucket_id": {
 				Type:     schema.TypeString,

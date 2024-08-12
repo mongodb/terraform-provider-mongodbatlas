@@ -8,13 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasProjectAPIKeysRead,
+		ReadContext: pluralDataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -75,22 +74,19 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasProjectAPIKeysRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
-	}
+func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	pageNum := d.Get("page_num").(int)
+	itemsPerPage := d.Get("items_per_page").(int)
 
 	projectID := d.Get("project_id").(string)
 
-	apiKeys, _, err := conn.ProjectAPIKeys.List(ctx, projectID, options)
+	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, projectID).PageNum(pageNum).ItemsPerPage(itemsPerPage).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api keys information: %s", err))
 	}
 
-	results, err := flattenProjectAPIKeys(ctx, conn, projectID, apiKeys)
+	results, err := flattenProjectAPIKeys(ctx, connV2, apiKeys.GetResults())
 	if err != nil {
 		diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
@@ -104,7 +100,7 @@ func dataSourceMongoDBAtlasProjectAPIKeysRead(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func flattenProjectAPIKeys(ctx context.Context, conn *matlas.Client, projectID string, apiKeys []matlas.APIKey) ([]map[string]any, error) {
+func flattenProjectAPIKeys(ctx context.Context, connV2 *admin.APIClient, apiKeys []admin.ApiKeyUserDetails) ([]map[string]any, error) {
 	var results []map[string]any
 
 	if len(apiKeys) == 0 {
@@ -114,13 +110,13 @@ func flattenProjectAPIKeys(ctx context.Context, conn *matlas.Client, projectID s
 	results = make([]map[string]any, len(apiKeys))
 	for k, apiKey := range apiKeys {
 		results[k] = map[string]any{
-			"api_key_id":  apiKey.ID,
-			"description": apiKey.Desc,
-			"public_key":  apiKey.PublicKey,
-			"private_key": apiKey.PrivateKey,
+			"api_key_id":  apiKey.GetId(),
+			"description": apiKey.GetDesc(),
+			"public_key":  apiKey.GetPublicKey(),
+			"private_key": apiKey.GetPrivateKey(),
 		}
 
-		projectAssignment, err := newProjectAssignment(ctx, conn, apiKey.ID)
+		projectAssignment, err := newProjectAssignment(ctx, connV2, apiKey.GetId())
 		if err != nil {
 			return nil, err
 		}

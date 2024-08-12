@@ -13,7 +13,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasOrganizationRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeString,
@@ -59,8 +59,7 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -714,9 +714,9 @@ func newUrls(urlsFromConfig []any) *[]string {
 
 func newCloudProviderConfig(d *schema.ResourceData) *admin.DataLakeCloudProviderConfig {
 	if cloudProvider, ok := d.Get("cloud_provider_config").([]any); ok && len(cloudProvider) == 1 {
-		cloudProviderConfig := admin.DataLakeCloudProviderConfig{}
-		cloudProviderConfig.Aws = newAWSConfig(cloudProvider)
-		return &cloudProviderConfig
+		return &admin.DataLakeCloudProviderConfig{
+			Aws: newAWSConfig(cloudProvider),
+		}
 	}
 
 	return nil

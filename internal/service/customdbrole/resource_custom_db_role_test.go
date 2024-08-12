@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const resourceName = "mongodbatlas_custom_db_role.test"
@@ -72,64 +72,64 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 		projectName                  = acc.RandomProjectName()
 	)
 
-	inheritRole := []matlas.CustomDBRole{
+	inheritRole := []admin.UserCustomDBRole{
 		{
 			RoleName: acc.RandomName(),
-			Actions: []matlas.Action{{
+			Actions: &[]admin.DatabasePrivilegeAction{{
 				Action: "INSERT",
-				Resources: []matlas.Resource{{
-					DB: conversion.Pointer(acc.RandomClusterName()),
+				Resources: &[]admin.DatabasePermittedNamespaceResource{{
+					Db: acc.RandomClusterName(),
 				}},
 			}},
 		},
 		{
 			RoleName: acc.RandomName(),
-			Actions: []matlas.Action{{
+			Actions: &[]admin.DatabasePrivilegeAction{{
 				Action: "SERVER_STATUS",
-				Resources: []matlas.Resource{{
-					Cluster: conversion.Pointer(true),
+				Resources: &[]admin.DatabasePermittedNamespaceResource{{
+					Cluster: true,
 				}},
 			}},
 		},
 	}
 
-	testRole := &matlas.CustomDBRole{
+	testRole := &admin.UserCustomDBRole{
 		RoleName: acc.RandomName(),
-		Actions: []matlas.Action{{
+		Actions: &[]admin.DatabasePrivilegeAction{{
 			Action: "UPDATE",
-			Resources: []matlas.Resource{{
-				DB: conversion.Pointer(acc.RandomClusterName()),
+			Resources: &[]admin.DatabasePermittedNamespaceResource{{
+				Db: acc.RandomClusterName(),
 			}},
 		}},
 	}
 
-	inheritRoleUpdated := []matlas.CustomDBRole{
+	inheritRoleUpdated := []admin.UserCustomDBRole{
 		{
 			RoleName: inheritRole[0].RoleName,
-			Actions: []matlas.Action{{
+			Actions: &[]admin.DatabasePrivilegeAction{{
 				Action: "FIND",
-				Resources: []matlas.Resource{{
-					DB: conversion.Pointer(acc.RandomClusterName()),
+				Resources: &[]admin.DatabasePermittedNamespaceResource{{
+					Db: acc.RandomClusterName(),
 				}},
 			}},
 		},
 		{
 			RoleName: inheritRole[1].RoleName,
-			Actions: []matlas.Action{{
+			Actions: &[]admin.DatabasePrivilegeAction{{
 				Action: "CONN_POOL_STATS",
-				Resources: []matlas.Resource{{
-					Cluster: conversion.Pointer(true),
+				Resources: &[]admin.DatabasePermittedNamespaceResource{{
+					Cluster: true,
 				}},
 			}},
 		},
 	}
 
-	testRoleUpdated := &matlas.CustomDBRole{
+	testRoleUpdated := &admin.UserCustomDBRole{
 		RoleName: testRole.RoleName,
-		Actions: []matlas.Action{{
+		Actions: &[]admin.DatabasePrivilegeAction{{
 			Action: "REMOVE",
-			Resources: []matlas.Resource{{
-				DB: conversion.Pointer(acc.RandomClusterName()),
+			Resources: &[]admin.DatabasePermittedNamespaceResource{{
+				Db: acc.RandomClusterName(),
 			}},
 		}},
 	}
@@ -148,25 +148,25 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 					checkExists(InheritedRoleResourceNameOne),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "role_name", inheritRole[0].RoleName),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.#", cast.ToString(len(inheritRole[0].Actions))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.action", inheritRole[0].Actions[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.resources.#", cast.ToString(len(inheritRole[0].Actions[0].Resources))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.#", cast.ToString(len(inheritRole[0].GetActions()))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.action", inheritRole[0].GetActions()[0].Action),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.resources.#", cast.ToString(len(inheritRole[0].GetActions()[0].GetResources()))),
 
 					// inherited Role [1]
 					checkExists(InheritedRoleResourceNameTwo),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "role_name", inheritRole[1].RoleName),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.#", cast.ToString(len(inheritRole[1].Actions))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.action", inheritRole[1].Actions[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.resources.#", cast.ToString(len(inheritRole[1].Actions[0].Resources))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.#", cast.ToString(len(inheritRole[1].GetActions()))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.action", inheritRole[1].GetActions()[0].Action),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.resources.#", cast.ToString(len(inheritRole[1].GetActions()[0].GetResources()))),
 
 					// For Test Role
 					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRole.RoleName),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRole.Actions))),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRole.Actions[0].Action),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.resources.#", cast.ToString(len(testRole.Actions[0].Resources))),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRole.GetActions()))),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRole.GetActions()[0].Action),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.resources.#", cast.ToString(len(testRole.GetActions()[0].GetResources()))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "inherited_roles.#", "2"),
 				),
 			},
@@ -179,25 +179,25 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 					checkExists(InheritedRoleResourceNameOne),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameOne, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "role_name", inheritRoleUpdated[0].RoleName),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.#", cast.ToString(len(inheritRoleUpdated[0].Actions))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.action", inheritRoleUpdated[0].Actions[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated[0].Actions[0].Resources))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.#", cast.ToString(len(inheritRoleUpdated[0].GetActions()))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.action", inheritRoleUpdated[0].GetActions()[0].Action),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameOne, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated[0].GetActions()[0].GetResources()))),
 
 					// inherited Role [1]
 					checkExists(InheritedRoleResourceNameTwo),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceNameTwo, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "role_name", inheritRoleUpdated[1].RoleName),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.#", cast.ToString(len(inheritRoleUpdated[1].Actions))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.action", inheritRoleUpdated[1].Actions[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated[1].Actions[0].Resources))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.#", cast.ToString(len(inheritRoleUpdated[1].GetActions()))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.action", inheritRoleUpdated[1].GetActions()[0].Action),
+					resource.TestCheckResourceAttr(InheritedRoleResourceNameTwo, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated[1].GetActions()[0].GetResources()))),
 
 					// For Test Role
 					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRoleUpdated.RoleName),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRoleUpdated.Actions))),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRoleUpdated.Actions[0].Action),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.resources.#", cast.ToString(len(testRoleUpdated.Actions[0].Resources))),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRoleUpdated.GetActions()))),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRoleUpdated.GetActions()[0].Action),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.resources.#", cast.ToString(len(testRoleUpdated.GetActions()[0].GetResources()))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "inherited_roles.#", "2"),
 				),
 			},
@@ -213,55 +213,55 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 		projectName               = acc.RandomProjectName()
 	)
 
-	inheritRole := &matlas.CustomDBRole{
+	inheritRole := &admin.UserCustomDBRole{
 		RoleName: acc.RandomName(),
-		Actions: []matlas.Action{
+		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "REMOVE",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 			{
 				Action: "FIND",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 		},
 	}
 
-	testRole := &matlas.CustomDBRole{
+	testRole := &admin.UserCustomDBRole{
 		RoleName: acc.RandomName(),
-		Actions: []matlas.Action{
+		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "UPDATE",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 			{
 				Action: "INSERT",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 		},
-		InheritedRoles: []matlas.InheritedRole{
+		InheritedRoles: &[]admin.DatabaseInheritedRole{
 			{
 				Role: inheritRole.RoleName,
 				Db:   "admin",
@@ -269,55 +269,55 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 		},
 	}
 
-	inheritRoleUpdated := &matlas.CustomDBRole{
+	inheritRoleUpdated := &admin.UserCustomDBRole{
 		RoleName: inheritRole.RoleName,
-		Actions: []matlas.Action{
+		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "UPDATE",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 			{
 				Action: "FIND",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 			{
 				Action: "INSERT",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 		},
 	}
 
-	testRoleUpdated := &matlas.CustomDBRole{
+	testRoleUpdated := &admin.UserCustomDBRole{
 		RoleName: testRole.RoleName,
-		Actions: []matlas.Action{
+		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "REMOVE",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 		},
-		InheritedRoles: []matlas.InheritedRole{
+		InheritedRoles: &[]admin.DatabaseInheritedRole{
 			{
 				Role: inheritRole.RoleName,
 				Db:   "admin",
@@ -338,17 +338,17 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRole.RoleName),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRole.Actions))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRole.Actions[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRole.Actions[0].Resources))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRole.GetActions()))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRole.GetActions()[0].Action),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRole.GetActions()[0].GetResources()))),
 
 					// For Test Role
 					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRole.RoleName),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRole.Actions))),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRole.Actions[0].Action),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.resources.#", cast.ToString(len(testRole.Actions[0].Resources))),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRole.GetActions()))),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRole.GetActions()[0].Action),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.resources.#", cast.ToString(len(testRole.GetActions()[0].GetResources()))),
 				),
 			},
 			{
@@ -359,17 +359,17 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRoleUpdated.RoleName),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRoleUpdated.Actions))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRoleUpdated.Actions[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated.Actions[0].Resources))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRoleUpdated.GetActions()))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRoleUpdated.GetActions()[0].Action),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated.GetActions()[0].GetResources()))),
 
 					// For Test Role
 					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRoleUpdated.RoleName),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRoleUpdated.Actions))),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRoleUpdated.Actions[0].Action),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.resources.#", cast.ToString(len(testRoleUpdated.Actions[0].Resources))),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRoleUpdated.GetActions()))),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRoleUpdated.GetActions()[0].Action),
+					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.resources.#", cast.ToString(len(testRoleUpdated.GetActions()[0].GetResources()))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "inherited_roles.#", "1"),
 				),
 			},
@@ -416,70 +416,70 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 		projectName               = acc.RandomProjectName()
 	)
 
-	inheritRole := &matlas.CustomDBRole{
+	inheritRole := &admin.UserCustomDBRole{
 		RoleName: acc.RandomName(),
-		Actions: []matlas.Action{
+		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "REMOVE",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 			{
 				Action: "FIND",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 		},
 	}
 
-	inheritRoleUpdated := &matlas.CustomDBRole{
+	inheritRoleUpdated := &admin.UserCustomDBRole{
 		RoleName: inheritRole.RoleName,
-		Actions: []matlas.Action{
+		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "UPDATE",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 			{
 				Action: "FIND",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 			{
 				Action: "INSERT",
-				Resources: []matlas.Resource{
+				Resources: &[]admin.DatabasePermittedNamespaceResource{
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 					{
-						DB: conversion.Pointer(acc.RandomClusterName()),
+						Db: acc.RandomClusterName(),
 					},
 				},
 			},
 		},
 	}
 
-	testRole := &matlas.CustomDBRole{
+	testRole := &admin.UserCustomDBRole{
 		RoleName: acc.RandomName(),
-		InheritedRoles: []matlas.InheritedRole{
+		InheritedRoles: &[]admin.DatabaseInheritedRole{
 			{
 				Role: inheritRole.RoleName,
 				Db:   "admin",
@@ -500,9 +500,9 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRole.RoleName),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRole.Actions))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRole.Actions[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRole.Actions[0].Resources))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRole.GetActions()))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRole.GetActions()[0].Action),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRole.GetActions()[0].GetResources()))),
 
 					// For Test Role
 					checkExists(testRoleResourceName),
@@ -520,9 +520,9 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 					checkExists(InheritedRoleResourceName),
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRoleUpdated.RoleName),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRoleUpdated.Actions))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRoleUpdated.Actions[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated.Actions[0].Resources))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRoleUpdated.GetActions()))),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRoleUpdated.GetActions()[0].Action),
+					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated.GetActions()[0].GetResources()))),
 
 					// For Test Role
 					checkExists(testRoleResourceName),
@@ -599,7 +599,7 @@ func configBasic(orgID, projectName, roleName, action, databaseName string) stri
 	`, orgID, projectName, roleName, action, databaseName)
 }
 
-func configWithInheritedRoles(orgID, projectName string, inheritedRole []matlas.CustomDBRole, testRole *matlas.CustomDBRole) string {
+func configWithInheritedRoles(orgID, projectName string, inheritedRole []admin.UserCustomDBRole, testRole *admin.UserCustomDBRole) string {
 	return fmt.Sprintf(`
 
 		resource "mongodbatlas_project" "test" {
@@ -654,30 +654,30 @@ func configWithInheritedRoles(orgID, projectName string, inheritedRole []matlas.
 			}
 		}
 	`, orgID, projectName,
-		inheritedRole[0].RoleName, inheritedRole[0].Actions[0].Action, *inheritedRole[0].Actions[0].Resources[0].DB,
-		inheritedRole[1].RoleName, inheritedRole[1].Actions[0].Action, *inheritedRole[1].Actions[0].Resources[0].Cluster,
-		testRole.RoleName, testRole.Actions[0].Action, *testRole.Actions[0].Resources[0].DB,
+		inheritedRole[0].RoleName, inheritedRole[0].GetActions()[0].Action, inheritedRole[0].GetActions()[0].GetResources()[0].Db,
+		inheritedRole[1].RoleName, inheritedRole[1].GetActions()[0].Action, inheritedRole[1].GetActions()[0].GetResources()[0].Cluster,
+		testRole.RoleName, testRole.GetActions()[0].Action, testRole.GetActions()[0].GetResources()[0].Db,
 	)
 }
 
-func configWithMultiple(orgID, projectName string, inheritedRole, testRole *matlas.CustomDBRole) string {
-	getCustomRoleFields := func(customRole *matlas.CustomDBRole) map[string]string {
+func configWithMultiple(orgID, projectName string, inheritedRole, testRole *admin.UserCustomDBRole) string {
+	getCustomRoleFields := func(customRole *admin.UserCustomDBRole) map[string]string {
 		var (
 			actions        string
 			inheritedRoles string
 		)
 
-		for _, a := range customRole.Actions {
+		for _, a := range customRole.GetActions() {
 			var resources string
 
 			// get the resources
-			for _, r := range a.Resources {
+			for _, r := range a.GetResources() {
 				resources += fmt.Sprintf(`
 					resources {
 						collection_name = ""
 						database_name   = "%s"
 					}
-			`, *r.DB)
+			`, r.Db)
 			}
 
 			// get the actions and set the resources
@@ -689,7 +689,7 @@ func configWithMultiple(orgID, projectName string, inheritedRole, testRole *matl
 			`, a.Action, resources)
 		}
 
-		for _, in := range customRole.InheritedRoles {
+		for _, in := range customRole.GetInheritedRoles() {
 			inheritedRoles += fmt.Sprintf(`
 				inherited_roles {
 					role_name     = "%s"

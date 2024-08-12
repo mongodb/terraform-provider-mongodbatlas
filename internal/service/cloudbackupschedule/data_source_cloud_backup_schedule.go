@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
@@ -260,15 +260,15 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	useZoneIDForCopySettings := false
 
-	var backupSchedule *admin.DiskBackupSnapshotSchedule20250101
-	var backupScheduleOldSDK *admin20231115.DiskBackupSnapshotSchedule
+	var backupSchedule *admin.DiskBackupSnapshotSchedule20240805
+	var backupScheduleOldSDK *admin20240530.DiskBackupSnapshotSchedule
 	var copySettings []map[string]any
 	var err error
 
@@ -277,9 +277,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if !useZoneIDForCopySettings {
-		backupScheduleOldSDK, _, err = connV220231115.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+		backupScheduleOldSDK, _, err = connV220240530.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 		if err != nil {
-			if apiError, ok := admin20231115.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
+			if apiError, ok := admin20240530.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
 				return diag.Errorf("%s : %s : %s", errorSnapshotBackupScheduleRead, ErrorOperationNotPermitted, AsymmetricShardsUnsupportedActionDS)
 			}
 			return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)

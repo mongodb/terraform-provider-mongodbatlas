@@ -13,8 +13,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
@@ -321,7 +321,7 @@ func Resource() *schema.Resource {
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var diags diag.Diagnostics
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -339,7 +339,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		diags = append(diags, diagWarning)
 	}
 
-	if err := cloudBackupScheduleCreateOrUpdate(ctx, connV220231115, connV2, d, projectID, clusterName, true); err != nil {
+	if err := cloudBackupScheduleCreateOrUpdate(ctx, connV220240530, connV2, d, projectID, clusterName, true); err != nil {
 		diags = append(diags, diag.Errorf(errorSnapshotBackupScheduleCreate, err)...)
 		return diags
 	}
@@ -353,14 +353,14 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
-	var backupSchedule *admin.DiskBackupSnapshotSchedule20250101
-	var backupScheduleOldSDK *admin20231115.DiskBackupSnapshotSchedule
+	var backupSchedule *admin.DiskBackupSnapshotSchedule20240805
+	var backupScheduleOldSDK *admin20240530.DiskBackupSnapshotSchedule
 	var copySettings []map[string]any
 	var resp *http.Response
 	var err error
@@ -371,8 +371,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	if useOldAPI {
-		backupScheduleOldSDK, resp, err = connV220231115.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
-		if apiError, ok := admin20231115.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
+		backupScheduleOldSDK, resp, err = connV220240530.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+		if apiError, ok := admin20240530.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
 			return diag.Errorf("%s : %s : %s", errorSnapshotBackupScheduleRead, ErrorOperationNotPermitted, AsymmetricShardsUnsupportedAction)
 		}
 		if err != nil {
@@ -409,7 +409,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	return nil
 }
 
-func setSchemaFieldsExceptCopySettings(d *schema.ResourceData, backupPolicy *admin.DiskBackupSnapshotSchedule20250101) diag.Diagnostics {
+func setSchemaFieldsExceptCopySettings(d *schema.ResourceData, backupPolicy *admin.DiskBackupSnapshotSchedule20240805) diag.Diagnostics {
 	clusterName := backupPolicy.GetClusterName()
 	if err := d.Set("cluster_id", backupPolicy.GetClusterId()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "cluster_id", clusterName, err)
@@ -470,7 +470,7 @@ func setSchemaFieldsExceptCopySettings(d *schema.ResourceData, backupPolicy *adm
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -483,7 +483,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	err := cloudBackupScheduleCreateOrUpdate(ctx, connV220231115, connV2, d, projectID, clusterName, false)
+	err := cloudBackupScheduleCreateOrUpdate(ctx, connV220240530, connV2, d, projectID, clusterName, false)
 	if err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleUpdate, err)
 	}
@@ -539,7 +539,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string, isCreate bool) error {
+func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220240530 *admin20240530.APIClient, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string, isCreate bool) error {
 	var err error
 	copySettings := d.Get("copy_settings")
 
@@ -548,7 +548,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 		return err
 	}
 
-	req := &admin.DiskBackupSnapshotSchedule20250101{}
+	req := &admin.DiskBackupSnapshotSchedule20240805{}
 
 	var policiesItem []admin.DiskBackupApiPolicyItem
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
@@ -595,14 +595,14 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 	}
 
 	if useOldAPI {
-		resp, _, err := connV220231115.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+		resp, _, err := connV220240530.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 		if err != nil {
-			if apiError, ok := admin20231115.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
+			if apiError, ok := admin20240530.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
 				return fmt.Errorf("%s : %s", ErrorOperationNotPermitted, AsymmetricShardsUnsupportedAction)
 			}
 			return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 		}
-		var copySettingsOldSDK *[]admin20231115.DiskBackupCopySetting
+		var copySettingsOldSDK *[]admin20240530.DiskBackupCopySetting
 		if isCopySettingsNonEmptyOrChanged(d) {
 			copySettingsOldSDK = expandCopySettingsOldSDK(copySettings.([]any))
 		}
@@ -610,9 +610,9 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 		policiesOldSDK := getRequestPoliciesOldSDK(convertPolicyItemsToOldSDK(&policiesItem), resp.GetPolicies())
 
 		reqOld := convertBackupScheduleReqToOldSDK(req, copySettingsOldSDK, policiesOldSDK)
-		_, _, err = connV220231115.CloudBackupsApi.UpdateBackupSchedule(context.Background(), projectID, clusterName, reqOld).Execute()
+		_, _, err = connV220240530.CloudBackupsApi.UpdateBackupSchedule(context.Background(), projectID, clusterName, reqOld).Execute()
 		if err != nil {
-			if apiError, ok := admin20231115.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
+			if apiError, ok := admin20240530.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
 				return fmt.Errorf("%s : %s", ErrorOperationNotPermitted, AsymmetricShardsUnsupportedAction)
 			}
 			return err
@@ -639,13 +639,13 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220231115 *admi
 	return nil
 }
 
-func ExpandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting20250101 {
+func ExpandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting20240805 {
 	if tfMap == nil {
 		return nil
 	}
 
 	frequencies := conversion.ExpandStringList(tfMap["frequencies"].(*schema.Set).List())
-	copySetting := &admin.DiskBackupCopySetting20250101{
+	copySetting := &admin.DiskBackupCopySetting20240805{
 		CloudProvider:    conversion.Pointer(tfMap["cloud_provider"].(string)),
 		Frequencies:      &frequencies,
 		RegionName:       conversion.Pointer(tfMap["region_name"].(string)),
@@ -655,8 +655,8 @@ func ExpandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting2025010
 	return copySetting
 }
 
-func ExpandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting20250101 {
-	copySettings := make([]admin.DiskBackupCopySetting20250101, 0)
+func ExpandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting20240805 {
+	copySettings := make([]admin.DiskBackupCopySetting20240805, 0)
 
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
@@ -669,8 +669,8 @@ func ExpandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting20250101 {
 	return &copySettings
 }
 
-func expandCopySettingsOldSDK(tfList []any) *[]admin20231115.DiskBackupCopySetting {
-	copySettings := make([]admin20231115.DiskBackupCopySetting, 0)
+func expandCopySettingsOldSDK(tfList []any) *[]admin20240530.DiskBackupCopySetting {
+	copySettings := make([]admin20240530.DiskBackupCopySetting, 0)
 
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
@@ -683,13 +683,13 @@ func expandCopySettingsOldSDK(tfList []any) *[]admin20231115.DiskBackupCopySetti
 	return &copySettings
 }
 
-func expandCopySettingOldSDK(tfMap map[string]any) *admin20231115.DiskBackupCopySetting {
+func expandCopySettingOldSDK(tfMap map[string]any) *admin20240530.DiskBackupCopySetting {
 	if tfMap == nil {
 		return nil
 	}
 
 	frequencies := conversion.ExpandStringList(tfMap["frequencies"].(*schema.Set).List())
-	copySetting := &admin20231115.DiskBackupCopySetting{
+	copySetting := &admin20240530.DiskBackupCopySetting{
 		CloudProvider:     conversion.Pointer(tfMap["cloud_provider"].(string)),
 		Frequencies:       &frequencies,
 		RegionName:        conversion.Pointer(tfMap["region_name"].(string)),
@@ -791,15 +791,15 @@ func CheckCopySettingsToUseOldAPI(tfList []any, isCreate bool) (bool, error) {
 	return false, nil
 }
 
-func getRequestPoliciesOldSDK(policiesItem []admin20231115.DiskBackupApiPolicyItem, respPolicies []admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy) *[]admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy {
+func getRequestPoliciesOldSDK(policiesItem []admin20240530.DiskBackupApiPolicyItem, respPolicies []admin20240530.AdvancedDiskBackupSnapshotSchedulePolicy) *[]admin20240530.AdvancedDiskBackupSnapshotSchedulePolicy {
 	if len(policiesItem) > 0 {
-		policy := admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy{
+		policy := admin20240530.AdvancedDiskBackupSnapshotSchedulePolicy{
 			PolicyItems: &policiesItem,
 		}
 		if len(respPolicies) == 1 {
 			policy.Id = respPolicies[0].Id
 		}
-		return &[]admin20231115.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
+		return &[]admin20240530.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
 	}
 	return nil
 }

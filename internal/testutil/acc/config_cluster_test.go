@@ -61,7 +61,6 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
         disk_gb_enabled = false
       }
       electable_specs {
-        disk_size_gb    = 16
         ebs_volume_type = "STANDARD"
         instance_size   = "M30"
         node_count      = 30
@@ -315,15 +314,7 @@ func Test_ClusterResourceHcl(t *testing.T) {
 					MongoDBMajorVersion:  "6.0",
 					RetainBackupsEnabled: true,
 					ReplicationSpecs: []acc.ReplicationSpecRequest{
-						{
-							Region:        "MY_REGION_1",
-							ZoneName:      "Zone X",
-							InstanceSize:  "M30",
-							NodeCount:     30,
-							ProviderName:  constant.AZURE,
-							EbsVolumeType: "STANDARD",
-							DiskSizeGb:    16,
-						},
+						{Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: constant.AZURE, EbsVolumeType: "STANDARD"},
 					},
 					PitEnabled: true,
 					AdvancedConfiguration: map[string]any{

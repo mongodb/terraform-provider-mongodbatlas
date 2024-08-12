@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/andygrunwald/go-jira/v2 v2.0.0-20240116150243-50d59fe116d6
-	github.com/aws/aws-sdk-go v1.54.19
+	github.com/aws/aws-sdk-go v1.55.5
 	github.com/hashicorp/go-changelog v0.0.0-20240318095659-4d68c58a6e7f
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-version v1.7.0
@@ -23,8 +23,8 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/zclconf/go-cty v1.15.0
 	go.mongodb.org/atlas v0.36.0
-	go.mongodb.org/atlas-sdk/v20231115014 v20231115014.0.0
-	go.mongodb.org/atlas-sdk/v20240530002 v20240530002.0.1-0.20240710142852-8a1b5dd5d8f3
+	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
+	go.mongodb.org/atlas-sdk/v20240805001 v20240805001.0.0
 	go.mongodb.org/realm v0.1.0
 )
 

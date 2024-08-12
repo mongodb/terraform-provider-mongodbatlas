@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	admin20231115 "go.mongodb.org/atlas-sdk/v20231115014/admin"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -267,7 +267,7 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220231115 := meta.(*config.MongoDBClient).AtlasV220231115
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	useReplicationSpecPerShard := false
@@ -279,14 +279,14 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	if !useReplicationSpecPerShard {
-		list, resp, err := connV220231115.ClustersApi.ListClusters(ctx, projectID).Execute()
+		list, resp, err := connV220240530.ClustersApi.ListClusters(ctx, projectID).Execute()
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return nil
 			}
 			return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))
 		}
-		results, diags := flattenAdvancedClustersOldSDK(ctx, connV220231115, connV2, list.GetResults(), d)
+		results, diags := flattenAdvancedClustersOldSDK(ctx, connV220240530, connV2, list.GetResults(), d)
 		if len(diags) > 0 {
 			return diags
 		}
@@ -301,7 +301,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 			}
 			return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))
 		}
-		results, diags := flattenAdvancedClusters(ctx, connV220231115, connV2, list.GetResults(), d)
+		results, diags := flattenAdvancedClusters(ctx, connV220240530, connV2, list.GetResults(), d)
 		if len(diags) > 0 {
 			return diags
 		}
@@ -312,16 +312,16 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func flattenAdvancedClusters(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, clusters []admin.ClusterDescription20250101, d *schema.ResourceData) ([]map[string]any, diag.Diagnostics) {
+func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.APIClient, connV2 *admin.APIClient, clusters []admin.ClusterDescription20240805, d *schema.ResourceData) ([]map[string]any, diag.Diagnostics) {
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
-		processArgs, _, err := connV220231115.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		processArgs, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
 
-		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, cluster.GetGroupId(), cluster.GetName(), connV220231115)
+		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, cluster.GetGroupId(), cluster.GetName(), connV220240530)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
@@ -359,16 +359,16 @@ func flattenAdvancedClusters(ctx context.Context, connV220231115 *admin20231115.
 	return results, nil
 }
 
-func flattenAdvancedClustersOldSDK(ctx context.Context, connV220231115 *admin20231115.APIClient, connV2 *admin.APIClient, clusters []admin20231115.AdvancedClusterDescription, d *schema.ResourceData) ([]map[string]any, diag.Diagnostics) {
+func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin20240530.APIClient, connV2 *admin.APIClient, clusters []admin20240530.AdvancedClusterDescription, d *schema.ResourceData) ([]map[string]any, diag.Diagnostics) {
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
-		processArgs, _, err := connV220231115.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		processArgs, _, err := connV20240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
 
-		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, cluster.GetGroupId(), cluster.GetName(), connV220231115)
+		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, cluster.GetGroupId(), cluster.GetName(), connV20240530)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}

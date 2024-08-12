@@ -40,6 +40,18 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"role_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"service_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"tenant_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -69,6 +81,18 @@ func datasourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err = d.Set("iam_role_id", bucket.GetIamRoleId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `iam_role_id` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
+	}
+
+	if err = d.Set("role_id", bucket.GetRoleId()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `role_id` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
+	}
+
+	if err = d.Set("service_url", bucket.GetServiceUrl()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `service_url` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
+	}
+
+	if err = d.Set("tenant_id", bucket.GetTenantId()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `tenant_id` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(bucket.GetId())
