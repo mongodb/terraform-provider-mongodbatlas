@@ -37,7 +37,7 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 			expectedTFModel: &encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
 				CloudProvider:                 types.StringValue(testCloudProvider),
 				ErrorMessage:                  types.StringNull(),
-				Id:                            types.StringValue(testID),
+				ID:                            types.StringValue(testID),
 				RegionName:                    types.StringValue(testRegionName),
 				Status:                        types.StringValue(testStatus),
 				PrivateEndpointConnectionName: types.StringValue(testPEConnectionName),
@@ -55,7 +55,7 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 			expectedTFModel: &encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
 				CloudProvider:                 types.StringValue(testCloudProvider),
 				ErrorMessage:                  types.StringValue(testErrMsg),
-				Id:                            types.StringValue(testID),
+				ID:                            types.StringValue(testID),
 				RegionName:                    types.StringValue(testRegionName),
 				Status:                        types.StringValue(testStatus),
 				PrivateEndpointConnectionName: types.StringValue(testPEConnectionName),
@@ -82,7 +82,7 @@ func TestEncryptionAtRestPrivateEndpointTFModelToSDK(t *testing.T) {
 			tfModel: &encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
 				CloudProvider:                 types.StringValue(testCloudProvider),
 				ErrorMessage:                  types.StringNull(),
-				Id:                            types.StringValue(testID),
+				ID:                            types.StringValue(testID),
 				RegionName:                    types.StringValue(testRegionName),
 				Status:                        types.StringValue(testStatus),
 				PrivateEndpointConnectionName: types.StringValue(testPEConnectionName)},
@@ -98,7 +98,7 @@ func TestEncryptionAtRestPrivateEndpointTFModelToSDK(t *testing.T) {
 			tfModel: &encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
 				CloudProvider:                 types.StringValue(testCloudProvider),
 				ErrorMessage:                  types.StringValue(testErrMsg),
-				Id:                            types.StringValue(testID),
+				ID:                            types.StringValue(testID),
 				RegionName:                    types.StringValue(testRegionName),
 				Status:                        types.StringValue(testStatus),
 				PrivateEndpointConnectionName: types.StringValue(testPEConnectionName)},

@@ -80,10 +80,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFEarPrivateEndpointModel struct {
 	CloudProvider                 types.String `tfsdk:"cloud_provider"`
-	EndpointId                    types.String `tfsdk:"endpoint_id"`
+	EndpointID                    types.String `tfsdk:"endpoint_id"`
 	ErrorMessage                  types.String `tfsdk:"error_message"`
-	ProjectId                     types.String `tfsdk:"project_id"`
-	Id                            types.String `tfsdk:"id"`
+	ProjectID                     types.String `tfsdk:"project_id"`
+	ID                            types.String `tfsdk:"id"`
 	PrivateEndpointConnectionName types.String `tfsdk:"private_endpoint_connection_name"`
 	RegionName                    types.String `tfsdk:"region_name"`
 	Status                        types.String `tfsdk:"status"`

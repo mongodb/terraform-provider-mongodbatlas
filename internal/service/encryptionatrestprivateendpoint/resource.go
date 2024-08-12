@@ -42,7 +42,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 
 	// TODO: make POST request to Atlas API and handle error in response
 	// connV2 := r.Client.AtlasV2
-	//if err != nil {
+	// if err != nil {
 	//	resp.Diagnostics.AddError("error creating resource", err.Error())
 	//	return
 	//}
@@ -61,7 +61,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 
 	// TODO: make get request to resource
 	// connV2 := r.Client.AtlasV2
-	//if err != nil {
+	// if err != nil {
 	//	if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
 	//		resp.State.RemoveResource(ctx)
 	//		return
@@ -76,8 +76,6 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 
 func (r *encryptionAtRestPrivateEndpointRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	resp.Diagnostics.AddWarning(warnUnsupportedOperation, "Updating the private endpoint for encryption at rest is not supported. To modify your infrastructure, please delete the existing mongodbatlas_encryption_at_rest_private_endpoint resource and create a new one with the necessary updates")
-	return
-
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

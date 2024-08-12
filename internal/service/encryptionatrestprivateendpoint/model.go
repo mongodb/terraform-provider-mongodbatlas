@@ -12,7 +12,7 @@ func NewTFEarPrivateEndpoint(apiResp *admin.EARPrivateEndpoint) *TFEarPrivateEnd
 	return &TFEarPrivateEndpointModel{
 		CloudProvider:                 conversion.StringNullIfEmpty(apiResp.GetCloudProvider()),
 		ErrorMessage:                  conversion.StringNullIfEmpty(apiResp.GetErrorMessage()),
-		Id:                            conversion.StringNullIfEmpty(apiResp.GetId()),
+		ID:                            conversion.StringNullIfEmpty(apiResp.GetId()),
 		RegionName:                    conversion.StringNullIfEmpty(apiResp.GetRegionName()),
 		Status:                        conversion.StringNullIfEmpty(apiResp.GetStatus()),
 		PrivateEndpointConnectionName: conversion.StringNullIfEmpty(apiResp.GetPrivateEndpointConnectionName()),
@@ -26,7 +26,7 @@ func NewEarPrivateEndpointReq(tfPlan *TFEarPrivateEndpointModel) *admin.EARPriva
 	return &admin.EARPrivateEndpoint{
 		CloudProvider:                 tfPlan.CloudProvider.ValueStringPointer(),
 		ErrorMessage:                  tfPlan.ErrorMessage.ValueStringPointer(),
-		Id:                            tfPlan.Id.ValueStringPointer(),
+		Id:                            tfPlan.ID.ValueStringPointer(),
 		RegionName:                    tfPlan.RegionName.ValueStringPointer(),
 		Status:                        tfPlan.Status.ValueStringPointer(),
 		PrivateEndpointConnectionName: tfPlan.PrivateEndpointConnectionName.ValueStringPointer(),
