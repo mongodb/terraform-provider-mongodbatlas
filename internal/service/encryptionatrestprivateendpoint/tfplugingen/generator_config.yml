@@ -1,0 +1,24 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  encryptionatrestprivateendpoint:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
+      method: DELETE
+
+# data_sources:
+#   encryptionatrestprivateendpoint:
+#     read:
+#       path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
+#       method: GET
+#   encryptionatrestprivateendpoints:
+#     read:
+#       path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints
+#       method: GET

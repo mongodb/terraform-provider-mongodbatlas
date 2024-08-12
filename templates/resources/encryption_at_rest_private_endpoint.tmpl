@@ -1,0 +1,19 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a resource to manage the private endpoints of the specified cloud provider for encryption at rest using customer key management
+
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+# Import 
+private endpoints of a cloud provider for encryption at rest can be imported using the project ID, cloud provider & the private endpointID, e.g.
+
+```
+$ terraform import mongodbatlas_encryption_at_rest_private_endpoint.test 6697e11ce89c955b64899b6d-AZURE-66b499c4489e3b65044c0a83
+```
+
+For more information see: [MongoDB Atlas API Reference for Encryption at Rest using Customer Key Management.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Encryption-at-Rest-using-Customer-Key-Management) Documentation.

@@ -31,6 +31,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
@@ -453,7 +454,9 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		streaminstance.Resource,
 		streamconnection.Resource,
 	}
-	previewResources := []func() resource.Resource{} // Resources not yet in GA
+	previewResources := []func() resource.Resource{ // Resources not yet in GA
+		encryptionatrestprivateendpoint.Resource,
+	}
 	if providerEnablePreview {
 		resources = append(resources, previewResources...)
 	}
