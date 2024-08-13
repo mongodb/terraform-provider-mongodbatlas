@@ -4,7 +4,7 @@ page_title: "Migration Guide: Advanced Cluster New Sharding Schema"
 
 # Migration Guide: Advanced Cluster New Sharding Schema
 
-**Objective**: Use this guide to migrate your existing `advanced_cluster` configurations to the new sharding schema introduced in version 1.18.0. The new sharding schema allows you to scale shards independently. Exiting sharding configurations continue to work, although the software issues deprecation messages if you use the legacy schema.
+**Objective**: Use this guide to migrate your existing `advanced_cluster` configurations to the new sharding schema introduced in version 1.18.0. The new sharding schema allows you to scale shards independently. Existing sharding configurations continue to work, although the software issues deprecation messages if you use the legacy schema.
 
 - [Migration Guide: Advanced Cluster New Sharding Schema](#migration-guide-advanced-cluster-new-sharding-schema)
   - [Overview of schema changes](#overview-of-schema-changes)
