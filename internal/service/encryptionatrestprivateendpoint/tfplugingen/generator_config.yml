@@ -2,7 +2,7 @@ provider:
   name: mongodbatlas
 
 resources:
-  encryptionatrestprivateendpoint:
+  encryption_at_rest_private_endpoint:
     read:
       path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
       method: GET
@@ -13,3 +13,12 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
       method: DELETE
 
+data_sources:
+  encryption_at_rest_private_endpoint:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
+      method: GET
+  # encryption_at_rest_private_endpoints:
+  #   read:
+  #     path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints
+  #     method: GET
