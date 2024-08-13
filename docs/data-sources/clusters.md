@@ -1,9 +1,3 @@
----
-subcategory: "Deprecated"    
----
-
-**WARNING:** This data source is deprecated, use `mongodbatlas_advanced_clusters`. To learn more, see the [Migration Guide](../guides/cluster-to-advanced-cluster-migration-guide).
-
 # Data Source: mongodbatlas_clusters
 
 `mongodbatlas_cluster` describes all Clusters by the provided project_id. The data source requires your Project ID.

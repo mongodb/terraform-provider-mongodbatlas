@@ -4,11 +4,8 @@ NOTES:
 
 * data-source/mongodbatlas_advanced_cluster: Deprecates `replication_specs.#.id`, `replication_specs.#.num_shards`, `disk_size_gb`, `advanced_configuration.0.default_read_concern`, and  `advanced_configuration.0.fail_index_key_too_long`. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide). ([#2420](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2420))
 * data-source/mongodbatlas_advanced_clusters: Deprecates `replication_specs.#.id`, `replication_specs.#.num_shards`, `disk_size_gb`, `advanced_configuration.0.default_read_concern`, and  `advanced_configuration.0.fail_index_key_too_long`. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide). ([#2420](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2420))
-* data-source/mongodbatlas_cluster: Deprecates data source in favour of `mongodbatlas_advanced_cluster` ([#2450](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2450))
-* data-source/mongodbatlas_clusters: Deprecates data source in favour of `mongodbatlas_advanced_clusters` ([#2450](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2450))
 * resource/mongodbatlas_advanced_cluster: Deprecates `replication_specs.#.id`, `replication_specs.#.num_shards`, `disk_size_gb`, `advanced_configuration.0.default_read_concern`, and  `advanced_configuration.0.fail_index_key_too_long`. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide). ([#2420](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2420))
 * resource/mongodbatlas_advanced_cluster: Using this new version impacts the possibility of editing the definition of multi shard clusters in the Atlas UI. This impact is limited to the first weeks of August. ([#2478](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2478))
-* resource/mongodbatlas_cluster: Deprecates resource in favour of `mongodbatlas_advanced_cluster` ([#2450](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2450))
 
 ENHANCEMENTS:
 

@@ -1,9 +1,3 @@
----
-subcategory: "Deprecated"    
----
-
-**WARNING:** This resource is deprecated, use `mongodbatlas_advanced_cluster`. To learn more, see the [Migration Guide](../guides/cluster-to-advanced-cluster-migration-guide).
-
 # Resource: mongodbatlas_cluster
 
 `mongodbatlas_cluster` provides a Cluster resource. The resource lets you create, edit and delete clusters. The resource requires your Project ID.
