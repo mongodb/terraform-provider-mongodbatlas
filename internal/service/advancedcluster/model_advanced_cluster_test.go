@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240805001/admin"
+	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240805001/mockadmin"
 )
 
 var (
