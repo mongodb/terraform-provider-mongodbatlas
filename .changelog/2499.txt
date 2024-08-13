@@ -37,3 +37,11 @@ data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Removes `created_at
 ```release-note:breaking-change
 data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Removes `job_id` attribute and defines `snapshot_restore_job_id` attribute as required
 ```
+
+```release-note:breaking-change
+data-source/mongodbatlas_privatelink_endpoint_service: Removes `endpoints.*.service_attachment_name` attribute
+```
+
+```release-note:breaking-change
+resource/mongodbatlas_privatelink_endpoint_service: Removes `endpoints.*.service_attachment_name` attribute
+```
