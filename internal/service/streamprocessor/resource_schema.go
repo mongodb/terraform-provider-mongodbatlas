@@ -96,6 +96,7 @@ type TFStreamProcessorRSModel struct {
 	ProcessorName types.String `tfsdk:"processor_name"`
 	ProjectID     types.String `tfsdk:"project_id"`
 	State         types.String `tfsdk:"state"`
+	//TODO: add changeStreamToken
 }
 
 type TFOptionsModel struct {

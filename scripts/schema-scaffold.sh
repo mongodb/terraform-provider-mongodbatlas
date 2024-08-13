@@ -50,5 +50,5 @@ rename_file() {
 }
 
 rename_file "${resource_name_snake_case}_data_source_gen.go" "data_source_schema.go"
-rename_file "${resource_name_snake_case}s_data_source_gen.go" "pural_data_source_schema.go"
+rename_file "${resource_name_snake_case}s_data_source_gen.go" "plural_data_source_schema.go"
 rename_file "${resource_name_snake_case}_resource_gen.go" "resource_schema.go"
