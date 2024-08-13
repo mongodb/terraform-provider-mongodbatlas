@@ -50,7 +50,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
-type TFStreamprocessorDSModel struct {
+type TFStreamProcessorDSModel struct {
 	ID            types.String `tfsdk:"id"`
 	InstanceName  types.String `tfsdk:"instance_name"`
 	Pipeline      types.String `tfsdk:"pipeline"`

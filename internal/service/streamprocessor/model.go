@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
-func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats) (*TFStreamprocessorDSModel, diag.Diagnostics) {
+func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats) (*TFStreamProcessorDSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
 	}
@@ -21,7 +21,7 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName st
 	if diags.HasError() {
 		return nil, diags
 	}
-	tfModel := &TFStreamprocessorDSModel{
+	tfModel := &TFStreamProcessorDSModel{
 		ID:            types.StringPointerValue(&apiResp.Id),
 		InstanceName:  types.StringPointerValue(&instanceName),
 		Pipeline:      pipelineTF,

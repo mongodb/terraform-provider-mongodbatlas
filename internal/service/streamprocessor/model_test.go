@@ -91,7 +91,7 @@ func streamProcessorWithStats(t *testing.T) *admin.StreamsProcessorWithStats {
 func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 	testCases := []struct {
 		sdkModel        *admin.StreamsProcessorWithStats
-		expectedTFModel *streamprocessor.TFStreamprocessorDSModel
+		expectedTFModel *streamprocessor.TFStreamProcessorDSModel
 		name            string
 	}{
 		{
@@ -99,7 +99,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 			sdkModel: admin.NewStreamsProcessorWithStats(
 				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED",
 			),
-			expectedTFModel: &streamprocessor.TFStreamprocessorDSModel{
+			expectedTFModel: &streamprocessor.TFStreamProcessorDSModel{
 				ID:            types.StringValue(processorID),
 				InstanceName:  types.StringValue(instanceName),
 				Pipeline:      types.StringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
@@ -112,7 +112,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 		{
 			name:     "afterStarted",
 			sdkModel: streamProcessorWithStats(t),
-			expectedTFModel: &streamprocessor.TFStreamprocessorDSModel{
+			expectedTFModel: &streamprocessor.TFStreamProcessorDSModel{
 				ID:            types.StringValue(processorID),
 				InstanceName:  types.StringValue(instanceName),
 				Pipeline:      types.StringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
