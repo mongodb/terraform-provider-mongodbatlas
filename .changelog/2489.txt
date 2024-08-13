@@ -15,5 +15,9 @@ data-source/mongodbatlas_federated_settings_identity_providers: Removes `page_nu
 ```
 
 ```release-note:breaking-change
-data-source/mongodbatlas_cloud_backupsnapshot_export_bucket: Changes `id` attribute from optional to computed only
+data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Changes `id` attribute from optional to computed only
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_cloud_backup_snapshot_export_job: Changes `id` attribute from optional to computed only
 ```
