@@ -16,7 +16,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that identifies the cloud provider for the Encryption At Rest private endpoint.",
 			},
 			"endpoint_id": schema.StringAttribute{
-				Optional:            true,
 				Computed:            true,
 				Description:         "Unique 24-hexadecimal digit string that identifies the private endpoint.",
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the private endpoint.",
