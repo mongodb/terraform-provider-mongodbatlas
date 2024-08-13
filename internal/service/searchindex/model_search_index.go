@@ -114,7 +114,7 @@ func UnmarshalStoredSource(str string) (any, diag.Diagnostics) {
 }
 
 func diffSuppressJSON(k, old, newStr string, d *schema.ResourceData) bool {
-	return !schemafunc.EqualJSON(old, newStr, "vector search index")
+	return schemafunc.EqualJSON(old, newStr, "vector search index")
 }
 
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
