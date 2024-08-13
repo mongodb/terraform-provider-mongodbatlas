@@ -6,8 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -17,7 +15,7 @@ func DataSource() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"snapshot_restore_job_id": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 			"project_id": {
 				Type:     schema.TypeString,
@@ -28,13 +26,6 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-			},
-			"job_id": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Optional: true,
-				// When deprecating, change snapshot_restore_job_id to Required: true and implementation below
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0") + " Use snapshot_restore_job_id instead.",
 			},
 			"cancelled": {
 				Type:     schema.TypeBool,
@@ -98,17 +89,7 @@ func DataSource() *schema.Resource {
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	var restoreID string
-	restoreIDRaw, restoreIDInField := d.GetOk("snapshot_restore_job_id")
-	if restoreIDInField {
-		restoreID = restoreIDRaw.(string)
-	} else {
-		idEncoded, restoreIDInField := d.GetOk("job_id")
-		if !restoreIDInField {
-			return diag.Errorf("either snapshot_restore_job_id or job_id must be set")
-		}
-		restoreID = conversion.GetEncodedID(idEncoded.(string), "snapshot_restore_job_id")
-	}
+	restoreID := d.Get("snapshot_restore_job_id").(string)
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
