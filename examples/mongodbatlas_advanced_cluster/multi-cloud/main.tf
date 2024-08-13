@@ -9,10 +9,8 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type   = "SHARDED"
   backup_enabled = true
 
-  replication_specs {
-    num_shards = 3 # 3-shard Multi-Cloud Cluster
-
-    region_configs { # shard n1 
+  replication_specs { # shard 1
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 3
@@ -26,7 +24,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_name   = "US_EAST_1"
     }
 
-    region_configs { # shard n2
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
@@ -39,8 +37,24 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       priority      = 6
       region_name   = "US_EAST_2"
     }
+  }
 
-    region_configs { # shard n3
+  replication_specs { # shard 2
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
@@ -49,9 +63,9 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         instance_size = "M10"
         node_count    = 1
       }
-      provider_name = "GCP"
-      priority      = 5
-      region_name   = "US_EAST_4"
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "US_EAST_2"
     }
   }
 

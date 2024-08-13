@@ -13,79 +13,95 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
   backup_enabled = true
 
-  replication_specs { # zone n1
-    zone_name  = "zone n1"
-    num_shards = 3 # 3-shard Multi-Cloud Cluster
+  replication_specs { # shard 1 - zone n1
+    zone_name = "zone n1"
 
-    region_configs { # shard n1 
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
     }
 
-    region_configs { # shard n2
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
       }
       provider_name = "AZURE"
       priority      = 6
       region_name   = "US_EAST_2"
     }
-
-    region_configs { # shard n3
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 2
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "GCP"
-      priority      = 0
-      region_name   = "US_EAST_4"
-    }
   }
 
-  replication_specs { # zone n2
-    zone_name  = "zone n2"
-    num_shards = 2 # 2-shard Multi-Cloud Cluster
+  replication_specs { # shard 2 - zone n1
+    zone_name = "zone n1"
 
-    region_configs { # shard n1 
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+
+    region_configs {
+      electable_specs {
         instance_size = "M10"
-        node_count    = 1
+        node_count    = 2
+      }
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "US_EAST_2"
+    }
+  }
+
+  replication_specs { # shard 1 - zone n2
+    zone_name = "zone n2"
+
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
     }
 
-    region_configs { # shard n2
+    region_configs {
       electable_specs {
         instance_size = "M10"
         node_count    = 2
       }
-      analytics_specs {
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "EUROPE_NORTH"
+    }
+  }
+
+  replication_specs { # shard 2 - zone n2
+    zone_name = "zone n2"
+
+    region_configs {
+      electable_specs {
         instance_size = "M10"
-        node_count    = 1
+        node_count    = 3
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "EU_WEST_1"
+    }
+
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
       }
       provider_name = "AZURE"
       priority      = 6

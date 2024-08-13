@@ -1,13 +1,19 @@
+---
+subcategory: "Deprecated"    
+---
+
+**WARNING:** This data source is deprecated, use `mongodbatlas_advanced_cluster`. To learn more, see the [Migration Guide](../guides/cluster-to-advanced-cluster-migration-guide).
+
 # Data Source: mongodbatlas_cluster
 
 `mongodbatlas_cluster` describes a Cluster. The data source requires your Project ID.
-
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ~> **IMPORTANT:**
 <br> &#8226; Multi Region Cluster: The `mongodbatlas_cluster` data source doesn't return the `container_id` for each region utilized by the cluster. For retrieving the `container_id`, we recommend the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/advanced_cluster) data source instead.
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
+
+-> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ## Example Usage
 
@@ -123,8 +129,6 @@ In addition to all arguments above, the following attributes are exported:
 * `replication_specs` - Configuration for cluster regions.  See [Replication Spec](#replication-spec) below for more details.
 
 * `container_id` - The Network Peering Container ID.
-
--> **NOTE:** If you need to get an existing container ID see the [How-To Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/howto-guide.html).
 
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
 

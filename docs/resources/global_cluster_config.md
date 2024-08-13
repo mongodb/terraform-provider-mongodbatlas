@@ -13,56 +13,58 @@
 ### Example Global cluster
 
 ```terraform
-	resource "mongodbatlas_cluster" "test" {
-		project_id              = "<YOUR-PROJECT-ID>"
-		name                    = "<CLUSTER-NAME>"
-		cloud_backup            = true
-		cluster_type            = "GEOSHARDED"
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id     = "<YOUR-PROJECT-ID>"
+  name           = "<CLUSTER-NAME>"
+  cluster_type   = "GEOSHARDED"
+  backup_enabled = true
 
-		//Provider Settings "block"
-		provider_name               = "AWS"
-		provider_instance_size_name = "M30"
+  replication_specs {
+    zone_name = "Zone 1"
 
-		replication_specs {
-			zone_name  = "Zone 1"
-			num_shards = 1
-			regions_config {
-			region_name     = "EU_CENTRAL_1"
-			electable_nodes = 3
-			priority        = 7
-			read_only_nodes = 0
-			}
-		}
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 3
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "EU_CENTRAL_1"
+    }
+  }
 
-		replication_specs {
-			zone_name  = "Zone 2"
-			num_shards = 1
-			regions_config {
-			region_name     = "US_EAST_2"
-			electable_nodes = 3
-			priority        = 7
-			read_only_nodes = 0
-			}
-		}
+  replication_specs {
+    zone_name = "Zone 2"
+
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 3
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_2"
+    }
+  }
+}
+
+resource "mongodbatlas_global_cluster_config" "config" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+	cluster_name = mongodbatlas_advanced_cluster.test.name
+
+	managed_namespaces {
+		db 				 = "mydata"
+		collection 		 = "publishers"
+		custom_shard_key = "city"
+					is_custom_shard_key_hashed = false
+					is_shard_key_unique = false
 	}
 
-	resource "mongodbatlas_global_cluster_config" "config" {
-		project_id = mongodbatlas_cluster.test.project_id
-		cluster_name = mongodbatlas_cluster.test.name
-
-		managed_namespaces {
-			db 				 = "mydata"
-			collection 		 = "publishers"
-			custom_shard_key = "city"
-            is_custom_shard_key_hashed = false
-            is_shard_key_unique = false
-		}
-
-		custom_zone_mappings {
-			location ="CA"
-			zone =  "Zone 1"
-		}
+	custom_zone_mappings {
+		location ="CA"
+		zone =  "Zone 1"
 	}
+}
 ```
 
 ## Argument Reference
