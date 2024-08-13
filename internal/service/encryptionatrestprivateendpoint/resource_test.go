@@ -1,3 +1,4 @@
+// nolint:gocritic
 package encryptionatrestprivateendpoint_test
 
 // TODO: if acceptance test will be run in an existing CI group of resources, the name should include the group in the prefix followed by the name of the resource e.i. TestAccStreamRSStreamInstance_basic
