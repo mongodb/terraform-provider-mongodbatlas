@@ -40,11 +40,6 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"created_at": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
-			},
 			"delivery_type": {
 				Type:     schema.TypeString,
 				Computed: true,

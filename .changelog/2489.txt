@@ -21,3 +21,15 @@ data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Changes `id` attri
 ```release-note:breaking-change
 data-source/mongodbatlas_cloud_backup_snapshot_export_job: Changes `id` attribute from optional to computed only
 ```
+
+```release-note:breaking-change
+resource/mongodbatlas_cloud_backup_snapshot_restore_job: Removes `created_at` attribute
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Removes `created_at` attribute
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Removes `created_at` attribute
+```
