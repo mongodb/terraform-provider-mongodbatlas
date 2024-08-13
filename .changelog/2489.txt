@@ -13,3 +13,7 @@ data-source/mongodbatlas_third_party_integrations: Removes `scheme` attribute
 ```release-note:breaking-change
 data-source/mongodbatlas_federated_settings_identity_providers: Removes `page_num` and `items_per_page` attributes
 ```
+
+```release-note:breaking-change
+data-source/mongodbatlas_cloud_backupsnapshot_export_bucket: Changes `id` attribute from optional to computed only
+```
