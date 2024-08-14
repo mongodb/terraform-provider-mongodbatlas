@@ -1,7 +1,5 @@
 # MongoDB Atlas Provider -- Cluster Tenant Upgrade
 
-**WARNING:** `mongodbatlas_cluster` resource and corresponding data sources have been deprecated in favor of `mongodbatlas_advanced_cluster`. To learn more about how to migrate, please read the [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
-
 This example creates a project and cluster. It is intended to show how to upgrade from shared, aka tenant, to dedicated tier.
 
 Variables Required:
