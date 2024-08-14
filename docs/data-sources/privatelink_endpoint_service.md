@@ -118,6 +118,5 @@ In addition to all arguments above, the following attributes are exported:
   * `endpoint_name` - Forwarding rule that corresponds to the endpoint you created in GCP.
   * `ip_address` - Private IP address of the network endpoint group you created in GCP.
   * `status` - Status of the endpoint. Atlas returns one of the [values shown above](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/#std-label-ref-status-field).
-  * `service_attachment_name` - Unique alphanumeric and special character strings that identify the service attachment associated with the endpoint.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-get-one/) Documentation for more information.

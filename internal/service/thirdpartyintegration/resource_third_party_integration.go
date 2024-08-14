@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -124,12 +123,6 @@ func Resource() *schema.Resource {
 				Optional:  true,
 				Computed:  true,
 				Sensitive: true,
-			},
-			"scheme": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Optional:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 			},
 			"enabled": {
 				Type:     schema.TypeBool,

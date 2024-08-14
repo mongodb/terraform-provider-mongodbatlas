@@ -210,7 +210,6 @@ func prometheusTest(tb testing.TB) *resource.TestCase {
 		updatedUsername  = "otheruser"
 		password         = "somepassword"
 		serviceDiscovery = "http"
-		scheme           = "https"
 		intType          = "PROMETHEUS"
 	)
 	return &resource.TestCase{
@@ -219,21 +218,20 @@ func prometheusTest(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configPrometheus(projectID, username, password, serviceDiscovery, scheme),
+				Config: configPrometheus(projectID, username, password, serviceDiscovery),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "user_name", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "service_discovery", serviceDiscovery),
-					resource.TestCheckResourceAttr(resourceName, "scheme", scheme),
 					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
 					resource.TestCheckResourceAttr(dataSourceName, "user_name", username),
 					resource.TestCheckResourceAttr(dataSourceName, "service_discovery", serviceDiscovery),
 				),
 			},
 			{
-				Config: configPrometheus(projectID, updatedUsername, password, serviceDiscovery, scheme),
+				Config: configPrometheus(projectID, updatedUsername, password, serviceDiscovery),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
@@ -442,7 +440,7 @@ func configDatadog(projectID, apiKey, region string) string {
 	) + singularDataStr
 }
 
-func configPrometheus(projectID, username, password, serviceDiscovery, scheme string) string {
+func configPrometheus(projectID, username, password, serviceDiscovery string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_third_party_integration" "test" {
 		project_id = "%[1]s"
@@ -450,7 +448,6 @@ func configPrometheus(projectID, username, password, serviceDiscovery, scheme st
 		user_name = "%[3]s"	
 		password  = "%[4]s"
 		service_discovery = "%[5]s" 
-		scheme = "%[6]s"
 		enabled = true
 	}
 	`,
@@ -459,7 +456,6 @@ func configPrometheus(projectID, username, password, serviceDiscovery, scheme st
 		username,
 		password,
 		serviceDiscovery,
-		scheme,
 	) + singularDataStr
 }
 
