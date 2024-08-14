@@ -2,7 +2,7 @@
 
 `mongodbatlas_federated_settings_identity_providers` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Identity Providers provides federated settings outputs for the configured Identity Providers.
 
-Note: The implementation is currently limited to returning a maximum of 100 results.
+Note: This implementation returns a maximum of 100 results.
 
 ## Example Usage
 
