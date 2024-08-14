@@ -67,6 +67,27 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		resp.Diagnostics.AddError("Error creating stream processor", err.Error())
 	}
 
+	if !plan.State.IsNull() {
+		if plan.State.ValueString() == StartedState {
+			_, _, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
+				&admin.StartStreamProcessorApiParams{
+					GroupId:       plan.ProjectID.ValueString(),
+					TenantName:    plan.InstanceName.ValueString(),
+					ProcessorName: plan.ProcessorName.ValueString(),
+				},
+			).Execute()
+			if err != nil {
+				resp.Diagnostics.AddError("Error starting stream processor", err.Error())
+			}
+			streamProcessorResp, err = WaitStateTransition(ctx, streamProcessorParams, connV2.StreamsApi, []string{CreatedState}, []string{StartedState})
+			if err != nil {
+				resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
+			}
+		} else {
+			resp.Diagnostics.AddError("When creating a stream processor, the only valid states are CREATED and STARTED", "")
+		}
+	}
+
 	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
@@ -150,7 +171,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 			return
 		}
 	} else {
-		resp.Diagnostics.AddError("updating a Stream Processor is not supported. Please follow this guide to update it", "TODO")
+		resp.Diagnostics.AddError("updating a Stream Processor is not supported", "")
 		return
 	}
 
