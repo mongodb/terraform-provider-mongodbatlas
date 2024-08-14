@@ -6,6 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
@@ -50,4 +52,29 @@ func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
 		return types.StringValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal stats", err.Error())}
 	}
 	return types.StringValue(string(statsJSON)), nil
+}
+
+func NewTFStreamProcessors(ctx context.Context,
+	streamProcessorsConfig *TFStreamProcessorsDSModel,
+	paginatedResult *admin.PaginatedApiStreamsStreamProcessorWithStats) (*TFStreamProcessorsDSModel, diag.Diagnostics) {
+	input := paginatedResult.GetResults()
+	results := make([]TFStreamProcessorDSModel, len(input))
+	projectID := streamProcessorsConfig.ProjectID.ValueString()
+	instanceName := streamProcessorsConfig.InstanceName.ValueString()
+	for i := range input {
+		processorModel, diags := NewTFStreamprocessorDSModel(ctx, projectID, instanceName, &input[i])
+		if diags.HasError() {
+			return nil, diags
+		}
+		results[i] = *processorModel
+	}
+	return &TFStreamProcessorsDSModel{
+		ID:           types.StringValue(id.UniqueId()),
+		ProjectID:    streamProcessorsConfig.ProjectID,
+		InstanceName: streamProcessorsConfig.InstanceName,
+		Results:      results,
+		PageNum:      streamProcessorsConfig.PageNum,
+		ItemsPerPage: streamProcessorsConfig.ItemsPerPage,
+		TotalCount:   types.Int64PointerValue(conversion.IntPtrToInt64Ptr(paginatedResult.TotalCount)),
+	}, nil
 }

@@ -435,6 +435,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		streamconnection.PluralDataSource,
 		controlplaneipaddresses.DataSource,
 		streamprocessor.DataSource,
+		streamprocessor.PluralDataSource,
 	}
 	previewDataSources := []func() datasource.DataSource{} // Data sources not yet in GA
 	if providerEnablePreview {
