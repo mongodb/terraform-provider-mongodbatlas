@@ -14,10 +14,8 @@ func DataSource() *schema.Resource {
 		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0") + " Will not be an input parameter, only computed.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"export_job_id": {
 				Type:     schema.TypeString,

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
@@ -38,10 +37,6 @@ func Conn() *matlas.Client {
 
 func ConnV2() *admin.APIClient {
 	return MongoDBClient.AtlasV2
-}
-
-func ConnV220240530() *admin20240530.APIClient {
-	return MongoDBClient.AtlasV220240530
 }
 
 func ConnV2UsingProxy(proxyPort *int) *admin.APIClient {

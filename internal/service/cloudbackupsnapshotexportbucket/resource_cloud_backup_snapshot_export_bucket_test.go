@@ -253,7 +253,6 @@ func configAWSBasic(projectID, bucketName, policyName, roleName string) string {
         data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
             project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
             export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
-            id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
         }
 
         data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
@@ -298,7 +297,6 @@ func configAzureBasic(projectID, atlasAzureAppID, servicePrincipalID, tenantID, 
         data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
             project_id   =  mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
             export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
-            id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
         }
 
         data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {

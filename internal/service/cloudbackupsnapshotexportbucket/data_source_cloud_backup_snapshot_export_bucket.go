@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -15,10 +14,8 @@ func DataSource() *schema.Resource {
 		ReadContext: datasourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0") + " Will not be an input parameter, only computed.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"export_bucket_id": {
 				Type:     schema.TypeString,

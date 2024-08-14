@@ -1,4 +1,5 @@
 # MongoDB Atlas Provider -- Cluster Tenant Upgrade
+
 This example creates a project and cluster. It is intended to show how to upgrade from shared, aka tenant, to dedicated tier.
 
 Variables Required:

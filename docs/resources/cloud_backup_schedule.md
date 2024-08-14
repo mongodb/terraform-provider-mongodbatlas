@@ -204,7 +204,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
                    "YEARLY",
 		   "ON_DEMAND"]
     region_name = "US_EAST_1"
-    replication_spec_id = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.id[0]
+    zone_id = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.zone_id[0]
     should_copy_oplogs = false
   }
 
@@ -221,41 +221,43 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
   
   **Note** This parameter does not return updates on return from API, this is a feature of the MongoDB Atlas Admin API itself and not Terraform.  For more details about this resource see [Cloud Backup Schedule](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/getBackupSchedule).
 
-* `policy_item_hourly` - (Optional) Hourly policy item
-* `policy_item_daily` - (Optional) Daily policy item
-* `policy_item_weekly` - (Optional) Weekly policy item
-* `policy_item_monthly` - (Optional) Monthly policy item
-* `policy_item_yearly` - (Optional) Yearly policy item
+* `policy_item_hourly` - (Optional) Hourly policy item. See [below](#policy_item_hourly)
+* `policy_item_daily` - (Optional) Daily policy item. See [below](#policy_item_daily)
+* `policy_item_weekly` - (Optional) Weekly policy item. See [below](#policy_item_weekly)
+* `policy_item_monthly` - (Optional) Monthly policy item. See [below](#policy_item_monthly)
+* `policy_item_yearly` - (Optional) Yearly policy item. See [below](#policy_item_yearly)
 * `auto_export_enabled` - Flag that indicates whether automatic export of cloud backup snapshots to the AWS bucket is enabled. Value can be one of the following:
 	* true - enables automatic export of cloud backup snapshots to the AWS bucket
  	* false - disables automatic export of cloud backup snapshots to the AWS bucket (default)
 * `use_org_and_group_names_in_export_prefix` - Specify true to use organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your S3 bucket after it finishes exporting the snapshots. To learn more about the metadata files that Atlas uploads, see [Export Cloud Backup Snapshot](https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/#std-label-cloud-provider-snapshot-export).
-### Export
+* `copy_settings` - List that contains a document for each copy setting item in the desired backup policy. See [below](#copy_settings)
+* `export` - Policy for automatically exporting Cloud Backup Snapshots. See [below](#export)
+### export
 * `export_bucket_id` - Unique identifier of the mongodbatlas_cloud_backup_snapshot_export_bucket export_bucket_id value.
 * `frequency_type` - Frequency associated with the export snapshot item.
 
-### Policy Item Hourly
+### policy_item_hourly
 * `id` - Unique identifier of the backup policy item.
 * `frequency_type` - Frequency associated with the backup policy item. For hourly policies, the frequency type is defined as `hourly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (hourly in this case). The supported values for hourly policies are `1`, `2`, `4`, `6`, `8` or `12` hours. Note that `12` hours is the only accepted value for NVMe clusters.
 * `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
 * `retention_value` - Value to associate with `retention_unit`.
 
-### Policy Item Daily
+### policy_item_daily
 * `id` - Unique identifier of the backup policy item.
 * `frequency_type` - Frequency associated with the backup policy item. For daily policies, the frequency type is defined as `daily`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (daily in this case). The only supported value for daily policies is `1` day.
 * `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
 * `retention_value` - Value to associate with `retention_unit`.  Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the hourly policy item specifies a retention of two days, the daily retention policy must specify two days or greater.
 
-### Policy Item Weekly
+### policy_item_weekly
 * `id` - Unique identifier of the backup policy item.
 * `frequency_type` - Frequency associated with the backup policy item. For weekly policies, the frequency type is defined as `weekly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (weekly in this case). The supported values for weekly policies are `1` through `7`, where `1` represents Monday and `7` represents Sunday.
 * `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
 * `retention_value` - Value to associate with `retention_unit`. Weekly policy must have retention of at least 7 days or 1 week. Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the daily policy item specifies a retention of two weeks, the weekly retention policy must specify two weeks or greater.
 
-### Policy Item Monthly
+### policy_item_monthly
 * `id` - Unique identifier of the backup policy item.
 * `frequency_type` - Frequency associated with the backup policy item. For monthly policies, the frequency type is defined as `monthly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (monthly in this case). The supported values for weekly policies are 
@@ -264,7 +266,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
 * `retention_value` - Value to associate with `retention_unit`. Monthly policy must have retention days of at least 31 days or 5 weeks or 1 month. Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the weekly policy item specifies a retention of two weeks, the montly retention policy must specify two weeks or greater.
 
-### Policy Item Yearly
+### policy_item_yearly
 * `id` - Unique identifier of the backup policy item.
 * `frequency_type` - Frequency associated with the backup policy item. For yearly policies, the frequency type is defined as `yearly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (yearly in this case). The supported values for yearly policies are 
@@ -272,12 +274,12 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
 * `retention_value` - Value to associate with `retention_unit`. Yearly policy must have retention of at least 1 year.
 
-### Snapshot Distribution
-*
+### copy_settings
 * `cloud_provider` - (Required) Human-readable label that identifies the cloud provider that stores the snapshot copy. i.e. "AWS" "AZURE" "GCP"
 * `frequencies` - (Required) List that describes which types of snapshots to copy. i.e. "HOURLY" "DAILY" "WEEKLY" "MONTHLY" "ON_DEMAND"
 * `region_name` - (Required) Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link
-* `replication_spec_id` -(Required) Unique 24-hexadecimal digit string that identifies the replication object for a zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find the Replication Spec Id, consult the replicationSpecs array returned from [Return One Multi-Cloud Cluster in One Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getCluster).
+* `zone_id` - Unique 24-hexadecimal digit string that identifies the zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find appropriate value for `zone_id`, do a GET request to Return One Cluster from One Project and consult the replicationSpecs array [Return One Cluster From One Project](#operation/getCluster). Alternately, use `mongodbatlas_advanced_cluster` data source or resource and reference `replication_specs.#.zone_id`.
+* `replication_spec_id` - Unique 24-hexadecimal digit string that identifies the replication object for a zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find the Replication Spec Id, consult the replicationSpecs array returned from [Return One Multi-Cloud Cluster in One Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getCluster). **(DEPRECATED)** Use `zone_id` instead. To learn more, see the [1.18.0 upgrade guide](../guides/1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
 * `should_copy_oplogs` - (Required) Flag that indicates whether to copy the oplogs to the target region. You can use the oplogs to perform point-in-time restores.
 
 ## Attributes Reference
