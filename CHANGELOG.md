@@ -22,6 +22,11 @@ NOTES:
 * resource/mongodbatlas_advanced_cluster: Deprecates `replication_specs.#.id`, `replication_specs.#.num_shards`, `disk_size_gb`, `advanced_configuration.0.default_read_concern`, and  `advanced_configuration.0.fail_index_key_too_long`. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide). ([#2420](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2420))
 * resource/mongodbatlas_advanced_cluster: Using this new version impacts the possibility of editing the definition of multi shard clusters in the Atlas UI. This impact is limited to the first weeks of August. ([#2478](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2478))
 
+FEATURES:
+
+* **New Guide:** [Migration Guide: Advanced Cluster New Sharding Schema](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema). This enables Independent Shard Scaling. ([#2505](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2505))
+* **New Guide:** [Migration Guide: Cluster to Advanced Cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide) ([#2505](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2505))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: Adds `use_replication_spec_per_shard`, `replication_specs.*.zone_id`, and `replication_specs.*.region_configs.*.(electable_specs|analytics_specs|read_only_specs).disk_size_gb` attributes. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide) and data source documentation. ([#2478](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2478))
