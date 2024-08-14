@@ -194,16 +194,16 @@ func (r *streamProcessorRS) ImportState(ctx context.Context, req resource.Import
 }
 
 func splitStreamProcessorImportID(id string) (projectID, instanceName, processorName *string, err error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-(.*)$`)
+	var re = regexp.MustCompile(`^(.*)-([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 4 {
-		err = errors.New("import format error: to import a stream processor, use the format {project_id}-{instance_name}-{processor_name}")
+		err = errors.New("import format error: to import a stream processor, use the format {instance_name}-{project_id}-(processor_name)")
 		return
 	}
 
-	projectID = &parts[1]
-	instanceName = &parts[2]
+	instanceName = &parts[1]
+	projectID = &parts[2]
 	processorName = &parts[3]
 
 	return

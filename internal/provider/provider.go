@@ -37,6 +37,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -452,6 +453,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		pushbasedlogexport.Resource,
 		streaminstance.Resource,
 		streamconnection.Resource,
+		streamprocessor.Resource,
 	}
 	previewResources := []func() resource.Resource{} // Resources not yet in GA
 	if providerEnablePreview {
