@@ -36,11 +36,11 @@ func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRe
 				Required: true,
 			},
 		},
-		DSAttributes(false))
+		DSAttributes(false),
+		true)
 }
 
 type TFStreamProcessorsDSModel struct {
-	ID           types.String               `tfsdk:"id"`
 	ProjectID    types.String               `tfsdk:"project_id"`
 	InstanceName types.String               `tfsdk:"instance_name"`
 	Results      []TFStreamProcessorDSModel `tfsdk:"results"`

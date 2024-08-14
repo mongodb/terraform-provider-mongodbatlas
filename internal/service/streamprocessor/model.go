@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
@@ -69,7 +68,6 @@ func NewTFStreamProcessors(ctx context.Context,
 		results[i] = *processorModel
 	}
 	return &TFStreamProcessorsDSModel{
-		ID:           types.StringValue(id.UniqueId()),
 		ProjectID:    streamProcessorsConfig.ProjectID,
 		InstanceName: streamProcessorsConfig.InstanceName,
 		Results:      results,

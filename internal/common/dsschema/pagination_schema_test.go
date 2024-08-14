@@ -55,7 +55,7 @@ func TestPaginatedDSSchema(t *testing.T) {
 			"instance_name": schema.StringAttribute{
 				Computed: true,
 			},
-		})
+		}, false)
 
 	if !reflect.DeepEqual(resultSchema, expectedSchema) {
 		t.Errorf("created schema does not matched expected")

@@ -44,7 +44,8 @@ func (d *streamInstancesDS) Schema(ctx context.Context, req datasource.SchemaReq
 				Required: true,
 			},
 		},
-		DSAttributes(false))
+		DSAttributes(false),
+		false)
 }
 
 func (d *streamInstancesDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
