@@ -9,8 +9,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-var dataSourceName = "data.mongodbatlas_streamprocessor.test"
-var pluralDataSourceName = "data.mongodbatlas_streamprocessors.test"
+var dataSourceName = "data.mongodbatlas_stream_processor.test"
+var pluralDataSourceName = "data.mongodbatlas_stream_processors.test"
 
 func TestAccStreamProcessorDS_readManual(t *testing.T) {
 	acc.SkipTestForCI(t) // only for manual testing so far, will be moved to resource acceptance test
@@ -55,7 +55,7 @@ func TestAccStreamProcessorDS_readManual(t *testing.T) {
 
 func streamProcessorsConfigDS(projectID, instanceName string) string {
 	return fmt.Sprintf(`
-	data "mongodbatlas_streamprocessors" "test" {
+	data "mongodbatlas_stream_processors" "test" {
 		project_id = %[1]q
 		instance_name = %[2]q
 	}`, projectID, instanceName)
@@ -63,7 +63,7 @@ func streamProcessorsConfigDS(projectID, instanceName string) string {
 
 func streamProcessorConfigDS(projectID, instanceName, processorName string) string {
 	return fmt.Sprintf(`
-	data "mongodbatlas_streamprocessor" "test" {
+	data "mongodbatlas_stream_processor" "test" {
 		project_id = %[1]q
 		instance_name = %[2]q
 		processor_name = %[3]q
