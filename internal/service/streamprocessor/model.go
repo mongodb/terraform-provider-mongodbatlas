@@ -67,12 +67,13 @@ func NewTFStreamProcessors(ctx context.Context,
 		}
 		results[i] = *processorModel
 	}
+	totalCount := paginatedResult.GetTotalCount()
 	return &TFStreamProcessorsDSModel{
 		ProjectID:    streamProcessorsConfig.ProjectID,
 		InstanceName: streamProcessorsConfig.InstanceName,
 		Results:      results,
 		PageNum:      streamProcessorsConfig.PageNum,
 		ItemsPerPage: streamProcessorsConfig.ItemsPerPage,
-		TotalCount:   types.Int64PointerValue(conversion.IntPtrToInt64Ptr(paginatedResult.TotalCount)),
+		TotalCount:   types.Int64PointerValue(conversion.IntPtrToInt64Ptr(&totalCount)),
 	}, nil
 }
