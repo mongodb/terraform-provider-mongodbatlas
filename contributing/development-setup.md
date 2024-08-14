@@ -51,7 +51,7 @@ For more explained information about plugin override check [Development Override
 - Make sure that the PR title follows [*Conventional Commits*](https://www.conventionalcommits.org/).
 - Add comments around your new code that explain what's happening.
 - Commit and push your changes to your branch then submit a pull request against the `master` branch.
-- A repo maintainer will review your pull request. **Note**: If you have an active MongoDB Atlas Support contract, creating a support ticket will give the review process more priority.
+- A repo maintainer will review your pull request. **Note**: If you have an active MongoDB Atlas Support contract, you can optionally create a support ticket to address questions on this process.
 
 ### Merging a Pull Request
 Due to security reasons, there are restrictions on how external contributions can be handled, especially concerning the use of repository secrets and running tests from forks.
