@@ -27,7 +27,7 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProc
 		Target:     desiredStates,
 		Refresh:    refreshFunc(ctx, requestParams, client),
 		Timeout:    1 * time.Minute,
-		MinTimeout: 60 * time.Second,
+		MinTimeout: 3 * time.Second,
 		Delay:      0,
 	}
 
