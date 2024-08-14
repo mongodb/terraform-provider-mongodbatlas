@@ -5,7 +5,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -14,7 +18,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"change_stream_token": schema.StringAttribute{
 				Computed:            true,
 				Description:         "The resume token for the change stream. Only used when the pipeline source is Cluster.",
-				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the stream processor.",
+				MarkdownDescription: "The resume token for the change stream. Only used when the pipeline source is Cluster.",
 			},
 			"id": schema.StringAttribute{
 				Optional:            true,
@@ -28,12 +32,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Human-readable label that identifies the stream instance.",
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
 			},
-			"pipeline": schema.ListNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{},
+			"pipeline": schema.StringAttribute{
+				Validators: []validator.String{
+					validate.StringIsJSON(),
 				},
-				Optional:            true,
-				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					schemafunc.DiffSuppressJSON(),
+				},
+				Required:            true,
 				Description:         "Stream aggregation pipeline you want to apply to your streaming data.",
 				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data.",
 			},
@@ -91,7 +97,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 type TFStreamProcessorRSModel struct {
 	InstanceName  types.String `tfsdk:"instance_name"`
 	Options       types.Object `tfsdk:"options"`
-	Pipeline      types.List   `tfsdk:"pipeline"`
+	Pipeline      types.String `tfsdk:"pipeline"`
 	ProcessorID   types.String `tfsdk:"processor_id"`
 	ProcessorName types.String `tfsdk:"processor_name"`
 	ProjectID     types.String `tfsdk:"project_id"`
