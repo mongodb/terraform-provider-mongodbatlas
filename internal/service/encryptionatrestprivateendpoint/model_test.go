@@ -3,14 +3,19 @@ package encryptionatrestprivateendpoint_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
-	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 )
 
 const (
 	testCloudProvider    = "AZURE"
+	testProjectID        = "666666666067bd1e20a8bf14"
+	testTotalResultCount = 99
 	testErrMsg           = "error occurred"
 	testID               = "6666666999999adsfsgdg"
 	testRegionName       = "US_EAST"
@@ -41,6 +46,7 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 				RegionName:                    types.StringValue(testRegionName),
 				Status:                        types.StringValue(testStatus),
 				PrivateEndpointConnectionName: types.StringValue(testPEConnectionName),
+				ProjectID:                     types.StringValue(testProjectID),
 			},
 		},
 		"Complete SDK response with error message": {
@@ -59,13 +65,14 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 				RegionName:                    types.StringValue(testRegionName),
 				Status:                        types.StringValue(testStatus),
 				PrivateEndpointConnectionName: types.StringValue(testPEConnectionName),
+				ProjectID:                     types.StringValue(testProjectID),
 			},
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel := encryptionatrestprivateendpoint.NewTFEarPrivateEndpoint(tc.SDKResp)
+			resultModel := encryptionatrestprivateendpoint.NewTFEarPrivateEndpoint(tc.SDKResp, testProjectID)
 			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}
@@ -116,6 +123,66 @@ func TestEncryptionAtRestPrivateEndpointTFModelToSDK(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			apiReqResult := encryptionatrestprivateendpoint.NewEarPrivateEndpointReq(tc.tfModel)
 			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
+		})
+	}
+}
+
+type sdkToTFModelPluralDSTestCase struct {
+	expectedTFModel *encryptionatrestprivateendpoint.TFEncryptionAtRestPrivateEndpointsDSModel
+	SDKResp         []admin.EARPrivateEndpoint
+}
+
+func TestEncryptionAtRestPrivateEndpointPluralDSSDKToTFModel(t *testing.T) {
+	testCases := map[string]sdkToTFModelPluralDSTestCase{
+		"Complete SDK response": {
+			SDKResp: []admin.EARPrivateEndpoint{
+				{
+					CloudProvider:                 admin.PtrString(testCloudProvider),
+					ErrorMessage:                  admin.PtrString(""),
+					Id:                            admin.PtrString(testID),
+					RegionName:                    admin.PtrString(testRegionName),
+					Status:                        admin.PtrString(testStatus),
+					PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+				},
+				{
+					CloudProvider:                 admin.PtrString(testCloudProvider),
+					ErrorMessage:                  admin.PtrString(testErrMsg),
+					Id:                            admin.PtrString(testID),
+					RegionName:                    admin.PtrString(testRegionName),
+					Status:                        admin.PtrString(testStatus),
+					PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+				},
+			},
+			expectedTFModel: &encryptionatrestprivateendpoint.TFEncryptionAtRestPrivateEndpointsDSModel{
+				CloudProvider: types.StringValue(testCloudProvider),
+				ProjectID:     types.StringValue(testProjectID),
+				TotalCount:    types.Int64Value(int64(testTotalResultCount)),
+				Results: []encryptionatrestprivateendpoint.TFEarPrivateEndpointDSModel{
+					{
+						CloudProvider:                 types.StringValue(testCloudProvider),
+						ErrorMessage:                  types.StringNull(),
+						ID:                            types.StringValue(testID),
+						RegionName:                    types.StringValue(testRegionName),
+						Status:                        types.StringValue(testStatus),
+						PrivateEndpointConnectionName: types.StringValue(testPEConnectionName),
+					},
+					{
+						CloudProvider:                 types.StringValue(testCloudProvider),
+						ErrorMessage:                  types.StringValue(testErrMsg),
+						ID:                            types.StringValue(testID),
+						RegionName:                    types.StringValue(testRegionName),
+						Status:                        types.StringValue(testStatus),
+						PrivateEndpointConnectionName: types.StringValue(testPEConnectionName),
+					},
+				},
+			},
+		},
+	}
+
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			resultModel := encryptionatrestprivateendpoint.NewTFEarPrivateEndpoints(testProjectID, testCloudProvider, conversion.IntPtr(testTotalResultCount), tc.SDKResp)
+			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}
 }
