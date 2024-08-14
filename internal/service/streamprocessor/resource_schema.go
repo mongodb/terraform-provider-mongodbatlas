@@ -94,13 +94,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFStreamProcessorRSModel struct {
-	InstanceName  types.String `tfsdk:"instance_name"`
-	Options       types.Object `tfsdk:"options"`
-	Pipeline      types.String `tfsdk:"pipeline"`
-	ProcessorID   types.String `tfsdk:"processor_id"`
-	ProcessorName types.String `tfsdk:"processor_name"`
-	ProjectID     types.String `tfsdk:"project_id"`
-	State         types.String `tfsdk:"state"`
+	InstanceName      types.String `tfsdk:"instance_name"`
+	Options           types.Object `tfsdk:"options"`
+	Pipeline          types.String `tfsdk:"pipeline"`
+	ProcessorID       types.String `tfsdk:"processor_id"`
+	ProcessorName     types.String `tfsdk:"processor_name"`
+	ProjectID         types.String `tfsdk:"project_id"`
+	State             types.String `tfsdk:"state"`
+	ChangeStreamToken types.String `tfsdk:"change_stream_token"`
 }
 
 type TFOptionsModel struct {

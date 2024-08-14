@@ -17,20 +17,20 @@ import (
 )
 
 var (
-	InitiatingState = "INIT"
-	CreatingState   = "CREATING"
-	CreatedState    = "CREATED"
-	StartedState    = "STARTED"
-	StoppedState    = "STOPPED"
-	DroppedState    = "DROPPED"
-	FailedState     = "FAILED"
-	sc500           = conversion.IntPtr(500)
-	sc200           = conversion.IntPtr(200)
-	processorName   = "processorName"
-	requestParams   = &admin.GetStreamProcessorApiParams{
+	InitiatingState     = "INIT"
+	CreatingState       = "CREATING"
+	CreatedState        = "CREATED"
+	StartedState        = "STARTED"
+	StoppedState        = "STOPPED"
+	DroppedState        = "DROPPED"
+	FailedState         = "FAILED"
+	sc500               = conversion.IntPtr(500)
+	sc200               = conversion.IntPtr(200)
+	streamProcessorName = "processorName"
+	requestParams       = &admin.GetStreamProcessorApiParams{
 		GroupId:       "groupId",
 		TenantName:    "tenantName",
-		ProcessorName: processorName,
+		ProcessorName: streamProcessorName,
 	}
 )
 
@@ -139,7 +139,7 @@ func responseWithState(state *string) *admin.StreamsProcessorWithStats {
 		return nil
 	}
 	return &admin.StreamsProcessorWithStats{
-		Name:  processorName,
+		Name:  streamProcessorName,
 		State: *state,
 	}
 }
