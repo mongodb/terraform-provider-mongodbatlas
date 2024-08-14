@@ -1,5 +1,20 @@
 ## (Unreleased)
 
+BREAKING CHANGES:
+
+* data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Changes `id` attribute from optional to computed only ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_cloud_backup_snapshot_export_job: Changes `id` attribute from optional to computed only ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Removes `created_at` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Removes `job_id` attribute and defines `snapshot_restore_job_id` attribute as required ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Removes `created_at` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_federated_settings_identity_providers: Removes `page_num` and `items_per_page` attributes ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_privatelink_endpoint_service: Removes `endpoints.*.service_attachment_name` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_third_party_integration: Removes `scheme` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_third_party_integrations: Removes `scheme` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* resource/mongodbatlas_cloud_backup_snapshot_restore_job: Removes `created_at` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* resource/mongodbatlas_privatelink_endpoint_service: Removes `endpoints.*.service_attachment_name` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* resource/mongodbatlas_third_party_integration: Removes `scheme` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+
 NOTES:
 
 * data-source/mongodbatlas_advanced_cluster: Deprecates `replication_specs.#.id`, `replication_specs.#.num_shards`, `disk_size_gb`, `advanced_configuration.0.default_read_concern`, and  `advanced_configuration.0.fail_index_key_too_long`. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide). ([#2420](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2420))
