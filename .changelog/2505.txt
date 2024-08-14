@@ -1,0 +1,7 @@
+```release-note:new-guide
+Migration Guide: Advanced Cluster New Sharding Schema. This enables Independent Shard Scaling.
+```
+
+```release-note:new-guide
+Migration Guide: Cluster to Advanced Cluster
+```
