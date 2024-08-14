@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.18.0 (August 14, 2024)
+
 BREAKING CHANGES:
 
 * data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Changes `id` attribute from optional to computed only ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
