@@ -34,20 +34,22 @@ func (r *streamProcessorRS) Schema(ctx context.Context, req resource.SchemaReque
 }
 
 func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var streamProcessorPlan TFStreamProcessorRSModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamProcessorPlan)...)
+	var plan TFStreamProcessorRSModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	streamProcessorReq, diags := NewStreamProcessorReq(ctx, &streamProcessorPlan)
+	streamProcessorReq, diags := NewStreamProcessorReq(ctx, &plan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.StreamsApi.CreateStreamProcessor(ctx, streamProcessorPlan.ProjectID.ValueString(), streamProcessorPlan.InstanceName.ValueString(), streamProcessorReq).Execute()
+	projectID := plan.ProjectID.ValueString()
+	instanceName := plan.InstanceName.ValueString()
+	_, _, err := connV2.StreamsApi.CreateStreamProcessor(ctx, projectID, instanceName, streamProcessorReq).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
@@ -55,9 +57,9 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	streamProcessorParams := &admin.GetStreamProcessorApiParams{
-		GroupId:       streamProcessorPlan.ProjectID.ValueString(),
-		TenantName:    streamProcessorPlan.InstanceName.ValueString(),
-		ProcessorName: streamProcessorPlan.ProcessorName.ValueString(),
+		GroupId:       projectID,
+		TenantName:    plan.InstanceName.ValueString(),
+		ProcessorName: plan.ProcessorName.ValueString(),
 	}
 
 	streamProcessorResp, err := WaitStateTransition(ctx, streamProcessorParams, connV2.StreamsApi, []string{InitiatingState, CreatingState}, []string{CreatedState, FailedState})
@@ -65,7 +67,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		resp.Diagnostics.AddError("Error creating stream processor", err.Error())
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, streamProcessorResp)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -74,14 +76,17 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 }
 
 func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var streamProcessorState TFStreamProcessorRSModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &streamProcessorState)...)
+	var state TFStreamProcessorRSModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	connV2 := r.Client.AtlasV2
-	streamProcessor, apiResp, err := connV2.StreamsApi.GetStreamProcessor(ctx, streamProcessorState.ProjectID.ValueString(), streamProcessorState.InstanceName.ValueString(), streamProcessorState.ProcessorName.ValueString()).Execute()
+
+	projectID := state.ProjectID.ValueString()
+	instanceName := state.InstanceName.ValueString()
+	streamProcessor, apiResp, err := connV2.StreamsApi.GetStreamProcessor(ctx, projectID, instanceName, state.ProcessorName.ValueString()).Execute()
 	if err != nil {
 		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
@@ -91,7 +96,7 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, streamProcessor)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessor)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -148,9 +153,12 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		resp.Diagnostics.AddError("updating a Stream Processor is not supported. Please follow this guide to update it", "TODO")
 		return
 	}
+
+	projectID := plan.ProjectID.ValueString()
+	instanceName := plan.InstanceName.ValueString()
 	requestParams := &admin.GetStreamProcessorApiParams{
-		GroupId:       plan.ProjectID.ValueString(),
-		TenantName:    plan.InstanceName.ValueString(),
+		GroupId:       projectID,
+		TenantName:    instanceName,
 		ProcessorName: plan.ProcessorName.ValueString(),
 	}
 
@@ -159,7 +167,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, streamProcessorResp)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
