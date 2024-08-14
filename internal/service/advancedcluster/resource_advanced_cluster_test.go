@@ -600,16 +600,16 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M30", 2000, 2000, false),
-				Check:  checkShardedNewSchema(50, "M30", "M30", "2000", "2000", false, false),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false),
+				Check:  checkShardedNewSchema(50, "M10", "M10", nil, nil, false, false),
 			},
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 2000, 2500, true),
-				Check:  checkShardedNewSchema(55, "M30", "M40", "2000", "2500", true, true),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true), // add middle replication spec and transition to asymmetric
+				Check:  checkShardedNewSchema(55, "M10", "M20", nil, nil, true, true),
 			},
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M30", "M40", 2000, 2500, false), // removes middle replication spec
-				Check:  checkShardedNewSchema(55, "M30", "M40", "2000", "2500", true, false),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false), // removes middle replication spec
+				Check:  checkShardedNewSchema(55, "M10", "M20", nil, nil, true, false),
 			},
 		},
 	})
@@ -633,8 +633,8 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", 2000, 2500, false),
-				Check:  checkShardedNewSchema(50, "M30", "M40", "2000", "2500", true, false),
+				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
+				Check:  checkShardedNewSchema(50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 			},
 		},
 	}
@@ -1482,7 +1482,7 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel(diskSizeGB int) resource.Test
 		})
 }
 
-func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops int, includeMiddleSpec bool) string {
+func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec bool) string {
 	var thirdReplicationSpec string
 	if includeMiddleSpec {
 		thirdReplicationSpec = fmt.Sprintf(`
@@ -1505,6 +1505,20 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 			}
 		`, firstInstanceSize, diskSizeGB)
 	}
+	var firstDiskIOPSAttrs string
+	if firstDiskIOPS != nil {
+		firstDiskIOPSAttrs = fmt.Sprintf(`
+			disk_iops = %d
+			ebs_volume_type = "PROVISIONED"
+		`, *firstDiskIOPS)
+	}
+	var lastDiskIOPSAttrs string
+	if lastDiskIOPS != nil {
+		lastDiskIOPSAttrs = fmt.Sprintf(`
+			disk_iops = %d
+			ebs_volume_type = "PROVISIONED"
+		`, *lastDiskIOPS)
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1521,10 +1535,9 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 				region_configs {
 					electable_specs {
 						instance_size = %[4]q
-						disk_iops = %[6]d
-						ebs_volume_type = "PROVISIONED"
 						node_count    = 3
 						disk_size_gb  = %[9]d
+						%[6]s
 					}
 					analytics_specs {
 						instance_size = %[4]q
@@ -1543,10 +1556,9 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 				region_configs {
 					electable_specs {
 						instance_size = %[5]q
-						disk_iops = %[7]d
-						ebs_volume_type = "PROVISIONED"
 						node_count    = 3
 						disk_size_gb  = %[9]d
+						%[7]s
 					}
 					analytics_specs {
 						instance_size = %[5]q
@@ -1570,10 +1582,10 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
 		}
-	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIops, lastDiskIops, thirdReplicationSpec, diskSizeGB)
+	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB)
 }
 
-func checkShardedNewSchema(diskSizeGB int, firstInstanceSize, lastInstanceSize, firstDiskIops, lastDiskIops string, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
+func checkShardedNewSchema(diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops *int, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
 	amtOfReplicationSpecs := 2
 	if includeMiddleSpec {
 		amtOfReplicationSpecs = 3
@@ -1593,8 +1605,12 @@ func checkShardedNewSchema(diskSizeGB int, firstInstanceSize, lastInstanceSize, 
 		fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.disk_size_gb", lastSpecIndex):  fmt.Sprintf("%d", diskSizeGB),
 		"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb":                               fmt.Sprintf("%d", diskSizeGB),
 		fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.disk_size_gb", lastSpecIndex):  fmt.Sprintf("%d", diskSizeGB),
-		"replication_specs.0.region_configs.0.electable_specs.0.disk_iops":                                  firstDiskIops,
-		fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.disk_iops", lastSpecIndex):     lastDiskIops,
+	}
+	if firstDiskIops != nil {
+		clusterChecks["replication_specs.0.region_configs.0.electable_specs.0.disk_iops"] = fmt.Sprintf("%d", *firstDiskIops)
+	}
+	if lastDiskIops != nil {
+		clusterChecks[fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.disk_iops", lastSpecIndex)] = fmt.Sprintf("%d", *lastDiskIops)
 	}
 
 	// plural data source checks
