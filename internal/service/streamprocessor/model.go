@@ -55,19 +55,18 @@ func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
 
 func NewTFStreamProcessors(ctx context.Context,
 	streamProcessorsConfig *TFStreamProcessorsDSModel,
-	paginatedResult *admin.PaginatedApiStreamsStreamProcessorWithStats) (*TFStreamProcessorsDSModel, diag.Diagnostics) {
-	input := paginatedResult.GetResults()
-	results := make([]TFStreamProcessorDSModel, len(input))
+	sdkResults []admin.StreamsProcessorWithStats) (*TFStreamProcessorsDSModel, diag.Diagnostics) {
+	results := make([]TFStreamProcessorDSModel, len(sdkResults))
 	projectID := streamProcessorsConfig.ProjectID.ValueString()
 	instanceName := streamProcessorsConfig.InstanceName.ValueString()
-	for i := range input {
-		processorModel, diags := NewTFStreamprocessorDSModel(ctx, projectID, instanceName, &input[i])
+	for i := range sdkResults {
+		processorModel, diags := NewTFStreamprocessorDSModel(ctx, projectID, instanceName, &sdkResults[i])
 		if diags.HasError() {
 			return nil, diags
 		}
 		results[i] = *processorModel
 	}
-	totalCount := paginatedResult.GetTotalCount()
+	totalCount := len(sdkResults)
 	return &TFStreamProcessorsDSModel{
 		ProjectID:    streamProcessorsConfig.ProjectID,
 		InstanceName: streamProcessorsConfig.InstanceName,

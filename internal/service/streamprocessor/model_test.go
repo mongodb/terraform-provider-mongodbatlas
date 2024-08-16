@@ -180,7 +180,7 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 				ProjectID:    types.StringValue(projectID),
 				InstanceName: types.StringValue(instanceName),
 			}
-			resultModel, diags := streamprocessor.NewTFStreamProcessors(context.Background(), existingConfig, sdkModel)
+			resultModel, diags := streamprocessor.NewTFStreamProcessors(context.Background(), existingConfig, sdkModel.GetResults())
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
