@@ -2,6 +2,7 @@ package streamprocessor
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -29,11 +30,13 @@ func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadReques
 		ItemsPerPage: conversion.Int64PtrToIntPtr(itemsPerPage),
 		PageNum:      conversion.Int64PtrToIntPtr(pageNum),
 	}
-	sdkProcessors, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.StreamsProcessorWithStats], *http.Response, error) {
-		request := connV2.StreamsApi.ListStreamProcessorsWithParams(ctx, &params)
-		request = request.PageNum(pageNum)
-		return request.Execute()
-	})
+
+	sdkProcessors, err := dsschema.AllPagesFromRequest[admin.StreamsProcessorWithStats](ctx, connV2.StreamsApi.ListStreamConnectionsWithParams(ctx, &params))
+	// sdkProcessors, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.StreamsProcessorWithStats], *http.Response, error) {
+	// 	request := connV2.StreamsApi.ListStreamProcessorsWithParams(ctx, &params)
+	// 	request = request.PageNum(pageNum)
+	// 	return request.Execute()
+	// })
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching results", err.Error())
 		return

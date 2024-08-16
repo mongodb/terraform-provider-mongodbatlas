@@ -29,3 +29,15 @@ func AllPages[T any](ctx context.Context, call func(ctx context.Context, pageNum
 	}
 	return results, nil
 }
+
+type PaginateRequest[T any] interface {
+	Execute() (PaginateResponse[T], *http.Response, error)
+	PageNum(int) PaginateRequest[T]
+}
+
+func AllPagesFromRequest[T any](ctx context.Context, req PaginateRequest[T]) ([]T, error) {
+	return AllPages(ctx, func(ctx context.Context, pageNum int) (PaginateResponse[T], *http.Response, error) {
+		request := req.PageNum(pageNum)
+		return request.Execute()
+	})
+}
