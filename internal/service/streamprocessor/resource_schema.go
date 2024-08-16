@@ -20,8 +20,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "The resume token for the change stream. Only used when the pipeline source is Cluster.",
 				MarkdownDescription: "The resume token for the change stream. Only used when the pipeline source is Cluster.",
 			},
-			"processor_id": schema.StringAttribute{
-				Optional:            true,
+			"id": schema.StringAttribute{
 				Computed:            true,
 				Description:         "Unique 24-hexadecimal character string that identifies the stream processor.",
 				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the stream processor.",
@@ -97,7 +96,7 @@ type TFStreamProcessorRSModel struct {
 	InstanceName      types.String `tfsdk:"instance_name"`
 	Options           types.Object `tfsdk:"options"`
 	Pipeline          types.String `tfsdk:"pipeline"`
-	ProcessorID       types.String `tfsdk:"processor_id"`
+	ProcessorID       types.String `tfsdk:"id"`
 	ProcessorName     types.String `tfsdk:"processor_name"`
 	ProjectID         types.String `tfsdk:"project_id"`
 	State             types.String `tfsdk:"state"`

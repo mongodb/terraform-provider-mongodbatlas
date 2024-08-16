@@ -1,8 +1,6 @@
 provider:
   name: mongodbatlas
 
-# TODO: Endpoints from Atlas Admin API must be specified for schema and model generation. Singular or plural data sources can be removed if not used.
-
 resources:
   stream_processor:
     read:
@@ -14,7 +12,6 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
       method: DELETE
-
 
 data_sources:
   stream_processor:

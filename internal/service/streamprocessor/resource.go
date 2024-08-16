@@ -46,6 +46,18 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	var needsStarting bool
+	if !plan.State.IsNull() && !plan.State.IsUnknown() {
+		switch plan.State.ValueString() {
+		case StartedState:
+			needsStarting = true
+		case CreatedState:
+			needsStarting = false
+		default:
+			resp.Diagnostics.AddError("When creating a stream processor, the only valid states are CREATED and STARTED", "")
+		}
+	}
+
 	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectID.ValueString()
 	instanceName := plan.InstanceName.ValueString()
@@ -67,24 +79,20 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		resp.Diagnostics.AddError("Error creating stream processor", err.Error())
 	}
 
-	if !plan.State.IsNull() {
-		if plan.State.ValueString() == StartedState {
-			_, _, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
-				&admin.StartStreamProcessorApiParams{
-					GroupId:       plan.ProjectID.ValueString(),
-					TenantName:    plan.InstanceName.ValueString(),
-					ProcessorName: plan.ProcessorName.ValueString(),
-				},
-			).Execute()
-			if err != nil {
-				resp.Diagnostics.AddError("Error starting stream processor", err.Error())
-			}
-			streamProcessorResp, err = WaitStateTransition(ctx, streamProcessorParams, connV2.StreamsApi, []string{CreatedState}, []string{StartedState})
-			if err != nil {
-				resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
-			}
-		} else {
-			resp.Diagnostics.AddError("When creating a stream processor, the only valid states are CREATED and STARTED", "")
+	if needsStarting {
+		_, _, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
+			&admin.StartStreamProcessorApiParams{
+				GroupId:       plan.ProjectID.ValueString(),
+				TenantName:    plan.InstanceName.ValueString(),
+				ProcessorName: plan.ProcessorName.ValueString(),
+			},
+		).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError("Error starting stream processor", err.Error())
+		}
+		streamProcessorResp, err = WaitStateTransition(ctx, streamProcessorParams, connV2.StreamsApi, []string{CreatedState}, []string{StartedState})
+		if err != nil {
+			resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
 		}
 	}
 
@@ -138,40 +146,39 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	connV2 := r.Client.AtlasV2
 	pendingStates := []string{CreatedState}
 	desiredState := []string{}
-	if !plan.State.Equal(state.State) {
-		switch plan.State.ValueString() {
-		case StartedState:
-			desiredState = append(desiredState, StartedState)
-			pendingStates = append(pendingStates, StoppedState)
-			_, _, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
-				&admin.StartStreamProcessorApiParams{
-					GroupId:       plan.ProjectID.ValueString(),
-					TenantName:    plan.InstanceName.ValueString(),
-					ProcessorName: plan.ProcessorName.ValueString(),
-				},
-			).Execute()
-			if err != nil {
-				resp.Diagnostics.AddError("Error starting stream processor", err.Error())
-			}
-		case StoppedState:
-			desiredState = append(desiredState, StoppedState)
-			pendingStates = append(pendingStates, StartedState)
-			_, _, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
-				&admin.StopStreamProcessorApiParams{
-					GroupId:       plan.ProjectID.ValueString(),
-					TenantName:    plan.InstanceName.ValueString(),
-					ProcessorName: plan.ProcessorName.ValueString(),
-				},
-			).Execute()
-			if err != nil {
-				resp.Diagnostics.AddError("Error stopping stream processor", err.Error())
-			}
-		default:
-			resp.Diagnostics.AddError("transitions to states other than STARTED or STOPPED are not supported", "")
-			return
-		}
-	} else {
+	if plan.State.Equal(state.State) || !updatedStateOnly(&plan, &state) {
 		resp.Diagnostics.AddError("updating a Stream Processor is not supported", "")
+		return
+	}
+	switch plan.State.ValueString() {
+	case StartedState:
+		desiredState = append(desiredState, StartedState)
+		pendingStates = append(pendingStates, StoppedState)
+		_, _, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
+			&admin.StartStreamProcessorApiParams{
+				GroupId:       plan.ProjectID.ValueString(),
+				TenantName:    plan.InstanceName.ValueString(),
+				ProcessorName: plan.ProcessorName.ValueString(),
+			},
+		).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError("Error starting stream processor", err.Error())
+		}
+	case StoppedState:
+		desiredState = append(desiredState, StoppedState)
+		pendingStates = append(pendingStates, StartedState)
+		_, _, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
+			&admin.StopStreamProcessorApiParams{
+				GroupId:       plan.ProjectID.ValueString(),
+				TenantName:    plan.InstanceName.ValueString(),
+				ProcessorName: plan.ProcessorName.ValueString(),
+			},
+		).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError("Error stopping stream processor", err.Error())
+		}
+	default:
+		resp.Diagnostics.AddError("transitions to states other than STARTED or STOPPED are not supported", "")
 		return
 	}
 
@@ -236,4 +243,12 @@ func splitStreamProcessorImportID(id string) (projectID, instanceName, processor
 	processorName = &parts[3]
 
 	return
+}
+
+func updatedStateOnly(plan, state *TFStreamProcessorRSModel) bool {
+	return plan.ProjectID.Equal(state.ProjectID) &&
+		plan.InstanceName.Equal(state.InstanceName) &&
+		plan.ProcessorName.Equal(state.ProcessorName) &&
+		plan.Pipeline.Equal(state.Pipeline) &&
+		!plan.State.Equal(state.State)
 }

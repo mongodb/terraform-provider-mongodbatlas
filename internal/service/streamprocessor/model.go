@@ -6,16 +6,47 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {
-	return &admin.StreamsProcessor{}, nil
+	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueStringPointer())
+	if diags != nil {
+		return nil, diags
+	}
+	streamProcessor := &admin.StreamsProcessor{
+		Name:     plan.ProcessorName.ValueStringPointer(),
+		Pipeline: &pipeline,
+	}
+
+	if !plan.Options.IsNull() && !plan.Options.IsUnknown() {
+		optionsModel := &TFOptionsModel{}
+		if diags := plan.Options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		dlqModel := &TFDlqModel{}
+		if diags := optionsModel.Dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamProcessor.Options = &admin.StreamsOptions{
+			Dlq: &admin.StreamsDLQ{
+				Coll:           dlqModel.Coll.ValueStringPointer(),
+				ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
+				Db:             dlqModel.DB.ValueStringPointer(),
+			},
+		}
+	}
+
+	return streamProcessor, nil
 }
 
 func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats, stateOptions types.Object) (*TFStreamProcessorRSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
+	}
+	if stateOptions.IsUnknown() {
+		stateOptions = types.ObjectNull(OptionsObjectType.AttrTypes)
 	}
 	pipelineTF, diags := convertPipelineToTF(apiResp.GetPipeline())
 	if diags.HasError() {
@@ -83,7 +114,7 @@ func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
 
 func extractChangeStreamTokenFromStats(stats any) (types.String, diag.Diagnostics) {
 	if stats == nil {
-		return types.StringValue("{}"), nil
+		return types.StringNull(), nil
 	}
 	var statsMap map[string]interface{}
 
@@ -97,7 +128,25 @@ func extractChangeStreamTokenFromStats(stats any) (types.String, diag.Diagnostic
 		return types.StringValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to unmarshal stats", err.Error())}
 	}
 
-	changeStreamToken := statsMap["data"].(map[string]interface{})["changeStreamToken"]
+	if data := statsMap["data"]; data != nil {
+		dataMap := data.(map[string]interface{})
+		changeStreamToken, ok := dataMap["changeStreamToken"]
+		if ok {
+			return types.StringValue(changeStreamToken.(string)), nil
+		}
+	}
 
-	return types.StringValue(changeStreamToken.(string)), nil
+	return types.StringNull(), nil
+}
+
+func convertPipelineToSdk(pipeline *string) ([]any, diag.Diagnostics) {
+	if pipeline == nil {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Pipeline is required", "")}
+	}
+	var pipelineSliceOfMaps []any
+	err := json.Unmarshal([]byte(*pipeline), &pipelineSliceOfMaps)
+	if err != nil {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("failed to unmarshal pipeline", err.Error())}
+	}
+	return pipelineSliceOfMaps, nil
 }
