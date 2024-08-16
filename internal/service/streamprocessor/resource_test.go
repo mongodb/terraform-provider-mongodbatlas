@@ -21,6 +21,7 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		processorName = "new-processor"
+		instanceName  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,7 +30,7 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: streamProcessorConfigWithSampleConnection(projectID, processorName, ""),
+				Config: streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -40,7 +41,7 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: streamProcessorConfigWithSampleConnection(projectID, processorName, "STARTED"),
+				Config: streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, "STARTED"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -51,7 +52,7 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 				),
 			},
 			{
-				Config:            streamProcessorConfigWithSampleConnection(projectID, processorName, ""),
+				Config:            streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, ""),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -72,7 +73,7 @@ func TestAccStreamProcessorRS_createWithAutoStart(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: streamProcessorConfigWithSampleConnection(projectID, processorName, "STARTED"),
+				Config: streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, "STARTED"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -83,7 +84,7 @@ func TestAccStreamProcessorRS_createWithAutoStart(t *testing.T) {
 				),
 			},
 			{
-				Config: streamProcessorConfigWithSampleConnection(projectID, processorName, "STOPPED"),
+				Config: streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, "STOPPED"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -108,13 +109,13 @@ func TestAccStreamProcessorRS_failWithInvalidStateOnCreation(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:      streamProcessorConfigWithSampleConnection(projectID, processorName, "STOPPED"),
+				Config:      streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, "STOPPED"),
 				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
 			},
 		}})
 }
 
-func streamProcessorConfigWithSampleConnection(projectID, processorName, state string) string {
+func streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, state string) string {
 	// Add mongodbatlas_stream_connection once sample stream connection is not created by default
 	// resource "mongodbatlas_stream_connection" "sample" {
 	// 	project_id      = %[1]q
@@ -129,7 +130,7 @@ func streamProcessorConfigWithSampleConnection(projectID, processorName, state s
 	return fmt.Sprintf(`
 	resource "mongodbatlas_stream_instance" "instance" {
 		project_id    = %[1]q
-		instance_name = "test-instance"
+		instance_name = %[2]q
 		data_process_region = {
 			region         = "VIRGINIA_USA"
 			cloud_provider = "AWS"
@@ -139,11 +140,11 @@ func streamProcessorConfigWithSampleConnection(projectID, processorName, state s
 	resource "mongodbatlas_stream_processor" "processor" {
 		project_id     = %[1]q
 		instance_name  = mongodbatlas_stream_instance.instance.instance_name
-		processor_name = %[2]q
+		processor_name = %[3]q
 		pipeline       = "[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"
-		%[3]s
+		%[4]s
 	}
-	`, projectID, processorName, stateConfig)
+	`, projectID, instanceName, processorName, stateConfig)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
