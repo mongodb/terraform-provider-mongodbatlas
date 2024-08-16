@@ -132,6 +132,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVault.GetAzureEnvironment()),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVault.GetResourceGroupName()),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVault.GetKeyVaultName()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.require_private_networking", "false"),
 				),
 			},
 			{
@@ -143,6 +144,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVaultUpdated.GetAzureEnvironment()),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVaultUpdated.GetResourceGroupName()),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVaultUpdated.GetKeyVaultName()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.require_private_networking", "false"),
 				),
 			},
 			{
