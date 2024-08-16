@@ -6,9 +6,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-func PaginatedDSSchema(arguments, resultAttributes map[string]schema.Attribute, skipID bool) schema.Schema {
+func PaginatedDSSchema(arguments, resultAttributes map[string]schema.Attribute) schema.Schema {
 	result := schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
 			"page_num": schema.Int64Attribute{
 				Optional: true,
 			},
@@ -25,11 +28,6 @@ func PaginatedDSSchema(arguments, resultAttributes map[string]schema.Attribute, 
 				},
 			},
 		},
-	}
-	if !skipID {
-		result.Attributes["id"] = schema.StringAttribute{
-			Computed: true,
-		}
 	}
 	maps.Copy(result.Attributes, arguments)
 	return result
