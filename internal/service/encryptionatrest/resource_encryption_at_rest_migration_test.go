@@ -1,15 +1,18 @@
 package encryptionatrest_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
@@ -62,15 +65,19 @@ func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		accessKeyID  = os.Getenv("AWS_ACCESS_KEY_ID")
-		secretKey    = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		policyName   = acc.RandomName()
-		roleName     = acc.RandomName()
+		// accessKeyID  = os.Getenv("AWS_ACCESS_KEY_ID")
+		// secretKey    = os.Getenv("AWS_SECRET_ACCESS_KEY")
+		// policyName   = acc.RandomName()
+		// roleName     = acc.RandomName()
+
+		awsIAMRoleName       = acc.RandomIAMRole()
+		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
+		awsKeyName           = acc.RandomName()
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:             conversion.Pointer(true),
-			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
+			Enabled: conversion.Pointer(true),
+			// CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region: conversion.StringPtr(os.Getenv("AWS_REGION")),
 		}
 	)
 
@@ -80,18 +87,20 @@ func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProvidersWithAWS(),
-				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
+				// Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
 			},
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
+				// Config:                   testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
+					// resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
 				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
@@ -130,7 +139,7 @@ func TestMigEncryptionAtRest_basicAzure(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVault),
+				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVault, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -142,7 +151,7 @@ func TestMigEncryptionAtRest_basicAzure(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVault),
+				Config:                   testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVault, false),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),

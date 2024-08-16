@@ -4,31 +4,34 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
-	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 )
 
 var (
-	projectID            = "projectID"
-	enabled              = true
-	customerMasterKeyID  = "CustomerMasterKeyID"
-	region               = "Region"
-	accessKeyID          = "AccessKeyID"
-	secretAccessKey      = "SecretAccessKey"
-	roleID               = "RoleID"
-	clientID             = "clientID"
-	azureEnvironment     = "AzureEnvironment"
-	subscriptionID       = "SubscriptionID"
-	resourceGroupName    = "ResourceGroupName"
-	keyVaultName         = "KeyVaultName"
-	keyIdentifier        = "KeyIdentifier"
-	tenantID             = "TenantID"
-	secret               = "Secret"
-	keyVersionResourceID = "KeyVersionResourceID"
-	serviceAccountKey    = "ServiceAccountKey"
-	AWSKMSConfiguration  = &admin.AWSKMSConfiguration{
+	projectID                = "projectID"
+	enabled                  = true
+	requirePrivateNetworking = true
+	customerMasterKeyID      = "CustomerMasterKeyID"
+	region                   = "Region"
+	accessKeyID              = "AccessKeyID"
+	secretAccessKey          = "SecretAccessKey"
+	roleID                   = "RoleID"
+	clientID                 = "clientID"
+	azureEnvironment         = "AzureEnvironment"
+	subscriptionID           = "SubscriptionID"
+	resourceGroupName        = "ResourceGroupName"
+	keyVaultName             = "KeyVaultName"
+	keyIdentifier            = "KeyIdentifier"
+	tenantID                 = "TenantID"
+	secret                   = "Secret"
+	keyVersionResourceID     = "KeyVersionResourceID"
+	serviceAccountKey        = "ServiceAccountKey"
+	AWSKMSConfiguration      = &admin.AWSKMSConfiguration{
 		Enabled:             &enabled,
 		CustomerMasterKeyID: &customerMasterKeyID,
 		Region:              &region,
@@ -45,26 +48,28 @@ var (
 		RoleID:              types.StringValue(roleID),
 	}
 	AzureKeyVault = &admin.AzureKeyVault{
-		Enabled:           &enabled,
-		ClientID:          &clientID,
-		AzureEnvironment:  &azureEnvironment,
-		SubscriptionID:    &subscriptionID,
-		ResourceGroupName: &resourceGroupName,
-		KeyVaultName:      &keyVaultName,
-		KeyIdentifier:     &keyIdentifier,
-		TenantID:          &tenantID,
-		Secret:            &secret,
+		Enabled:                  &enabled,
+		ClientID:                 &clientID,
+		AzureEnvironment:         &azureEnvironment,
+		SubscriptionID:           &subscriptionID,
+		ResourceGroupName:        &resourceGroupName,
+		KeyVaultName:             &keyVaultName,
+		KeyIdentifier:            &keyIdentifier,
+		TenantID:                 &tenantID,
+		Secret:                   &secret,
+		RequirePrivateNetworking: &requirePrivateNetworking,
 	}
 	TfAzureKeyVaultConfigModel = encryptionatrest.TfAzureKeyVaultConfigModel{
-		Enabled:           types.BoolValue(enabled),
-		ClientID:          types.StringValue(clientID),
-		AzureEnvironment:  types.StringValue(azureEnvironment),
-		SubscriptionID:    types.StringValue(subscriptionID),
-		ResourceGroupName: types.StringValue(resourceGroupName),
-		KeyVaultName:      types.StringValue(keyVaultName),
-		KeyIdentifier:     types.StringValue(keyIdentifier),
-		TenantID:          types.StringValue(tenantID),
-		Secret:            types.StringValue(secret),
+		Enabled:                  types.BoolValue(enabled),
+		ClientID:                 types.StringValue(clientID),
+		AzureEnvironment:         types.StringValue(azureEnvironment),
+		SubscriptionID:           types.StringValue(subscriptionID),
+		ResourceGroupName:        types.StringValue(resourceGroupName),
+		KeyVaultName:             types.StringValue(keyVaultName),
+		KeyIdentifier:            types.StringValue(keyIdentifier),
+		TenantID:                 types.StringValue(tenantID),
+		Secret:                   types.StringValue(secret),
+		RequirePrivateNetworking: types.BoolValue(requirePrivateNetworking),
 	}
 	GoogleCloudKMS = &admin.GoogleCloudKMS{
 		Enabled:              &enabled,

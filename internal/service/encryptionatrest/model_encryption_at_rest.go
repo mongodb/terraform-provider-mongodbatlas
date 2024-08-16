@@ -3,9 +3,11 @@ package encryptionatrest
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func NewTfEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *admin.EncryptionAtRest) *TfEncryptionAtRestRSModel {
@@ -42,15 +44,16 @@ func NewTFAzureKeyVaultConfig(ctx context.Context, az *admin.AzureKeyVault) []Tf
 
 	return []TfAzureKeyVaultConfigModel{
 		{
-			Enabled:           types.BoolPointerValue(az.Enabled),
-			ClientID:          types.StringValue(az.GetClientID()),
-			AzureEnvironment:  types.StringValue(az.GetAzureEnvironment()),
-			SubscriptionID:    types.StringValue(az.GetSubscriptionID()),
-			ResourceGroupName: types.StringValue(az.GetResourceGroupName()),
-			KeyVaultName:      types.StringValue(az.GetKeyVaultName()),
-			KeyIdentifier:     types.StringValue(az.GetKeyIdentifier()),
-			TenantID:          types.StringValue(az.GetTenantID()),
-			Secret:            conversion.StringNullIfEmpty(az.GetSecret()),
+			Enabled:                  types.BoolPointerValue(az.Enabled),
+			ClientID:                 types.StringValue(az.GetClientID()),
+			AzureEnvironment:         types.StringValue(az.GetAzureEnvironment()),
+			SubscriptionID:           types.StringValue(az.GetSubscriptionID()),
+			ResourceGroupName:        types.StringValue(az.GetResourceGroupName()),
+			KeyVaultName:             types.StringValue(az.GetKeyVaultName()),
+			KeyIdentifier:            types.StringValue(az.GetKeyIdentifier()),
+			TenantID:                 types.StringValue(az.GetTenantID()),
+			Secret:                   conversion.StringNullIfEmpty(az.GetSecret()),
+			RequirePrivateNetworking: types.BoolValue(az.GetRequirePrivateNetworking()),
 		},
 	}
 }
@@ -107,14 +110,15 @@ func NewAtlasAzureKeyVault(tfAzKeyVaultConfigSlice []TfAzureKeyVaultConfigModel)
 	v := tfAzKeyVaultConfigSlice[0]
 
 	return &admin.AzureKeyVault{
-		Enabled:           v.Enabled.ValueBoolPointer(),
-		ClientID:          v.ClientID.ValueStringPointer(),
-		AzureEnvironment:  v.AzureEnvironment.ValueStringPointer(),
-		SubscriptionID:    v.SubscriptionID.ValueStringPointer(),
-		ResourceGroupName: v.ResourceGroupName.ValueStringPointer(),
-		KeyVaultName:      v.KeyVaultName.ValueStringPointer(),
-		KeyIdentifier:     v.KeyIdentifier.ValueStringPointer(),
-		Secret:            v.Secret.ValueStringPointer(),
-		TenantID:          v.TenantID.ValueStringPointer(),
+		Enabled:                  v.Enabled.ValueBoolPointer(),
+		ClientID:                 v.ClientID.ValueStringPointer(),
+		AzureEnvironment:         v.AzureEnvironment.ValueStringPointer(),
+		SubscriptionID:           v.SubscriptionID.ValueStringPointer(),
+		ResourceGroupName:        v.ResourceGroupName.ValueStringPointer(),
+		KeyVaultName:             v.KeyVaultName.ValueStringPointer(),
+		KeyIdentifier:            v.KeyIdentifier.ValueStringPointer(),
+		Secret:                   v.Secret.ValueStringPointer(),
+		TenantID:                 v.TenantID.ValueStringPointer(),
+		RequirePrivateNetworking: v.RequirePrivateNetworking.ValueBoolPointer(),
 	}
 }
