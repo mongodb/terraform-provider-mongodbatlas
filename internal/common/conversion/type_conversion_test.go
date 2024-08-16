@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func TestTimeWithoutNanos(t *testing.T) {
@@ -75,6 +76,22 @@ func TestMongoDBRegionToAWSRegion(t *testing.T) {
 	for _, test := range tests {
 		if resp := conversion.MongoDBRegionToAWSRegion(test.region); resp != test.expected {
 			t.Errorf("MongoDBRegionToAWSRegion(%v) = %v; want %v", test.region, resp, test.expected)
+		}
+	}
+}
+
+func TestAWSRegionToMongoDBRegion(t *testing.T) {
+	tests := []struct {
+		region   string
+		expected string
+	}{
+		{"us-east-1", "US_EAST_1"},
+		{"US-EAST-1", "US_EAST_1"},
+	}
+
+	for _, test := range tests {
+		if resp := conversion.AWSRegionToMongoDBRegion(test.region); resp != test.expected {
+			t.Errorf("AWSRegionToMongoDBRegion(%v) = %v; want %v", test.region, resp, test.expected)
 		}
 	}
 }

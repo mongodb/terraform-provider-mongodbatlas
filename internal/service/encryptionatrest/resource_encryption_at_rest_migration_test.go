@@ -25,7 +25,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 	)
@@ -60,15 +60,11 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
+	acc.SkipTestForCI(t) // TODO: enable in CI as part of CLOUDP-267663
 
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		// accessKeyID  = os.Getenv("AWS_ACCESS_KEY_ID")
-		// secretKey    = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		// policyName   = acc.RandomName()
-		// roleName     = acc.RandomName()
 
 		awsIAMRoleName       = acc.RandomIAMRole()
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
@@ -76,8 +72,7 @@ func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled: conversion.Pointer(true),
-			// CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region: conversion.StringPtr(os.Getenv("AWS_REGION")),
+			Region:  conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 		}
 	)
 
@@ -87,20 +82,17 @@ func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProvidersWithAWS(),
-				// Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
+				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
 			},
 			{
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				// Config:                   testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
+				Config:                   testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
-					// resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
 				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
@@ -216,7 +208,7 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 			AccessKeyID:         conversion.StringPtr(os.Getenv("AWS_ACCESS_KEY_ID")),
 			SecretAccessKey:     conversion.StringPtr(os.Getenv("AWS_SECRET_ACCESS_KEY")),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 	)

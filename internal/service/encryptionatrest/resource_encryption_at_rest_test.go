@@ -23,13 +23,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-const (
-	initialConfigEncryptionRestRoleAWS = `
-
-
-`
-)
-
 func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t) // needs AWS configuration
 
@@ -40,14 +33,14 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")), // TODO: convert region to atlas one here
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 
 		awsKmsUpdated = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 	)
@@ -293,7 +286,7 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 }
 
 func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
+	acc.SkipTestForCI(t) // TODO: enable in CI as part of CLOUDP-267663
 	var (
 		resourceName         = "mongodbatlas_encryption_at_rest.test"
 		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -302,8 +295,7 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 		awsKeyName           = acc.RandomName()
 		awsKms               = admin.AWSKMSConfiguration{
 			Enabled: conversion.Pointer(true),
-			// CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region: conversion.StringPtr(os.Getenv("AWS_REGION")),
+			Region:  conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 		}
 	)
 
@@ -314,7 +306,6 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				// Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
 			},
 			{
@@ -666,17 +657,6 @@ func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, g
 		}
 	`, projectID, *google.Enabled, google.GetServiceAccountKey(), google.GetKeyVersionResourceID())
 }
-
-// func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName string, isUpdate bool, aws *admin.AWSKMSConfiguration) string {
-// 	cfg := fmt.Sprintf(initialConfigEncryptionRestRoleAWS, region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName, "", "", "")
-// 	if isUpdate {
-// 		configEncrypt := fmt.Sprintf(configEncryptionRest, projectID, *aws.Enabled, aws.GetCustomerMasterKeyID(), aws.GetRegion())
-// 		dataAWSARN := fmt.Sprintf(dataAWSARNConfig, awsRoleName)
-// 		dataARN := `iam_assumed_role_arn = data.aws_iam_role.test.arn`
-// 		cfg = fmt.Sprintf(initialConfigEncryptionRestRoleAWS, region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName, dataAWSARN, dataARN, configEncrypt)
-// 	}
-// 	return cfg
-// }
 
 func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName string, awsEar *admin.AWSKMSConfiguration) string {
 	test := fmt.Sprintf(`
