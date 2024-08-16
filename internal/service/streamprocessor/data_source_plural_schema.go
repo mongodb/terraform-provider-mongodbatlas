@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -27,17 +26,25 @@ type streamProcessorsDS struct {
 }
 
 func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = dsschema.PaginatedDSSchema(
-		map[string]schema.Attribute{
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{
 				Required: true,
 			},
 			"instance_name": schema.StringAttribute{
 				Required: true,
 			},
+			"total_count": schema.Int64Attribute{
+				Computed: true,
+			},
+			"results": schema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: DSAttributes(false),
+				},
+			},
 		},
-		DSAttributes(false),
-		true)
+	}
 }
 
 type TFStreamProcessorsDSModel struct {
