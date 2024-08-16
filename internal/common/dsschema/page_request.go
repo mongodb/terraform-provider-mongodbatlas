@@ -11,10 +11,10 @@ type PaginateResponse[T any] interface {
 	GetTotalCount() int
 }
 
-func AllPages[T any](ctx context.Context, call func(ctx context.Context, pageNum int) (PaginateResponse[T], *http.Response, error)) ([]T, error) {
+func AllPages[T any](ctx context.Context, listOnPage func(ctx context.Context, pageNum int) (PaginateResponse[T], *http.Response, error)) ([]T, error) {
 	var results []T
 	for i := 1; ; i++ {
-		resp, _, err := call(ctx, i)
+		resp, _, err := listOnPage(ctx, i)
 		if err != nil {
 			return nil, err
 		}
