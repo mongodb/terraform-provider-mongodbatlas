@@ -189,7 +189,7 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
 			Secret:                   conversion.StringPtr(os.Getenv("AZURE_SECRET_UPDATED")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
-			RequirePrivateNetworking: conversion.Pointer(true),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 	)
 
