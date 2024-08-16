@@ -31,7 +31,8 @@ func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadReques
 		PageNum:      conversion.Int64PtrToIntPtr(pageNum),
 	}
 
-	sdkProcessors, err := dsschema.AllPagesFromRequest[admin.StreamsProcessorWithStats](ctx, connV2.StreamsApi.ListStreamConnectionsWithParams(ctx, &params))
+	listReq := connV2.StreamsApi.ListStreamProcessorsWithParams(ctx, &params)
+	sdkProcessors, err := dsschema.AllPagesFromRequest[admin.StreamsProcessorWithStats, admin.ListStreamProcessorsApiRequest](ctx, listReq)
 	// sdkProcessors, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.StreamsProcessorWithStats], *http.Response, error) {
 	// 	request := connV2.StreamsApi.ListStreamProcessorsWithParams(ctx, &params)
 	// 	request = request.PageNum(pageNum)

@@ -6,15 +6,15 @@ import (
 	"net/http"
 )
 
-type PaginateResponse[T any] interface {
-	GetResults() []T
+type PaginateResponse[ElementsModel any] interface {
+	GetResults() []ElementsModel
 	GetTotalCount() int
 }
 
-func AllPages[T any](ctx context.Context, call func(ctx context.Context, pageNum int) (PaginateResponse[T], *http.Response, error)) ([]T, error) {
-	var results []T
-	for i := 1; ; i++ {
-		resp, _, err := call(ctx, i)
+func AllPages[ElementsModel any](ctx context.Context, call func(ctx context.Context, pageNum int) (PaginateResponse[ElementsModel], *http.Response, error)) ([]ElementsModel, error) {
+	var results []ElementsModel
+	for pageNum := 1; ; pageNum++ {
+		resp, _, err := call(ctx, pageNum)
 		if err != nil {
 			return nil, err
 		}
@@ -30,14 +30,15 @@ func AllPages[T any](ctx context.Context, call func(ctx context.Context, pageNum
 	return results, nil
 }
 
-type PaginateRequest[T any] interface {
-	Execute() (PaginateResponse[T], *http.Response, error)
-	PageNum(int) PaginateRequest[T]
+type PaginateRequest[ElementsModel any] interface {
+	PageNum(int) PaginateRequest[ElementsModel]
+	Execute() (*PaginateResponse[ElementsModel], *http.Response, error)
 }
 
-func AllPagesFromRequest[T any](ctx context.Context, req PaginateRequest[T]) ([]T, error) {
-	return AllPages(ctx, func(ctx context.Context, pageNum int) (PaginateResponse[T], *http.Response, error) {
+func AllPagesFromRequest[ElementsModel any, V PaginateRequest[ElementsModel]](ctx context.Context, req V) ([]ElementsModel, error) {
+	return AllPages[ElementsModel](ctx, func(ctx context.Context, pageNum int) (PaginateResponse[ElementsModel], *http.Response, error) {
 		request := req.PageNum(pageNum)
-		return request.Execute()
+		a, b, c := request.Execute()
+		return *a, b, c
 	})
 }
