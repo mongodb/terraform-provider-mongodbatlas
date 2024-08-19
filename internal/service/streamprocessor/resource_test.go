@@ -65,6 +65,7 @@ func TestAccStreamProcessorRS_createWithAutoStart(t *testing.T) {
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		processorName = "new-processor"
+		instanceName  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -101,6 +102,7 @@ func TestAccStreamProcessorRS_failWithInvalidStateOnCreation(t *testing.T) {
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		processorName = "new-processor"
+		instanceName  = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
