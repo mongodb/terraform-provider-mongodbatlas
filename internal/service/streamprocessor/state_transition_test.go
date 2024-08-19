@@ -26,6 +26,7 @@ var (
 	FailedState         = "FAILED"
 	sc500               = conversion.IntPtr(500)
 	sc200               = conversion.IntPtr(200)
+	sc404               = conversion.IntPtr(404)
 	streamProcessorName = "processorName"
 	requestParams       = &admin.GetStreamProcessorApiParams{
 		GroupId:       "groupId",
@@ -96,6 +97,16 @@ func TestStreamProcessorStateTransition(t *testing.T) {
 				{statusCode: sc500, err: errors.New("Internal server error")},
 			},
 			expectedState: nil,
+			expectedError: true,
+			desiredStates: []string{CreatedState, FailedState},
+			pendingStates: []string{InitiatingState, CreatingState},
+		},
+		{
+			name: "Dropped state when 404 is returned",
+			mockResponses: []response{
+				{statusCode: sc404, err: errors.New("Not found")},
+			},
+			expectedState: &DroppedState,
 			expectedError: true,
 			desiredStates: []string{CreatedState, FailedState},
 			pendingStates: []string{InitiatingState, CreatingState},
