@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -173,10 +172,12 @@ func checkDestroyStreamProcessor(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_stream_processor" {
 			continue
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().StreamsApi.GetStreamProcessor(context.Background(), ids["project_id"], ids["instance_name"], ids["processor_name"]).Execute()
+		projectID := rs.Primary.Attributes["project_id"]
+		instanceName := rs.Primary.Attributes["instance_name"]
+		processorName := rs.Primary.Attributes["processor_name"]
+		_, _, err := acc.ConnV2().StreamsApi.GetStreamProcessor(context.Background(), projectID, instanceName, processorName).Execute()
 		if err == nil {
-			return fmt.Errorf("Stream processor (%s) still exists", ids["processor_name"])
+			return fmt.Errorf("Stream processor (%s) still exists", processorName)
 		}
 	}
 

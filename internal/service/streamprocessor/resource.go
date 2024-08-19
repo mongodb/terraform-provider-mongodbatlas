@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
-const streamProcessorName = "stream_processor"
+const StreamProcessorName = "stream_processor"
 
 var _ resource.ResourceWithConfigure = &streamProcessorRS{}
 var _ resource.ResourceWithImportState = &streamProcessorRS{}
@@ -20,7 +20,7 @@ var _ resource.ResourceWithImportState = &streamProcessorRS{}
 func Resource() resource.Resource {
 	return &streamProcessorRS{
 		RSCommon: config.RSCommon{
-			ResourceName: streamProcessorName,
+			ResourceName: StreamProcessorName,
 		},
 	}
 }
@@ -61,6 +61,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectID.ValueString()
 	instanceName := plan.InstanceName.ValueString()
+	processorName := plan.ProcessorName.ValueString()
 	_, _, err := connV2.StreamsApi.CreateStreamProcessor(ctx, projectID, instanceName, streamProcessorReq).Execute()
 
 	if err != nil {
@@ -70,8 +71,8 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 
 	streamProcessorParams := &admin.GetStreamProcessorApiParams{
 		GroupId:       projectID,
-		TenantName:    plan.InstanceName.ValueString(),
-		ProcessorName: plan.ProcessorName.ValueString(),
+		TenantName:    instanceName,
+		ProcessorName: processorName,
 	}
 
 	streamProcessorResp, err := WaitStateTransition(ctx, streamProcessorParams, connV2.StreamsApi, []string{InitiatingState, CreatingState}, []string{CreatedState, FailedState})
@@ -82,9 +83,9 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 	if needsStarting {
 		_, _, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
 			&admin.StartStreamProcessorApiParams{
-				GroupId:       plan.ProjectID.ValueString(),
-				TenantName:    plan.InstanceName.ValueString(),
-				ProcessorName: plan.ProcessorName.ValueString(),
+				GroupId:       projectID,
+				TenantName:    instanceName,
+				ProcessorName: processorName,
 			},
 		).Execute()
 		if err != nil {
@@ -119,6 +120,7 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 	if err != nil {
 		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
+			resp.Diagnostics.AddError("resource not found", err.Error())
 			return
 		}
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
@@ -146,6 +148,9 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	connV2 := r.Client.AtlasV2
 	pendingStates := []string{CreatedState}
 	desiredState := []string{}
+	projectID := plan.ProjectID.ValueString()
+	instanceName := plan.InstanceName.ValueString()
+	processorName := plan.ProcessorName.ValueString()
 	if plan.State.Equal(state.State) || !updatedStateOnly(&plan, &state) {
 		resp.Diagnostics.AddError("updating a Stream Processor is not supported", "")
 		return
@@ -156,9 +161,9 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		pendingStates = append(pendingStates, StoppedState)
 		_, _, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
 			&admin.StartStreamProcessorApiParams{
-				GroupId:       plan.ProjectID.ValueString(),
-				TenantName:    plan.InstanceName.ValueString(),
-				ProcessorName: plan.ProcessorName.ValueString(),
+				GroupId:       projectID,
+				TenantName:    instanceName,
+				ProcessorName: processorName,
 			},
 		).Execute()
 		if err != nil {
@@ -169,9 +174,9 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		pendingStates = append(pendingStates, StartedState)
 		_, _, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
 			&admin.StopStreamProcessorApiParams{
-				GroupId:       plan.ProjectID.ValueString(),
-				TenantName:    plan.InstanceName.ValueString(),
-				ProcessorName: plan.ProcessorName.ValueString(),
+				GroupId:       projectID,
+				TenantName:    instanceName,
+				ProcessorName: processorName,
 			},
 		).Execute()
 		if err != nil {
@@ -182,12 +187,10 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	projectID := plan.ProjectID.ValueString()
-	instanceName := plan.InstanceName.ValueString()
 	requestParams := &admin.GetStreamProcessorApiParams{
 		GroupId:       projectID,
 		TenantName:    instanceName,
-		ProcessorName: plan.ProcessorName.ValueString(),
+		ProcessorName: processorName,
 	}
 
 	streamProcessorResp, err := WaitStateTransition(ctx, requestParams, connV2.StreamsApi, pendingStates, desiredState)
@@ -250,5 +253,6 @@ func updatedStateOnly(plan, state *TFStreamProcessorRSModel) bool {
 		plan.InstanceName.Equal(state.InstanceName) &&
 		plan.ProcessorName.Equal(state.ProcessorName) &&
 		plan.Pipeline.Equal(state.Pipeline) &&
+		plan.Options.Equal(state.Options) &&
 		!plan.State.Equal(state.State)
 }

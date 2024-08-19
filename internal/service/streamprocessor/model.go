@@ -129,10 +129,12 @@ func extractChangeStreamTokenFromStats(stats any) (types.String, diag.Diagnostic
 	}
 
 	if data := statsMap["data"]; data != nil {
-		dataMap := data.(map[string]interface{})
-		changeStreamToken, ok := dataMap["changeStreamToken"]
+		dataMap, ok := data.(map[string]interface{})
 		if ok {
-			return types.StringValue(changeStreamToken.(string)), nil
+			changeStreamToken, ok := dataMap["changeStreamToken"]
+			if ok {
+				return types.StringValue(changeStreamToken.(string)), nil
+			}
 		}
 	}
 
@@ -140,9 +142,6 @@ func extractChangeStreamTokenFromStats(stats any) (types.String, diag.Diagnostic
 }
 
 func convertPipelineToSdk(pipeline *string) ([]any, diag.Diagnostics) {
-	if pipeline == nil {
-		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Pipeline is required", "")}
-	}
 	var pipelineSliceOfMaps []any
 	err := json.Unmarshal([]byte(*pipeline), &pipelineSliceOfMaps)
 	if err != nil {
