@@ -60,7 +60,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t) // TODO: enable in CI as part of CLOUDP-267663
+	acc.SkipTestForCI(t)
 
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
@@ -71,8 +71,9 @@ func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 		awsKeyName           = acc.RandomName()
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled: conversion.Pointer(true),
-			Region:  conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			Enabled:             conversion.Pointer(true),
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 		}
 	)
 
