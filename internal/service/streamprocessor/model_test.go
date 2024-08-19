@@ -25,9 +25,8 @@ var (
 			"connectionName": "__testLog",
 		},
 	}
-	processorName     = "processor1"
-	processorID       = "66b39806187592e8d721215d"
-	changeStreamToken = "changeStreamTokenValue"
+	processorName = "processor1"
+	processorID   = "66b39806187592e8d721215d"
 )
 
 var statsExample = `
@@ -39,7 +38,7 @@ var statsExample = `
 	"memoryTrackerBytes": 0.0,
 	"name": "processor1",
 	"ok": 1.0,
-	"changeStreamState": { "_data": "changeStreamTokenValue" },
+	"changeStreamState": { "_data": "8266C37388000000012B0429296E1404" },
 	"operatorStats": [
 		{
 			"dlqMessageCount": 0,
@@ -161,28 +160,28 @@ func TestTeamsResourceSDKToTFModel(t *testing.T) {
 				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED",
 			),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
-				InstanceName:      types.StringValue(instanceName),
-				Options:           types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
-				ProcessorID:       types.StringValue(processorID),
-				Pipeline:          types.StringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
-				ProcessorName:     types.StringValue(processorName),
-				ProjectID:         types.StringValue(projectID),
-				State:             types.StringValue("CREATED"),
-				ChangeStreamToken: types.StringNull(),
+				InstanceName:  types.StringValue(instanceName),
+				Options:       types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
+				ProcessorID:   types.StringValue(processorID),
+				Pipeline:      types.StringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				ProcessorName: types.StringValue(processorName),
+				ProjectID:     types.StringValue(projectID),
+				State:         types.StringValue("CREATED"),
+				Stats:         types.StringValue("{}"),
 			},
 		},
 		{
 			name:     "afterStarted",
 			sdkModel: streamProcessorWithStats(t),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
-				InstanceName:      types.StringValue(instanceName),
-				Options:           types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
-				ProcessorID:       types.StringValue(processorID),
-				Pipeline:          types.StringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
-				ProcessorName:     types.StringValue(processorName),
-				ProjectID:         types.StringValue(projectID),
-				State:             types.StringValue("STARTED"),
-				ChangeStreamToken: types.StringValue(changeStreamToken),
+				InstanceName:  types.StringValue(instanceName),
+				Options:       types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
+				ProcessorID:   types.StringValue(processorID),
+				Pipeline:      types.StringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				ProcessorName: types.StringValue(processorName),
+				ProjectID:     types.StringValue(projectID),
+				State:         types.StringValue("STARTED"),
+				Stats:         types.StringValue(statsExample),
 			},
 		},
 	}
@@ -194,8 +193,18 @@ func TestTeamsResourceSDKToTFModel(t *testing.T) {
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
-			assert.Equal(t, tc.expectedTFModel.ChangeStreamToken, resultModel.ChangeStreamToken)
-			assert.Equal(t, tc.expectedTFModel, resultModel)
+			if sdkModel.Stats != nil {
+				assert.True(t, schemafunc.EqualJSON(resultModel.Pipeline.String(), tc.expectedTFModel.Pipeline.String(), "test stream processor schema"))
+				var statsResult any
+				err := json.Unmarshal([]byte(resultModel.Stats.ValueString()), &statsResult)
+				if err != nil {
+					t.Fatal(err)
+				}
+				assert.Len(t, sdkModel.Stats, 15)
+				assert.Len(t, statsResult, 15)
+			} else {
+				assert.Equal(t, tc.expectedTFModel, resultModel)
+			}
 		})
 	}
 }

@@ -15,11 +15,6 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"change_stream_token": schema.StringAttribute{
-				Computed:            true,
-				Description:         "The resume token for the change stream. Only used when the pipeline source is Cluster.",
-				MarkdownDescription: "The resume token for the change stream. Only used when the pipeline source is Cluster.",
-			},
 			"id": schema.StringAttribute{
 				Computed:            true,
 				Description:         "Unique 24-hexadecimal character string that identifies the stream processor.",
@@ -88,19 +83,24 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Optional configuration for the stream processor.",
 				MarkdownDescription: "Optional configuration for the stream processor.",
 			},
+			"stats": schema.StringAttribute{
+				Computed:            true,
+				Description:         "The stats associated with the stream processor.",
+				MarkdownDescription: "The stats associated with the stream processor.",
+			},
 		},
 	}
 }
 
 type TFStreamProcessorRSModel struct {
-	InstanceName      types.String `tfsdk:"instance_name"`
-	Options           types.Object `tfsdk:"options"`
-	Pipeline          types.String `tfsdk:"pipeline"`
-	ProcessorID       types.String `tfsdk:"id"`
-	ProcessorName     types.String `tfsdk:"processor_name"`
-	ProjectID         types.String `tfsdk:"project_id"`
-	State             types.String `tfsdk:"state"`
-	ChangeStreamToken types.String `tfsdk:"change_stream_token"`
+	InstanceName  types.String `tfsdk:"instance_name"`
+	Options       types.Object `tfsdk:"options"`
+	Pipeline      types.String `tfsdk:"pipeline"`
+	ProcessorID   types.String `tfsdk:"id"`
+	ProcessorName types.String `tfsdk:"processor_name"`
+	ProjectID     types.String `tfsdk:"project_id"`
+	State         types.String `tfsdk:"state"`
+	Stats         types.String `tfsdk:"stats"`
 }
 
 type TFOptionsModel struct {

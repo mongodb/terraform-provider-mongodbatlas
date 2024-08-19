@@ -52,19 +52,19 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName st
 	if diags.HasError() {
 		return nil, diags
 	}
-	changeStreamToken, diags := extractChangeStreamTokenFromStats(apiResp.GetStats())
+	statsTF, diags := convertStatsToTF(apiResp.GetStats())
 	if diags.HasError() {
 		return nil, diags
 	}
 	tfModel := &TFStreamProcessorRSModel{
-		InstanceName:      types.StringPointerValue(&instanceName),
-		Options:           stateOptions,
-		Pipeline:          pipelineTF,
-		ProcessorID:       types.StringPointerValue(&apiResp.Id),
-		ProcessorName:     types.StringPointerValue(&apiResp.Name),
-		ProjectID:         types.StringPointerValue(&projectID),
-		State:             types.StringPointerValue(&apiResp.State),
-		ChangeStreamToken: changeStreamToken,
+		InstanceName:  types.StringPointerValue(&instanceName),
+		Options:       stateOptions,
+		Pipeline:      pipelineTF,
+		ProcessorID:   types.StringPointerValue(&apiResp.Id),
+		ProcessorName: types.StringPointerValue(&apiResp.Name),
+		ProjectID:     types.StringPointerValue(&projectID),
+		State:         types.StringPointerValue(&apiResp.State),
+		Stats:         statsTF,
 	}
 	return tfModel, nil
 }
@@ -110,35 +110,6 @@ func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
 		return types.StringValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal stats", err.Error())}
 	}
 	return types.StringValue(string(statsJSON)), nil
-}
-
-func extractChangeStreamTokenFromStats(stats any) (types.String, diag.Diagnostics) {
-	if stats == nil {
-		return types.StringNull(), nil
-	}
-	var statsMap map[string]interface{}
-
-	statsJSON, err := json.Marshal(stats)
-	if err != nil {
-		return types.StringValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal stats", err.Error())}
-	}
-
-	err = json.Unmarshal(statsJSON, &statsMap)
-	if err != nil {
-		return types.StringValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to unmarshal stats", err.Error())}
-	}
-
-	if data := statsMap["changeStreamState"]; data != nil {
-		dataMap, ok := data.(map[string]interface{})
-		if ok {
-			changeStreamToken, ok := dataMap["_data"]
-			if ok {
-				return types.StringValue(changeStreamToken.(string)), nil
-			}
-		}
-	}
-
-	return types.StringNull(), nil
 }
 
 func convertPipelineToSdk(pipeline string) ([]any, diag.Diagnostics) {

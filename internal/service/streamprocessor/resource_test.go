@@ -118,7 +118,7 @@ func TestAccStreamProcessorRS_clusterType(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "processor_name"),
 					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
 					resource.TestCheckResourceAttr(resourceName, "state", "STARTED"),
-					resource.TestCheckResourceAttrSet(resourceName, "change_stream_token"),
+					resource.TestCheckResourceAttrSet(resourceName, "stats"),
 				),
 			},
 		}})
