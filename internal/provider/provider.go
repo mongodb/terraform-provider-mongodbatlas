@@ -437,6 +437,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 	}
 	previewDataSources := []func() datasource.DataSource{ // Data sources not yet in GA
 		encryptionatrestprivateendpoint.DataSource,
+		encryptionatrestprivateendpoint.PluralDataSource,
 	}
 	if providerEnablePreview {
 		dataSources = append(dataSources, previewDataSources...)

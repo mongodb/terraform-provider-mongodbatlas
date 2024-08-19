@@ -14,11 +14,6 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Human-readable label that identifies the cloud provider of the private endpoint.",
 				MarkdownDescription: "Human-readable label that identifies the cloud provider of the private endpoint.",
 			},
-			"endpoint_id": schema.StringAttribute{
-				Required:            true,
-				Description:         "Unique 24-hexadecimal digit string that identifies the private endpoint.",
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the private endpoint.",
-			},
 			"error_message": schema.StringAttribute{
 				Computed:            true,
 				Description:         "Error message for failures associated with the Encryption At Rest private endpoint.",
@@ -30,7 +25,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 			},
 			"id": schema.StringAttribute{
-				Computed:            true,
+				Required:            true,
 				Description:         "Unique 24-hexadecimal digit string that identifies the Private Endpoint Service.",
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the Private Endpoint Service.",
 			},
