@@ -60,7 +60,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs AWS configuration
 
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"

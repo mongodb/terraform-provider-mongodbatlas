@@ -288,7 +288,7 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 }
 
 func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // needs AWS configuration
 	var (
 		resourceName         = "mongodbatlas_encryption_at_rest.test"
 		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
