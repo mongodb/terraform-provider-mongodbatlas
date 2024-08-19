@@ -15,31 +15,26 @@ import (
 const versionBeforeISSRelease = "1.17.6"
 
 func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	// once 1.18.0 is released we can adjust this to always check new attributes - CLOUDP-266096
-	testCase := replicaSetAWSProviderTestCase(t, false)
+	testCase := replicaSetAWSProviderTestCase(t)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	// once 1.18.0 is released we can adjust this to always check new attributes - CLOUDP-266096
-	testCase := replicaSetMultiCloudTestCase(t, false)
+	testCase := replicaSetMultiCloudTestCase(t)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	// once 1.18.0 is released we can adjust this to always check new attributes - CLOUDP-266096
-	testCase := singleShardedMultiCloudTestCase(t, false)
+	testCase := singleShardedMultiCloudTestCase(t)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
-	// once 1.18.0 is released we can adjust this to always check new attributes - CLOUDP-266096
-	testCase := symmetricGeoShardedOldSchemaTestCase(t, false)
+	testCase := symmetricGeoShardedOldSchemaTestCase(t)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
-	acc.SkipTestForCI(t) // latest release does not support ISS, to be adjusted in CLOUDP-266096
 	testCase := asymmetricShardedNewSchemaTestCase(t)
 	mig.CreateAndRunTest(t, &testCase)
 }
