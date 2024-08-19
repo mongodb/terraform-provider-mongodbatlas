@@ -5,101 +5,22 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
+
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
-	"go.mongodb.org/atlas-sdk/v20240805001/mockadmin"
-)
-
-const (
-	initialConfigEncryptionRestRoleAWS = `
-provider "aws" {
-	region     = lower(replace("%[1]s", "_", "-"))
-	access_key = "%[2]s"
-	secret_key = "%[3]s"
-}
-
-%[7]s
-
-resource "mongodbatlas_cloud_provider_access" "test" {
-	project_id = "%[4]s"
-	provider_name = "AWS"
-	%[8]s
-		
-}
-
-resource "aws_iam_role_policy" "test_policy" {
-  name = "%[5]s"
-  role = aws_iam_role.test_role.id
-
-  policy = <<-EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Deny",
-		"Action": "*",
-		"Resource": "*"
-      }
-    ]
-  }
-  EOF
-}
-
-resource "aws_iam_role" "test_role" {
- name = "%[6]s"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "${mongodbatlas_cloud_provider_access.test.atlas_aws_account_arn}"
-      },
-      "Action": "sts:AssumeRole",
-      "Condition": {
-        "StringEquals": {
-          "sts:ExternalId": "${mongodbatlas_cloud_provider_access.test.atlas_assumed_role_external_id}"
-        }
-      }
-    }
-  ]
-}
-EOF
-
-}
-
-%[9]s
-
-`
-	configEncryptionRest = `
-resource "mongodbatlas_encryption_at_rest" "test" {
-	project_id = "%s"
-
-	aws_kms_config {
-		enabled                = %t
-		customer_master_key_id = "%s"
-		region                 = "%s"
-		role_id = mongodbatlas_cloud_provider_access.test.role_id
-	}
-}`
-	dataAWSARNConfig = `
-data "aws_iam_role" "test" {
-  name = "%s"
-}
-
-`
 )
 
 func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
@@ -112,14 +33,14 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 
 		awsKmsUpdated = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 	)
@@ -203,7 +124,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVault),
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVault, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -211,10 +132,11 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVault.GetAzureEnvironment()),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVault.GetResourceGroupName()),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVault.GetKeyVaultName()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.require_private_networking", "false"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVaultUpdated),
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVaultUpdated, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -222,6 +144,82 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVaultUpdated.GetAzureEnvironment()),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVaultUpdated.GetResourceGroupName()),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVaultUpdated.GetKeyVaultName()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.require_private_networking", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// "azure_key_vault_config.0.secret" is a sensitive value not returned by the API
+				ImportStateVerifyIgnore: []string{"azure_key_vault_config.0.secret"},
+			},
+		},
+	})
+}
+
+func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T) {
+	acc.SkipTestForCI(t) // needs Azure configuration
+
+	var (
+		resourceName = "mongodbatlas_encryption_at_rest.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+
+		azureKeyVault = admin.AzureKeyVault{
+			Enabled:                  conversion.Pointer(true),
+			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
+			AzureEnvironment:         conversion.StringPtr("AZURE"),
+			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
+			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
+			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME")),
+			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
+			Secret:                   conversion.StringPtr(os.Getenv("AZURE_SECRET")),
+			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
+			RequirePrivateNetworking: conversion.Pointer(true),
+		}
+
+		azureKeyVaultUpdated = admin.AzureKeyVault{
+			Enabled:                  conversion.Pointer(true),
+			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID_UPDATED")),
+			AzureEnvironment:         conversion.StringPtr("AZURE"),
+			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
+			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED")),
+			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED")),
+			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
+			Secret:                   conversion.StringPtr(os.Getenv("AZURE_SECRET_UPDATED")),
+			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
+			RequirePrivateNetworking: conversion.Pointer(false),
+		}
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzure(t); acc.PreCheckPreviewFlag(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVault, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVault.GetAzureEnvironment()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVault.GetResourceGroupName()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVault.GetKeyVaultName()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.require_private_networking", strconv.FormatBool((azureKeyVault.GetRequirePrivateNetworking()))),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVaultUpdated, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVaultUpdated.GetAzureEnvironment()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVaultUpdated.GetResourceGroupName()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVaultUpdated.GetKeyVaultName()),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.require_private_networking", strconv.FormatBool((azureKeyVaultUpdated.GetRequirePrivateNetworking()))),
 				),
 			},
 			{
@@ -290,18 +288,17 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 }
 
 func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
+	acc.SkipTestForCI(t) // needs AWS configuration
 	var (
-		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		accessKeyID  = os.Getenv("AWS_ACCESS_KEY_ID")
-		secretKey    = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		policyName   = acc.RandomName()
-		roleName     = acc.RandomName()
-		awsKms       = admin.AWSKMSConfiguration{
+		resourceName         = "mongodbatlas_encryption_at_rest.test"
+		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		awsIAMRoleName       = acc.RandomIAMRole()
+		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
+		awsKeyName           = acc.RandomName()
+		awsKms               = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(os.Getenv("AWS_REGION")),
 		}
 	)
 
@@ -312,14 +309,7 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
-			},
-			{
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.GetRegion(), accessKeyID, secretKey, projectID, policyName, roleName, true, &awsKms),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-				),
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
 			},
 			{
 				ResourceName:      resourceName,
@@ -614,7 +604,29 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *admi
 	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId())
 }
 
-func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID string, azure *admin.AzureKeyVault) string {
+func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useRequirePrivateNetworking bool) string {
+	if useRequirePrivateNetworking {
+		return fmt.Sprintf(`
+		resource "mongodbatlas_encryption_at_rest" "test" {
+			project_id = "%s"
+
+		  azure_key_vault_config {
+				enabled             = %t
+				client_id           = "%s"
+				azure_environment   = "%s"
+				subscription_id     = "%s"
+				resource_group_name = "%s"
+				key_vault_name  	  = "%s"
+				key_identifier  	  = "%s"
+				secret  						= "%s"
+				tenant_id  					= "%s"
+				require_private_networking = %t
+			}
+		}
+	`, projectID, *azure.Enabled, azure.GetClientID(), azure.GetAzureEnvironment(), azure.GetSubscriptionID(), azure.GetResourceGroupName(),
+			azure.GetKeyVaultName(), azure.GetKeyIdentifier(), azure.GetSecret(), azure.GetTenantID(), azure.GetRequirePrivateNetworking())
+	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
@@ -649,15 +661,91 @@ func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, g
 	`, projectID, *google.Enabled, google.GetServiceAccountKey(), google.GetKeyVersionResourceID())
 }
 
-func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName string, isUpdate bool, aws *admin.AWSKMSConfiguration) string {
-	cfg := fmt.Sprintf(initialConfigEncryptionRestRoleAWS, region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName, "", "", "")
-	if isUpdate {
-		configEncrypt := fmt.Sprintf(configEncryptionRest, projectID, *aws.Enabled, aws.GetCustomerMasterKeyID(), aws.GetRegion())
-		dataAWSARN := fmt.Sprintf(dataAWSARNConfig, awsRoleName)
-		dataARN := `iam_assumed_role_arn = data.aws_iam_role.test.arn`
-		cfg = fmt.Sprintf(initialConfigEncryptionRestRoleAWS, region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName, dataAWSARN, dataARN, configEncrypt)
-	}
-	return cfg
+func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName string, awsEar *admin.AWSKMSConfiguration) string {
+	test := fmt.Sprintf(`
+	locals {
+		project_id = %[1]q
+		aws_iam_role_policy_name = %[2]q
+		aws_iam_role_name        = %[3]q
+		aws_kms_key_name         = %[4]q
+	  }
+
+		  %[5]s	
+`, projectID, awsIAMRolePolicyName, awsIAMRoleName, awsKeyName, awsIAMroleAuthAndEarConfigUsingLocals(awsEar))
+	return test
+}
+
+func awsIAMroleAuthAndEarConfigUsingLocals(awsEar *admin.AWSKMSConfiguration) string {
+	return fmt.Sprintf(`  
+	resource "aws_iam_role_policy" "test_policy" {
+		name = local.aws_iam_role_policy_name
+		role = aws_iam_role.test_role.id
+	  
+		policy = jsonencode({
+		  "Version" : "2012-10-17",
+		  "Statement" : [
+			{
+			  "Effect" : "Allow",
+			  "Action" : [
+				"kms:Decrypt",
+				"kms:Encrypt",
+				"kms:DescribeKey"
+			  ],
+			  "Resource" : [
+				%[3]q
+			  ]
+			}
+		  ]
+		})
+	  }
+	  
+	resource "aws_iam_role" "test_role" {
+		name = local.aws_iam_role_name
+	  
+		assume_role_policy = jsonencode({
+		  "Version" : "2012-10-17",
+		  "Statement" : [
+			{
+			  "Effect" : "Allow",
+			  "Principal" : {
+				"AWS" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
+			  },
+			  "Action" : "sts:AssumeRole",
+			  "Condition" : {
+				"StringEquals" : {
+				  "sts:ExternalId" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
+				}
+			  }
+			}
+		  ]
+		})
+	  }
+
+	resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+		project_id    = local.project_id
+		provider_name = "AWS"
+	  }
+	  
+	  resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+		project_id = local.project_id
+		role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+	  
+		aws {
+		  iam_assumed_role_arn = aws_iam_role.test_role.arn
+		}
+	  }
+
+resource "mongodbatlas_encryption_at_rest" "test" {
+  project_id = local.project_id
+
+  aws_kms_config {
+    enabled                = %[1]t
+    customer_master_key_id = %[3]q
+	region                 = %[2]q
+    role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+  }
+}
+	`, awsEar.GetEnabled(), awsEar.GetRegion(), awsEar.GetCustomerMasterKeyID())
 }
 
 func testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {

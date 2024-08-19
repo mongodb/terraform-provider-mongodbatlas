@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -19,12 +21,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
@@ -67,15 +69,16 @@ type TfAwsKmsConfigModel struct {
 	Enabled             types.Bool   `tfsdk:"enabled"`
 }
 type TfAzureKeyVaultConfigModel struct {
-	ClientID          types.String `tfsdk:"client_id"`
-	AzureEnvironment  types.String `tfsdk:"azure_environment"`
-	SubscriptionID    types.String `tfsdk:"subscription_id"`
-	ResourceGroupName types.String `tfsdk:"resource_group_name"`
-	KeyVaultName      types.String `tfsdk:"key_vault_name"`
-	KeyIdentifier     types.String `tfsdk:"key_identifier"`
-	Secret            types.String `tfsdk:"secret"`
-	TenantID          types.String `tfsdk:"tenant_id"`
-	Enabled           types.Bool   `tfsdk:"enabled"`
+	ClientID                 types.String `tfsdk:"client_id"`
+	AzureEnvironment         types.String `tfsdk:"azure_environment"`
+	SubscriptionID           types.String `tfsdk:"subscription_id"`
+	ResourceGroupName        types.String `tfsdk:"resource_group_name"`
+	KeyVaultName             types.String `tfsdk:"key_vault_name"`
+	KeyIdentifier            types.String `tfsdk:"key_identifier"`
+	Secret                   types.String `tfsdk:"secret"`
+	TenantID                 types.String `tfsdk:"tenant_id"`
+	Enabled                  types.Bool   `tfsdk:"enabled"`
+	RequirePrivateNetworking types.Bool   `tfsdk:"require_private_networking"`
 }
 type TfGcpKmsConfigModel struct {
 	ServiceAccountKey    types.String `tfsdk:"service_account_key"`
@@ -172,6 +175,13 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 						"tenant_id": schema.StringAttribute{
 							Optional:  true,
 							Sensitive: true,
+						},
+						"require_private_networking": schema.BoolAttribute{
+							Optional: true,
+							Computed: true,
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 					},
 				},
