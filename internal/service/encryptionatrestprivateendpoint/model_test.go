@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 )
 
@@ -156,7 +155,6 @@ func TestEncryptionAtRestPrivateEndpointPluralDSSDKToTFModel(t *testing.T) {
 			expectedTFModel: &encryptionatrestprivateendpoint.TFEncryptionAtRestPrivateEndpointsDSModel{
 				CloudProvider: types.StringValue(testCloudProvider),
 				ProjectID:     types.StringValue(testProjectID),
-				TotalCount:    types.Int64Value(int64(testTotalResultCount)),
 				Results: []encryptionatrestprivateendpoint.TFEarPrivateEndpointDSModel{
 					{
 						CloudProvider:                 types.StringValue(testCloudProvider),
@@ -181,7 +179,7 @@ func TestEncryptionAtRestPrivateEndpointPluralDSSDKToTFModel(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel := encryptionatrestprivateendpoint.NewTFEarPrivateEndpoints(testProjectID, testCloudProvider, conversion.IntPtr(testTotalResultCount), tc.SDKResp)
+			resultModel := encryptionatrestprivateendpoint.NewTFEarPrivateEndpoints(testProjectID, testCloudProvider, tc.SDKResp)
 			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}

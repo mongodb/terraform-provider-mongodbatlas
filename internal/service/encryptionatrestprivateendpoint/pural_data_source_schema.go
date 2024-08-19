@@ -63,11 +63,6 @@ func PluralDataSourceSchema(ctx context.Context) schema.Schema {
 				Description:         "List of returned documents that MongoDB Cloud providers when completing this request.",
 				MarkdownDescription: "List of returned documents that MongoDB Cloud providers when completing this request.",
 			},
-			"total_count": schema.Int64Attribute{
-				Computed:            true,
-				Description:         "Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`.",
-				MarkdownDescription: "Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`.",
-			},
 		},
 	}
 }
@@ -76,7 +71,6 @@ type TFEncryptionAtRestPrivateEndpointsDSModel struct {
 	CloudProvider types.String                  `tfsdk:"cloud_provider"`
 	ProjectID     types.String                  `tfsdk:"project_id"`
 	Results       []TFEarPrivateEndpointDSModel `tfsdk:"results"`
-	TotalCount    types.Int64                   `tfsdk:"total_count"`
 }
 
 type TFEarPrivateEndpointDSModel struct {
@@ -88,10 +82,9 @@ type TFEarPrivateEndpointDSModel struct {
 	Status                        types.String `tfsdk:"status"`
 }
 
-func NewTFEarPrivateEndpoints(projectID, cloudProvider string, totalCount *int, results []admin.EARPrivateEndpoint) *TFEncryptionAtRestPrivateEndpointsDSModel {
+func NewTFEarPrivateEndpoints(projectID, cloudProvider string, results []admin.EARPrivateEndpoint) *TFEncryptionAtRestPrivateEndpointsDSModel {
 	return &TFEncryptionAtRestPrivateEndpointsDSModel{
 		ProjectID:     types.StringValue(projectID),
-		TotalCount:    types.Int64PointerValue(conversion.IntPtrToInt64Ptr(totalCount)),
 		CloudProvider: types.StringValue(cloudProvider),
 		Results:       NewTFEarPrivateEndpointsDS(results),
 	}
