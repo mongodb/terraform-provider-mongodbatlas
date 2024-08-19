@@ -39,7 +39,7 @@ var statsExample = `
 	"memoryTrackerBytes": 0.0,
 	"name": "processor1",
 	"ok": 1.0,
-	"data": { "changeStreamToken": "changeStreamTokenValue" },
+	"changeStreamState": { "_data": "changeStreamTokenValue" },
 	"operatorStats": [
 		{
 			"dlqMessageCount": 0,
