@@ -11,7 +11,7 @@ import (
 )
 
 func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {
-	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueStringPointer())
+	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
 		return nil, diags
 	}
@@ -141,9 +141,9 @@ func extractChangeStreamTokenFromStats(stats any) (types.String, diag.Diagnostic
 	return types.StringNull(), nil
 }
 
-func convertPipelineToSdk(pipeline *string) ([]any, diag.Diagnostics) {
+func convertPipelineToSdk(pipeline string) ([]any, diag.Diagnostics) {
 	var pipelineSliceOfMaps []any
-	err := json.Unmarshal([]byte(*pipeline), &pipelineSliceOfMaps)
+	err := json.Unmarshal([]byte(pipeline), &pipelineSliceOfMaps)
 	if err != nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("failed to unmarshal pipeline", err.Error())}
 	}
