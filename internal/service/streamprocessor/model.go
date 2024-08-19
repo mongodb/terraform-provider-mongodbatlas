@@ -128,10 +128,10 @@ func extractChangeStreamTokenFromStats(stats any) (types.String, diag.Diagnostic
 		return types.StringValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to unmarshal stats", err.Error())}
 	}
 
-	if data := statsMap["data"]; data != nil {
+	if data := statsMap["changeStreamState"]; data != nil {
 		dataMap, ok := data.(map[string]interface{})
 		if ok {
-			changeStreamToken, ok := dataMap["changeStreamToken"]
+			changeStreamToken, ok := dataMap["_data"]
 			if ok {
 				return types.StringValue(changeStreamToken.(string)), nil
 			}

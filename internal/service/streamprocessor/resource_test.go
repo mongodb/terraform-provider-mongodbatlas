@@ -97,6 +97,32 @@ func TestAccStreamProcessorRS_createWithAutoStart(t *testing.T) {
 		}})
 }
 
+func TestAccStreamProcessorRS_clusterType(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		processorName          = "new-processor"
+		instanceName           = acc.RandomName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: streamProcessorConfigWithClusterConnection(projectID, clusterName, instanceName, processorName, "STARTED"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "processor_name"),
+					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
+					resource.TestCheckResourceAttr(resourceName, "state", "STARTED"),
+					resource.TestCheckResourceAttrSet(resourceName, "change_stream_token"),
+				),
+			},
+		}})
+}
 func TestAccStreamProcessorRS_failWithInvalidStateOnCreation(t *testing.T) {
 	var (
 		projectID     = acc.ProjectIDExecution(t)
@@ -117,13 +143,6 @@ func TestAccStreamProcessorRS_failWithInvalidStateOnCreation(t *testing.T) {
 }
 
 func streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, state string) string {
-	// Add mongodbatlas_stream_connection once sample stream connection is not created by default
-	// resource "mongodbatlas_stream_connection" "sample" {
-	// 	project_id      = %[1]q
-	// 	instance_name   = mongodbatlas_stream_instance.instance.instance_name
-	// 	connection_name = "sample_stream_solar_2"
-	// 	type            = "Sample"
-	// }
 	stateConfig := ""
 	if state != "" {
 		stateConfig = fmt.Sprintf(`state = %[1]q`, state)
@@ -138,6 +157,13 @@ func streamProcessorConfigWithSampleConnection(projectID, instanceName, processo
 		}
 	}
 
+	resource "mongodbatlas_stream_connection" "sample" {
+		project_id      = %[1]q
+		instance_name   = mongodbatlas_stream_instance.instance.instance_name
+		connection_name = "sample_stream_solar_2"
+		type            = "Sample"
+	}
+
 	resource "mongodbatlas_stream_processor" "processor" {
 		project_id     = %[1]q
 		instance_name  = mongodbatlas_stream_instance.instance.instance_name
@@ -146,6 +172,41 @@ func streamProcessorConfigWithSampleConnection(projectID, instanceName, processo
 		%[4]s
 	}
 	`, projectID, instanceName, processorName, stateConfig)
+}
+
+func streamProcessorConfigWithClusterConnection(projectID, clusterName, instanceName, processorName, state string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_instance" "instance" {
+		project_id    = %[1]q
+		instance_name = %[2]q
+		data_process_region = {
+			region         = "VIRGINIA_USA"
+			cloud_provider = "AWS"
+		}
+	}
+
+	resource "mongodbatlas_stream_connection" "cluster" {
+		project_id      = %[1]q
+		instance_name   = mongodbatlas_stream_instance.instance.instance_name
+		connection_name = "ClusterConnection"
+		type            = "Cluster"
+		cluster_name    = %[3]q
+		db_role_to_execute = {
+			role = "atlasAdmin"
+			type = "BUILT_IN"
+		}
+		depends_on = [mongodbatlas_stream_instance.instance] 
+	}
+
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id     = %[1]q
+		instance_name  = mongodbatlas_stream_instance.instance.instance_name
+		processor_name = %[4]q
+		pipeline       = "[{\"$source\":{\"connectionName\":\"ClusterConnection\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"
+		state 		   = %[5]q
+		depends_on = [mongodbatlas_stream_connection.cluster] 
+	}
+	`, projectID, instanceName, clusterName, processorName, state)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
