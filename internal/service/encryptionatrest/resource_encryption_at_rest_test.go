@@ -288,7 +288,7 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 }
 
 func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t) // TODO: enable in CI as part of CLOUDP-267663
+	acc.SkipTestForCI(t) // TODO: As part of CLOUDP-267663, check if we need both this and TestAccEncryptionAtRest_basicAWS tests
 	var (
 		resourceName         = "mongodbatlas_encryption_at_rest.test"
 		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -296,8 +296,9 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 		awsKeyName           = acc.RandomName()
 		awsKms               = admin.AWSKMSConfiguration{
-			Enabled: conversion.Pointer(true),
-			Region:  conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			Enabled:             conversion.Pointer(true),
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 		}
 	)
 
@@ -675,11 +676,7 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRo
 }
 
 func awsIAMroleAuthAndEarConfigUsingLocals(awsEar *admin.AWSKMSConfiguration) string {
-	return fmt.Sprintf(`
-	resource "aws_kms_key" "kms_key" {
-		description = local.aws_kms_key_name
-	}
-	  
+	return fmt.Sprintf(`  
 	resource "aws_iam_role_policy" "test_policy" {
 		name = local.aws_iam_role_policy_name
 		role = aws_iam_role.test_role.id
@@ -695,7 +692,7 @@ func awsIAMroleAuthAndEarConfigUsingLocals(awsEar *admin.AWSKMSConfiguration) st
 				"kms:DescribeKey"
 			  ],
 			  "Resource" : [
-				"${aws_kms_key.kms_key.arn}"
+				%[3]q
 			  ]
 			}
 		  ]
@@ -743,12 +740,12 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 
   aws_kms_config {
     enabled                = %[1]t
-    customer_master_key_id = aws_kms_key.kms_key.id
+    customer_master_key_id = %[3]q
 	region                 = %[2]q
     role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
   }
 }
-	`, awsEar.GetEnabled(), awsEar.GetRegion())
+	`, awsEar.GetEnabled(), awsEar.GetRegion(), awsEar.GetCustomerMasterKeyID())
 }
 
 func testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
