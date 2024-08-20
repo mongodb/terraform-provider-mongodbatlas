@@ -34,9 +34,6 @@ func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRe
 			"instance_name": schema.StringAttribute{
 				Required: true,
 			},
-			"total_count": schema.Int64Attribute{
-				Computed: true,
-			},
 			"results": schema.ListNestedAttribute{
 				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
@@ -51,7 +48,4 @@ type TFStreamProcessorsDSModel struct {
 	ProjectID    types.String               `tfsdk:"project_id"`
 	InstanceName types.String               `tfsdk:"instance_name"`
 	Results      []TFStreamProcessorDSModel `tfsdk:"results"`
-	PageNum      types.Int64                `tfsdk:"page_num"`
-	ItemsPerPage types.Int64                `tfsdk:"items_per_page"`
-	TotalCount   types.Int64                `tfsdk:"total_count"`
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
@@ -66,11 +65,9 @@ func NewTFStreamProcessors(ctx context.Context,
 		}
 		results[i] = *processorModel
 	}
-	totalCount := len(sdkResults)
 	return &TFStreamProcessorsDSModel{
 		ProjectID:    streamProcessorsConfig.ProjectID,
 		InstanceName: streamProcessorsConfig.InstanceName,
 		Results:      results,
-		TotalCount:   types.Int64PointerValue(conversion.IntPtrToInt64Ptr(&totalCount)),
 	}, nil
 }

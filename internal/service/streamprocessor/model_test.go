@@ -156,7 +156,6 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 			ProjectID:    types.StringValue(projectID),
 			InstanceName: types.StringValue(instanceName),
 			Results:      []streamprocessor.TFStreamProcessorDSModel{},
-			TotalCount:   types.Int64Value(0),
 		}},
 		"oneResult": {sdkModel: &admin.PaginatedApiStreamsStreamProcessorWithStats{
 			Results: &[]admin.StreamsProcessorWithStats{*admin.NewStreamsProcessorWithStats(
@@ -169,7 +168,6 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 			Results: []streamprocessor.TFStreamProcessorDSModel{
 				*streamProcessorDSTFModel(t, stateCreated, "{}"),
 			},
-			TotalCount: types.Int64Value(1),
 		}},
 	}
 
