@@ -129,12 +129,18 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 }
 
 func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
+	testCase := testCaseCluster(t)
+	resource.ParallelTest(t, *testCase)
+}
+
+func testCaseCluster(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		resourceName           = "mongodbatlas_stream_connection.test"
 		projectID, clusterName = acc.ClusterNameExecution(t)
 		instanceName           = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -150,7 +156,7 @@ func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	})
+	}
 }
 
 func TestAccStreamRSStreamConnection_sample(t *testing.T) {
