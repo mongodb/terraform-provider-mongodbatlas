@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -50,6 +51,8 @@ func TestAccNetworkRSNetworkPeering_Azure(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "vnet_name", vNetName),
 					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
+					resource.TestCheckResourceAttr(resourceName, "status", "AVAILABLE"),
+					resource.TestCheckResourceAttr(resourceName, "error_state", ""),
 				),
 			},
 			{
@@ -61,6 +64,8 @@ func TestAccNetworkRSNetworkPeering_Azure(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "vnet_name", updatedvNetName),
 					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", directoryID),
+					resource.TestCheckResourceAttr(resourceName, "status", "AVAILABLE"),
+					resource.TestCheckResourceAttr(resourceName, "error_state", ""),
 				),
 			},
 			{
