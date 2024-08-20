@@ -75,7 +75,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		ProcessorName: processorName,
 	}
 
-	streamProcessorResp, err := WaitStateTransition(ctx, streamProcessorParams, connV2.StreamsApi, []string{InitiatingState, CreatingState}, []string{CreatedState, FailedState})
+	streamProcessorResp, err := WaitStateTransition(ctx, streamProcessorParams, connV2.StreamsApi, []string{InitiatingState, CreatingState}, []string{CreatedState})
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating stream processor", err.Error())
 	}
@@ -120,7 +120,6 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 	if err != nil {
 		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
 			resp.State.RemoveResource(ctx)
-			resp.Diagnostics.AddError("resource not found", err.Error())
 			return
 		}
 		resp.Diagnostics.AddError("error fetching resource", err.Error())

@@ -55,7 +55,7 @@ func TestStreamProcessorStateTransition(t *testing.T) {
 			},
 			expectedState: &CreatedState,
 			expectedError: false,
-			desiredStates: []string{CreatedState, FailedState},
+			desiredStates: []string{CreatedState},
 			pendingStates: []string{InitiatingState, CreatingState},
 		},
 		{
@@ -88,7 +88,7 @@ func TestStreamProcessorStateTransition(t *testing.T) {
 			},
 			expectedState: nil,
 			expectedError: true,
-			desiredStates: []string{CreatedState, FailedState},
+			desiredStates: []string{CreatedState},
 			pendingStates: []string{InitiatingState, CreatingState},
 		},
 		{

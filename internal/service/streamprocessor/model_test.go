@@ -107,7 +107,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 				State:         types.StringValue("CREATED"),
-				Stats:         types.StringValue("{}"),
+				Stats:         types.StringNull(),
 			},
 		},
 		{
@@ -167,7 +167,7 @@ func TestTeamsResourceSDKToTFModel(t *testing.T) {
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 				State:         types.StringValue("CREATED"),
-				Stats:         types.StringValue("{}"),
+				Stats:         types.StringNull(),
 			},
 		},
 		{
