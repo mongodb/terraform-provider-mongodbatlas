@@ -9,14 +9,16 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
@@ -247,7 +249,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
-		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
+		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE", "FAILED"},
 		Refresh:    resourceRefreshFunc(ctx, peer.GetId(), projectID, peerRequest.GetContainerId(), conn.NetworkPeeringApi),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
@@ -440,7 +442,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
-		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
+		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE", "FAILED"},
 		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn.NetworkPeeringApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 30 * time.Second,
@@ -470,7 +472,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"AVAILABLE", "INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER", "TERMINATING", "DELETING"},
-		Target:     []string{"DELETED"},
+		Target:     []string{"DELETED", "DELETION_FAILED", "FAILED"},
 		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn.NetworkPeeringApi),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 30 * time.Second,
