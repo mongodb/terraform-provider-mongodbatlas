@@ -1,15 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: {{.Name}}"
-sidebar_current: "docs-{{ .ProviderShortName }}-{{ $arr := split .Type " "}}{{ range $element := $arr }}{{ $element | lower}}{{ end }}{{ $name := slice (split .Name "_") 1 }}{{ range $element := $name }}-{{ $element | lower}}{{end}}"
-description: |-
-    "Provides a Search Deployment data source."
----
-
 # {{.Type}}: {{.Name}}
 
-{{ .Description | trimspace }}
-`mongodbatlas_search_deployment` describes a search node deployment.
+`{{.Name}}` describes a search node deployment.
 
 ## Example Usages
 {{ tffile (printf "examples/%s/main.tf" .Name )}}

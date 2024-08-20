@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -47,6 +47,18 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"role_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"service_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -83,7 +95,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return nil
 }
 
-func flattenBuckets(buckets []admin.DiskBackupSnapshotAWSExportBucket) []map[string]any {
+func flattenBuckets(buckets []admin.DiskBackupSnapshotExportBucket) []map[string]any {
 	var results []map[string]any
 
 	if len(buckets) == 0 {
@@ -98,6 +110,9 @@ func flattenBuckets(buckets []admin.DiskBackupSnapshotAWSExportBucket) []map[str
 			"bucket_name":      bucket.GetBucketName(),
 			"cloud_provider":   bucket.GetCloudProvider(),
 			"iam_role_id":      bucket.GetIamRoleId(),
+			"role_id":          bucket.GetRoleId(),
+			"service_url":      bucket.GetServiceUrl(),
+			"tenant_id":        bucket.GetTenantId(),
 		}
 	}
 

@@ -1,11 +1,11 @@
 package cloudbackupsnapshot_test
 
 import (
+	"reflect"
 	"testing"
 
-	"github.com/go-test/deep"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func TestSplitSnapshotImportID(t *testing.T) {
@@ -20,8 +20,8 @@ func TestSplitSnapshotImportID(t *testing.T) {
 		SnapshotId:  "5cf5a45a9ccf6400e60981b7",
 	}
 
-	if diff := deep.Equal(expected, got); diff != nil {
-		t.Errorf("Bad splitSnapshotImportID return \n got = %#v\nwant = %#v \ndiff = %#v", expected, *got, diff)
+	if !reflect.DeepEqual(expected, got) {
+		t.Errorf("Bad splitSnapshotImportID return \n got = %#v\nwant = %#v", expected, *got)
 	}
 
 	if _, err := cloudbackupsnapshot.SplitSnapshotImportID("5cf5a45a9ccf6400e60981b6projectname-environment-mongo-global-cluster5cf5a45a9ccf6400e60981b7"); err == nil {

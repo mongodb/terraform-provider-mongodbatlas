@@ -85,10 +85,6 @@ func DataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"service_attachment_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},

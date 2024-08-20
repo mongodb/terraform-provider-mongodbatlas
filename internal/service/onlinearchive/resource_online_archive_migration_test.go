@@ -1,10 +1,7 @@
 package onlinearchive_test
 
 import (
-	"os"
 	"testing"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
@@ -14,18 +11,18 @@ import (
 
 func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 	var (
-		cluster                   matlas.Cluster
-		resourceName              = "mongodbatlas_cluster.online_archive_test"
 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName               = acc.RandomProjectName()
-		clusterName               = acc.RandomClusterName()
+		clusterInfo               = acc.GetClusterInfo(t, clusterRequest())
+		clusterName               = clusterInfo.Name
+		projectID                 = clusterInfo.ProjectID
+		clusterTerraformStr       = clusterInfo.TerraformStr
+		clusterResourceName       = clusterInfo.ResourceName
 		deleteExpirationDays      = 0
 	)
 	if mig.IsProviderVersionAtLeast("1.12.2") {
 		deleteExpirationDays = 7
 	}
-	config := configWithDailySchedule(orgID, projectName, clusterName, 1, deleteExpirationDays)
+	config := configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, deleteExpirationDays)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -33,15 +30,15 @@ func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configFirstStep(orgID, projectName, clusterName),
-				Check: resource.ComposeTestCheckFunc(
-					populateWithSampleData(resourceName, &cluster),
+				Config:            clusterTerraformStr,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					populateWithSampleData(clusterResourceName, projectID, clusterName),
 				),
 			},
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),
 			},

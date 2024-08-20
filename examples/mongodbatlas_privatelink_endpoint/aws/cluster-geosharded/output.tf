@@ -1,5 +1,5 @@
 locals {
-  private_endpoints = flatten([for cs in mongodbatlas_cluster.geosharded.connection_strings : cs.private_endpoint])
+  private_endpoints = flatten([for cs in mongodbatlas_advanced_cluster.geosharded.connection_strings : cs.private_endpoint])
 
   connection_strings_east = [
     for pe in local.private_endpoints : pe.srv_connection_string

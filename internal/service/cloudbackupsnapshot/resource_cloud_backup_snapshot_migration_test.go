@@ -23,14 +23,14 @@ func TestMigBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "type", "replicaSet"),
 					resource.TestCheckResourceAttr(resourceName, "members.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "snapshot_ids.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
-					resource.TestCheckResourceAttr(resourceName, "replica_set_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+					resource.TestCheckResourceAttr(resourceName, "replica_set_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "retention_in_days", retentionInDays),
@@ -57,7 +57,7 @@ func TestMigBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "type", "shardedCluster"),

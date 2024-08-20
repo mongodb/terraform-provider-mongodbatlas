@@ -29,7 +29,7 @@ func TestAccFederatedDatabaseInstanceDSPlural_basic(t *testing.T) {
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
 				),

@@ -103,6 +103,10 @@ on:
         required: true
       aws_s3_bucket_backup:
         required: true
+      azure_service_url_backup:
+        required: true
+      azure_blob_storage_container_backup:
+        required: true
       mongodb_atlas_ldap_hostname:
         required: true
       mongodb_atlas_ldap_username:
@@ -287,7 +291,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -309,7 +313,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -349,7 +353,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -364,6 +368,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_backup }}
+          AZURE_BLOB_STORAGE_CONTAINER_NAME: ${{ secrets.azure_blob_storage_container_backup }}
+          AZURE_SERVICE_URL: ${{ secrets.azure_service_url_backup }}
+          AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
+          AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
           ACCTEST_PACKAGES: |
             ./internal/service/cloudbackupschedule
             ./internal/service/cloudbackupsnapshot
@@ -382,7 +391,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -406,7 +415,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -428,7 +437,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -473,7 +482,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -495,7 +504,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -517,7 +526,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -539,7 +548,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -577,7 +586,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -604,7 +613,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -633,7 +642,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -648,6 +657,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_REGION_UPPERCASE: ${{ vars.AWS_REGION_UPPERCASE }}
+          AWS_REGION_LOWERCASE: ${{ vars.AWS_REGION_LOWERCASE }}
           AWS_SECURITY_GROUP_1: ${{ vars.AWS_SECURITY_GROUP_1 }}
           AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
@@ -676,7 +687,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -713,7 +724,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -738,7 +749,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -760,7 +771,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -782,7 +793,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -809,7 +820,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8
@@ -833,7 +844,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8

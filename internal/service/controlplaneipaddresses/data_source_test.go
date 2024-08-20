@@ -15,7 +15,7 @@ func TestAccControlPlaneIpAddressesDS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic,
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrWith(dataSourceName, "outbound.aws.us-east-1.0", acc.CIDRBlockExpression()),
 				),
 			},

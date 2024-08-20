@@ -3,9 +3,12 @@ package acc
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 var (
@@ -40,51 +43,6 @@ func CheckDestroyCluster(s *terraform.State) error {
 	return nil
 }
 
-func ConfigClusterGlobal(orgID, projectName, clusterName string) string {
-	return fmt.Sprintf(`
-	
-		resource "mongodbatlas_project" "test" {
-			org_id = %[1]q
-			name   = %[2]q
-		}
-
-		resource "mongodbatlas_cluster" test {
-			project_id              = mongodbatlas_project.test.id
-			name                    = %[3]q
-			disk_size_gb            = 80
-			num_shards              = 1
-			cloud_backup            = false
-			cluster_type            = "GEOSHARDED"
-
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_instance_size_name = "M30"
-
-			replication_specs {
-				zone_name  = "Zone 1"
-				num_shards = 2
-				regions_config {
-				region_name     = "US_EAST_1"
-				electable_nodes = 3
-				priority        = 7
-				read_only_nodes = 0
-				}
-			}
-
-			replication_specs {
-				zone_name  = "Zone 2"
-				num_shards = 2
-				regions_config {
-				region_name     = "US_WEST_2"
-				electable_nodes = 3
-				priority        = 7
-				read_only_nodes = 0
-				}
-			}
-		}
-	`, orgID, projectName, clusterName)
-}
-
 func ImportStateClusterIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -94,4 +52,18 @@ func ImportStateClusterIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"]), nil
 	}
+}
+
+func CheckClusterExistsHandlingRetry(projectID, clusterName string) error {
+	return retry.RetryContext(context.Background(), 3*time.Minute, func() *retry.RetryError {
+		_, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
+		if apiError, ok := admin.AsError(err); ok {
+			if apiError.GetErrorCode() == "SERVICE_UNAVAILABLE" {
+				// retrying get operation because for migration test it can be the first time new API is called for a cluster so API responds with temporary error as it transition to enabling ISS FF
+				return retry.RetryableError(err)
+			}
+			return retry.NonRetryableError(err)
+		}
+		return nil
+	})
 }

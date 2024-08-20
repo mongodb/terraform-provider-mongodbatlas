@@ -44,7 +44,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configBasic(policyName, roleName, projectName, orgID, tenantName, testS3Bucket),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "tenant_name"),
 					resource.TestCheckResourceAttr(resourceName, "limit_name", limitName),

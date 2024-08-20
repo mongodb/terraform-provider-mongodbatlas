@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_search_index: Returns error if the `analyzers` attribute contains unknown fields
+```

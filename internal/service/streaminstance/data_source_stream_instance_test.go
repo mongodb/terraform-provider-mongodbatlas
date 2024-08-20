@@ -22,7 +22,7 @@ func TestAccStreamDSStreamInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: streamInstanceDataSourceConfig(projectID, instanceName, region, cloudProvider),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					streamInstanceAttributeChecks(dataSourceName, instanceName, region, cloudProvider),
 					resource.TestCheckResourceAttr(dataSourceName, "stream_config.tier", "SP30"),
 				),

@@ -31,7 +31,7 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
@@ -41,7 +41,7 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDayUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
@@ -51,7 +51,7 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgID, projectName, dayOfWeekUpdated, hourOfDay),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeekUpdated)),
@@ -61,7 +61,7 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
@@ -93,7 +93,7 @@ func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithAutoDeferEnabled(orgID, projectName, dayOfWeek, hourOfDay),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),

@@ -30,11 +30,11 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, auditFilter, true, true),
-				Check:  resource.ComposeTestCheckFunc(checks(auditFilter, true, true)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks(auditFilter, true, true)...),
 			},
 			{
 				Config: configBasic(projectID, "{}", false, false),
-				Check:  resource.ComposeTestCheckFunc(checks("{}", false, false)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks("{}", false, false)...),
 			},
 			{
 				ResourceName:            resourceName,

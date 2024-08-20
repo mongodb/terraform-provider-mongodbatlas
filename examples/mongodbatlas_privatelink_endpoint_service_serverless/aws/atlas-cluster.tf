@@ -1,6 +1,6 @@
 resource "mongodbatlas_serverless_instance" "cluster_atlas" {
   project_id                              = var.atlasprojectid
-  name                                    = "cluster-atlas"
+  name                                    = "ClusterAtlas"
   provider_settings_backing_provider_name = "AWS"
   provider_settings_provider_name         = "SERVERLESS"
   provider_settings_region_name           = "US_EAST_1"

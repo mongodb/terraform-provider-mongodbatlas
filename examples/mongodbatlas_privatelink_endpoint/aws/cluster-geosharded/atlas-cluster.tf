@@ -1,31 +1,56 @@
-resource "mongodbatlas_cluster" "geosharded" {
-  project_id                   = var.project_id
-  name                         = var.cluster_name
-  cloud_backup                 = true
-  auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "7.0"
-  cluster_type                 = "GEOSHARDED"
-  replication_specs {
-    zone_name  = "Zone 1"
-    num_shards = 2
-    regions_config {
-      region_name     = var.atlas_region_east
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
+resource "mongodbatlas_advanced_cluster" "geosharded" {
+  project_id     = var.project_id
+  name           = var.cluster_name
+  cluster_type   = "GEOSHARDED"
+  backup_enabled = true
+
+  replication_specs { # Shard 1
+    zone_name = "Zone 1"
+
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 3
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = var.atlas_region_east
     }
-    regions_config {
-      region_name     = var.atlas_region_west
-      electable_nodes = 2
-      priority        = 6
-      read_only_nodes = 0
+
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 2
+      }
+      provider_name = "AWS"
+      priority      = 6
+      region_name   = var.atlas_region_west
     }
   }
 
-  # Provider settings
-  provider_name               = "AWS"
-  disk_size_gb                = 80
-  provider_instance_size_name = "M30"
+  replication_specs { # Shard 2
+    zone_name = "Zone 1"
+
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 3
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = var.atlas_region_east
+    }
+
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 2
+      }
+      provider_name = "AWS"
+      priority      = 6
+      region_name   = var.atlas_region_west
+    }
+  }
 
   depends_on = [
     mongodbatlas_privatelink_endpoint_service.pe_east_service,

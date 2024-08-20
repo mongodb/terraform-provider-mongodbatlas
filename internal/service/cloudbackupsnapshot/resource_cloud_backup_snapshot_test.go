@@ -32,14 +32,14 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(&clusterInfo, description, retentionInDays),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "type", "replicaSet"),
 					resource.TestCheckResourceAttr(resourceName, "members.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "snapshot_ids.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
-					resource.TestCheckResourceAttr(resourceName, "replica_set_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+					resource.TestCheckResourceAttr(resourceName, "replica_set_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "retention_in_days", retentionInDays),
@@ -47,8 +47,8 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "type", "replicaSet"),
 					resource.TestCheckResourceAttr(dataSourceName, "members.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "snapshot_ids.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.ClusterName),
-					resource.TestCheckResourceAttr(dataSourceName, "replica_set_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.Name),
+					resource.TestCheckResourceAttr(dataSourceName, "replica_set_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(dataSourceName, "cloud_provider", "AWS"),
 					resource.TestCheckResourceAttr(dataSourceName, "description", description),
 					resource.TestCheckResourceAttrSet(dataSourcePluralSimpleName, "results.#"),
@@ -81,7 +81,7 @@ func TestAccBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSharded(projectID, clusterName, description, retentionInDays),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "type", "shardedCluster"),
@@ -109,12 +109,14 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if ids["snapshot_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.ConnV2().CloudBackupsApi.GetReplicaSetBackup(context.Background(), ids["project_id"], ids["cluster_name"], ids["snapshot_id"]).Execute()
-		if err == nil {
-			return nil
+		if _, _, err := acc.ConnV2().CloudBackupsApi.GetReplicaSetBackup(context.Background(), ids["project_id"], ids["cluster_name"], ids["snapshot_id"]).Execute(); err != nil {
+			return fmt.Errorf("cloudBackupSnapshot (%s) does not exist", rs.Primary.Attributes["snapshot_id"])
 		}
-
-		return fmt.Errorf("cloudBackupSnapshot (%s) does not exist", rs.Primary.Attributes["snapshot_id"])
+		// needed as first call to cluster with new API will fail due to transition to ISS feature flag
+		if err := acc.CheckClusterExistsHandlingRetry(ids["project_id"], ids["cluster_name"]); err != nil {
+			return fmt.Errorf("cluster (%s : %s) does not exist", ids["project_id"], ids["cluster_name"])
+		}
+		return nil
 	}
 }
 
@@ -147,10 +149,10 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 }
 
 func configBasic(info *acc.ClusterInfo, description, retentionInDays string) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_snapshot" "test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 			description       = %[3]q
 			retention_in_days = %[4]q
 		}
@@ -158,21 +160,21 @@ func configBasic(info *acc.ClusterInfo, description, retentionInDays string) str
 		data "mongodbatlas_cloud_backup_snapshot" "test" {
 			snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 		}
 
 		data "mongodbatlas_cloud_backup_snapshots" "test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 		}
 
 		data "mongodbatlas_cloud_backup_snapshots" "pagination" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 			page_num = 1
 			items_per_page = 5
 		}
-	`, info.ClusterNameStr, info.ProjectIDStr, description, retentionInDays)
+	`, info.TerraformNameRef, info.ProjectID, description, retentionInDays)
 }
 
 func configSharded(projectID, clusterName, description, retentionInDays string) string {

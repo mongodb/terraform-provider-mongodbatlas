@@ -32,37 +32,35 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 		},
 		"analyzer": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"analyzers": {
-			Type:             schema.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: validateSearchAnalyzersDiff,
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"collection_name": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"database": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"name": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"search_analyzer": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"mappings_dynamic": {
 			Type:     schema.TypeBool,
-			Optional: true,
+			Computed: true,
 		},
 		"mappings_fields": {
-			Type:             schema.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: validateSearchIndexMappingDiff,
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"synonyms": {
 			Type:     schema.TypeSet,
@@ -90,12 +88,15 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 		},
 		"type": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"fields": {
-			Type:             schema.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: validateSearchIndexMappingDiff,
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"stored_source": {
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 	}
 }
@@ -123,11 +124,11 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `index_id` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("analyzer", searchIndex.Analyzer); err != nil {
+	if err := d.Set("analyzer", searchIndex.LatestDefinition.Analyzer); err != nil {
 		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if analyzers := searchIndex.GetAnalyzers(); len(analyzers) > 0 {
+	if analyzers := searchIndex.LatestDefinition.GetAnalyzers(); len(analyzers) > 0 {
 		searchIndexMappingFields, err := marshalSearchIndex(analyzers)
 		if err != nil {
 			return diag.FromErr(err)
@@ -150,21 +151,21 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `name` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("search_analyzer", searchIndex.SearchAnalyzer); err != nil {
+	if err := d.Set("search_analyzer", searchIndex.LatestDefinition.SearchAnalyzer); err != nil {
 		return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.GetSynonyms())); err != nil {
+	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.LatestDefinition.GetSynonyms())); err != nil {
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
-	if searchIndex.Mappings != nil {
-		if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
+	if searchIndex.LatestDefinition.Mappings != nil {
+		if err := d.Set("mappings_dynamic", searchIndex.LatestDefinition.Mappings.Dynamic); err != nil {
 			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 		}
 
-		if len(searchIndex.Mappings.Fields) > 0 {
-			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
+		if conversion.HasElementsSliceOrMap(searchIndex.LatestDefinition.Mappings.Fields) {
+			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.LatestDefinition.Mappings.Fields)
 			if err != nil {
 				return diag.FromErr(err)
 			}
@@ -174,7 +175,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		}
 	}
 
-	if fields := searchIndex.GetFields(); len(fields) > 0 {
+	if fields := searchIndex.LatestDefinition.GetFields(); len(fields) > 0 {
 		fieldsMarshaled, err := marshalSearchIndex(fields)
 		if err != nil {
 			return diag.FromErr(err)
@@ -183,6 +184,15 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		if err := d.Set("fields", fieldsMarshaled); err != nil {
 			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
 		}
+	}
+
+	storedSource := searchIndex.LatestDefinition.GetStoredSource()
+	strStoredSource, errStoredSource := MarshalStoredSource(storedSource)
+	if errStoredSource != nil {
+		return diag.FromErr(errStoredSource)
+	}
+	if err := d.Set("stored_source", strStoredSource); err != nil {
+		return diag.Errorf("error setting `stored_source` for search index (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

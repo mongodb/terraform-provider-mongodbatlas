@@ -31,7 +31,7 @@ func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, instanceName, commentOrigin),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "comment", commentOrigin),
@@ -43,7 +43,7 @@ func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(projectID, instanceName, commentUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "comment", commentUpdated),
@@ -83,7 +83,7 @@ func TestAccServerlessPrivateLinkEndpointService_AWSEndpointCommentUpdate(t *tes
 		Steps: []resource.TestStep{
 			{
 				Config: configAWSEndpoint(projectID, instanceName, awsAccessKey, awsSecretKey, false, ""),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
 					resource.TestCheckResourceAttrSet(datasourceEndpointsName, "project_id"),
@@ -93,7 +93,7 @@ func TestAccServerlessPrivateLinkEndpointService_AWSEndpointCommentUpdate(t *tes
 			},
 			{
 				Config: configAWSEndpoint(projectID, instanceName, awsAccessKey, awsSecretKey, true, commentUpdated),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "comment", commentUpdated),

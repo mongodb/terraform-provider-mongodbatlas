@@ -23,7 +23,7 @@ func TestAccNetworkDSPrivateLinkEndpoint_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDS(projectID, providerName, region),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),

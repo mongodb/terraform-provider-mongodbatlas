@@ -1,14 +1,4 @@
----
-layout: "mongodbatlas"
-page_title: {{ if .Name }}"MongoDB Atlas: {{.Name}}"{{ end }}
-sidebar_current: {{ if .Type }}"docs-{{ .ProviderShortName }}-{{ $arr := split .Type " "}}{{ range $element := $arr }}{{ $element | lower}}{{ end }}{{ $name := slice (split .Name "_") 1 }}{{ range $element := $name }}-{{ $element | lower}}{{end}}"{{ end }}
-description: |-
-   {{ if ne .Name "" }}"Provides a {{ .Name }} data source."{{ end }}
----
-
 # {{ if .Name }}{{.Type}}: {{.Name}}{{ end }}
-
-{{ if .Description }}  {{ .Description | trimspace }} {{ end }}
 
 ## Example Usages
 {{ if .Name }}
@@ -38,6 +28,8 @@ description: |-
         {{ tffile "examples/mongodbatlas_federated_settings_org_role_mapping/main.tf" }}
     {{ else if eq .Name "mongodbatlas_cloud_backup_snapshot" }}
         {{ tffile "examples/mongodbatlas_cloud_backup_snapshot_export_job/main.tf" }}
+    {{ else if eq .Name "mongodbatlas_cloud_backup_snapshot_export_bucket" }}
+        {{ tffile "examples/mongodbatlas_cloud_backup_snapshot_export_bucket/aws/main.tf" }}
     {{ else if eq .Name "mongodbatlas_api_key" }}
         {{ tffile (printf "examples/%s/create-and-assign-pak/main.tf" .Name )}}
     {{ else if eq .Name "mongodbatlas_backup_compliance_policy" }}

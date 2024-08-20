@@ -31,7 +31,7 @@ func TestAccDataLakePipeline_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicWithPluralDS(orgID, projectName, firstClusterName, secondClusterName, firstPipelineName, secondPipelineName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", firstPipelineName),

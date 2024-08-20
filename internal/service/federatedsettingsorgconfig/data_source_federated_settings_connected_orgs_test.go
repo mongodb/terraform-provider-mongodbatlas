@@ -21,7 +21,7 @@ func TestAccFederatedSettingsOrgDSPlural_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicPluralDS(federatedSettingsID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.identity_provider_id"),

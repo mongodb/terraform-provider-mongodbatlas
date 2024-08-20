@@ -42,7 +42,7 @@ func TestAccEventTriggerDS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceEventTriggerConfig(projectID, appID, `"INSERT", "UPDATE"`, &event),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 				),
 			},

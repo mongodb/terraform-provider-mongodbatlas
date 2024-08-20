@@ -25,13 +25,13 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(&clusterInfo, false, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "false"),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
@@ -57,14 +57,14 @@ func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(&clusterInfo, false, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 				),
 			},
 			{
@@ -80,7 +80,11 @@ func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
 
 func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, ExtraConfig: zonesStr})
+		specUS      = acc.ReplicationSpecRequest{ZoneName: "US", Region: "US_EAST_1"}
+		specEU      = acc.ReplicationSpecRequest{ZoneName: "EU", Region: "EU_WEST_1"}
+		specDE      = acc.ReplicationSpecRequest{ZoneName: "DE", Region: "EU_NORTH_1"}
+		specJP      = acc.ReplicationSpecRequest{ZoneName: "JP", Region: "AP_NORTHEAST_1"}
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, ReplicationSpecs: []acc.ReplicationSpecRequest{specUS, specEU, specDE, specJP}})
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -90,7 +94,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithDBConfig(&clusterInfo, customZone),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "5"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
@@ -99,7 +103,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.IE"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.DE"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 				),
 			},
 			{
@@ -170,10 +174,10 @@ func checkDestroy(s *terraform.State) error {
 }
 
 func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_global_cluster_config" "config" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 
 			managed_namespaces {
 				db               		   = "mydata"
@@ -191,16 +195,16 @@ func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) st
 
 		data "mongodbatlas_global_cluster_config" "config" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 		}	
-	`, info.ClusterNameStr, info.ProjectIDStr, isCustomShard, isShardKeyUnique)
+	`, info.TerraformNameRef, info.ProjectID, isCustomShard, isShardKeyUnique)
 }
 
 func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_global_cluster_config" "config" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 
 			managed_namespaces {
 				db               = "horizonv2-sg"
@@ -229,7 +233,7 @@ func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
 			}
 			%[3]s
 		}
-	`, info.ClusterNameStr, info.ProjectIDStr, zones)
+	`, info.TerraformNameRef, info.ProjectID, zones)
 }
 
 const (
@@ -266,49 +270,6 @@ const (
 		custom_zone_mappings {
 			location = "JP"
 			zone     = "JP"
-		}
-	`
-
-	zonesStr = `
-		replication_specs {
-			zone_name  = "US"
-			num_shards = 1
-			regions_config {
-				region_name     = "US_EAST_1"
-				electable_nodes = 3
-				priority        = 7
-				read_only_nodes = 0
-			}
-		}
-		replication_specs {
-			zone_name  = "EU"
-			num_shards = 1
-			regions_config {
-				region_name     = "EU_WEST_1"
-				electable_nodes = 3
-				priority        = 7
-				read_only_nodes = 0
-			}
-		}
-		replication_specs {
-			zone_name  = "DE"
-			num_shards = 1
-			regions_config {
-				region_name     = "EU_NORTH_1"
-				electable_nodes = 3
-				priority        = 7
-				read_only_nodes = 0
-			}
-		}
-		replication_specs {
-			zone_name  = "JP"
-			num_shards = 1
-			regions_config {
-				region_name     = "AP_NORTHEAST_1"
-				electable_nodes = 3
-				priority        = 7
-				read_only_nodes = 0
-			}
 		}
 	`
 )
