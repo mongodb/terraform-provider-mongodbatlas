@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -65,6 +66,10 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 		},
 	}
 }
+func DummySleep(*terraform.State) error {
+	time.Sleep(60 * time.Second)
+	return nil
+}
 
 func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 	var (
@@ -86,7 +91,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 			},
 			{
 				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
-				Check: resource.ComposeAggregateTestCheckFunc(kafkaStreamConnectionAttributeChecks(
+				Check: resource.ComposeAggregateTestCheckFunc(DummySleep, kafkaStreamConnectionAttributeChecks(
 					resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
 					resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingTypeVPC),
 					resource.TestCheckResourceAttr(resourceName, "networking.access.name", networkingNameVPC)),
