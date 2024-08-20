@@ -29,7 +29,7 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, ""),
+				Config: configWithSampleConnection(projectID, instanceName, processorName, ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -40,7 +40,7 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, "STARTED"),
+				Config: configWithSampleConnection(projectID, instanceName, processorName, "STARTED"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -51,7 +51,7 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 				),
 			},
 			{
-				Config:                  streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, ""),
+				Config:                  configWithSampleConnection(projectID, instanceName, processorName, ""),
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
@@ -74,7 +74,7 @@ func TestAccStreamProcessorRS_withOptions(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: streamProcessorConfigWithKafkaConnection(projectID, clusterName, instanceName, processorName, "CREATED"),
+				Config: configWithKafkaConnection(projectID, clusterName, instanceName, processorName, "CREATED"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -100,7 +100,7 @@ func TestAccStreamProcessorRS_createWithAutoStart(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, "STARTED"),
+				Config: configWithSampleConnection(projectID, instanceName, processorName, "STARTED"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -111,7 +111,7 @@ func TestAccStreamProcessorRS_createWithAutoStart(t *testing.T) {
 				),
 			},
 			{
-				Config: streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, "STOPPED"),
+				Config: configWithSampleConnection(projectID, instanceName, processorName, "STOPPED"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -137,7 +137,7 @@ func TestAccStreamProcessorRS_clusterType(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: streamProcessorConfigWithClusterConnection(projectID, clusterName, instanceName, processorName, "STARTED"),
+				Config: configWithClusterConnection(projectID, clusterName, instanceName, processorName, "STARTED"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -164,13 +164,13 @@ func TestAccStreamProcessorRS_failWithInvalidStateOnCreation(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:      streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, "STOPPED"),
+				Config:      configWithSampleConnection(projectID, instanceName, processorName, "STOPPED"),
 				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
 			},
 		}})
 }
 
-func streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, state string) string {
+func configWithSampleConnection(projectID, instanceName, processorName, state string) string {
 	stateConfig := ""
 	if state != "" {
 		stateConfig = fmt.Sprintf(`state = %[1]q`, state)
@@ -205,7 +205,7 @@ func streamProcessorConfigWithSampleConnection(projectID, instanceName, processo
 	`, projectID, instanceName, processorName, stateConfig)
 }
 
-func streamProcessorConfigWithClusterConnection(projectID, clusterName, instanceName, processorName, state string) string {
+func configWithClusterConnection(projectID, clusterName, instanceName, processorName, state string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_stream_instance" "instance" {
 		project_id    = %[1]q
@@ -240,7 +240,7 @@ func streamProcessorConfigWithClusterConnection(projectID, clusterName, instance
 	`, projectID, instanceName, clusterName, processorName, state)
 }
 
-func streamProcessorConfigWithKafkaConnection(projectID, clusterName, instanceName, processorName, state string) string {
+func configWithKafkaConnection(projectID, clusterName, instanceName, processorName, state string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_stream_instance" "instance" {
 		project_id    = %[1]q
@@ -297,7 +297,10 @@ func streamProcessorConfigWithKafkaConnection(projectID, clusterName, instanceNa
 				db = "test"
 			}
 		}
-		depends_on = [mongodbatlas_stream_connection.kafka,mongodbatlas_stream_connection.cluster] 
+		depends_on = [
+			mongodbatlas_stream_connection.kafka,
+			mongodbatlas_stream_connection.cluster
+		] 
 	}
 	`, projectID, instanceName, clusterName, processorName, state)
 }
