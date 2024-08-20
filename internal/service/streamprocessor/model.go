@@ -103,7 +103,7 @@ func convertPipelineToTF(pipeline []any) (types.String, diag.Diagnostics) {
 
 func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
 	if stats == nil {
-		return types.StringValue("{}"), nil
+		return types.StringNull(), nil
 	}
 	statsJSON, err := json.Marshal(stats)
 	if err != nil {

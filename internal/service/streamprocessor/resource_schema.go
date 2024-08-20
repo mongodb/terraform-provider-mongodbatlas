@@ -5,7 +5,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
@@ -19,6 +22,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Description:         "Unique 24-hexadecimal character string that identifies the stream processor.",
 				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the stream processor.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"instance_name": schema.StringAttribute{
 				Required:            true,
@@ -82,6 +88,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Description:         "Optional configuration for the stream processor.",
 				MarkdownDescription: "Optional configuration for the stream processor.",
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
+				Default: objectdefault.StaticValue(types.ObjectNull(OptionsObjectType.AttrTypes)),
 			},
 			"stats": schema.StringAttribute{
 				Computed:            true,

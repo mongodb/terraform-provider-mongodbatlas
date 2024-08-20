@@ -253,6 +253,6 @@ func updatedStateOnly(plan, state *TFStreamProcessorRSModel) bool {
 		plan.InstanceName.Equal(state.InstanceName) &&
 		plan.ProcessorName.Equal(state.ProcessorName) &&
 		plan.Pipeline.Equal(state.Pipeline) &&
-		plan.Options.Equal(state.Options) &&
+		(plan.Options.Equal(state.Options) || plan.Options.IsUnknown()) &&
 		!plan.State.Equal(state.State)
 }

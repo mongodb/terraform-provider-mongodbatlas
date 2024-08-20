@@ -51,11 +51,12 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 				),
 			},
 			{
-				Config:            streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, ""),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:                  streamProcessorConfigWithSampleConnection(projectID, instanceName, processorName, ""),
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"stats"},
 			},
 		}})
 }
@@ -123,6 +124,7 @@ func TestAccStreamProcessorRS_clusterType(t *testing.T) {
 			},
 		}})
 }
+
 func TestAccStreamProcessorRS_failWithInvalidStateOnCreation(t *testing.T) {
 	var (
 		projectID     = acc.ProjectIDExecution(t)
@@ -160,8 +162,9 @@ func streamProcessorConfigWithSampleConnection(projectID, instanceName, processo
 	resource "mongodbatlas_stream_connection" "sample" {
 		project_id      = %[1]q
 		instance_name   = mongodbatlas_stream_instance.instance.instance_name
-		connection_name = "sample_stream_solar_2"
+		connection_name = "sample_stream_solar"
 		type            = "Sample"
+		depends_on = [mongodbatlas_stream_instance.instance] 
 	}
 
 	resource "mongodbatlas_stream_processor" "processor" {
@@ -170,6 +173,8 @@ func streamProcessorConfigWithSampleConnection(projectID, instanceName, processo
 		processor_name = %[3]q
 		pipeline       = "[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"
 		%[4]s
+		depends_on = [mongodbatlas_stream_connection.sample] 
+
 	}
 	`, projectID, instanceName, processorName, stateConfig)
 }
