@@ -7,7 +7,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const StreamProccesorName = "stream_processor"
+const StreamProcessorName = "stream_processor"
 
 var _ datasource.DataSource = &StreamProccesorDS{}
 var _ datasource.DataSourceWithConfigure = &StreamProccesorDS{}
@@ -15,7 +15,7 @@ var _ datasource.DataSourceWithConfigure = &StreamProccesorDS{}
 func DataSource() datasource.DataSource {
 	return &StreamProccesorDS{
 		DSCommon: config.DSCommon{
-			DataSourceName: StreamProccesorName,
+			DataSourceName: StreamProcessorName,
 		},
 	}
 }
