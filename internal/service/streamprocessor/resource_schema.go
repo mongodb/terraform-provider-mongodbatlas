@@ -5,8 +5,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -85,13 +83,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 				Optional:            true,
-				Computed:            true,
 				Description:         "Optional configuration for the stream processor.",
 				MarkdownDescription: "Optional configuration for the stream processor.",
-				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.UseStateForUnknown(),
-				},
-				Default: objectdefault.StaticValue(types.ObjectNull(OptionsObjectType.AttrTypes)),
 			},
 			"stats": schema.StringAttribute{
 				Computed:            true,

@@ -61,6 +61,32 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 		}})
 }
 
+func TestAccStreamProcessorRS_withOptions(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		processorName          = "new-processor"
+		instanceName           = acc.RandomName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: streamProcessorConfigWithKafkaConnection(projectID, clusterName, instanceName, processorName, "CREATED"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "processor_name"),
+					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
+					resource.TestCheckResourceAttr(resourceName, "state", "CREATED"),
+				),
+			},
+		}})
+}
+
 func TestAccStreamProcessorRS_createWithAutoStart(t *testing.T) {
 	var (
 		projectID     = acc.ProjectIDExecution(t)
@@ -210,6 +236,68 @@ func streamProcessorConfigWithClusterConnection(projectID, clusterName, instance
 		pipeline       = "[{\"$source\":{\"connectionName\":\"ClusterConnection\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"
 		state 		   = %[5]q
 		depends_on = [mongodbatlas_stream_connection.cluster] 
+	}
+	`, projectID, instanceName, clusterName, processorName, state)
+}
+
+func streamProcessorConfigWithKafkaConnection(projectID, clusterName, instanceName, processorName, state string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_instance" "instance" {
+		project_id    = %[1]q
+		instance_name = %[2]q
+		data_process_region = {
+			region         = "VIRGINIA_USA"
+			cloud_provider = "AWS"
+		}
+	}
+
+	resource "mongodbatlas_stream_connection" "cluster" {
+		project_id      = %[1]q
+		instance_name   = mongodbatlas_stream_instance.instance.instance_name
+		connection_name = "ClusterConnection"
+		type            = "Cluster"
+		cluster_name    = %[3]q
+		db_role_to_execute = {
+			role = "atlasAdmin"
+			type = "BUILT_IN"
+		}
+		depends_on = [mongodbatlas_stream_instance.instance] 
+	}
+
+	resource "mongodbatlas_stream_connection" "kafka" {
+		project_id      = %[1]q
+		instance_name   = mongodbatlas_stream_instance.instance.instance_name
+		connection_name = "KafkaPlaintextConnection"
+		type            = "Kafka"
+		authentication = {
+			mechanism = "PLAIN"
+			username  = "user"
+			password  = "rawpassword"
+		}
+		bootstrap_servers = "localhost:9092,localhost:9092"
+		config = {
+			"auto.offset.reset" : "earliest"
+		}
+		security = {
+			protocol = "PLAINTEXT"
+		}
+		depends_on = [mongodbatlas_stream_instance.instance] 
+	}
+
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id     = %[1]q
+		instance_name  = mongodbatlas_stream_instance.instance.instance_name
+		processor_name = %[4]q
+		pipeline       = "[{\"$source\":{\"connectionName\":\"ClusterConnection\"}},{\"$emit\":{\"connectionName\":\"KafkaPlaintextConnection\",\"topic\":\"random_topic\"}}]"
+		state 		   = %[5]q
+		options = {
+			dlq = {
+				coll = "testcol"
+				connection_name = mongodbatlas_stream_connection.cluster.connection_name
+				db = "test"
+			}
+		}
+		depends_on = [mongodbatlas_stream_connection.kafka,mongodbatlas_stream_connection.cluster] 
 	}
 	`, projectID, instanceName, clusterName, processorName, state)
 }
