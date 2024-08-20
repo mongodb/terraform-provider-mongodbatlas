@@ -112,6 +112,26 @@ func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
 	return types.StringValue(string(statsJSON)), nil
 }
 
+func NewTFStreamProcessors(ctx context.Context,
+	streamProcessorsConfig *TFStreamProcessorsDSModel,
+	sdkResults []admin.StreamsProcessorWithStats) (*TFStreamProcessorsDSModel, diag.Diagnostics) {
+	results := make([]TFStreamProcessorDSModel, len(sdkResults))
+	projectID := streamProcessorsConfig.ProjectID.ValueString()
+	instanceName := streamProcessorsConfig.InstanceName.ValueString()
+	for i := range sdkResults {
+		processorModel, diags := NewTFStreamprocessorDSModel(ctx, projectID, instanceName, &sdkResults[i])
+		if diags.HasError() {
+			return nil, diags
+		}
+		results[i] = *processorModel
+	}
+	return &TFStreamProcessorsDSModel{
+		ProjectID:    streamProcessorsConfig.ProjectID,
+		InstanceName: streamProcessorsConfig.InstanceName,
+		Results:      results,
+	}, nil
+}
+
 func convertPipelineToSdk(pipeline string) ([]any, diag.Diagnostics) {
 	var pipelineSliceOfMaps []any
 	err := json.Unmarshal([]byte(pipeline), &pipelineSliceOfMaps)
