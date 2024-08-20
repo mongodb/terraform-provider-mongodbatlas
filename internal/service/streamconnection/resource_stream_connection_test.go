@@ -13,8 +13,60 @@ import (
 
 //go:embed testdata/dummy-ca.pem
 var DummyCACert string
+var (
+	networkingNameVPC    = "vpc-096df0a10902ad9a9"
+	networkingTypeVPC    = "VPC"
+	networkingTypePublic = "PUBLIC"
+	kafkaNetworkingVPC   = fmt.Sprintf(`networking = {
+			access = {
+				type = %[1]q
+				name = %[2]q
+			}
+		}`, networkingTypeVPC, networkingNameVPC)
+	kafkaNetworkingPublic = fmt.Sprintf(`networking = {
+			access = {
+				type = %[1]q
+			}
+		}`, networkingTypePublic)
+)
 
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
+	testCase := testCaseKafkaPlaintext(t)
+	resource.ParallelTest(t, *testCase)
+}
+
+func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
+	t.Helper()
+	var (
+		resourceName = "mongodbatlas_stream_connection.test"
+		projectID    = acc.ProjectIDExecution(t)
+		instanceName = acc.RandomName()
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", "", false),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, true),
+			},
+			{
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user2", "otherpassword", "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false, true),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"authentication.password"},
+			},
+		},
+	}
+}
+
+func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"
 		projectID    = acc.ProjectIDExecution(t)
@@ -26,12 +78,18 @@ func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, true),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, true),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
+					resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingTypePublic),
+				),
 			},
 			{
-				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false, true),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false, true),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				Check: resource.ComposeAggregateTestCheckFunc(kafkaStreamConnectionAttributeChecks(
+					resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
+					resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingTypeVPC),
+					resource.TestCheckResourceAttr(resourceName, "networking.access.name", networkingNameVPC)),
 			},
 			{
 				ResourceName:            resourceName,
@@ -56,7 +114,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true),
 				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
 			},
 			{
@@ -121,7 +179,7 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	})
 }
 
-func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bootstrapServers, configValue string, useSSL, useNetworking bool) string {
+func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 	securityConfig := `
 		security = {
@@ -135,17 +193,6 @@ func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bo
 		    protocol = "SSL"
 		}`, DummyCACert)
 	}
-
-	networkingConfig := ""
-	if useNetworking {
-		networkingConfig = `
-		networking = {
-				access = {
-					type = "PUBLIC"
-				}
-		}`
-	}
-
 	return fmt.Sprintf(`
 		%[1]s
 		
