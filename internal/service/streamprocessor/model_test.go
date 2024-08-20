@@ -28,8 +28,8 @@ var (
 	}
 	processorName = "processor1"
 	processorID   = "66b39806187592e8d721215d"
-	stateCreated  = "CREATED"
-	stateStarted  = "STARTED"
+	stateCreated  = streamprocessor.CreatedState
+	stateStarted  = streamprocessor.StartedState
 )
 
 var statsExample = `
