@@ -5,30 +5,23 @@ package projectipaddresses
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-func ProjectIpAddressesDataSourceSchema(ctx context.Context) schema.Schema {
+func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"group_id": schema.StringAttribute{
 				Required:            true,
 				Description:         "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(24, 24),
-					stringvalidator.RegexMatches(regexp.MustCompile("^([a-f0-9]{24})$"), ""),
-				},
 			},
 			"services": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -53,20 +46,10 @@ func ProjectIpAddressesDataSourceSchema(ctx context.Context) schema.Schema {
 									MarkdownDescription: "List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.",
 								},
 							},
-							CustomType: ClustersType{
-								ObjectType: types.ObjectType{
-									AttrTypes: ClustersValue{}.AttributeTypes(ctx),
-								},
-							},
 						},
 						Computed:            true,
 						Description:         "IP addresses of clusters.",
 						MarkdownDescription: "IP addresses of clusters.",
-					},
-				},
-				CustomType: ServicesType{
-					ObjectType: types.ObjectType{
-						AttrTypes: ServicesValue{}.AttributeTypes(ctx),
 					},
 				},
 				Computed:            true,
