@@ -7,8 +7,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const StreamProcessorName = "stream_processor"
-
 var _ datasource.DataSource = &StreamProccesorDS{}
 var _ datasource.DataSourceWithConfigure = &StreamProccesorDS{}
 

@@ -1,0 +1,24 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  stream_processor:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
+      method: DELETE
+
+data_sources:
+  stream_processor:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
+      method: GET
+  stream_processors:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processors
+      method: GET
