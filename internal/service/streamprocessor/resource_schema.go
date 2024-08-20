@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
@@ -15,20 +16,16 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"change_stream_token": schema.StringAttribute{
-				Computed:            true,
-				Description:         "The resume token for the change stream. Only used when the pipeline source is Cluster.",
-				MarkdownDescription: "The resume token for the change stream. Only used when the pipeline source is Cluster.",
-			},
 			"id": schema.StringAttribute{
-				Optional:            true,
 				Computed:            true,
 				Description:         "Unique 24-hexadecimal character string that identifies the stream processor.",
 				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the stream processor.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"instance_name": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 				Description:         "Human-readable label that identifies the stream instance.",
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
 			},
@@ -86,9 +83,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 				Optional:            true,
-				Computed:            true,
 				Description:         "Optional configuration for the stream processor.",
 				MarkdownDescription: "Optional configuration for the stream processor.",
+			},
+			"stats": schema.StringAttribute{
+				Computed:            true,
+				Description:         "The stats associated with the stream processor.",
+				MarkdownDescription: "The stats associated with the stream processor.",
 			},
 		},
 	}
@@ -98,10 +99,11 @@ type TFStreamProcessorRSModel struct {
 	InstanceName  types.String `tfsdk:"instance_name"`
 	Options       types.Object `tfsdk:"options"`
 	Pipeline      types.String `tfsdk:"pipeline"`
-	ProcessorID   types.String `tfsdk:"processor_id"`
+	ProcessorID   types.String `tfsdk:"id"`
 	ProcessorName types.String `tfsdk:"processor_name"`
 	ProjectID     types.String `tfsdk:"project_id"`
 	State         types.String `tfsdk:"state"`
+	Stats         types.String `tfsdk:"stats"`
 }
 
 type TFOptionsModel struct {
