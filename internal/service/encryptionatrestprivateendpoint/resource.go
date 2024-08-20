@@ -1,4 +1,3 @@
-//nolint:gocritic
 package encryptionatrestprivateendpoint
 
 import (
@@ -53,6 +52,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 		return
 	}
 
+	// TODO handle state transition
 	newencryptionAtRestPrivateEndpointModel := NewTFEarPrivateEndpoint(createResp, projectID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newencryptionAtRestPrivateEndpointModel)...)
 }
@@ -101,6 +101,8 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}
+
+	// TODO handle state transition
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

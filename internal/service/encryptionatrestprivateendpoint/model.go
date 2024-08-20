@@ -28,11 +28,7 @@ func NewEarPrivateEndpointReq(tfPlan *TFEarPrivateEndpointModel) *admin.EARPriva
 		return nil
 	}
 	return &admin.EARPrivateEndpoint{
-		CloudProvider:                 tfPlan.CloudProvider.ValueStringPointer(),
-		ErrorMessage:                  tfPlan.ErrorMessage.ValueStringPointer(),
-		Id:                            tfPlan.ID.ValueStringPointer(),
-		RegionName:                    tfPlan.RegionName.ValueStringPointer(),
-		Status:                        tfPlan.Status.ValueStringPointer(),
-		PrivateEndpointConnectionName: tfPlan.PrivateEndpointConnectionName.ValueStringPointer(),
+		CloudProvider: tfPlan.CloudProvider.ValueStringPointer(),
+		RegionName:    tfPlan.RegionName.ValueStringPointer(),
 	}
 }
