@@ -147,7 +147,7 @@ func TestDSSDKToTFModel(t *testing.T) {
 	}
 }
 
-func TestTeamsResourceSDKToTFModel(t *testing.T) {
+func TestSDKToTFModel(t *testing.T) {
 	testCases := []struct {
 		sdkModel        *admin.StreamsProcessorWithStats
 		expectedTFModel *streamprocessor.TFStreamProcessorRSModel

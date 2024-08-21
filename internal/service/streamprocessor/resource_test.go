@@ -34,7 +34,7 @@ var (
 	testLogDestConfig    = connectionConfig{connectionType: connTypeTestLog, pipelineStepIsSource: false}
 )
 
-func TestAccStreamProcessorRS_basic(t *testing.T) {
+func TestAccStreamProcessor_basic(t *testing.T) {
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		processorName = "new-processor"
@@ -64,7 +64,7 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 		}})
 }
 
-func TestAccStreamProcessorRS_withOptions(t *testing.T) {
+func TestAccStreamProcessor_withOptions(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t)
 		processorName          = "new-processor"
@@ -85,7 +85,7 @@ func TestAccStreamProcessorRS_withOptions(t *testing.T) {
 		}})
 }
 
-func TestAccStreamProcessorRS_createWithAutoStartAndStop(t *testing.T) {
+func TestAccStreamProcessor_createWithAutoStartAndStop(t *testing.T) {
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		processorName = "new-processor"
@@ -108,7 +108,7 @@ func TestAccStreamProcessorRS_createWithAutoStartAndStop(t *testing.T) {
 		}})
 }
 
-func TestAccStreamProcessorRS_clusterType(t *testing.T) {
+func TestAccStreamProcessor_clusterType(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t)
 		processorName          = "new-processor"
@@ -128,7 +128,7 @@ func TestAccStreamProcessorRS_clusterType(t *testing.T) {
 		}})
 }
 
-func TestAccStreamProcessorRS_failWithInvalidStateOnCreation(t *testing.T) {
+func TestAccStreamProcessor_failWithInvalidStateOnCreation(t *testing.T) {
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		processorName = "new-processor"

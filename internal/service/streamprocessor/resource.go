@@ -220,7 +220,7 @@ func (r *streamProcessorRS) Delete(ctx context.Context, req resource.DeleteReque
 }
 
 func (r *streamProcessorRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, instanceName, processorName, err := splitStreamProcessorImportID(req.ID)
+	projectID, instanceName, processorName, err := splitImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting import ID", err.Error())
 		return
@@ -231,7 +231,7 @@ func (r *streamProcessorRS) ImportState(ctx context.Context, req resource.Import
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("processor_name"), processorName)...)
 }
 
-func splitStreamProcessorImportID(id string) (projectID, instanceName, processorName *string, err error) {
+func splitImportID(id string) (projectID, instanceName, processorName *string, err error) {
 	var re = regexp.MustCompile(`^(.*)-([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
