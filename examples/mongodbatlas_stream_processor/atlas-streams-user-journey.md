@@ -4,6 +4,6 @@ Atlas Stream Processing is composed of multiple components, and users can levera
 
 ### Resources supported by Terraform
 
-- `mongodbatlas_stream_instance`: Enables creating, modifying, and deleting Stream Instances. as part of this resource, a computed `hostnames` attribute is available for connecting to the created instance.
+- `mongodbatlas_stream_instance`: Enables creating, modifying, and deleting Stream Instances. As part of this resource, a computed `hostnames` attribute is available for connecting to the created instance.
 - `mongodbatlas_stream_connection`: Enables creating, modifying, and deleting Stream Instance Connections, which serve as data sources and sinks for your instance.
 - `mongodbatlas_stream_processor`: Enables creating, deleting, starting and stopping a Stream Processor, which define how your data will be processed in your instance.

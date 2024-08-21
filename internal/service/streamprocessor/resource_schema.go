@@ -37,8 +37,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					schemafunc.DiffSuppressJSON(),
 				},
 				Required:            true,
-				Description:         "Stream aggregation pipeline you want to apply to your streaming data.",
-				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data.",
+				Description:         "Stream aggregation pipeline you want to apply to your streaming data. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when settig this attribute. For more details see [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
+				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when settig this attribute. For more details see [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
 			},
 			"processor_name": schema.StringAttribute{
 				Required:            true,
@@ -53,8 +53,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"state": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Description:         "The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.",
-				MarkdownDescription: "The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.",
+				Description:         "The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`.  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.",
+				MarkdownDescription: "The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`.  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.",
 			},
 			"options": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -76,8 +76,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								MarkdownDescription: "Name of the database that will be used for the DLQ.",
 							},
 						},
-						Optional:            true,
-						Computed:            true,
+						Required:            true,
 						Description:         "Dead letter queue for the stream processor.",
 						MarkdownDescription: "Dead letter queue for the stream processor.",
 					},

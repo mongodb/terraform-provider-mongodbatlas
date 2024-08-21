@@ -21,12 +21,66 @@ resource "mongodbatlas_stream_connection" "example-sample" {
   type            = "Sample"
 }
 
-resource "mongodbatlas_stream_processor" "stream-processor-example" {
+resource "mongodbatlas_stream_connection" "example-cluster" {
+  project_id      = var.project_id
+  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "ClusterConnection"
+  type            = "Cluster"
+  cluster_name    = var.cluster_name
+  db_role_to_execute = {
+    role = "atlasAdmin"
+    type = "BUILT_IN"
+  }
+}
+
+resource "mongodbatlas_stream_connection" "example-kafka" {
+  project_id      = var.project_id
+  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "KafkaPlaintextConnection"
+  type            = "Kafka"
+  authentication = {
+    mechanism = "PLAIN"
+    username  = var.kafka_username
+    password  = var.kafka_password
+  }
+  bootstrap_servers = "localhost:9092,localhost:9092"
+  config = {
+    "auto.offset.reset" : "earliest"
+  }
+  security = {
+    protocol = "PLAINTEXT"
+  }
+}
+
+resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
   project_id     = var.project_id
   instance_name  = mongodbatlas_stream_instance.example.instance_name
-  processor_name = "processorName"
-  pipeline       = "[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"
+  processor_name = "sampleProcessorName"
+  pipeline       = jsonencode([{ "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-sample.connection_name } }, { "$emit" = { "connectionName" : "__testLog" } }])
+  state          = "CREATED"
+}
+
+resource "mongodbatlas_stream_processor" "stream-processor-cluster-example" {
+  project_id     = var.project_id
+  instance_name  = mongodbatlas_stream_instance.example.instance_name
+  processor_name = "clusterProcessorName"
+  pipeline       = jsonencode([{ "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name } }, { "$emit" = { "connectionName" : "__testLog" } }])
   state          = "STARTED"
+}
+
+resource "mongodbatlas_stream_processor" "stream-processor-kafka-example" {
+  project_id     = var.project_id
+  instance_name  = mongodbatlas_stream_instance.example.instance_name
+  processor_name = "kafkaProcessorName"
+  pipeline       = jsonencode([{ "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name } }, { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "example_topic" } }])
+  state          = "CREATED"
+  options = {
+    dlq = {
+      coll            = "exampleColumn"
+      connection_name = resource.mongodbatlas_stream_connection.example-cluster.connection_name
+      db              = "exampleDb"
+    }
+  }
 }
 
 data "mongodbatlas_stream_processors" "example-stream-processors" {
@@ -37,7 +91,7 @@ data "mongodbatlas_stream_processors" "example-stream-processors" {
 data "mongodbatlas_stream_processor" "example-stream-processor" {
   project_id     = var.project_id
   instance_name  = mongodbatlas_stream_instance.example.instance_name
-  processor_name = mongodbatlas_stream_processor.stream-processor-example.processor_name
+  processor_name = mongodbatlas_stream_processor.stream-processor-sample-example.processor_name
 }
 
 # example making use of data sources
@@ -56,7 +110,7 @@ output "stream_processors_results" {
 ### Required
 
 - `instance_name` (String) Human-readable label that identifies the stream instance.
-- `pipeline` (String) Stream aggregation pipeline you want to apply to your streaming data.
+- `pipeline` (String) Stream aggregation pipeline you want to apply to your streaming data. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when settig this attribute. For more details see [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)
 - `processor_name` (String) Human-readable label that identifies the stream processor.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
 
@@ -65,7 +119,7 @@ output "stream_processors_results" {
 ### Optional
 
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--options))
-- `state` (String) The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.
+- `state` (String) The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`.  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.
 
 ### Read-Only
 
@@ -75,7 +129,7 @@ output "stream_processors_results" {
 <a id="nestedatt--options"></a>
 ### Nested Schema for `options`
 
-Optional:
+Required:
 
 - `dlq` (Attributes) Dead letter queue for the stream processor. (see [below for nested schema](#nestedatt--options--dlq))
 
