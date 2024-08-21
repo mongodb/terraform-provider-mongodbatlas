@@ -52,8 +52,13 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 		return
 	}
 
-	// TODO handle state transition
-	newencryptionAtRestPrivateEndpointModel := NewTFEarPrivateEndpoint(createResp, projectID)
+	finalState, err := WaitStateTransition(ctx, projectID, cloudProvider, createResp.GetId(), connV2.EncryptionAtRestUsingCustomerKeyManagementApi)
+	if err != nil {
+		resp.Diagnostics.AddError("error when waiting for status transition in creation", err.Error())
+		return
+	}
+
+	newencryptionAtRestPrivateEndpointModel := NewTFEarPrivateEndpoint(finalState, projectID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newencryptionAtRestPrivateEndpointModel)...)
 }
 
@@ -79,6 +84,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 		return
 	}
 
+	// TODO add error if error message is present
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(endpointModel, projectID))...)
 }
 
@@ -102,7 +108,10 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 		return
 	}
 
-	// TODO handle state transition
+	if err := WaitDeleteStateTransition(ctx, projectID, cloudProvider, endpointID, connV2.EncryptionAtRestUsingCustomerKeyManagementApi); err != nil {
+		resp.Diagnostics.AddError("error when waiting for status transition in delete", err.Error())
+		return
+	}
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
