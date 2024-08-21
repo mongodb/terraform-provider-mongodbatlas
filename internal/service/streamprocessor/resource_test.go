@@ -45,25 +45,11 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config(t, projectID, instanceName, processorName, "", sampleSrcConfig, testLogDestConfig),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "processor_name"),
-					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
-					resource.TestCheckResourceAttr(resourceName, "state", "CREATED"),
-				),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false),
 			},
 			{
 				Config: config(t, projectID, instanceName, processorName, streamprocessor.StartedState, sampleSrcConfig, testLogDestConfig),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "processor_name"),
-					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
-					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
-				),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -91,18 +77,12 @@ func TestAccStreamProcessorRS_withOptions(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, src, dest),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
-					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
-					resource.TestCheckResourceAttr(resourceName, "state", "CREATED"),
-				),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false),
 			},
 		}})
 }
 
-func TestAccStreamProcessorRS_createWithAutoStart(t *testing.T) {
+func TestAccStreamProcessorRS_createWithAutoStartAndStop(t *testing.T) {
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		processorName = "new-processor"
@@ -116,25 +96,11 @@ func TestAccStreamProcessorRS_createWithAutoStart(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config(t, projectID, instanceName, processorName, streamprocessor.StartedState, sampleSrcConfig, testLogDestConfig),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "processor_name"),
-					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
-					resource.TestCheckResourceAttr(resourceName, "state", "STARTED"),
-				),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true),
 			},
 			{
 				Config: config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, sampleSrcConfig, testLogDestConfig),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "processor_name"),
-					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
-					resource.TestCheckResourceAttr(resourceName, "state", "STOPPED"),
-				),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StoppedState, true),
 			},
 		}})
 }
@@ -154,15 +120,7 @@ func TestAccStreamProcessorRS_clusterType(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config(t, projectID, instanceName, processorName, streamprocessor.StartedState, srcConfig, testLogDestConfig),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "processor_name"),
-					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
-					resource.TestCheckResourceAttr(resourceName, "state", "STARTED"),
-					resource.TestCheckResourceAttrSet(resourceName, "stats"),
-				),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true),
 			},
 		}})
 }
@@ -231,6 +189,20 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["instance_name"], rs.Primary.Attributes["project_id"], rs.Primary.Attributes["processor_name"]), nil
 	}
+}
+
+func composeStreamProcessorChecks(projectID, instanceName, processorName, state string, includeStats bool) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks = acc.AddAttrChecks(resourceName, checks, map[string]string{
+		"project_id":     projectID,
+		"instance_name":  instanceName,
+		"processor_name": processorName,
+		"state":          state,
+	})
+	if includeStats {
+		checks = acc.AddAttrSetChecks(resourceName, checks, "stats")
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func config(t *testing.T, projectID, instanceName, processorName, state string, src, dest connectionConfig) string {
