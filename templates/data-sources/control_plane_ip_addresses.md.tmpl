@@ -1,15 +1,6 @@
----
-layout: "mongodbatlas"
-page_title: "MongoDB Atlas: {{.Name}}"
-sidebar_current: "docs-{{ .ProviderShortName }}-{{ $arr := split .Type " "}}{{ range $element := $arr }}{{ $element | lower}}{{ end }}{{ $name := slice (split .Name "_") 1 }}{{ range $element := $name }}-{{ $element | lower}}{{end}}"
-description: |-
-    "Provides a data source that returns all control plane IP addresses"
----
-
 # {{.Type}}: {{.Name}}
 
-{{ .Description | trimspace }}
-Provides a data source that returns all control plane IP addresses.
+`{{.Name}}` returns all control plane IP addresses.
 
 ## Example Usages
 {{ tffile (printf "examples/%s/main.tf" .Name )}}

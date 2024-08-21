@@ -17,8 +17,8 @@ func TestAccConfigDSOrganizations_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasOrganizationsConfigWithDS(),
-				Check: resource.ComposeTestCheckFunc(
+				Config: configWithPluralDS(),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.name"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.id"),
@@ -39,8 +39,8 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasOrganizationsConfigWithPagination(2, 5),
-				Check: resource.ComposeTestCheckFunc(
+				Config: configWithPagination(2, 5),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
 				),
 			},
@@ -48,14 +48,14 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasOrganizationsConfigWithDS() string {
+func configWithPluralDS() string {
 	return `	
 		data "mongodbatlas_organizations" "test" {
 		}
 	`
 }
 
-func testAccMongoDBAtlasOrganizationsConfigWithPagination(pageNum, itemPage int) string {
+func configWithPagination(pageNum, itemPage int) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_organizations" "test" {
 			page_num = %d

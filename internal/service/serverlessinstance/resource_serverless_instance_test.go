@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
@@ -34,7 +34,7 @@ func TestAccServerlessInstance_withTags(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, nil, nil),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
@@ -54,7 +54,7 @@ func TestAccServerlessInstance_withTags(t *testing.T) {
 					},
 				},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
@@ -76,7 +76,7 @@ func TestAccServerlessInstance_withTags(t *testing.T) {
 					},
 				},
 				),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
@@ -103,7 +103,7 @@ func TestAccServerlessInstance_autoIndexing(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, conversion.Pointer(false), nil),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "auto_indexing", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "auto_indexing", "false"),
@@ -112,7 +112,7 @@ func TestAccServerlessInstance_autoIndexing(t *testing.T) {
 			},
 			{
 				Config: acc.ConfigServerlessInstance(projectID, instanceName, false, conversion.Pointer(true), nil),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "auto_indexing", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "auto_indexing", "true"),
@@ -137,7 +137,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigServerlessInstance(projectID, instanceName, true, nil, nil),
-				Check:  resource.ComposeTestCheckFunc(basicChecks(projectID, instanceName)...),
+				Check:  resource.ComposeAggregateTestCheckFunc(basicChecks(projectID, instanceName)...),
 			},
 			{
 				ResourceName:      resourceName,

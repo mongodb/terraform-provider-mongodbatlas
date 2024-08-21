@@ -10,9 +10,8 @@ on:
 jobs:
   stale:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.APIX_BOT_PAT }}
     steps:
       - uses: actions/stale@28ca1036281a5e5922ead5184a1bbf96e5fc984e
         id: stale

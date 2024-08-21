@@ -1,5 +1,5 @@
 # MongoDB Atlas Provider -- Multi-Cloud Advanced Cluster 
-This example creates a project and a Multi Cloud Advanced Cluster in all the available cloud providers.
+This example creates a project and a Multi Cloud Advanced Cluster with 2 shards.
 
 
 ## Dependencies
@@ -30,7 +30,7 @@ private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
 atlas_org_id         = "<MONGODB_ATLAS_ORG_ID>"
 ```
 
-... or use [AWS Secrets Manager](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/index.html.markdown#aws-secrets-manager)
+... or use [AWS Secrets Manager](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/docs/index.md#aws-secrets-manager)
 
 **2\. Review the Terraform plan.**
 
@@ -46,7 +46,7 @@ This project currently supports the below deployments:
 
 **3\. Execute the Terraform apply.**
 
-Now execute the plan to provision the Federated settings resources.
+Now execute the plan to provision the Atlas Project and Cluster resources.
 
 ``` bash
 $ terraform apply

@@ -180,6 +180,14 @@ func PreCheckAwsEnv(tb testing.TB) {
 	}
 }
 
+func PreCheckAwsRegionCases(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AWS_REGION_UPPERCASE") == "" ||
+		os.Getenv("AWS_REGION_LOWERCASE") == "" {
+		tb.Fatal("`AWS_REGION_UPPERCASE`, `AWS_REGION_LOWERCASE` must be set for acceptance testing")
+	}
+}
+
 func PreCheckAwsEnvPrivateLinkEndpointService(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
@@ -286,5 +294,13 @@ func PreCheckS3Bucket(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AWS_S3_BUCKET") == "" {
 		tb.Fatal("`AWS_S3_BUCKET` must be set ")
+	}
+}
+
+func PreCheckAzureExportBucket(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AZURE_SERVICE_URL") == "" ||
+		os.Getenv("AZURE_BLOB_STORAGE_CONTAINER_NAME") == "" {
+		tb.Fatal("`AZURE_SERVICE_URL` and `AZURE_SERVICE_URL`must be set for Cloud Backup Snapshot Export Bucket acceptance testing")
 	}
 }

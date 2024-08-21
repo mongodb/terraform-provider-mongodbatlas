@@ -23,7 +23,7 @@ func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
 					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP30"),
 				),
@@ -51,7 +51,7 @@ func TestAccStreamRSStreamInstance_withStreamConfig(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.StreamInstanceWithStreamConfigConfig(projectID, instanceName, region, cloudProvider, "SP10"), // as of now there are no values that can be updated because only one region is supported
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
 					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP10"),
 				),
@@ -76,7 +76,7 @@ func streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProv
 		resource.TestCheckResourceAttr(resourceName, "data_process_region.cloud_provider", cloudProvider),
 		resource.TestCheckResourceAttr(resourceName, "hostnames.#", "1"),
 	}
-	return resource.ComposeTestCheckFunc(resourceChecks...)
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
 
 func checkStreamInstanceImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {

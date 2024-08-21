@@ -22,7 +22,7 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configProject(orgID, projectName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", "0"),

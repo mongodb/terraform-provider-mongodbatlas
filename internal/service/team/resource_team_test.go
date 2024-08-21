@@ -30,7 +30,7 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, name, usernames),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -39,7 +39,7 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgID, updatedName, usernames),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
@@ -48,7 +48,7 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgID, updatedName, usernames),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
@@ -81,7 +81,7 @@ func TestAccConfigRSTeam_legacyName(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicLegacyNames(orgID, name, usernames),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),

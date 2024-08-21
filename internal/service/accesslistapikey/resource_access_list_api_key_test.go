@@ -28,7 +28,7 @@ func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithIPAddress(orgID, description, ipAddress),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
@@ -36,7 +36,7 @@ func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 			},
 			{
 				Config: configWithIPAddress(orgID, description, updatedIPAddress),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "ip_address", updatedIPAddress),
@@ -68,7 +68,7 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithCIDRBlock(orgID, description, cidrBlock),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
@@ -76,7 +76,7 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 			},
 			{
 				Config: configWithCIDRBlock(orgID, description, updatedCIDRBlock),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", updatedCIDRBlock),
@@ -102,7 +102,7 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock_WideCIDR(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithCIDRBlock(orgID, description, cidrBlock),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
@@ -110,7 +110,7 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock_WideCIDR(t *testing.T) {
 			},
 			{
 				Config: configWithCIDRBlock(orgID, description, updatedCIDRBlock),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", updatedCIDRBlock),

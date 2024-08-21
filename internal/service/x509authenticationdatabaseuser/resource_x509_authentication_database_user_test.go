@@ -33,7 +33,7 @@ func TestAccGenericX509AuthDBUser_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, username),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -64,7 +64,7 @@ func TestAccGenericX509AuthDBUser_withCustomerX509(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithCustomerX509(orgID, projectName, cas),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "customer_x509_cas"),
@@ -94,7 +94,7 @@ func TestAccGenericX509AuthDBUser_withDatabaseUser(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithDatabaseUser(projectID, username, months),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "username"),

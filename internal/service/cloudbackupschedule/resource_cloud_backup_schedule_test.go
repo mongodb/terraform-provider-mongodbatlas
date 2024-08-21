@@ -9,8 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
 
 var (
@@ -29,14 +30,14 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configNoPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
+				Config: configNoPolicies(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(4),
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
@@ -45,7 +46,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_hour_of_day"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_minute_of_hour"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "restore_window_days"),
@@ -57,14 +58,14 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configNewPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
+				Config: configNewPolicies(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(0),
 					ReferenceMinuteOfHour: conversion.Pointer(0),
 					RestoreWindowDays:     conversion.Pointer(7),
 				}, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
@@ -93,21 +94,21 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.frequency_interval", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_unit", "years"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_value", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_hour_of_day"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_minute_of_hour"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "restore_window_days"),
 				),
 			},
 			{
-				Config: configAdvancedPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
+				Config: configAdvancedPolicies(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(0),
 					ReferenceMinuteOfHour: conversion.Pointer(0),
 					RestoreWindowDays:     conversion.Pointer(7),
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
@@ -165,9 +166,9 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configExportPolicies(&clusterInfo, policyName, roleName, bucketName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "20"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "5"),
@@ -192,14 +193,14 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configDefault(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
+				Config: configDefault(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(4),
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
@@ -226,14 +227,14 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 				),
 			},
 			{
-				Config: configOnePolicy(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
+				Config: configOnePolicy(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(0),
 					ReferenceMinuteOfHour: conversion.Pointer(0),
 					RestoreWindowDays:     conversion.Pointer(7),
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
@@ -250,11 +251,66 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 	})
 }
 
-func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
+func TestAccBackupRSCloudBackupSchedule_copySettings_repSpecId(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
+			CloudBackup: true,
+			ReplicationSpecs: []acc.ReplicationSpecRequest{
+				{Region: "US_EAST_2"},
+			},
+			PitEnabled: true, // you cannot copy oplogs when pit is not enabled
+		})
+		clusterName         = clusterInfo.Name
+		terraformStr        = clusterInfo.TerraformStr
+		clusterResourceName = clusterInfo.ResourceName
+		projectID           = clusterInfo.ProjectID
+		checkMap            = map[string]string{
+			"cluster_name":                             clusterName,
+			"reference_hour_of_day":                    "3",
+			"reference_minute_of_hour":                 "45",
+			"restore_window_days":                      "1",
+			"policy_item_hourly.#":                     "1",
+			"policy_item_daily.#":                      "1",
+			"policy_item_weekly.#":                     "1",
+			"policy_item_monthly.#":                    "1",
+			"policy_item_yearly.#":                     "1",
+			"policy_item_hourly.0.frequency_interval":  "1",
+			"policy_item_hourly.0.retention_unit":      "days",
+			"policy_item_hourly.0.retention_value":     "1",
+			"policy_item_daily.0.frequency_interval":   "1",
+			"policy_item_daily.0.retention_unit":       "days",
+			"policy_item_daily.0.retention_value":      "2",
+			"policy_item_weekly.0.frequency_interval":  "4",
+			"policy_item_weekly.0.retention_unit":      "weeks",
+			"policy_item_weekly.0.retention_value":     "3",
+			"policy_item_monthly.0.frequency_interval": "5",
+			"policy_item_monthly.0.retention_unit":     "months",
+			"policy_item_monthly.0.retention_value":    "4",
+			"policy_item_yearly.0.frequency_interval":  "1",
+			"policy_item_yearly.0.retention_unit":      "years",
+			"policy_item_yearly.0.retention_value":     "1",
+		}
+		copySettingsChecks = map[string]string{
+			"copy_settings.#":                    "1",
+			"copy_settings.0.cloud_provider":     "AWS",
+			"copy_settings.0.region_name":        "US_EAST_1",
+			"copy_settings.0.should_copy_oplogs": "true",
+		}
+		emptyCopySettingsChecks = map[string]string{
+			"copy_settings.#": "0",
+		}
 	)
+	checksDefaultRS := acc.AddAttrChecks(resourceName, []resource.TestCheckFunc{checkExists(resourceName)}, checkMap)
+	checksCreateRS := acc.AddAttrChecks(resourceName, checksDefaultRS, copySettingsChecks)
+	checksCreateAll := acc.AddAttrSetChecks(resourceName, checksCreateRS, "copy_settings.0.replication_spec_id")
+
+	checksDefaultDS := acc.AddAttrChecks(dataSourceName, []resource.TestCheckFunc{}, checkMap)
+	checksCreateDS := acc.AddAttrChecks(dataSourceName, checksDefaultDS, copySettingsChecks)
+	checksCreateDSAll := acc.AddAttrSetChecks(dataSourceName, checksCreateDS, "copy_settings.0.replication_spec_id")
+
+	checksCreateAll = append(checksCreateAll, checksCreateDSAll...)
+
+	checksUpdate := acc.AddAttrChecks(resourceName, checksDefaultRS, emptyCopySettingsChecks)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -262,45 +318,111 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configCopySettings(projectID, clusterName, &admin.DiskBackupSnapshotSchedule{
+				Config: configCopySettings(terraformStr, projectID, clusterResourceName, false, true, &admin20240530.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(1),
 				}),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
-					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "2"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.frequency_interval", "4"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_unit", "weeks"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_value", "3"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.frequency_interval", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_unit", "years"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_yearly.0.retention_value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.cloud_provider", "AWS"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.region_name", "US_EAST_1"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.should_copy_oplogs", "true"),
-				),
+				Check: resource.ComposeAggregateTestCheckFunc(checksCreateAll...),
+			},
+			{
+				Config: configCopySettings(terraformStr, projectID, clusterResourceName, true, true, &admin20240530.DiskBackupSnapshotSchedule{
+					ReferenceHourOfDay:    conversion.Pointer(3),
+					ReferenceMinuteOfHour: conversion.Pointer(45),
+					RestoreWindowDays:     conversion.Pointer(1),
+				}),
+				Check: resource.ComposeAggregateTestCheckFunc(checksUpdate...),
 			},
 		},
 	})
 }
+
+func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
+	var (
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
+			CloudBackup: true,
+			ReplicationSpecs: []acc.ReplicationSpecRequest{
+				{Region: "US_EAST_2"},
+			},
+			PitEnabled: true, // you cannot copy oplogs when pit is not enabled
+		})
+		clusterName         = clusterInfo.Name
+		terraformStr        = clusterInfo.TerraformStr
+		clusterResourceName = clusterInfo.ResourceName
+		projectID           = clusterInfo.ProjectID
+		checkMap            = map[string]string{
+			"cluster_name":                             clusterName,
+			"reference_hour_of_day":                    "3",
+			"reference_minute_of_hour":                 "45",
+			"restore_window_days":                      "1",
+			"policy_item_hourly.#":                     "1",
+			"policy_item_daily.#":                      "1",
+			"policy_item_weekly.#":                     "1",
+			"policy_item_monthly.#":                    "1",
+			"policy_item_yearly.#":                     "1",
+			"policy_item_hourly.0.frequency_interval":  "1",
+			"policy_item_hourly.0.retention_unit":      "days",
+			"policy_item_hourly.0.retention_value":     "1",
+			"policy_item_daily.0.frequency_interval":   "1",
+			"policy_item_daily.0.retention_unit":       "days",
+			"policy_item_daily.0.retention_value":      "2",
+			"policy_item_weekly.0.frequency_interval":  "4",
+			"policy_item_weekly.0.retention_unit":      "weeks",
+			"policy_item_weekly.0.retention_value":     "3",
+			"policy_item_monthly.0.frequency_interval": "5",
+			"policy_item_monthly.0.retention_unit":     "months",
+			"policy_item_monthly.0.retention_value":    "4",
+			"policy_item_yearly.0.frequency_interval":  "1",
+			"policy_item_yearly.0.retention_unit":      "years",
+			"policy_item_yearly.0.retention_value":     "1",
+		}
+		copySettingsChecks = map[string]string{
+			"copy_settings.#":                    "1",
+			"copy_settings.0.cloud_provider":     "AWS",
+			"copy_settings.0.region_name":        "US_EAST_1",
+			"copy_settings.0.should_copy_oplogs": "true",
+		}
+		emptyCopySettingsChecks = map[string]string{
+			"copy_settings.#": "0",
+		}
+	)
+	checksDefaultRS := acc.AddAttrChecks(resourceName, []resource.TestCheckFunc{checkExists(resourceName)}, checkMap)
+	checksCreateRS := acc.AddAttrChecks(resourceName, checksDefaultRS, copySettingsChecks)
+	checksCreateAll := acc.AddAttrSetChecks(resourceName, checksCreateRS, "copy_settings.0.zone_id")
+
+	checksDefaultDS := acc.AddAttrChecks(dataSourceName, []resource.TestCheckFunc{}, checkMap)
+	checksCreateDS := acc.AddAttrChecks(dataSourceName, checksDefaultDS, copySettingsChecks)
+	checksCreateDSAll := acc.AddAttrSetChecks(dataSourceName, checksCreateDS, "copy_settings.0.zone_id")
+
+	checksCreateAll = append(checksCreateAll, checksCreateDSAll...)
+
+	checksUpdate := acc.AddAttrChecks(resourceName, checksDefaultRS, emptyCopySettingsChecks)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configCopySettings(terraformStr, projectID, clusterResourceName, false, false, &admin20240530.DiskBackupSnapshotSchedule{
+					ReferenceHourOfDay:    conversion.Pointer(3),
+					ReferenceMinuteOfHour: conversion.Pointer(45),
+					RestoreWindowDays:     conversion.Pointer(1),
+				}),
+				Check: resource.ComposeAggregateTestCheckFunc(checksCreateAll...),
+			},
+			{
+				Config: configCopySettings(terraformStr, projectID, clusterResourceName, true, false, &admin20240530.DiskBackupSnapshotSchedule{
+					ReferenceHourOfDay:    conversion.Pointer(3),
+					ReferenceMinuteOfHour: conversion.Pointer(45),
+					RestoreWindowDays:     conversion.Pointer(1),
+				}),
+				Check: resource.ComposeAggregateTestCheckFunc(checksUpdate...),
+			},
+		},
+	})
+}
+
 func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
@@ -312,14 +434,14 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configDefault(&clusterInfo, &admin.DiskBackupSnapshotSchedule{
+				Config: configDefault(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(4),
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
@@ -357,7 +479,8 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 
 func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ProviderName: constant.AZURE})
+		spec        = acc.ReplicationSpecRequest{ProviderName: constant.AZURE}
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ReplicationSpecs: []acc.ReplicationSpecRequest{spec}})
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -366,27 +489,27 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAzure(&clusterInfo, &admin.DiskBackupApiPolicyItem{
+				Config: configAzure(&clusterInfo, &admin20240530.DiskBackupApiPolicyItem{
 					FrequencyInterval: 1,
 					RetentionUnit:     "days",
 					RetentionValue:    1,
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1")),
 			},
 			{
-				Config: configAzure(&clusterInfo, &admin.DiskBackupApiPolicyItem{
+				Config: configAzure(&clusterInfo, &admin20240530.DiskBackupApiPolicyItem{
 					FrequencyInterval: 2,
 					RetentionUnit:     "days",
 					RetentionValue:    3,
 				}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.ClusterName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "2"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "3"),
@@ -400,6 +523,82 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestCheckCopySettingsToUseOldAPI(t *testing.T) {
+	testCases := []struct {
+		name                    string
+		errMsg                  string
+		tfList                  []any
+		isCreate                bool
+		expectedShouldUseOldAPI bool
+		expectErr               bool
+	}{
+		{
+			name: "Valid - all replication_spec_id set",
+			tfList: []any{
+				map[string]any{"replication_spec_id": "123"},
+				map[string]any{"replication_spec_id": "456"},
+			},
+			isCreate:                true,
+			expectedShouldUseOldAPI: true,
+			expectErr:               false,
+		},
+		{
+			name: "Valid - all zone_id set",
+			tfList: []any{
+				map[string]any{"zone_id": "123"},
+				map[string]any{"zone_id": "456"},
+			},
+			isCreate:                true,
+			expectedShouldUseOldAPI: false,
+			expectErr:               false,
+		},
+		{
+			name: "Invalid - both IDs set on Create",
+			tfList: []any{
+				map[string]any{"replication_spec_id": "123", "zone_id": "zone123"},
+			},
+			isCreate:                true,
+			expectedShouldUseOldAPI: false,
+			expectErr:               true,
+			errMsg:                  "both 'replication_spec_id' and 'zone_id' cannot be set",
+		},
+		{
+			name: "Valid - Both IDs set on Update/Read",
+			tfList: []any{
+				map[string]any{"replication_spec_id": "123", "zone_id": "zone123"},
+			},
+			isCreate:                false,
+			expectedShouldUseOldAPI: false,
+			expectErr:               false,
+		},
+		{
+			name: "Invalid - neither ID set",
+			tfList: []any{
+				map[string]any{},
+			},
+			isCreate:                false,
+			expectedShouldUseOldAPI: false,
+			expectErr:               true,
+			errMsg:                  "each element must have either 'replication_spec_id' or 'zone_id' set",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := cloudbackupschedule.CheckCopySettingsToUseOldAPI(tc.tfList, tc.isCreate)
+			if result != tc.expectedShouldUseOldAPI {
+				t.Errorf("%s failed: expected result %v, got %v", tc.name, tc.expectedShouldUseOldAPI, result)
+			}
+			if (err != nil) != tc.expectErr {
+				t.Errorf("%s failed: expected error %v, got %v", tc.name, tc.expectErr, err)
+			}
+			if err != nil && err.Error() != tc.errMsg {
+				t.Errorf("%s failed: expected error message %q, got %q", tc.name, tc.errMsg, err.Error())
+			}
+		})
+	}
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -445,11 +644,11 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func configNoPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+func configNoPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSchedule) string {
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 
 			reference_hour_of_day    = %[3]d
 			reference_minute_of_hour = %[4]d
@@ -458,16 +657,16 @@ func configNoPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule
 
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 		}	
-	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
+	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configDefault(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+func configDefault(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSchedule) string {
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 
 			reference_hour_of_day    = %[3]d
 			reference_minute_of_hour = %[4]d
@@ -502,68 +701,18 @@ func configDefault(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) s
 
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 		 }	
-	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
+	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configCopySettings(projectID, clusterName string, p *admin.DiskBackupSnapshotSchedule) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = %[1]q
-			name         = %[2]q
-			
-			cluster_type = "REPLICASET"
-						replication_specs {
-						num_shards = 1
-						regions_config {
-							region_name     = "US_EAST_2"
-							electable_nodes = 3
-							priority        = 7
-							read_only_nodes = 0
-							}
-						}
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_region_name        = "US_EAST_2"
-			provider_instance_size_name = "M10"
-			cloud_backup     = true //enable cloud provider snapshots
-			pit_enabled = true // enable point in time restore. you cannot copy oplogs when pit is not enabled.
-		}
-		
-		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
-			project_id   = %[1]q
-			cluster_name     = %[2]q
+func configCopySettings(terraformStr, projectID, clusterResourceName string, emptyCopySettings, useRepSpecID bool, p *admin20240530.DiskBackupSnapshotSchedule) string {
+	var copySettings string
+	var dataSourceConfig string
 
-			reference_hour_of_day    = %[3]d
-			reference_minute_of_hour = %[4]d
-			restore_window_days      = %[5]d
-
-			policy_item_hourly {
-				frequency_interval = 1
-				retention_unit     = "days"
-				retention_value    = 1
-			}
-			policy_item_daily {
-				frequency_interval = 1
-				retention_unit     = "days"
-				retention_value    = 2
-			}
-			policy_item_weekly {
-				frequency_interval = 4
-				retention_unit     = "weeks"
-				retention_value    = 3
-			}
-			policy_item_monthly {
-				frequency_interval = 5
-				retention_unit     = "months"
-				retention_value    = 4
-			}
-			policy_item_yearly {
-				frequency_interval = 1
-				retention_unit     = "years"
-				retention_value    = 1
-			}
+	if !emptyCopySettings {
+		if useRepSpecID {
+			copySettings = fmt.Sprintf(`
 			copy_settings {
 				cloud_provider = "AWS"
 				frequencies = ["HOURLY",
@@ -573,18 +722,83 @@ func configCopySettings(projectID, clusterName string, p *admin.DiskBackupSnapsh
 							"YEARLY",
 							"ON_DEMAND"]
 				region_name = "US_EAST_1"
-				replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
+				replication_spec_id = %[1]s.replication_specs.*.id[0]
 				should_copy_oplogs = true
-			}
+			}`, clusterResourceName)
+
+			dataSourceConfig = `data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+				cluster_name     = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
+				project_id       = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
+			}`
+		} else {
+			copySettings = fmt.Sprintf(`
+			copy_settings {
+				cloud_provider = "AWS"
+				frequencies = ["HOURLY",
+							"DAILY",
+							"WEEKLY",
+							"MONTHLY",
+							"YEARLY",
+							"ON_DEMAND"]
+				region_name = "US_EAST_1"
+				zone_id = %[1]s.replication_specs.*.zone_id[0]
+				should_copy_oplogs = true
+			}`, clusterResourceName)
+
+			dataSourceConfig = `data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+				cluster_name     = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
+				project_id       = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
+				use_zone_id_for_copy_settings = true
+			}`
 		}
-	`, projectID, clusterName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
+	}
+	return fmt.Sprintf(`
+		%[1]s
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			project_id       = %[2]q
+			cluster_name     = %[3]s.name
+
+			reference_hour_of_day    = %[4]d
+			reference_minute_of_hour = %[5]d
+			restore_window_days      = %[6]d
+
+			policy_item_hourly {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 1
+			}
+			policy_item_daily {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 2
+			}
+			policy_item_weekly {
+				frequency_interval = 4
+				retention_unit     = "weeks"
+				retention_value    = 3
+			}
+			policy_item_monthly {
+				frequency_interval = 5
+				retention_unit     = "months"
+				retention_value    = 4
+			}
+			policy_item_yearly {
+				frequency_interval = 1
+				retention_unit     = "years"
+				retention_value    = 1
+			}
+			%[7]s
+		}
+
+		%[8]s
+	`, terraformStr, projectID, clusterResourceName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), copySettings, dataSourceConfig)
 }
 
-func configOnePolicy(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+func configOnePolicy(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSchedule) string {
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 
 			reference_hour_of_day    = %[3]d
 			reference_minute_of_hour = %[4]d
@@ -596,10 +810,10 @@ func configOnePolicy(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule)
 				retention_value    = 1
 			}
 		}
-	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
+	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configNewPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule, useYearly bool) string {
+func configNewPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSchedule, useYearly bool) string {
 	var strYearly string
 	if useYearly {
 		strYearly = `
@@ -611,10 +825,10 @@ func configNewPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedul
 		`
 	}
 
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 
 			reference_hour_of_day    = %[3]d
 			reference_minute_of_hour = %[4]d
@@ -645,16 +859,16 @@ func configNewPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedul
 
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 		 }	
-	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), strYearly)
+	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), strYearly)
 }
 
-func configAzure(info *acc.ClusterInfo, policy *admin.DiskBackupApiPolicyItem) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+func configAzure(info *acc.ClusterInfo, policy *admin20240530.DiskBackupApiPolicyItem) string {
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 
 			policy_item_hourly {
 				frequency_interval = %[3]d
@@ -665,16 +879,16 @@ func configAzure(info *acc.ClusterInfo, policy *admin.DiskBackupApiPolicyItem) s
 
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 		}	
-	`, info.ClusterNameStr, info.ProjectIDStr, policy.GetFrequencyInterval(), policy.GetRetentionUnit(), policy.GetRetentionValue())
+	`, info.TerraformNameRef, info.ProjectID, policy.GetFrequencyInterval(), policy.GetRetentionUnit(), policy.GetRetentionValue())
 }
 
-func configAdvancedPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+func configAdvancedPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSchedule) string {
+	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
-			project_id       = %[2]s
+			project_id       = %[2]q
 
 			auto_export_enabled = false
 			reference_hour_of_day    = %[3]d
@@ -717,14 +931,14 @@ func configAdvancedPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSc
 				retention_value    = 1
 			}
 		}
-	`, info.ClusterNameStr, info.ProjectIDStr, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
+	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
 func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketName string) string {
-	return info.ClusterTerraformStr + fmt.Sprintf(`
+	return info.TerraformStr + fmt.Sprintf(`
     resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
         cluster_name             = %[1]s
-        project_id               = %[2]s
+        project_id               = %[2]q
         auto_export_enabled      = true
         reference_hour_of_day    = 20
         reference_minute_of_hour = "05"
@@ -764,12 +978,12 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
     }
 
     resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-        project_id      = %[2]s
+        project_id      = %[2]q
         provider_name   = "AWS"
     }
 
     resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-        project_id  = %[2]s
+        project_id  = %[2]q
         role_id     = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
         aws {
             iam_assumed_role_arn = aws_iam_role.test_role.arn
@@ -777,7 +991,7 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
     }
 
     resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-        project_id     = %[2]s
+        project_id     = %[2]q
         iam_role_id    = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
         bucket_name    = aws_s3_bucket.backup.bucket
         cloud_provider = "AWS"
@@ -826,7 +1040,7 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
         }
     EOF
     }
-    `, info.ClusterNameStr, info.ProjectIDStr, policyName, roleName, bucketName)
+    `, info.TerraformNameRef, info.ProjectID, policyName, roleName, bucketName)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {

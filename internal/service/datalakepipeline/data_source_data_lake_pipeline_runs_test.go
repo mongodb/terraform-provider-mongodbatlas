@@ -24,7 +24,7 @@ func TestAccDataLakeRunDSPlural_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configRunDSPlural(projectID, pipelineName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "pipeline_name", pipelineName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.#"),

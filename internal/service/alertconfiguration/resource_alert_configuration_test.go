@@ -35,7 +35,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicRS(projectID, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
@@ -43,7 +43,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 			},
 			{
 				Config: configBasicRS(projectID, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
@@ -93,7 +93,7 @@ func TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig(t *
 		Steps: []resource.TestStep{
 			{
 				Config: configWithEmptyMatcherMetricThresholdConfig(projectID, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
@@ -116,14 +116,14 @@ func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithNotifications(projectID, true, true, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configWithNotifications(projectID, false, false, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -163,7 +163,7 @@ func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
 						"operator":  "CONTAINS",
 						"value":     "MONGOS",
 					}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -180,7 +180,7 @@ func TestAccConfigRSAlertConfiguration_withMatchers(t *testing.T) {
 						"operator":  "EQUALS",
 						"value":     "PRIMARY",
 					}),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -203,14 +203,14 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithMetricUpdated(projectID, true, 99.0),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configWithMetricUpdated(projectID, false, 89.7),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -233,14 +233,14 @@ func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithThresholdUpdated(projectID, true, 1),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
 				Config: configWithThresholdUpdated(projectID, false, 3),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -270,7 +270,7 @@ func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithoutRoles(projectID, true, 99.0),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -293,7 +293,7 @@ func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithEmptyOptionalAttributes(projectID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -347,7 +347,7 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 		Steps: []resource.TestStep{
 			{
 				Config: configWithPagerDutyNotifierID(projectID, notifierID, 10, &serviceKey),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.0.delay_min", "10"),
@@ -356,7 +356,7 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 			},
 			{
 				Config: configWithPagerDutyNotifierID(projectID, notifierID, 15, nil),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.0.delay_min", "15"),
@@ -382,7 +382,7 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithDataDog(projectID, ddAPIKey, ddRegion, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -406,7 +406,7 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithPagerDuty(projectID, serviceKey, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -437,7 +437,7 @@ func TestAccConfigAlertConfiguration_PagerDutyUsingIntegrationID(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithPagerDutyIntegrationID(orgID, projectName, serviceKey),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(nil, resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "notification.0.integration_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "notification.0.integration_id"),
@@ -462,7 +462,7 @@ func TestAccConfigRSAlertConfiguration_withOpsGenie(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithOpsGenie(projectID, apiKey, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
@@ -486,7 +486,7 @@ func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithVictorOps(projectID, apiKey, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),

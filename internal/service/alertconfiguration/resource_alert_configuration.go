@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
@@ -520,7 +520,7 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 }
 
 func (r *alertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	conn := r.Client.Atlas
+	connV2 := r.Client.AtlasV2
 
 	var alertConfigState TfAlertConfigurationRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &alertConfigState)...)
@@ -530,7 +530,7 @@ func (r *alertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRe
 
 	ids := conversion.DecodeStateID(alertConfigState.ID.ValueString())
 
-	_, err := conn.AlertConfigurations.Delete(ctx, ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID])
+	_, err := connV2.AlertConfigurationsApi.DeleteAlertConfiguration(ctx, ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID]).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 	}

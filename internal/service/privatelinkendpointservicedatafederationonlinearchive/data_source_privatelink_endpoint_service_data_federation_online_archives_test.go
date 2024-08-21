@@ -26,7 +26,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchivesDSPlura
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfigBasic(projectID, endpointID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchives, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchives, "results.#"),

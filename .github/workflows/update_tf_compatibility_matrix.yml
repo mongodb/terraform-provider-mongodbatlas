@@ -19,7 +19,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run:  make update-tf-compatibility-matrix
       - name: Verify Changed files
-        uses: tj-actions/verify-changed-files@11ea2b36f98609331b8dc9c5ad9071ee317c6d28
+        uses: tj-actions/verify-changed-files@79f398ac63ab46f7f820470c821d830e5c340ef9
         id: verify-changed-files
       - name: Create PR
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
@@ -30,4 +30,4 @@ jobs:
           commit-message: "doc: Updates Terraform Compatibility Matrix documentation"
           delete-branch: true
           branch: terraform-compatibility-matrix-update
-          body: Automatic updates for Terraform Compatibility Matrix documentation
+          body: "Automatic updates for Terraform Compatibility Matrix documentation. **Action Required**: Update test-suite.yml, .tools-version files, and TF_VERSION_LATEST GitHub environment variable if needed."

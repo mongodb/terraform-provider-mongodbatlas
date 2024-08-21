@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -15,10 +14,8 @@ func DataSource() *schema.Resource {
 		ReadContext: datasourceRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0") + " Will not be an input parameter, only computed.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"export_bucket_id": {
 				Type:     schema.TypeString,
@@ -37,6 +34,18 @@ func DataSource() *schema.Resource {
 				Computed: true,
 			},
 			"iam_role_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"role_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"service_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"tenant_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -69,6 +78,18 @@ func datasourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err = d.Set("iam_role_id", bucket.GetIamRoleId()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `iam_role_id` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
+	}
+
+	if err = d.Set("role_id", bucket.GetRoleId()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `role_id` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
+	}
+
+	if err = d.Set("service_url", bucket.GetServiceUrl()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `service_url` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
+	}
+
+	if err = d.Set("tenant_id", bucket.GetTenantId()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `tenant_id` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(bucket.GetId())

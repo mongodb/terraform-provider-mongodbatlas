@@ -12,7 +12,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasProjectAPIKeyRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -57,35 +57,34 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
-	projectAPIKeys, _, err := conn.ProjectAPIKeys.List(ctx, projectID, nil)
+	projectAPIKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
 
-	for _, val := range projectAPIKeys {
-		if val.ID != apiKeyID {
+	for _, val := range projectAPIKeys.GetResults() {
+		if val.GetId() != apiKeyID {
 			continue
 		}
 
-		if err := d.Set("description", val.Desc); err != nil {
+		if err := d.Set("description", val.GetDesc()); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `description`: %s", err))
 		}
 
-		if err := d.Set("public_key", val.PublicKey); err != nil {
+		if err := d.Set("public_key", val.GetPublicKey()); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 		}
 
-		if err := d.Set("private_key", val.PrivateKey); err != nil {
+		if err := d.Set("private_key", val.GetPrivateKey()); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 		}
 
-		if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
+		if projectAssignments, err := newProjectAssignment(ctx, connV2, apiKeyID); err == nil {
 			if err := d.Set("project_assignment", projectAssignments); err != nil {
 				return diag.Errorf(ErrorProjectSetting, `project_assignment`, projectID, err)
 			}

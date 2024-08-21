@@ -43,7 +43,7 @@ func TestAccNetworkRSNetworkPeering_Azure(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
@@ -54,7 +54,7 @@ func TestAccNetworkRSNetworkPeering_Azure(t *testing.T) {
 			},
 			{
 				Config: configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, updatedvNetName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
@@ -92,7 +92,7 @@ func TestAccNetworkRSNetworkPeering_GCP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configGCP(projectID, providerName, gcpProjectID, networkName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
@@ -109,7 +109,7 @@ func TestAccNetworkRSNetworkPeering_GCP(t *testing.T) {
 			},
 			{
 				Config: configGCP(projectID, providerName, gcpProjectID, updatedNetworkName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
@@ -169,7 +169,7 @@ func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 		},
 	})
@@ -196,7 +196,7 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
 				ResourceName:            resourceName,

@@ -21,7 +21,7 @@ func TestAccFederatedSettingsIdentityProviderDS_samlBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicDS(federatedSettingsID, idpID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "associated_orgs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "acs_url"),

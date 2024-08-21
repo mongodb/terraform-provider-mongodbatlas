@@ -10,10 +10,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func Resource() *schema.Resource {
@@ -100,11 +99,6 @@ func Resource() *schema.Resource {
 			"cancelled": {
 				Type:     schema.TypeBool,
 				Computed: true,
-			},
-			"created_at": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 			},
 			"expired": {
 				Type:     schema.TypeBool,

@@ -23,13 +23,22 @@ resource "mongodbatlas_encryption_at_rest" "test" {
   }
 }
 
-resource "mongodbatlas_cluster" "cluster" {
+resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id                  = var.atlas_project_id
   name                        = "MyCluster"
   cluster_type                = "REPLICASET"
-  provider_name               = "AWS"
+  backup_enabled              = true
   encryption_at_rest_provider = "AWS"
-  backing_provider_name       = "AWS"
-  provider_region_name        = "US_EAST_1"
-  provider_instance_size_name = "M10"
+
+  replication_specs {
+    region_configs {
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_EAST_1"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }
+  }
 }

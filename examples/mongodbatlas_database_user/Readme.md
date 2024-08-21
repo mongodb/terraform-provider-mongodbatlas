@@ -77,8 +77,8 @@ atlasclusterstring = [
     "aws_private_link_srv" = {}
     "private" = ""
     "private_srv" = ""
-    "standard" = "mongodb://MongoDB_Atlas-shard-00-00.xgpi2.mongodb.net:27017,MongoDB_Atlas-shard-00-01.xgpi2.mongodb.net:27017,MongoDB_Atlas-shard-00-02.xgpi2.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-90b49a-shard-0"
-    "standard_srv" = "mongodb+srv://MongoDB_Atlas.xgpi2.mongodb.net"
+    "standard" = "mongodb://MongoDBAtlas-shard-00-00.xgpi2.mongodb.net:27017,MongoDBAtlas-shard-00-01.xgpi2.mongodb.net:27017,MongoDBAtlas-shard-00-02.xgpi2.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-90b49a-shard-0"
+    "standard_srv" = "mongodb+srv://MongoDBAtlas.xgpi2.mongodb.net"
   },
 ]
 project_name = Atlas-DB-Scope

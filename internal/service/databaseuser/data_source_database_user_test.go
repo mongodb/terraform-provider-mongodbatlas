@@ -21,7 +21,7 @@ func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDS(projectID, username, roleName),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourceName, "username", username),

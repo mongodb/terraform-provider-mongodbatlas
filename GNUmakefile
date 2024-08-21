@@ -18,7 +18,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v1.59.0 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v1.59.1 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -75,8 +75,7 @@ lint:
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
 	go install github.com/icholy/gomajor@latest
-	go install github.com/client9/misspell/cmd/misspell@latest
-	go install github.com/terraform-linters/tflint@v0.49.0
+	go install github.com/terraform-linters/tflint@v0.52.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
@@ -86,22 +85,17 @@ tools:  ## Install dev tools
 	go install github.com/hashicorp/go-changelog/cmd/changelog-entry@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
-.PHONY: website-lint
-website-lint:
-	@echo "==> Checking website against linters..."
-	@misspell -error -source=text website/
-
-.PHONY: website
-website:
+.PHONY: docs
+docs:
 	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
 
 .PHONY: tflint
 tflint: fmtcheck
-	@scripts/tflint.sh
+	tflint -f compact --recursive --minimum-failure-severity=warning
 
 .PHONY: tf-validate
 tf-validate: fmtcheck
-	@scripts/tf-validate.sh
+	scripts/tf-validate.sh
 
 .PHONY: link-git-hooks
 link-git-hooks: ## Install git hooks

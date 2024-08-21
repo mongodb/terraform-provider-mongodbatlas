@@ -42,11 +42,11 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configFirstSteps(name, projectName, orgID),
-				Check:  resource.ComposeTestCheckFunc(firstStepChecks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(firstStepChecks...),
 			},
 			{
 				Config: configFirstStepsUpdate(name, projectName, orgID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
@@ -95,7 +95,7 @@ func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 				),
@@ -113,12 +113,23 @@ func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 
 func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_federated_database_instance.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
-		clusterName1 = acc.RandomClusterName()
-		clusterName2 = acc.RandomClusterName()
-		name         = acc.RandomName()
+		specs = []acc.ReplicationSpecRequest{
+			{Region: "EU_WEST_2"},
+		}
+		clusterRequest = acc.ClusterRequest{
+			ReplicationSpecs: specs,
+		}
+		resourceName    = "mongodbatlas_federated_database_instance.test"
+		name            = acc.RandomName()
+		clusterInfo     = acc.GetClusterInfo(t, &clusterRequest)
+		projectID       = clusterInfo.ProjectID
+		clusterRequest2 = acc.ClusterRequest{
+			ProjectID:        projectID,
+			ReplicationSpecs: specs,
+			ResourceSuffix:   "cluster2",
+		}
+		cluster2Info        = acc.GetClusterInfo(t, &clusterRequest2)
+		dependencyTerraform = fmt.Sprintf("%s\n%s", clusterInfo.TerraformStr, cluster2Info.TerraformStr)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -127,8 +138,8 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithCluster(orgID, projectName, clusterName1, clusterName2, name),
-				Check: resource.ComposeTestCheckFunc(
+				Config:                   configWithCluster(dependencyTerraform, projectID, clusterInfo.ResourceName, cluster2Info.ResourceName, name),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
@@ -140,34 +151,12 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	})
 }
 
-func configWithCluster(orgID, projectName, clusterName1, clusterName2, name string) string {
+func configWithCluster(terraformStr, projectID, cluster1ResourceName, cluster2ResourceName, name string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "project-tf" {
-			org_id = %[1]q
-			name   = %[2]q
-	  }
-	  
-	  resource "mongodbatlas_cluster" "cluster-1" {
-			project_id = mongodbatlas_project.project-tf.id
-			provider_name               = "AWS"
-			name                        = %[3]q
-			backing_provider_name       = "AWS"
-			provider_region_name        = "EU_WEST_2"
-			provider_instance_size_name = "M10"
-	  }
-	  
-	  
-	  resource "mongodbatlas_cluster" "cluster-2" {
-			project_id = mongodbatlas_project.project-tf.id
-			provider_name               = "AWS"
-			name                        = %[4]q
-			backing_provider_name       = "AWS"
-			provider_region_name        = "EU_WEST_2"
-			provider_instance_size_name = "M10"
-	  }
+	  %[1]s
 
 	  resource "mongodbatlas_federated_database_instance" "test" {
-			project_id = mongodbatlas_project.project-tf.id
+			project_id = %[2]q
 			name       = %[5]q
 			storage_databases {
 				name = "VirtualDatabase0"
@@ -176,21 +165,21 @@ func configWithCluster(orgID, projectName, clusterName1, clusterName2, name stri
 				data_sources {
 					collection = "listingsAndReviews"
 					database   = "sample_airbnb"
-					store_name = mongodbatlas_cluster.cluster-1.name
+					store_name = %[3]s.name
 				}
 				data_sources {
 
 					collection = "listingsAndReviews"
 					database   = "sample_airbnb"
-					store_name = mongodbatlas_cluster.cluster-2.name
+					store_name = %[4]s.name
 				}
 			}
 		}
 	  
 		storage_stores {
-		  name         = mongodbatlas_cluster.cluster-1.name
-		  cluster_name = mongodbatlas_cluster.cluster-1.name
-		  project_id   = mongodbatlas_project.project-tf.id
+		  name         = %[3]s.name
+		  cluster_name = %[3]s.name
+		  project_id   = %[2]q
 		  provider     = "atlas"
 		  read_preference {
 			mode = "secondary"
@@ -218,9 +207,9 @@ func configWithCluster(orgID, projectName, clusterName1, clusterName2, name stri
 		}
 	  
 		storage_stores {
-		  name         = mongodbatlas_cluster.cluster-2.name
-		  cluster_name = mongodbatlas_cluster.cluster-2.name
-		  project_id   = mongodbatlas_project.project-tf.id
+		  name         = %[4]s.name
+		  cluster_name = %[4]s.name
+		  project_id   = %[2]q
 		  provider     = "atlas"
 		  read_preference {
 			mode = "secondary"
@@ -247,7 +236,7 @@ func configWithCluster(orgID, projectName, clusterName1, clusterName2, name stri
 		  }
 		}
 	  }
-	`, orgID, projectName, clusterName1, clusterName2, name)
+	`, terraformStr, projectID, cluster1ResourceName, cluster2ResourceName, name)
 }
 
 func importStateIDFuncS3Bucket(resourceName, s3Bucket string) resource.ImportStateIdFunc {

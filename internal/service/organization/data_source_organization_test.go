@@ -19,8 +19,8 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasOrganizationConfigWithDS(orgID),
-				Check: resource.ComposeTestCheckFunc(
+				Config: configWithDS(orgID),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(datasourceName, "name"),
 					resource.TestCheckResourceAttrSet(datasourceName, "id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "restrict_employee_access"),
@@ -31,7 +31,7 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 		},
 	})
 }
-func testAccMongoDBAtlasOrganizationConfigWithDS(orgID string) string {
+func configWithDS(orgID string) string {
 	config := fmt.Sprintf(`
 		
 		data "mongodbatlas_organization" "test" {

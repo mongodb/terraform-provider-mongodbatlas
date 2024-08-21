@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20231115014/admin"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
@@ -30,7 +30,7 @@ func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByOrgID(orgID),
-				Check:  resource.ComposeTestCheckFunc(checks...),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 		},
 	})
@@ -51,7 +51,7 @@ func TestAccConfigDSAtlasUsers_ByProjectID(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByProjectID(projectName, orgID, projectOwnerID),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "total_count", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.#", "1"), // we know project will only have the project owner
@@ -82,7 +82,7 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByTeamID(orgID, teamName, username),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "team_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(dataSourceName, "total_count", "1"),
@@ -116,7 +116,7 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByTeamWithPagination(orgID, teamName, username, itemsPerPage, pageNum),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "team_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(dataSourceName, "total_count", "1"),
