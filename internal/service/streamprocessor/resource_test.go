@@ -22,13 +22,15 @@ type connectionConfig struct {
 }
 
 var (
-	resourceName      = "mongodbatlas_stream_processor.processor"
-	connTypeSample    = "Sample"
-	connTypeCluster   = "Cluster"
-	connTypeKafka     = "Kafka"
-	connTypeTestLog   = "TestLog"
-	sampleSrcConfig   = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true}
-	testLogDestConfig = connectionConfig{connectionType: connTypeTestLog, pipelineStepIsSource: false}
+	resourceName         = "mongodbatlas_stream_processor.processor"
+	dataSourceName       = "data.mongodbatlas_stream_processor.test"
+	pluralDataSourceName = "data.mongodbatlas_stream_processors.test"
+	connTypeSample       = "Sample"
+	connTypeCluster      = "Cluster"
+	connTypeKafka        = "Kafka"
+	connTypeTestLog      = "TestLog"
+	sampleSrcConfig      = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true}
+	testLogDestConfig    = connectionConfig{connectionType: connTypeTestLog, pipelineStepIsSource: false}
 )
 
 func TestAccStreamProcessorRS_basic(t *testing.T) {
@@ -193,14 +195,26 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 func composeStreamProcessorChecks(projectID, instanceName, processorName, state string, includeStats bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
-	checks = acc.AddAttrChecks(resourceName, checks, map[string]string{
+	attributes := map[string]string{
 		"project_id":     projectID,
 		"instance_name":  instanceName,
 		"processor_name": processorName,
 		"state":          state,
+	}
+	checks = acc.AddAttrChecks(resourceName, checks, attributes)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attributes)
+	checks = acc.AddAttrChecks(pluralDataSourceName, checks, map[string]string{
+		"project_id":               projectID,
+		"instance_name":            instanceName,
+		"results.#":                "1",
+		"results.0.processor_name": processorName,
+		"results.0.state":          state,
+		"results.0.instance_name":  instanceName,
 	})
 	if includeStats {
 		checks = acc.AddAttrSetChecks(resourceName, checks, "stats")
+		checks = acc.AddAttrSetChecks(dataSourceName, checks, "stats")
+		checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.0.stats")
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
@@ -223,8 +237,19 @@ func config(t *testing.T, projectID, instanceName, processorName, state string, 
 	}
 	dependsOnStr := strings.Join(dependsOn, ", ")
 	pipeline := fmt.Sprintf("[{\"$source\":%1s},{\"$emit\":%2s}]", pipelineStepSrc, pipelineStepDest)
-	fmt.Println("\nPIPELINE:")
-	fmt.Println(pipeline)
+	dataSource := fmt.Sprintf(`
+	data "mongodbatlas_stream_processor" "test" {
+		project_id = %[1]q
+		instance_name = %[2]q
+		processor_name = %[3]q
+		depends_on = [%4s]
+	}`, projectID, instanceName, processorName, resourceName)
+	dataSourcePlural := fmt.Sprintf(`
+	data "mongodbatlas_stream_processors" "test" {
+		project_id = %[1]q
+		instance_name = %[2]q
+		depends_on = [%3s]
+	}`, projectID, instanceName, resourceName)
 
 	configStr := fmt.Sprintf(`
 		resource "mongodbatlas_stream_instance" "instance" {
@@ -247,7 +272,10 @@ func config(t *testing.T, projectID, instanceName, processorName, state string, 
 			%[7]s
 			depends_on = [%[8]s]
 		}
-	`, projectID, instanceName, connectionConfigSrc, connectionConfigDest, processorName, pipeline, stateConfig, dependsOnStr)
+		%[9]s
+		%[10]s
+		
+	`, projectID, instanceName, connectionConfigSrc, connectionConfigDest, processorName, pipeline, stateConfig, dependsOnStr, dataSource, dataSourcePlural)
 	fmt.Println("\nCONFIG:")
 	fmt.Println(configStr)
 	return configStr
