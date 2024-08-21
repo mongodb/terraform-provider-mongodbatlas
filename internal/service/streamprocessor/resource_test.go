@@ -215,7 +215,7 @@ func composeStreamProcessorChecks(projectID, instanceName, processorName, state 
 	if includeStats {
 		checks = acc.AddAttrSetChecks(resourceName, checks, "stats", "pipeline")
 		checks = acc.AddAttrSetChecks(dataSourceName, checks, "stats", "pipeline")
-		checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.0.stats", "pipeline")
+		checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.0.stats", "results.0.pipeline")
 	}
 	if includeOptions {
 		// options are only included on the resource, until https://jira.mongodb.org/browse/CLOUDP-268646 is done
@@ -269,7 +269,7 @@ func config(t *testing.T, projectID, instanceName, processorName, state string, 
 		depends_on = [%3s]
 	}`, projectID, instanceName, resourceName)
 
-	configStr := fmt.Sprintf(`
+	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_instance" "instance" {
 			project_id    = %[1]q
 			instance_name = %[2]q
@@ -295,9 +295,6 @@ func config(t *testing.T, projectID, instanceName, processorName, state string, 
 		%[11]s
 		
 	`, projectID, instanceName, connectionConfigSrc, connectionConfigDest, processorName, pipeline, stateConfig, optionsStr, dependsOnStr, dataSource, dataSourcePlural)
-	fmt.Println("\nCONFIG:")
-	fmt.Println(configStr)
-	return configStr
 }
 
 func configConnection(t *testing.T, projectID string, config connectionConfig) (connectionConfig, resourceID, pipelineStep string) {
