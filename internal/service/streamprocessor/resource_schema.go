@@ -53,8 +53,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"state": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Description:         "The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`.  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.",
-				MarkdownDescription: "The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`.  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.",
+				Description:         "The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`.  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.\n\n**NOTE** When a stream processor is created, the only valid states are CREATED or STARTED. A stream processor can be automatically started after creating it setting the state to STARTED.",
+				MarkdownDescription: "The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`.  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.\n\n**NOTE** When a stream processor is created, the only valid states are CREATED or STARTED. A stream processor can be automatically started after creating it setting the state to STARTED.",
 			},
 			"options": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
