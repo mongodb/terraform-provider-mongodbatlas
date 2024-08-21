@@ -19,6 +19,7 @@ type connectionConfig struct {
 	connectionType       string
 	clusterName          string
 	pipelineStepIsSource bool
+	useAsDLQ             bool
 }
 
 var (
@@ -47,11 +48,11 @@ func TestAccStreamProcessorRS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config(t, projectID, instanceName, processorName, "", sampleSrcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
 			},
 			{
 				Config: config(t, projectID, instanceName, processorName, streamprocessor.StartedState, sampleSrcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
 			},
 			{
 				ResourceName:            resourceName,
@@ -68,7 +69,7 @@ func TestAccStreamProcessorRS_withOptions(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t)
 		processorName          = "new-processor"
 		instanceName           = acc.RandomName()
-		src                    = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true}
+		src                    = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: true}
 		dest                   = connectionConfig{connectionType: connTypeKafka, pipelineStepIsSource: false}
 	)
 
@@ -79,7 +80,7 @@ func TestAccStreamProcessorRS_withOptions(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, src, dest),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, true),
 			},
 		}})
 }
@@ -98,11 +99,11 @@ func TestAccStreamProcessorRS_createWithAutoStartAndStop(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config(t, projectID, instanceName, processorName, streamprocessor.StartedState, sampleSrcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
 			},
 			{
 				Config: config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, sampleSrcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StoppedState, true),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StoppedState, true, false),
 			},
 		}})
 }
@@ -122,7 +123,7 @@ func TestAccStreamProcessorRS_clusterType(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config(t, projectID, instanceName, processorName, streamprocessor.StartedState, srcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
 			},
 		}})
 }
@@ -193,7 +194,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func composeStreamProcessorChecks(projectID, instanceName, processorName, state string, includeStats bool) resource.TestCheckFunc {
+func composeStreamProcessorChecks(projectID, instanceName, processorName, state string, includeStats, includeOptions bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	attributes := map[string]string{
 		"project_id":     projectID,
@@ -212,9 +213,13 @@ func composeStreamProcessorChecks(projectID, instanceName, processorName, state 
 		"results.0.instance_name":  instanceName,
 	})
 	if includeStats {
-		checks = acc.AddAttrSetChecks(resourceName, checks, "stats")
-		checks = acc.AddAttrSetChecks(dataSourceName, checks, "stats")
-		checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.0.stats")
+		checks = acc.AddAttrSetChecks(resourceName, checks, "stats", "pipeline")
+		checks = acc.AddAttrSetChecks(dataSourceName, checks, "stats", "pipeline")
+		checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.0.stats", "pipeline")
+	}
+	if includeOptions {
+		// options are only included on the resource, until https://jira.mongodb.org/browse/CLOUDP-268646 is done
+		checks = acc.AddAttrSetChecks(resourceName, checks, "options.dlq.db", "options.dlq.coll", "options.dlq.connection_name")
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
@@ -237,6 +242,19 @@ func config(t *testing.T, projectID, instanceName, processorName, state string, 
 	}
 	dependsOnStr := strings.Join(dependsOn, ", ")
 	pipeline := fmt.Sprintf("[{\"$source\":%1s},{\"$emit\":%2s}]", pipelineStepSrc, pipelineStepDest)
+	optionsStr := ""
+	if src.useAsDLQ {
+		assert.Equal(t, connTypeCluster, src.connectionType)
+		optionsStr = fmt.Sprintf(`
+			options = {
+				dlq = {
+					coll = "dlq_coll"
+					connection_name = %[1]s.connection_name
+					db = "dlq_db"
+				}
+			}`, connectionIDSrc)
+	}
+
 	dataSource := fmt.Sprintf(`
 	data "mongodbatlas_stream_processor" "test" {
 		project_id = %[1]q
@@ -270,12 +288,13 @@ func config(t *testing.T, projectID, instanceName, processorName, state string, 
 			processor_name = %[5]q
 			pipeline       = %[6]q
 			%[7]s
-			depends_on = [%[8]s]
+			%[8]s
+			depends_on = [%[9]s]
 		}
-		%[9]s
 		%[10]s
+		%[11]s
 		
-	`, projectID, instanceName, connectionConfigSrc, connectionConfigDest, processorName, pipeline, stateConfig, dependsOnStr, dataSource, dataSourcePlural)
+	`, projectID, instanceName, connectionConfigSrc, connectionConfigDest, processorName, pipeline, stateConfig, optionsStr, dependsOnStr, dataSource, dataSourcePlural)
 	fmt.Println("\nCONFIG:")
 	fmt.Println(configStr)
 	return configStr
