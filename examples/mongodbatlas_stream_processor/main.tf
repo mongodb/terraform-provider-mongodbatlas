@@ -18,7 +18,7 @@ resource "mongodbatlas_stream_processor" "stream-processor-example" {
   project_id     = var.project_id
   instance_name  = mongodbatlas_stream_instance.example.instance_name
   processor_name = "processorName"
-  pipeline       = "[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"
+  pipeline       = jsonencode({ "$source" = { "connectionName" = "sample_stream_solar" }, "$emit" = { "connectionName" : "__testLog" } }) #"[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"
   state          = "STARTED"
 }
 
