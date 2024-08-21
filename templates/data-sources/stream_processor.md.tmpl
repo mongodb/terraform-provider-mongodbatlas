@@ -1,0 +1,10 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes a stream processor.
+
+## Example Usages
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createStreamProcessor) Documentation.
