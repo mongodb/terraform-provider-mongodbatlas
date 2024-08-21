@@ -3,6 +3,8 @@
 `mongodbatlas_push_based_log_export` provides a resource for push-based log export feature. The resource lets you configure, enable & disable the project level settings for the push-based log export feature. Using this resource you 
 can continually push logs from mongod, mongos, and audit logs to an Amazon S3 bucket. Atlas exports logs every 5 minutes.
 
+The [push based log export Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/push-based-log-export/mongodbatlas/latest) makes use of this resource and simplifies its use.
+
 
 ## Example Usages
 
