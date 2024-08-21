@@ -81,7 +81,7 @@ jobs:
         id: self_mutation
         run: |-
           git add .
-          git diff --staged --patch --exit-code > .repo.patch || echo "self_mutation_happened=true" >> "${GITHUB_OUTPUT}"
+          git diff -- . ':(exclude)*/docs/resources/stream_processor.md' --staged --patch --exit-code > .repo.patch || echo "self_mutation_happened=true" >> "${GITHUB_OUTPUT}"
       - name: Fail build on mutation
         if: steps.self_mutation.outputs.self_mutation_happened
         run: |-

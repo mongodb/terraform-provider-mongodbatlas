@@ -65,7 +65,7 @@ output "stream_processors_results" {
 ### Optional
 
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--options))
-- `state` (String) The state of the stream processor.
+- `state` (String) The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.
 
 ### Read-Only
 
