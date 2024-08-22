@@ -165,6 +165,7 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
 				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, invalidJSONConfig, testLogDestConfig),
