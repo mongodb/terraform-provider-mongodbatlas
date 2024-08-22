@@ -147,6 +147,29 @@ func TestAccStreamProcessor_failWithInvalidStateOnCreation(t *testing.T) {
 		}})
 }
 
+func TestAccStreamProcessor_failOnUpdate(t *testing.T) {
+	var (
+		projectID     = acc.ProjectIDExecution(t)
+		processorName = "new-processor"
+		instanceName  = acc.RandomName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StartedState, sampleSrcConfig, testLogDestConfig),
+				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
+			},
+			{
+				Config:      config(t, projectID, instanceName, processorName+"suffix", streamprocessor.StoppedState, sampleSrcConfig, testLogDestConfig),
+				ExpectError: regexp.MustCompile("updating a Stream Processor is not supported"),
+			},
+		}})
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
