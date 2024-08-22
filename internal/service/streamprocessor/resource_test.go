@@ -35,13 +35,18 @@ var (
 )
 
 func TestAccStreamProcessor_basic(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func basicTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		processorName = "new-processor"
 		instanceName  = acc.RandomName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamProcessor,
@@ -61,7 +66,7 @@ func TestAccStreamProcessor_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"stats"},
 			},
-		}})
+		}}
 }
 
 func TestAccStreamProcessor_withOptions(t *testing.T) {
