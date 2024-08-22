@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
@@ -16,7 +17,6 @@ import (
 const (
 	encryptionAtRestPrivateEndpointName = "encryption_at_rest_private_endpoint"
 	warnUnsupportedOperation            = "Operation not supported"
-	failedStatus                        = "FAILED"
 )
 
 var _ resource.ResourceWithConfigure = &encryptionAtRestPrivateEndpointRS{}
@@ -45,11 +45,11 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 		return
 	}
 
-	encryptionAtRestPrivateEndpointReq := NewEarPrivateEndpointReq(&earPrivateEndpointPlan)
+	privateEndpointReq := NewEarPrivateEndpointReq(&earPrivateEndpointPlan)
 	connV2 := r.Client.AtlasV2
 	projectID := earPrivateEndpointPlan.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointPlan.CloudProvider.ValueString()
-	createResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.CreateEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, encryptionAtRestPrivateEndpointReq).Execute()
+	createResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.CreateEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, privateEndpointReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -61,8 +61,8 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 		return
 	}
 
-	newencryptionAtRestPrivateEndpointModel := NewTFEarPrivateEndpoint(finalResp, projectID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, newencryptionAtRestPrivateEndpointModel)...)
+	privateEndpointModel := NewTFEarPrivateEndpoint(finalResp, projectID)
+	resp.Diagnostics.Append(resp.State.Set(ctx, privateEndpointModel)...)
 	if err := getErrorForFailedStatus(finalResp); err != nil {
 		resp.Diagnostics.AddError("failed status", err.Error())
 	}
@@ -150,7 +150,7 @@ func splitEncryptionAtRestPrivateEndpointImportID(id string) (projectID, cloudPr
 }
 
 func getErrorForFailedStatus(model *admin.EARPrivateEndpoint) error {
-	if model.GetStatus() != failedStatus {
+	if model.GetStatus() != retrystrategy.RetryStrategyFailedState {
 		return nil
 	}
 	msg := model.GetErrorMessage()
