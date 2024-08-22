@@ -160,8 +160,8 @@ func TestAccStreamProcessor_failOnUpdate(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StartedState, sampleSrcConfig, testLogDestConfig),
-				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
+				Config: config(t, projectID, instanceName, processorName, streamprocessor.StartedState, sampleSrcConfig, testLogDestConfig),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
 			},
 			{
 				Config:      config(t, projectID, instanceName, processorName+"suffix", streamprocessor.StoppedState, sampleSrcConfig, testLogDestConfig),
