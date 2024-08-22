@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
@@ -41,7 +42,7 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	return streamProcessor, nil
 }
 
-func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats, stateOptions types.Object) (*TFStreamProcessorRSModel, diag.Diagnostics) {
+func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats, stateOptions types.Object, pipelinePlan string) (*TFStreamProcessorRSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
 	}
@@ -52,6 +53,13 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName st
 	if diags.HasError() {
 		return nil, diags
 	}
+	// we need to use pipelinePlan as the state must match the configuration in case the json has extra whitespace or different ordering
+	// however, during import it will not be set
+	if pipelinePlan == "" {
+		pipelinePlan = pipelineTF.ValueString()
+	} else if !schemafunc.EqualJSON(pipelinePlan, pipelineTF.ValueString(), "pipeline") {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("pipeline plan and pipeline from API response are not equal", "")}
+	}
 	statsTF, diags := convertStatsToTF(apiResp.GetStats())
 	if diags.HasError() {
 		return nil, diags
@@ -59,7 +67,7 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName st
 	tfModel := &TFStreamProcessorRSModel{
 		InstanceName:  types.StringPointerValue(&instanceName),
 		Options:       stateOptions,
-		Pipeline:      pipelineTF,
+		Pipeline:      types.StringValue(pipelinePlan),
 		ProcessorID:   types.StringPointerValue(&apiResp.Id),
 		ProcessorName: types.StringPointerValue(&apiResp.Name),
 		ProjectID:     types.StringPointerValue(&projectID),

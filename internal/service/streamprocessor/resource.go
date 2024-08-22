@@ -62,6 +62,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 	projectID := plan.ProjectID.ValueString()
 	instanceName := plan.InstanceName.ValueString()
 	processorName := plan.ProcessorName.ValueString()
+	pipelinePlan := plan.Pipeline.ValueString()
 	_, _, err := connV2.StreamsApi.CreateStreamProcessor(ctx, projectID, instanceName, streamProcessorReq).Execute()
 
 	if err != nil {
@@ -97,7 +98,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		}
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp, plan.Options)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp, plan.Options, pipelinePlan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -126,7 +127,7 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessor, state.Options)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessor, state.Options, state.Pipeline.ValueString())
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -197,7 +198,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp, plan.Options)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp, plan.Options, plan.Pipeline.ValueString())
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
