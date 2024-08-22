@@ -13,7 +13,7 @@
 		```
 		pipeline = jsonencode([{ "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name, "config" = { "startAfter" = { "_data" : "8266C71562000000012B0429296E1404" } } } }, { "$emit" = { "connectionName" : "__testLog" } }])
 		```
-3. Delete the existing Atlas Stream Processor and then create a new Atlas Stream Processor with updated pipeline parameter  
+3. Delete the existing Atlas Stream Processor and then create a new Atlas Stream Processor with updated pipeline parameter and the updated values.  
 
 ## Example Usages
 
