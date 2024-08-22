@@ -56,6 +56,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 			needsStarting = false
 		default:
 			resp.Diagnostics.AddError("When creating a stream processor, the only valid states are CREATED and STARTED", "")
+			return
 		}
 	}
 
