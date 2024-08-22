@@ -20,6 +20,7 @@ type connectionConfig struct {
 	clusterName          string
 	pipelineStepIsSource bool
 	useAsDLQ             bool
+	extraWhitespace      bool
 }
 
 var (
@@ -67,6 +68,25 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				ImportStateVerifyIgnore: []string{"stats"},
 			},
 		}}
+}
+
+func TestAccStreamProcessor_JSONWhiteSpaceFormat(t *testing.T) {
+	var (
+		projectID                  = acc.ProjectIDExecution(t)
+		processorName              = "new-processor-json-unchanged"
+		instanceName               = acc.RandomName()
+		sampleSrcConfigExtraSpaces = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, extraWhitespace: true}
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, sampleSrcConfigExtraSpaces, testLogDestConfig),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+			},
+		}})
 }
 
 func TestAccStreamProcessor_withOptions(t *testing.T) {
@@ -304,6 +324,7 @@ func config(t *testing.T, projectID, instanceName, processorName, state string, 
 
 func configConnection(t *testing.T, projectID string, config connectionConfig) (connectionConfig, resourceID, pipelineStep string) {
 	t.Helper()
+	assert.False(t, config.extraWhitespace && config.connectionType != connTypeSample, "extraWhitespace is only supported for Sample connection")
 	connectionType := config.connectionType
 	pipelineStepIsSource := config.pipelineStepIsSource
 	switch connectionType {
@@ -383,7 +404,11 @@ func configConnection(t *testing.T, projectID string, config connectionConfig) (
             }
         `, projectID)
 		resourceID = "mongodbatlas_stream_connection.sample"
-		pipelineStep = "{\"connectionName\":\"sample_stream_solar\"}"
+		if config.extraWhitespace {
+			pipelineStep = "{\"connectionName\": \"sample_stream_solar\"}"
+		} else {
+			pipelineStep = "{\"connectionName\":\"sample_stream_solar\"}"
+		}
 		return connectionConfig, resourceID, pipelineStep
 
 	case "TestLog":
