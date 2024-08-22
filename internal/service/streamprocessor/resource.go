@@ -153,7 +153,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	instanceName := plan.InstanceName.ValueString()
 	processorName := plan.ProcessorName.ValueString()
 	currentState := state.State.ValueString()
-	if plan.State.Equal(state.State) {
+	if !updatedStateOnly(&plan, &state) {
 		resp.Diagnostics.AddError("updating a Stream Processor is not supported", "")
 		return
 	}
@@ -252,4 +252,13 @@ func splitImportID(id string) (projectID, instanceName, processorName *string, e
 	processorName = &parts[3]
 
 	return
+}
+
+func updatedStateOnly(plan, state *TFStreamProcessorRSModel) bool {
+	return plan.ProjectID.Equal(state.ProjectID) &&
+		plan.InstanceName.Equal(state.InstanceName) &&
+		plan.ProcessorName.Equal(state.ProcessorName) &&
+		plan.Pipeline.Equal(state.Pipeline) &&
+		(plan.Options.Equal(state.Options) || plan.Options.IsUnknown()) &&
+		!plan.State.Equal(state.State)
 }
