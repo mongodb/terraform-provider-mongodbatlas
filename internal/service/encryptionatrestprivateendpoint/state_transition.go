@@ -18,7 +18,7 @@ func waitStateTransition(ctx context.Context, projectID, cloudProvider, endpoint
 func WaitStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyInitiatingState},
-		Target:     []string{retrystrategy.RetryStrategyPendingAcceptanceState, retrystrategy.RetryStrategyActiveState},
+		Target:     []string{retrystrategy.RetryStrategyPendingAcceptanceState, retrystrategy.RetryStrategyActiveState, retrystrategy.RetryStrategyFailedState},
 		Refresh:    refreshFunc(ctx, projectID, cloudProvider, endpointID, client),
 		Timeout:    20 * time.Minute,
 		MinTimeout: minTimeout,
@@ -41,7 +41,7 @@ func WaitDeleteStateTransition(ctx context.Context, projectID, cloudProvider, en
 
 func WaitDeleteStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) error {
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{retrystrategy.RetryStrategyPendingAcceptanceState, retrystrategy.RetryStrategyActiveState, retrystrategy.RetryStrategyPendingRecreationState},
+		Pending:    []string{retrystrategy.RetryStrategyPendingAcceptanceState, retrystrategy.RetryStrategyActiveState, retrystrategy.RetryStrategyPendingRecreationState, retrystrategy.RetryStrategyFailedState},
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
 		Refresh:    refreshFunc(ctx, projectID, cloudProvider, endpointID, client),
 		Timeout:    20 * time.Minute,

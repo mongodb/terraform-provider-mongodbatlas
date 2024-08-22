@@ -41,13 +41,13 @@ func TestStateTransition(t *testing.T) {
 			expectedState: conversion.StringPtr(retrystrategy.RetryStrategyActiveState),
 			expectedError: false,
 		},
-		"Error when transitioning to FAILED state": {
+		"Return model without error when transitioning to FAILED state": {
 			mockResponses: []response{
 				{state: conversion.StringPtr(retrystrategy.RetryStrategyInitiatingState)},
-				{state: conversion.StringPtr("FAILED")},
+				{state: conversion.StringPtr(retrystrategy.RetryStrategyFailedState)},
 			},
-			expectedState: nil,
-			expectedError: true,
+			expectedState: conversion.StringPtr(retrystrategy.RetryStrategyFailedState),
+			expectedError: false,
 		},
 		"Error when API responds with error": {
 			mockResponses: []response{
@@ -92,12 +92,12 @@ func TestDeleteStateTransition(t *testing.T) {
 			},
 			expectedError: false,
 		},
-		"Error when transitioning into FAILED state": {
+		"Successful transitioning from FAILED to deleted": {
 			mockResponses: []response{
-				{state: conversion.StringPtr(retrystrategy.RetryStrategyActiveState)},
-				{state: conversion.StringPtr("FAILED")},
+				{state: conversion.StringPtr(retrystrategy.RetryStrategyFailedState)},
+				{state: conversion.StringPtr(retrystrategy.RetryStrategyDeletedState)},
 			},
-			expectedError: true,
+			expectedError: false,
 		},
 	}
 

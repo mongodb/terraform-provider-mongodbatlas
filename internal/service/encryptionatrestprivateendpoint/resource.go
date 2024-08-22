@@ -3,17 +3,20 @@ package encryptionatrestprivateendpoint
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
 	encryptionAtRestPrivateEndpointName = "encryption_at_rest_private_endpoint"
 	warnUnsupportedOperation            = "Operation not supported"
+	failedStatus                        = "FAILED"
 )
 
 var _ resource.ResourceWithConfigure = &encryptionAtRestPrivateEndpointRS{}
@@ -52,14 +55,17 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 		return
 	}
 
-	finalState, err := waitStateTransition(ctx, projectID, cloudProvider, createResp.GetId(), connV2.EncryptionAtRestUsingCustomerKeyManagementApi)
+	finalResp, err := waitStateTransition(ctx, projectID, cloudProvider, createResp.GetId(), connV2.EncryptionAtRestUsingCustomerKeyManagementApi)
 	if err != nil {
 		resp.Diagnostics.AddError("error when waiting for status transition in creation", err.Error())
 		return
 	}
 
-	newencryptionAtRestPrivateEndpointModel := NewTFEarPrivateEndpoint(finalState, projectID)
+	newencryptionAtRestPrivateEndpointModel := NewTFEarPrivateEndpoint(finalResp, projectID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newencryptionAtRestPrivateEndpointModel)...)
+	if err := getErrorForFailedStatus(finalResp); err != nil {
+		resp.Diagnostics.AddError("failed status", err.Error())
+	}
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -84,8 +90,10 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 		return
 	}
 
-	// TODO add error if error message is present
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(endpointModel, projectID))...)
+	if err := getErrorForFailedStatus(endpointModel); err != nil {
+		resp.Diagnostics.AddError("failed status", err.Error())
+	}
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -139,4 +147,12 @@ func splitEncryptionAtRestPrivateEndpointImportID(id string) (projectID, cloudPr
 	cloudProvider = parts[2]
 	privateEndpointID = parts[3]
 	return
+}
+
+func getErrorForFailedStatus(model *admin.EARPrivateEndpoint) error {
+	if model.GetStatus() != failedStatus {
+		return nil
+	}
+	msg := model.GetErrorMessage()
+	return fmt.Errorf("private endpoint is in a failed status: %s", msg)
 }
