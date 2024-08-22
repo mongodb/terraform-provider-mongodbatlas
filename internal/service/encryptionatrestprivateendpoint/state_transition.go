@@ -44,7 +44,7 @@ func WaitDeleteStateTransition(ctx context.Context, projectID, cloudProvider, en
 	return err
 }
 
-// TODO leave generic, add testing
+// TODO add testing
 func refreshFunc(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		model, resp, err := client.GetEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
