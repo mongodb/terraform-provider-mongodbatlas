@@ -21,6 +21,7 @@ type connectionConfig struct {
 	pipelineStepIsSource bool
 	useAsDLQ             bool
 	extraWhitespace      bool
+	invalidJSON          bool
 }
 
 var (
@@ -153,18 +154,22 @@ func TestAccStreamProcessor_clusterType(t *testing.T) {
 		}})
 }
 
-func TestAccStreamProcessor_failWithInvalidStateOnCreation(t *testing.T) {
+func TestAccStreamProcessor_createErrors(t *testing.T) {
 	var (
-		projectID     = acc.ProjectIDExecution(t)
-		processorName = "new-processor"
-		instanceName  = acc.RandomName()
+		projectID         = acc.ProjectIDExecution(t)
+		processorName     = "new-processor"
+		instanceName      = acc.RandomName()
+		invalidJSONConfig = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, invalidJSON: true}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
+			{
+				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, invalidJSONConfig, testLogDestConfig),
+				ExpectError: regexp.MustCompile("Attribute pipeline string value must be a valid JSON, got"),
+			},
 			{
 				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, sampleSrcConfig, testLogDestConfig),
 				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
@@ -172,7 +177,7 @@ func TestAccStreamProcessor_failWithInvalidStateOnCreation(t *testing.T) {
 		}})
 }
 
-func TestAccStreamProcessor_failWithInvalidUpdate(t *testing.T) {
+func TestAccStreamProcessor_updateErrors(t *testing.T) {
 	var (
 		processorName          = "new-processor"
 		instanceName           = acc.RandomName()
@@ -354,6 +359,7 @@ func config(t *testing.T, projectID, instanceName, processorName, state string, 
 func configConnection(t *testing.T, projectID string, config connectionConfig) (connectionConfig, resourceID, pipelineStep string) {
 	t.Helper()
 	assert.False(t, config.extraWhitespace && config.connectionType != connTypeSample, "extraWhitespace is only supported for Sample connection")
+	assert.False(t, config.invalidJSON && config.connectionType != connTypeSample, "invalidJson is only supported for Sample connection")
 	connectionType := config.connectionType
 	pipelineStepIsSource := config.pipelineStepIsSource
 	switch connectionType {
@@ -437,6 +443,9 @@ func configConnection(t *testing.T, projectID string, config connectionConfig) (
 			pipelineStep = "{\"connectionName\": \"sample_stream_solar\"}"
 		} else {
 			pipelineStep = "{\"connectionName\":\"sample_stream_solar\"}"
+		}
+		if config.invalidJSON {
+			pipelineStep = "{\"connectionName\": \"sample_stream_solar\"" // missing closing bracket
 		}
 		return connectionConfig, resourceID, pipelineStep
 
