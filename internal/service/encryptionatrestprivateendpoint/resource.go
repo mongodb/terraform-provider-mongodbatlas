@@ -52,7 +52,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 		return
 	}
 
-	finalState, err := WaitStateTransition(ctx, projectID, cloudProvider, createResp.GetId(), connV2.EncryptionAtRestUsingCustomerKeyManagementApi)
+	finalState, err := waitStateTransition(ctx, projectID, cloudProvider, createResp.GetId(), connV2.EncryptionAtRestUsingCustomerKeyManagementApi)
 	if err != nil {
 		resp.Diagnostics.AddError("error when waiting for status transition in creation", err.Error())
 		return
