@@ -3,6 +3,7 @@ package streamprocessor
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 
@@ -151,6 +152,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	projectID := plan.ProjectID.ValueString()
 	instanceName := plan.InstanceName.ValueString()
 	processorName := plan.ProcessorName.ValueString()
+	currentState := state.State.ValueString()
 	if plan.State.Equal(state.State) {
 		resp.Diagnostics.AddError("updating a Stream Processor is not supported", "")
 		return
@@ -170,6 +172,10 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 			resp.Diagnostics.AddError("Error starting stream processor", err.Error())
 		}
 	case StoppedState:
+		if currentState != StartedState {
+			resp.Diagnostics.AddError(fmt.Sprintf("Stream Processor must be in %s state to transition to %s state", StartedState, StoppedState), "")
+			return
+		}
 		desiredState = append(desiredState, StoppedState)
 		pendingStates = append(pendingStates, StartedState)
 		_, _, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
