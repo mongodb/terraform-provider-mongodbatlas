@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
@@ -51,7 +52,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				Config: configPrivateEndpointAzureBasic(projectID, azureKeyVault, region),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "status", "PENDING_ACCEPTANCE"),
+					resource.TestCheckResourceAttr(resourceName, "status", retrystrategy.RetryStrategyPendingAcceptanceState),
 				),
 			},
 			{
