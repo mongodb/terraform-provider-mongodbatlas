@@ -17,7 +17,7 @@ page_title: "Migration Guide: Advanced Cluster New Sharding Configurations"
 ## Changes Overview
 
 `replication_specs` attribute now represents each individual cluster's shard with a unique replication spec element.
-When you use the new sharding configurations, the configuration no longer uses the existing attribute `num_shards`, and instead the number of shards are defined by the number of `replication_specs` elements.
+When you use the new sharding configurations, it will no longer use the existing attribute `num_shards`, and instead the number of shards are defined by the number of `replication_specs` elements.
 
 <a id="migration-sharded"></a>
 ### Migrate advanced_cluster type `SHARDED`
@@ -46,7 +46,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-In order to use the new configurations, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these 2 changes must be done at the same time.
+In order to use our new sharding configurations, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these 2 changes must be done at the same time.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -126,7 +126,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-In order to use the new configurations, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these two changes must be done at the same time.
+In order to use our new sharding configurations, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these two changes must be done at the same time.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -277,7 +277,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 <a id="use-iss"></a>
 ### Use Independent Shard Scaling 
 
-Use the new sharding configurations. Each shard must be represented with a unique replication_specs element and `num_shards` must not be used, as illustrated in the following example.
+Use the new sharding configurations. Each shard must be represented with a unique `replication_specs` element and `num_shards` must not be used, as illustrated in the following example.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -347,4 +347,4 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
--> **NOTE:** For any cluster leveraging the new configurations and defining independently scaled shards, users should also update corresponding `mongodbatlas_cloud_backup_schedule` resource & data sources. This involves updating any existing Terraform configurations of the resource to use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id`. This is needed as `mongodbatlas_advanced_cluster` resource and data source will no longer have `replication_specs.#.id` present when shards are scaled independently. To learn more, review the [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
+-> **NOTE:** For any cluster leveraging the new sharding configurations and defining independently scaled shards, users should also update corresponding `mongodbatlas_cloud_backup_schedule` resource & data sources. This involves updating any existing Terraform configurations of the resource to use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id`. This is needed as `mongodbatlas_advanced_cluster` resource and data source will no longer have `replication_specs.#.id` present when shards are scaled independently. To learn more, review the [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
