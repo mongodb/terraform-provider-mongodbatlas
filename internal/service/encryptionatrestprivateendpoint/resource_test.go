@@ -39,7 +39,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		PreCheck:                 func() { acc.PreCheck(tb); acc.PreCheckEncryptionAtRestEnvAzure(tb); acc.PreCheckPreviewFlag(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -83,7 +83,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzure(t); acc.PreCheckPreviewFlag(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{

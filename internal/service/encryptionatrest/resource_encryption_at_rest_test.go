@@ -119,7 +119,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzureWithUpdate(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
@@ -194,7 +194,7 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzure(t); acc.PreCheckPreviewFlag(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzureWithUpdate(t); acc.PreCheckPreviewFlag(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
