@@ -169,7 +169,7 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, invalidJSONConfig, testLogDestConfig),
-				ExpectError: regexp.MustCompile("Attribute pipeline string value must be a valid JSON, got"),
+				ExpectError: regexp.MustCompile("Invalid JSON String Value"),
 			},
 			{
 				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, sampleSrcConfig, testLogDestConfig),
