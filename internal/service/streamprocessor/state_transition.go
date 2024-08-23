@@ -26,7 +26,7 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProc
 		Pending:    pendingStates,
 		Target:     desiredStates,
 		Refresh:    refreshFunc(ctx, requestParams, client),
-		Timeout:    1 * time.Minute,
+		Timeout:    5 * time.Minute, // big pipelines can take a while to stop due to checkpointing. We prefer the API to raise the error (~ 3min) than having to expose custom timeouts.
 		MinTimeout: 3 * time.Second,
 		Delay:      0,
 	}
