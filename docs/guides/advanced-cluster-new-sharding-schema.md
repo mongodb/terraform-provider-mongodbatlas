@@ -84,6 +84,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 This updated configuration will trigger a Terraform update plan. However, the underlying cluster will not face any changes after the `apply` command, as both configurations represent a sharded cluster composed of two shards.
 
+Note: The first time `terraform apply` command is run **after** updating the configuration, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
+
 <a id="migration-geosharded"></a>
 ### Migrate advanced_cluster type `GEOSHARDED`
 
@@ -192,6 +194,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 This updated configuration triggers a Terraform update plan. However, the underlying cluster will not face any changes after the `apply` command, as both configurations represent a geo sharded cluster with two zones and two shards in each one.
 
+Note: The first time `terraform apply` command is run **after** updating the configuration, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
+
 <a id="migration-replicaset"></a>
 ### Migrate advanced_cluster type `REPLICASET`
 
@@ -273,6 +277,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
 }
 ```
+
+Note: The first time `terraform apply` command is run **after** updating the configuration, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
 
 <a id="use-iss"></a>
 ### Use Independent Shard Scaling 
