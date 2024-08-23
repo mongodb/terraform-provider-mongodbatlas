@@ -13,6 +13,11 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
+const (
+	resourceName    = "mongodbatlas_encryption_at_rest_private_endpoint.test"
+	earResourceName = "mongodbatlas_encryption_at_rest.test"
+)
+
 func TestAccEncryptionAtRestPrivateEndpoint_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
 }
@@ -21,7 +26,6 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	acc.SkipTestForCI(tb) // needs Azure configuration
 	var (
-		resourceName  = "mongodbatlas_encryption_at_rest_private_endpoint.test"
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		azureKeyVault = &admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
@@ -64,10 +68,8 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *testing.T) {
 	acc.SkipTestForCI(t) // needs Azure configuration
 	var (
-		earResourceName             = "mongodbatlas_encryption_at_rest.test"
-		privateEndpointResourceName = "mongodbatlas_encryption_at_rest_private_endpoint.test"
-		projectID                   = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		azureKeyVault               = &admin.AzureKeyVault{
+		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		azureKeyVault = &admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
 			RequirePrivateNetworking: conversion.Pointer(true),
 			AzureEnvironment:         conversion.StringPtr("AZURE"),
@@ -98,8 +100,8 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 				Config: configPrivateEndpointAzureBasic(projectID, azureKeyVault, region),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(earResourceName, "azure_key_vault_config.0.require_private_networking", "true"),
-					resource.TestCheckResourceAttrSet(privateEndpointResourceName, "id"),
-					resource.TestCheckResourceAttr(privateEndpointResourceName, "status", "PENDING_ACCEPTANCE"),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "status", "PENDING_ACCEPTANCE"),
 				),
 			},
 		},

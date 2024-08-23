@@ -23,12 +23,15 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+const (
+	resourceName = "mongodbatlas_encryption_at_rest.test"
+)
+
 func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t) // needs AWS configuration
 
 	var (
-		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),
@@ -90,8 +93,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	acc.SkipTestForCI(t) // needs Azure configuration
 
 	var (
-		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		azureKeyVault = admin.AzureKeyVault{
 			Enabled:           conversion.Pointer(true),
@@ -163,8 +165,7 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 	acc.SkipTestForCI(t) // needs Azure configuration
 
 	var (
-		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		azureKeyVault = admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
@@ -238,8 +239,7 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 	acc.SkipTestForCI(t) // needs GCP configuration
 
 	var (
-		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		googleCloudKms = admin.GoogleCloudKMS{
 			Enabled:              conversion.Pointer(true),
@@ -290,7 +290,6 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t) // needs AWS configuration
 	var (
-		resourceName         = "mongodbatlas_encryption_at_rest.test"
 		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		awsIAMRoleName       = acc.RandomIAMRole()
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
