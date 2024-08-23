@@ -17,6 +17,7 @@ import (
 const (
 	encryptionAtRestPrivateEndpointName = "encryption_at_rest_private_endpoint"
 	warnUnsupportedOperation            = "Operation not supported"
+	failedStatusErrorMessage            = "Private endpoint is in a failed status"
 )
 
 var _ resource.ResourceWithConfigure = &encryptionAtRestPrivateEndpointRS{}
@@ -63,8 +64,8 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 
 	privateEndpointModel := NewTFEarPrivateEndpoint(finalResp, projectID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, privateEndpointModel)...)
-	if err := getErrorForFailedStatus(finalResp); err != nil {
-		resp.Diagnostics.AddError("failed status", err.Error())
+	if err := getErrorMsgForFailedStatus(finalResp); err != nil {
+		resp.Diagnostics.AddError(failedStatusErrorMessage, err.Error())
 	}
 }
 
@@ -91,8 +92,8 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(endpointModel, projectID))...)
-	if err := getErrorForFailedStatus(endpointModel); err != nil {
-		resp.Diagnostics.AddError("failed status", err.Error())
+	if err := getErrorMsgForFailedStatus(endpointModel); err != nil {
+		resp.Diagnostics.AddError(failedStatusErrorMessage, err.Error())
 	}
 }
 
@@ -149,10 +150,10 @@ func splitEncryptionAtRestPrivateEndpointImportID(id string) (projectID, cloudPr
 	return
 }
 
-func getErrorForFailedStatus(model *admin.EARPrivateEndpoint) error {
+func getErrorMsgForFailedStatus(model *admin.EARPrivateEndpoint) error {
 	if model.GetStatus() != retrystrategy.RetryStrategyFailedState {
 		return nil
 	}
 	msg := model.GetErrorMessage()
-	return fmt.Errorf("private endpoint is in a failed status: %s", msg)
+	return fmt.Errorf("detail of error message: %s", msg)
 }
