@@ -35,14 +35,16 @@ func (d *encryptionAtRestPrivateEndpointDS) Read(ctx context.Context, req dataso
 		return
 	}
 
-	// TODO: make get request to resource
+	connV2 := d.Client.AtlasV2
+	projectID := earPrivateEndpointConfig.ProjectID.ValueString()
+	cloudProvider := earPrivateEndpointConfig.CloudProvider.ValueString()
+	endpointID := earPrivateEndpointConfig.ID.ValueString()
 
-	// connV2 := d.Client.AtlasV2
-	// if err != nil {
-	//	resp.Diagnostics.AddError("error fetching resource", err.Error())
-	//	return
-	//}
+	endpointModel, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		return
+	}
 
-	// TODO: process response into new terraform state
-	//  resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(apiResp))...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(endpointModel, projectID))...)
 }

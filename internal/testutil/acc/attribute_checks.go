@@ -65,6 +65,24 @@ func JSONEquals(expected string) resource.CheckResourceAttrWithFunc {
 	}
 }
 
+// CheckRSAndDS returns a check function that asserts a set of attributes (presence and values) in resource and data sources.
+// If a plural data source name is provided, it will apply checks over first result
+func CheckRSAndDS(resourceName string, dataSourceName, pluralDataSourceName *string, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{}
+	checks = AddAttrChecks(resourceName, checks, attrsMap)
+	checks = AddAttrSetChecks(resourceName, checks, attrsSet...)
+	if dataSourceName != nil {
+		checks = AddAttrChecks(*dataSourceName, checks, attrsMap)
+		checks = AddAttrSetChecks(*dataSourceName, checks, attrsSet...)
+	}
+	if pluralDataSourceName != nil {
+		checks = AddAttrChecksPrefix(*pluralDataSourceName, checks, attrsMap, "results.0")
+		checks = AddAttrSetChecksPrefix(*pluralDataSourceName, checks, attrsSet, "results.0")
+	}
+	checks = append(checks, extra...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
 func AddAttrSetChecks(targetName string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
 	newChecks := copyChecks(checks, attrNames)
 	for _, attrName := range attrNames {
@@ -98,6 +116,16 @@ func AddAttrChecksPrefix(targetName string, checks []resource.TestCheckFunc, map
 		}
 		keyWithPrefix := fmt.Sprintf("%s.%s", prefix, key)
 		newChecks = append(newChecks, resource.TestCheckResourceAttr(targetName, keyWithPrefix, value))
+	}
+	return newChecks
+}
+
+func AddAttrSetChecksPrefix(targetName string, checks []resource.TestCheckFunc, attrNames []string, prefix string) []resource.TestCheckFunc {
+	newChecks := copyChecks(checks, attrNames)
+	prefix, _ = strings.CutSuffix(prefix, ".")
+	for _, key := range attrNames {
+		keyWithPrefix := fmt.Sprintf("%s.%s", prefix, key)
+		newChecks = append(newChecks, resource.TestCheckResourceAttrSet(targetName, keyWithPrefix))
 	}
 	return newChecks
 }
