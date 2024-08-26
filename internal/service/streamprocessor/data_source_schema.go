@@ -54,7 +54,7 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 			Description:         "The stats associated with the stream processor.",
 			MarkdownDescription: "The stats associated with the stream processor.",
 		},
-		"options": optionsSchema,
+		"options": optionsSchema(true),
 	}
 }
 
