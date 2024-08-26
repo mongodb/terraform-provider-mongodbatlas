@@ -78,26 +78,27 @@ func TestStateTransition(t *testing.T) {
 
 func TestDeleteStateTransition(t *testing.T) {
 	testCases := map[string]testCase{
-		"Successful transitioning from PENDING_ACCEPTANCE to deleted": {
+		"Successful transitioning from DELELTING to deleted": {
 			mockResponses: []response{
-				{state: conversion.StringPtr(retrystrategy.RetryStrategyPendingAcceptanceState)},
-				{state: conversion.StringPtr(retrystrategy.RetryStrategyDeletedState)},
+				{state: conversion.StringPtr(retrystrategy.RetryStrategyDeletingState)},
+				{statusCode: admin.PtrInt(http.StatusNotFound), err: errors.New("does not exist")},
 			},
 			expectedError: false,
 		},
-		"Successful transitioning from ACTIVE to deleted": {
+		"Return model without error when transitioning to FAILED state": {
 			mockResponses: []response{
-				{state: conversion.StringPtr(retrystrategy.RetryStrategyActiveState)},
-				{state: conversion.StringPtr(retrystrategy.RetryStrategyDeletedState)},
-			},
-			expectedError: false,
-		},
-		"Successful transitioning from FAILED to deleted": {
-			mockResponses: []response{
+				{state: conversion.StringPtr(retrystrategy.RetryStrategyDeletingState)},
 				{state: conversion.StringPtr(retrystrategy.RetryStrategyFailedState)},
-				{state: conversion.StringPtr(retrystrategy.RetryStrategyDeletedState)},
 			},
 			expectedError: false,
+			expectedState: conversion.StringPtr(retrystrategy.RetryStrategyFailedState),
+		},
+		"Error when API responds with error": {
+			mockResponses: []response{
+				{statusCode: admin.PtrInt(http.StatusInternalServerError), err: errors.New("Internal server error")},
+			},
+			expectedState: nil,
+			expectedError: true,
 		},
 	}
 
@@ -110,8 +111,11 @@ func TestDeleteStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetEncryptionAtRestPrivateEndpointExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			err := encryptionatrestprivateendpoint.WaitDeleteStateTransitionWithMinTimeout(context.Background(), 1*time.Second, "project-id", "cloud-provider", "endpoint-id", m)
+			resp, err := encryptionatrestprivateendpoint.WaitDeleteStateTransitionWithMinTimeout(context.Background(), 1*time.Second, "project-id", "cloud-provider", "endpoint-id", m)
 			assert.Equal(t, tc.expectedError, err != nil)
+			if resp != nil {
+				assert.Equal(t, tc.expectedState, resp.Status)
+			}
 		})
 	}
 }

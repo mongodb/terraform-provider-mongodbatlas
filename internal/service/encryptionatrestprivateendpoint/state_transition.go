@@ -11,16 +11,41 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
+const (
+	defaultTimeout    = 20 * time.Minute // The amount of time to wait before timeout
+	defaultMinTimeout = 1 * time.Minute  // Smallest time to wait before refreshes
+)
+
 func waitStateTransition(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
-	return WaitStateTransitionWithMinTimeout(ctx, 1*time.Minute, projectID, cloudProvider, endpointID, client)
+	return WaitStateTransitionWithMinTimeout(ctx, defaultMinTimeout, projectID, cloudProvider, endpointID, client)
 }
 
 func WaitStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
+	return waitStateTransitionForStates(
+		ctx,
+		[]string{retrystrategy.RetryStrategyInitiatingState},
+		[]string{retrystrategy.RetryStrategyPendingAcceptanceState, retrystrategy.RetryStrategyActiveState, retrystrategy.RetryStrategyFailedState},
+		minTimeout, projectID, cloudProvider, endpointID, client)
+}
+
+func WaitDeleteStateTransition(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
+	return WaitDeleteStateTransitionWithMinTimeout(ctx, defaultMinTimeout, projectID, cloudProvider, endpointID, client)
+}
+
+func WaitDeleteStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
+	return waitStateTransitionForStates(
+		ctx,
+		[]string{retrystrategy.RetryStrategyDeletingState},
+		[]string{retrystrategy.RetryStrategyDeletedState, retrystrategy.RetryStrategyFailedState},
+		minTimeout, projectID, cloudProvider, endpointID, client)
+}
+
+func waitStateTransitionForStates(ctx context.Context, pending, target []string, minTimeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{retrystrategy.RetryStrategyInitiatingState},
-		Target:     []string{retrystrategy.RetryStrategyPendingAcceptanceState, retrystrategy.RetryStrategyActiveState, retrystrategy.RetryStrategyFailedState},
+		Pending:    pending,
+		Target:     target,
 		Refresh:    refreshFunc(ctx, projectID, cloudProvider, endpointID, client),
-		Timeout:    20 * time.Minute,
+		Timeout:    defaultTimeout,
 		MinTimeout: minTimeout,
 		Delay:      0,
 	}
@@ -29,27 +54,10 @@ func WaitStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Dura
 	if err != nil {
 		return nil, err
 	}
-	if privateEndpointResp, ok := result.(*admin.EARPrivateEndpoint); ok && privateEndpointResp != nil {
+	if privateEndpointResp, ok := result.(*admin.EARPrivateEndpoint); ok {
 		return privateEndpointResp, nil
 	}
 	return nil, errors.New("did not obtain valid result when waiting for state transition")
-}
-
-func WaitDeleteStateTransition(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) error {
-	return WaitDeleteStateTransitionWithMinTimeout(ctx, 1*time.Minute, projectID, cloudProvider, endpointID, client)
-}
-
-func WaitDeleteStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) error {
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{retrystrategy.RetryStrategyPendingAcceptanceState, retrystrategy.RetryStrategyActiveState, retrystrategy.RetryStrategyPendingRecreationState, retrystrategy.RetryStrategyFailedState},
-		Target:     []string{retrystrategy.RetryStrategyDeletedState},
-		Refresh:    refreshFunc(ctx, projectID, cloudProvider, endpointID, client),
-		Timeout:    20 * time.Minute,
-		MinTimeout: minTimeout,
-		Delay:      0,
-	}
-	_, err := stateConf.WaitForStateContext(ctx)
-	return err
 }
 
 func refreshFunc(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) retry.StateRefreshFunc {
@@ -60,7 +68,7 @@ func refreshFunc(ctx context.Context, projectID, cloudProvider, endpointID strin
 		}
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				return "", retrystrategy.RetryStrategyDeletedState, nil
+				return &admin.EARPrivateEndpoint{}, retrystrategy.RetryStrategyDeletedState, nil
 			}
 			return nil, "", err
 		}

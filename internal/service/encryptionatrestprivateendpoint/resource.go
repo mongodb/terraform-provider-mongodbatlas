@@ -117,9 +117,13 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 		return
 	}
 
-	if err := WaitDeleteStateTransition(ctx, projectID, cloudProvider, endpointID, connV2.EncryptionAtRestUsingCustomerKeyManagementApi); err != nil {
+	model, err := WaitDeleteStateTransition(ctx, projectID, cloudProvider, endpointID, connV2.EncryptionAtRestUsingCustomerKeyManagementApi)
+	if err != nil {
 		resp.Diagnostics.AddError("error when waiting for status transition in delete", err.Error())
 		return
+	}
+	if err := getErrorMsgForFailedStatus(model); err != nil {
+		resp.Diagnostics.AddError(failedStatusErrorMessage, err.Error())
 	}
 }
 
