@@ -42,12 +42,9 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	return streamProcessor, nil
 }
 
-func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats, stateOptions types.Object) (*TFStreamProcessorRSModel, diag.Diagnostics) {
+func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats) (*TFStreamProcessorRSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
-	}
-	if stateOptions.IsUnknown() {
-		stateOptions = types.ObjectNull(OptionsObjectType.AttrTypes)
 	}
 	pipelineTF, diags := convertPipelineToTF(apiResp.GetPipeline())
 	if diags.HasError() {
@@ -57,9 +54,13 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName st
 	if diags.HasError() {
 		return nil, diags
 	}
+	optionsTF, diags := ConvertOptionsToTF(ctx, apiResp.Options)
+	if diags.HasError() {
+		return nil, diags
+	}
 	tfModel := &TFStreamProcessorRSModel{
 		InstanceName:  types.StringPointerValue(&instanceName),
-		Options:       stateOptions,
+		Options:       *optionsTF,
 		Pipeline:      pipelineTF,
 		ProcessorID:   types.StringPointerValue(&apiResp.Id),
 		ProcessorName: types.StringPointerValue(&apiResp.Name),
@@ -82,9 +83,14 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName st
 	if diags.HasError() {
 		return nil, diags
 	}
+	optionsTF, diags := ConvertOptionsToTF(ctx, apiResp.Options)
+	if diags.HasError() {
+		return nil, diags
+	}
 	tfModel := &TFStreamProcessorDSModel{
 		ID:            types.StringPointerValue(&apiResp.Id),
 		InstanceName:  types.StringPointerValue(&instanceName),
+		Options:       *optionsTF,
 		Pipeline:      types.StringValue(pipelineTF.ValueString()),
 		ProcessorName: types.StringPointerValue(&apiResp.Name),
 		ProjectID:     types.StringPointerValue(&projectID),
@@ -94,6 +100,41 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName st
 	return tfModel, nil
 }
 
+func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions) (*types.Object, diag.Diagnostics) {
+	if options == nil {
+		optionsTF := types.ObjectNull(OptionsObjectType.AttributeTypes())
+		return &optionsTF, nil
+	}
+	dlqTF, diags := convertDlqToTF(ctx, options.Dlq)
+	if diags.HasError() {
+		return nil, diags
+	}
+	optionsTF := &TFOptionsModel{
+		Dlq: *dlqTF,
+	}
+	optionsObject, diags := types.ObjectValueFrom(ctx, OptionsObjectType.AttributeTypes(), optionsTF)
+	if diags.HasError() {
+		return nil, diags
+	}
+	return &optionsObject, nil
+}
+
+func convertDlqToTF(ctx context.Context, dlq *admin.StreamsDLQ) (*types.Object, diag.Diagnostics) {
+	if dlq == nil {
+		dlqTF := types.ObjectNull(DlqObjectType.AttributeTypes())
+		return &dlqTF, nil
+	}
+	dlqModel := TFDlqModel{
+		Coll:           types.StringPointerValue(dlq.Coll),
+		ConnectionName: types.StringPointerValue(dlq.ConnectionName),
+		DB:             types.StringPointerValue(dlq.Db),
+	}
+	dlqObject, diags := types.ObjectValueFrom(ctx, DlqObjectType.AttributeTypes(), dlqModel)
+	if diags.HasError() {
+		return nil, diags
+	}
+	return &dlqObject, nil
+}
 func convertPipelineToTF(pipeline []any) (fwtypes.JSONString, diag.Diagnostics) {
 	pipelineJSON, err := json.Marshal(pipeline)
 	if err != nil {

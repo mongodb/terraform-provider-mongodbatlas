@@ -54,12 +54,14 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 			Description:         "The stats associated with the stream processor.",
 			MarkdownDescription: "The stats associated with the stream processor.",
 		},
+		"options": optionsSchema,
 	}
 }
 
 type TFStreamProcessorDSModel struct {
 	ID            types.String `tfsdk:"id"`
 	InstanceName  types.String `tfsdk:"instance_name"`
+	Options       types.Object `tfsdk:"options"`
 	Pipeline      types.String `tfsdk:"pipeline"`
 	ProcessorName types.String `tfsdk:"processor_name"`
 	ProjectID     types.String `tfsdk:"project_id"`
