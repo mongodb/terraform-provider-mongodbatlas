@@ -25,7 +25,6 @@ const (
 	dbRoleType           = "CUSTOM"
 	sampleConnectionName = "sample_stream_solar"
 	networkingType       = "PUBLIC"
-	accessName           = "name"
 )
 
 var configMap = map[string]string{
@@ -222,7 +221,6 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Networking: &admin.StreamsKafkaNetworking{
 							Access: &admin.StreamsKafkaNetworkingAccess{
 								Type: admin.PtrString(networkingType),
-								Name: admin.PtrString(accessName),
 							},
 						},
 					},
@@ -266,7 +264,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Config:           tfConfigMap(t, configMap),
 						Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
 						DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-						Networking:       tfNetworkingObject(t, networkingType, accessName),
+						Networking:       tfNetworkingObject(t, networkingType),
 					},
 					{
 						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
@@ -487,12 +485,11 @@ func tfDBRoleToExecuteObject(t *testing.T, role, roleType string) types.Object {
 	return auth
 }
 
-func tfNetworkingObject(t *testing.T, networkingType, name string) types.Object {
+func tfNetworkingObject(t *testing.T, networkingType string) types.Object {
 	t.Helper()
 	networking, diags := types.ObjectValueFrom(context.Background(), streamconnection.NetworkingObjectType.AttrTypes, streamconnection.TFNetworkingModel{
 		Access: streamconnection.TFNetworkingAccessModel{
 			Type: types.StringValue(networkingType),
-			Name: types.StringValue(name),
 		},
 	})
 	if diags.HasError() {

@@ -84,12 +84,10 @@ var DBRoleToExecuteObjectType = types.ObjectType{AttrTypes: map[string]attr.Type
 }}
 
 type TFNetworkingAccessModel struct {
-	Name types.String `tfsdk:"name"`
 	Type types.String `tfsdk:"type"`
 }
 
 var NetworkingAccessObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"name": types.StringType,
 	"type": types.StringType,
 }}
 
@@ -198,9 +196,6 @@ func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequ
 					"access": schema.SingleNestedAttribute{
 						Required: true,
 						Attributes: map[string]schema.Attribute{
-							"name": schema.StringAttribute{
-								Optional: true,
-							},
 							"type": schema.StringAttribute{
 								Required: true,
 							},

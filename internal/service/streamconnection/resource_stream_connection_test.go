@@ -15,15 +15,13 @@ import (
 //go:embed testdata/dummy-ca.pem
 var DummyCACert string
 var (
-	networkingNameVPC    = "vpc-096df0a10902ad9a9"
 	networkingTypeVPC    = "VPC"
 	networkingTypePublic = "PUBLIC"
 	kafkaNetworkingVPC   = fmt.Sprintf(`networking = {
 			access = {
 				type = %[1]q
-				name = %[2]q
 			}
-		}`, networkingTypeVPC, networkingNameVPC)
+		}`, networkingTypeVPC)
 	kafkaNetworkingPublic = fmt.Sprintf(`networking = {
 			access = {
 				type = %[1]q
@@ -94,7 +92,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(DummySleep, kafkaStreamConnectionAttributeChecks(
 					resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
 					resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingTypeVPC),
-					resource.TestCheckResourceAttr(resourceName, "networking.access.name", networkingNameVPC)),
+				),
 			},
 			{
 				ResourceName:            resourceName,
