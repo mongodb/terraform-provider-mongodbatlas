@@ -4,9 +4,9 @@ package projectipaddresses
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func DataSourceSchema(ctx context.Context) schema.Schema {
@@ -55,8 +55,8 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 }
 
 type ProjectIpAddressesModel struct {
-	ProjectId  types.String  `tfsdk:"project_id"`
-	Services ServicesValue `tfsdk:"services"`
+	ProjectId types.String `tfsdk:"project_id"`
+	Services  types.Object `tfsdk:"services"`
 }
 
 type ServicesValue struct {
@@ -70,7 +70,8 @@ type ClustersValue struct {
 }
 
 var IPAddressesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"services": ServicesObjectType,
+	"project_id": types.StringType,
+	"services":   ServicesObjectType,
 }}
 
 var ServicesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
