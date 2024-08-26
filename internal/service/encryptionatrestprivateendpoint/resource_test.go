@@ -16,6 +16,7 @@ import (
 
 const (
 	resourceName    = "mongodbatlas_encryption_at_rest_private_endpoint.test"
+	dataSourceName  = "data.mongodbatlas_encryption_at_rest_private_endpoint.test"
 	earResourceName = "mongodbatlas_encryption_at_rest.test"
 )
 
@@ -50,10 +51,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configPrivateEndpointAzureBasic(projectID, azureKeyVault, region),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "status", retrystrategy.RetryStrategyPendingAcceptanceState),
-				),
+				Check:  checkPrivateEndpointAzureBasic(projectID, azureKeyVault, region),
 			},
 			{
 				Config:            configPrivateEndpointAzureBasic(projectID, azureKeyVault, region),
@@ -129,7 +127,27 @@ func configPrivateEndpointAzureBasic(projectID string, azure *admin.AzureKeyVaul
 		    cloud_provider = "AZURE"
 		    region_name = %[2]q
 		}
+
+		data "mongodbatlas_encryption_at_rest_private_endpoint" "test" {
+		    project_id = mongodbatlas_encryption_at_rest_private_endpoint.test.project_id
+			cloud_provider = mongodbatlas_encryption_at_rest_private_endpoint.test.cloud_provider
+		    id = mongodbatlas_encryption_at_rest_private_endpoint.test.id
+		}
 	`, encryptionAtRestConfig, region)
+}
+
+func checkPrivateEndpointAzureBasic(projectID string, azure *admin.AzureKeyVault, region string) resource.TestCheckFunc {
+	return acc.CheckRSAndDS(
+		resourceName,
+		admin.PtrString(dataSourceName),
+		nil,
+		[]string{"id", "private_endpoint_connection_name"},
+		map[string]string{
+			"project_id":     projectID,
+			"status":         retrystrategy.RetryStrategyPendingAcceptanceState,
+			"region_name":    region,
+			"cloud_provider": *azure.AzureEnvironment,
+		})
 }
 
 func checkDestroy(state *terraform.State) error {
