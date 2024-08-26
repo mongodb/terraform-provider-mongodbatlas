@@ -109,9 +109,6 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 				"access": schema.SingleNestedAttribute{
 					Computed: true,
 					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Computed: true,
-						},
 						"type": schema.StringAttribute{
 							Computed: true,
 						},
