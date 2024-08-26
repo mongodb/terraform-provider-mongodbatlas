@@ -3,6 +3,7 @@ package streamprocessor
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 
@@ -55,6 +56,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 			needsStarting = false
 		default:
 			resp.Diagnostics.AddError("When creating a stream processor, the only valid states are CREATED and STARTED", "")
+			return
 		}
 	}
 
@@ -150,7 +152,8 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	projectID := plan.ProjectID.ValueString()
 	instanceName := plan.InstanceName.ValueString()
 	processorName := plan.ProcessorName.ValueString()
-	if plan.State.Equal(state.State) {
+	currentState := state.State.ValueString()
+	if !updatedStateOnly(&plan, &state) {
 		resp.Diagnostics.AddError("updating a Stream Processor is not supported", "")
 		return
 	}
@@ -169,6 +172,10 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 			resp.Diagnostics.AddError("Error starting stream processor", err.Error())
 		}
 	case StoppedState:
+		if currentState != StartedState {
+			resp.Diagnostics.AddError(fmt.Sprintf("Stream Processor must be in %s state to transition to %s state", StartedState, StoppedState), "")
+			return
+		}
 		desiredState = append(desiredState, StoppedState)
 		pendingStates = append(pendingStates, StartedState)
 		_, _, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
@@ -245,4 +252,13 @@ func splitImportID(id string) (projectID, instanceName, processorName *string, e
 	processorName = &parts[3]
 
 	return
+}
+
+func updatedStateOnly(plan, state *TFStreamProcessorRSModel) bool {
+	return plan.ProjectID.Equal(state.ProjectID) &&
+		plan.InstanceName.Equal(state.InstanceName) &&
+		plan.ProcessorName.Equal(state.ProcessorName) &&
+		plan.Pipeline.Equal(state.Pipeline) &&
+		(plan.Options.Equal(state.Options) || plan.Options.IsUnknown()) &&
+		!plan.State.Equal(state.State)
 }

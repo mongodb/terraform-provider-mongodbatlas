@@ -7,10 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/fwtypes"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -30,12 +28,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
 			},
 			"pipeline": schema.StringAttribute{
-				Validators: []validator.String{
-					validate.StringIsJSON(),
-				},
-				PlanModifiers: []planmodifier.String{
-					schemafunc.DiffSuppressJSON(),
-				},
+				CustomType:          fwtypes.JSONStringType,
 				Required:            true,
 				Description:         "Stream aggregation pipeline you want to apply to your streaming data. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when settig this attribute. For more details see [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
 				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when settig this attribute. For more details see [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
@@ -95,14 +88,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFStreamProcessorRSModel struct {
-	InstanceName  types.String `tfsdk:"instance_name"`
-	Options       types.Object `tfsdk:"options"`
-	Pipeline      types.String `tfsdk:"pipeline"`
-	ProcessorID   types.String `tfsdk:"id"`
-	ProcessorName types.String `tfsdk:"processor_name"`
-	ProjectID     types.String `tfsdk:"project_id"`
-	State         types.String `tfsdk:"state"`
-	Stats         types.String `tfsdk:"stats"`
+	InstanceName  types.String       `tfsdk:"instance_name"`
+	Options       types.Object       `tfsdk:"options"`
+	Pipeline      fwtypes.JSONString `tfsdk:"pipeline"`
+	ProcessorID   types.String       `tfsdk:"id"`
+	ProcessorName types.String       `tfsdk:"processor_name"`
+	ProjectID     types.String       `tfsdk:"project_id"`
+	State         types.String       `tfsdk:"state"`
+	Stats         types.String       `tfsdk:"stats"`
 }
 
 type TFOptionsModel struct {

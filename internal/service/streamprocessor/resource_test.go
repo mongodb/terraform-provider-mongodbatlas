@@ -20,6 +20,8 @@ type connectionConfig struct {
 	clusterName          string
 	pipelineStepIsSource bool
 	useAsDLQ             bool
+	extraWhitespace      bool
+	invalidJSON          bool
 }
 
 var (
@@ -35,13 +37,18 @@ var (
 )
 
 func TestAccStreamProcessor_basic(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func basicTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		processorName = "new-processor"
 		instanceName  = acc.RandomName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamProcessor,
@@ -60,6 +67,25 @@ func TestAccStreamProcessor_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"stats"},
+			},
+		}}
+}
+
+func TestAccStreamProcessor_JSONWhiteSpaceFormat(t *testing.T) {
+	var (
+		projectID                  = acc.ProjectIDExecution(t)
+		processorName              = "new-processor-json-unchanged"
+		instanceName               = acc.RandomName()
+		sampleSrcConfigExtraSpaces = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, extraWhitespace: true}
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, sampleSrcConfigExtraSpaces, testLogDestConfig),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
 			},
 		}})
 }
@@ -128,11 +154,12 @@ func TestAccStreamProcessor_clusterType(t *testing.T) {
 		}})
 }
 
-func TestAccStreamProcessor_failWithInvalidStateOnCreation(t *testing.T) {
+func TestAccStreamProcessor_createErrors(t *testing.T) {
 	var (
-		projectID     = acc.ProjectIDExecution(t)
-		processorName = "new-processor"
-		instanceName  = acc.RandomName()
+		projectID         = acc.ProjectIDExecution(t)
+		processorName     = "new-processor"
+		instanceName      = acc.RandomName()
+		invalidJSONConfig = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, invalidJSON: true}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -141,8 +168,41 @@ func TestAccStreamProcessor_failWithInvalidStateOnCreation(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
+				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, invalidJSONConfig, testLogDestConfig),
+				ExpectError: regexp.MustCompile("Invalid JSON String Value"),
+			},
+			{
 				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, sampleSrcConfig, testLogDestConfig),
 				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
+			},
+		}})
+}
+
+func TestAccStreamProcessor_updateErrors(t *testing.T) {
+	var (
+		processorName          = "new-processor"
+		instanceName           = acc.RandomName()
+		projectID, clusterName = acc.ClusterNameExecution(t)
+		src                    = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: false}
+		srcWithOptions         = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: true}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, src, testLogDestConfig),
+				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+			},
+			{
+				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, src, testLogDestConfig),
+				ExpectError: regexp.MustCompile(`Stream Processor must be in \w+ state to transition to \w+ state`),
+			},
+			{
+				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StartedState, srcWithOptions, testLogDestConfig),
+				ExpectError: regexp.MustCompile("updating a Stream Processor is not supported"),
 			},
 		}})
 }
@@ -299,6 +359,8 @@ func config(t *testing.T, projectID, instanceName, processorName, state string, 
 
 func configConnection(t *testing.T, projectID string, config connectionConfig) (connectionConfig, resourceID, pipelineStep string) {
 	t.Helper()
+	assert.False(t, config.extraWhitespace && config.connectionType != connTypeSample, "extraWhitespace is only supported for Sample connection")
+	assert.False(t, config.invalidJSON && config.connectionType != connTypeSample, "invalidJson is only supported for Sample connection")
 	connectionType := config.connectionType
 	pipelineStepIsSource := config.pipelineStepIsSource
 	switch connectionType {
@@ -378,7 +440,14 @@ func configConnection(t *testing.T, projectID string, config connectionConfig) (
             }
         `, projectID)
 		resourceID = "mongodbatlas_stream_connection.sample"
-		pipelineStep = "{\"connectionName\":\"sample_stream_solar\"}"
+		if config.extraWhitespace {
+			pipelineStep = "{\"connectionName\": \"sample_stream_solar\"}"
+		} else {
+			pipelineStep = "{\"connectionName\":\"sample_stream_solar\"}"
+		}
+		if config.invalidJSON {
+			pipelineStep = "{\"connectionName\": \"sample_stream_solar\"" // missing closing bracket
+		}
 		return connectionConfig, resourceID, pipelineStep
 
 	case "TestLog":
