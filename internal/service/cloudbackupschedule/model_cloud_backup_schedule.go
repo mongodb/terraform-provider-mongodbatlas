@@ -1,7 +1,7 @@
 package cloudbackupschedule
 
 import (
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240805001/admin"
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
