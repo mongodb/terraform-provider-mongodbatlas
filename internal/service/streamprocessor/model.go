@@ -101,7 +101,7 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName st
 }
 
 func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions) (*types.Object, diag.Diagnostics) {
-	if options == nil {
+	if options == nil || !options.HasDlq() {
 		optionsTF := types.ObjectNull(OptionsObjectType.AttributeTypes())
 		return &optionsTF, nil
 	}
