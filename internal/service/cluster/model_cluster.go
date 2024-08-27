@@ -83,6 +83,7 @@ func flattenProcessArgs(p *matlas.ProcessArgs) []map[string]any {
 			"sample_size_bi_connector":             p.SampleSizeBIConnector,
 			"sample_refresh_interval_bi_connector": p.SampleRefreshIntervalBIConnector,
 			"transaction_lifetime_limit_seconds":   p.TransactionLifetimeLimitSeconds,
+			"change_stream_options_pre_and_post_images_expire_after_seconds": p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds,
 		},
 	}
 }
@@ -270,6 +271,10 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 		} else {
 			log.Printf(advancedcluster.ErrorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
 		}
+	}
+
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok {
+		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(cast.ToInt64(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 	}
 
 	return res
