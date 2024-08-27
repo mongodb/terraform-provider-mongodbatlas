@@ -93,28 +93,9 @@ func TestEncryptionAtRestPrivateEndpointTFModelToSDK(t *testing.T) {
 				Status:                        types.StringValue(testStatus),
 				PrivateEndpointConnectionName: types.StringValue(testPEConnectionName)},
 			expectedSDKReq: &admin.EARPrivateEndpoint{
-				CloudProvider:                 admin.PtrString(testCloudProvider),
-				ErrorMessage:                  nil,
-				Id:                            admin.PtrString(testID),
-				RegionName:                    admin.PtrString(testRegionName),
-				Status:                        admin.PtrString(testStatus),
-				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName)},
-		},
-		"Complete TF state with error message": {
-			tfModel: &encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
-				CloudProvider:                 types.StringValue(testCloudProvider),
-				ErrorMessage:                  types.StringValue(testErrMsg),
-				ID:                            types.StringValue(testID),
-				RegionName:                    types.StringValue(testRegionName),
-				Status:                        types.StringValue(testStatus),
-				PrivateEndpointConnectionName: types.StringValue(testPEConnectionName)},
-			expectedSDKReq: &admin.EARPrivateEndpoint{
-				CloudProvider:                 admin.PtrString(testCloudProvider),
-				ErrorMessage:                  admin.PtrString(testErrMsg),
-				Id:                            admin.PtrString(testID),
-				RegionName:                    admin.PtrString(testRegionName),
-				Status:                        admin.PtrString(testStatus),
-				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName)},
+				CloudProvider: admin.PtrString(testCloudProvider),
+				RegionName:    admin.PtrString(testRegionName),
+			},
 		},
 	}
 
