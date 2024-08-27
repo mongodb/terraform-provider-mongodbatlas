@@ -13,7 +13,7 @@ import (
 
 const (
 	defaultTimeout    = 20 * time.Minute // The amount of time to wait before timeout
-	defaultMinTimeout = 1 * time.Minute  // Smallest time to wait before refreshes
+	defaultMinTimeout = 30 * time.Second // Smallest time to wait before refreshes
 )
 
 func waitStateTransition(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
