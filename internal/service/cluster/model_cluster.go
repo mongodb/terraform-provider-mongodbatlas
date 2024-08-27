@@ -70,7 +70,7 @@ func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
 }
 
 func flattenProcessArgs(p *matlas.ProcessArgs) []map[string]any {
-	return []map[string]any{
+	flattenedProcessArgs := []map[string]any{
 		{
 			"default_read_concern":                 p.DefaultReadConcern,
 			"default_write_concern":                p.DefaultWriteConcern,
@@ -83,9 +83,12 @@ func flattenProcessArgs(p *matlas.ProcessArgs) []map[string]any {
 			"sample_size_bi_connector":             p.SampleSizeBIConnector,
 			"sample_refresh_interval_bi_connector": p.SampleRefreshIntervalBIConnector,
 			"transaction_lifetime_limit_seconds":   p.TransactionLifetimeLimitSeconds,
-			"change_stream_options_pre_and_post_images_expire_after_seconds": p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds,
 		},
 	}
+	if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil {
+		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
+	}
+	return flattenedProcessArgs
 }
 
 func flattenLabels(l []matlas.Label) []map[string]any {
