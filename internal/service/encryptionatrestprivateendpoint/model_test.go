@@ -23,14 +23,14 @@ const (
 )
 
 type sdkToTFModelTestCase struct {
-	SDKResp         *admin.EARPrivateEndpoint
-	expectedTFModel *encryptionatrestprivateendpoint.TFEarPrivateEndpointModel
+	SDKResp         admin.EARPrivateEndpoint
+	expectedTFModel encryptionatrestprivateendpoint.TFEarPrivateEndpointModel
 }
 
 func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 	testCases := map[string]sdkToTFModelTestCase{
 		"Complete SDK response": {
-			SDKResp: &admin.EARPrivateEndpoint{
+			SDKResp: admin.EARPrivateEndpoint{
 				CloudProvider:                 admin.PtrString(testCloudProvider),
 				ErrorMessage:                  admin.PtrString(""),
 				Id:                            admin.PtrString(testID),
@@ -38,7 +38,7 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 				Status:                        admin.PtrString(testStatus),
 				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
 			},
-			expectedTFModel: &encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
+			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
 				CloudProvider:                 types.StringValue(testCloudProvider),
 				ErrorMessage:                  types.StringNull(),
 				ID:                            types.StringValue(testID),
@@ -49,7 +49,7 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 			},
 		},
 		"Complete SDK response with error message": {
-			SDKResp: &admin.EARPrivateEndpoint{
+			SDKResp: admin.EARPrivateEndpoint{
 				CloudProvider:                 admin.PtrString(testCloudProvider),
 				ErrorMessage:                  admin.PtrString(testErrMsg),
 				Id:                            admin.PtrString(testID),
@@ -57,7 +57,7 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 				Status:                        admin.PtrString(testStatus),
 				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
 			},
-			expectedTFModel: &encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
+			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
 				CloudProvider:                 types.StringValue(testCloudProvider),
 				ErrorMessage:                  types.StringValue(testErrMsg),
 				ID:                            types.StringValue(testID),
@@ -136,7 +136,7 @@ func TestEncryptionAtRestPrivateEndpointPluralDSSDKToTFModel(t *testing.T) {
 			expectedTFModel: &encryptionatrestprivateendpoint.TFEncryptionAtRestPrivateEndpointsDSModel{
 				CloudProvider: types.StringValue(testCloudProvider),
 				ProjectID:     types.StringValue(testProjectID),
-				Results: []encryptionatrestprivateendpoint.TFEarPrivateEndpointDSModel{
+				Results: []encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
 					{
 						CloudProvider:                 types.StringValue(testCloudProvider),
 						ErrorMessage:                  types.StringNull(),
