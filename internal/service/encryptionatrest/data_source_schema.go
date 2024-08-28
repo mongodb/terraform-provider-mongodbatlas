@@ -7,8 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func DataSourceSchema(ctx context.Context) schema.Schema {
@@ -182,54 +180,5 @@ func NewTFEncryptionAtRestDSModel(projectID string, encryptionResp *admin.Encryp
 		AwsKmsConfig:         NewTFAwsKmsConfigItem(encryptionResp.AwsKms),
 		AzureKeyVaultConfig:  NewTFAzureKeyVaultConfigItem(encryptionResp.AzureKeyVault),
 		GoogleCloudKmsConfig: NewTFGcpKmsConfigItem(encryptionResp.GoogleCloudKms),
-	}
-}
-
-func NewTFAwsKmsConfigItem(awsKms *admin.AWSKMSConfiguration) *TFAwsKmsConfigModel {
-	if awsKms == nil {
-		return nil
-	}
-
-	return &TFAwsKmsConfigModel{
-		Enabled:             types.BoolPointerValue(awsKms.Enabled),
-		CustomerMasterKeyID: types.StringValue(awsKms.GetCustomerMasterKeyID()),
-		Region:              types.StringValue(awsKms.GetRegion()),
-		AccessKeyID:         conversion.StringNullIfEmpty(awsKms.GetAccessKeyID()),
-		SecretAccessKey:     conversion.StringNullIfEmpty(awsKms.GetSecretAccessKey()),
-		RoleID:              conversion.StringNullIfEmpty(awsKms.GetRoleId()),
-		Valid:               types.BoolPointerValue(awsKms.Valid),
-	}
-}
-
-func NewTFAzureKeyVaultConfigItem(az *admin.AzureKeyVault) *TFAzureKeyVaultConfigModel {
-	if az == nil {
-		return nil
-	}
-
-	return &TFAzureKeyVaultConfigModel{
-		Enabled:                  types.BoolPointerValue(az.Enabled),
-		ClientID:                 types.StringValue(az.GetClientID()),
-		AzureEnvironment:         types.StringValue(az.GetAzureEnvironment()),
-		SubscriptionID:           types.StringValue(az.GetSubscriptionID()),
-		ResourceGroupName:        types.StringValue(az.GetResourceGroupName()),
-		KeyVaultName:             types.StringValue(az.GetKeyVaultName()),
-		KeyIdentifier:            types.StringValue(az.GetKeyIdentifier()),
-		TenantID:                 types.StringValue(az.GetTenantID()),
-		Secret:                   conversion.StringNullIfEmpty(az.GetSecret()),
-		RequirePrivateNetworking: types.BoolValue(az.GetRequirePrivateNetworking()),
-		Valid:                    types.BoolPointerValue(az.Valid),
-	}
-}
-
-func NewTFGcpKmsConfigItem(gcpKms *admin.GoogleCloudKMS) *TFGcpKmsConfigModel {
-	if gcpKms == nil {
-		return nil
-	}
-
-	return &TFGcpKmsConfigModel{
-		Enabled:              types.BoolPointerValue(gcpKms.Enabled),
-		KeyVersionResourceID: types.StringValue(gcpKms.GetKeyVersionResourceID()),
-		ServiceAccountKey:    conversion.StringNullIfEmpty(gcpKms.GetServiceAccountKey()),
-		Valid:                types.BoolPointerValue(gcpKms.Valid),
 	}
 }
