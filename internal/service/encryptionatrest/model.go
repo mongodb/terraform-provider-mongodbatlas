@@ -26,14 +26,15 @@ func NewTFAwsKmsConfig(ctx context.Context, awsKms *admin.AWSKMSConfiguration) [
 	}
 
 	return []TfAwsKmsConfigModel{
-		{
-			Enabled:             types.BoolPointerValue(awsKms.Enabled),
-			CustomerMasterKeyID: types.StringValue(awsKms.GetCustomerMasterKeyID()),
-			Region:              types.StringValue(awsKms.GetRegion()),
-			AccessKeyID:         conversion.StringNullIfEmpty(awsKms.GetAccessKeyID()),
-			SecretAccessKey:     conversion.StringNullIfEmpty(awsKms.GetSecretAccessKey()),
-			RoleID:              conversion.StringNullIfEmpty(awsKms.GetRoleId()),
-		},
+		*NewTFAwsKmsConfigItem(awsKms),
+		// {
+		// 	Enabled:             types.BoolPointerValue(awsKms.Enabled),
+		// 	CustomerMasterKeyID: types.StringValue(awsKms.GetCustomerMasterKeyID()),
+		// 	Region:              types.StringValue(awsKms.GetRegion()),
+		// 	AccessKeyID:         conversion.StringNullIfEmpty(awsKms.GetAccessKeyID()),
+		// 	SecretAccessKey:     conversion.StringNullIfEmpty(awsKms.GetSecretAccessKey()),
+		// 	RoleID:              conversion.StringNullIfEmpty(awsKms.GetRoleId()),
+		// },
 	}
 }
 
@@ -43,18 +44,19 @@ func NewTFAzureKeyVaultConfig(ctx context.Context, az *admin.AzureKeyVault) []Tf
 	}
 
 	return []TfAzureKeyVaultConfigModel{
-		{
-			Enabled:                  types.BoolPointerValue(az.Enabled),
-			ClientID:                 types.StringValue(az.GetClientID()),
-			AzureEnvironment:         types.StringValue(az.GetAzureEnvironment()),
-			SubscriptionID:           types.StringValue(az.GetSubscriptionID()),
-			ResourceGroupName:        types.StringValue(az.GetResourceGroupName()),
-			KeyVaultName:             types.StringValue(az.GetKeyVaultName()),
-			KeyIdentifier:            types.StringValue(az.GetKeyIdentifier()),
-			TenantID:                 types.StringValue(az.GetTenantID()),
-			Secret:                   conversion.StringNullIfEmpty(az.GetSecret()),
-			RequirePrivateNetworking: types.BoolValue(az.GetRequirePrivateNetworking()),
-		},
+		*NewTFAzureKeyVaultConfigItem(az),
+		// {
+		// 	Enabled:                  types.BoolPointerValue(az.Enabled),
+		// 	ClientID:                 types.StringValue(az.GetClientID()),
+		// 	AzureEnvironment:         types.StringValue(az.GetAzureEnvironment()),
+		// 	SubscriptionID:           types.StringValue(az.GetSubscriptionID()),
+		// 	ResourceGroupName:        types.StringValue(az.GetResourceGroupName()),
+		// 	KeyVaultName:             types.StringValue(az.GetKeyVaultName()),
+		// 	KeyIdentifier:            types.StringValue(az.GetKeyIdentifier()),
+		// 	TenantID:                 types.StringValue(az.GetTenantID()),
+		// 	Secret:                   conversion.StringNullIfEmpty(az.GetSecret()),
+		// 	RequirePrivateNetworking: types.BoolValue(az.GetRequirePrivateNetworking()),
+		// },
 	}
 }
 
@@ -64,11 +66,12 @@ func NewTFGcpKmsConfig(ctx context.Context, gcpKms *admin.GoogleCloudKMS) []TfGc
 	}
 
 	return []TfGcpKmsConfigModel{
-		{
-			Enabled:              types.BoolPointerValue(gcpKms.Enabled),
-			KeyVersionResourceID: types.StringValue(gcpKms.GetKeyVersionResourceID()),
-			ServiceAccountKey:    conversion.StringNullIfEmpty(gcpKms.GetServiceAccountKey()),
-		},
+		*NewTFGcpKmsConfigItem(gcpKms),
+		// {
+		// 	Enabled:              types.BoolPointerValue(gcpKms.Enabled),
+		// 	KeyVersionResourceID: types.StringValue(gcpKms.GetKeyVersionResourceID()),
+		// 	ServiceAccountKey:    conversion.StringNullIfEmpty(gcpKms.GetServiceAccountKey()),
+		// },
 	}
 }
 

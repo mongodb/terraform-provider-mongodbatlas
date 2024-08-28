@@ -67,6 +67,7 @@ type TfAwsKmsConfigModel struct {
 	Region              types.String `tfsdk:"region"`
 	RoleID              types.String `tfsdk:"role_id"`
 	Enabled             types.Bool   `tfsdk:"enabled"`
+	Valid               types.Bool   `tfsdk:"valid"`
 }
 type TfAzureKeyVaultConfigModel struct {
 	ClientID                 types.String `tfsdk:"client_id"`
@@ -79,11 +80,13 @@ type TfAzureKeyVaultConfigModel struct {
 	TenantID                 types.String `tfsdk:"tenant_id"`
 	Enabled                  types.Bool   `tfsdk:"enabled"`
 	RequirePrivateNetworking types.Bool   `tfsdk:"require_private_networking"`
+	Valid                    types.Bool   `tfsdk:"valid"`
 }
 type TfGcpKmsConfigModel struct {
 	ServiceAccountKey    types.String `tfsdk:"service_account_key"`
 	KeyVersionResourceID types.String `tfsdk:"key_version_resource_id"`
 	Enabled              types.Bool   `tfsdk:"enabled"`
+	Valid                types.Bool   `tfsdk:"valid"`
 }
 
 func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -147,6 +150,11 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							Optional:            true,
 							Description:         "Unique 24-hexadecimal digit string that identifies an Amazon Web Services (AWS) Identity and Access Management (IAM) role. This IAM role has the permissions required to manage your AWS customer master key.",
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies an Amazon Web Services (AWS) Identity and Access Management (IAM) role. This IAM role has the permissions required to manage your AWS customer master key.",
+						},
+						"valid": schema.BoolAttribute{
+							Computed:            true,
+							Description:         "Flag that indicates whether the Amazon Web Services (AWS) Key Management Service (KMS) encryption key can encrypt and decrypt data.",
+							MarkdownDescription: "Flag that indicates whether the Amazon Web Services (AWS) Key Management Service (KMS) encryption key can encrypt and decrypt data.",
 						},
 					},
 					Validators: []validator.Object{validate.AwsKmsConfig()},
@@ -221,6 +229,11 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							Description:         "Enable connection to your Azure Key Vault over private networking.",
 							MarkdownDescription: "Enable connection to your Azure Key Vault over private networking.",
 						},
+						"valid": schema.BoolAttribute{
+							Computed:            true,
+							Description:         "Flag that indicates whether the Azure encryption key can encrypt and decrypt data.",
+							MarkdownDescription: "Flag that indicates whether the Azure encryption key can encrypt and decrypt data.",
+						},
 					},
 				},
 			},
@@ -250,6 +263,11 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							Sensitive:           true,
 							Description:         "Resource path that displays the key version resource ID for your Google Cloud KMS.",
 							MarkdownDescription: "Resource path that displays the key version resource ID for your Google Cloud KMS.",
+						},
+						"valid": schema.BoolAttribute{
+							Computed:            true,
+							Description:         "Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.",
+							MarkdownDescription: "Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.",
 						},
 					},
 				},
