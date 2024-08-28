@@ -11,7 +11,7 @@
 ### Prerequisite Tools
 
 - [Git](https://git-scm.com/)
-- [Go (at least Go 1.22)](https://golang.org/dl/)
+- [Go (at least Go 1.23)](https://golang.org/dl/)
 
 ### Environment
 
