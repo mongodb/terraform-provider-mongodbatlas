@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.18.1 (August 26, 2024)
+
 ## 1.18.0 (August 14, 2024)
 
 BREAKING CHANGES:

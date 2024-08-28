@@ -12,7 +12,7 @@ page_title: "Migration Guide: Cluster to Advanced Cluster"
 2. Provider Settings: Moved from the top level to the replication spec allowing you to create multi-cloud clusters.
 3. Auto Scaling: Moved from the top level to the replication spec allowing you to scale replication specs individually.
 4. Backup Configuration: Renamed from `cloud_backup` to `backup_enabled`.
-5. See the [Migration Guide: Advanced Cluster New Sharding Schema](advanced-cluster-new-sharding-schema#migration-sharded) for changes to `num_shards` and the new `zone_id`.
+5. See the [Migration Guide: Advanced Cluster New Sharding Configurations](advanced-cluster-new-sharding-schema#migration-sharded) for changes to `num_shards` and the new `zone_id`.
 
 ### Example 1: Old Configuration (`mongodbatlas_cluster`)
 
