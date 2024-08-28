@@ -336,6 +336,11 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"replica_set_scaling_strategy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),
@@ -441,6 +446,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	if v, ok := d.GetOk("global_cluster_self_managed_sharding"); ok {
 		params.GlobalClusterSelfManagedSharding = conversion.Pointer(v.(bool))
+	}
+	if v, ok := d.GetOk("replica_set_scaling_strategy"); ok {
+		params.ReplicaSetScalingStrategy = conversion.StringPtr(v.(string))
 	}
 
 	// Validate oplog_size_mb to show the error before the cluster is created.
@@ -552,6 +560,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		// root disk_size_gb defined for backwards compatibility avoiding breaking changes
 		if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(cluster)); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+		}
+		if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
 		}
 
 		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
@@ -911,6 +922,10 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 
 	if d.HasChange("paused") && !d.Get("paused").(bool) {
 		cluster.Paused = conversion.Pointer(d.Get("paused").(bool))
+	}
+
+	if d.HasChange("replica_set_scaling_strategy") {
+		cluster.ReplicaSetScalingStrategy = conversion.Pointer(d.Get("replica_set_scaling_strategy").(string))
 	}
 	return cluster, nil
 }

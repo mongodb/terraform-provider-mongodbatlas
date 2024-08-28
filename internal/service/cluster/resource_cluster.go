@@ -351,6 +351,11 @@ func Resource() *schema.Resource {
 				Computed:    true,
 				Description: "Submit this field alongside your topology reconfiguration to request a new regional outage resistant topology",
 			},
+			"replica_set_scaling_strategy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 		CustomizeDiff: resourceClusterCustomizeDiff,
 		Timeouts: &schema.ResourceTimeout{
@@ -733,6 +738,10 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", cluster.AcceptDataRisksAndForceReplicaSetReconfig); err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
+	}
+
+	if err := d.Set("replica_set_scaling_strategy", cluster.ReplicationSpec); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
 	}
 

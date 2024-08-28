@@ -259,6 +259,10 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"replica_set_scaling_strategy": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -353,6 +357,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"termination_protection_enabled":       cluster.GetTerminationProtectionEnabled(),
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
+			"replica_set_scaling_strategy":         cluster.GetReplicaSetScalingStrategy(),
 		}
 		results = append(results, result)
 	}

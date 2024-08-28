@@ -750,6 +750,7 @@ func configTenant(projectID, name string) string {
 			project_id   = %[1]q
 			name         = %[2]q
 			cluster_type = "REPLICASET"
+			replica_set_scaling_strategy = "WORKLOAD_TYPE"
 
 			replication_specs {
 				region_configs {
@@ -785,7 +786,8 @@ func checkTenant(projectID, name string) resource.TestCheckFunc {
 			"name":                                 name,
 			"termination_protection_enabled":       "false",
 			"global_cluster_self_managed_sharding": "false",
-			"labels.#":                             "0"},
+			"labels.#":                             "0",
+			"replica_set_scaling_strategy":         "WORKLOAD_TYPE"},
 		pluralChecks...)
 }
 
@@ -1595,8 +1597,9 @@ func checkShardedNewSchema(diskSizeGB int, firstInstanceSize, lastInstanceSize s
 	}
 
 	clusterChecks := map[string]string{
-		"disk_size_gb":        fmt.Sprintf("%d", diskSizeGB),
-		"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
+		"disk_size_gb":                 fmt.Sprintf("%d", diskSizeGB),
+		"replica_set_scaling_strategy": "WORKLOAD_TYPE",
+		"replication_specs.#":          fmt.Sprintf("%d", amtOfReplicationSpecs),
 		"replication_specs.0.region_configs.0.electable_specs.0.instance_size":                              firstInstanceSize,
 		fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.instance_size", lastSpecIndex): lastInstanceSize,
 		"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb":                               fmt.Sprintf("%d", diskSizeGB),
