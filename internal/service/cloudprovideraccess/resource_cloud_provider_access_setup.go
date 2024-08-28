@@ -134,8 +134,9 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
+	providerName := d.Get("provider_name").(string)
 	requestParameters := &admin.CloudProviderAccessRoleRequest{
-		ProviderName: d.Get("provider_name").(string),
+		ProviderName: providerName,
 	}
 
 	if value, ok := d.GetOk("azure_config.0.atlas_azure_app_id"); ok {
@@ -150,13 +151,23 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 		requestParameters.SetTenantId(value.(string))
 	}
 
-	role, _, err := conn.CloudProviderAccessApi.CreateCloudProviderAccessRole(ctx, projectID, requestParameters).Execute()
+	roleCreate, _, err := conn.CloudProviderAccessApi.CreateCloudProviderAccessRole(ctx, projectID, requestParameters).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
+	}
+	var roleID string
+	if providerName == constant.AZURE {
+		roleID = roleCreate.GetId()
+	} else {
+		roleID = roleCreate.GetRoleId()
+	}
+	role, _, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRole(ctx, projectID, roleID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
 	}
 
 	// once multiple providers enable here do a switch, select for provider type
-	roleSchema := roleToSchemaSetup(nil)
+	roleSchema := roleToSchemaSetup(role)
 
 	resourceID := role.GetRoleId()
 	if role.ProviderName == constant.AZURE {

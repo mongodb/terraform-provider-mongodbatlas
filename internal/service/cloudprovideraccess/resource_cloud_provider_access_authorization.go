@@ -3,9 +3,9 @@ package cloudprovideraccess
 import (
 	"context"
 	"fmt"
-	// "log"
+	"log"
 	"strings"
-	// "time"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -260,11 +260,11 @@ func resourceCloudProviderAccessAuthorizationStateUpgradeV0(ctx context.Context,
 }
 
 func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.ResourceData, projectID string, targetRole *admin.CloudProviderAccessRole) diag.Diagnostics {
-	req := &admin.CloudProviderAccessRole{
+	req := &admin.CloudProviderAccessRoleRequestUpdate{
 		ProviderName: targetRole.ProviderName,
 	}
 
-	// roleID := targetRole.GetRoleId()
+	roleID := targetRole.GetRoleId()
 	if targetRole.ProviderName == constant.AWS {
 		roleAWS, ok := d.GetOk("aws")
 		if !ok {
@@ -278,28 +278,30 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 		req.SetAtlasAzureAppId(targetRole.GetAtlasAzureAppId())
 		req.SetTenantId(targetRole.GetTenantId())
 		req.SetServicePrincipalId(targetRole.GetServicePrincipalId())
-		// roleID = targetRole.GetId()
+		roleID = targetRole.GetId()
 	}
 
-	var role *admin.CloudProviderAccessRole
 	var err error
-
-	// for i := 0; i < 3; i++ {
-	// 	role, _, err = client.CloudProviderAccessApi.AuthorizeCloudProviderAccessRole(ctx, projectID, roleID, req).Execute()
-	// 	if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") { // aws takes time to update , in case of single path
-	// 		log.Printf("warning issue performing authorize: %s \n", err.Error())
-	// 		log.Println("retrying")
-	// 		time.Sleep(10 * time.Second)
-	// 		continue
-	// 	}
-	// 	if err != nil {
-	// 		log.Printf("MISSED ERROR %s", err.Error())
-	// 	}
-	// 	break
-	// }
+	for i := 0; i < 3; i++ {
+		_, _, err = client.CloudProviderAccessApi.AuthorizeCloudProviderAccessRole(ctx, projectID, roleID, req).Execute()
+		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") { // aws takes time to update , in case of single path
+			log.Printf("warning issue performing authorize: %s \n", err.Error())
+			log.Println("retrying")
+			time.Sleep(10 * time.Second)
+			continue
+		}
+		if err != nil {
+			log.Printf("MISSED ERROR %s", err.Error())
+		}
+		break
+	}
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error cloud provider access authorization %s", err))
+	}
+	role, _, err := client.CloudProviderAccessApi.GetCloudProviderAccessRole(ctx, projectID, roleID).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error cloud provider access authorization read after authorization %s", err))
 	}
 
 	authSchema := roleToSchemaAuthorization(role)
