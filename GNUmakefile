@@ -74,6 +74,7 @@ lint:
 .PHONY: tools
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
+	go telemetry off # disable sending telemetry data, more info: https://go.dev/doc/telemetry
 	go install github.com/icholy/gomajor@latest
 	go install github.com/terraform-linters/tflint@v0.52.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
