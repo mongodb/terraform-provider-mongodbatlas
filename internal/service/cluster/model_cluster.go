@@ -276,8 +276,8 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 		}
 	}
 
-	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok {
-		if changeStreamOptionsSeconds := cast.ToInt64(p["change_stream_options_pre_and_post_images_expire_after_seconds"]); changeStreamOptionsSeconds != 0 {
+	if _, ok := d.GetOk("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok {
+		if changeStreamOptionsSeconds := cast.ToInt64(p["change_stream_options_pre_and_post_images_expire_after_seconds"]); changeStreamOptionsSeconds != int64(0) {
 			res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(cast.ToInt64(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 		} else {
 			log.Printf(advancedcluster.ErrorClusterSetting, `change_stream_options_pre_and_post_images_expire_after_seconds`, "", cast.ToString(changeStreamOptionsSeconds))
