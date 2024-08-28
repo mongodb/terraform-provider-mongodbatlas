@@ -111,6 +111,7 @@ func SchemaAdvancedConfigDS() *schema.Schema {
 				"change_stream_options_pre_and_post_images_expire_after_seconds": {
 					Type:     schema.TypeInt,
 					Computed: true,
+					Default:  -1,
 				},
 			},
 		},
