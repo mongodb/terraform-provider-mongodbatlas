@@ -208,7 +208,7 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds", "113"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds", "-1"),
 				),
 			},
 		},
