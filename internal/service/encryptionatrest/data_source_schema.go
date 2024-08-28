@@ -13,7 +13,7 @@ import (
 
 // TODO: check for sensitive attr
 // TODO: check about ID attr
-// TODO: check if we can add 'valid' to resource & re-use models
+// TODO: check if we can add 'valid' to resource & re-use models----
 func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -157,16 +157,16 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
-type TfEncryptionAtRestDSModel struct {
+type TFEncryptionAtRestDSModel struct {
 	ID                   types.String               `tfsdk:"id"`
 	ProjectID            types.String               `tfsdk:"project_id"`
-	AzureKeyVaultConfig  TfAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
-	AwsKmsConfig         TfAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
-	GoogleCloudKmsConfig TfGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	AzureKeyVaultConfig  TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
+	AwsKmsConfig         TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
+	GoogleCloudKmsConfig TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
 }
 
-func NewTfEncryptionAtRestDSModel(projectID string, encryptionResp *admin.EncryptionAtRest) *TfEncryptionAtRestDSModel {
-	return &TfEncryptionAtRestDSModel{
+func NewTFEncryptionAtRestDSModel(projectID string, encryptionResp *admin.EncryptionAtRest) *TFEncryptionAtRestDSModel {
+	return &TFEncryptionAtRestDSModel{
 		ID:                   types.StringValue(projectID),
 		ProjectID:            types.StringValue(projectID),
 		AwsKmsConfig:         *NewTFAwsKmsConfigItem(encryptionResp.AwsKms),
@@ -175,12 +175,12 @@ func NewTfEncryptionAtRestDSModel(projectID string, encryptionResp *admin.Encryp
 	}
 }
 
-func NewTFAwsKmsConfigItem(awsKms *admin.AWSKMSConfiguration) *TfAwsKmsConfigModel {
+func NewTFAwsKmsConfigItem(awsKms *admin.AWSKMSConfiguration) *TFAwsKmsConfigModel {
 	if awsKms == nil {
 		return nil
 	}
 
-	return &TfAwsKmsConfigModel{
+	return &TFAwsKmsConfigModel{
 		Enabled:             types.BoolPointerValue(awsKms.Enabled),
 		CustomerMasterKeyID: types.StringValue(awsKms.GetCustomerMasterKeyID()),
 		Region:              types.StringValue(awsKms.GetRegion()),
@@ -191,12 +191,12 @@ func NewTFAwsKmsConfigItem(awsKms *admin.AWSKMSConfiguration) *TfAwsKmsConfigMod
 	}
 }
 
-func NewTFAzureKeyVaultConfigItem(az *admin.AzureKeyVault) *TfAzureKeyVaultConfigModel {
+func NewTFAzureKeyVaultConfigItem(az *admin.AzureKeyVault) *TFAzureKeyVaultConfigModel {
 	if az == nil {
 		return nil
 	}
 
-	return &TfAzureKeyVaultConfigModel{
+	return &TFAzureKeyVaultConfigModel{
 		Enabled:                  types.BoolPointerValue(az.Enabled),
 		ClientID:                 types.StringValue(az.GetClientID()),
 		AzureEnvironment:         types.StringValue(az.GetAzureEnvironment()),
@@ -211,46 +211,15 @@ func NewTFAzureKeyVaultConfigItem(az *admin.AzureKeyVault) *TfAzureKeyVaultConfi
 	}
 }
 
-func NewTFGcpKmsConfigItem(gcpKms *admin.GoogleCloudKMS) *TfGcpKmsConfigModel {
+func NewTFGcpKmsConfigItem(gcpKms *admin.GoogleCloudKMS) *TFGcpKmsConfigModel {
 	if gcpKms == nil {
 		return nil
 	}
 
-	return &TfGcpKmsConfigModel{
+	return &TFGcpKmsConfigModel{
 		Enabled:              types.BoolPointerValue(gcpKms.Enabled),
 		KeyVersionResourceID: types.StringValue(gcpKms.GetKeyVersionResourceID()),
 		ServiceAccountKey:    conversion.StringNullIfEmpty(gcpKms.GetServiceAccountKey()),
 		Valid:                types.BoolPointerValue(gcpKms.Valid),
 	}
 }
-
-// type TfAwsKmsConfigDSModel struct {
-// 	AccessKeyID         types.String `tfsdk:"access_key_id"`
-// 	SecretAccessKey     types.String `tfsdk:"secret_access_key"`
-// 	CustomerMasterKeyID types.String `tfsdk:"customer_master_key_id"`
-// 	Region              types.String `tfsdk:"region"`
-// 	RoleID              types.String `tfsdk:"role_id"`
-// 	Enabled             types.Bool   `tfsdk:"enabled"`
-// 	Valid               types.Bool   `tfsdk:"valid"`
-// }
-
-// type TfAzureKeyVaultConfigDSModel struct {
-// 	ClientID                 types.String `tfsdk:"client_id"`
-// 	AzureEnvironment         types.String `tfsdk:"azure_environment"`
-// 	SubscriptionID           types.String `tfsdk:"subscription_id"`
-// 	ResourceGroupName        types.String `tfsdk:"resource_group_name"`
-// 	KeyVaultName             types.String `tfsdk:"key_vault_name"`
-// 	KeyIdentifier            types.String `tfsdk:"key_identifier"`
-// 	Secret                   types.String `tfsdk:"secret"`
-// 	TenantID                 types.String `tfsdk:"tenant_id"`
-// 	Enabled                  types.Bool   `tfsdk:"enabled"`
-// 	RequirePrivateNetworking types.Bool   `tfsdk:"require_private_networking"`
-// 	Valid                    types.Bool   `tfsdk:"valid"`
-// }
-
-// type TfGcpKmsConfigDSModel struct {
-// 	ServiceAccountKey    types.String `tfsdk:"service_account_key"`
-// 	KeyVersionResourceID types.String `tfsdk:"key_version_resource_id"`
-// 	Enabled              types.Bool   `tfsdk:"enabled"`
-// 	Valid                types.Bool   `tfsdk:"valid"`
-// }

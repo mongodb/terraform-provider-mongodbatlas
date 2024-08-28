@@ -28,7 +28,7 @@ func (d *encryptionAtRestDS) Schema(ctx context.Context, req datasource.SchemaRe
 }
 
 func (d *encryptionAtRestDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var earConfig TfEncryptionAtRestDSModel
+	var earConfig TFEncryptionAtRestDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &earConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -43,5 +43,5 @@ func (d *encryptionAtRestDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, NewTfEncryptionAtRestDSModel(projectID, encryptionResp))...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEncryptionAtRestDSModel(projectID, encryptionResp))...)
 }

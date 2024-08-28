@@ -322,23 +322,23 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 
 var (
 	ServiceAccountKey                      = types.StringValue("service")
-	googleCloudConfigWithServiceAccountKey = []encryptionatrest.TfGcpKmsConfigModel{
+	googleCloudConfigWithServiceAccountKey = []encryptionatrest.TFGcpKmsConfigModel{
 		{
 			ServiceAccountKey: ServiceAccountKey,
 		},
 	}
-	awsConfigWithRegion = []encryptionatrest.TfAwsKmsConfigModel{
+	awsConfigWithRegion = []encryptionatrest.TFAwsKmsConfigModel{
 		{
 			Region: types.StringValue(region),
 		},
 	}
-	awsConfigWithRegionAndSecretAccessKey = []encryptionatrest.TfAwsKmsConfigModel{
+	awsConfigWithRegionAndSecretAccessKey = []encryptionatrest.TFAwsKmsConfigModel{
 		{
 			Region:          types.StringValue(region),
 			SecretAccessKey: ServiceAccountKey,
 		},
 	}
-	azureConfigWithSecret = []encryptionatrest.TfAzureKeyVaultConfigModel{
+	azureConfigWithSecret = []encryptionatrest.TFAzureKeyVaultConfigModel{
 		{
 			Secret: types.StringValue(secret),
 		},
@@ -361,22 +361,22 @@ func TestHandleGcpKmsConfig(t *testing.T) {
 				GoogleCloudKmsConfig: nil,
 			},
 			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
-				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{},
+				GoogleCloudKmsConfig: []encryptionatrest.TFGcpKmsConfigModel{},
 			},
 			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
-				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{},
+				GoogleCloudKmsConfig: []encryptionatrest.TFGcpKmsConfigModel{},
 			},
 		},
 		{
 			name: "Current GoogleCloudKmsConfig not nil, GoogleCloudKmsConfig config is available",
 			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
-				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{},
+				GoogleCloudKmsConfig: []encryptionatrest.TFGcpKmsConfigModel{},
 			},
 			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{
 				GoogleCloudKmsConfig: googleCloudConfigWithServiceAccountKey,
 			},
 			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
-				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{{}},
+				GoogleCloudKmsConfig: []encryptionatrest.TFGcpKmsConfigModel{{}},
 			},
 			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
 				GoogleCloudKmsConfig: googleCloudConfigWithServiceAccountKey,
@@ -389,7 +389,7 @@ func TestHandleGcpKmsConfig(t *testing.T) {
 			},
 			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{},
 			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
-				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{{}},
+				GoogleCloudKmsConfig: []encryptionatrest.TFGcpKmsConfigModel{{}},
 			},
 			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
 				GoogleCloudKmsConfig: googleCloudConfigWithServiceAccountKey,
@@ -413,22 +413,22 @@ func TestHandleAwsKmsConfigDefaults(t *testing.T) {
 				AwsKmsConfig: nil,
 			},
 			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
-				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{},
+				AwsKmsConfig: []encryptionatrest.TFAwsKmsConfigModel{},
 			},
 			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
-				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{},
+				AwsKmsConfig: []encryptionatrest.TFAwsKmsConfigModel{},
 			},
 		},
 		{
 			name: "Current AwsKmsConfig not nil, AwsKmsConfig config is available",
 			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
-				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{},
+				AwsKmsConfig: []encryptionatrest.TFAwsKmsConfigModel{},
 			},
 			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{
 				AwsKmsConfig: awsConfigWithRegion,
 			},
 			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
-				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{{}},
+				AwsKmsConfig: []encryptionatrest.TFAwsKmsConfigModel{{}},
 			},
 			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
 				AwsKmsConfig: awsConfigWithRegion,
@@ -441,7 +441,7 @@ func TestHandleAwsKmsConfigDefaults(t *testing.T) {
 			},
 			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{},
 			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
-				AwsKmsConfig: []encryptionatrest.TfAwsKmsConfigModel{{}},
+				AwsKmsConfig: []encryptionatrest.TFAwsKmsConfigModel{{}},
 			},
 			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
 				AwsKmsConfig: awsConfigWithRegionAndSecretAccessKey,
@@ -465,22 +465,22 @@ func TestHandleAzureKeyVaultConfigDefaults(t *testing.T) {
 				AzureKeyVaultConfig: nil,
 			},
 			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
-				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{},
+				AzureKeyVaultConfig: []encryptionatrest.TFAzureKeyVaultConfigModel{},
 			},
 			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
-				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{},
+				AzureKeyVaultConfig: []encryptionatrest.TFAzureKeyVaultConfigModel{},
 			},
 		},
 		{
 			name: "Current AzureKeyVaultConfig not nil, AzureKeyVaultConfig config is available",
 			earRSCurrent: &encryptionatrest.TfEncryptionAtRestRSModel{
-				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{},
+				AzureKeyVaultConfig: []encryptionatrest.TFAzureKeyVaultConfigModel{},
 			},
 			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{
 				AzureKeyVaultConfig: azureConfigWithSecret,
 			},
 			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
-				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{{}},
+				AzureKeyVaultConfig: []encryptionatrest.TFAzureKeyVaultConfigModel{{}},
 			},
 			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
 				AzureKeyVaultConfig: azureConfigWithSecret,
@@ -493,7 +493,7 @@ func TestHandleAzureKeyVaultConfigDefaults(t *testing.T) {
 			},
 			earRSConfig: &encryptionatrest.TfEncryptionAtRestRSModel{},
 			earRSNew: &encryptionatrest.TfEncryptionAtRestRSModel{
-				AzureKeyVaultConfig: []encryptionatrest.TfAzureKeyVaultConfigModel{{}},
+				AzureKeyVaultConfig: []encryptionatrest.TFAzureKeyVaultConfigModel{{}},
 			},
 			expectedEarResult: &encryptionatrest.TfEncryptionAtRestRSModel{
 				AzureKeyVaultConfig: azureConfigWithSecret,

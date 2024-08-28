@@ -55,12 +55,12 @@ type encryptionAtRestRS struct {
 type TfEncryptionAtRestRSModel struct {
 	ID                   types.String                 `tfsdk:"id"`
 	ProjectID            types.String                 `tfsdk:"project_id"`
-	AwsKmsConfig         []TfAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
-	AzureKeyVaultConfig  []TfAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
-	GoogleCloudKmsConfig []TfGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	AwsKmsConfig         []TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
+	AzureKeyVaultConfig  []TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
+	GoogleCloudKmsConfig []TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
 }
 
-type TfAwsKmsConfigModel struct {
+type TFAwsKmsConfigModel struct {
 	AccessKeyID         types.String `tfsdk:"access_key_id"`
 	SecretAccessKey     types.String `tfsdk:"secret_access_key"`
 	CustomerMasterKeyID types.String `tfsdk:"customer_master_key_id"`
@@ -69,7 +69,7 @@ type TfAwsKmsConfigModel struct {
 	Enabled             types.Bool   `tfsdk:"enabled"`
 	Valid               types.Bool   `tfsdk:"valid"`
 }
-type TfAzureKeyVaultConfigModel struct {
+type TFAzureKeyVaultConfigModel struct {
 	ClientID                 types.String `tfsdk:"client_id"`
 	AzureEnvironment         types.String `tfsdk:"azure_environment"`
 	SubscriptionID           types.String `tfsdk:"subscription_id"`
@@ -82,7 +82,7 @@ type TfAzureKeyVaultConfigModel struct {
 	RequirePrivateNetworking types.Bool   `tfsdk:"require_private_networking"`
 	Valid                    types.Bool   `tfsdk:"valid"`
 }
-type TfGcpKmsConfigModel struct {
+type TFGcpKmsConfigModel struct {
 	ServiceAccountKey    types.String `tfsdk:"service_account_key"`
 	KeyVersionResourceID types.String `tfsdk:"key_version_resource_id"`
 	Enabled              types.Bool   `tfsdk:"enabled"`
@@ -315,7 +315,7 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	encryptionAtRestPlanNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp.(*admin.EncryptionAtRest))
+	encryptionAtRestPlanNew := NewTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp.(*admin.EncryptionAtRest))
 	resetDefaultsFromConfigOrState(ctx, encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
 
 	// set state to fully populated data
@@ -373,7 +373,7 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	encryptionAtRestStateNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
+	encryptionAtRestStateNew := NewTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
 	if isImport {
 		setEmptyArrayForEmptyBlocksReturnedFromImport(encryptionAtRestStateNew)
 	} else {
@@ -435,7 +435,7 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	encryptionAtRestStateNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
+	encryptionAtRestStateNew := NewTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
 	resetDefaultsFromConfigOrState(ctx, encryptionAtRestState, encryptionAtRestStateNew, encryptionAtRestConfig)
 
 	// save updated data into Terraform state
@@ -478,15 +478,15 @@ func (r *encryptionAtRestRS) ImportState(ctx context.Context, req resource.Impor
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func hasGcpKmsConfigChanged(gcpKmsConfigsPlan, gcpKmsConfigsState []TfGcpKmsConfigModel) bool {
+func hasGcpKmsConfigChanged(gcpKmsConfigsPlan, gcpKmsConfigsState []TFGcpKmsConfigModel) bool {
 	return !reflect.DeepEqual(gcpKmsConfigsPlan, gcpKmsConfigsState)
 }
 
-func hasAzureKeyVaultConfigChanged(azureKeyVaultConfigPlan, azureKeyVaultConfigState []TfAzureKeyVaultConfigModel) bool {
+func hasAzureKeyVaultConfigChanged(azureKeyVaultConfigPlan, azureKeyVaultConfigState []TFAzureKeyVaultConfigModel) bool {
 	return !reflect.DeepEqual(azureKeyVaultConfigPlan, azureKeyVaultConfigState)
 }
 
-func hasAwsKmsConfigChanged(awsKmsConfigPlan, awsKmsConfigState []TfAwsKmsConfigModel) bool {
+func hasAwsKmsConfigChanged(awsKmsConfigPlan, awsKmsConfigState []TFAwsKmsConfigModel) bool {
 	return !reflect.DeepEqual(awsKmsConfigPlan, awsKmsConfigState)
 }
 
@@ -506,7 +506,7 @@ func resetDefaultsFromConfigOrState(ctx context.Context, encryptionAtRestRSCurre
 func HandleGcpKmsConfig(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
 	if earRSCurrent.GoogleCloudKmsConfig == nil {
-		earRSNew.GoogleCloudKmsConfig = []TfGcpKmsConfigModel{}
+		earRSNew.GoogleCloudKmsConfig = []TFGcpKmsConfigModel{}
 		return
 	}
 
@@ -522,7 +522,7 @@ func HandleGcpKmsConfig(ctx context.Context, earRSCurrent, earRSNew, earRSConfig
 func HandleAwsKmsConfigDefaults(ctx context.Context, currentStateFile, newStateFile, earRSConfig *TfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
 	if currentStateFile.AwsKmsConfig == nil {
-		newStateFile.AwsKmsConfig = []TfAwsKmsConfigModel{}
+		newStateFile.AwsKmsConfig = []TFAwsKmsConfigModel{}
 		return
 	}
 
@@ -543,7 +543,7 @@ func HandleAwsKmsConfigDefaults(ctx context.Context, currentStateFile, newStateF
 func HandleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
 	if earRSCurrent.AzureKeyVaultConfig == nil {
-		earRSNew.AzureKeyVaultConfig = []TfAzureKeyVaultConfigModel{}
+		earRSNew.AzureKeyVaultConfig = []TFAzureKeyVaultConfigModel{}
 		return
 	}
 
@@ -564,14 +564,14 @@ func HandleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSN
 // - the API returns the block TfAzureKeyVaultConfigModel{enable=false} if the user does not provider AZURE KMS
 func setEmptyArrayForEmptyBlocksReturnedFromImport(newStateFromImport *TfEncryptionAtRestRSModel) {
 	if len(newStateFromImport.AwsKmsConfig) == 1 && !newStateFromImport.AwsKmsConfig[0].Enabled.ValueBool() {
-		newStateFromImport.AwsKmsConfig = []TfAwsKmsConfigModel{}
+		newStateFromImport.AwsKmsConfig = []TFAwsKmsConfigModel{}
 	}
 
 	if len(newStateFromImport.GoogleCloudKmsConfig) == 1 && !newStateFromImport.GoogleCloudKmsConfig[0].Enabled.ValueBool() {
-		newStateFromImport.GoogleCloudKmsConfig = []TfGcpKmsConfigModel{}
+		newStateFromImport.GoogleCloudKmsConfig = []TFGcpKmsConfigModel{}
 	}
 
 	if len(newStateFromImport.AzureKeyVaultConfig) == 1 && !newStateFromImport.AzureKeyVaultConfig[0].Enabled.ValueBool() {
-		newStateFromImport.AzureKeyVaultConfig = []TfAzureKeyVaultConfigModel{}
+		newStateFromImport.AzureKeyVaultConfig = []TFAzureKeyVaultConfigModel{}
 	}
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewTfEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *admin.EncryptionAtRest) *TfEncryptionAtRestRSModel {
+func NewTFEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *admin.EncryptionAtRest) *TfEncryptionAtRestRSModel {
 	return &TfEncryptionAtRestRSModel{
 		ID:                   types.StringValue(projectID),
 		ProjectID:            types.StringValue(projectID),
@@ -20,12 +20,12 @@ func NewTfEncryptionAtRestRSModel(ctx context.Context, projectID string, encrypt
 	}
 }
 
-func NewTFAwsKmsConfig(ctx context.Context, awsKms *admin.AWSKMSConfiguration) []TfAwsKmsConfigModel {
+func NewTFAwsKmsConfig(ctx context.Context, awsKms *admin.AWSKMSConfiguration) []TFAwsKmsConfigModel {
 	if awsKms == nil {
-		return []TfAwsKmsConfigModel{}
+		return []TFAwsKmsConfigModel{}
 	}
 
-	return []TfAwsKmsConfigModel{
+	return []TFAwsKmsConfigModel{
 		*NewTFAwsKmsConfigItem(awsKms),
 		// {
 		// 	Enabled:             types.BoolPointerValue(awsKms.Enabled),
@@ -38,12 +38,12 @@ func NewTFAwsKmsConfig(ctx context.Context, awsKms *admin.AWSKMSConfiguration) [
 	}
 }
 
-func NewTFAzureKeyVaultConfig(ctx context.Context, az *admin.AzureKeyVault) []TfAzureKeyVaultConfigModel {
+func NewTFAzureKeyVaultConfig(ctx context.Context, az *admin.AzureKeyVault) []TFAzureKeyVaultConfigModel {
 	if az == nil {
-		return []TfAzureKeyVaultConfigModel{}
+		return []TFAzureKeyVaultConfigModel{}
 	}
 
-	return []TfAzureKeyVaultConfigModel{
+	return []TFAzureKeyVaultConfigModel{
 		*NewTFAzureKeyVaultConfigItem(az),
 		// {
 		// 	Enabled:                  types.BoolPointerValue(az.Enabled),
@@ -60,12 +60,12 @@ func NewTFAzureKeyVaultConfig(ctx context.Context, az *admin.AzureKeyVault) []Tf
 	}
 }
 
-func NewTFGcpKmsConfig(ctx context.Context, gcpKms *admin.GoogleCloudKMS) []TfGcpKmsConfigModel {
+func NewTFGcpKmsConfig(ctx context.Context, gcpKms *admin.GoogleCloudKMS) []TFGcpKmsConfigModel {
 	if gcpKms == nil {
-		return []TfGcpKmsConfigModel{}
+		return []TFGcpKmsConfigModel{}
 	}
 
-	return []TfGcpKmsConfigModel{
+	return []TFGcpKmsConfigModel{
 		*NewTFGcpKmsConfigItem(gcpKms),
 		// {
 		// 	Enabled:              types.BoolPointerValue(gcpKms.Enabled),
@@ -75,7 +75,7 @@ func NewTFGcpKmsConfig(ctx context.Context, gcpKms *admin.GoogleCloudKMS) []TfGc
 	}
 }
 
-func NewAtlasAwsKms(tfAwsKmsConfigSlice []TfAwsKmsConfigModel) *admin.AWSKMSConfiguration {
+func NewAtlasAwsKms(tfAwsKmsConfigSlice []TFAwsKmsConfigModel) *admin.AWSKMSConfiguration {
 	if len(tfAwsKmsConfigSlice) == 0 {
 		return &admin.AWSKMSConfiguration{}
 	}
@@ -93,7 +93,7 @@ func NewAtlasAwsKms(tfAwsKmsConfigSlice []TfAwsKmsConfigModel) *admin.AWSKMSConf
 	}
 }
 
-func NewAtlasGcpKms(tfGcpKmsConfigSlice []TfGcpKmsConfigModel) *admin.GoogleCloudKMS {
+func NewAtlasGcpKms(tfGcpKmsConfigSlice []TFGcpKmsConfigModel) *admin.GoogleCloudKMS {
 	if len(tfGcpKmsConfigSlice) == 0 {
 		return &admin.GoogleCloudKMS{}
 	}
@@ -106,7 +106,7 @@ func NewAtlasGcpKms(tfGcpKmsConfigSlice []TfGcpKmsConfigModel) *admin.GoogleClou
 	}
 }
 
-func NewAtlasAzureKeyVault(tfAzKeyVaultConfigSlice []TfAzureKeyVaultConfigModel) *admin.AzureKeyVault {
+func NewAtlasAzureKeyVault(tfAzKeyVaultConfigSlice []TFAzureKeyVaultConfigModel) *admin.AzureKeyVault {
 	if len(tfAzKeyVaultConfigSlice) == 0 {
 		return &admin.AzureKeyVault{}
 	}
