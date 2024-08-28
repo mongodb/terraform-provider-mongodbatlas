@@ -24,7 +24,8 @@ import (
 )
 
 const (
-	resourceName = "mongodbatlas_encryption_at_rest.test"
+	resourceName   = "mongodbatlas_encryption_at_rest.test"
+	datasourceName = "data.mongodbatlas_encryption_at_rest.test"
 )
 
 func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
@@ -39,12 +40,26 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
+		awsKmsAttrMap = map[string]string{
+			"enabled":                "true",
+			"region":                 awsKms.GetRegion(),
+			"role_id":                awsKms.GetRoleId(),
+			"customer_master_key_id": awsKms.GetCustomerMasterKeyID(),
+			"valid":                  "true",
+		}
 
 		awsKmsUpdated = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+		}
+		awsKmsUpdatedAttrMap = map[string]string{
+			"enabled":                "true",
+			"region":                 awsKmsUpdated.GetRegion(),
+			"role_id":                awsKmsUpdated.GetRoleId(),
+			"customer_master_key_id": awsKmsUpdated.GetCustomerMasterKeyID(),
+			"valid":                  "true",
 		}
 	)
 
@@ -58,12 +73,13 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
+					testCheckResourceAttr(resourceName, "aws_kms_config.0", awsKmsAttrMap),
 
 					resource.TestCheckNoResourceAttr(resourceName, "azure_key_vault_config.#"),
 					resource.TestCheckNoResourceAttr(resourceName, "google_cloud_kms_config.#"),
+
+					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					testCheckResourceAttr(datasourceName, "aws_kms_config.", awsKmsAttrMap),
 				),
 			},
 			{
@@ -71,12 +87,13 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKmsUpdated.GetRegion()),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKmsUpdated.GetRoleId()),
+					testCheckResourceAttr(resourceName, "aws_kms_config.0", awsKmsUpdatedAttrMap),
 
 					resource.TestCheckNoResourceAttr(resourceName, "azure_key_vault_config.#"),
 					resource.TestCheckNoResourceAttr(resourceName, "google_cloud_kms_config.#"),
+
+					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					testCheckResourceAttr(datasourceName, "aws_kms_config", awsKmsUpdatedAttrMap),
 				),
 			},
 			{
@@ -107,6 +124,18 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 			TenantID:          conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
 		}
 
+		azureKeyVaultAttrMap = map[string]string{
+			"enabled":                    "true",
+			"azure_environment":          azureKeyVault.GetAzureEnvironment(),
+			"resource_group_name":        azureKeyVault.GetResourceGroupName(),
+			"key_vault_name":             azureKeyVault.GetKeyVaultName(),
+			"client_id":                  azureKeyVault.GetClientID(),
+			"key_identifier":             azureKeyVault.GetKeyIdentifier(),
+			"subscription_id":            azureKeyVault.GetSubscriptionID(),
+			"tenant_id":                  azureKeyVault.GetTenantID(),
+			"require_private_networking": "false",
+		}
+
 		azureKeyVaultUpdated = admin.AzureKeyVault{
 			Enabled:           conversion.Pointer(true),
 			ClientID:          conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID_UPDATED")),
@@ -117,6 +146,18 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 			KeyIdentifier:     conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
 			Secret:            conversion.StringPtr(os.Getenv("AZURE_SECRET_UPDATED")),
 			TenantID:          conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
+		}
+
+		azureKeyVaultUpdatedAttrMap = map[string]string{
+			"enabled":                    "true",
+			"azure_environment":          azureKeyVaultUpdated.GetAzureEnvironment(),
+			"resource_group_name":        azureKeyVaultUpdated.GetResourceGroupName(),
+			"key_vault_name":             azureKeyVaultUpdated.GetKeyVaultName(),
+			"client_id":                  azureKeyVaultUpdated.GetClientID(),
+			"key_identifier":             azureKeyVaultUpdated.GetKeyIdentifier(),
+			"subscription_id":            azureKeyVaultUpdated.GetSubscriptionID(),
+			"tenant_id":                  azureKeyVaultUpdated.GetTenantID(),
+			"require_private_networking": "false",
 		}
 	)
 
@@ -130,11 +171,9 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVault.GetAzureEnvironment()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVault.GetResourceGroupName()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVault.GetKeyVaultName()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.require_private_networking", "false"),
+					testCheckResourceAttr(resourceName, "azure_key_vault_config.0", azureKeyVaultAttrMap),
+					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					testCheckResourceAttr(datasourceName, "azure_key_vault_config", azureKeyVaultAttrMap),
 				),
 			},
 			{
@@ -142,11 +181,9 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVaultUpdated.GetAzureEnvironment()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVaultUpdated.GetResourceGroupName()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVaultUpdated.GetKeyVaultName()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.require_private_networking", "false"),
+					testCheckResourceAttr(resourceName, "azure_key_vault_config.0", azureKeyVaultUpdatedAttrMap),
+					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					testCheckResourceAttr(datasourceName, "azure_key_vault_config", azureKeyVaultUpdatedAttrMap),
 				),
 			},
 			{
@@ -159,6 +196,12 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testCheckResourceAttr(resourceName, prefix string, attrsMap map[string]string) resource.TestCheckFunc {
+	checks := acc.AddAttrChecksPrefix(resourceName, []resource.TestCheckFunc{}, attrsMap, prefix)
+
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T) {
@@ -180,6 +223,18 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 
+		azureKeyVaultAttrMap = map[string]string{
+			"enabled":                    "true",
+			"azure_environment":          azureKeyVault.GetAzureEnvironment(),
+			"resource_group_name":        azureKeyVault.GetResourceGroupName(),
+			"key_vault_name":             azureKeyVault.GetKeyVaultName(),
+			"client_id":                  azureKeyVault.GetClientID(),
+			"key_identifier":             azureKeyVault.GetKeyIdentifier(),
+			"subscription_id":            azureKeyVault.GetSubscriptionID(),
+			"tenant_id":                  azureKeyVault.GetTenantID(),
+			"require_private_networking": strconv.FormatBool((azureKeyVault.GetRequirePrivateNetworking())),
+		}
+
 		azureKeyVaultUpdated = admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
 			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID_UPDATED")),
@@ -191,6 +246,18 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 			Secret:                   conversion.StringPtr(os.Getenv("AZURE_SECRET_UPDATED")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
 			RequirePrivateNetworking: conversion.Pointer(false),
+		}
+
+		azureKeyVaultUpdatedAttrMap = map[string]string{
+			"enabled":                    "true",
+			"azure_environment":          azureKeyVaultUpdated.GetAzureEnvironment(),
+			"resource_group_name":        azureKeyVaultUpdated.GetResourceGroupName(),
+			"key_vault_name":             azureKeyVaultUpdated.GetKeyVaultName(),
+			"client_id":                  azureKeyVaultUpdated.GetClientID(),
+			"key_identifier":             azureKeyVaultUpdated.GetKeyIdentifier(),
+			"subscription_id":            azureKeyVaultUpdated.GetSubscriptionID(),
+			"tenant_id":                  azureKeyVaultUpdated.GetTenantID(),
+			"require_private_networking": strconv.FormatBool((azureKeyVaultUpdated.GetRequirePrivateNetworking())),
 		}
 	)
 
@@ -204,23 +271,21 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVault.GetAzureEnvironment()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVault.GetResourceGroupName()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVault.GetKeyVaultName()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.require_private_networking", strconv.FormatBool((azureKeyVault.GetRequirePrivateNetworking()))),
+					testCheckResourceAttr(resourceName, "azure_key_vault_config.0", azureKeyVaultAttrMap),
+
+					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					testCheckResourceAttr(datasourceName, "azure_key_vault_config", azureKeyVaultAttrMap),
 				),
 			},
 			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, false),
+				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVaultUpdated.GetAzureEnvironment()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVaultUpdated.GetResourceGroupName()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVaultUpdated.GetKeyVaultName()),
-					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.require_private_networking", strconv.FormatBool((azureKeyVaultUpdated.GetRequirePrivateNetworking()))),
+					testCheckResourceAttr(resourceName, "azure_key_vault_config.0", azureKeyVaultUpdatedAttrMap),
+
+					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					testCheckResourceAttr(datasourceName, "azure_key_vault_config.", azureKeyVaultUpdatedAttrMap),
 				),
 			},
 			{
@@ -600,7 +665,9 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *admi
 				role_id              = "%s"
 			}
 		}
-	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId())
+
+		%s
+	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId(), acc.TestAccDatasourceConfig())
 }
 
 func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, google *admin.GoogleCloudKMS) string {

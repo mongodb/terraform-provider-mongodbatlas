@@ -11,9 +11,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-// TODO: check for sensitive attr
-// TODO: check about ID attr
-// TODO: check if we can add 'valid' to resource & re-use models----
 func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -21,11 +18,13 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"access_key_id": schema.StringAttribute{
 						Computed:            true,
+						Sensitive:           true,
 						Description:         "Unique alphanumeric string that identifies an Identity and Access Management (IAM) access key with permissions required to access your Amazon Web Services (AWS) Customer Master Key (CMK).",
 						MarkdownDescription: "Unique alphanumeric string that identifies an Identity and Access Management (IAM) access key with permissions required to access your Amazon Web Services (AWS) Customer Master Key (CMK).",
 					},
 					"customer_master_key_id": schema.StringAttribute{
 						Computed:            true,
+						Sensitive:           true,
 						Description:         "Unique alphanumeric string that identifies the Amazon Web Services (AWS) Customer Master Key (CMK) you used to encrypt and decrypt the MongoDB master keys.",
 						MarkdownDescription: "Unique alphanumeric string that identifies the Amazon Web Services (AWS) Customer Master Key (CMK) you used to encrypt and decrypt the MongoDB master keys.",
 					},
@@ -46,6 +45,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					},
 					"secret_access_key": schema.StringAttribute{
 						Computed:            true,
+						Sensitive:           true,
 						Description:         "Human-readable label of the Identity and Access Management (IAM) secret access key with permissions required to access your Amazon Web Services (AWS) customer master key.",
 						MarkdownDescription: "Human-readable label of the Identity and Access Management (IAM) secret access key with permissions required to access your Amazon Web Services (AWS) customer master key.",
 					},
@@ -68,6 +68,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					},
 					"client_id": schema.StringAttribute{
 						Computed:            true,
+						Sensitive:           true,
 						Description:         "Unique 36-hexadecimal character string that identifies an Azure application associated with your Azure Active Directory tenant.",
 						MarkdownDescription: "Unique 36-hexadecimal character string that identifies an Azure application associated with your Azure Active Directory tenant.",
 					},
@@ -78,6 +79,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					},
 					"key_identifier": schema.StringAttribute{
 						Computed:            true,
+						Sensitive:           true,
 						Description:         "Web address with a unique key that identifies for your Azure Key Vault.",
 						MarkdownDescription: "Web address with a unique key that identifies for your Azure Key Vault.",
 					},
@@ -98,16 +100,19 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					},
 					"secret": schema.StringAttribute{
 						Computed:            true,
+						Sensitive:           true,
 						Description:         "Private data that you need secured and that belongs to the specified Azure Key Vault (AKV) tenant (**azureKeyVault.tenantID**). This data can include any type of sensitive data such as passwords, database connection strings, API keys, and the like. AKV stores this information as encrypted binary data.",
 						MarkdownDescription: "Private data that you need secured and that belongs to the specified Azure Key Vault (AKV) tenant (**azureKeyVault.tenantID**). This data can include any type of sensitive data such as passwords, database connection strings, API keys, and the like. AKV stores this information as encrypted binary data.",
 					},
 					"subscription_id": schema.StringAttribute{
 						Computed:            true,
+						Sensitive:           true,
 						Description:         "Unique 36-hexadecimal character string that identifies your Azure subscription.",
 						MarkdownDescription: "Unique 36-hexadecimal character string that identifies your Azure subscription.",
 					},
 					"tenant_id": schema.StringAttribute{
 						Computed:            true,
+						Sensitive:           true,
 						Description:         "Unique 36-hexadecimal character string that identifies the Azure Active Directory tenant within your Azure subscription.",
 						MarkdownDescription: "Unique 36-hexadecimal character string that identifies the Azure Active Directory tenant within your Azure subscription.",
 					},
@@ -130,11 +135,13 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					},
 					"key_version_resource_id": schema.StringAttribute{
 						Computed:            true,
+						Sensitive:           true,
 						Description:         "Resource path that displays the key version resource ID for your Google Cloud KMS.",
 						MarkdownDescription: "Resource path that displays the key version resource ID for your Google Cloud KMS.",
 					},
 					"service_account_key": schema.StringAttribute{
 						Computed:            true,
+						Sensitive:           true,
 						Description:         "JavaScript Object Notation (JSON) object that contains the Google Cloud Key Management Service (KMS). Format the JSON as a string and not as an object.",
 						MarkdownDescription: "JavaScript Object Notation (JSON) object that contains the Google Cloud Key Management Service (KMS). Format the JSON as a string and not as an object.",
 					},
@@ -153,25 +160,28 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 			},
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }
 
 type TFEncryptionAtRestDSModel struct {
-	ID                   types.String               `tfsdk:"id"`
-	ProjectID            types.String               `tfsdk:"project_id"`
-	AzureKeyVaultConfig  TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
-	AwsKmsConfig         TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
-	GoogleCloudKmsConfig TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	ID                   types.String                `tfsdk:"id"`
+	ProjectID            types.String                `tfsdk:"project_id"`
+	AzureKeyVaultConfig  *TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
+	AwsKmsConfig         *TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
+	GoogleCloudKmsConfig *TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
 }
 
 func NewTFEncryptionAtRestDSModel(projectID string, encryptionResp *admin.EncryptionAtRest) *TFEncryptionAtRestDSModel {
 	return &TFEncryptionAtRestDSModel{
 		ID:                   types.StringValue(projectID),
 		ProjectID:            types.StringValue(projectID),
-		AwsKmsConfig:         *NewTFAwsKmsConfigItem(encryptionResp.AwsKms),
-		AzureKeyVaultConfig:  *NewTFAzureKeyVaultConfigItem(encryptionResp.AzureKeyVault),
-		GoogleCloudKmsConfig: *NewTFGcpKmsConfigItem(encryptionResp.GoogleCloudKms),
+		AwsKmsConfig:         NewTFAwsKmsConfigItem(encryptionResp.AwsKms),
+		AzureKeyVaultConfig:  NewTFAzureKeyVaultConfigItem(encryptionResp.AzureKeyVault),
+		GoogleCloudKmsConfig: NewTFGcpKmsConfigItem(encryptionResp.GoogleCloudKms),
 	}
 }
 
