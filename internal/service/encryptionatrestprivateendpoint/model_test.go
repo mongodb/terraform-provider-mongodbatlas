@@ -144,6 +144,7 @@ func TestEncryptionAtRestPrivateEndpointPluralDSSDKToTFModel(t *testing.T) {
 						RegionName:                    types.StringValue(testRegionName),
 						Status:                        types.StringValue(testStatus),
 						PrivateEndpointConnectionName: types.StringValue(testPEConnectionName),
+						ProjectID:                     types.StringValue(testProjectID),
 					},
 					{
 						CloudProvider:                 types.StringValue(testCloudProvider),
@@ -152,6 +153,7 @@ func TestEncryptionAtRestPrivateEndpointPluralDSSDKToTFModel(t *testing.T) {
 						RegionName:                    types.StringValue(testRegionName),
 						Status:                        types.StringValue(testStatus),
 						PrivateEndpointConnectionName: types.StringValue(testPEConnectionName),
+						ProjectID:                     types.StringValue(testProjectID),
 					},
 				},
 			},
