@@ -166,11 +166,11 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFEncryptionAtRestDSModel struct {
-	ID                   types.String                `tfsdk:"id"`
-	ProjectID            types.String                `tfsdk:"project_id"`
 	AzureKeyVaultConfig  *TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
 	AwsKmsConfig         *TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
 	GoogleCloudKmsConfig *TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	ID                   types.String                `tfsdk:"id"`
+	ProjectID            types.String                `tfsdk:"project_id"`
 }
 
 func NewTFEncryptionAtRestDSModel(projectID string, encryptionResp *admin.EncryptionAtRest) *TFEncryptionAtRestDSModel {
