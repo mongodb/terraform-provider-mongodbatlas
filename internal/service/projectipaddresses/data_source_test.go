@@ -20,7 +20,8 @@ func TestAccProjectIPAddressesDS_basic(t *testing.T) {
 			{
 				Config: ProjectIPAddressesConfig(projectID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(dataSourceName, "outbound.aws.us-east-1.0", acc.CIDRBlockExpression()),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "services.clusters.#", "0"),
 				),
 			},
 		},
