@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+	"go.mongodb.org/atlas-sdk/v20240805002/admin"
 )
 
 func NewTFControlPlaneIPAddresses(ctx context.Context, apiResp *admin.ControlPlaneIPAddresses) (*TFControlPlaneIpAddressesModel, diag.Diagnostics) {

@@ -9,8 +9,8 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
-	"go.mongodb.org/atlas-sdk/v20240805001/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20240805002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805002/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"

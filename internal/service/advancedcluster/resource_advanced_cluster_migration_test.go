@@ -3,6 +3,7 @@ package advancedcluster_test
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -107,6 +108,11 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				ExpectError:              regexp.MustCompile("SERVICE_UNAVAILABLE"),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
 				Check:                    checkShardedTransitionOldToNewSchema(true),
 			},
 		},
@@ -128,6 +134,11 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
 				Config:            configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
 				Check:             checkGeoShardedTransitionOldToNewSchema(false),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				ExpectError:              regexp.MustCompile("SERVICE_UNAVAILABLE"),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,

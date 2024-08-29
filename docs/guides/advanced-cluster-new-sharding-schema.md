@@ -1,23 +1,23 @@
 ---
-page_title: "Migration Guide: Advanced Cluster New Sharding Schema"
+page_title: "Migration Guide: Advanced Cluster New Sharding Configurations"
 ---
 
-# Migration Guide: Advanced Cluster New Sharding Schema
+# Migration Guide: Advanced Cluster New Sharding Configurations
 
-**Objective**: Use this guide to migrate your existing `advanced_cluster` configurations to the new sharding schema introduced in version 1.18.0. The new sharding schema allows you to scale shards independently. Existing sharding configurations continue to work, although the software issues deprecation messages if you use the legacy schema.
+**Objective**: Use this guide to migrate your existing `advanced_cluster` resources to support new sharding configurations introduced in version 1.18.0. The new sharding configurations allow you to scale shards independently. Existing sharding configurations continue to work, but you will receive deprecation messages if you continue to use them.
 
-- [Migration Guide: Advanced Cluster New Sharding Schema](#migration-guide-advanced-cluster-new-sharding-schema)
-  - [Overview of schema changes](#overview-of-schema-changes)
+- [Migration Guide: Advanced Cluster New Sharding Configurations](#migration-guide-advanced-cluster-new-sharding-schema)
+  - [Changes Overview](#changes-overview)
     - [Migrate advanced\_cluster type `SHARDED`](#migrate-advanced_cluster-type-sharded)
     - [Migrate advanced\_cluster type `GEOSHARDED`](#migrate-advanced_cluster-type-geosharded)
     - [Migrate advanced\_cluster type `REPLICASET`](#migrate-advanced_cluster-type-replicaset)
     - [Use Independent Shard Scaling](#use-independent-shard-scaling)
 
 <a id="overview"></a>
-## Overview of schema changes
+## Changes Overview
 
 `replication_specs` attribute now represents each individual cluster's shard with a unique replication spec element.
-When you use the new sharding schema, the schema no longer uses the existing attribute `num_shards`, and instead the number of shards are defined by the number of `replication_specs` elements.
+When you use the new sharding configurations, it will no longer use the existing attribute `num_shards`, and instead the number of shards are defined by the number of `replication_specs` elements.
 
 <a id="migration-sharded"></a>
 ### Migrate advanced_cluster type `SHARDED`
@@ -46,7 +46,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-In order to update our configuration to the new schema, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these 2 changes must be done at the same time.
+In order to use our new sharding configurations, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these 2 changes must be done at the same time.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -83,6 +83,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
 ```
 
 This updated configuration will trigger a Terraform update plan. However, the underlying cluster will not face any changes after the `apply` command, as both configurations represent a sharded cluster composed of two shards.
+
+Note: The first time `terraform apply` command is run **after** updating the configuration, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
 
 <a id="migration-geosharded"></a>
 ### Migrate advanced_cluster type `GEOSHARDED`
@@ -126,7 +128,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-In order to update our configuration to the new schema, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these two changes must be done at the same time.
+In order to use our new sharding configurations, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these two changes must be done at the same time.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -192,6 +194,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 This updated configuration triggers a Terraform update plan. However, the underlying cluster will not face any changes after the `apply` command, as both configurations represent a geo sharded cluster with two zones and two shards in each one.
 
+Note: The first time `terraform apply` command is run **after** updating the configuration, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
+
 <a id="migration-replicaset"></a>
 ### Migrate advanced_cluster type `REPLICASET`
 
@@ -240,7 +244,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-Once the cluster type is adjusted accordingly, we can proceed to add a new shard using the new schema:
+Once the cluster type is adjusted accordingly, we can proceed to add a new shard:
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -274,10 +278,12 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
+Note: The first time `terraform apply` command is run **after** updating the configuration, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
+
 <a id="use-iss"></a>
 ### Use Independent Shard Scaling 
 
-Use the new sharding schema. Each shard must be represented with a unique replication_specs element and `num_shards` must not be used, as illustrated in the following example.
+Use the new sharding configurations. Each shard must be represented with a unique `replication_specs` element and `num_shards` must not be used, as illustrated in the following example.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -347,4 +353,4 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
--> **NOTE:** For any cluster leveraging the new schema and defining independently scaled shards, users should also update corresponding `mongodbatlas_cloud_backup_schedule` resource & data sources. This involves updating any existing Terraform configurations of the resource to use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id`. This is needed as `mongodbatlas_advanced_cluster` resource and data source will no longer have `replication_specs.#.id` present when shards are scaled independently. To learn more, review the [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
+-> **NOTE:** For any cluster leveraging the new sharding configurations and defining independently scaled shards, users should also update corresponding `mongodbatlas_cloud_backup_schedule` resource & data sources. This involves updating any existing Terraform configurations of the resource to use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id`. This is needed as `mongodbatlas_advanced_cluster` resource and data source will no longer have `replication_specs.#.id` present when shards are scaled independently. To learn more, review the [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
