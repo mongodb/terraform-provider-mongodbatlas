@@ -282,28 +282,6 @@ jobs:
           control_plane_ip_addresses:
             - 'internal/service/controlplaneipaddresses/*.go'
 
-  # advanced_cluster:
-  #   needs: [ change-detection, get-provider-version ]
-  #   if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
-  #   runs-on: ubuntu-latest
-  #   permissions: {}
-  #   steps:
-  #     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-  #       with:
-  #         ref: ${{ inputs.ref || github.ref }}
-  #     - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
-  #       with:
-  #         go-version-file: 'go.mod'
-  #     - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-  #       with:
-  #         terraform_version: ${{ inputs.terraform_version }}
-  #         terraform_wrapper: false  
-  #     - name: Acceptance Tests
-  #       env:
-  #         MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-  #         ACCTEST_PACKAGES: ./internal/service/advancedcluster
-  #       run: make testacc
-
   assume_role:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' }}
