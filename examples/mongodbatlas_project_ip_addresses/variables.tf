@@ -9,5 +9,5 @@ variable "private_key" {
 
 variable "project_id" {
   description = "Unique 24-hexadecimal digit string that identifies your project."
-  type = string
+  type        = string
 }
