@@ -42,3 +42,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
   }
 }
+
+data "mongodbatlas_encryption_at_rest" "test" {
+  project_id = mongodbatlas_encryption_at_rest.test.project_id
+}
+
+output "is_aws_kms_encryption_at_rest_valid" {
+  value = data.mongodbatlas_encryption_at_rest.test.aws_kms_config.valid
+}
