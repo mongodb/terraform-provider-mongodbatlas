@@ -23,7 +23,7 @@ See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/
 
 ## Example Usages
 
-### Example: Configuring encryption at rest using customer key management in AWS
+### Configuring encryption at rest using customer key management in AWS
 ```terraform
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
   project_id    = var.atlas_project_id
@@ -79,7 +79,7 @@ output "is_aws_kms_encryption_at_rest_valid" {
 }
 ```
 
-### Example: Configuring encryption at rest using customer key management in Azure
+### Configuring encryption at rest using customer key management in Azure
 ```terraform
 resource "mongodbatlas_encryption_at_rest" "test" {
   project_id = var.atlas_project_id
@@ -110,7 +110,7 @@ output "azure_encryption_at_rest_validity" {
 
 -> **NOTE:** It is possible to configure Atlas Encryption at Rest to communicate with Azure Key Vault using Azure Private Link, ensuring that all traffic between Atlas and Key Vault takes place over Azure’s private network interfaces. Please review `mongodbatlas_encryption_at_rest_private_endpoint` resource for details.
 
-### Example: Configuring encryption at rest using customer key management in GCP
+### Configuring encryption at rest using customer key management in GCP
 ```terraform
 resource "mongodbatlas_encryption_at_rest" "test" {
   project_id = var.atlas_project_id
