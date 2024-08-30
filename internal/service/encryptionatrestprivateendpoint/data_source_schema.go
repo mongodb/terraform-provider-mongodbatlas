@@ -17,8 +17,8 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 		"cloud_provider": schema.StringAttribute{
 			Required:            withArguments,
 			Computed:            !withArguments,
-			Description:         "Human-readable label that identifies the cloud provider of the private endpoint.",
-			MarkdownDescription: "Human-readable label that identifies the cloud provider of the private endpoint.",
+			Description:         "Label that identifies the cloud provider of the private endpoint.",
+			MarkdownDescription: "Label that identifies the cloud provider of the private endpoint.",
 		},
 		"error_message": schema.StringAttribute{
 			Computed:            true,
