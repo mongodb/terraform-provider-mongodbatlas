@@ -106,6 +106,20 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 	})
 }
 
+func convertToAzureKeyVaultAttrMap(az *admin.AzureKeyVault) map[string]string {
+	return map[string]string{
+		"enabled":                    strconv.FormatBool(az.GetEnabled()),
+		"azure_environment":          az.GetAzureEnvironment(),
+		"resource_group_name":        az.GetResourceGroupName(),
+		"key_vault_name":             az.GetKeyVaultName(),
+		"client_id":                  az.GetClientID(),
+		"key_identifier":             az.GetKeyIdentifier(),
+		"subscription_id":            az.GetSubscriptionID(),
+		"tenant_id":                  az.GetTenantID(),
+		"require_private_networking": strconv.FormatBool(az.GetRequirePrivateNetworking()),
+	}
+}
+
 func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	acc.SkipTestForCI(t) // needs Azure configuration
 
@@ -113,52 +127,34 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		azureKeyVault = admin.AzureKeyVault{
-			Enabled:           conversion.Pointer(true),
-			ClientID:          conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
-			AzureEnvironment:  conversion.StringPtr("AZURE"),
-			SubscriptionID:    conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
-			ResourceGroupName: conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
-			KeyVaultName:      conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME")),
-			KeyIdentifier:     conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
-			Secret:            conversion.StringPtr(os.Getenv("AZURE_SECRET")),
-			TenantID:          conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
+			Enabled:                  conversion.Pointer(true),
+			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
+			AzureEnvironment:         conversion.StringPtr("AZURE"),
+			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
+			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
+			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME")),
+			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
+			Secret:                   conversion.StringPtr(os.Getenv("AZURE_SECRET")),
+			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 
-		azureKeyVaultAttrMap = map[string]string{
-			"enabled":                    "true",
-			"azure_environment":          azureKeyVault.GetAzureEnvironment(),
-			"resource_group_name":        azureKeyVault.GetResourceGroupName(),
-			"key_vault_name":             azureKeyVault.GetKeyVaultName(),
-			"client_id":                  azureKeyVault.GetClientID(),
-			"key_identifier":             azureKeyVault.GetKeyIdentifier(),
-			"subscription_id":            azureKeyVault.GetSubscriptionID(),
-			"tenant_id":                  azureKeyVault.GetTenantID(),
-			"require_private_networking": "false",
-		}
+		azureKeyVaultAttrMap = convertToAzureKeyVaultAttrMap(&azureKeyVault)
 
 		azureKeyVaultUpdated = admin.AzureKeyVault{
-			Enabled:           conversion.Pointer(true),
-			ClientID:          conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID_UPDATED")),
-			AzureEnvironment:  conversion.StringPtr("AZURE"),
-			SubscriptionID:    conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
-			ResourceGroupName: conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED")),
-			KeyVaultName:      conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED")),
-			KeyIdentifier:     conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
-			Secret:            conversion.StringPtr(os.Getenv("AZURE_SECRET_UPDATED")),
-			TenantID:          conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
+			Enabled:                  conversion.Pointer(true),
+			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID_UPDATED")),
+			AzureEnvironment:         conversion.StringPtr("AZURE"),
+			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
+			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED")),
+			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED")),
+			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
+			Secret:                   conversion.StringPtr(os.Getenv("AZURE_SECRET_UPDATED")),
+			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 
-		azureKeyVaultUpdatedAttrMap = map[string]string{
-			"enabled":                    "true",
-			"azure_environment":          azureKeyVaultUpdated.GetAzureEnvironment(),
-			"resource_group_name":        azureKeyVaultUpdated.GetResourceGroupName(),
-			"key_vault_name":             azureKeyVaultUpdated.GetKeyVaultName(),
-			"client_id":                  azureKeyVaultUpdated.GetClientID(),
-			"key_identifier":             azureKeyVaultUpdated.GetKeyIdentifier(),
-			"subscription_id":            azureKeyVaultUpdated.GetSubscriptionID(),
-			"tenant_id":                  azureKeyVaultUpdated.GetTenantID(),
-			"require_private_networking": "false",
-		}
+		azureKeyVaultUpdatedAttrMap = convertToAzureKeyVaultAttrMap(&azureKeyVaultUpdated)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -223,17 +219,7 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 
-		azureKeyVaultAttrMap = map[string]string{
-			"enabled":                    "true",
-			"azure_environment":          azureKeyVault.GetAzureEnvironment(),
-			"resource_group_name":        azureKeyVault.GetResourceGroupName(),
-			"key_vault_name":             azureKeyVault.GetKeyVaultName(),
-			"client_id":                  azureKeyVault.GetClientID(),
-			"key_identifier":             azureKeyVault.GetKeyIdentifier(),
-			"subscription_id":            azureKeyVault.GetSubscriptionID(),
-			"tenant_id":                  azureKeyVault.GetTenantID(),
-			"require_private_networking": strconv.FormatBool((azureKeyVault.GetRequirePrivateNetworking())),
-		}
+		azureKeyVaultAttrMap = convertToAzureKeyVaultAttrMap(&azureKeyVault)
 
 		azureKeyVaultUpdated = admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
@@ -248,17 +234,7 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 
-		azureKeyVaultUpdatedAttrMap = map[string]string{
-			"enabled":                    "true",
-			"azure_environment":          azureKeyVaultUpdated.GetAzureEnvironment(),
-			"resource_group_name":        azureKeyVaultUpdated.GetResourceGroupName(),
-			"key_vault_name":             azureKeyVaultUpdated.GetKeyVaultName(),
-			"client_id":                  azureKeyVaultUpdated.GetClientID(),
-			"key_identifier":             azureKeyVaultUpdated.GetKeyIdentifier(),
-			"subscription_id":            azureKeyVaultUpdated.GetSubscriptionID(),
-			"tenant_id":                  azureKeyVaultUpdated.GetTenantID(),
-			"require_private_networking": strconv.FormatBool((azureKeyVaultUpdated.GetRequirePrivateNetworking())),
-		}
+		azureKeyVaultUpdatedAttrMap = convertToAzureKeyVaultAttrMap(&azureKeyVaultUpdated)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -656,17 +632,17 @@ func testAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
 func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *admin.AWSKMSConfiguration) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
-			project_id = "%s"
+			project_id = %[1]q
 
 		  aws_kms_config {
-				enabled                = %t
-				customer_master_key_id = "%s"
-				region                 = "%s"
-				role_id              = "%s"
+				enabled                = %[2]t
+				customer_master_key_id = %[3]q
+				region                 = %[4]q
+				role_id              = %[5]q
 			}
 		}
 
-		%s
+		%[6]s
 	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId(), acc.TestAccDatasourceConfig())
 }
 
