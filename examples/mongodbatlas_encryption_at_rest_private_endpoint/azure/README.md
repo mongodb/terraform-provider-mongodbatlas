@@ -39,6 +39,7 @@ This project currently supports the following deployments:
 - Configure encryption at rest in an existing project using a custom Azure Key. Specifies that private networking is required.
 - Create a private endpoint for the existing project under a certain Azure region. 
 - Approve the connection from the Azure Key Vault. This is being done through terraform, but alternatively the private connection can be approved through the Azure UI or CLI.
+    - CLI example command: `az keyvault private-endpoint-connection approve --approval-description {"OPTIONAL DESCRIPTION"} --resource-group {RG} --vault-name {KEY VAULT NAME} –name {PRIVATE LINK CONNECTION NAME}`
 
 **3\. Execute the Terraform apply.**
 
