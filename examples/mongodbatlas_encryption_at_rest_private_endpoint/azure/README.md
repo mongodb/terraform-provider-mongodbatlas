@@ -1,5 +1,5 @@
 # MongoDB Atlas Provider -- Encryption At Rest using Customer Key Management via Private Network Interfaces (Azure)
-This example shows how to configure encryption at rest using an Azure ensuring all API calls to their KMS instances travel exclusively over their KMS cloud provider’s private network infrastructure.
+This example shows how to configure encryption at rest using Azure with customer managed keys ensuring all communication with Azure Key Vault happens exclusively over Azure Private Link.
 
 ## Dependencies
 
