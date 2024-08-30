@@ -36,14 +36,9 @@ $ terraform plan
 ```
 This project currently supports the following deployments:
 
-TODO: adjust this
-- An AWS IAM Policy
-- An AWS IAM Role
-- An AWS S3 bucket
-- An IAM role policy for the S3 bucket
-- Configure Atlas to use your AWS Role
-- An Atlas project in the configured Atlas organization
-- Configure push-based log export to the S3 bucket for Atlas project
+- Configure encryption at rest in an existing project using a custom Azure Key. Specifies that private networking is required.
+- Create a private endpoint for the existing project under a certain Azure region. 
+- Approve the connection from the Azure Key Vault. This is being done through terraform, but alternatively the private connection can be approved through the Azure UI or CLI.
 
 **3\. Execute the Terraform apply.**
 
