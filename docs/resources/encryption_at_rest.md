@@ -24,6 +24,8 @@ See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/
 ## Example Usages
 
 ### Configuring encryption at rest using customer key management in AWS
+The configuration of encryption at rest with customer key management, `mongodbatlas_encryption_at_rest`, needs to be completed before a cluster is created in the project. Force this wait by using an implicit dependency via `project_id` as shown in the example below.
+
 ```terraform
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
   project_id    = var.atlas_project_id
@@ -51,7 +53,7 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 }
 
 resource "mongodbatlas_advanced_cluster" "cluster" {
-  project_id                  = var.atlas_project_id
+  project_id                  = mongodbatlas_encryption_at_rest.test.project_id
   name                        = "MyCluster"
   cluster_type                = "REPLICASET"
   backup_enabled              = true
@@ -79,6 +81,8 @@ output "is_aws_kms_encryption_at_rest_valid" {
 }
 ```
 
+**NOTE**  if using the two resources path for cloud provider access, `cloud_provider_access_setup` and `cloud_provider_access_authorization`, you may need to define a `depends_on` statement for these two resources, because terraform is not able to infer the dependency.
+
 ### Configuring encryption at rest using customer key management in Azure
 ```terraform
 resource "mongodbatlas_encryption_at_rest" "test" {
@@ -103,12 +107,19 @@ data "mongodbatlas_encryption_at_rest" "test" {
   project_id = mongodbatlas_encryption_at_rest.test.project_id
 }
 
-output "azure_encryption_at_rest_validity" {
+output "is_azure_encryption_at_rest_valid" {
   value = data.mongodbatlas_encryption_at_rest.test.azure_key_vault_config.valid
 }
 ```
 
 -> **NOTE:** It is possible to configure Atlas Encryption at Rest to communicate with Azure Key Vault using Azure Private Link, ensuring that all traffic between Atlas and Key Vault takes place over Azure’s private network interfaces. Please review `mongodbatlas_encryption_at_rest_private_endpoint` resource for details.
+
+```terraform
+resource "mongodbatlas_encryption_at_rest" "default" {
+  (...)
+  depends_on = [mongodbatlas_cloud_provider_access_setup.<resource_name>, mongodbatlas_cloud_provider_access_authorization.<resource_name>]
+}
+```
 
 ### Configuring encryption at rest using customer key management in GCP
 ```terraform

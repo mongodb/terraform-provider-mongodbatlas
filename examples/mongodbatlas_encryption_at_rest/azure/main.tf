@@ -20,6 +20,6 @@ data "mongodbatlas_encryption_at_rest" "test" {
   project_id = mongodbatlas_encryption_at_rest.test.project_id
 }
 
-output "azure_encryption_at_rest_validity" {
+output "is_azure_encryption_at_rest_valid" {
   value = data.mongodbatlas_encryption_at_rest.test.azure_key_vault_config.valid
 }
