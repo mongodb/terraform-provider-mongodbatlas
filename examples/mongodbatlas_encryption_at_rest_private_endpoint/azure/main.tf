@@ -26,7 +26,7 @@ resource "mongodbatlas_encryption_at_rest_private_endpoint" "endpoint" {
 }
 
 locals {
-  key_vault_resource_id = "/subscriptions/${var.azure_subscription_id}/resourceGroups/${mongodbatlas_encryption_at_rest.ear.azure_key_vault_config[0].resource_group_name}/providers/Microsoft.KeyVault/vaults/${mongodbatlas_encryption_at_rest.ear.azure_key_vault_config[0].key_vault_name}"
+  key_vault_resource_id = "/subscriptions/${var.azure_subscription_id}/resourceGroups/${var.azure_resource_group_name}/providers/Microsoft.KeyVault/vaults/${var.azure_key_vault_name}"
 }
 
 # Approves private endpoint connection from Azure Key Vault
