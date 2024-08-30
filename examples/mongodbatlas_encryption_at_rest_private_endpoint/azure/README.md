@@ -5,7 +5,7 @@ This example shows how to configure encryption at rest using an Azure ensuring a
 
 * Terraform MongoDB Atlas Provider v1.19.0 minimum
 * A MongoDB Atlas account 
-* * Terraform Azure `azapi` provider
+* Terraform Azure `azapi` provider
 * A Microsoft Azure account
 
 ## Usage
