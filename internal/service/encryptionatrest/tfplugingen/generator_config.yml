@@ -3,11 +3,6 @@ provider:
 
 resources:
   encryption_at_rest:
-    schema:
-      attributes:
-        overrides:
-          "aws_kms_config.region":
-            description: Physical location where MongoDB Atlas deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Atlas creates them as part of the deployment. MongoDB Atlas assigns the VPC a CIDR block. To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.
     create:
       path: /api/atlas/v2/groups/{groupId}/encryptionAtRest
       method: PATCH
@@ -17,11 +12,6 @@ resources:
 
 data_sources:
   encryption_at_rest:
-    schema:
-      attributes:
-        overrides:
-          "aws_kms_config.region":
-            description: Physical location where MongoDB Atlas deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Atlas creates them as part of the deployment. MongoDB Atlas assigns the VPC a CIDR block. To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.
     read:
       path: /api/atlas/v2/groups/{groupId}/encryptionAtRest
       method: GET
