@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805002/admin"
 )
 
-func NewTFProjectIPAddresses(ctx context.Context, ipAddresses *admin.GroupIPAddresses) (*ProjectIpAddressesModel, diag.Diagnostics) {
+func NewTFProjectIPAddresses(ctx context.Context, ipAddresses *admin.GroupIPAddresses) (*TFProjectIpAddressesModel, diag.Diagnostics) {
 	clusterObjs := make([]attr.Value, len(ipAddresses.Services.GetClusters()))
 
 	for i, cluster := range ipAddresses.Services.GetClusters() {
@@ -25,10 +25,8 @@ func NewTFProjectIPAddresses(ctx context.Context, ipAddresses *admin.GroupIPAddr
 		clusterObjs[i] = clusterObj
 	}
 
-	// Convert the list of cluster objects into a List attribute value
 	clustersList := types.ListValueMust(types.ObjectType{AttrTypes: ClusterIPsObjectType.AttrTypes}, clusterObjs)
 
-	// Now build the services object
 	servicesObj, diags := types.ObjectValue(ServicesObjectType.AttrTypes, map[string]attr.Value{
 		"clusters": clustersList,
 	})
@@ -36,7 +34,7 @@ func NewTFProjectIPAddresses(ctx context.Context, ipAddresses *admin.GroupIPAddr
 		return nil, diags
 	}
 
-	return &ProjectIpAddressesModel{
+	return &TFProjectIpAddressesModel{
 		ProjectId: types.StringPointerValue(ipAddresses.GroupId),
 		Services:  servicesObj,
 	}, nil

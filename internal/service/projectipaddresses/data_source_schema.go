@@ -54,7 +54,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
-type ProjectIpAddressesModel struct {
+type TFProjectIpAddressesModel struct {
 	ProjectId types.String `tfsdk:"project_id"`
 	Services  types.Object `tfsdk:"services"`
 }

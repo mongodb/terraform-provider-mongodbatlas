@@ -17,7 +17,7 @@ const (
 
 type sdkToTFModelTestCase struct {
 	SDKResp         *admin.GroupIPAddresses
-	expectedTFModel *projectipaddresses.ProjectIpAddressesModel
+	expectedTFModel *projectipaddresses.TFProjectIpAddressesModel
 }
 
 func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
@@ -40,21 +40,29 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 					},
 				},
 			},
-			expectedTFModel: &projectipaddresses.ProjectIpAddressesModel{
+			expectedTFModel: &projectipaddresses.TFProjectIpAddressesModel{
 				ProjectId: types.StringValue(dummyProjectID),
-				Services: types.ObjectValueMust(projectipaddresses.ServicesObjectType.AttrTypes, map[string]attr.Value{
-					"clusters": types.ListValueMust(types.ObjectType{AttrTypes: projectipaddresses.ClusterIPsObjectType.AttrTypes}, []attr.Value{
-						types.ObjectValueMust(projectipaddresses.ClusterIPsObjectType.AttrTypes, map[string]attr.Value{
-							"cluster_name": types.StringValue("cluster1"),
-							"inbound":      toTFList(t, []string{"192.168.1.1", "192.168.1.2"}),
-							"outbound":     toTFList(t, []string{"10.0.0.1", "10.0.0.2"}),
+				Services: createExpectedServices(t, []projectipaddresses.ClustersValue{
+					{
+						ClusterName: types.StringValue("cluster1"),
+						Inbound: types.ListValueMust(types.StringType, []attr.Value{
+							types.StringValue("192.168.1.1"),
+							types.StringValue("192.168.1.2"),
 						}),
-						types.ObjectValueMust(projectipaddresses.ClusterIPsObjectType.AttrTypes, map[string]attr.Value{
-							"cluster_name": types.StringValue("cluster2"),
-							"inbound":      toTFList(t, []string{"192.168.2.1"}),
-							"outbound":     toTFList(t, []string{"10.0.1.1"}),
+						Outbound: types.ListValueMust(types.StringType, []attr.Value{
+							types.StringValue("10.0.0.1"),
+							types.StringValue("10.0.0.2"),
 						}),
-					}),
+					},
+					{
+						ClusterName: types.StringValue("cluster2"),
+						Inbound: types.ListValueMust(types.StringType, []attr.Value{
+							types.StringValue("192.168.2.1"),
+						}),
+						Outbound: types.ListValueMust(types.StringType, []attr.Value{
+							types.StringValue("10.0.1.1"),
+						}),
+					},
 				}),
 			},
 		},
@@ -63,11 +71,9 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 				GroupId:  admin.PtrString(dummyProjectID),
 				Services: &admin.GroupService{},
 			},
-			expectedTFModel: &projectipaddresses.ProjectIpAddressesModel{
+			expectedTFModel: &projectipaddresses.TFProjectIpAddressesModel{
 				ProjectId: types.StringValue(dummyProjectID),
-				Services: types.ObjectValueMust(projectipaddresses.ServicesObjectType.AttrTypes, map[string]attr.Value{
-					"clusters": types.ListValueMust(types.ObjectType{AttrTypes: projectipaddresses.ClusterIPsObjectType.AttrTypes}, []attr.Value{}),
-				}),
+				Services:  createExpectedServices(t, []projectipaddresses.ClustersValue{}),
 			},
 		},
 	}
@@ -87,7 +93,7 @@ func toTFList(t *testing.T, values []string) attr.Value {
 	t.Helper()
 	list, diags := types.ListValue(types.StringType, convertToAttrValues(values))
 	if diags.HasError() {
-		t.Errorf("unexpected errors found when creating test cases: %s", diags.Errors()[0].Summary())
+		t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 	}
 	return list
 }
@@ -98,4 +104,17 @@ func convertToAttrValues(values []string) []attr.Value {
 		attrValues[i] = types.StringValue(v)
 	}
 	return attrValues
+}
+
+func createExpectedServices(t *testing.T, clusters []projectipaddresses.ClustersValue) types.Object {
+	servicesValue := projectipaddresses.ServicesValue{
+		Clusters: clusters,
+	}
+
+	servicesObj, diags := types.ObjectValueFrom(context.Background(), projectipaddresses.ServicesObjectType.AttrTypes, servicesValue)
+	if diags.HasError() {
+		t.Fatalf("unexpected errors found when creating services object: %s", diags.Errors()[0].Summary())
+	}
+
+	return servicesObj
 }
