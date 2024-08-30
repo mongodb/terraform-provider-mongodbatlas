@@ -105,7 +105,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The project id.
 * `created` - The ISO-8601-formatted timestamp of when Atlas created the project.
 * `cluster_count` - The number of Atlas clusters deployed in the project.
-* `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses).
+* `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses). **WARNING:** this parameter is deprecated as it no longer needs to be defined. It will be removed in version 1.20.0.
 
 
 ### IP Addresses

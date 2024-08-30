@@ -81,7 +81,7 @@ In addition to all arguments above, the following attributes are exported:
 * `tags` - Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project. To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/)
 * `teams` - Returns all teams to which the authenticated user has access in the project. See [Teams](#teams).
 * `limits` - The limits for the specified project. See [Limits](#limits).
-* `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses).
+* `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses). **WARNING:** this parameter is deprecated as it no longer needs to be defined. It will be removed in version 1.20.0.
 
 * `is_collect_database_specifics_statistics_enabled` - Flag that indicates whether to enable statistics in [cluster metrics](https://www.mongodb.com/docs/atlas/monitor-cluster-metrics/) collection for the project.
 * `is_data_explorer_enabled` - Flag that indicates whether to enable Data Explorer for the project. If enabled, you can query your database with an easy to use interface.

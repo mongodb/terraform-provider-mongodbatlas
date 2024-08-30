@@ -1,0 +1,7 @@
+```release-note:note
+resource/mongodbatlas_project: Deprecates the `ip_addresses` attribute.
+```
+
+```release-note:note
+data-source/mongodbatlas_project: Deprecates the `ip_addresses` attribute.
+```
