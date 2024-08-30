@@ -19,20 +19,20 @@ resource "mongodbatlas_encryption_at_rest" "ear" {
 }
 
 # Creates private endpoint
-resource "mongodbatlas_encryption_at_rest_private_endpoint" "test" {
+resource "mongodbatlas_encryption_at_rest_private_endpoint" "endpoint" {
   project_id     = mongodbatlas_encryption_at_rest.ear.project_id
   cloud_provider = "AZURE"
   region_name    = var.azure_region_name
 }
 
 locals {
-  key_vault_resource_id = "/subscriptions/${var.azure_subscription_id}/resourceGroups/${mongodbatlas_encryption_at_rest.test.azure_key_vault_config[0].resource_group_name}/providers/Microsoft.KeyVault/vaults/${mongodbatlas_encryption_at_rest.test.azure_key_vault_config[0].key_vault_name}"
+  key_vault_resource_id = "/subscriptions/${var.azure_subscription_id}/resourceGroups/${mongodbatlas_encryption_at_rest.ear.azure_key_vault_config[0].resource_group_name}/providers/Microsoft.KeyVault/vaults/${mongodbatlas_encryption_at_rest.ear.azure_key_vault_config[0].key_vault_name}"
 }
 
 # Approves private endpoint connection from Azure Key Vault
 resource "azapi_update_resource" "approval" {
   type      = "Microsoft.KeyVault/Vaults/PrivateEndpointConnections@2023-07-01"
-  name      = mongodbatlas_encryption_at_rest_private_endpoint.test.private_endpoint_connection_name
+  name      = mongodbatlas_encryption_at_rest_private_endpoint.endpoint.private_endpoint_connection_name
   parent_id = local.key_vault_resource_id
 
   body = jsonencode({
