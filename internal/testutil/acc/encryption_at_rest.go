@@ -29,6 +29,14 @@ func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useReq
 				%s
 			}
 		}
+
+		%s
 	`, projectID, *azure.Enabled, azure.GetClientID(), azure.GetAzureEnvironment(), azure.GetSubscriptionID(), azure.GetResourceGroupName(),
-		azure.GetKeyVaultName(), azure.GetKeyIdentifier(), azure.GetSecret(), azure.GetTenantID(), requirePrivateNetworkingAttr)
+		azure.GetKeyVaultName(), azure.GetKeyIdentifier(), azure.GetSecret(), azure.GetTenantID(), requirePrivateNetworkingAttr, TestAccDatasourceConfig())
+}
+
+func TestAccDatasourceConfig() string {
+	return `data "mongodbatlas_encryption_at_rest" "test" {
+			project_id = mongodbatlas_encryption_at_rest.test.project_id
+		}`
 }
