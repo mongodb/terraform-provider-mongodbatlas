@@ -314,7 +314,7 @@ func Resource() *schema.Resource {
 				Type:       schema.TypeSet,
 				Optional:   true,
 				Set:        advancedcluster.HashFunctionForKeyValuePair,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "September 2024", "tags"),
+				Deprecated: fmt.Sprintf(constant.DeprecationParamFutureWithReplacement, "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
