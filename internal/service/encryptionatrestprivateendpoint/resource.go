@@ -186,7 +186,7 @@ func splitEncryptionAtRestPrivateEndpointImportID(id string) (projectID, cloudPr
 	return
 }
 
-func CheckErrorMessageAndStatus(model *admin.EARPrivateEndpoint) (shouldError bool, msgSummary *string, errMsg *string) {
+func CheckErrorMessageAndStatus(model *admin.EARPrivateEndpoint) (shouldError bool, msgSummary, errMsg *string) {
 	if model.GetStatus() == retrystrategy.RetryStrategyFailedState {
 		return true, conversion.StringPtr(FailedStatusErrorMessageSummary), model.ErrorMessage
 	}
