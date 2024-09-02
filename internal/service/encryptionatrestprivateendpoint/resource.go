@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -18,8 +19,10 @@ import (
 const (
 	encryptionAtRestPrivateEndpointName = "encryption_at_rest_private_endpoint"
 	warnUnsupportedOperation            = "Operation not supported"
-	failedStatusErrorMessage            = "Private endpoint is in a failed status"
-	nonEmptyErrorMessageField           = "Something went wrong. Please review the `Status` field of this resource"
+	FailedStatusErrorMessageSummary     = "Private endpoint is in a failed status"
+	NonEmptyErrorMessageFieldSummary    = "Something went wrong. Please review the `Status` field of this resource"
+	pendingAcceptanceWarnMsgSummary     = "Private endpoint is in PENDING_ACCEPTANCE status"
+	pendingAcceptanceWarnMsg            = "Please ensure to approve the private endpoint connection. If recently approved, please ignore this warning & wait for a few minutes for the status to update."
 )
 
 var _ resource.ResourceWithConfigure = &encryptionAtRestPrivateEndpointRS{}
@@ -66,11 +69,17 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 
 	privateEndpointModel := NewTFEarPrivateEndpoint(*finalResp, projectID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, privateEndpointModel)...)
-	if shouldError, errMsg := CheckErrorMessageAndStatus(finalResp); errMsg != nil || shouldError {
+
+	if shouldError, msgSummary, errMsg := CheckErrorMessageAndStatus(finalResp); errMsg != nil || shouldError {
 		if shouldError {
-			resp.Diagnostics.AddError(failedStatusErrorMessage, *errMsg)
+			resp.Diagnostics.AddError(*msgSummary, *errMsg)
+			return
 		}
-		resp.Diagnostics.AddWarning(nonEmptyErrorMessageField, *errMsg)
+		resp.Diagnostics.AddWarning(*msgSummary, *errMsg)
+		return
+	}
+	if isStatusPendingAcceptance(finalResp) {
+		resp.Diagnostics.AddWarning(pendingAcceptanceWarnMsgSummary, pendingAcceptanceWarnMsg)
 	}
 }
 
@@ -97,11 +106,17 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(*endpointModel, projectID))...)
-	if shouldError, errMsg := CheckErrorMessageAndStatus(endpointModel); errMsg != nil || shouldError {
+
+	if shouldError, msgSummary, errMsg := CheckErrorMessageAndStatus(endpointModel); errMsg != nil || shouldError {
 		if shouldError {
-			resp.Diagnostics.AddError(failedStatusErrorMessage, *errMsg)
+			resp.Diagnostics.AddError(*msgSummary, *errMsg)
+			return
 		}
-		resp.Diagnostics.AddWarning(nonEmptyErrorMessageField, *errMsg)
+		resp.Diagnostics.AddWarning(*msgSummary, *errMsg)
+		return
+	}
+	if isStatusPendingAcceptance(endpointModel) {
+		resp.Diagnostics.AddWarning(pendingAcceptanceWarnMsgSummary, pendingAcceptanceWarnMsg)
 	}
 }
 
@@ -131,11 +146,16 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 		return
 	}
 
-	if shouldError, errMsg := CheckErrorMessageAndStatus(model); errMsg != nil || shouldError {
+	if shouldError, msgSummary, errMsg := CheckErrorMessageAndStatus(model); errMsg != nil || shouldError {
 		if shouldError {
-			resp.Diagnostics.AddError(failedStatusErrorMessage, *errMsg)
+			resp.Diagnostics.AddError(*msgSummary, *errMsg)
+			return
 		}
-		resp.Diagnostics.AddWarning(nonEmptyErrorMessageField, *errMsg)
+		resp.Diagnostics.AddWarning(*msgSummary, *errMsg)
+		return
+	}
+	if isStatusPendingAcceptance(model) {
+		resp.Diagnostics.AddWarning(pendingAcceptanceWarnMsgSummary, pendingAcceptanceWarnMsg)
 	}
 }
 
@@ -166,13 +186,18 @@ func splitEncryptionAtRestPrivateEndpointImportID(id string) (projectID, cloudPr
 	return
 }
 
-func CheckErrorMessageAndStatus(model *admin.EARPrivateEndpoint) (shouldError bool, errMsg *string) {
+func CheckErrorMessageAndStatus(model *admin.EARPrivateEndpoint) (shouldError bool, msgSummary *string, errMsg *string) {
 	if model.GetStatus() == retrystrategy.RetryStrategyFailedState {
-		return true, model.ErrorMessage
+		return true, conversion.StringPtr(FailedStatusErrorMessageSummary), model.ErrorMessage
 	}
 
 	if model.GetErrorMessage() != "" {
-		return false, model.ErrorMessage
+		return false, conversion.StringPtr(NonEmptyErrorMessageFieldSummary), model.ErrorMessage
 	}
-	return false, nil
+
+	return false, nil, nil
+}
+
+func isStatusPendingAcceptance(model *admin.EARPrivateEndpoint) bool {
+	return model.GetStatus() == retrystrategy.RetryStrategyPendingAcceptanceState
 }

@@ -113,9 +113,10 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 }
 
 type errMsgTestCase struct {
-	SDKResp           *admin.EARPrivateEndpoint
-	expectedErrMsg    *string
-	expectedShouldErr bool
+	SDKResp               *admin.EARPrivateEndpoint
+	expectedErrMsg        *string
+	expectedErrMsgSummary *string
+	expectedShouldErr     bool
 }
 
 func TestCheckErrorMessageAndStatus(t *testing.T) {
@@ -129,8 +130,9 @@ func TestCheckErrorMessageAndStatus(t *testing.T) {
 				Status:                        admin.PtrString(retrystrategy.RetryStrategyFailedState),
 				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
 			},
-			expectedShouldErr: true,
-			expectedErrMsg:    nil,
+			expectedShouldErr:     true,
+			expectedErrMsgSummary: conversion.StringPtr(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary),
+			expectedErrMsg:        nil,
 		},
 		"FAILED status with error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
@@ -141,8 +143,9 @@ func TestCheckErrorMessageAndStatus(t *testing.T) {
 				Status:                        admin.PtrString(retrystrategy.RetryStrategyFailedState),
 				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
 			},
-			expectedShouldErr: true,
-			expectedErrMsg:    conversion.StringPtr("test err message"),
+			expectedShouldErr:     true,
+			expectedErrMsgSummary: conversion.StringPtr(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary),
+			expectedErrMsg:        conversion.StringPtr("test err message"),
 		},
 		"non-empty error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
@@ -153,8 +156,9 @@ func TestCheckErrorMessageAndStatus(t *testing.T) {
 				Status:                        admin.PtrString(retrystrategy.RetryStrategyPendingRecreationState),
 				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
 			},
-			expectedShouldErr: false,
-			expectedErrMsg:    conversion.StringPtr("private endpoint was rejected"),
+			expectedShouldErr:     false,
+			expectedErrMsgSummary: conversion.StringPtr(encryptionatrestprivateendpoint.NonEmptyErrorMessageFieldSummary),
+			expectedErrMsg:        conversion.StringPtr("private endpoint was rejected"),
 		},
 		"nil error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
@@ -165,8 +169,9 @@ func TestCheckErrorMessageAndStatus(t *testing.T) {
 				Status:                        admin.PtrString(retrystrategy.RetryStrategyActiveState),
 				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
 			},
-			expectedShouldErr: false,
-			expectedErrMsg:    nil,
+			expectedShouldErr:     false,
+			expectedErrMsgSummary: nil,
+			expectedErrMsg:        nil,
 		},
 		"empty error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
@@ -177,16 +182,18 @@ func TestCheckErrorMessageAndStatus(t *testing.T) {
 				Status:                        admin.PtrString(retrystrategy.RetryStrategyActiveState),
 				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
 			},
-			expectedShouldErr: false,
-			expectedErrMsg:    nil,
+			expectedShouldErr:     false,
+			expectedErrMsgSummary: nil,
+			expectedErrMsg:        nil,
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			shouldError, errMsg := encryptionatrestprivateendpoint.CheckErrorMessageAndStatus(tc.SDKResp)
+			shouldError, expectedErrMsgSummary, errMsg := encryptionatrestprivateendpoint.CheckErrorMessageAndStatus(tc.SDKResp)
 			assert.Equal(t, tc.expectedShouldErr, shouldError, "shouldError did not match expected output")
 			assert.Equal(t, tc.expectedErrMsg, errMsg, "errMsg did not match expected output")
+			assert.Equal(t, tc.expectedErrMsgSummary, expectedErrMsgSummary, "errMsgSummary did not match expected output")
 		})
 	}
 }
