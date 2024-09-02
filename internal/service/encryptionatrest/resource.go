@@ -55,20 +55,21 @@ type encryptionAtRestRS struct {
 type TfEncryptionAtRestRSModel struct {
 	ID                   types.String                 `tfsdk:"id"`
 	ProjectID            types.String                 `tfsdk:"project_id"`
-	AwsKmsConfig         []TfAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
-	AzureKeyVaultConfig  []TfAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
-	GoogleCloudKmsConfig []TfGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	AwsKmsConfig         []TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
+	AzureKeyVaultConfig  []TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
+	GoogleCloudKmsConfig []TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
 }
 
-type TfAwsKmsConfigModel struct {
+type TFAwsKmsConfigModel struct {
 	AccessKeyID         types.String `tfsdk:"access_key_id"`
 	SecretAccessKey     types.String `tfsdk:"secret_access_key"`
 	CustomerMasterKeyID types.String `tfsdk:"customer_master_key_id"`
 	Region              types.String `tfsdk:"region"`
 	RoleID              types.String `tfsdk:"role_id"`
 	Enabled             types.Bool   `tfsdk:"enabled"`
+	Valid               types.Bool   `tfsdk:"valid"`
 }
-type TfAzureKeyVaultConfigModel struct {
+type TFAzureKeyVaultConfigModel struct {
 	ClientID                 types.String `tfsdk:"client_id"`
 	AzureEnvironment         types.String `tfsdk:"azure_environment"`
 	SubscriptionID           types.String `tfsdk:"subscription_id"`
@@ -79,11 +80,13 @@ type TfAzureKeyVaultConfigModel struct {
 	TenantID                 types.String `tfsdk:"tenant_id"`
 	Enabled                  types.Bool   `tfsdk:"enabled"`
 	RequirePrivateNetworking types.Bool   `tfsdk:"require_private_networking"`
+	Valid                    types.Bool   `tfsdk:"valid"`
 }
-type TfGcpKmsConfigModel struct {
+type TFGcpKmsConfigModel struct {
 	ServiceAccountKey    types.String `tfsdk:"service_account_key"`
 	KeyVersionResourceID types.String `tfsdk:"key_version_resource_id"`
 	Enabled              types.Bool   `tfsdk:"enabled"`
+	Valid                types.Bool   `tfsdk:"valid"`
 }
 
 func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -140,13 +143,18 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 						},
 						"region": schema.StringAttribute{
 							Optional:            true,
-							Description:         "Physical location where MongoDB Cloud deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Cloud creates them as part of the deployment. MongoDB Cloud assigns the VPC a CIDR block. To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.", //nolint:lll // reason: auto-generated from Open API spec.
-							MarkdownDescription: "Physical location where MongoDB Cloud deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Cloud creates them as part of the deployment. MongoDB Cloud assigns the VPC a CIDR block. To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.", //nolint:lll // reason: auto-generated from Open API spec.
+							Description:         "Physical location where MongoDB Atlas deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Atlas creates them as part of the deployment. MongoDB Atlas assigns the VPC a CIDR block. To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.", //nolint:lll // reason: auto-generated from Open API spec.
+							MarkdownDescription: "Physical location where MongoDB Atlas deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Atlas creates them as part of the deployment. MongoDB Atlas assigns the VPC a CIDR block. To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.", //nolint:lll // reason: auto-generated from Open API spec.
 						},
 						"role_id": schema.StringAttribute{
 							Optional:            true,
 							Description:         "Unique 24-hexadecimal digit string that identifies an Amazon Web Services (AWS) Identity and Access Management (IAM) role. This IAM role has the permissions required to manage your AWS customer master key.",
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies an Amazon Web Services (AWS) Identity and Access Management (IAM) role. This IAM role has the permissions required to manage your AWS customer master key.",
+						},
+						"valid": schema.BoolAttribute{
+							Computed:            true,
+							Description:         "Flag that indicates whether the Amazon Web Services (AWS) Key Management Service (KMS) encryption key can encrypt and decrypt data.",
+							MarkdownDescription: "Flag that indicates whether the Amazon Web Services (AWS) Key Management Service (KMS) encryption key can encrypt and decrypt data.",
 						},
 					},
 					Validators: []validator.Object{validate.AwsKmsConfig()},
@@ -221,6 +229,11 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							Description:         "Enable connection to your Azure Key Vault over private networking.",
 							MarkdownDescription: "Enable connection to your Azure Key Vault over private networking.",
 						},
+						"valid": schema.BoolAttribute{
+							Computed:            true,
+							Description:         "Flag that indicates whether the Azure encryption key can encrypt and decrypt data.",
+							MarkdownDescription: "Flag that indicates whether the Azure encryption key can encrypt and decrypt data.",
+						},
 					},
 				},
 			},
@@ -250,6 +263,11 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							Sensitive:           true,
 							Description:         "Resource path that displays the key version resource ID for your Google Cloud KMS.",
 							MarkdownDescription: "Resource path that displays the key version resource ID for your Google Cloud KMS.",
+						},
+						"valid": schema.BoolAttribute{
+							Computed:            true,
+							Description:         "Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.",
+							MarkdownDescription: "Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.",
 						},
 					},
 				},
@@ -297,7 +315,7 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	encryptionAtRestPlanNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp.(*admin.EncryptionAtRest))
+	encryptionAtRestPlanNew := NewTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp.(*admin.EncryptionAtRest))
 	resetDefaultsFromConfigOrState(ctx, encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
 
 	// set state to fully populated data
@@ -355,7 +373,7 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	encryptionAtRestStateNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
+	encryptionAtRestStateNew := NewTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
 	if isImport {
 		setEmptyArrayForEmptyBlocksReturnedFromImport(encryptionAtRestStateNew)
 	} else {
@@ -417,7 +435,7 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	encryptionAtRestStateNew := NewTfEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
+	encryptionAtRestStateNew := NewTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
 	resetDefaultsFromConfigOrState(ctx, encryptionAtRestState, encryptionAtRestStateNew, encryptionAtRestConfig)
 
 	// save updated data into Terraform state
@@ -460,15 +478,15 @@ func (r *encryptionAtRestRS) ImportState(ctx context.Context, req resource.Impor
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func hasGcpKmsConfigChanged(gcpKmsConfigsPlan, gcpKmsConfigsState []TfGcpKmsConfigModel) bool {
+func hasGcpKmsConfigChanged(gcpKmsConfigsPlan, gcpKmsConfigsState []TFGcpKmsConfigModel) bool {
 	return !reflect.DeepEqual(gcpKmsConfigsPlan, gcpKmsConfigsState)
 }
 
-func hasAzureKeyVaultConfigChanged(azureKeyVaultConfigPlan, azureKeyVaultConfigState []TfAzureKeyVaultConfigModel) bool {
+func hasAzureKeyVaultConfigChanged(azureKeyVaultConfigPlan, azureKeyVaultConfigState []TFAzureKeyVaultConfigModel) bool {
 	return !reflect.DeepEqual(azureKeyVaultConfigPlan, azureKeyVaultConfigState)
 }
 
-func hasAwsKmsConfigChanged(awsKmsConfigPlan, awsKmsConfigState []TfAwsKmsConfigModel) bool {
+func hasAwsKmsConfigChanged(awsKmsConfigPlan, awsKmsConfigState []TFAwsKmsConfigModel) bool {
 	return !reflect.DeepEqual(awsKmsConfigPlan, awsKmsConfigState)
 }
 
@@ -488,7 +506,7 @@ func resetDefaultsFromConfigOrState(ctx context.Context, encryptionAtRestRSCurre
 func HandleGcpKmsConfig(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
 	if earRSCurrent.GoogleCloudKmsConfig == nil {
-		earRSNew.GoogleCloudKmsConfig = []TfGcpKmsConfigModel{}
+		earRSNew.GoogleCloudKmsConfig = []TFGcpKmsConfigModel{}
 		return
 	}
 
@@ -504,7 +522,7 @@ func HandleGcpKmsConfig(ctx context.Context, earRSCurrent, earRSNew, earRSConfig
 func HandleAwsKmsConfigDefaults(ctx context.Context, currentStateFile, newStateFile, earRSConfig *TfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
 	if currentStateFile.AwsKmsConfig == nil {
-		newStateFile.AwsKmsConfig = []TfAwsKmsConfigModel{}
+		newStateFile.AwsKmsConfig = []TFAwsKmsConfigModel{}
 		return
 	}
 
@@ -525,7 +543,7 @@ func HandleAwsKmsConfigDefaults(ctx context.Context, currentStateFile, newStateF
 func HandleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
 	if earRSCurrent.AzureKeyVaultConfig == nil {
-		earRSNew.AzureKeyVaultConfig = []TfAzureKeyVaultConfigModel{}
+		earRSNew.AzureKeyVaultConfig = []TFAzureKeyVaultConfigModel{}
 		return
 	}
 
@@ -546,14 +564,14 @@ func HandleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSN
 // - the API returns the block TfAzureKeyVaultConfigModel{enable=false} if the user does not provider AZURE KMS
 func setEmptyArrayForEmptyBlocksReturnedFromImport(newStateFromImport *TfEncryptionAtRestRSModel) {
 	if len(newStateFromImport.AwsKmsConfig) == 1 && !newStateFromImport.AwsKmsConfig[0].Enabled.ValueBool() {
-		newStateFromImport.AwsKmsConfig = []TfAwsKmsConfigModel{}
+		newStateFromImport.AwsKmsConfig = []TFAwsKmsConfigModel{}
 	}
 
 	if len(newStateFromImport.GoogleCloudKmsConfig) == 1 && !newStateFromImport.GoogleCloudKmsConfig[0].Enabled.ValueBool() {
-		newStateFromImport.GoogleCloudKmsConfig = []TfGcpKmsConfigModel{}
+		newStateFromImport.GoogleCloudKmsConfig = []TFGcpKmsConfigModel{}
 	}
 
 	if len(newStateFromImport.AzureKeyVaultConfig) == 1 && !newStateFromImport.AzureKeyVaultConfig[0].Enabled.ValueBool() {
-		newStateFromImport.AzureKeyVaultConfig = []TfAzureKeyVaultConfigModel{}
+		newStateFromImport.AzureKeyVaultConfig = []TFAzureKeyVaultConfigModel{}
 	}
 }

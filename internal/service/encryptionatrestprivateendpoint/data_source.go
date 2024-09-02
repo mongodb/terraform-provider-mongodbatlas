@@ -46,5 +46,5 @@ func (d *encryptionAtRestPrivateEndpointDS) Read(ctx context.Context, req dataso
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(endpointModel, projectID))...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(*endpointModel, projectID))...)
 }

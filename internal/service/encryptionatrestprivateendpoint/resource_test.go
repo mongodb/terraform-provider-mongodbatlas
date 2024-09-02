@@ -19,9 +19,10 @@ import (
 )
 
 const (
-	resourceName    = "mongodbatlas_encryption_at_rest_private_endpoint.test"
-	dataSourceName  = "data.mongodbatlas_encryption_at_rest_private_endpoint.test"
-	earResourceName = "mongodbatlas_encryption_at_rest.test"
+	resourceName         = "mongodbatlas_encryption_at_rest_private_endpoint.test"
+	dataSourceName       = "data.mongodbatlas_encryption_at_rest_private_endpoint.test"
+	pluralDataSourceName = "data.mongodbatlas_encryption_at_rest_private_endpoints.test"
+	earResourceName      = "mongodbatlas_encryption_at_rest.test"
 )
 
 func TestAccEncryptionAtRestPrivateEndpoint_basic(t *testing.T) {
@@ -216,6 +217,11 @@ func configPrivateEndpointAzureBasic(projectID string, azure *admin.AzureKeyVaul
 			cloud_provider = mongodbatlas_encryption_at_rest_private_endpoint.test.cloud_provider
 		    id = mongodbatlas_encryption_at_rest_private_endpoint.test.id
 		}
+
+		data "mongodbatlas_encryption_at_rest_private_endpoints" "test" {
+		    project_id = mongodbatlas_encryption_at_rest_private_endpoint.test.project_id
+			cloud_provider = mongodbatlas_encryption_at_rest_private_endpoint.test.cloud_provider
+		}
 	`, encryptionAtRestConfig, region)
 }
 
@@ -223,7 +229,7 @@ func checkPrivateEndpointAzureBasic(projectID string, azure *admin.AzureKeyVault
 	return acc.CheckRSAndDS(
 		resourceName,
 		admin.PtrString(dataSourceName),
-		nil,
+		admin.PtrString(pluralDataSourceName),
 		[]string{"id", "private_endpoint_connection_name"},
 		map[string]string{
 			"project_id":     projectID,

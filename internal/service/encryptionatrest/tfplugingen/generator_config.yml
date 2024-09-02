@@ -9,3 +9,9 @@ resources:
     read:
       path: /api/atlas/v2/groups/{groupId}/encryptionAtRest
       method: GET
+
+data_sources:
+  encryption_at_rest:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest
+      method: GET

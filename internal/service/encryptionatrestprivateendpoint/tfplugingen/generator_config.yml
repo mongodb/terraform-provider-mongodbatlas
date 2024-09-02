@@ -3,6 +3,11 @@ provider:
 
 resources:
   encryption_at_rest_private_endpoint:
+    schema:
+      attributes:
+        overrides:
+          cloud_provider:
+            description: Label that identifies the cloud provider of the private endpoint.
     read:
       path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
       method: GET
@@ -15,6 +20,11 @@ resources:
 
 data_sources:
   encryption_at_rest_private_endpoint:
+    schema:
+      attributes:
+        overrides:
+          cloud_provider:
+            description: Label that identifies the cloud provider of the private endpoint.
     read:
       path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
       method: GET
