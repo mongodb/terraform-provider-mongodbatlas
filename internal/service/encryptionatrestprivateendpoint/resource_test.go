@@ -6,12 +6,16 @@ import (
 	"os"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
@@ -105,6 +109,85 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 			},
 		},
 	})
+}
+
+type errMsgTestCase struct {
+	SDKResp           *admin.EARPrivateEndpoint
+	expectedErrMsg    *string
+	expectedShouldErr bool
+}
+
+func TestCheckErrorMessageAndStatus(t *testing.T) {
+	testCases := map[string]errMsgTestCase{
+		"FAILED status with no error_message": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				CloudProvider:                 admin.PtrString(testCloudProvider),
+				ErrorMessage:                  nil,
+				Id:                            admin.PtrString(testID),
+				RegionName:                    admin.PtrString(testRegionName),
+				Status:                        admin.PtrString(retrystrategy.RetryStrategyFailedState),
+				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+			},
+			expectedShouldErr: true,
+			expectedErrMsg:    nil,
+		},
+		"FAILED status with error_message": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				CloudProvider:                 admin.PtrString(testCloudProvider),
+				ErrorMessage:                  admin.PtrString("test err message"),
+				Id:                            admin.PtrString(testID),
+				RegionName:                    admin.PtrString(testRegionName),
+				Status:                        admin.PtrString(retrystrategy.RetryStrategyFailedState),
+				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+			},
+			expectedShouldErr: true,
+			expectedErrMsg:    conversion.StringPtr("test err message"),
+		},
+		"non-empty error_message": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				CloudProvider:                 admin.PtrString(testCloudProvider),
+				ErrorMessage:                  admin.PtrString("private endpoint was rejected"),
+				Id:                            admin.PtrString(testID),
+				RegionName:                    admin.PtrString(testRegionName),
+				Status:                        admin.PtrString(retrystrategy.RetryStrategyPendingRecreationState),
+				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+			},
+			expectedShouldErr: false,
+			expectedErrMsg:    conversion.StringPtr("private endpoint was rejected"),
+		},
+		"nil error_message": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				CloudProvider:                 admin.PtrString(testCloudProvider),
+				ErrorMessage:                  nil,
+				Id:                            admin.PtrString(testID),
+				RegionName:                    admin.PtrString(testRegionName),
+				Status:                        admin.PtrString(retrystrategy.RetryStrategyActiveState),
+				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+			},
+			expectedShouldErr: false,
+			expectedErrMsg:    nil,
+		},
+		"empty error_message": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				CloudProvider:                 admin.PtrString(testCloudProvider),
+				ErrorMessage:                  admin.PtrString(""),
+				Id:                            admin.PtrString(testID),
+				RegionName:                    admin.PtrString(testRegionName),
+				Status:                        admin.PtrString(retrystrategy.RetryStrategyActiveState),
+				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+			},
+			expectedShouldErr: false,
+			expectedErrMsg:    nil,
+		},
+	}
+
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			shouldError, errMsg := encryptionatrestprivateendpoint.CheckErrorMessageAndStatus(tc.SDKResp)
+			assert.Equal(t, tc.expectedShouldErr, shouldError, "shouldError did not match expected output")
+			assert.Equal(t, tc.expectedErrMsg, errMsg, "errMsg did not match expected output")
+		})
+	}
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {

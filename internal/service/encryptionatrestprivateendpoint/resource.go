@@ -3,21 +3,23 @@ package encryptionatrestprivateendpoint
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"regexp"
 
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
 	encryptionAtRestPrivateEndpointName = "encryption_at_rest_private_endpoint"
 	warnUnsupportedOperation            = "Operation not supported"
 	failedStatusErrorMessage            = "Private endpoint is in a failed status"
+	nonEmptyErrorMessageField           = "Something went wrong. Please review the `Status` field of this resource"
 )
 
 var _ resource.ResourceWithConfigure = &encryptionAtRestPrivateEndpointRS{}
@@ -64,8 +66,11 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 
 	privateEndpointModel := NewTFEarPrivateEndpoint(finalResp, projectID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, privateEndpointModel)...)
-	if err := getErrorMsgForFailedStatus(finalResp); err != nil {
-		resp.Diagnostics.AddError(failedStatusErrorMessage, err.Error())
+	if shouldError, errMsg := CheckErrorMessageAndStatus(finalResp); errMsg != nil || shouldError {
+		if shouldError {
+			resp.Diagnostics.AddError(failedStatusErrorMessage, *errMsg)
+		}
+		resp.Diagnostics.AddWarning(nonEmptyErrorMessageField, *errMsg)
 	}
 }
 
@@ -92,8 +97,11 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(endpointModel, projectID))...)
-	if err := getErrorMsgForFailedStatus(endpointModel); err != nil {
-		resp.Diagnostics.AddError(failedStatusErrorMessage, err.Error())
+	if shouldError, errMsg := CheckErrorMessageAndStatus(endpointModel); errMsg != nil || shouldError {
+		if shouldError {
+			resp.Diagnostics.AddError(failedStatusErrorMessage, *errMsg)
+		}
+		resp.Diagnostics.AddWarning(nonEmptyErrorMessageField, *errMsg)
 	}
 }
 
@@ -122,8 +130,12 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 		resp.Diagnostics.AddError("error when waiting for status transition in delete", err.Error())
 		return
 	}
-	if err := getErrorMsgForFailedStatus(model); err != nil {
-		resp.Diagnostics.AddError(failedStatusErrorMessage, err.Error())
+
+	if shouldError, errMsg := CheckErrorMessageAndStatus(model); errMsg != nil || shouldError {
+		if shouldError {
+			resp.Diagnostics.AddError(failedStatusErrorMessage, *errMsg)
+		}
+		resp.Diagnostics.AddWarning(nonEmptyErrorMessageField, *errMsg)
 	}
 }
 
@@ -154,10 +166,13 @@ func splitEncryptionAtRestPrivateEndpointImportID(id string) (projectID, cloudPr
 	return
 }
 
-func getErrorMsgForFailedStatus(model *admin.EARPrivateEndpoint) error {
-	if model.GetStatus() != retrystrategy.RetryStrategyFailedState {
-		return nil
+func CheckErrorMessageAndStatus(model *admin.EARPrivateEndpoint) (shouldError bool, errMsg *string) {
+	if model.GetStatus() == retrystrategy.RetryStrategyFailedState {
+		return true, model.ErrorMessage
 	}
-	msg := model.GetErrorMessage()
-	return fmt.Errorf("detail of error message: %s", msg)
+
+	if model.GetErrorMessage() != "" {
+		return false, model.ErrorMessage
+	}
+	return false, nil
 }
