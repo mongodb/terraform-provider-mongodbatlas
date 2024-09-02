@@ -8,10 +8,10 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -21,8 +21,8 @@ const (
 	warnUnsupportedOperation            = "Operation not supported"
 	FailedStatusErrorMessageSummary     = "Private endpoint is in a failed status"
 	NonEmptyErrorMessageFieldSummary    = "Something went wrong. Please review the `Status` field of this resource"
-	pendingAcceptanceWarnMsgSummary     = "Private endpoint is in PENDING_ACCEPTANCE status"
-	pendingAcceptanceWarnMsg            = "Please ensure to approve the private endpoint connection. If recently approved, please ignore this warning & wait for a few minutes for the status to update."
+	PendingAcceptanceWarnMsgSummary     = "Private endpoint may be in PENDING_ACCEPTANCE status"
+	PendingAcceptanceWarnMsg            = "Please ensure to approve the private endpoint connection. If recently approved or deleted the endpoint, please ignore this warning & wait for a few minutes for the status to update."
 )
 
 var _ resource.ResourceWithConfigure = &encryptionAtRestPrivateEndpointRS{}
@@ -70,17 +70,8 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 	privateEndpointModel := NewTFEarPrivateEndpoint(*finalResp, projectID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, privateEndpointModel)...)
 
-	if shouldError, msgSummary, errMsg := CheckErrorMessageAndStatus(finalResp); errMsg != nil || shouldError {
-		if shouldError {
-			resp.Diagnostics.AddError(*msgSummary, *errMsg)
-			return
-		}
-		resp.Diagnostics.AddWarning(*msgSummary, *errMsg)
-		return
-	}
-	if isStatusPendingAcceptance(finalResp) {
-		resp.Diagnostics.AddWarning(pendingAcceptanceWarnMsgSummary, pendingAcceptanceWarnMsg)
-	}
+	diags := CheckErrorMessageAndStatus(finalResp, false)
+	resp.Diagnostics.Append(diags...)
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -107,17 +98,8 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(*endpointModel, projectID))...)
 
-	if shouldError, msgSummary, errMsg := CheckErrorMessageAndStatus(endpointModel); errMsg != nil || shouldError {
-		if shouldError {
-			resp.Diagnostics.AddError(*msgSummary, *errMsg)
-			return
-		}
-		resp.Diagnostics.AddWarning(*msgSummary, *errMsg)
-		return
-	}
-	if isStatusPendingAcceptance(endpointModel) {
-		resp.Diagnostics.AddWarning(pendingAcceptanceWarnMsgSummary, pendingAcceptanceWarnMsg)
-	}
+	diags := CheckErrorMessageAndStatus(endpointModel, false)
+	resp.Diagnostics.Append(diags...)
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -146,17 +128,8 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 		return
 	}
 
-	if shouldError, msgSummary, errMsg := CheckErrorMessageAndStatus(model); errMsg != nil || shouldError {
-		if shouldError {
-			resp.Diagnostics.AddError(*msgSummary, *errMsg)
-			return
-		}
-		resp.Diagnostics.AddWarning(*msgSummary, *errMsg)
-		return
-	}
-	if isStatusPendingAcceptance(model) {
-		resp.Diagnostics.AddWarning(pendingAcceptanceWarnMsgSummary, pendingAcceptanceWarnMsg)
-	}
+	diags := CheckErrorMessageAndStatus(model, true)
+	resp.Diagnostics.Append(diags...)
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -186,18 +159,17 @@ func splitEncryptionAtRestPrivateEndpointImportID(id string) (projectID, cloudPr
 	return
 }
 
-func CheckErrorMessageAndStatus(model *admin.EARPrivateEndpoint) (shouldError bool, msgSummary, errMsg *string) {
-	if model.GetStatus() == retrystrategy.RetryStrategyFailedState {
-		return true, conversion.StringPtr(FailedStatusErrorMessageSummary), model.ErrorMessage
+func CheckErrorMessageAndStatus(model *admin.EARPrivateEndpoint, isDelete bool) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	switch {
+	case model.GetStatus() == retrystrategy.RetryStrategyFailedState:
+		diags = append(diags, diag.NewErrorDiagnostic(FailedStatusErrorMessageSummary, model.GetErrorMessage()))
+	case model.GetErrorMessage() != "":
+		diags = append(diags, diag.NewWarningDiagnostic(NonEmptyErrorMessageFieldSummary, model.GetErrorMessage()))
+	case model.GetStatus() == retrystrategy.RetryStrategyPendingAcceptanceState && !isDelete:
+		diags = append(diags, diag.NewWarningDiagnostic(PendingAcceptanceWarnMsgSummary, PendingAcceptanceWarnMsg))
 	}
 
-	if model.GetErrorMessage() != "" {
-		return false, conversion.StringPtr(NonEmptyErrorMessageFieldSummary), model.ErrorMessage
-	}
-
-	return false, nil, nil
-}
-
-func isStatusPendingAcceptance(model *admin.EARPrivateEndpoint) bool {
-	return model.GetStatus() == retrystrategy.RetryStrategyPendingAcceptanceState
+	return diags
 }

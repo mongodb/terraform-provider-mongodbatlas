@@ -8,6 +8,7 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/assert"
@@ -113,87 +114,77 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 }
 
 type errMsgTestCase struct {
-	SDKResp               *admin.EARPrivateEndpoint
-	expectedErrMsg        *string
-	expectedErrMsgSummary *string
-	expectedShouldErr     bool
+	SDKResp  *admin.EARPrivateEndpoint
+	diags    diag.Diagnostics
+	isDelete bool
 }
 
 func TestCheckErrorMessageAndStatus(t *testing.T) {
+	var defaultDiags diag.Diagnostics
+
 	testCases := map[string]errMsgTestCase{
 		"FAILED status with no error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				CloudProvider:                 admin.PtrString(testCloudProvider),
-				ErrorMessage:                  nil,
-				Id:                            admin.PtrString(testID),
-				RegionName:                    admin.PtrString(testRegionName),
-				Status:                        admin.PtrString(retrystrategy.RetryStrategyFailedState),
-				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+				ErrorMessage: nil,
+				Status:       admin.PtrString(retrystrategy.RetryStrategyFailedState),
 			},
-			expectedShouldErr:     true,
-			expectedErrMsgSummary: conversion.StringPtr(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary),
-			expectedErrMsg:        nil,
+			isDelete: false,
+			diags:    append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "")),
+		},
+		"FAILED status with no error_message during delete": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				ErrorMessage: nil,
+				Status:       admin.PtrString(retrystrategy.RetryStrategyFailedState),
+			},
+			isDelete: true,
+			diags:    append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "")),
 		},
 		"FAILED status with error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				CloudProvider:                 admin.PtrString(testCloudProvider),
-				ErrorMessage:                  admin.PtrString("test err message"),
-				Id:                            admin.PtrString(testID),
-				RegionName:                    admin.PtrString(testRegionName),
-				Status:                        admin.PtrString(retrystrategy.RetryStrategyFailedState),
-				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+				ErrorMessage: admin.PtrString("test err message"),
+				Status:       admin.PtrString(retrystrategy.RetryStrategyFailedState),
 			},
-			expectedShouldErr:     true,
-			expectedErrMsgSummary: conversion.StringPtr(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary),
-			expectedErrMsg:        conversion.StringPtr("test err message"),
+			isDelete: false,
+			diags:    append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "test err message")),
 		},
 		"non-empty error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				CloudProvider:                 admin.PtrString(testCloudProvider),
-				ErrorMessage:                  admin.PtrString("private endpoint was rejected"),
-				Id:                            admin.PtrString(testID),
-				RegionName:                    admin.PtrString(testRegionName),
-				Status:                        admin.PtrString(retrystrategy.RetryStrategyPendingRecreationState),
-				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+				ErrorMessage: admin.PtrString("private endpoint was rejected"),
+				Status:       admin.PtrString(retrystrategy.RetryStrategyPendingRecreationState),
 			},
-			expectedShouldErr:     false,
-			expectedErrMsgSummary: conversion.StringPtr(encryptionatrestprivateendpoint.NonEmptyErrorMessageFieldSummary),
-			expectedErrMsg:        conversion.StringPtr("private endpoint was rejected"),
+			isDelete: false,
+			diags:    append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.NonEmptyErrorMessageFieldSummary, "private endpoint was rejected")),
 		},
 		"nil error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				CloudProvider:                 admin.PtrString(testCloudProvider),
-				ErrorMessage:                  nil,
-				Id:                            admin.PtrString(testID),
-				RegionName:                    admin.PtrString(testRegionName),
-				Status:                        admin.PtrString(retrystrategy.RetryStrategyActiveState),
-				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+				ErrorMessage: nil,
+				Status:       admin.PtrString(retrystrategy.RetryStrategyActiveState),
 			},
-			expectedShouldErr:     false,
-			expectedErrMsgSummary: nil,
-			expectedErrMsg:        nil,
+			isDelete: false,
+			diags:    defaultDiags,
 		},
 		"empty error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				CloudProvider:                 admin.PtrString(testCloudProvider),
-				ErrorMessage:                  admin.PtrString(""),
-				Id:                            admin.PtrString(testID),
-				RegionName:                    admin.PtrString(testRegionName),
-				Status:                        admin.PtrString(retrystrategy.RetryStrategyActiveState),
-				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+				ErrorMessage: admin.PtrString(""),
+				Status:       admin.PtrString(retrystrategy.RetryStrategyActiveState),
 			},
-			expectedShouldErr:     false,
-			expectedErrMsgSummary: nil,
-			expectedErrMsg:        nil,
+			isDelete: false,
+			diags:    defaultDiags,
+		},
+		"pending acceptance status": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				ErrorMessage: admin.PtrString(""),
+				Status:       admin.PtrString(retrystrategy.RetryStrategyPendingAcceptanceState),
+			},
+			isDelete: false,
+			diags:    append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.PendingAcceptanceWarnMsgSummary, encryptionatrestprivateendpoint.PendingAcceptanceWarnMsg)),
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			shouldError, expectedErrMsgSummary, errMsg := encryptionatrestprivateendpoint.CheckErrorMessageAndStatus(tc.SDKResp)
-			assert.Equal(t, tc.expectedShouldErr, shouldError, "shouldError did not match expected output")
-			assert.Equal(t, tc.expectedErrMsg, errMsg, "errMsg did not match expected output")
-			assert.Equal(t, tc.expectedErrMsgSummary, expectedErrMsgSummary, "errMsgSummary did not match expected output")
+			diags := encryptionatrestprivateendpoint.CheckErrorMessageAndStatus(tc.SDKResp, tc.isDelete)
+			assert.Equal(t, tc.diags, diags, "diagnostics did not match expected output")
 		})
 	}
 }
