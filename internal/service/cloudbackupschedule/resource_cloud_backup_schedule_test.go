@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240805003/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
 
 var (

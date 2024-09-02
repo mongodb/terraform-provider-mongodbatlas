@@ -1,8 +1,8 @@
 package cloudbackupschedule
 
 import (
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20240805003/admin"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 func FlattenPolicyItem(items []admin.DiskBackupApiPolicyItem, frequencyType string) []map[string]any {
