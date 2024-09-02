@@ -70,7 +70,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 	privateEndpointModel := NewTFEarPrivateEndpoint(*finalResp, projectID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, privateEndpointModel)...)
 
-	diags := CheckErrorMessageAndStatus(finalResp, false)
+	diags := CheckErrorMessageAndStatus(finalResp)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -98,7 +98,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(*endpointModel, projectID))...)
 
-	diags := CheckErrorMessageAndStatus(endpointModel, false)
+	diags := CheckErrorMessageAndStatus(endpointModel)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -128,7 +128,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 		return
 	}
 
-	diags := CheckErrorMessageAndStatus(model, true)
+	diags := CheckErrorMessageAndStatus(model)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -159,7 +159,7 @@ func splitEncryptionAtRestPrivateEndpointImportID(id string) (projectID, cloudPr
 	return
 }
 
-func CheckErrorMessageAndStatus(model *admin.EARPrivateEndpoint, isDelete bool) diag.Diagnostics {
+func CheckErrorMessageAndStatus(model *admin.EARPrivateEndpoint) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	switch {
@@ -167,7 +167,7 @@ func CheckErrorMessageAndStatus(model *admin.EARPrivateEndpoint, isDelete bool) 
 		diags = append(diags, diag.NewErrorDiagnostic(FailedStatusErrorMessageSummary, model.GetErrorMessage()))
 	case model.GetErrorMessage() != "":
 		diags = append(diags, diag.NewWarningDiagnostic(NonEmptyErrorMessageFieldSummary, model.GetErrorMessage()))
-	case model.GetStatus() == retrystrategy.RetryStrategyPendingAcceptanceState && !isDelete:
+	case model.GetStatus() == retrystrategy.RetryStrategyPendingAcceptanceState:
 		diags = append(diags, diag.NewWarningDiagnostic(PendingAcceptanceWarnMsgSummary, PendingAcceptanceWarnMsg))
 	}
 

@@ -114,9 +114,8 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 }
 
 type errMsgTestCase struct {
-	SDKResp  *admin.EARPrivateEndpoint
-	diags    diag.Diagnostics
-	isDelete bool
+	SDKResp *admin.EARPrivateEndpoint
+	diags   diag.Diagnostics
 }
 
 func TestCheckErrorMessageAndStatus(t *testing.T) {
@@ -128,62 +127,48 @@ func TestCheckErrorMessageAndStatus(t *testing.T) {
 				ErrorMessage: nil,
 				Status:       admin.PtrString(retrystrategy.RetryStrategyFailedState),
 			},
-			isDelete: false,
-			diags:    append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "")),
-		},
-		"FAILED status with no error_message during delete": {
-			SDKResp: &admin.EARPrivateEndpoint{
-				ErrorMessage: nil,
-				Status:       admin.PtrString(retrystrategy.RetryStrategyFailedState),
-			},
-			isDelete: true,
-			diags:    append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "")),
+			diags: append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "")),
 		},
 		"FAILED status with error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
 				ErrorMessage: admin.PtrString("test err message"),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyFailedState),
 			},
-			isDelete: false,
-			diags:    append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "test err message")),
+			diags: append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "test err message")),
 		},
 		"non-empty error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
 				ErrorMessage: admin.PtrString("private endpoint was rejected"),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyPendingRecreationState),
 			},
-			isDelete: false,
-			diags:    append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.NonEmptyErrorMessageFieldSummary, "private endpoint was rejected")),
+			diags: append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.NonEmptyErrorMessageFieldSummary, "private endpoint was rejected")),
 		},
 		"nil error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
 				ErrorMessage: nil,
 				Status:       admin.PtrString(retrystrategy.RetryStrategyActiveState),
 			},
-			isDelete: false,
-			diags:    defaultDiags,
+			diags: defaultDiags,
 		},
 		"empty error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
 				ErrorMessage: admin.PtrString(""),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyActiveState),
 			},
-			isDelete: false,
-			diags:    defaultDiags,
+			diags: defaultDiags,
 		},
 		"pending acceptance status": {
 			SDKResp: &admin.EARPrivateEndpoint{
 				ErrorMessage: admin.PtrString(""),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyPendingAcceptanceState),
 			},
-			isDelete: false,
-			diags:    append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.PendingAcceptanceWarnMsgSummary, encryptionatrestprivateendpoint.PendingAcceptanceWarnMsg)),
+			diags: append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.PendingAcceptanceWarnMsgSummary, encryptionatrestprivateendpoint.PendingAcceptanceWarnMsg)),
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			diags := encryptionatrestprivateendpoint.CheckErrorMessageAndStatus(tc.SDKResp, tc.isDelete)
+			diags := encryptionatrestprivateendpoint.CheckErrorMessageAndStatus(tc.SDKResp)
 			assert.Equal(t, tc.diags, diags, "diagnostics did not match expected output")
 		})
 	}
