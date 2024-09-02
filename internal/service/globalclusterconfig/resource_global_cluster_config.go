@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin" // fixed to old API due to CLOUDP-263795
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240805003/admin" // fixed to old API due to CLOUDP-263795
 )
 
 const (

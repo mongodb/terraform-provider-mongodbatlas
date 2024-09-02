@@ -780,10 +780,8 @@ github.com/zclconf/go-cty-yaml v1.0.2/go.mod h1:IP3Ylp0wQpYm50IHK8OZWKMu6sPJIUgK
 go.mongodb.org/atlas v0.12.0/go.mod h1:wVCnHcm/7/IfTjEB6K8K35PLG70yGz8BdkRwX0oK9/M=
 go.mongodb.org/atlas v0.37.0 h1:zQnO1o5+bVP9IotpAYpres4UjMD2F4nwNEFTZhNL4ck=
 go.mongodb.org/atlas v0.37.0/go.mod h1:DJYtM+vsEpPEMSkQzJnFHrT0sP7ev6cseZc/GGjJYG8=
-go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0 h1:d/gbYJ+obR0EM/3DZf7+ZMi2QWISegm3mid7Or708cc=
-go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0/go.mod h1:O47ZrMMfcWb31wznNIq2PQkkdoFoK0ea2GlmRqGJC2s=
-go.mongodb.org/atlas-sdk/v20240805002 v20240805002.0.0 h1:QjqVWiBjdPzMaVWo/lWHvm0koqJBUmj3dwHzCJeenjA=
-go.mongodb.org/atlas-sdk/v20240805002 v20240805002.0.0/go.mod h1:QV8M1WlK+slVnxWM2TO9xRiyIf6tKZK8+48wahWZ8MQ=
+go.mongodb.org/atlas-sdk/v20240805003 v20240805003.0.0 h1:f2PRtW3r9873dGApUXwf/njVT2uWpXtGw9Pg9czMX5I=
+go.mongodb.org/atlas-sdk/v20240805003 v20240805003.0.0/go.mod h1:CVDolHhHTrXPPqig+7KKTPu54tIVqsrtmQm4LssNcZ0=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
