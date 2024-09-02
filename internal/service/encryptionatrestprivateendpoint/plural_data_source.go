@@ -4,10 +4,12 @@ package encryptionatrestprivateendpoint
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 var _ datasource.DataSource = &encryptionAtRestPrivateEndpointsDS{}
@@ -30,27 +32,30 @@ func (d *encryptionAtRestPrivateEndpointsDS) Schema(ctx context.Context, req dat
 }
 
 func (d *encryptionAtRestPrivateEndpointsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var encryptionAtRestPrivateEndpointsConfig TFEncryptionAtRestPrivateEndpointsDSModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &encryptionAtRestPrivateEndpointsConfig)...)
+	var earPrivateEndpointConfig TFEncryptionAtRestPrivateEndpointsDSModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &earPrivateEndpointConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	projectID := earPrivateEndpointConfig.ProjectID.ValueString()
+	cloudProvider := earPrivateEndpointConfig.CloudProvider.ValueString()
 
-	// TODO: make get request to obtain list of results
+	connV2 := d.Client.AtlasV2
 
-	// connV2 := d.Client.AtlasV2
-	// TODO: GetEncryptionAtRestPrivateEndpointsForCloudProvider returns paginated results
-	// v, resp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpointsForCloudProvider(ctx, "", "").Execute()
-	// if err != nil {
-	//	resp.Diagnostics.AddError("error fetching results", err.Error())
-	//	return
-	//}
+	params := admin.GetEncryptionAtRestPrivateEndpointsForCloudProviderApiParams{
+		GroupId:       projectID,
+		CloudProvider: cloudProvider,
+	}
 
-	// TODO: process response into new terraform state
-	//  newEncryptionAtRestPrivateEndpointsModel := NewTFEarPrivateEndpoints("","",conversion.IntPtr(99), v.GetResults())
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
-	// resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoints(ctx))...)
+	privateEndpoints, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.EARPrivateEndpoint], *http.Response, error) {
+		request := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpointsForCloudProviderWithParams(ctx, &params)
+		request = request.PageNum(pageNum)
+		return request.Execute()
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("error fetching results", err.Error())
+		return
+	}
+	newEarPrivateEndpointsModel := NewTFEarPrivateEndpoints(projectID, cloudProvider, privateEndpoints)
+	resp.Diagnostics.Append(resp.State.Set(ctx, newEarPrivateEndpointsModel)...)
 }

@@ -62,7 +62,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 		return
 	}
 
-	privateEndpointModel := NewTFEarPrivateEndpoint(finalResp, projectID)
+	privateEndpointModel := NewTFEarPrivateEndpoint(*finalResp, projectID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, privateEndpointModel)...)
 	if err := getErrorMsgForFailedStatus(finalResp); err != nil {
 		resp.Diagnostics.AddError(failedStatusErrorMessage, err.Error())
@@ -91,7 +91,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(endpointModel, projectID))...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(*endpointModel, projectID))...)
 	if err := getErrorMsgForFailedStatus(endpointModel); err != nil {
 		resp.Diagnostics.AddError(failedStatusErrorMessage, err.Error())
 	}

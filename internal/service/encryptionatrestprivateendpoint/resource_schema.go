@@ -12,8 +12,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"cloud_provider": schema.StringAttribute{
 				Required:            true,
-				Description:         "Human-readable label that identifies the cloud provider for the Encryption At Rest private endpoint.",
-				MarkdownDescription: "Human-readable label that identifies the cloud provider for the Encryption At Rest private endpoint.",
+				Description:         "Label that identifies the cloud provider for the Encryption At Rest private endpoint.",
+				MarkdownDescription: "Label that identifies the cloud provider for the Encryption At Rest private endpoint.",
 			},
 			"error_message": schema.StringAttribute{
 				Computed:            true,

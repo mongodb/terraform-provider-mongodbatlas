@@ -6,11 +6,8 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
-func NewTFEarPrivateEndpoint(apiResp *admin.EARPrivateEndpoint, projectID string) *TFEarPrivateEndpointModel {
-	if apiResp == nil {
-		return nil
-	}
-	return &TFEarPrivateEndpointModel{
+func NewTFEarPrivateEndpoint(apiResp admin.EARPrivateEndpoint, projectID string) TFEarPrivateEndpointModel {
+	return TFEarPrivateEndpointModel{
 		ProjectID:                     types.StringValue(projectID),
 		CloudProvider:                 conversion.StringNullIfEmpty(apiResp.GetCloudProvider()),
 		ErrorMessage:                  conversion.StringNullIfEmpty(apiResp.GetErrorMessage()),
@@ -28,5 +25,18 @@ func NewEarPrivateEndpointReq(tfPlan *TFEarPrivateEndpointModel) *admin.EARPriva
 	return &admin.EARPrivateEndpoint{
 		CloudProvider: tfPlan.CloudProvider.ValueStringPointer(),
 		RegionName:    tfPlan.RegionName.ValueStringPointer(),
+	}
+}
+
+func NewTFEarPrivateEndpoints(projectID, cloudProvider string, sdkResults []admin.EARPrivateEndpoint) *TFEncryptionAtRestPrivateEndpointsDSModel {
+	results := make([]TFEarPrivateEndpointModel, len(sdkResults))
+	for i := range sdkResults {
+		result := NewTFEarPrivateEndpoint(sdkResults[i], projectID)
+		results[i] = result
+	}
+	return &TFEncryptionAtRestPrivateEndpointsDSModel{
+		ProjectID:     types.StringValue(projectID),
+		CloudProvider: types.StringValue(cloudProvider),
+		Results:       results,
 	}
 }
