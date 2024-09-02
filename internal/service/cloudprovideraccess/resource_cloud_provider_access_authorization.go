@@ -260,7 +260,7 @@ func resourceCloudProviderAccessAuthorizationStateUpgradeV0(ctx context.Context,
 }
 
 func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.ResourceData, projectID string, targetRole *admin.CloudProviderAccessRole) diag.Diagnostics {
-	req := &admin.CloudProviderAccessRole{
+	req := &admin.CloudProviderAccessRoleRequestUpdate{
 		ProviderName: targetRole.ProviderName,
 	}
 
@@ -281,11 +281,9 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 		roleID = targetRole.GetId()
 	}
 
-	var role *admin.CloudProviderAccessRole
 	var err error
-
 	for i := 0; i < 3; i++ {
-		role, _, err = client.CloudProviderAccessApi.AuthorizeCloudProviderAccessRole(ctx, projectID, roleID, req).Execute()
+		_, _, err = client.CloudProviderAccessApi.AuthorizeCloudProviderAccessRole(ctx, projectID, roleID, req).Execute()
 		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") { // aws takes time to update , in case of single path
 			log.Printf("warning issue performing authorize: %s \n", err.Error())
 			log.Println("retrying")
@@ -300,6 +298,10 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error cloud provider access authorization %s", err))
+	}
+	role, _, err := client.CloudProviderAccessApi.GetCloudProviderAccessRole(ctx, projectID, roleID).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error cloud provider access authorization read after authorization %s", err))
 	}
 
 	authSchema := roleToSchemaAuthorization(role)
