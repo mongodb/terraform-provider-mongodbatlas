@@ -121,8 +121,6 @@ func convertToAzureKeyVaultAttrMap(az *admin.AzureKeyVault) map[string]string {
 }
 
 func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
-	// acc.SkipTestForCI(t) // needs Azure configuration
-
 	var (
 		projectID = acc.ProjectIDExecution(t)
 
@@ -142,16 +140,13 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 		azureKeyVaultAttrMap = convertToAzureKeyVaultAttrMap(&azureKeyVault)
 
 		azureKeyVaultUpdated = admin.AzureKeyVault{
-			Enabled: conversion.Pointer(true),
-			// ClientID:         conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID_UPDATED")),
-			ClientID:         conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
-			AzureEnvironment: conversion.StringPtr("AZURE"),
-			SubscriptionID:   conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
-			// ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED")),
-			ResourceGroupName: conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
-			KeyVaultName:      conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED")),
-			KeyIdentifier:     conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
-			// Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET_UPDATED")),
+			Enabled:                  conversion.Pointer(true),
+			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
+			AzureEnvironment:         conversion.StringPtr("AZURE"),
+			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
+			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
+			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED")),
+			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
 			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
 			RequirePrivateNetworking: conversion.Pointer(false),
@@ -204,8 +199,6 @@ func testCheckResourceAttr(resourceName, prefix string, attrsMap map[string]stri
 }
 
 func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T) {
-	// acc.SkipTestForCI(t) // needs Azure configuration
-
 	// TODO: this test requires a project that has the flag enabled MONGODB_ATLAS_PROJECT_EAR_PE_ENABLED_ID
 	var (
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
@@ -226,15 +219,13 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 		azureKeyVaultAttrMap = convertToAzureKeyVaultAttrMap(&azureKeyVault)
 
 		azureKeyVaultUpdated = admin.AzureKeyVault{
-			Enabled:          conversion.Pointer(true),
-			ClientID:         conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
-			AzureEnvironment: conversion.StringPtr("AZURE"),
-			SubscriptionID:   conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
-			// ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED")),
-			ResourceGroupName: conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
-			KeyVaultName:      conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED")),
-			KeyIdentifier:     conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
-			// Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET_UPDATED")),
+			Enabled:                  conversion.Pointer(true),
+			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
+			AzureEnvironment:         conversion.StringPtr("AZURE"),
+			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
+			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
+			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED")),
+			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
 			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
 			RequirePrivateNetworking: conversion.Pointer(false),
