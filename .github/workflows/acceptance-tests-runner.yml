@@ -90,7 +90,7 @@ on:
         type: string
         required: true
       mongodb_atlas_enable_preview:
-        type: boolean
+        type: string
         required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
