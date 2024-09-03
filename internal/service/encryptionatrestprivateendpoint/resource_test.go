@@ -6,12 +6,17 @@ import (
 	"os"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
@@ -106,6 +111,67 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 			},
 		},
 	})
+}
+
+type errMsgTestCase struct {
+	SDKResp *admin.EARPrivateEndpoint
+	diags   diag.Diagnostics
+}
+
+func TestCheckErrorMessageAndStatus(t *testing.T) {
+	var defaultDiags diag.Diagnostics
+
+	testCases := map[string]errMsgTestCase{
+		"FAILED status with no error_message": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				ErrorMessage: nil,
+				Status:       admin.PtrString(retrystrategy.RetryStrategyFailedState),
+			},
+			diags: append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "")),
+		},
+		"FAILED status with error_message": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				ErrorMessage: admin.PtrString("test err message"),
+				Status:       admin.PtrString(retrystrategy.RetryStrategyFailedState),
+			},
+			diags: append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "test err message")),
+		},
+		"non-empty error_message": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				ErrorMessage: admin.PtrString("private endpoint was rejected"),
+				Status:       admin.PtrString(retrystrategy.RetryStrategyPendingRecreationState),
+			},
+			diags: append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.NonEmptyErrorMessageFieldSummary, "private endpoint was rejected")),
+		},
+		"nil error_message": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				ErrorMessage: nil,
+				Status:       admin.PtrString(retrystrategy.RetryStrategyActiveState),
+			},
+			diags: defaultDiags,
+		},
+		"empty error_message": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				ErrorMessage: admin.PtrString(""),
+				Status:       admin.PtrString(retrystrategy.RetryStrategyActiveState),
+			},
+			diags: defaultDiags,
+		},
+		"pending acceptance status": {
+			SDKResp: &admin.EARPrivateEndpoint{
+				ErrorMessage: admin.PtrString(""),
+				Status:       admin.PtrString(retrystrategy.RetryStrategyPendingAcceptanceState),
+			},
+			diags: append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.PendingAcceptanceWarnMsgSummary, encryptionatrestprivateendpoint.PendingAcceptanceWarnMsg)),
+		},
+	}
+
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			diags := encryptionatrestprivateendpoint.CheckErrorMessageAndStatus(tc.SDKResp)
+			assert.Equal(t, tc.diags, diags, "diagnostics did not match expected output")
+		})
+	}
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
