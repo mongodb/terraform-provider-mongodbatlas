@@ -151,8 +151,6 @@ func PreCheckEncryptionAtRestEnvAzureWithUpdate(tb testing.TB) {
 	tb.Helper()
 	PreCheckEncryptionAtRestEnvAzure(tb)
 
-	// if os.Getenv("AZURE_CLIENT_ID_UPDATED") == "" ||
-	// os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED") == "" ||
 	if os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED") == "" ||
 		os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED") == "" {
 		tb.Fatal(`'AZURE_CLIENT_ID', 'AZURE_SUBSCRIPTION_ID',

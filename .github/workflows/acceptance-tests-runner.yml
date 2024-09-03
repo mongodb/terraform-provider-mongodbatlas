@@ -135,6 +135,18 @@ on:
         required: true
       azure_vnet_name_updated:
         required: true
+      azure_client_id:
+        required: true
+      azure_key_vault_name:
+        required: true
+      azure_key_identifier:
+        required: true
+      azure_key_vault_name_updated:
+        required: true
+      azure_key_identifier_updated:
+        required: true
+      azure_app_secret:
+        required: true
           
 env:
   TF_ACC: 1
@@ -516,6 +528,17 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/encryptionatrest
+          MONGODB_ATLAS_PROJECT_EAR_PE_ID: ${{ vars.mongodb_atlas_project_ear_pe_id }}
+          AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
+          AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
+          AZURE_TENANT_ID: ${{ vars.azure_tenant_id }}
+          AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
+          AZURE_KEY_VAULT_NAME: ${{ secrets.azure_key_vault_name }}
+          AZURE_KEY_IDENTIFIER: ${{ secrets.azure_key_identifier }}
+          AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.azure_key_vault_name_updated }}
+          AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.azure_key_identifier_updated }}
         run: make testacc
 
   event_trigger:
