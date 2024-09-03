@@ -2,7 +2,7 @@
 
 `{{.Name}}` provides a resource for managing a private endpoint used for encryption at rest with customer-managed keys. This ensures all traffic between Atlas and customer key management systems take place over private network interfaces.
 
-~> **IMPORTANT** Private Endpoint for Encryption at Rest Using Customer Key Management is in private preview, to request this functionality for your Atlas deployments contact your Account Manager. 
+~> **IMPORTANT** The Encryption at Rest using Azure Key Vault over Private Endpoints feature is available by request. To request this functionality for you Atlas deployments, contact your Account Manager. 
 Additionally, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_PREVIEW=true` to use this resource. To learn more about existing limitations, see the [Manage Customer Keys with Azure Key Vault Over Private Endpoints](https://www.mongodb.com/docs/atlas/security/azure-kms-over-private-endpoint/#manage-customer-keys-with-azure-key-vault-over-private-endpoints).
 
 -> **NOTE:** Only Azure Key Vault with Azure Private Link is supported at this time.
