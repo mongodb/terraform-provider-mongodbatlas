@@ -44,7 +44,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
 			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME")),
 			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
-			Secret:                   conversion.StringPtr(os.Getenv("AZURE_SECRET")),
+			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
 		}
 		region = os.Getenv("AZURE_PRIVATE_ENDPOINT_REGION")
@@ -83,7 +83,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
 			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME")),
 			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
-			Secret:                   conversion.StringPtr(os.Getenv("AZURE_SECRET")),
+			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
 		}
 		region = os.Getenv("AZURE_PRIVATE_ENDPOINT_REGION")

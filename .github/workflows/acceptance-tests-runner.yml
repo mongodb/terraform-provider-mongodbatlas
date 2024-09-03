@@ -238,7 +238,8 @@ jobs:
           data_lake:
             - 'internal/service/datalakepipeline/*.go'
           encryption:
-            - 'internal/service/encryptionatrest/*.go'  
+            - 'internal/service/encryptionatrest/*.go' 
+            - 'internal/service/encryptionatrestprivateendpoint/*.go'  
           event_trigger:
             - 'internal/service/eventtrigger/*.go'  
           federated:
