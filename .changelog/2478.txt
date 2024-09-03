@@ -3,7 +3,7 @@ resource/mongodbatlas_advanced_cluster: Supports defining cluster shards with in
 ```
 
 ```release-note:note
-resource/mongodbatlas_advanced_cluster: Using this new version impacts the possibility of editing the definition of multi shard clusters in the Atlas UI. This impact is limited to the first weeks of August.
+resource/mongodbatlas_advanced_cluster: Using this new version impacts the possibility of editing the definition of multi shard clusters in the Atlas UI. This impact is limited to the first weeks of September.
 ```
 
 ```release-note:enhancement
