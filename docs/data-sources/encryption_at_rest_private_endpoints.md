@@ -5,13 +5,13 @@
 ## Example Usages
 
 ```terraform
-data "mongodbatlas_encryption_at_rest_private_endpoints" "single" {
+data "mongodbatlas_encryption_at_rest_private_endpoints" "plural" {
   project_id     = var.atlas_project_id
   cloud_provider = "AZURE"
 }
 
 output "number_of_endpoints" {
-  value = length(data.mongodbatlas_encryption_at_rest_private_endpoints.results)
+  value = length(data.mongodbatlas_encryption_at_rest_private_endpoints.plural.results)
 }
 ```
 
