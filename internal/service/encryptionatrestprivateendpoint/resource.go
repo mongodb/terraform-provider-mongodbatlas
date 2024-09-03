@@ -20,7 +20,7 @@ const (
 	encryptionAtRestPrivateEndpointName = "encryption_at_rest_private_endpoint"
 	warnUnsupportedOperation            = "Operation not supported"
 	FailedStatusErrorMessageSummary     = "Private endpoint is in a failed status"
-	NonEmptyErrorMessageFieldSummary    = "Something went wrong. Please review the `Status` field of this resource"
+	NonEmptyErrorMessageFieldSummary    = "Something went wrong. Please review the `status` field of this resource"
 	PendingAcceptanceWarnMsgSummary     = "Private endpoint may be in PENDING_ACCEPTANCE status"
 	PendingAcceptanceWarnMsg            = "Please ensure to approve the private endpoint connection. If recently approved or deleted the endpoint, please ignore this warning & wait for a few minutes for the status to update."
 )
