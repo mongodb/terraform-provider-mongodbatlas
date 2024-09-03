@@ -4,6 +4,7 @@ package projectipaddresses
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -59,11 +60,11 @@ type TFProjectIpAddressesModel struct {
 	Services  types.Object `tfsdk:"services"`
 }
 
-type ServicesValue struct {
-	Clusters []ClustersValue `tfsdk:"clusters"`
+type TFServicesModel struct {
+	Clusters []TFClusterValueModel `tfsdk:"clusters"`
 }
 
-type ClustersValue struct {
+type TFClusterValueModel struct {
 	ClusterName types.String `tfsdk:"cluster_name"`
 	Inbound     types.List   `tfsdk:"inbound"`
 	Outbound    types.List   `tfsdk:"outbound"`

@@ -42,7 +42,7 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 			},
 			expectedTFModel: &projectipaddresses.TFProjectIpAddressesModel{
 				ProjectId: types.StringValue(dummyProjectID),
-				Services: createExpectedServices(t, []projectipaddresses.ClustersValue{
+				Services: createExpectedServices(t, []projectipaddresses.TFClusterValueModel{
 					{
 						ClusterName: types.StringValue("cluster1"),
 						Inbound: types.ListValueMust(types.StringType, []attr.Value{
@@ -66,6 +66,30 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 				}),
 			},
 		},
+		"Single Cluster with no IP addresses": { // case when cluster is being created
+			SDKResp: &admin.GroupIPAddresses{
+				GroupId: admin.PtrString(dummyProjectID),
+				Services: &admin.GroupService{
+					Clusters: &[]admin.ClusterIPAddresses{
+						{
+							ClusterName: admin.PtrString("cluster1"),
+							Inbound:     &[]string{},
+							Outbound:    &[]string{},
+						},
+					},
+				},
+			},
+			expectedTFModel: &projectipaddresses.TFProjectIpAddressesModel{
+				ProjectId: types.StringValue(dummyProjectID),
+				Services: createExpectedServices(t, []projectipaddresses.TFClusterValueModel{
+					{
+						ClusterName: types.StringValue("cluster1"),
+						Inbound:     types.ListValueMust(types.StringType, []attr.Value{}),
+						Outbound:    types.ListValueMust(types.StringType, []attr.Value{}),
+					},
+				}),
+			},
+		},
 		"Empty Services": {
 			SDKResp: &admin.GroupIPAddresses{
 				GroupId:  admin.PtrString(dummyProjectID),
@@ -73,7 +97,7 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 			},
 			expectedTFModel: &projectipaddresses.TFProjectIpAddressesModel{
 				ProjectId: types.StringValue(dummyProjectID),
-				Services:  createExpectedServices(t, []projectipaddresses.ClustersValue{}),
+				Services:  createExpectedServices(t, []projectipaddresses.TFClusterValueModel{}),
 			},
 		},
 	}
@@ -89,9 +113,9 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 	}
 }
 
-func createExpectedServices(t *testing.T, clusters []projectipaddresses.ClustersValue) types.Object {
+func createExpectedServices(t *testing.T, clusters []projectipaddresses.TFClusterValueModel) types.Object {
 	t.Helper()
-	servicesValue := projectipaddresses.ServicesValue{
+	servicesValue := projectipaddresses.TFServicesModel{
 		Clusters: clusters,
 	}
 
