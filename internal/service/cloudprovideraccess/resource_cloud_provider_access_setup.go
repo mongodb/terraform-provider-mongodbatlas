@@ -134,9 +134,8 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	providerName := d.Get("provider_name").(string)
-	requestParameters := &admin.CloudProviderAccessRoleRequest{
-		ProviderName: providerName,
+	requestParameters := &admin.CloudProviderAccessRole{
+		ProviderName: d.Get("provider_name").(string),
 	}
 
 	if value, ok := d.GetOk("azure_config.0.atlas_azure_app_id"); ok {
@@ -151,17 +150,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 		requestParameters.SetTenantId(value.(string))
 	}
 
-	roleCreate, _, err := conn.CloudProviderAccessApi.CreateCloudProviderAccessRole(ctx, projectID, requestParameters).Execute()
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
-	}
-	var roleID string
-	if providerName == constant.AZURE {
-		roleID = roleCreate.GetId()
-	} else {
-		roleID = roleCreate.GetRoleId()
-	}
-	role, _, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRole(ctx, projectID, roleID).Execute()
+	role, _, err := conn.CloudProviderAccessApi.CreateCloudProviderAccessRole(ctx, projectID, requestParameters).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
 	}
