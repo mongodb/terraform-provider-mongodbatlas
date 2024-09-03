@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20240805002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 const (
@@ -89,24 +89,8 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 	}
 }
 
-func toTFList(t *testing.T, values []string) attr.Value {
-	t.Helper()
-	list, diags := types.ListValue(types.StringType, convertToAttrValues(values))
-	if diags.HasError() {
-		t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
-	}
-	return list
-}
-
-func convertToAttrValues(values []string) []attr.Value {
-	attrValues := make([]attr.Value, len(values))
-	for i, v := range values {
-		attrValues[i] = types.StringValue(v)
-	}
-	return attrValues
-}
-
 func createExpectedServices(t *testing.T, clusters []projectipaddresses.ClustersValue) types.Object {
+	t.Helper()
 	servicesValue := projectipaddresses.ServicesValue{
 		Clusters: clusters,
 	}
