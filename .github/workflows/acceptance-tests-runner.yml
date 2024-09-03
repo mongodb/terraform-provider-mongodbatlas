@@ -530,7 +530,6 @@ jobs:
           ACCTEST_PACKAGES: ./internal/service/encryptionatrest
           MONGODB_ATLAS_PROJECT_EAR_PE_ID: ${{ vars.mongodb_atlas_project_ear_pe_id }}
           AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
           AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
           AZURE_TENANT_ID: ${{ vars.azure_tenant_id }}
