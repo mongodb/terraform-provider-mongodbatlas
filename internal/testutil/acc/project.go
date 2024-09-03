@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"go.mongodb.org/atlas-sdk/v20240805002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 func CheckDestroyProject(s *terraform.State) error {

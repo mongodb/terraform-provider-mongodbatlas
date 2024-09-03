@@ -13,7 +13,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20240805002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -126,7 +126,7 @@ func Resource() *schema.Resource {
 				Type:       schema.TypeSet,
 				Optional:   true,
 				Set:        HashFunctionForKeyValuePair,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "September 2024", "tags"),
+				Deprecated: fmt.Sprintf(constant.DeprecationParamFutureWithReplacement, "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {

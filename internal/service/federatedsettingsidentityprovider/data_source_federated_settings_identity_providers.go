@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20240805002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
