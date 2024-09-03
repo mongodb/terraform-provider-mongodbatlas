@@ -89,6 +89,9 @@ on:
       mongodb_atlas_project_ear_pe_id:
         type: string
         required: true
+      mongodb_atlas_enable_preview:
+        type: boolean
+        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -541,6 +544,7 @@ jobs:
           AZURE_KEY_IDENTIFIER: ${{ secrets.azure_key_identifier }}
           AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.azure_key_vault_name_updated }}
           AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.azure_key_identifier_updated }}
+          MONGODB_ATLAS_ENABLE_PREVIEW: ${{ inputs.mongodb_atlas_enable_preview }}
         run: make testacc
 
   event_trigger:
