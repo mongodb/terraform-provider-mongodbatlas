@@ -12,7 +12,7 @@ func PluralDataSourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"cloud_provider": schema.StringAttribute{
 				Required:            true,
-				Description:         "Human-readable label that identifies the cloud provider for the private endpoints to return.",
+				Description:         "Label that identifies the cloud provider for the private endpoints to return.",
 				MarkdownDescription: "Human-readable label that identifies the cloud provider for the private endpoints to return.",
 			},
 			"project_id": schema.StringAttribute{
@@ -22,7 +22,7 @@ func PluralDataSourceSchema(ctx context.Context) schema.Schema {
 			},
 			"results": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
-					Attributes: DSAttributes(true),
+					Attributes: DSAttributes(false),
 				},
 				Computed:            true,
 				Description:         "List of returned documents that MongoDB Cloud providers when completing this request.",
