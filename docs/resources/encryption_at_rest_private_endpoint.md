@@ -66,9 +66,7 @@ resource "azapi_update_resource" "approval" {
 ### Required
 
 - `cloud_provider` (String) Label that identifies the cloud provider for the Encryption At Rest private endpoint.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
-**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 - `region_name` (String) Cloud provider region in which the Encryption At Rest private endpoint is located.
 
 ### Read-Only
