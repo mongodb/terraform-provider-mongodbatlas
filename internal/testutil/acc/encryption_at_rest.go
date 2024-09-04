@@ -92,9 +92,9 @@ func TestAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
 		}
 		res, _, err := ConnV2().EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), rs.Primary.ID).Execute()
 		if err != nil ||
-			(*res.AwsKms.Enabled != false &&
-				*res.AzureKeyVault.Enabled != false &&
-				*res.GoogleCloudKms.Enabled != false) {
+			(res.AwsKms.GetEnabled() ||
+				res.AzureKeyVault.GetEnabled() ||
+				res.GoogleCloudKms.GetEnabled()) {
 			return fmt.Errorf("encryptionAtRest (%s) still exists: err: %s", rs.Primary.ID, err)
 		}
 	}
