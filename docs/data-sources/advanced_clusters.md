@@ -34,7 +34,7 @@ data "mongodbatlas_advanced_clusters" "example" {
 }
 ```
 
-## Example using latest sharding schema with independent shard scaling in the cluster
+## Example using latest sharding configurations with independent shard scaling in the cluster
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "example" {

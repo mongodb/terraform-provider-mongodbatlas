@@ -5,14 +5,13 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
-
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
