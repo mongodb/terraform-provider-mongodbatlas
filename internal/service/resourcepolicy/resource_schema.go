@@ -15,7 +15,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"created_by_user": schema.SingleNestedAttribute{
 				Description: "The user that last updated the atlas resource policy.",
-				Optional:    true,
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
@@ -41,7 +40,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"last_updated_by_user": schema.SingleNestedAttribute{
 				Description: "The user that last updated the atlas resource policy.",
-				Optional:    true,
 				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
@@ -64,7 +62,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"name": schema.StringAttribute{
 				Description: "Human-readable label that describes the atlas resource policy.",
-				Computed:    true,
+				Optional:    true,
 			},
 			"policies": schema.ListNestedAttribute{
 				Description: "List of policies that make up the atlas resource policy.",
@@ -84,7 +82,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"version": schema.StringAttribute{
 				Description: "A string that identifies the version of the atlas resource policy.",
-				Optional:    true,
 				Computed:    true,
 			},
 		},
