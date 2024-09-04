@@ -1,0 +1,9 @@
+provider:
+  name: mongodbatlas
+
+data_sources:
+  project_ip_addresses:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/ipAddresses
+      method: GET
+
