@@ -3,7 +3,7 @@ package acc
 import (
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useRequirePrivateNetworking, useDatasource bool) string {

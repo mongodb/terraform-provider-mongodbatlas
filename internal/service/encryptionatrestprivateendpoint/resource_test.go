@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
