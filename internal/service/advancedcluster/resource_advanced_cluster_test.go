@@ -271,12 +271,12 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvanced(projectID, clusterName, processArgs),
-				Check:  checkAdvanced(clusterName, "TLS1_1"),
+				Config: configAdvanced(projectID, clusterName, processArgs, nil),
+				Check:  checkAdvanced(clusterName, "TLS1_1", "-1"),
 			},
 			{
-				Config: configAdvanced(projectID, clusterNameUpdated, processArgsUpdated),
-				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2"),
+				Config: configAdvanced(projectID, clusterNameUpdated, processArgsUpdated, conversion.IntPtr(100)),
+				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", "100"),
 			},
 		},
 	})
@@ -1143,7 +1143,11 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 			"paused": strconv.FormatBool(paused)})
 }
 
-func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
+func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs, changeStreamOptions *int) string {
+	changeStreamOptionsString := ""
+	if changeStreamOptions != nil {
+		changeStreamOptionsString = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, &changeStreamOptions)
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
@@ -1174,7 +1178,8 @@ func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescr
 				oplog_size_mb                        = %[7]d
 				sample_size_bi_connector			 = %[8]d
 				sample_refresh_interval_bi_connector = %[9]d
-			transaction_lifetime_limit_seconds   = %[10]d
+			    transaction_lifetime_limit_seconds   = %[10]d
+			    %[11]s
 			}
 		}
 
@@ -1188,22 +1193,23 @@ func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescr
 		}
 	`, projectID, clusterName,
 		p.GetFailIndexKeyTooLong(), p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
-		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds())
+		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds(), changeStreamOptionsString)
 }
 
-func checkAdvanced(name, tls string) resource.TestCheckFunc {
+func checkAdvanced(name, tls, changeStreamOptions string) resource.TestCheckFunc {
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"name": name,
-			"advanced_configuration.0.minimum_enabled_tls_protocol":         tls,
-			"advanced_configuration.0.fail_index_key_too_long":              "false",
-			"advanced_configuration.0.javascript_enabled":                   "true",
-			"advanced_configuration.0.no_table_scan":                        "false",
-			"advanced_configuration.0.oplog_size_mb":                        "1000",
-			"advanced_configuration.0.sample_refresh_interval_bi_connector": "310",
-			"advanced_configuration.0.sample_size_bi_connector":             "110",
-			"advanced_configuration.0.transaction_lifetime_limit_seconds":   "300"},
+			"advanced_configuration.0.minimum_enabled_tls_protocol":                                   tls,
+			"advanced_configuration.0.fail_index_key_too_long":                                        "false",
+			"advanced_configuration.0.javascript_enabled":                                             "true",
+			"advanced_configuration.0.no_table_scan":                                                  "false",
+			"advanced_configuration.0.oplog_size_mb":                                                  "1000",
+			"advanced_configuration.0.sample_refresh_interval_bi_connector":                           "310",
+			"advanced_configuration.0.sample_size_bi_connector":                                       "110",
+			"advanced_configuration.0.transaction_lifetime_limit_seconds":                             "300",
+			"advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds": changeStreamOptions},
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))

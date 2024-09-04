@@ -464,8 +464,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
-			params := expandProcessArgs(d, aclist[0].(map[string]any))
-			_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params).Execute()
+			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any))
+			_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params20240530).Execute()
+			if err != nil {
+				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
+			}
+			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params).Execute()
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
 			}
@@ -576,12 +580,16 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
 
-	processArgs, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
+	}
+	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 
@@ -799,9 +807,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.HasChange("advanced_configuration") {
 		ac := d.Get("advanced_configuration")
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
-			params := expandProcessArgs(d, aclist[0].(map[string]any))
-			if !reflect.DeepEqual(params, admin20240530.ClusterDescriptionProcessArgs{}) {
-				_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
+			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any))
+			if !reflect.DeepEqual(params20240530, admin20240530.ClusterDescriptionProcessArgs{}) {
+				_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params20240530).Execute()
+				if err != nil {
+					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
+				}
+			}
+			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
+				_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 				}
