@@ -124,6 +124,7 @@ func optionsToTFModel(t *testing.T, options *admin.StreamsOptions) types.Object 
 	if diags.HasError() {
 		t.Fatal(diags)
 	}
+	assert.NotNil(t, result)
 	return *result
 }
 
