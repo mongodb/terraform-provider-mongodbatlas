@@ -6,13 +6,14 @@ import (
 	"strconv"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
@@ -136,7 +137,7 @@ func TestMigEncryptionAtRest_basicAzure(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
