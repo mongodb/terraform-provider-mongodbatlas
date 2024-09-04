@@ -8,18 +8,19 @@ import (
 	"strconv"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805003/mockadmin"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
-	"go.mongodb.org/atlas-sdk/v20240805003/mockadmin"
 )
 
 const (
@@ -177,26 +178,6 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	})
 }
 
-func convertToAzureKeyVaultAttrMap(az *admin.AzureKeyVault) map[string]string {
-	return map[string]string{
-		"enabled":                    strconv.FormatBool(az.GetEnabled()),
-		"azure_environment":          az.GetAzureEnvironment(),
-		"resource_group_name":        az.GetResourceGroupName(),
-		"key_vault_name":             az.GetKeyVaultName(),
-		"client_id":                  az.GetClientID(),
-		"key_identifier":             az.GetKeyIdentifier(),
-		"subscription_id":            az.GetSubscriptionID(),
-		"tenant_id":                  az.GetTenantID(),
-		"require_private_networking": strconv.FormatBool(az.GetRequirePrivateNetworking()),
-	}
-}
-
-func testCheckResourceAttr(resourceName, prefix string, attrsMap map[string]string) resource.TestCheckFunc {
-	checks := acc.AddAttrChecksPrefix(resourceName, []resource.TestCheckFunc{}, attrsMap, prefix)
-
-	return resource.ComposeAggregateTestCheckFunc(checks...)
-}
-
 func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T) {
 	var (
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
@@ -273,6 +254,26 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 			},
 		},
 	})
+}
+
+func convertToAzureKeyVaultAttrMap(az *admin.AzureKeyVault) map[string]string {
+	return map[string]string{
+		"enabled":                    strconv.FormatBool(az.GetEnabled()),
+		"azure_environment":          az.GetAzureEnvironment(),
+		"resource_group_name":        az.GetResourceGroupName(),
+		"key_vault_name":             az.GetKeyVaultName(),
+		"client_id":                  az.GetClientID(),
+		"key_identifier":             az.GetKeyIdentifier(),
+		"subscription_id":            az.GetSubscriptionID(),
+		"tenant_id":                  az.GetTenantID(),
+		"require_private_networking": strconv.FormatBool(az.GetRequirePrivateNetworking()),
+	}
+}
+
+func testCheckResourceAttr(resourceName, prefix string, attrsMap map[string]string) resource.TestCheckFunc {
+	checks := acc.AddAttrChecksPrefix(resourceName, []resource.TestCheckFunc{}, attrsMap, prefix)
+
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func TestAccEncryptionAtRest_basicGCP(t *testing.T) {

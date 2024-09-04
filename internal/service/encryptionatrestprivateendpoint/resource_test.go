@@ -27,14 +27,13 @@ const (
 )
 
 func TestAccEncryptionAtRestPrivateEndpoint_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.Test(t, *basicTestCase(t))
 }
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	acc.SkipTestForCI(tb) // needs Azure configuration
 	var (
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
 		azureKeyVault = &admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
 			RequirePrivateNetworking: conversion.Pointer(true),
@@ -71,9 +70,8 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 }
 
 func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *testing.T) {
-	acc.SkipTestForCI(t) // needs Azure configuration
 	var (
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
 		azureKeyVault = &admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
 			RequirePrivateNetworking: conversion.Pointer(true),
@@ -89,7 +87,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 		region = os.Getenv("AZURE_PRIVATE_ENDPOINT_REGION")
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzure(t); acc.PreCheckPreviewFlag(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,

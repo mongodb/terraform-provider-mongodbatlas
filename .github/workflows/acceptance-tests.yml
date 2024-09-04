@@ -112,3 +112,4 @@ jobs:
       mongodb_atlas_federated_settings_associated_domain: ${{ vars.MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN }}
       mongodb_atlas_project_ear_pe_id: ${{ vars.MONGODB_ATLAS_PROJECT_EAR_PE_ID }}
       mongodb_atlas_enable_preview: ${{ vars.MONGODB_ATLAS_ENABLE_PREVIEW }}
+      azure_private_endpoint_region: ${{ vars.AZURE_PRIVATE_ENDPOINT_REGION }}
