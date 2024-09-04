@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_project_ip_addresses` ([#2533](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2533))
+
 ## 1.18.1 (August 26, 2024)
 
 ## 1.18.0 (August 14, 2024)
