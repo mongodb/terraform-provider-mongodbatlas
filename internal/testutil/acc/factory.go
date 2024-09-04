@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 const (

@@ -3,21 +3,26 @@ package encryptionatrestprivateendpoint
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"regexp"
 
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
 const (
 	encryptionAtRestPrivateEndpointName = "encryption_at_rest_private_endpoint"
 	warnUnsupportedOperation            = "Operation not supported"
-	failedStatusErrorMessage            = "Private endpoint is in a failed status"
+	FailedStatusErrorMessageSummary     = "Private endpoint is in a failed status"
+	NonEmptyErrorMessageFieldSummary    = "Something went wrong. Please review the `status` field of this resource"
+	PendingAcceptanceWarnMsgSummary     = "Private endpoint may be in PENDING_ACCEPTANCE status"
+	PendingAcceptanceWarnMsg            = "Please ensure to approve the private endpoint connection. If recently approved or deleted the endpoint, please ignore this warning & wait for a few minutes for the status to update."
 )
 
 var _ resource.ResourceWithConfigure = &encryptionAtRestPrivateEndpointRS{}
@@ -64,9 +69,9 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 
 	privateEndpointModel := NewTFEarPrivateEndpoint(*finalResp, projectID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, privateEndpointModel)...)
-	if err := getErrorMsgForFailedStatus(finalResp); err != nil {
-		resp.Diagnostics.AddError(failedStatusErrorMessage, err.Error())
-	}
+
+	diags := CheckErrorMessageAndStatus(finalResp)
+	resp.Diagnostics.Append(diags...)
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -92,9 +97,9 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(*endpointModel, projectID))...)
-	if err := getErrorMsgForFailedStatus(endpointModel); err != nil {
-		resp.Diagnostics.AddError(failedStatusErrorMessage, err.Error())
-	}
+
+	diags := CheckErrorMessageAndStatus(endpointModel)
+	resp.Diagnostics.Append(diags...)
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -122,9 +127,9 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 		resp.Diagnostics.AddError("error when waiting for status transition in delete", err.Error())
 		return
 	}
-	if err := getErrorMsgForFailedStatus(model); err != nil {
-		resp.Diagnostics.AddError(failedStatusErrorMessage, err.Error())
-	}
+
+	diags := CheckErrorMessageAndStatus(model)
+	resp.Diagnostics.Append(diags...)
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -154,10 +159,17 @@ func splitEncryptionAtRestPrivateEndpointImportID(id string) (projectID, cloudPr
 	return
 }
 
-func getErrorMsgForFailedStatus(model *admin.EARPrivateEndpoint) error {
-	if model.GetStatus() != retrystrategy.RetryStrategyFailedState {
-		return nil
+func CheckErrorMessageAndStatus(model *admin.EARPrivateEndpoint) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	switch {
+	case model.GetStatus() == retrystrategy.RetryStrategyFailedState:
+		diags = append(diags, diag.NewErrorDiagnostic(FailedStatusErrorMessageSummary, model.GetErrorMessage()))
+	case model.GetErrorMessage() != "":
+		diags = append(diags, diag.NewWarningDiagnostic(NonEmptyErrorMessageFieldSummary, model.GetErrorMessage()))
+	case model.GetStatus() == retrystrategy.RetryStrategyPendingAcceptanceState:
+		diags = append(diags, diag.NewWarningDiagnostic(PendingAcceptanceWarnMsgSummary, PendingAcceptanceWarnMsg))
 	}
-	msg := model.GetErrorMessage()
-	return fmt.Errorf("detail of error message: %s", msg)
+
+	return diags
 }

@@ -4,7 +4,7 @@
 {{- else if eq "new-datasource" .Type -}}
 * **New Data Source:** `{{.Body}}` ([#{{- .Issue -}}](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/{{- .Issue -}}))
 {{- else if eq "new-guide" .Type -}}
-* **New Guide:** `{{.Body}}` ([#{{- .Issue -}}](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/{{- .Issue -}}))
+* **New Guide:** {{.Body}} ([#{{- .Issue -}}](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/{{- .Issue -}}))
 {{- else -}}
 * {{.Body}} ([#{{- .Issue -}}](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/{{- .Issue -}}))
 {{- end -}}
