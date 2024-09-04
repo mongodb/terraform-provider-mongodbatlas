@@ -75,6 +75,8 @@ jobs:
         run: make generate-doc resource_name=push_based_log_export
       - name: Doc for search_deployment
         run: make generate-doc resource_name=search_deployment
+      - name: Doc for encryption_at_rest
+        run: make generate-doc resource_name=encryption_at_rest
       - name: Doc for encryption_at_rest_private_endpoint
         run: make generate-doc resource_name=encryption_at_rest_private_endpoint
       - name: Find mutations
