@@ -69,7 +69,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms),
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -83,7 +83,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKmsUpdated),
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKmsUpdated, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -104,20 +104,6 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 			},
 		},
 	})
-}
-
-func convertToAzureKeyVaultAttrMap(az *admin.AzureKeyVault) map[string]string {
-	return map[string]string{
-		"enabled":                    strconv.FormatBool(az.GetEnabled()),
-		"azure_environment":          az.GetAzureEnvironment(),
-		"resource_group_name":        az.GetResourceGroupName(),
-		"key_vault_name":             az.GetKeyVaultName(),
-		"client_id":                  az.GetClientID(),
-		"key_identifier":             az.GetKeyIdentifier(),
-		"subscription_id":            az.GetSubscriptionID(),
-		"tenant_id":                  az.GetTenantID(),
-		"require_private_networking": strconv.FormatBool(az.GetRequirePrivateNetworking()),
-	}
 }
 
 func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
@@ -161,7 +147,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVault, false),
+				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVault, false, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -171,7 +157,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, false),
+				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, false, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -192,6 +178,20 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	})
 }
 
+func convertToAzureKeyVaultAttrMap(az *admin.AzureKeyVault) map[string]string {
+	return map[string]string{
+		"enabled":                    strconv.FormatBool(az.GetEnabled()),
+		"azure_environment":          az.GetAzureEnvironment(),
+		"resource_group_name":        az.GetResourceGroupName(),
+		"key_vault_name":             az.GetKeyVaultName(),
+		"client_id":                  az.GetClientID(),
+		"key_identifier":             az.GetKeyIdentifier(),
+		"subscription_id":            az.GetSubscriptionID(),
+		"tenant_id":                  az.GetTenantID(),
+		"require_private_networking": strconv.FormatBool(az.GetRequirePrivateNetworking()),
+	}
+}
+
 func testCheckResourceAttr(resourceName, prefix string, attrsMap map[string]string) resource.TestCheckFunc {
 	checks := acc.AddAttrChecksPrefix(resourceName, []resource.TestCheckFunc{}, attrsMap, prefix)
 
@@ -199,7 +199,6 @@ func testCheckResourceAttr(resourceName, prefix string, attrsMap map[string]stri
 }
 
 func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T) {
-	// TODO: this test requires a project that has the flag enabled MONGODB_ATLAS_PROJECT_EAR_PE_ENABLED_ID
 	var (
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
 
@@ -244,7 +243,7 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVault, true),
+				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVault, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -255,7 +254,7 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 				),
 			},
 			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, true),
+				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -302,19 +301,33 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKms),
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKms, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.valid", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "google_cloud_kms_config.0.key_version_resource_id"),
+
+					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(datasourceName, "google_cloud_kms_config.enabled", "true"),
+					resource.TestCheckResourceAttr(datasourceName, "google_cloud_kms_config.valid", "true"),
+					resource.TestCheckResourceAttrSet(datasourceName, "google_cloud_kms_config.key_version_resource_id"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKmsUpdated),
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKmsUpdated, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.valid", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "google_cloud_kms_config.0.key_version_resource_id"),
+
+					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(datasourceName, "google_cloud_kms_config.enabled", "true"),
+					resource.TestCheckResourceAttr(datasourceName, "google_cloud_kms_config.valid", "true"),
+					resource.TestCheckResourceAttrSet(datasourceName, "google_cloud_kms_config.key_version_resource_id"),
 				),
 			},
 			{
@@ -630,8 +643,8 @@ func testAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *admin.AWSKMSConfiguration) string {
-	return fmt.Sprintf(`
+func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *admin.AWSKMSConfiguration, useDatasource bool) string {
+	config := fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = %[1]q
 
@@ -642,13 +655,16 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *admi
 				role_id              = %[5]q
 			}
 		}
+	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId())
 
-		%[6]s
-	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId(), acc.TestAccDatasourceConfig())
+	if useDatasource {
+		return fmt.Sprintf(`%s %s`, config, acc.TestAccDatasourceConfig())
+	}
+	return config
 }
 
-func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, google *admin.GoogleCloudKMS) string {
-	return fmt.Sprintf(`
+func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, google *admin.GoogleCloudKMS, useDatasource bool) string {
+	config := fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
 
@@ -659,6 +675,11 @@ func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, g
 			}
 		}
 	`, projectID, *google.Enabled, google.GetServiceAccountKey(), google.GetKeyVersionResourceID())
+
+	if useDatasource {
+		return fmt.Sprintf(`%s %s`, config, acc.TestAccDatasourceConfig())
+	}
+	return config
 }
 
 func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName string, awsEar *admin.AWSKMSConfiguration) string {

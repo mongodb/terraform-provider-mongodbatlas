@@ -95,7 +95,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, azureKeyVault, false),
+				Config: acc.ConfigEARAzureKeyVault(projectID, azureKeyVault, false, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(earResourceName, "azure_key_vault_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(earResourceName, "azure_key_vault_config.0.require_private_networking", "false"),
@@ -185,7 +185,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 }
 
 func configPrivateEndpointAzureBasic(projectID string, azure *admin.AzureKeyVault, region string) string {
-	encryptionAtRestConfig := acc.ConfigEARAzureKeyVault(projectID, azure, true)
+	encryptionAtRestConfig := acc.ConfigEARAzureKeyVault(projectID, azure, true, true)
 	return fmt.Sprintf(`
 		%[1]s
 

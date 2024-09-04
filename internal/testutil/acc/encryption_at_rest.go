@@ -6,13 +6,13 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805001/admin"
 )
 
-func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useRequirePrivateNetworking bool) string {
+func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useRequirePrivateNetworking, useDatasource bool) string {
 	var requirePrivateNetworkingAttr string
 	if useRequirePrivateNetworking {
 		requirePrivateNetworkingAttr = fmt.Sprintf("require_private_networking = %t", azure.GetRequirePrivateNetworking())
 	}
 
-	return fmt.Sprintf(`
+	config := fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
 
@@ -29,10 +29,13 @@ func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useReq
 				%s
 			}
 		}
-
-		%s
 	`, projectID, *azure.Enabled, azure.GetClientID(), azure.GetAzureEnvironment(), azure.GetSubscriptionID(), azure.GetResourceGroupName(),
-		azure.GetKeyVaultName(), azure.GetKeyIdentifier(), azure.GetSecret(), azure.GetTenantID(), requirePrivateNetworkingAttr, TestAccDatasourceConfig())
+		azure.GetKeyVaultName(), azure.GetKeyIdentifier(), azure.GetSecret(), azure.GetTenantID(), requirePrivateNetworkingAttr)
+
+	if useDatasource {
+		return fmt.Sprintf(`%s %s`, config, TestAccDatasourceConfig())
+	}
+	return config
 }
 
 func TestAccDatasourceConfig() string {
