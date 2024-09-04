@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+NOTES:
+
+* data-source/mongodbatlas_project: Deprecates the `ip_addresses` attribute. Use the new `mongodbatlas_project_ip_addresses` data source to obtain this information instead. ([#2541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2541))
+* data-source/mongodbatlas_projects: Deprecates the `ip_addresses` attribute. Use the new `mongodbatlas_project_ip_addresses` data source to obtain this information instead. ([#2541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2541))
+* resource/mongodbatlas_project: Deprecates the `ip_addresses` attribute. Use the new `mongodbatlas_project_ip_addresses` data source to obtain this information instead. ([#2541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2541))
+
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_project_ip_addresses` ([#2533](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2533))
