@@ -46,6 +46,11 @@ testacc: fmtcheck
 	@$(eval VERSION=acc)
 	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
+.PHONY: testaccsequential
+testacc: fmtcheck
+	@$(eval VERSION=acc)
+	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel 1 $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
+
 .PHONY: testaccgov
 testaccgov: fmtcheck
 	@$(eval VERSION=acc)
