@@ -56,13 +56,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Description: "Date and time in UTC when the atlas resource policy was last updated.",
 				Computed:    true,
 			},
-			"org_id": schema.StringAttribute{
-				Required:    true,
-				Description: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
-			},
 			"name": schema.StringAttribute{
 				Description: "Human-readable label that describes the atlas resource policy.",
 				Optional:    true,
+			},
+			"org_id": schema.StringAttribute{
+				Description: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
+				Required:    true,
 			},
 			"policies": schema.ListNestedAttribute{
 				Description: "List of policies that make up the atlas resource policy.",
@@ -95,6 +95,7 @@ type TFResourcePolicyModel struct {
 	LastUpdatedByUser types.Object `tfsdk:"last_updated_by_user"`
 	LastUpdatedDate   types.String `tfsdk:"last_updated_date"`
 	Name              types.String `tfsdk:"name"`
+	OrgID             types.String `tfsdk:"org_id"`
 	Policies          types.List   `tfsdk:"policies"`
 	Version           types.String `tfsdk:"version"`
 }
