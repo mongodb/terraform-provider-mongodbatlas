@@ -475,7 +475,7 @@ func flattenProcessArgs(p *admin20240530.ClusterDescriptionProcessArgs, changeSt
 		},
 	}
 	if changeStreamOptionsSeconds != nil {
-		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = &changeStreamOptionsSeconds
+		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = *changeStreamOptionsSeconds
 	}
 	return flattenedProcessArgs
 }
