@@ -58,7 +58,6 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
   * `user_name` - Your Prometheus username.
   * `password`  - Your Prometheus password.
   * `service_discovery` - Indicates which service discovery method is used, either file or http.
-  * `scheme` - Your Prometheus protocol scheme configured for requests. **Note:** This attribute is deprecated as it is not being used.
   * `enabled` - Whether your cluster has Prometheus enabled.
 
 ## Attributes Reference

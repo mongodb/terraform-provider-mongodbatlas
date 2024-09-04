@@ -5,12 +5,11 @@ import (
 	"errors"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -36,16 +35,6 @@ func PluralDataSource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 				Optional: true,
-			},
-			"page_num": {
-				Type:       schema.TypeInt,
-				Optional:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
-			},
-			"items_per_page": {
-				Type:       schema.TypeInt,
-				Optional:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 			},
 			"results": {
 				Type:     schema.TypeList,
@@ -290,6 +279,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		IdpType:              &idpTypes,
 	}
 
+	// iterating all results to be implemented as part of CLOUDP-227485
 	providers, _, err := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings Identity Providers assigned (%s): %s", federationSettingsID, err)

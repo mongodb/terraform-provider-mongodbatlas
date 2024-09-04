@@ -18,7 +18,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v1.59.1 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v1.60.3 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -74,6 +74,7 @@ lint:
 .PHONY: tools
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
+	go telemetry off # disable sending telemetry data, more info: https://go.dev/doc/telemetry
 	go install github.com/icholy/gomajor@latest
 	go install github.com/terraform-linters/tflint@v0.52.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest

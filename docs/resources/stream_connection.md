@@ -96,7 +96,7 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 
 ### DBRoleToExecute
 
-* `role` - The name of the role to use. Can be a built in role or a custom role.
+* `role` - The name of the role to use. Value can be  `atlasAdmin`, `readWriteAnyDatabase`, or `readAnyDatabase` if `type` is set to `BUILT_IN`, or the name of a user-defined role if `type` is set to `CUSTOM`.
 * `type` - Type of the DB role. Can be either BUILT_IN or CUSTOM.
 
 ## Import

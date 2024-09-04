@@ -3,9 +3,12 @@ package acc
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 var (
@@ -49,4 +52,18 @@ func ImportStateClusterIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"]), nil
 	}
+}
+
+func CheckClusterExistsHandlingRetry(projectID, clusterName string) error {
+	return retry.RetryContext(context.Background(), 3*time.Minute, func() *retry.RetryError {
+		_, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
+		if apiError, ok := admin.AsError(err); ok {
+			if apiError.GetErrorCode() == "SERVICE_UNAVAILABLE" {
+				// retrying get operation because for migration test it can be the first time new API is called for a cluster so API responds with temporary error as it transition to enabling ISS FF
+				return retry.RetryableError(err)
+			}
+			return retry.NonRetryableError(err)
+		}
+		return nil
+	})
 }

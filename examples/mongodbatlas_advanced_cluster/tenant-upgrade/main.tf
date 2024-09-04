@@ -9,8 +9,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type = "REPLICASET"
 
   replication_specs {
-    num_shards = 1
-
     region_configs {
       electable_specs {
         instance_size = var.provider_instance_size_name

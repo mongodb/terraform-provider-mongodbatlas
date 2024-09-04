@@ -109,7 +109,7 @@ func TestMigAdvancedCluster_v0StateUpgrade_ReplicationSpecs(t *testing.T) {
 	v0Config := terraform.NewResourceConfigRaw(v0State)
 	diags := advancedcluster.ResourceV0().Validate(v0Config)
 
-	if len(diags) > 0 {
+	if diags.HasError() {
 		fmt.Println(diags)
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
 
@@ -121,7 +121,7 @@ func TestMigAdvancedCluster_v0StateUpgrade_ReplicationSpecs(t *testing.T) {
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
 	diags = advancedcluster.Resource().Validate(v1Config)
-	if len(diags) > 0 {
+	if diags.HasError() {
 		fmt.Println(diags)
 		t.Error("migrated advanced cluster replication_specs invalid")
 

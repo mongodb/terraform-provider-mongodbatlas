@@ -1,9 +1,46 @@
 ## (Unreleased)
 
+## 1.18.1 (August 26, 2024)
+
+## 1.18.0 (August 14, 2024)
+
+BREAKING CHANGES:
+
+* data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Changes `id` attribute from optional to computed only ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_cloud_backup_snapshot_export_job: Changes `id` attribute from optional to computed only ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Removes `created_at` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Removes `job_id` attribute and defines `snapshot_restore_job_id` attribute as required ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Removes `created_at` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_federated_settings_identity_providers: Removes `page_num` and `items_per_page` attributes ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_privatelink_endpoint_service: Removes `endpoints.*.service_attachment_name` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_third_party_integration: Removes `scheme` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* data-source/mongodbatlas_third_party_integrations: Removes `scheme` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* resource/mongodbatlas_cloud_backup_snapshot_restore_job: Removes `created_at` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* resource/mongodbatlas_privatelink_endpoint_service: Removes `endpoints.*.service_attachment_name` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+* resource/mongodbatlas_third_party_integration: Removes `scheme` attribute ([#2499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2499))
+
+NOTES:
+
+* data-source/mongodbatlas_advanced_cluster: Deprecates `replication_specs.#.id`, `replication_specs.#.num_shards`, `disk_size_gb`, `advanced_configuration.0.default_read_concern`, and  `advanced_configuration.0.fail_index_key_too_long`. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide). ([#2420](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2420))
+* data-source/mongodbatlas_advanced_clusters: Deprecates `replication_specs.#.id`, `replication_specs.#.num_shards`, `disk_size_gb`, `advanced_configuration.0.default_read_concern`, and  `advanced_configuration.0.fail_index_key_too_long`. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide). ([#2420](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2420))
+* resource/mongodbatlas_advanced_cluster: Deprecates `replication_specs.#.id`, `replication_specs.#.num_shards`, `disk_size_gb`, `advanced_configuration.0.default_read_concern`, and  `advanced_configuration.0.fail_index_key_too_long`. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide). ([#2420](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2420))
+* resource/mongodbatlas_advanced_cluster: Using this new version impacts the possibility of editing the definition of multi shard clusters in the Atlas UI. This impact is limited to the first weeks of September. ([#2478](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2478))
+
+FEATURES:
+
+* **New Guide:** [Migration Guide: Advanced Cluster New Sharding Schema](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema). This enables Independent Shard Scaling. ([#2505](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2505))
+* **New Guide:** [Migration Guide: Cluster to Advanced Cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide) ([#2505](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2505))
+
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_advanced_cluster: Adds `use_replication_spec_per_shard`, `replication_specs.*.zone_id`, and `replication_specs.*.region_configs.*.(electable_specs|analytics_specs|read_only_specs).disk_size_gb` attributes. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide) and data source documentation. ([#2478](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2478))
+* data-source/mongodbatlas_advanced_clusters: Adds `use_replication_spec_per_shard`, `replication_specs.*.zone_id`, and `replication_specs.*.region_configs.*.(electable_specs|analytics_specs|read_only_specs).disk_size_gb` attributes. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide) and data source documentation. ([#2478](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2478))
+* data-source/mongodbatlas_cloud_backup_schedule: Adds new `use_zone_id_for_copy_settings` and `copy_settings.#.zone_id` attributes and deprecates `copy_settings.#.replication_spec_id`. These new attributes enable you to reference cluster zones using independent shard scaling, which no longer supports `replication_spec.*.id` ([#2464](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2464))
 * data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Adds Azure support ([#2486](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2486))
 * data-source/mongodbatlas_cloud_backup_snapshot_export_buckets: Adds Azure support ([#2486](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2486))
+* resource/mongodbatlas_advanced_cluster: Adds `replication_specs.*.zone_id` and `replication_specs.*.region_configs.*.(electable_specs|analytics_specs|read_only_specs).disk_size_gb` attributes. To learn more, see the [1.18.0 Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide) and resource documentation. ([#2478](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2478))
+* resource/mongodbatlas_advanced_cluster: Supports defining cluster shards with independent `replication_specs` objects. This feature enables defining independent scaled shards. To learn more, see the [Advanced Cluster New Sharding Schema Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema). ([#2478](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2478))
+* resource/mongodbatlas_cloud_backup_schedule: Adds `copy_settings.#.zone_id` and deprecates `copy_settings.#.replication_spec_id` for referencing zones of a cluster. This enables referencing zones of clusters using independent shard scaling which no longer support `replication_spec.*.id`. ([#2459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2459))
 * resource/mongodbatlas_cloud_backup_snapshot_export_bucket: Adds Azure support ([#2486](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2486))
 
 ## 1.17.6 (August 07, 2024)

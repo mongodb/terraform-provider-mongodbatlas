@@ -42,7 +42,7 @@ $ terraform plan
 This project currently supports the below deployments:
 
 - MongoDB Atlas Project
-- MongoDB Atlas Clusters (3 AWS M10 clusters in various regions) 
+- MongoDB Atlas Clusters (2 AWS M10 clusters in different regions) 
 - MongoDB Cloud Backup Schedule(s) with various policies which is set up for each created cluster.
 
 **5\. Execute the Terraform apply.**

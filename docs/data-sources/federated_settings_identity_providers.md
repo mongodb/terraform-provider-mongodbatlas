@@ -2,6 +2,8 @@
 
 `mongodbatlas_federated_settings_identity_providers` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Identity Providers provides federated settings outputs for the configured Identity Providers.
 
+Note: This implementation returns a maximum of 100 results.
+
 ## Example Usage
 
 ```terraform
@@ -24,8 +26,6 @@ data "mongodbatlas_federated_settings_identity_providers" "identitty_provider" {
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
-* `page_num` - (Optional) The page to return. Defaults to `1`. **Note**: This attribute is deprecated and not being used.
-* `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`. **Note**: This attribute is deprecated and not being used. The implementation is currently limited to returning a maximum of 100 results.
 * `protocols` - (Optional) The protocols of the target identity providers. Valid values are `SAML` and `OIDC`.
 * `idp_types` - (Optional) The types of the target identity providers. Valid values are `WORKFORCE` and `WORKLOAD`.
 

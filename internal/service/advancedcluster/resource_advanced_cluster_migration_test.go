@@ -3,6 +3,7 @@ package advancedcluster_test
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -11,11 +12,38 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestMigAdvancedCluster_singleAWSProvider(t *testing.T) {
+// last version that did not support new sharding schema or attributes
+const versionBeforeISSRelease = "1.17.6"
+
+func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
+	testCase := replicaSetAWSProviderTestCase(t)
+	mig.CreateAndRunTest(t, &testCase)
+}
+
+func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
+	testCase := replicaSetMultiCloudTestCase(t)
+	mig.CreateAndRunTest(t, &testCase)
+}
+
+func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
+	testCase := singleShardedMultiCloudTestCase(t)
+	mig.CreateAndRunTest(t, &testCase)
+}
+
+func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
+	testCase := symmetricGeoShardedOldSchemaTestCase(t)
+	mig.CreateAndRunTest(t, &testCase)
+}
+
+func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
+	testCase := asymmetricShardedNewSchemaTestCase(t)
+	mig.CreateAndRunTest(t, &testCase)
+}
+
+func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
-		config      = configSingleProvider(projectID, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -23,21 +51,24 @@ func TestMigAdvancedCluster_singleAWSProvider(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            config,
-				Check:             checkSingleProvider(projectID, clusterName),
+				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
+				Config:            configReplicaSetAWSProvider(projectID, clusterName, 60, 3),
+				Check:             checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, false, false),
 			},
-			mig.TestStepCheckEmptyPlan(config),
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configReplicaSetAWSProvider(projectID, clusterName, 60, 5),
+				Check:                    checkReplicaSetAWSProvider(projectID, clusterName, 60, 5, true, true),
+			},
 		},
 	})
 }
 
-func TestMigAdvancedCluster_multiCloud(t *testing.T) {
+func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName = acc.RandomClusterName()
-		config      = configMultiCloud(orgID, projectName, clusterName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -45,11 +76,75 @@ func TestMigAdvancedCluster_multiCloud(t *testing.T) {
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            config,
-				Check:             checkMultiCloud(clusterName, 3),
+				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
+				Config:            configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false),
+				Check:             checkGeoShardedOldSchema(clusterName, 2, 2, false, false),
 			},
-			mig.TestStepCheckEmptyPlan(config),
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 1, false),
+				Check:                    checkGeoShardedOldSchema(clusterName, 2, 1, true, false),
+			},
+		},
+	})
+}
+
+func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { mig.PreCheckBasic(t) },
+		CheckDestroy: acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
+				Config:            configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
+				Check:             checkShardedTransitionOldToNewSchema(false),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				ExpectError:              regexp.MustCompile("SERVICE_UNAVAILABLE"),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				Check:                    checkShardedTransitionOldToNewSchema(true),
+			},
+		},
+	})
+}
+
+func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { mig.PreCheckBasic(t) },
+		CheckDestroy: acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
+				Config:            configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
+				Check:             checkGeoShardedTransitionOldToNewSchema(false),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				ExpectError:              regexp.MustCompile("SERVICE_UNAVAILABLE"),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				Check:                    checkGeoShardedTransitionOldToNewSchema(true),
+			},
 		},
 	})
 }
