@@ -551,7 +551,7 @@ jobs:
           AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.azure_key_vault_name_updated }}
           AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.azure_key_identifier_updated }}
           MONGODB_ATLAS_ENABLE_PREVIEW: ${{ inputs.mongodb_atlas_enable_preview }}
-        run: make testaccsequential
+        run: make testacc
 
   event_trigger:
     needs: [ change-detection, get-provider-version ]

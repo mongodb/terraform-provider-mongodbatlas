@@ -33,13 +33,13 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		CheckDestroy: acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms, false), // not using data source as it was introduced in 1.19.0
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
@@ -80,7 +80,7 @@ func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		CheckDestroy: acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProvidersWithAWS(),
@@ -91,7 +91,7 @@ func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
@@ -138,15 +138,15 @@ func TestMigEncryptionAtRest_basicAzure(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		CheckDestroy: acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            acc.ConfigEARAzureKeyVault(projectID, &azureKeyVault, false, false), // not using data source as it was introduced in 1.19.0
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					testCheckResourceAttr(resourceName, "azure_key_vault_config.0", attrMap),
+					acc.TestEncryptionAtRestCheckResourceAttr(resourceName, "azure_key_vault_config.0", attrMap),
 				),
 			},
 			{
@@ -179,13 +179,13 @@ func TestMigEncryptionAtRest_basicGCP(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckGPCEnv(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		CheckDestroy: acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKms, false), // not using data source as it was introduced in 1.19.0
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "google_cloud_kms_config.0.key_version_resource_id"),
@@ -224,13 +224,13 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		CheckDestroy: acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProvidersWithAWS("1.11.0"),
 				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms, false), // not using data source as it was introduced in 1.19.0
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
