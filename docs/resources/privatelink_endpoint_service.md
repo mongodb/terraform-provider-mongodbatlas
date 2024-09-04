@@ -2,6 +2,8 @@
 
 `mongodbatlas_privatelink_endpoint_service` provides a Private Endpoint Interface Link resource. This represents a Private Endpoint Interface Link, which adds one [Interface Endpoint](https://www.mongodb.com/docs/atlas/security-private-endpoint/#private-endpoint-concepts) to a private endpoint connection in an Atlas project.
 
+The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest) makes use of this resource and simplifies its use.
+
 ~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource:
   * Organization Owner
   * Project Owner
@@ -191,7 +193,6 @@ In addition to all arguments above, the following attributes are exported:
 * `endpoint_group_name` - (Optional) Unique identifier of the endpoint group. The endpoint group encompasses all of the endpoints that you created in GCP.
 * `endpoints` - Collection of individual private endpoints that comprise your network endpoint group.
   * `status` - Status of the endpoint. Atlas returns one of the [values shown above](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/#std-label-ref-status-field).
-  * `service_attachment_name` - Unique alphanumeric and special character strings that identify the service attachment associated with the endpoint.
 
 ## Import
 Private Endpoint Link Connection can be imported using project ID and username, in the format `{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}`, e.g.

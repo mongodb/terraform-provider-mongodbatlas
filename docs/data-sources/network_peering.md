@@ -4,9 +4,6 @@
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
 
--> **NOTE:** If you need to get an existing container ID see the [How-To Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/howto-guide.html).
-
-
 ## Example Usage
 
 ### Basic Example (AWS).
@@ -57,4 +54,4 @@ In addition to all arguments above, the following attributes are exported:
 * `network_name` - Name of the network peer to which Atlas connects.
 * `error_message` - When `"status" : "FAILED"`, Atlas provides a description of the error.
 
-See detailed information for arguments and attributes: [MongoDB API Network Peering Connection](https://docs.atlas.mongodb.com/reference/api/vpc-get-connection/)
+To learn more about arguments and attributes, see the [MongoDB API Network Peering Connection](https://docs.atlas.mongodb.com/reference/api/vpc-get-connection/) documentation.

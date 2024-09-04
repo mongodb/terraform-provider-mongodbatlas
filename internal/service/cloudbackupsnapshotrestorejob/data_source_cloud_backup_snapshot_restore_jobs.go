@@ -7,10 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805001/admin"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -45,11 +44,6 @@ func PluralDataSource() *schema.Resource {
 						"cancelled": {
 							Type:     schema.TypeBool,
 							Computed: true,
-						},
-						"created_at": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.18.0"),
 						},
 						"delivery_type": {
 							Type:     schema.TypeString,

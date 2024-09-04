@@ -78,8 +78,6 @@ func configPluralDS(federatedSettingsID string, idpType *string, protocols []str
 	return fmt.Sprintf(`
 		data "mongodbatlas_federated_settings_identity_providers" "test" {
 			federation_settings_id = "%[1]s"
-			page_num = 1
-			items_per_page = 100
 			%[2]s
 			%[3]s
 		}

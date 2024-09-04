@@ -18,33 +18,59 @@ resource "mongodbatlas_private_endpoint_regional_mode" "test" {
   enabled    = true
 }
 
-resource "mongodbatlas_cluster" "cluster-atlas" {
-  project_id                   = var.atlasprojectid
-  name                         = var.cluster_name
-  cloud_backup                 = true
-  auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "5.0"
-  cluster_type                 = "GEOSHARDED"
-  replication_specs {
-    zone_name  = "Zone 1"
-    num_shards = 2
-    regions_config {
-      region_name     = var.atlas_region_east
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
+resource "mongodbatlas_advanced_cluster" "cluster_atlas" {
+  project_id     = var.atlasprojectid
+  name           = var.cluster_name
+  cluster_type   = "GEOSHARDED"
+  backup_enabled = true
+
+  replication_specs { # Shard 1
+    zone_name = "Zone 1"
+
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 3
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = var.atlas_region_east
     }
-    regions_config {
-      region_name     = var.atlas_region_west
-      electable_nodes = 2
-      priority        = 6
-      read_only_nodes = 0
+
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 2
+      }
+      provider_name = "AWS"
+      priority      = 6
+      region_name   = var.atlas_region_west
     }
   }
 
-  # Provider settings
-  provider_name               = "AWS"
-  provider_instance_size_name = "M30"
+  replication_specs { # Shard 2
+    zone_name = "Zone 1"
+
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 3
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = var.atlas_region_east
+    }
+
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 2
+      }
+      provider_name = "AWS"
+      priority      = 6
+      region_name   = var.atlas_region_west
+    }
+  }
 
   depends_on = [
     mongodbatlas_privatelink_endpoint_service.test_west,
@@ -78,7 +104,7 @@ resource "aws_vpc_endpoint" "test_west" {
 resource "mongodbatlas_privatelink_endpoint" "test_east" {
   project_id    = "var.atlasprojectid
   provider_name = "AWS"
-  region        = "US_WEST_1"
+  region        = "US_EAST_1"
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "test_east" {
@@ -111,8 +137,8 @@ You can create only sharded clusters when you enable the regionalized private en
 ## Additional Reference
 
 In addition to the example shown above, keep in mind:
-* `mongodbatlas_cluster.cluster-atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint/cluster-geosharded). 
-* `mongodbatlas_cluster.cluster-atlas.connection_strings` will differ based on the value of `mongodbatlas_private_endpoint_regional_mode.test.enabled`.
+* `mongodbatlas_advanced_cluster.cluster_atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint/cluster-geosharded). 
+* `mongodbatlas_advanced_cluster.cluster_atlas.connection_strings` will differ based on the value of `mongodbatlas_private_endpoint_regional_mode.test.enabled`.
 * For more information on usage with GCP, see [our Privatelink Endpoint Service documentation: Example with GCP](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-gcp)
 * For more information on usage with Azure, see [our Privatelink Endpoint Service documentation: Examples with Azure](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-azure)
 

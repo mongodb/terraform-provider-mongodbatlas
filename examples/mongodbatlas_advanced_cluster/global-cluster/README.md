@@ -1,5 +1,5 @@
 # MongoDB Atlas Provider -- Global Cluster 
-This example creates a project and a Global Cluster.
+This example creates a project and a Global Cluster with 2 zones where each zone has two shards.
 
 
 ## Dependencies
@@ -46,7 +46,7 @@ This project currently supports the below deployments:
 
 **3\. Execute the Terraform apply.**
 
-Now execute the plan to provision the Federated settings resources.
+Now execute the plan to provision the Atlas Project and Cluster resources.
 
 ``` bash
 $ terraform apply

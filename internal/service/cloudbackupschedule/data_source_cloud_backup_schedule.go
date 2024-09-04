@@ -7,7 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+)
+
+const (
+	AsymmetricShardsUnsupportedActionDS = "Ensure you use copy_settings.#.zone_id instead of copy_settings.#.replication_spec_id for asymmetric sharded clusters by setting `use_zone_id_for_copy_settings = true`. To learn more, see our examples, documentation, and 1.18.0 migration guide at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 )
 
 func DataSource() *schema.Resource {
@@ -21,6 +26,10 @@ func DataSource() *schema.Resource {
 			"cluster_name": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"use_zone_id_for_copy_settings": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 			"cluster_id": {
 				Type:     schema.TypeString,
@@ -47,6 +56,11 @@ func DataSource() *schema.Resource {
 							Computed: true,
 						},
 						"replication_spec_id": {
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: DeprecationMsgOldSchema,
+						},
+						"zone_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -247,73 +261,49 @@ func DataSource() *schema.Resource {
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
+	useZoneIDForCopySettings := false
 
-	backupPolicy, _, err := connV220240530.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		return diag.Errorf(cluster.ErrorSnapshotBackupPolicyRead, clusterName, err)
-	}
+	var backupSchedule *admin.DiskBackupSnapshotSchedule20240805
+	var backupScheduleOldSDK *admin20240530.DiskBackupSnapshotSchedule
+	var copySettings []map[string]any
+	var err error
 
-	if err := d.Set("cluster_id", backupPolicy.GetClusterId()); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "cluster_id", clusterName, err)
-	}
-
-	if err := d.Set("reference_hour_of_day", backupPolicy.GetReferenceHourOfDay()); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "reference_hour_of_day", clusterName, err)
+	if v, ok := d.GetOk("use_zone_id_for_copy_settings"); ok {
+		useZoneIDForCopySettings = v.(bool)
 	}
 
-	if err := d.Set("reference_minute_of_hour", backupPolicy.GetReferenceMinuteOfHour()); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "reference_minute_of_hour", clusterName, err)
+	if !useZoneIDForCopySettings {
+		backupScheduleOldSDK, _, err = connV220240530.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			if apiError, ok := admin20240530.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
+				return diag.Errorf("%s : %s : %s", errorSnapshotBackupScheduleRead, ErrorOperationNotPermitted, AsymmetricShardsUnsupportedActionDS)
+			}
+			return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
+		}
+
+		copySettings = flattenCopySettingsOldSDK(backupScheduleOldSDK.GetCopySettings())
+		backupSchedule = convertBackupScheduleToLatestExcludeCopySettings(backupScheduleOldSDK)
+	} else {
+		backupSchedule, _, err = connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+		if err != nil {
+			return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
+		}
+		copySettings = FlattenCopySettings(backupSchedule.GetCopySettings())
 	}
 
-	if err := d.Set("restore_window_days", backupPolicy.GetRestoreWindowDays()); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "restore_window_days", clusterName, err)
+	diags := setSchemaFieldsExceptCopySettings(d, backupSchedule)
+	if diags.HasError() {
+		return diags
 	}
 
-	if err := d.Set("next_snapshot", conversion.TimePtrToStringPtr(backupPolicy.NextSnapshot)); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
-	}
-	if err := d.Set("use_org_and_group_names_in_export_prefix", backupPolicy.GetUseOrgAndGroupNamesInExportPrefix()); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "use_org_and_group_names_in_export_prefix", clusterName, err)
-	}
-	if err := d.Set("auto_export_enabled", backupPolicy.GetAutoExportEnabled()); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
-	}
-	if err := d.Set("id_policy", backupPolicy.GetPolicies()[0].GetId()); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
-	}
-	if err := d.Set("export", flattenExport(backupPolicy)); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
-	}
-	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Hourly)); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
-	}
-
-	if err := d.Set("policy_item_daily", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Daily)); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_daily", clusterName, err)
-	}
-
-	if err := d.Set("policy_item_weekly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Weekly)); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_weekly", clusterName, err)
-	}
-
-	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Monthly)); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
-	}
-
-	if err := d.Set("policy_item_yearly", flattenPolicyItem(backupPolicy.GetPolicies()[0].GetPolicyItems(), Yearly)); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_yearly", clusterName, err)
-	}
-
-	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.GetCopySettings())); err != nil {
+	if err := d.Set("copy_settings", copySettings); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
 	}
 
-	if err := d.Set("export", flattenExport(backupPolicy)); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "export", clusterName, err)
-	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
