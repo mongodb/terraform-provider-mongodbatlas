@@ -266,6 +266,7 @@ jobs:
             - 'internal/service/project/*.go'
             - 'internal/service/projectinvitation/*.go'  
             - 'internal/service/projectipaccesslist/*.go'
+            - 'internal/service/projectipaddresses/*.go'
           push_based_log_export:
             - 'internal/service/pushbasedlogexport/*.go'
           search_deployment:
@@ -713,6 +714,7 @@ jobs:
             ./internal/service/project
             ./internal/service/projectinvitation
             ./internal/service/projectipaccesslist
+            ./internal/service/projectipaddresses
         run: make testacc
 
   push_based_log_export:
