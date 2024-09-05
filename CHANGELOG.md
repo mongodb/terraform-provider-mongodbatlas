@@ -12,6 +12,10 @@ FEATURES:
 
 ## 1.18.1 (August 26, 2024)
 
+NOTES:
+
+* resource/mongodbatlas_advanced_cluster: Documentation adjustment in resource and migration guide to clarify potential `Internal Server Error` when applying updates with new sharding configuration ([#2525](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2525))
+
 ## 1.18.0 (August 14, 2024)
 
 BREAKING CHANGES:
