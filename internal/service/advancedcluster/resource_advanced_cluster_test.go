@@ -750,7 +750,6 @@ func configTenant(projectID, name string) string {
 			project_id   = %[1]q
 			name         = %[2]q
 			cluster_type = "REPLICASET"
-			replica_set_scaling_strategy = "WORKLOAD_TYPE"
 
 			replication_specs {
 				region_configs {
@@ -786,8 +785,7 @@ func checkTenant(projectID, name string) resource.TestCheckFunc {
 			"name":                                 name,
 			"termination_protection_enabled":       "false",
 			"global_cluster_self_managed_sharding": "false",
-			"labels.#":                             "0",
-			"replica_set_scaling_strategy":         "WORKLOAD_TYPE"},
+			"labels.#":                             "0"},
 		pluralChecks...)
 }
 
@@ -1530,6 +1528,7 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 			name = %[3]q
 			backup_enabled = false
 			cluster_type   = "SHARDED"
+			replica_set_scaling_strategy = "WORKLOAD_TYPE"
 
 			replication_specs {
 				region_configs {
@@ -1616,7 +1615,7 @@ func checkShardedNewSchema(diskSizeGB int, firstInstanceSize, lastInstanceSize s
 
 	// plural data source checks
 	additionalChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
-		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
+		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding", "results.0.replica_set_scaling_strategy"}...)
 	additionalChecks = acc.AddAttrChecksPrefix(dataSourcePluralName, additionalChecks, clusterChecks, "results.0")
 
 	// expected id attribute only if cluster is symmetric
