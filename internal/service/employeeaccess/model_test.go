@@ -4,23 +4,21 @@ import (
 	"context"
 	"testing"
 
-    "github.com/stretchr/testify/assert"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/employeeaccess"
-	// "go.mongodb.org/atlas-sdk/v20231115003/admin" use latest version
+	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 type sdkToTFModelTestCase struct {
-	SDKResp         *admin.EmployeeAccess
-	expectedTFModel *employeeaccess.TFEmployeeAccessModel
+	SDKResp         *admin.EmployeeAccessGrant
+	expectedTFModel *employeeaccess.TFEmployeeAccessRSModel
 }
 
 func TestEmployeeAccessSDKToTFModel(t *testing.T) {
 	testCases := map[string]sdkToTFModelTestCase{ // TODO: consider adding test cases to contemplate all possible API responses
 		"Complete SDK response": {
-			SDKResp: &admin.EmployeeAccess{
-			},
-			expectedTFModel: &employeeaccess.TFEmployeeAccessModel{
-			},
+			SDKResp:         &admin.EmployeeAccessGrant{},
+			expectedTFModel: &employeeaccess.TFEmployeeAccessRSModel{},
 		},
 	}
 
@@ -35,19 +33,16 @@ func TestEmployeeAccessSDKToTFModel(t *testing.T) {
 	}
 }
 
-
 type tfToSDKModelTestCase struct {
-	tfModel        *employeeaccess.TFEmployeeAccessModel
-	expectedSDKReq *admin.EmployeeAccess
+	tfModel        *employeeaccess.TFEmployeeAccessRSModel
+	expectedSDKReq *admin.EmployeeAccessGrant
 }
 
 func TestEmployeeAccessTFModelToSDK(t *testing.T) {
 	testCases := map[string]tfToSDKModelTestCase{
 		"Complete TF state": {
-			tfModel: &employeeaccess.TFEmployeeAccessModel{
-			},
-			expectedSDKReq: &admin.EmployeeAccess{
-			},
+			tfModel:        &employeeaccess.TFEmployeeAccessRSModel{},
+			expectedSDKReq: &admin.EmployeeAccessGrant{},
 		},
 	}
 
@@ -61,5 +56,3 @@ func TestEmployeeAccessTFModelToSDK(t *testing.T) {
 		})
 	}
 }
-
-
