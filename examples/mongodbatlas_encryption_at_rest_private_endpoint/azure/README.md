@@ -1,4 +1,4 @@
-# MongoDB Atlas Provider -- Encryption At Rest using Customer Key Management via Private Network Interfaces (Azure)
+# MongoDB Atlas Provider - Encryption At Rest using Customer Key Management via Private Network Interfaces (Azure)
 This example shows how to configure encryption at rest using Azure with customer managed keys ensuring all communication with Azure Key Vault happens exclusively over Azure Private Link.
 
 ## Dependencies
@@ -25,7 +25,9 @@ This example shows how to configure encryption at rest using Azure with customer
 - `azure_region_name`: Region in which the Encryption At Rest private endpoint is located
 
 
-NOTE: The Azure application (associated to `azure_client_id`) must have at least a Key Vault Contributor role assigned in the corresponding Key Vault.
+**NOTE**: The Azure application (associated to `azure_client_id`) must have the following permissions associated to the Azure Key Vault (`azure_key_vault_name`):
+- GET (Key Management Operation), ENCRYPT (Cryptographic Operation) and DECRYPT (Cryptographic Operation) policy permissions.
+- A Key Vault Reader role.
 
 **2\. Review the Terraform plan.**
 
@@ -34,11 +36,11 @@ Execute the following command and ensure you are happy with the plan.
 ``` bash
 $ terraform plan
 ```
-This project currently supports the following deployments:
+This project will execute the following changes:
 
-- Configure encryption at rest in an existing project using a custom Azure Key. Specifies that private networking is required.
-- Create a private endpoint for the existing project under a certain Azure region. 
-- Approve the connection from the Azure Key Vault. This is being done through terraform, but alternatively the private connection can be approved through the Azure UI or CLI.
+- Configure encryption at rest in an existing project using a custom Azure Key. For successful private networking configuration, the `requires_private_networking` attribute in `mongodbatlas_encryption_at_rest` is set to true.
+- Create a private endpoint for the existing project under a certain Azure region using `mongodbatlas_encryption_at_rest_private_endpoint`. 
+- Approve the connection from the Azure Key Vault. This is being done through terraform as done with `azapi_update_resource` resource, but alternatively the private connection can be approved through the Azure UI or CLI.
     - CLI example command: `az keyvault private-endpoint-connection approve --approval-description {"OPTIONAL DESCRIPTION"} --resource-group {RG} --vault-name {KEY VAULT NAME} –name {PRIVATE LINK CONNECTION NAME}`
 
 **3\. Execute the Terraform apply.**
