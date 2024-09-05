@@ -7,6 +7,8 @@ Additionally, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_
 
 -> **NOTE:** Only Azure Key Vault with Azure Private Link is supported at this time.
 
+-> **NOTE:** This resource does not support update operations. To modify values of a private endpoint the existing resource must be deleted and a new one can be created with the modified values.
+
 ## Example Usages
 
 ### Configuring Atlas Encryption at Rest using Azure Key Vault with Azure Private Link
