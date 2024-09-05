@@ -128,6 +128,7 @@ Read-Only:
 
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
 - `instance_name` (String) Human-readable label that identifies the stream instance.
+- `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--results--options))
 - `pipeline` (String) Stream aggregation pipeline you want to apply to your streaming data.
 - `processor_name` (String) Human-readable label that identifies the stream processor.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -135,5 +136,21 @@ Read-Only:
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
 - `state` (String) The state of the stream processor.
 - `stats` (String) The stats associated with the stream processor.
+
+<a id="nestedatt--results--options"></a>
+### Nested Schema for `results.options`
+
+Read-Only:
+
+- `dlq` (Attributes) Dead letter queue for the stream processor. (see [below for nested schema](#nestedatt--results--options--dlq))
+
+<a id="nestedatt--results--options--dlq"></a>
+### Nested Schema for `results.options.dlq`
+
+Read-Only:
+
+- `coll` (String) Name of the collection that will be used for the DLQ.
+- `connection_name` (String) Connection name that will be used to write DLQ messages to. Has to be an Atlas connection.
+- `db` (String) Name of the database that will be used for the DLQ.
 
 For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createStreamProcessor) Documentation.

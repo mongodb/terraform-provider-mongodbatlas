@@ -108,6 +108,13 @@ func TestAccStreamProcessor_withOptions(t *testing.T) {
 				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, src, dest),
 				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, true),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"stats"},
+			},
 		}})
 }
 
@@ -278,8 +285,9 @@ func composeStreamProcessorChecks(projectID, instanceName, processorName, state 
 		checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.0.stats", "results.0.pipeline")
 	}
 	if includeOptions {
-		// options are only included on the resource, until https://jira.mongodb.org/browse/CLOUDP-268646 is done
 		checks = acc.AddAttrSetChecks(resourceName, checks, "options.dlq.db", "options.dlq.coll", "options.dlq.connection_name")
+		checks = acc.AddAttrSetChecks(dataSourceName, checks, "options.dlq.db", "options.dlq.coll", "options.dlq.connection_name")
+		checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.0.options.dlq.db", "results.0.options.dlq.coll", "results.0.options.dlq.connection_name")
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }

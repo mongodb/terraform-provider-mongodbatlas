@@ -11,6 +11,43 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/fwtypes"
 )
 
+func optionsSchema(isDatasource bool) schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Attributes: map[string]schema.Attribute{
+			"dlq": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"coll": schema.StringAttribute{
+						Required:            !isDatasource,
+						Computed:            isDatasource,
+						Description:         "Name of the collection that will be used for the DLQ.",
+						MarkdownDescription: "Name of the collection that will be used for the DLQ.",
+					},
+					"connection_name": schema.StringAttribute{
+						Required:            !isDatasource,
+						Computed:            isDatasource,
+						Description:         "Connection name that will be used to write DLQ messages to. Has to be an Atlas connection.",
+						MarkdownDescription: "Connection name that will be used to write DLQ messages to. Has to be an Atlas connection.",
+					},
+					"db": schema.StringAttribute{
+						Required:            !isDatasource,
+						Computed:            isDatasource,
+						Description:         "Name of the database that will be used for the DLQ.",
+						MarkdownDescription: "Name of the database that will be used for the DLQ.",
+					},
+				},
+				Required:            !isDatasource,
+				Computed:            isDatasource,
+				Description:         "Dead letter queue for the stream processor.",
+				MarkdownDescription: "Dead letter queue for the stream processor.",
+			},
+		},
+		Optional:            !isDatasource,
+		Computed:            isDatasource,
+		Description:         "Optional configuration for the stream processor.",
+		MarkdownDescription: "Optional configuration for the stream processor.",
+	}
+}
+
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -49,35 +86,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`.  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.\n\n**NOTE** When a stream processor is created, the only valid states are CREATED or STARTED. A stream processor can be automatically started when creating it if the state is set to STARTED.",
 				MarkdownDescription: "The state of the stream processor. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`.  When a Stream Processor is created without specifying the state, it will default to `CREATED` state.\n\n**NOTE** When a stream processor is created, the only valid states are CREATED or STARTED. A stream processor can be automatically started when creating it if the state is set to STARTED.",
 			},
-			"options": schema.SingleNestedAttribute{
-				Attributes: map[string]schema.Attribute{
-					"dlq": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"coll": schema.StringAttribute{
-								Required:            true,
-								Description:         "Name of the collection that will be used for the DLQ.",
-								MarkdownDescription: "Name of the collection that will be used for the DLQ.",
-							},
-							"connection_name": schema.StringAttribute{
-								Required:            true,
-								Description:         "Connection name that will be used to write DLQ messages to. Has to be an Atlas connection.",
-								MarkdownDescription: "Connection name that will be used to write DLQ messages to. Has to be an Atlas connection.",
-							},
-							"db": schema.StringAttribute{
-								Required:            true,
-								Description:         "Name of the database that will be used for the DLQ.",
-								MarkdownDescription: "Name of the database that will be used for the DLQ.",
-							},
-						},
-						Required:            true,
-						Description:         "Dead letter queue for the stream processor.",
-						MarkdownDescription: "Dead letter queue for the stream processor.",
-					},
-				},
-				Optional:            true,
-				Description:         "Optional configuration for the stream processor.",
-				MarkdownDescription: "Optional configuration for the stream processor.",
-			},
+			"options": optionsSchema(false),
 			"stats": schema.StringAttribute{
 				Computed:            true,
 				Description:         "The stats associated with the stream processor.",

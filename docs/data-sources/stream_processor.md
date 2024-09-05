@@ -117,8 +117,25 @@ output "stream_processors_results" {
 ### Read-Only
 
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
+- `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--options))
 - `pipeline` (String) Stream aggregation pipeline you want to apply to your streaming data.
 - `state` (String) The state of the stream processor.
 - `stats` (String) The stats associated with the stream processor.
+
+<a id="nestedatt--options"></a>
+### Nested Schema for `options`
+
+Read-Only:
+
+- `dlq` (Attributes) Dead letter queue for the stream processor. (see [below for nested schema](#nestedatt--options--dlq))
+
+<a id="nestedatt--options--dlq"></a>
+### Nested Schema for `options.dlq`
+
+Read-Only:
+
+- `coll` (String) Name of the collection that will be used for the DLQ.
+- `connection_name` (String) Connection name that will be used to write DLQ messages to. Has to be an Atlas connection.
+- `db` (String) Name of the database that will be used for the DLQ.
 
 For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createStreamProcessor) Documentation.

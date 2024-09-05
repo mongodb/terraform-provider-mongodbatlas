@@ -27,10 +27,17 @@ var (
 			"connectionName": "__testLog",
 		},
 	}
-	processorName = "processor1"
-	processorID   = "66b39806187592e8d721215d"
-	stateCreated  = streamprocessor.CreatedState
-	stateStarted  = streamprocessor.StartedState
+	processorName        = "processor1"
+	processorID          = "66b39806187592e8d721215d"
+	stateCreated         = streamprocessor.CreatedState
+	stateStarted         = streamprocessor.StartedState
+	streamOptionsExample = admin.StreamsOptions{
+		Dlq: &admin.StreamsDLQ{
+			Coll:           conversion.StringPtr("testColl"),
+			ConnectionName: conversion.StringPtr("testConnection"),
+			Db:             conversion.StringPtr("testDB"),
+		},
+	}
 )
 
 var statsExample = `
@@ -79,7 +86,7 @@ var statsExample = `
 	"status": "running"
 }`
 
-func streamProcessorWithStats(t *testing.T) *admin.StreamsProcessorWithStats {
+func streamProcessorWithStats(t *testing.T, options *admin.StreamsOptions) *admin.StreamsProcessorWithStats {
 	t.Helper()
 	processor := admin.NewStreamsProcessorWithStats(
 		processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateStarted,
@@ -90,14 +97,18 @@ func streamProcessorWithStats(t *testing.T) *admin.StreamsProcessorWithStats {
 		t.Fatal(err)
 	}
 	processor.SetStats(stats)
+	if options != nil {
+		processor.SetOptions(*options)
+	}
 	return processor
 }
 
-func streamProcessorDSTFModel(t *testing.T, state, stats string) *streamprocessor.TFStreamProcessorDSModel {
+func streamProcessorDSTFModel(t *testing.T, state, stats string, options types.Object) *streamprocessor.TFStreamProcessorDSModel {
 	t.Helper()
 	return &streamprocessor.TFStreamProcessorDSModel{
 		ID:            types.StringValue(processorID),
 		InstanceName:  types.StringValue(instanceName),
+		Options:       options,
 		Pipeline:      types.StringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
 		ProcessorName: types.StringValue(processorName),
 		ProjectID:     types.StringValue(projectID),
@@ -105,6 +116,18 @@ func streamProcessorDSTFModel(t *testing.T, state, stats string) *streamprocesso
 		Stats:         conversion.StringNullIfEmpty(stats),
 	}
 }
+
+func optionsToTFModel(t *testing.T, options *admin.StreamsOptions) types.Object {
+	t.Helper()
+	ctx := context.Background()
+	result, diags := streamprocessor.ConvertOptionsToTF(ctx, options)
+	if diags.HasError() {
+		t.Fatal(diags)
+	}
+	assert.NotNil(t, result)
+	return *result
+}
+
 func TestDSSDKToTFModel(t *testing.T) {
 	testCases := []struct {
 		sdkModel        *admin.StreamsProcessorWithStats
@@ -116,12 +139,17 @@ func TestDSSDKToTFModel(t *testing.T) {
 			sdkModel: admin.NewStreamsProcessorWithStats(
 				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			),
-			expectedTFModel: streamProcessorDSTFModel(t, stateCreated, ""),
+			expectedTFModel: streamProcessorDSTFModel(t, stateCreated, "", optionsToTFModel(t, nil)),
 		},
 		{
 			name:            "afterStarted",
-			sdkModel:        streamProcessorWithStats(t),
-			expectedTFModel: streamProcessorDSTFModel(t, stateStarted, statsExample),
+			sdkModel:        streamProcessorWithStats(t, nil),
+			expectedTFModel: streamProcessorDSTFModel(t, stateStarted, statsExample, optionsToTFModel(t, nil)),
+		},
+		{
+			name:            "withOptions",
+			sdkModel:        streamProcessorWithStats(t, &streamOptionsExample),
+			expectedTFModel: streamProcessorDSTFModel(t, stateStarted, statsExample, optionsToTFModel(t, &streamOptionsExample)),
 		},
 	}
 
@@ -132,6 +160,7 @@ func TestDSSDKToTFModel(t *testing.T) {
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
+			assert.Equal(t, tc.expectedTFModel.Options, resultModel.Options)
 			if sdkModel.Stats != nil {
 				assert.True(t, schemafunc.EqualJSON(resultModel.Pipeline.String(), tc.expectedTFModel.Pipeline.String(), "test stream processor schema"))
 				var statsResult any
@@ -172,7 +201,7 @@ func TestSDKToTFModel(t *testing.T) {
 		},
 		{
 			name:     "afterStarted",
-			sdkModel: streamProcessorWithStats(t),
+			sdkModel: streamProcessorWithStats(t, nil),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:  types.StringValue(instanceName),
 				Options:       types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
@@ -184,15 +213,30 @@ func TestSDKToTFModel(t *testing.T) {
 				Stats:         types.StringValue(statsExample),
 			},
 		},
+		{
+			name:     "withOptions",
+			sdkModel: streamProcessorWithStats(t, &streamOptionsExample),
+			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
+				InstanceName:  types.StringValue(instanceName),
+				Options:       optionsToTFModel(t, &streamOptionsExample),
+				ProcessorID:   types.StringValue(processorID),
+				Pipeline:      fwtypes.JSONStringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				ProcessorName: types.StringValue(processorName),
+				ProjectID:     types.StringValue(projectID),
+				State:         types.StringValue("STARTED"),
+				Stats:         types.StringNull(),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
-			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(context.Background(), projectID, instanceName, sdkModel, types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes))
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(context.Background(), projectID, instanceName, sdkModel)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
+			assert.Equal(t, tc.expectedTFModel.Options, resultModel.Options)
 			if sdkModel.Stats != nil {
 				assert.True(t, schemafunc.EqualJSON(resultModel.Pipeline.String(), tc.expectedTFModel.Pipeline.String(), "test stream processor schema"))
 				var statsResult any
@@ -230,7 +274,7 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 			ProjectID:    types.StringValue(projectID),
 			InstanceName: types.StringValue(instanceName),
 			Results: []streamprocessor.TFStreamProcessorDSModel{
-				*streamProcessorDSTFModel(t, stateCreated, ""),
+				*streamProcessorDSTFModel(t, stateCreated, "", optionsToTFModel(t, nil)),
 			},
 		}},
 	}

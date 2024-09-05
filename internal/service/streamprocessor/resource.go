@@ -99,7 +99,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		}
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp, plan.Options)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -128,7 +128,7 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessor, state.Options)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessor)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -204,7 +204,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp, plan.Options)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
