@@ -9,8 +9,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const employeeAccessName = "employee_access" // TODO: if resource exists this can be deleted
-
 var _ datasource.DataSource = &employeeAccessDS{}
 var _ datasource.DataSourceWithConfigure = &employeeAccessDS{}
 
