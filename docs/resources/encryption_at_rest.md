@@ -121,9 +121,9 @@ output "is_azure_encryption_at_rest_valid" {
 ```
 
 #### Manage Customer Keys with Azure Key Vault Over Private Endpoints
-It is possible to configure Atlas Encryption at Rest to communicate with Azure Key Vault using Azure Private Link, ensuring that all traffic between Atlas and Key Vault takes place over Azure’s private network interfaces. This requires making use of `azure_key_vault_config.require_private_networking` attribute, together with the configuration of `mongodbatlas_encryption_at_rest_private_endpoint` resource. 
+It is possible to configure Atlas Encryption at Rest to communicate with Azure Key Vault using Azure Private Link, ensuring that all traffic between Atlas and Key Vault takes place over Azure’s private network interfaces. This requires enabling `azure_key_vault_config.require_private_networking` attribute, together with the configuration of `mongodbatlas_encryption_at_rest_private_endpoint` resource. 
 
-Please review [`mongodbatlas_encryption_at_rest_private_endpoint` resource documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/encryption_at_rest_private_endpoint) for details on this functionality.
+Please review [`mongodbatlas_encryption_at_rest_private_endpoint` resource documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/encryption_at_rest_private_endpoint) and [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest_private_endpoint/azure) for details on this functionality.
 
 
 ### Configuring encryption at rest using customer key management in GCP
