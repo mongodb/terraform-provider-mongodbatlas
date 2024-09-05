@@ -24,17 +24,17 @@ const (
 	dataSourceName       = "data.mongodbatlas_encryption_at_rest_private_endpoint.test"
 	pluralDataSourceName = "data.mongodbatlas_encryption_at_rest_private_endpoints.test"
 	earResourceName      = "mongodbatlas_encryption_at_rest.test"
+	earDatasourceName    = "data.mongodbatlas_encryption_at_rest.test"
 )
 
 func TestAccEncryptionAtRestPrivateEndpoint_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.Test(t, *basicTestCase(t))
 }
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	acc.SkipTestForCI(tb) // needs Azure configuration
 	var (
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
 		azureKeyVault = &admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
 			RequirePrivateNetworking: conversion.Pointer(true),
@@ -44,14 +44,14 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
 			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME")),
 			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
-			Secret:                   conversion.StringPtr(os.Getenv("AZURE_SECRET")),
+			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
 		}
 		region = os.Getenv("AZURE_PRIVATE_ENDPOINT_REGION")
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(tb); acc.PreCheckEncryptionAtRestEnvAzure(tb); acc.PreCheckPreviewFlag(tb) },
+		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckEncryptionAtRestEnvAzure(tb); acc.PreCheckPreviewFlag(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -71,9 +71,8 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 }
 
 func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *testing.T) {
-	acc.SkipTestForCI(t) // needs Azure configuration
 	var (
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
 		azureKeyVault = &admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
 			RequirePrivateNetworking: conversion.Pointer(true),
@@ -83,19 +82,19 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
 			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME")),
 			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
-			Secret:                   conversion.StringPtr(os.Getenv("AZURE_SECRET")),
+			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
 		}
 		region = os.Getenv("AZURE_PRIVATE_ENDPOINT_REGION")
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckEncryptionAtRestEnvAzure(t); acc.PreCheckPreviewFlag(t) },
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckEncryptionAtRestEnvAzure(t); acc.PreCheckPreviewFlag(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, azureKeyVault, false),
+				Config: acc.ConfigEARAzureKeyVault(projectID, azureKeyVault, false, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(earResourceName, "azure_key_vault_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(earResourceName, "azure_key_vault_config.0.require_private_networking", "false"),
@@ -108,6 +107,84 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "status", "PENDING_ACCEPTANCE"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T) {
+	var (
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
+
+		azureKeyVault = admin.AzureKeyVault{
+			Enabled:                  conversion.Pointer(true),
+			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
+			AzureEnvironment:         conversion.StringPtr("AZURE"),
+			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
+			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
+			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME")),
+			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
+			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
+			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
+			RequirePrivateNetworking: conversion.Pointer(true),
+		}
+
+		azureKeyVaultAttrMap = acc.ConvertToAzureKeyVaultEncryptionAtRestAttrMap(&azureKeyVault)
+
+		azureKeyVaultUpdated = admin.AzureKeyVault{
+			Enabled:                  conversion.Pointer(true),
+			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
+			AzureEnvironment:         conversion.StringPtr("AZURE"),
+			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
+			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
+			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED")),
+			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
+			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
+			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
+			RequirePrivateNetworking: conversion.Pointer(false),
+		}
+
+		azureKeyVaultUpdatedAttrMap = acc.ConvertToAzureKeyVaultEncryptionAtRestAttrMap(&azureKeyVaultUpdated)
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckEncryptionAtRestPrivateEndpoint(t)
+			acc.PreCheckEncryptionAtRestEnvAzureWithUpdate(t)
+			acc.PreCheckPreviewFlag(t)
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVault, true, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(earResourceName),
+					resource.TestCheckResourceAttr(earResourceName, "project_id", projectID),
+					acc.TestEncryptionAtRestCheckResourceAttr(earResourceName, "azure_key_vault_config.0", azureKeyVaultAttrMap),
+
+					resource.TestCheckResourceAttr(earDatasourceName, "project_id", projectID),
+					acc.TestEncryptionAtRestCheckResourceAttr(earDatasourceName, "azure_key_vault_config", azureKeyVaultAttrMap),
+				),
+			},
+			{
+				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, true, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(earResourceName),
+					resource.TestCheckResourceAttr(earResourceName, "project_id", projectID),
+					acc.TestEncryptionAtRestCheckResourceAttr(earResourceName, "azure_key_vault_config.0", azureKeyVaultUpdatedAttrMap),
+
+					resource.TestCheckResourceAttr(earDatasourceName, "project_id", projectID),
+					acc.TestEncryptionAtRestCheckResourceAttr(earDatasourceName, "azure_key_vault_config.", azureKeyVaultUpdatedAttrMap),
+				),
+			},
+			{
+				ResourceName:      earResourceName,
+				ImportStateIdFunc: acc.TestAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(earResourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// "azure_key_vault_config.0.secret" is a sensitive value not returned by the API
+				ImportStateVerifyIgnore: []string{"azure_key_vault_config.0.secret"},
 			},
 		},
 	})
@@ -185,7 +262,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 }
 
 func configPrivateEndpointAzureBasic(projectID string, azure *admin.AzureKeyVault, region string) string {
-	encryptionAtRestConfig := acc.ConfigEARAzureKeyVault(projectID, azure, true)
+	encryptionAtRestConfig := acc.ConfigEARAzureKeyVault(projectID, azure, true, true)
 	return fmt.Sprintf(`
 		%[1]s
 

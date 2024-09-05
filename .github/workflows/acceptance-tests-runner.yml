@@ -86,6 +86,15 @@ on:
       mongodb_atlas_federated_settings_associated_domain:
         type: string
         required: true
+      mongodb_atlas_project_ear_pe_id:
+        type: string
+        required: true
+      mongodb_atlas_enable_preview:
+        type: string
+        required: true
+      azure_private_endpoint_region:
+        type: string
+        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -134,6 +143,18 @@ on:
       azure_vnet_name:
         required: true
       azure_vnet_name_updated:
+        required: true
+      azure_client_id:
+        required: true
+      azure_key_vault_name:
+        required: true
+      azure_key_identifier:
+        required: true
+      azure_key_vault_name_updated:
+        required: true
+      azure_key_identifier_updated:
+        required: true
+      azure_app_secret:
         required: true
           
 env:
@@ -238,7 +259,8 @@ jobs:
           data_lake:
             - 'internal/service/datalakepipeline/*.go'
           encryption:
-            - 'internal/service/encryptionatrest/*.go'  
+            - 'internal/service/encryptionatrest/*.go' 
+            - 'internal/service/encryptionatrestprivateendpoint/*.go'
           event_trigger:
             - 'internal/service/eventtrigger/*.go'  
           federated:
@@ -514,7 +536,21 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/service/encryptionatrest
+          ACCTEST_PACKAGES: |
+           ./internal/service/encryptionatrest
+           ./internal/service/encryptionatrestprivateendpoint
+          MONGODB_ATLAS_PROJECT_EAR_PE_ID: ${{ inputs.mongodb_atlas_project_ear_pe_id }}
+          AZURE_PRIVATE_ENDPOINT_REGION: ${{ inputs.azure_private_endpoint_region }}
+          AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
+          AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
+          AZURE_TENANT_ID: ${{ vars.azure_tenant_id }}
+          AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
+          AZURE_KEY_VAULT_NAME: ${{ secrets.azure_key_vault_name }}
+          AZURE_KEY_IDENTIFIER: ${{ secrets.azure_key_identifier }}
+          AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.azure_key_vault_name_updated }}
+          AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.azure_key_identifier_updated }}
+          MONGODB_ATLAS_ENABLE_PREVIEW: ${{ inputs.mongodb_atlas_enable_preview }}
         run: make testacc
 
   event_trigger:
