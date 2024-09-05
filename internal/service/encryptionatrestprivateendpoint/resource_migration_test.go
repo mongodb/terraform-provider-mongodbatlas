@@ -9,5 +9,5 @@ import (
 func TestMigEncryptionAtRestPrivateEndpoint_basic(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.19.0")
 	testCase := basicTestCase(t)
-	mig.CreateAndRunTest(t, testCase)
+	mig.CreateAndRunTestNonParallel(t, testCase)
 }
