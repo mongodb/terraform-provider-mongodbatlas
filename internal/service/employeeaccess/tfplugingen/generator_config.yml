@@ -6,18 +6,14 @@ provider:
 resources:
   employee_access:
     read:
-      path: /api/atlas/v2/*
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: GET
     create:
-      path: /api/atlas/v2/*
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: POST
 
 data_sources:
   employee_access:
     read:
-      path: /api/atlas/v2/*
-      method: GET
-  employee_accesss:
-    read:
-      path: /api/atlas/v2/*
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: GET
