@@ -11,6 +11,8 @@ Additionally, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_
 
 ### Configuring Atlas Encryption at Rest using Azure Key Vault with Azure Private Link
 
+Defining the azure private endpoint resource requires adjusting the related `mongodbatlas_encryption_at_rest` resource attribute `azure_key_vault_config.require_private_networking` to true. Make sure to reference the [complete example section](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest_private_endpoint/azure) for additional details.
+
 ```terraform
 resource "mongodbatlas_encryption_at_rest" "ear" {
   project_id = var.atlas_project_id
