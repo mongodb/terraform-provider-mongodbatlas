@@ -1,19 +1,17 @@
 provider:
   name: mongodbatlas
 
-# TODO: Endpoints from Atlas Admin API must be specified for schema and model generation. Singular or plural data sources can be removed if not used.
-
 resources:
   employee_access:
     read:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: GET
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}:grantMongoDBEmployeeAccess
+      method: POST
     create:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}:grantMongoDBEmployeeAccess
       method: POST
 
 data_sources:
   employee_access:
     read:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: GET
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}:grantMongoDBEmployeeAccess
+      method: POST
