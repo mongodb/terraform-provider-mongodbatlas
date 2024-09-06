@@ -801,16 +801,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
-			if d.HasChange("replica_set_scaling_strategy") {
-				request := &admin.ClusterDescription20240805{
-					ReplicaSetScalingStrategy: conversion.Pointer(d.Get("replica_set_scaling_strategy").(string)),
-				}
-				if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
-					return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
-				}
-				if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
-					return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
-				}
+		} else if d.HasChange("replica_set_scaling_strategy") {
+			request := &admin.ClusterDescription20240805{
+				ReplicaSetScalingStrategy: conversion.Pointer(d.Get("replica_set_scaling_strategy").(string)),
+			}
+			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			}
+			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 		}
 	} else {
