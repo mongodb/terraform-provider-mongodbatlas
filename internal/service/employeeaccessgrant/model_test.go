@@ -1,30 +1,30 @@
-package employeeaccess_test
+package employeeaccessgrant_test
 
 import (
 	"context"
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/employeeaccess"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/employeeaccessgrant"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 type sdkToTFModelTestCase struct {
 	SDKResp         *admin.EmployeeAccessGrant
-	expectedTFModel *employeeaccess.TFEmployeeAccessRSModel
+	expectedTFModel *employeeaccessgrant.TFEmployeeAccessRSModel
 }
 
 func TestEmployeeAccessSDKToTFModel(t *testing.T) {
 	testCases := map[string]sdkToTFModelTestCase{ // TODO: consider adding test cases to contemplate all possible API responses
 		"Complete SDK response": {
 			SDKResp:         &admin.EmployeeAccessGrant{},
-			expectedTFModel: &employeeaccess.TFEmployeeAccessRSModel{},
+			expectedTFModel: &employeeaccessgrant.TFEmployeeAccessRSModel{},
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := employeeaccess.NewTFEmployeeAccess(context.Background(), tc.SDKResp)
+			resultModel, diags := employeeaccessgrant.NewTFEmployeeAccess(context.Background(), tc.SDKResp)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -34,21 +34,21 @@ func TestEmployeeAccessSDKToTFModel(t *testing.T) {
 }
 
 type tfToSDKModelTestCase struct {
-	tfModel        *employeeaccess.TFEmployeeAccessRSModel
+	tfModel        *employeeaccessgrant.TFEmployeeAccessRSModel
 	expectedSDKReq *admin.EmployeeAccessGrant
 }
 
 func TestEmployeeAccessTFModelToSDK(t *testing.T) {
 	testCases := map[string]tfToSDKModelTestCase{
 		"Complete TF state": {
-			tfModel:        &employeeaccess.TFEmployeeAccessRSModel{},
+			tfModel:        &employeeaccessgrant.TFEmployeeAccessRSModel{},
 			expectedSDKReq: &admin.EmployeeAccessGrant{},
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			apiReqResult, diags := employeeaccess.NewEmployeeAccessReq(context.Background(), tc.tfModel)
+			apiReqResult, diags := employeeaccessgrant.NewEmployeeAccessReq(context.Background(), tc.tfModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

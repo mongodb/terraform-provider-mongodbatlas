@@ -1,4 +1,4 @@
-package employeeaccess
+package employeeaccessgrant
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package employeeaccess_test
+package employeeaccessgrant_test
 
 import (
 	"testing"
