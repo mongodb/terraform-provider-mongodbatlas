@@ -535,6 +535,17 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		if err := d.Set("disk_size_gb", clusterOldSDK.GetDiskSizeGB()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 		}
+		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				d.SetId("")
+				return nil
+			}
+			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		}
+		if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
+		}
 
 		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(ctx, projectID, clusterName, connV2)
 		if err != nil {
@@ -789,6 +800,17 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			}
+			if d.HasChange("replica_set_scaling_strategy") {
+				request := &admin.ClusterDescription20240805{
+					ReplicaSetScalingStrategy: conversion.Pointer(d.Get("replica_set_scaling_strategy").(string)),
+				}
+				if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
+					return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+				}
+				if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+					return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+				}
 			}
 		}
 	} else {

@@ -729,12 +729,20 @@ func TestAccAdvancedCluster_replicaSetScalingStrategy(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "WORKLOAD_TYPE"),
+				Config: configReplicaSetScalingStrategyOldSchema(orgID, projectName, clusterName, "WORKLOAD_TYPE"),
 				Check:  checkReplicaSetScalingStrategy("WORKLOAD_TYPE"),
+			},
+			{
+				Config: configReplicaSetScalingStrategyOldSchema(orgID, projectName, clusterName, "SEQUENTIAL"),
+				Check:  checkReplicaSetScalingStrategy("SEQUENTIAL"),
 			},
 			{
 				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "SEQUENTIAL"),
 				Check:  checkReplicaSetScalingStrategy("SEQUENTIAL"),
+			},
+			{
+				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "WORKLOAD_TYPE"),
+				Check:  checkReplicaSetScalingStrategy("WORKLOAD_TYPE"),
 			},
 			{
 				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "NODE_TYPE"),
@@ -1961,6 +1969,53 @@ func configReplicaSetScalingStrategy(orgID, projectName, name, replicaSetScaling
 			replica_set_scaling_strategy = %[4]q
 
 			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size ="M10"
+						node_count    = 3
+						disk_size_gb  = 10
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+						disk_size_gb  = 10
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
+				}
+			}
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+			use_replication_spec_per_shard = true
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			use_replication_spec_per_shard = true
+		}
+	`, orgID, projectName, name, replicaSetScalingStrategy)
+}
+
+func configReplicaSetScalingStrategyOldSchema(orgID, projectName, name, replicaSetScalingStrategy string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
+			backup_enabled = false
+			cluster_type   = "SHARDED"
+			replica_set_scaling_strategy = %[4]q
+
+			replication_specs {
+				num_shards = 2
 				region_configs {
 					electable_specs {
 						instance_size ="M10"
