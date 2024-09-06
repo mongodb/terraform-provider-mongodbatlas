@@ -5,7 +5,7 @@
 ~> **IMPORTANT** The Encryption at Rest using Azure Key Vault over Private Endpoints feature is available by request. To request this functionality for your Atlas deployments, contact your Account Manager. 
 Additionally, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_PREVIEW=true` to use this resource. To learn more about existing limitations, see the [Manage Customer Keys with Azure Key Vault Over Private Endpoints](https://www.mongodb.com/docs/atlas/security/azure-kms-over-private-endpoint/#manage-customer-keys-with-azure-key-vault-over-private-endpoints).
 
--> **NOTE:** As a prerequisite to configuring a private endpoint for Azure Key Vault, the corresponding [`mongodbatlas_encryption_at_rest`](encryption_at_rest) resource has to be adjust by configuring [`azure_key_vault_config.require_private_networking`](encryption_at_rest#require_private_networking) to true. This attribute can be updated in place, ensuring the customer-managed keys configuration is never disabled.
+-> **NOTE:** As a prerequisite to configuring a private endpoint for Azure Key Vault, the corresponding [`mongodbatlas_encryption_at_rest`](encryption_at_rest) resource has to be adjust by configuring [`azure_key_vault_config.require_private_networking`](encryption_at_rest#require_private_networking) to true. This attribute should be updated in place, ensuring the customer-managed keys encryption is never disabled.
 
 -> **NOTE:** This resource does not support update operations. To modify values of a private endpoint the existing resource must be deleted and a new one can be created with the modified values.
 
