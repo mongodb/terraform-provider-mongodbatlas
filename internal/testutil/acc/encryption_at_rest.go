@@ -38,18 +38,18 @@ func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useReq
 		azure.GetKeyVaultName(), azure.GetKeyIdentifier(), azure.GetSecret(), azure.GetTenantID(), requirePrivateNetworkingAttr)
 
 	if useDatasource {
-		return fmt.Sprintf(`%s %s`, config, TestAccDatasourceConfig())
+		return fmt.Sprintf(`%s %s`, config, EARDatasourceConfig())
 	}
 	return config
 }
 
-func TestAccDatasourceConfig() string {
+func EARDatasourceConfig() string {
 	return `data "mongodbatlas_encryption_at_rest" "test" {
 			project_id = mongodbatlas_encryption_at_rest.test.project_id
 		}`
 }
 
-func TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resource.TestCheckFunc {
+func CheckEARExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -65,7 +65,7 @@ func TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resourc
 	}
 }
 
-func ConvertToAzureKeyVaultEncryptionAtRestAttrMap(az *admin.AzureKeyVault) map[string]string {
+func ConvertToAzureKeyVaultEARAttrMap(az *admin.AzureKeyVault) map[string]string {
 	return map[string]string{
 		"enabled":                    strconv.FormatBool(az.GetEnabled()),
 		"azure_environment":          az.GetAzureEnvironment(),
@@ -79,13 +79,13 @@ func ConvertToAzureKeyVaultEncryptionAtRestAttrMap(az *admin.AzureKeyVault) map[
 	}
 }
 
-func TestEncryptionAtRestCheckResourceAttr(resourceName, prefix string, attrsMap map[string]string) resource.TestCheckFunc {
+func EARCheckResourceAttr(resourceName, prefix string, attrsMap map[string]string) resource.TestCheckFunc {
 	checks := AddAttrChecksPrefix(resourceName, []resource.TestCheckFunc{}, attrsMap, prefix)
 
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func TestAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
+func EARDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_encryption_at_rest" {
 			continue
@@ -102,7 +102,7 @@ func TestAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
 	return nil
 }
 
-func TestAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func EARImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

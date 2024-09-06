@@ -57,11 +57,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configPrivateEndpointAzureBasic(projectID, azureKeyVault, region, false),
-				Check:  checkPrivateEndpointAzureBasic(projectID, azureKeyVault, region, false),
+				Config: configAzureBasic(projectID, azureKeyVault, region, false),
+				Check:  checkAzureBasic(projectID, azureKeyVault, region, false),
 			},
 			{
-				Config:            configPrivateEndpointAzureBasic(projectID, azureKeyVault, region, false),
+				Config:            configAzureBasic(projectID, azureKeyVault, region, false),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -101,17 +101,17 @@ func TestAccEncryptionAtRestPrivateEndpoint_approveEndpointWithAzureProvider(t *
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configPrivateEndpointAzureBasic(projectID, azureKeyVault, region, false),
-				Check:  checkPrivateEndpointAzureBasic(projectID, azureKeyVault, region, false),
+				Config: configAzureBasic(projectID, azureKeyVault, region, false),
+				Check:  checkAzureBasic(projectID, azureKeyVault, region, false),
 			},
 			{
-				Config: configPrivateEndpointAzureBasic(projectID, azureKeyVault, region, true),
+				Config: configAzureBasic(projectID, azureKeyVault, region, true),
 			},
 			{
 				PreConfig:    waitForStatusUpdate,
 				RefreshState: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkPrivateEndpointAzureBasic(projectID, azureKeyVault, region, true),
+					checkAzureBasic(projectID, azureKeyVault, region, true),
 				),
 			},
 		},
@@ -149,7 +149,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 				),
 			},
 			{
-				Config: configPrivateEndpointAzureBasic(projectID, azureKeyVault, region, false),
+				Config: configAzureBasic(projectID, azureKeyVault, region, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(earResourceName, "azure_key_vault_config.0.require_private_networking", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -177,7 +177,7 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 
-		azureKeyVaultAttrMap = acc.ConvertToAzureKeyVaultEncryptionAtRestAttrMap(&azureKeyVault)
+		azureKeyVaultAttrMap = acc.ConvertToAzureKeyVaultEARAttrMap(&azureKeyVault)
 
 		azureKeyVaultUpdated = admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
@@ -192,7 +192,7 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 
-		azureKeyVaultUpdatedAttrMap = acc.ConvertToAzureKeyVaultEncryptionAtRestAttrMap(&azureKeyVaultUpdated)
+		azureKeyVaultUpdatedAttrMap = acc.ConvertToAzureKeyVaultEARAttrMap(&azureKeyVaultUpdated)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -202,33 +202,33 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 			acc.PreCheckPreviewFlag(t)
 		},
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVault, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(earResourceName),
+					acc.CheckEARExists(earResourceName),
 					resource.TestCheckResourceAttr(earResourceName, "project_id", projectID),
-					acc.TestEncryptionAtRestCheckResourceAttr(earResourceName, "azure_key_vault_config.0", azureKeyVaultAttrMap),
+					acc.EARCheckResourceAttr(earResourceName, "azure_key_vault_config.0", azureKeyVaultAttrMap),
 
 					resource.TestCheckResourceAttr(earDatasourceName, "project_id", projectID),
-					acc.TestEncryptionAtRestCheckResourceAttr(earDatasourceName, "azure_key_vault_config", azureKeyVaultAttrMap),
+					acc.EARCheckResourceAttr(earDatasourceName, "azure_key_vault_config", azureKeyVaultAttrMap),
 				),
 			},
 			{
 				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(earResourceName),
+					acc.CheckEARExists(earResourceName),
 					resource.TestCheckResourceAttr(earResourceName, "project_id", projectID),
-					acc.TestEncryptionAtRestCheckResourceAttr(earResourceName, "azure_key_vault_config.0", azureKeyVaultUpdatedAttrMap),
+					acc.EARCheckResourceAttr(earResourceName, "azure_key_vault_config.0", azureKeyVaultUpdatedAttrMap),
 
 					resource.TestCheckResourceAttr(earDatasourceName, "project_id", projectID),
-					acc.TestEncryptionAtRestCheckResourceAttr(earDatasourceName, "azure_key_vault_config.", azureKeyVaultUpdatedAttrMap),
+					acc.EARCheckResourceAttr(earDatasourceName, "azure_key_vault_config.", azureKeyVaultUpdatedAttrMap),
 				),
 			},
 			{
 				ResourceName:      earResourceName,
-				ImportStateIdFunc: acc.TestAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(earResourceName),
+				ImportStateIdFunc: acc.EARImportStateIDFunc(earResourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 				// "azure_key_vault_config.0.secret" is a sensitive value not returned by the API
@@ -309,7 +309,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configPrivateEndpointAzureBasic(projectID string, azure *admin.AzureKeyVault, region string, approveWithAzapi bool) string {
+func configAzureBasic(projectID string, azure *admin.AzureKeyVault, region string, approveWithAzapi bool) string {
 	encryptionAtRestConfig := acc.ConfigEARAzureKeyVault(projectID, azure, true, true)
 	config := fmt.Sprintf(`
 		%[1]s
@@ -361,7 +361,7 @@ func configPrivateEndpointAzureBasic(projectID string, azure *admin.AzureKeyVaul
 	return config
 }
 
-func checkPrivateEndpointAzureBasic(projectID string, azure *admin.AzureKeyVault, region string, expectApproved bool) resource.TestCheckFunc {
+func checkAzureBasic(projectID string, azure *admin.AzureKeyVault, region string, expectApproved bool) resource.TestCheckFunc {
 	expectedStatus := retrystrategy.RetryStrategyPendingAcceptanceState
 	if expectApproved {
 		expectedStatus = retrystrategy.RetryStrategyActiveState

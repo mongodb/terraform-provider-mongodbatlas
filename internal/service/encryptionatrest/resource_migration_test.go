@@ -34,20 +34,20 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		CheckDestroy: acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		CheckDestroy: acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms, useDatasource), // not using data source as it was introduced in 1.19.0
+				Config:            configAwsKms(projectID, &awsKms, useDatasource),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms, useDatasource)),
+			mig.TestStepCheckEmptyPlan(configAwsKms(projectID, &awsKms, useDatasource)),
 		},
 	})
 }
@@ -72,7 +72,7 @@ func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		CheckDestroy: acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		CheckDestroy: acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProvidersWithAWS(),
@@ -83,7 +83,7 @@ func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
@@ -132,15 +132,15 @@ func TestMigEncryptionAtRest_basicAzure(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
-		CheckDestroy: acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		CheckDestroy: acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            acc.ConfigEARAzureKeyVault(projectID, &azureKeyVault, false, useDatasource), // not using data source as it was introduced in 1.19.0
+				Config:            acc.ConfigEARAzureKeyVault(projectID, &azureKeyVault, false, useDatasource),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					acc.TestEncryptionAtRestCheckResourceAttr(resourceName, "azure_key_vault_config.0", attrMap),
+					acc.EARCheckResourceAttr(resourceName, "azure_key_vault_config.0", attrMap),
 				),
 			},
 			mig.TestStepCheckEmptyPlan(acc.ConfigEARAzureKeyVault(projectID, &azureKeyVault, false, useDatasource)),
@@ -165,19 +165,19 @@ func TestMigEncryptionAtRest_basicGCP(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckGPCEnv(t) },
-		CheckDestroy: acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		CheckDestroy: acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKms, useDatasource), // not using data source as it was introduced in 1.19.0
+				Config:            configGoogleCloudKms(projectID, &googleCloudKms, useDatasource),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "google_cloud_kms_config.0.key_version_resource_id"),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKms, useDatasource)),
+			mig.TestStepCheckEmptyPlan(configGoogleCloudKms(projectID, &googleCloudKms, useDatasource)),
 		},
 	})
 }
@@ -202,20 +202,20 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
-		CheckDestroy: acc.TestAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		CheckDestroy: acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProvidersWithAWS("1.11.0"),
-				Config:            testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms, useDatasource), // not using data source as it was introduced in 1.19.0
+				Config:            configAwsKms(projectID, &awsKms, useDatasource),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.TestAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms, useDatasource)),
+			mig.TestStepCheckEmptyPlan(configAwsKms(projectID, &awsKms, useDatasource)),
 		},
 	})
 }
