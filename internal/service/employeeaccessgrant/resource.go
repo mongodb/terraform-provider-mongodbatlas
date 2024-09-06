@@ -29,12 +29,24 @@ func (r *employeeAccessGrantRS) Schema(ctx context.Context, req resource.SchemaR
 }
 
 func (r *employeeAccessGrantRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var tfPlan TFEmployeeAccessGrantModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfPlan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, tfPlan)...)
 }
 
 func (r *employeeAccessGrantRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 }
 
 func (r *employeeAccessGrantRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var tfPlan TFEmployeeAccessGrantModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfPlan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, tfPlan)...)
 }
 
 func (r *employeeAccessGrantRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
