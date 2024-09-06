@@ -729,6 +729,34 @@ func TestAccAdvancedCluster_replicaSetScalingStrategy(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
+				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "WORKLOAD_TYPE"),
+				Check:  checkReplicaSetScalingStrategy("WORKLOAD_TYPE"),
+			},
+			{
+				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "SEQUENTIAL"),
+				Check:  checkReplicaSetScalingStrategy("SEQUENTIAL"),
+			},
+			{
+				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "NODE_TYPE"),
+				Check:  checkReplicaSetScalingStrategy("NODE_TYPE"),
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_replicaSetScalingStrategyOldSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
 				Config: configReplicaSetScalingStrategyOldSchema(orgID, projectName, clusterName, "WORKLOAD_TYPE"),
 				Check:  checkReplicaSetScalingStrategy("WORKLOAD_TYPE"),
 			},
@@ -737,15 +765,7 @@ func TestAccAdvancedCluster_replicaSetScalingStrategy(t *testing.T) {
 				Check:  checkReplicaSetScalingStrategy("SEQUENTIAL"),
 			},
 			{
-				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "SEQUENTIAL"),
-				Check:  checkReplicaSetScalingStrategy("SEQUENTIAL"),
-			},
-			{
-				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "WORKLOAD_TYPE"),
-				Check:  checkReplicaSetScalingStrategy("WORKLOAD_TYPE"),
-			},
-			{
-				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "NODE_TYPE"),
+				Config: configReplicaSetScalingStrategyOldSchema(orgID, projectName, clusterName, "NODE_TYPE"),
 				Check:  checkReplicaSetScalingStrategy("NODE_TYPE"),
 			},
 		},
