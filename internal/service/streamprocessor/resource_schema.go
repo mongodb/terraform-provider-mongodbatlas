@@ -37,8 +37,8 @@ func optionsSchema(isDatasource bool) schema.SingleNestedAttribute {
 				},
 				Required:            !isDatasource,
 				Computed:            isDatasource,
-				Description:         "Dead letter queue for the stream processor. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) contain more information.",
-				MarkdownDescription: "Dead letter queue for the stream processor. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) contain more information.",
+				Description:         "Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information.",
+				MarkdownDescription: "Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information.",
 			},
 		},
 		Optional:            !isDatasource,
@@ -93,8 +93,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"options": optionsSchema(false),
 			"stats": schema.StringAttribute{
 				Computed:            true,
-				Description:         "The stats associated with the stream processor. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) contain more information.",
-				MarkdownDescription: "The stats associated with the stream processor. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) contain more information.",
+				Description:         "The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.",
+				MarkdownDescription: "The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.",
 			},
 		},
 	}
