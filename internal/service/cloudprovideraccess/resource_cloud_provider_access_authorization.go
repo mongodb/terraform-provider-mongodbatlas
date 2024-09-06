@@ -260,7 +260,7 @@ func resourceCloudProviderAccessAuthorizationStateUpgradeV0(ctx context.Context,
 }
 
 func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.ResourceData, projectID string, targetRole *admin.CloudProviderAccessRole) diag.Diagnostics {
-	req := &admin.CloudProviderAccessRole{
+	req := &admin.CloudProviderAccessRoleRequestUpdate{
 		ProviderName: targetRole.ProviderName,
 	}
 
