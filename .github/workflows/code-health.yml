@@ -75,6 +75,8 @@ jobs:
         run: export resource_name=push_based_log_export && make generate-doc
       - name: Doc for search_deployment
         run: export resource_name=search_deployment && make generate-doc
+      - name: Doc for project_ip_addresses
+        run: export resource_name=project_ip_addresses && make generate-doc
       - name: Doc for stream_processor
         run: export resource_name=stream_processor && make generate-doc
       - name: Find mutations
