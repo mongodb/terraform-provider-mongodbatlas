@@ -2,12 +2,13 @@
 # Development Best Practices
 
 ## Table of Contents
-- [Creating New Resource and Data Sources](#creating-new-resources-and-data-sources)
-    - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
-    - [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions)
-
-- Each resource (and associated data sources) is in a package in `internal/service`.
-- There can be multiple helper files and they can also be used from other resources, e.g. `common_advanced_cluster.go` defines functions that are also used from other resources using `advancedcluster.FunctionName`.
+- [Development Best Practices](#development-best-practices)
+  - [Table of Contents](#table-of-contents)
+    - [Creating New Resource and Data Sources](#creating-new-resource-and-data-sources)
+      - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
+      - [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions)
+        - [Running the command](#running-the-command)
+        - [Considerations over generated schema and types](#considerations-over-generated-schema-and-types)
 
 ### Creating New Resource and Data Sources
 
@@ -36,6 +37,7 @@ Both `tfplugingen-openapi` and `tfplugingen-framework` must be installed. This c
 
 The command takes a single argument which specifies the resource or data source where the code generation is run, defined in camel case, e.g.:
 ```bash
+export SDK_BRANCH=dev-latest # only necessary if your API endpoints haven't been released yet.
 make scaffold-schemas resource_name=streamInstance
 ```
 
