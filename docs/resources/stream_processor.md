@@ -139,14 +139,14 @@ output "stream_processors_results" {
 ### Read-Only
 
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
-- `stats` (String) The stats associated with the stream processor. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) contain more information.
+- `stats` (String) The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.
 
 <a id="nestedatt--options"></a>
 ### Nested Schema for `options`
 
 Required:
 
-- `dlq` (Attributes) Dead letter queue for the stream processor. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) contain more information. (see [below for nested schema](#nestedatt--options--dlq))
+- `dlq` (Attributes) Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information. (see [below for nested schema](#nestedatt--options--dlq))
 
 <a id="nestedatt--options--dlq"></a>
 ### Nested Schema for `options.dlq`

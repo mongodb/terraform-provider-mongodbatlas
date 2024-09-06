@@ -127,7 +127,7 @@ output "stream_processors_results" {
 
 Read-Only:
 
-- `dlq` (Attributes) Dead letter queue for the stream processor. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) contain more information. (see [below for nested schema](#nestedatt--options--dlq))
+- `dlq` (Attributes) Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information. (see [below for nested schema](#nestedatt--options--dlq))
 
 <a id="nestedatt--options--dlq"></a>
 ### Nested Schema for `options.dlq`
