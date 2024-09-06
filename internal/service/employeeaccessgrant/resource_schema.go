@@ -35,7 +35,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
-type TFEmployeeAccessModel struct {
+type TFEmployeeAccessGrantModel struct {
 	ProjectID      types.String `tfsdk:"group_id"`
 	ClusterName    types.String `tfsdk:"cluster_name"`
 	GrantType      types.String `tfsdk:"grant_type"`

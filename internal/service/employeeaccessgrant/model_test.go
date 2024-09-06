@@ -11,20 +11,20 @@ import (
 
 type sdkToTFModelTestCase struct {
 	SDKResp         *admin.EmployeeAccessGrant
-	expectedTFModel *employeeaccessgrant.TFEmployeeAccessModel
+	expectedTFModel *employeeaccessgrant.TFEmployeeAccessGrantModel
 }
 
-func TestEmployeeAccessSDKToTFModel(t *testing.T) {
+func TestEmployeeAccessGrantSDKToTFModel(t *testing.T) {
 	testCases := map[string]sdkToTFModelTestCase{ // TODO: consider adding test cases to contemplate all possible API responses
 		"Complete SDK response": {
 			SDKResp:         &admin.EmployeeAccessGrant{},
-			expectedTFModel: &employeeaccessgrant.TFEmployeeAccessModel{},
+			expectedTFModel: &employeeaccessgrant.TFEmployeeAccessGrantModel{},
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := employeeaccessgrant.NewTFEmployeeAccess(context.Background(), tc.SDKResp)
+			resultModel, diags := employeeaccessgrant.NewTFEmployeeAccessGrant(context.Background(), tc.SDKResp)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -34,21 +34,21 @@ func TestEmployeeAccessSDKToTFModel(t *testing.T) {
 }
 
 type tfToSDKModelTestCase struct {
-	tfModel        *employeeaccessgrant.TFEmployeeAccessModel
+	tfModel        *employeeaccessgrant.TFEmployeeAccessGrantModel
 	expectedSDKReq *admin.EmployeeAccessGrant
 }
 
-func TestEmployeeAccessTFModelToSDK(t *testing.T) {
+func TestEmployeeAccessGrantTFModelToSDK(t *testing.T) {
 	testCases := map[string]tfToSDKModelTestCase{
 		"Complete TF state": {
-			tfModel:        &employeeaccessgrant.TFEmployeeAccessModel{},
+			tfModel:        &employeeaccessgrant.TFEmployeeAccessGrantModel{},
 			expectedSDKReq: &admin.EmployeeAccessGrant{},
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			apiReqResult, diags := employeeaccessgrant.NewEmployeeAccessReq(context.Background(), tc.tfModel)
+			apiReqResult, diags := employeeaccessgrant.NewEmployeeAccessGrantReq(context.Background(), tc.tfModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

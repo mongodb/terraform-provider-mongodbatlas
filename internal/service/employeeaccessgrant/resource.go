@@ -7,36 +7,36 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const employeeAccessName = "employee_access"
+const employeeAccessGrantName = "employee_access_grant"
 
-var _ resource.ResourceWithConfigure = &employeeAccessRS{}
-var _ resource.ResourceWithImportState = &employeeAccessRS{}
+var _ resource.ResourceWithConfigure = &employeeAccessGrantRS{}
+var _ resource.ResourceWithImportState = &employeeAccessGrantRS{}
 
 func Resource() resource.Resource {
-	return &employeeAccessRS{
+	return &employeeAccessGrantRS{
 		RSCommon: config.RSCommon{
-			ResourceName: employeeAccessName,
+			ResourceName: employeeAccessGrantName,
 		},
 	}
 }
 
-type employeeAccessRS struct {
+type employeeAccessGrantRS struct {
 	config.RSCommon
 }
 
-func (r *employeeAccessRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *employeeAccessGrantRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	// TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = ResourceSchema(ctx)
 }
 
-func (r *employeeAccessRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var employeeAccessPlan TFEmployeeAccessModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &employeeAccessPlan)...)
+func (r *employeeAccessGrantRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var employeeAccessGrantPlan TFEmployeeAccessGrantModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &employeeAccessGrantPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// employeeAccessReq, diags := NewEmployeeAccessReq(ctx, &employeeAccessPlan)
+	// employeeAccessGrantReq, diags := NewEmployeeAccessReq(ctx, &employeeAccessGrantPlan)
 	// if diags.HasError() {
 	//		resp.Diagnostics.Append(diags...)
 	//		return
@@ -59,9 +59,9 @@ func (r *employeeAccessRS) Create(ctx context.Context, req resource.CreateReques
 	// resp.Diagnostics.Append(resp.State.Set(ctx, newEmployeeAccessModel)...)
 }
 
-func (r *employeeAccessRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var employeeAccessState TFEmployeeAccessModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &employeeAccessState)...)
+func (r *employeeAccessGrantRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var employeeAccessGrantState TFEmployeeAccessGrantModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &employeeAccessGrantState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -87,14 +87,14 @@ func (r *employeeAccessRS) Read(ctx context.Context, req resource.ReadRequest, r
 	// resp.Diagnostics.Append(resp.State.Set(ctx, newEmployeeAccessModel)...)
 }
 
-func (r *employeeAccessRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var employeeAccessPlan TFEmployeeAccessModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &employeeAccessPlan)...)
+func (r *employeeAccessGrantRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var employeeAccessGrantPlan TFEmployeeAccessGrantModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &employeeAccessGrantPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// employeeAccessReq, diags := NewEmployeeAccessReq(ctx, &employeeAccessPlan)
+	// employeeAccessGrantReq, diags := NewEmployeeAccessReq(ctx, &employeeAccessGrantPlan)
 	// if diags.HasError() {
 	// 	resp.Diagnostics.Append(diags...)
 	//	return
@@ -117,9 +117,9 @@ func (r *employeeAccessRS) Update(ctx context.Context, req resource.UpdateReques
 	// resp.Diagnostics.Append(resp.State.Set(ctx, newEmployeeAccessModel)...)
 }
 
-func (r *employeeAccessRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var employeeAccessState *TFEmployeeAccessModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &employeeAccessState)...)
+func (r *employeeAccessGrantRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var employeeAccessGrantState *TFEmployeeAccessGrantModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &employeeAccessGrantState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -133,10 +133,10 @@ func (r *employeeAccessRS) Delete(ctx context.Context, req resource.DeleteReques
 	// }
 }
 
-func (r *employeeAccessRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *employeeAccessGrantRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// TODO: parse req.ID string taking into account documented format. Example:
 
-	// projectID, other, err := splitEmployeeAccessImportID(req.ID)
+	// projectID, other, err := splitEmployeeAccessGrantImportID(req.ID)
 	// if err != nil {
 	//	resp.Diagnostics.AddError("error splitting import ID", err.Error())
 	//	return

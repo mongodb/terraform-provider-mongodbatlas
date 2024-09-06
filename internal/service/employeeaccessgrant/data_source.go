@@ -7,29 +7,29 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-var _ datasource.DataSource = &employeeAccessDS{}
-var _ datasource.DataSourceWithConfigure = &employeeAccessDS{}
+var _ datasource.DataSource = &employeeAccessGrantDS{}
+var _ datasource.DataSourceWithConfigure = &employeeAccessGrantDS{}
 
 func DataSource() datasource.DataSource {
-	return &employeeAccessDS{
+	return &employeeAccessGrantDS{
 		DSCommon: config.DSCommon{
-			DataSourceName: employeeAccessName,
+			DataSourceName: employeeAccessGrantName,
 		},
 	}
 }
 
-type employeeAccessDS struct {
+type employeeAccessGrantDS struct {
 	config.DSCommon
 }
 
-func (d *employeeAccessDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *employeeAccessGrantDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	// TODO: Schema and model must be defined in data_source_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = DataSourceSchema(ctx)
 }
 
-func (d *employeeAccessDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var employeeAccessConfig TFEmployeeAccessModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &employeeAccessConfig)...)
+func (d *employeeAccessGrantDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var employeeAccessGrantConfig TFEmployeeAccessGrantModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &employeeAccessGrantConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -43,10 +43,10 @@ func (d *employeeAccessDS) Read(ctx context.Context, req datasource.ReadRequest,
 	// }
 
 	// TODO: process response into new terraform state
-	// newEmployeeAccessModel, diags := NewTFEmployeeAccess(ctx, apiResp)
+	// newEmployeeAccessGrantModel, diags := NewTFEmployeeAccessGrant(ctx, apiResp)
 	// if diags.HasError() {
 	//	resp.Diagnostics.Append(diags...)
 	//	return
 	// }
-	// resp.Diagnostics.Append(resp.State.Set(ctx, newEmployeeAccessModel)...)
+	// resp.Diagnostics.Append(resp.State.Set(ctx, newEmployeeAccessGrantModel)...)
 }

@@ -8,17 +8,17 @@ import (
 )
 
 // TODO: `ctx` parameter and `diags` return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
-func NewTFEmployeeAccess(ctx context.Context, apiResp *admin.EmployeeAccessGrant) (*TFEmployeeAccessModel, diag.Diagnostics) {
+func NewTFEmployeeAccessGrant(ctx context.Context, apiResp *admin.EmployeeAccessGrant) (*TFEmployeeAccessGrantModel, diag.Diagnostics) {
 	// complexAttr, diagnostics := types.ListValueFrom(ctx, InnerObjectType, newTFComplexAttrModel(apiResp.ComplexAttr))
 	// if diagnostics.HasError() {
 	// 	return nil, diagnostics
 	// }
-	return &TFEmployeeAccessModel{}, nil
+	return &TFEmployeeAccessGrantModel{}, nil
 }
 
 // TODO: If SDK defined different models for create and update separate functions will need to be defined.
 // TODO: `ctx` parameter and `diags` in return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
-func NewEmployeeAccessReq(ctx context.Context, plan *TFEmployeeAccessModel) (*admin.EmployeeAccessGrant, diag.Diagnostics) {
+func NewEmployeeAccessGrantReq(ctx context.Context, plan *TFEmployeeAccessGrantModel) (*admin.EmployeeAccessGrant, diag.Diagnostics) {
 	// var tfList []complexArgumentData
 	// resp.Diagnostics.Append(plan.ComplexArgument.ElementsAs(ctx, &tfList, false)...)
 	// if resp.Diagnostics.HasError() {

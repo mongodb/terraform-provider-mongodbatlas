@@ -14,15 +14,15 @@ func TestAccEmployeeAccess_basic(t *testing.T) {
 		//		CheckDestroy:             checkDestroyEmployeeAccess,
 		Steps: []resource.TestStep{ // TODO: verify updates and import in case of resources
 			//			{
-			//				Config: employeeAccessConfig(),
-			//				Check:  employeeAccessAttributeChecks(),
+			//				Config: employeeAccessGrantConfig(),
+			//				Check:  employeeAccessGrantAttributeChecks(),
 			//			},
 			//          {
-			//				Config: employeeAccessConfig(),
-			//				Check:  employeeAccessAttributeChecks(),
+			//				Config: employeeAccessGrantConfig(),
+			//				Check:  employeeAccessGrantAttributeChecks(),
 			//			},
 			//			{
-			//				Config:            employeeAccessConfig(),
+			//				Config:            employeeAccessGrantConfig(),
 			//				ResourceName:      resourceName,
 			//				ImportStateIdFunc: checkEmployeeAccessImportStateIDFunc,
 			//				ImportState:       true,
