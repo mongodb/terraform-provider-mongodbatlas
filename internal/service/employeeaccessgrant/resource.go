@@ -30,7 +30,7 @@ func (r *employeeAccessRS) Schema(ctx context.Context, req resource.SchemaReques
 }
 
 func (r *employeeAccessRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var employeeAccessPlan TFEmployeeAccessRSModel
+	var employeeAccessPlan TFEmployeeAccessModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &employeeAccessPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -60,7 +60,7 @@ func (r *employeeAccessRS) Create(ctx context.Context, req resource.CreateReques
 }
 
 func (r *employeeAccessRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var employeeAccessState TFEmployeeAccessRSModel
+	var employeeAccessState TFEmployeeAccessModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &employeeAccessState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -88,7 +88,7 @@ func (r *employeeAccessRS) Read(ctx context.Context, req resource.ReadRequest, r
 }
 
 func (r *employeeAccessRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var employeeAccessPlan TFEmployeeAccessRSModel
+	var employeeAccessPlan TFEmployeeAccessModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &employeeAccessPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -118,7 +118,7 @@ func (r *employeeAccessRS) Update(ctx context.Context, req resource.UpdateReques
 }
 
 func (r *employeeAccessRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var employeeAccessState *TFEmployeeAccessRSModel
+	var employeeAccessState *TFEmployeeAccessModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &employeeAccessState)...)
 	if resp.Diagnostics.HasError() {
 		return

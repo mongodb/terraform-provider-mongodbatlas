@@ -11,14 +11,14 @@ import (
 
 type sdkToTFModelTestCase struct {
 	SDKResp         *admin.EmployeeAccessGrant
-	expectedTFModel *employeeaccessgrant.TFEmployeeAccessRSModel
+	expectedTFModel *employeeaccessgrant.TFEmployeeAccessModel
 }
 
 func TestEmployeeAccessSDKToTFModel(t *testing.T) {
 	testCases := map[string]sdkToTFModelTestCase{ // TODO: consider adding test cases to contemplate all possible API responses
 		"Complete SDK response": {
 			SDKResp:         &admin.EmployeeAccessGrant{},
-			expectedTFModel: &employeeaccessgrant.TFEmployeeAccessRSModel{},
+			expectedTFModel: &employeeaccessgrant.TFEmployeeAccessModel{},
 		},
 	}
 
@@ -34,14 +34,14 @@ func TestEmployeeAccessSDKToTFModel(t *testing.T) {
 }
 
 type tfToSDKModelTestCase struct {
-	tfModel        *employeeaccessgrant.TFEmployeeAccessRSModel
+	tfModel        *employeeaccessgrant.TFEmployeeAccessModel
 	expectedSDKReq *admin.EmployeeAccessGrant
 }
 
 func TestEmployeeAccessTFModelToSDK(t *testing.T) {
 	testCases := map[string]tfToSDKModelTestCase{
 		"Complete TF state": {
-			tfModel:        &employeeaccessgrant.TFEmployeeAccessRSModel{},
+			tfModel:        &employeeaccessgrant.TFEmployeeAccessModel{},
 			expectedSDKReq: &admin.EmployeeAccessGrant{},
 		},
 	}

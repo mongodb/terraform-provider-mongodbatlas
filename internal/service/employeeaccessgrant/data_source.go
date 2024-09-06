@@ -28,7 +28,7 @@ func (d *employeeAccessDS) Schema(ctx context.Context, req datasource.SchemaRequ
 }
 
 func (d *employeeAccessDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var employeeAccessConfig TFEmployeeAccessDSModel
+	var employeeAccessConfig TFEmployeeAccessModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &employeeAccessConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
