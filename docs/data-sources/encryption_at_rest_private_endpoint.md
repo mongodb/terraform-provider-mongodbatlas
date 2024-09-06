@@ -4,6 +4,8 @@
 
 ## Example Usages
 
+-> **NOTE:** Only Azure Key Vault with Azure Private Link is supported at this time.
+
 ```terraform
 data "mongodbatlas_encryption_at_rest_private_endpoint" "single" {
   project_id     = var.atlas_project_id
