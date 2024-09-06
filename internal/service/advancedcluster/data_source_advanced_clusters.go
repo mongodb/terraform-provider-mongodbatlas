@@ -336,7 +336,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 		}
 
 		result := map[string]any{
-			"advanced_configuration":               flattenProcessArgs(processArgs20240530, processArgs.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds),
+			"advanced_configuration":               flattenProcessArgs(processArgs20240530, processArgs),
 			"backup_enabled":                       cluster.GetBackupEnabled(),
 			"bi_connector_config":                  flattenBiConnectorConfig(cluster.BiConnector),
 			"cluster_type":                         cluster.GetClusterType(),
@@ -387,7 +387,7 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 		}
 
 		result := map[string]any{
-			"advanced_configuration":               flattenProcessArgs(processArgs20240530, processArgs.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds),
+			"advanced_configuration":               flattenProcessArgs(processArgs20240530, processArgs),
 			"backup_enabled":                       cluster.GetBackupEnabled(),
 			"bi_connector_config":                  flattenBiConnectorConfig(convertBiConnectToLatest(cluster.BiConnector)),
 			"cluster_type":                         cluster.GetClusterType(),

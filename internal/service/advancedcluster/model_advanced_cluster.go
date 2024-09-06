@@ -455,27 +455,27 @@ func expandBiConnectorConfig(d *schema.ResourceData) *admin.BiConnector {
 	return nil
 }
 
-func flattenProcessArgs(p *admin20240530.ClusterDescriptionProcessArgs, changeStreamOptionsSeconds *int) []map[string]any {
-	if p == nil {
+func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) []map[string]any {
+	if p20240530 == nil {
 		return nil
 	}
 	flattenedProcessArgs := []map[string]any{
 		{
-			"default_read_concern":                 p.GetDefaultReadConcern(),
-			"default_write_concern":                p.GetDefaultWriteConcern(),
-			"fail_index_key_too_long":              p.GetFailIndexKeyTooLong(),
-			"javascript_enabled":                   p.GetJavascriptEnabled(),
-			"minimum_enabled_tls_protocol":         p.GetMinimumEnabledTlsProtocol(),
-			"no_table_scan":                        p.GetNoTableScan(),
-			"oplog_size_mb":                        p.GetOplogSizeMB(),
-			"oplog_min_retention_hours":            p.GetOplogMinRetentionHours(),
-			"sample_size_bi_connector":             p.GetSampleSizeBIConnector(),
-			"sample_refresh_interval_bi_connector": p.GetSampleRefreshIntervalBIConnector(),
-			"transaction_lifetime_limit_seconds":   p.GetTransactionLifetimeLimitSeconds(),
+			"default_read_concern":                 p20240530.GetDefaultReadConcern(),
+			"default_write_concern":                p20240530.GetDefaultWriteConcern(),
+			"fail_index_key_too_long":              p20240530.GetFailIndexKeyTooLong(),
+			"javascript_enabled":                   p20240530.GetJavascriptEnabled(),
+			"minimum_enabled_tls_protocol":         p20240530.GetMinimumEnabledTlsProtocol(),
+			"no_table_scan":                        p20240530.GetNoTableScan(),
+			"oplog_size_mb":                        p20240530.GetOplogSizeMB(),
+			"oplog_min_retention_hours":            p20240530.GetOplogMinRetentionHours(),
+			"sample_size_bi_connector":             p20240530.GetSampleSizeBIConnector(),
+			"sample_refresh_interval_bi_connector": p20240530.GetSampleRefreshIntervalBIConnector(),
+			"transaction_lifetime_limit_seconds":   p20240530.GetTransactionLifetimeLimitSeconds(),
 		},
 	}
-	if changeStreamOptionsSeconds != nil {
-		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = *changeStreamOptionsSeconds
+	if p != nil {
+		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
 	}
 	return flattenedProcessArgs
 }
