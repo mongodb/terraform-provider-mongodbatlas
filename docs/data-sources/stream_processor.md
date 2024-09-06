@@ -127,15 +127,15 @@ output "stream_processors_results" {
 
 Read-Only:
 
-- `dlq` (Attributes) Dead letter queue for the stream processor. (see [below for nested schema](#nestedatt--options--dlq))
+- `dlq` (Attributes) Dead letter queue for the stream processor. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) contain more information. (see [below for nested schema](#nestedatt--options--dlq))
 
 <a id="nestedatt--options--dlq"></a>
 ### Nested Schema for `options.dlq`
 
 Read-Only:
 
-- `coll` (String) Name of the collection that will be used for the DLQ.
-- `connection_name` (String) Connection name that will be used to write DLQ messages to. Has to be an Atlas connection.
-- `db` (String) Name of the database that will be used for the DLQ.
+- `coll` (String) Name of the collection to use for the DLQ.
+- `connection_name` (String) Name of the connection to write DLQ messages to. Must be an Atlas connection.
+- `db` (String) Name of the database to use for the DLQ.
 
 For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createStreamProcessor) Documentation.
