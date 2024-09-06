@@ -30,6 +30,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/employeeaccessgrant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
@@ -435,6 +436,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		streamconnection.PluralDataSource,
 		controlplaneipaddresses.DataSource,
 		projectipaddresses.DataSource,
+		employeeaccessgrant.DataSource,
 	}
 	previewDataSources := []func() datasource.DataSource{} // Data sources not yet in GA
 	if providerEnablePreview {
@@ -454,6 +456,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		pushbasedlogexport.Resource,
 		streaminstance.Resource,
 		streamconnection.Resource,
+		employeeaccessgrant.Resource,
 	}
 	previewResources := []func() resource.Resource{} // Resources not yet in GA
 	if providerEnablePreview {
