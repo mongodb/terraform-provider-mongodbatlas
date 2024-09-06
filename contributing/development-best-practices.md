@@ -2,13 +2,12 @@
 # Development Best Practices
 
 ## Table of Contents
-- [Development Best Practices](#development-best-practices)
-  - [Table of Contents](#table-of-contents)
-    - [Creating New Resource and Data Sources](#creating-new-resource-and-data-sources)
-      - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
-      - [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions)
-        - [Running the command](#running-the-command)
-        - [Considerations over generated schema and types](#considerations-over-generated-schema-and-types)
+- [Creating New Resource and Data Sources](#creating-new-resources-and-data-sources)
+    - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
+    - [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions)
+
+- Each resource (and associated data sources) is in a package in `internal/service`.
+- There can be multiple helper files and they can also be used from other resources, e.g. `common_advanced_cluster.go` defines functions that are also used from other resources using `advancedcluster.FunctionName`.
 
 ### Creating New Resource and Data Sources
 
