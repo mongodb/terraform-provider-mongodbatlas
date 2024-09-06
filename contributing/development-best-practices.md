@@ -36,7 +36,6 @@ Both `tfplugingen-openapi` and `tfplugingen-framework` must be installed. This c
 
 The command takes a single argument which specifies the resource or data source where the code generation is run, defined in camel case, e.g.:
 ```bash
-export SDK_BRANCH=dev-latest # only necessary if your API endpoints haven't been released yet.
 make scaffold-schemas resource_name=streamInstance
 ```
 
