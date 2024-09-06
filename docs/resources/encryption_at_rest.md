@@ -1,14 +1,11 @@
 # Resource: mongodbatlas_encryption_at_rest
 
-`mongodbatlas_encryption_at_rest` allows management of encryption at rest for an Atlas project with one of the following providers:
+`mongodbatlas_encryption_at_rest` allows management of Encryption at Rest for an Atlas project using Customer Key Management configuration. The following providers are supported:
+- [Amazon Web Services Key Management Service](https://docs.atlas.mongodb.com/security-aws-kms/#security-aws-kms)
+- [Azure Key Vault](https://docs.atlas.mongodb.com/security-azure-kms/#security-azure-kms)
+- [Google Cloud KMS](https://docs.atlas.mongodb.com/security-gcp-kms/#security-gcp-kms)
 
-[Amazon Web Services Key Management Service](https://docs.atlas.mongodb.com/security-aws-kms/#security-aws-kms)
-[Azure Key Vault](https://docs.atlas.mongodb.com/security-azure-kms/#security-azure-kms)
-[Google Cloud KMS](https://docs.atlas.mongodb.com/security-gcp-kms/#security-gcp-kms)
-
-The [encryption at rest Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/encryption-at-rest/mongodbatlas/latest) makes use of this resource and simplifies its use.
-
-After configuring at least one Encryption at Rest provider for the Atlas project, Project Owners can enable Encryption at Rest for each Atlas cluster for which they require encryption. The Encryption at Rest provider does not have to match the cluster cloud service provider.
+The [encryption at rest Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/encryption-at-rest/mongodbatlas/latest) makes use of this resource and simplifies its use. It is currently limited to AWS KMS.
 
 Atlas does not automatically rotate user-managed encryption keys. Defer to your preferred Encryption at Rest provider’s documentation and guidance for best practices on key rotation. Atlas automatically creates a 90-day key rotation alert when you configure Encryption at Rest using your Key Management in an Atlas project.
 
@@ -22,6 +19,13 @@ See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/
 
 
 -> **IMPORTANT NOTE** To disable the encryption at rest with customer key management for a project all existing clusters in the project must first either have encryption at rest for the provider set to none, e.g. `encryption_at_rest_provider = "NONE"`, or be deleted.
+
+## Enabling Encryption at Rest for existing Atlas cluster
+
+After configuring at least one key management provider for an Atlas project, Project Owners can enable customer key management for each Atlas cluster for which they require encryption. For clusters defined in terraform, the [`encryption_at_rest_provider` attribute](advanced_cluster#encryption_at_rest_provider) can be used in both `mongodbatlas_advanced_cluster` and `mongodbatlas_cluster` resources. The key management provider does not have to match the cluster cloud service provider.
+
+Please reference [Enable Customer Key Management for an Atlas Cluster](https://www.mongodb.com/docs/atlas/security-kms-encryption/#enable-customer-key-management-for-an-service-cluster) documentation for additional considerations.
+
 
 ## Example Usages
 
@@ -121,7 +125,10 @@ output "is_azure_encryption_at_rest_valid" {
 }
 ```
 
--> **NOTE:** It is possible to configure Atlas Encryption at Rest to communicate with Azure Key Vault using Azure Private Link, ensuring that all traffic between Atlas and Key Vault takes place over Azure’s private network interfaces. Please review `mongodbatlas_encryption_at_rest_private_endpoint` resource for details.
+#### Manage Customer Keys with Azure Key Vault Over Private Endpoints
+It is possible to configure Atlas Encryption at Rest to communicate with Azure Key Vault using Azure Private Link, ensuring that all traffic between Atlas and Key Vault takes place over Azure’s private network interfaces. This requires enabling `azure_key_vault_config.require_private_networking` attribute, together with the configuration of `mongodbatlas_encryption_at_rest_private_endpoint` resource. 
+
+Please review [`mongodbatlas_encryption_at_rest_private_endpoint` resource documentation](encryption_at_rest_private_endpoint) and [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest_private_endpoint/azure) for details on this functionality.
 
 
 ### Configuring encryption at rest using customer key management in GCP

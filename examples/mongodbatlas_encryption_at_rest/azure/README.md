@@ -24,6 +24,9 @@ Note: It is possible to configure Atlas Encryption at Rest to communicate with A
 - `azure_key_vault_name`: Unique string that identifies the Azure Key Vault that contains your key
 - `azure_key_identifier`: Web address with a unique key that identifies for your Azure Key Vault
 
+**NOTE**: The Azure application (associated to `azure_client_id`) must have the following permissions associated to the Azure Key Vault (`azure_key_vault_name`):
+- GET (Key Management Operation), ENCRYPT (Cryptographic Operation) and DECRYPT (Cryptographic Operation) policy permissions.
+- A `Key Vault Reader` role.
 
 **2\. Review the Terraform plan.**
 
