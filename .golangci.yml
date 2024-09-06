@@ -123,8 +123,6 @@ issues:
     - linters:
         - gocritic
       text: "^hugeParam: req is heavy"
-    - path: internal/service/employeeaccessgrant # TEMPORILY FOR NEW RESOURCE, DONT MERGE TO MASTER
-      text: "commentedOutCode"
 run:
   timeout: 10m
   tests: true
