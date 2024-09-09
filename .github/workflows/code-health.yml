@@ -70,13 +70,17 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
       - run: make tools # all resources with auto-generated doc must be specified below here 
       - name: Doc for control_plane_ip_addresses
-        run: export resource_name=control_plane_ip_addresses && make generate-doc
+        run: make generate-doc resource_name=control_plane_ip_addresses
       - name: Doc for push_based_log_export
-        run: export resource_name=push_based_log_export && make generate-doc
+        run: make generate-doc resource_name=push_based_log_export
       - name: Doc for search_deployment
-        run: export resource_name=search_deployment && make generate-doc
+        run: make generate-doc resource_name=search_deployment
+      - name: Doc for encryption_at_rest
+        run: make generate-doc resource_name=encryption_at_rest
+      - name: Doc for encryption_at_rest_private_endpoint
+        run: make generate-doc resource_name=encryption_at_rest_private_endpoint
       - name: Doc for project_ip_addresses
-        run: export resource_name=project_ip_addresses && make generate-doc
+        run: make generate-doc resource_name=project_ip_addresses
       - name: Find mutations
         id: self_mutation
         run: |-

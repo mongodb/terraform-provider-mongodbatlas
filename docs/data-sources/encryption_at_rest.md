@@ -1,15 +1,11 @@
-# Resource: mongodbatlas_encryption_at_rest
+# Data Source: mongodbatlas_encryption_at_rest
 
-`mongodbatlas_encryption_at_rest` allows management of Encryption at Rest for an Atlas project using Customer Key Management configuration. The following providers are supported:
-- [Amazon Web Services Key Management Service](https://docs.atlas.mongodb.com/security-aws-kms/#security-aws-kms)
-- [Azure Key Vault](https://docs.atlas.mongodb.com/security-azure-kms/#security-azure-kms)
-- [Google Cloud KMS](https://docs.atlas.mongodb.com/security-gcp-kms/#security-gcp-kms)
+`mongodbatlas_encryption_at_rest` describes encryption at rest configuration for an Atlas project with one of the following providers:
 
-The [encryption at rest Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/encryption-at-rest/mongodbatlas/latest) makes use of this resource and simplifies its use. It is currently limited to AWS KMS.
+[Amazon Web Services Key Management Service](https://docs.atlas.mongodb.com/security-aws-kms/#security-aws-kms)
+[Azure Key Vault](https://docs.atlas.mongodb.com/security-azure-kms/#security-azure-kms)
+[Google Cloud KMS](https://docs.atlas.mongodb.com/security-gcp-kms/#security-gcp-kms)
 
-Atlas does not automatically rotate user-managed encryption keys. Defer to your preferred Encryption at Rest provider’s documentation and guidance for best practices on key rotation. Atlas automatically creates a 90-day key rotation alert when you configure Encryption at Rest using your Key Management in an Atlas project.
-
-See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/index.html) for more information, including prerequisites and restrictions.
 
 ~> **IMPORTANT** By default, Atlas enables encryption at rest for all cluster storage and snapshot volumes.
 
@@ -18,20 +14,9 @@ See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 
--> **IMPORTANT NOTE** To disable the encryption at rest with customer key management for a project all existing clusters in the project must first either have encryption at rest for the provider set to none, e.g. `encryption_at_rest_provider = "NONE"`, or be deleted.
-
-## Enabling Encryption at Rest for existing Atlas cluster
-
-After configuring at least one key management provider for an Atlas project, Project Owners can enable customer key management for each Atlas cluster for which they require encryption. For clusters defined in terraform, the [`encryption_at_rest_provider` attribute](advanced_cluster#encryption_at_rest_provider) can be used in both `mongodbatlas_advanced_cluster` and `mongodbatlas_cluster` resources. The key management provider does not have to match the cluster cloud service provider.
-
-Please reference [Enable Customer Key Management for an Atlas Cluster](https://www.mongodb.com/docs/atlas/security-kms-encryption/#enable-customer-key-management-for-an-service-cluster) documentation for additional considerations.
-
-
 ## Example Usages
 
 ### Configuring encryption at rest using customer key management in AWS
-The configuration of encryption at rest with customer key management, `mongodbatlas_encryption_at_rest`, needs to be completed before a cluster is created in the project. Force this wait by using an implicit dependency via `project_id` as shown in the example below.
-
 ```terraform
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
   project_id    = var.atlas_project_id
@@ -87,15 +72,6 @@ output "is_aws_kms_encryption_at_rest_valid" {
 }
 ```
 
-**NOTE**  If using the two resources path for cloud provider access, `cloud_provider_access_setup` and `cloud_provider_access_authorization`, you may need to define a `depends_on` statement for these two resources, because terraform is not able to infer the dependency.
-
-```terraform
-resource "mongodbatlas_encryption_at_rest" "default" {
-  (...)
-  depends_on = [mongodbatlas_cloud_provider_access_setup.<resource_name>, mongodbatlas_cloud_provider_access_authorization.<resource_name>]
-}
-```
-
 ### Configuring encryption at rest using customer key management in Azure
 ```terraform
 resource "mongodbatlas_encryption_at_rest" "test" {
@@ -125,11 +101,7 @@ output "is_azure_encryption_at_rest_valid" {
 }
 ```
 
-#### Manage Customer Keys with Azure Key Vault Over Private Endpoints
-It is possible to configure Atlas Encryption at Rest to communicate with Azure Key Vault using Azure Private Link, ensuring that all traffic between Atlas and Key Vault takes place over Azure’s private network interfaces. This requires enabling `azure_key_vault_config.require_private_networking` attribute, together with the configuration of `mongodbatlas_encryption_at_rest_private_endpoint` resource. 
-
-Please review [`mongodbatlas_encryption_at_rest_private_endpoint` resource documentation](encryption_at_rest_private_endpoint) and [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest_private_endpoint/azure) for details on this functionality.
-
+-> **NOTE:** It is possible to configure Atlas Encryption at Rest to communicate with Azure Key Vault using Azure Private Link, ensuring that all traffic between Atlas and Key Vault takes place over Azure’s private network interfaces. Please review `mongodbatlas_encryption_at_rest_private_endpoint` resource for details.
 
 ### Configuring encryption at rest using customer key management in GCP
 ```terraform
@@ -142,6 +114,14 @@ resource "mongodbatlas_encryption_at_rest" "test" {
     key_version_resource_id = "projects/my-project-common-0/locations/us-east4/keyRings/my-key-ring-0/cryptoKeys/my-key-0/cryptoKeyVersions/1"
   }
 }
+
+data "mongodbatlas_encryption_at_rest" "test" {
+  project_id = mongodbatlas_encryption_at_rest.test.project_id
+}
+
+output "is_gcp_encryption_at_rest_valid" {
+  value = data.mongodbatlas_encryption_at_rest.test.google_cloud_kms_config.valid
+}
 ```
 
 <!-- schema generated by tfplugindocs -->
@@ -151,37 +131,31 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 
-### Optional
-
-- `aws_kms_config` (Block List) Amazon Web Services (AWS) KMS configuration details and encryption at rest configuration set for the specified project. (see [below for nested schema](#nestedblock--aws_kms_config))
-- `azure_key_vault_config` (Block List) Details that define the configuration of Encryption at Rest using Azure Key Vault (AKV). (see [below for nested schema](#nestedblock--azure_key_vault_config))
-- `google_cloud_kms_config` (Block List) Details that define the configuration of Encryption at Rest using Google Cloud Key Management Service (KMS). (see [below for nested schema](#nestedblock--google_cloud_kms_config))
-
 ### Read-Only
 
+- `aws_kms_config` (Attributes) Amazon Web Services (AWS) KMS configuration details and encryption at rest configuration set for the specified project. (see [below for nested schema](#nestedatt--aws_kms_config))
+- `azure_key_vault_config` (Attributes) Details that define the configuration of Encryption at Rest using Azure Key Vault (AKV). (see [below for nested schema](#nestedatt--azure_key_vault_config))
+- `google_cloud_kms_config` (Attributes) Details that define the configuration of Encryption at Rest using Google Cloud Key Management Service (KMS). (see [below for nested schema](#nestedatt--google_cloud_kms_config))
 - `id` (String) The ID of this resource.
 
-<a id="nestedblock--aws_kms_config"></a>
+<a id="nestedatt--aws_kms_config"></a>
 ### Nested Schema for `aws_kms_config`
 
-Optional:
+Read-Only:
 
 - `access_key_id` (String, Sensitive) Unique alphanumeric string that identifies an Identity and Access Management (IAM) access key with permissions required to access your Amazon Web Services (AWS) Customer Master Key (CMK).
 - `customer_master_key_id` (String, Sensitive) Unique alphanumeric string that identifies the Amazon Web Services (AWS) Customer Master Key (CMK) you used to encrypt and decrypt the MongoDB master keys.
 - `enabled` (Boolean) Flag that indicates whether someone enabled encryption at rest for the specified project through Amazon Web Services (AWS) Key Management Service (KMS). To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.
-- `region` (String) Physical location where MongoDB Atlas deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Atlas creates them as part of the deployment. MongoDB Atlas assigns the VPC a CIDR block. To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.
+- `region` (String) Physical location where MongoDB Atlas deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. When MongoDB Atlas deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Atlas creates them as part of the deployment. MongoDB Atlas assigns the VPC a CIDR block. To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.
 - `role_id` (String) Unique 24-hexadecimal digit string that identifies an Amazon Web Services (AWS) Identity and Access Management (IAM) role. This IAM role has the permissions required to manage your AWS customer master key.
 - `secret_access_key` (String, Sensitive) Human-readable label of the Identity and Access Management (IAM) secret access key with permissions required to access your Amazon Web Services (AWS) customer master key.
-
-Read-Only:
-
 - `valid` (Boolean) Flag that indicates whether the Amazon Web Services (AWS) Key Management Service (KMS) encryption key can encrypt and decrypt data.
 
 
-<a id="nestedblock--azure_key_vault_config"></a>
+<a id="nestedatt--azure_key_vault_config"></a>
 ### Nested Schema for `azure_key_vault_config`
 
-Optional:
+Read-Only:
 
 - `azure_environment` (String) Azure environment in which your account credentials reside.
 - `client_id` (String, Sensitive) Unique 36-hexadecimal character string that identifies an Azure application associated with your Azure Active Directory tenant.
@@ -193,23 +167,17 @@ Optional:
 - `secret` (String, Sensitive) Private data that you need secured and that belongs to the specified Azure Key Vault (AKV) tenant (**azureKeyVault.tenantID**). This data can include any type of sensitive data such as passwords, database connection strings, API keys, and the like. AKV stores this information as encrypted binary data.
 - `subscription_id` (String, Sensitive) Unique 36-hexadecimal character string that identifies your Azure subscription.
 - `tenant_id` (String, Sensitive) Unique 36-hexadecimal character string that identifies the Azure Active Directory tenant within your Azure subscription.
-
-Read-Only:
-
 - `valid` (Boolean) Flag that indicates whether the Azure encryption key can encrypt and decrypt data.
 
 
-<a id="nestedblock--google_cloud_kms_config"></a>
+<a id="nestedatt--google_cloud_kms_config"></a>
 ### Nested Schema for `google_cloud_kms_config`
 
-Optional:
+Read-Only:
 
 - `enabled` (Boolean) Flag that indicates whether someone enabled encryption at rest for the specified  project. To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.
 - `key_version_resource_id` (String, Sensitive) Resource path that displays the key version resource ID for your Google Cloud KMS.
 - `service_account_key` (String, Sensitive) JavaScript Object Notation (JSON) object that contains the Google Cloud Key Management Service (KMS). Format the JSON as a string and not as an object.
-
-Read-Only:
-
 - `valid` (Boolean) Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.
 
 # Import 
