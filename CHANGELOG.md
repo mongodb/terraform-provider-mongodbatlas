@@ -16,6 +16,10 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_advanced_clusters: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
 * resource/mongodbatlas_advanced_cluster: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
 
+BUG FIXES:
+
+* data-source/mongodbatlas_advanced_clusters: Sets correct `zone_id` when `use_replication_spec_per_shard` is false ([#2568](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2568))
+
 ## 1.18.1 (August 26, 2024)
 
 NOTES:
