@@ -8,13 +8,19 @@ NOTES:
 
 FEATURES:
 
+* **New Data Source:** `data-source/mongodbatlas_encryption_at_rest` ([#2538](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2538))
+* **New Data Source:** `data-source/mongodbatlas_encryption_at_rest_private_endpoint` ([#2527](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2527))
+* **New Data Source:** `data-source/mongodbatlas_encryption_at_rest_private_endpoints` ([#2536](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2536))
 * **New Data Source:** `data-source/mongodbatlas_project_ip_addresses` ([#2533](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2533))
+* **New Resource:** `resource/mongodbatlas_encryption_at_rest_private_endpoint` ([#2512](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2512))
 
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
 * data-source/mongodbatlas_advanced_clusters: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
 * resource/mongodbatlas_advanced_cluster: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
+* resource/mongodbatlas_encryption_at_rest: Adds `aws_kms_config.0.valid`, `azure_key_vault_config.0.valid` and `google_cloud_kms_config.0.valid` attribute ([#2538](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2538))
+* resource/mongodbatlas_encryption_at_rest: Adds new `azure_key_vault_config.#.require_private_networking` field to enable connection to Azure Key Vault over private networking ([#2509](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2509))
 
 BUG FIXES:
 
