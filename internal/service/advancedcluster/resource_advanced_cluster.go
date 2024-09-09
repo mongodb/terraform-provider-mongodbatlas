@@ -547,7 +547,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
 		}
 
-		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(ctx, projectID, clusterName, connV2)
+		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(cluster)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -630,11 +630,7 @@ func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName
 }
 
 // getZoneIDsFromNewAPI returns the zone id values of replication specs coming from new API. This is used to populate zone_id when old API is called in the read.
-func getZoneIDsFromNewAPI(ctx context.Context, projectID, clusterName string, connV2 *admin.APIClient) (map[string]string, error) {
-	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		return nil, fmt.Errorf("error reading  advanced cluster for fetching zone ids (%s): %s", clusterName, err)
-	}
+func getZoneIDsFromNewAPI(cluster *admin.ClusterDescription20240805) (map[string]string, error) {
 	specs := cluster.GetReplicationSpecs()
 	result := make(map[string]string, len(specs))
 	for _, spec := range specs {
