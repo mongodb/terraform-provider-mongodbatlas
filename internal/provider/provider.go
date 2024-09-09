@@ -437,11 +437,11 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		controlplaneipaddresses.DataSource,
 		projectipaddresses.DataSource,
 		encryptionatrest.DataSource,
-	}
-	previewDataSources := []func() datasource.DataSource{ // Data sources not yet in GA
 		encryptionatrestprivateendpoint.DataSource,
 		encryptionatrestprivateendpoint.PluralDataSource,
 	}
+	previewDataSources := []func() datasource.DataSource{} // Data sources not yet in GA
+
 	if providerEnablePreview {
 		dataSources = append(dataSources, previewDataSources...)
 	}
@@ -459,10 +459,10 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		pushbasedlogexport.Resource,
 		streaminstance.Resource,
 		streamconnection.Resource,
-	}
-	previewResources := []func() resource.Resource{ // Resources not yet in GA
 		encryptionatrestprivateendpoint.Resource,
 	}
+	previewResources := []func() resource.Resource{} // Resources not yet in GA
+
 	if providerEnablePreview {
 		resources = append(resources, previewResources...)
 	}
