@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 var (

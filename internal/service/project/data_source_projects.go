@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20240805003/admin"
@@ -136,7 +137,8 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 							},
 						},
 						"ip_addresses": schema.SingleNestedAttribute{
-							Computed: true,
+							Computed:           true,
+							DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "1.21.0", "mongodbatlas_project_ip_addresses data source"),
 							Attributes: map[string]schema.Attribute{
 								"services": schema.SingleNestedAttribute{
 									Computed: true,

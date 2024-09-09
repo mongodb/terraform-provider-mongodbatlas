@@ -79,6 +79,8 @@ jobs:
         run: make generate-doc resource_name=encryption_at_rest
       - name: Doc for encryption_at_rest_private_endpoint
         run: make generate-doc resource_name=encryption_at_rest_private_endpoint
+      - name: Doc for project_ip_addresses
+        run: export resource_name=project_ip_addresses && make generate-doc
       - name: Find mutations
         id: self_mutation
         run: |-

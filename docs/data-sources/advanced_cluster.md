@@ -103,6 +103,7 @@ In addition to all arguments above, the following attributes are exported:
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
 * `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
 * `global_cluster_self_managed_sharding` - Flag that indicates if cluster uses Atlas-Managed Sharding (false) or Self-Managed Sharding (true).
+* `replica_set_scaling_strategy` - (Optional) Replica set scaling mode for your cluster.
 
 ### bi_connector_config
 

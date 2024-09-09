@@ -34,6 +34,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
@@ -434,6 +435,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		streamconnection.DataSource,
 		streamconnection.PluralDataSource,
 		controlplaneipaddresses.DataSource,
+		projectipaddresses.DataSource,
 		encryptionatrest.DataSource,
 	}
 	previewDataSources := []func() datasource.DataSource{ // Data sources not yet in GA
