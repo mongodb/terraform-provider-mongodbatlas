@@ -10,6 +10,12 @@ FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_project_ip_addresses` ([#2533](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2533))
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
+* data-source/mongodbatlas_advanced_clusters: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
+* resource/mongodbatlas_advanced_cluster: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
+
 ## 1.18.1 (August 26, 2024)
 
 NOTES:
