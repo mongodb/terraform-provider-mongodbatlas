@@ -382,7 +382,10 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 		if err != nil {
 			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
 		}
-
+		clusterDescNew, _, err := connV2.ClustersApi.GetCluster(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
 		result := map[string]any{
 			"advanced_configuration":               flattenProcessArgs(processArgs),
 			"backup_enabled":                       cluster.GetBackupEnabled(),
@@ -405,6 +408,7 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"termination_protection_enabled":       cluster.GetTerminationProtectionEnabled(),
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
+			"replica_set_scaling_strategy":         clusterDescNew.GetReplicaSetScalingStrategy(),
 		}
 		results = append(results, result)
 	}

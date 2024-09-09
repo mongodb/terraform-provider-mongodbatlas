@@ -2057,12 +2057,10 @@ func configReplicaSetScalingStrategyOldSchema(orgID, projectName, name, replicaS
 		data "mongodbatlas_advanced_cluster" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
-			use_replication_spec_per_shard = true
 		}
 
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
-			use_replication_spec_per_shard = true
 		}
 	`, orgID, projectName, name, replicaSetScalingStrategy)
 }
