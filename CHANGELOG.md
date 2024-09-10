@@ -12,6 +12,9 @@ FEATURES:
 * **New Data Source:** `data-source/mongodbatlas_encryption_at_rest_private_endpoint` ([#2527](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2527))
 * **New Data Source:** `data-source/mongodbatlas_encryption_at_rest_private_endpoints` ([#2536](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2536))
 * **New Data Source:** `data-source/mongodbatlas_project_ip_addresses` ([#2533](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2533))
+* **New Data Source:** `data-source/mongodbatlas_stream_processor` ([#2497](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2497))
+* **New Data Source:** `data-source/mongodbatlas_stream_processors` ([#2566](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2566))
+* **New Resource:** `mongodbatlas_stream_processor` ([#2501](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2501))
 * **New Resource:** `resource/mongodbatlas_encryption_at_rest_private_endpoint` ([#2512](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2512))
 
 ENHANCEMENTS:
