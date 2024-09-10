@@ -462,6 +462,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		pushbasedlogexport.Resource,
 		streaminstance.Resource,
 		streamconnection.Resource,
+		streamprocessor.Resource,
 		encryptionatrestprivateendpoint.Resource,
 	}
 	previewResources := []func() resource.Resource{} // Resources not yet in GA
