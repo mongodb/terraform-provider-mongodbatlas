@@ -19,9 +19,15 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_advanced_cluster: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
+* data-source/mongodbatlas_advanced_cluster: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
 * data-source/mongodbatlas_advanced_cluster: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
 * data-source/mongodbatlas_advanced_clusters: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
+* data-source/mongodbatlas_cluster: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
+* data-source/mongodbatlas_clusters: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
+* resource/mongodbatlas_advanced_cluster: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
 * resource/mongodbatlas_advanced_cluster: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
+* resource/mongodbatlas_cluster: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
 * resource/mongodbatlas_encryption_at_rest: Adds `aws_kms_config.0.valid`, `azure_key_vault_config.0.valid` and `google_cloud_kms_config.0.valid` attribute ([#2538](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2538))
 * resource/mongodbatlas_encryption_at_rest: Adds new `azure_key_vault_config.#.require_private_networking` field to enable connection to Azure Key Vault over private networking ([#2509](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2509))
 
