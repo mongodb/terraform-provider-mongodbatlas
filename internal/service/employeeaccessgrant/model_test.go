@@ -71,7 +71,8 @@ func TestNewAtlasReq(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			req, err := employeeaccessgrant.NewAtlasReq(tc.tfModel)
-			if tc.expectedErrContains == "" {
+			assert.Equal(t, tc.expectedErrContains == "", err == nil)
+			if err == nil {
 				assert.Equal(t, tc.expectedReq, req)
 			} else {
 				assert.Contains(t, err.Error(), tc.expectedErrContains)
