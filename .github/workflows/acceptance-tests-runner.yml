@@ -302,6 +302,7 @@ jobs:
           stream:
             - 'internal/service/streamconnection/*.go'
             - 'internal/service/streaminstance/*.go'
+            - 'internal/service/streamprocessor/*.go'
           control_plane_ip_addresses:
             - 'internal/service/controlplaneipaddresses/*.go'
 
@@ -871,6 +872,7 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/service/streamconnection
             ./internal/service/streaminstance
+            ./internal/service/streamprocessor
         run: make testacc
     
   control_plane_ip_addresses:

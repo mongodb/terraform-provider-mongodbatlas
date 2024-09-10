@@ -1,0 +1,10 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` returns all stream processors in a stream instance.
+
+## Example Usages
+{{ tffile (printf "examples/mongodbatlas_stream_processor/main.tf" )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createStreamProcessor) Documentation.
