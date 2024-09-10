@@ -36,7 +36,7 @@ func (r *employeeAccessGrantRS) Schema(ctx context.Context, req resource.SchemaR
 }
 
 func (r *employeeAccessGrantRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var tfModel TFEmployeeAccessGrantModel
+	var tfModel TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -57,7 +57,7 @@ func (r *employeeAccessGrantRS) Create(ctx context.Context, req resource.CreateR
 }
 
 func (r *employeeAccessGrantRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var tfModel TFEmployeeAccessGrantModel
+	var tfModel TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -83,7 +83,7 @@ func (r *employeeAccessGrantRS) Read(ctx context.Context, req resource.ReadReque
 }
 
 func (r *employeeAccessGrantRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var tfPlan TFEmployeeAccessGrantModel
+	var tfPlan TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -92,7 +92,7 @@ func (r *employeeAccessGrantRS) Update(ctx context.Context, req resource.UpdateR
 }
 
 func (r *employeeAccessGrantRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var tfModel TFEmployeeAccessGrantModel
+	var tfModel TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return

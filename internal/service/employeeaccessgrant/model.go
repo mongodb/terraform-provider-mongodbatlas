@@ -8,8 +8,8 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
-func NewTFModel(projectID, clusterName string, apiResp *admin.EmployeeAccessGrant) *TFEmployeeAccessGrantModel {
-	return &TFEmployeeAccessGrantModel{
+func NewTFModel(projectID, clusterName string, apiResp *admin.EmployeeAccessGrant) *TFModel {
+	return &TFModel{
 		ProjectID:      types.StringValue(projectID),
 		ClusterName:    types.StringValue(clusterName),
 		GrantType:      types.StringValue(apiResp.GetGrantType()),
@@ -17,7 +17,7 @@ func NewTFModel(projectID, clusterName string, apiResp *admin.EmployeeAccessGran
 	}
 }
 
-func NewAtlasReq(tfModel *TFEmployeeAccessGrantModel) (*admin.EmployeeAccessGrant, error) {
+func NewAtlasReq(tfModel *TFModel) (*admin.EmployeeAccessGrant, error) {
 	expirationTimeStr := tfModel.ExpirationTime.ValueString()
 	expirationTime, ok := conversion.StringToTime(expirationTimeStr)
 	if !ok {
