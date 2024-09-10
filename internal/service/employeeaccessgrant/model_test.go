@@ -42,9 +42,9 @@ func TestNewTFModel(t *testing.T) {
 
 func TestNewAtlasReq(t *testing.T) {
 	testCases := map[string]struct {
-		tfModel        *employeeaccessgrant.TFModel
-		expectedReq    *admin.EmployeeAccessGrant
-		expectedHasErr bool
+		tfModel             *employeeaccessgrant.TFModel
+		expectedReq         *admin.EmployeeAccessGrant
+		expectedErrContains string
 	}{
 		"valid": {
 			tfModel: &employeeaccessgrant.TFModel{
@@ -65,15 +65,16 @@ func TestNewAtlasReq(t *testing.T) {
 				GrantType:      types.StringValue("grantType"),
 				ExpirationTime: types.StringValue("invalid_time"),
 			},
-			expectedHasErr: true,
+			expectedErrContains: "invalid_time",
 		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			req, err := employeeaccessgrant.NewAtlasReq(tc.tfModel)
-			assert.Equal(t, tc.expectedHasErr, err != nil)
-			if err == nil {
+			if tc.expectedErrContains == "" {
 				assert.Equal(t, tc.expectedReq, req)
+			} else {
+				assert.Contains(t, err.Error(), tc.expectedErrContains)
 			}
 		})
 	}
