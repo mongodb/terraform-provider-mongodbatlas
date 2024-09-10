@@ -320,7 +320,11 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
-		processArgs, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		if err != nil {
+			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
+		}
+		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
@@ -336,7 +340,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 		}
 
 		result := map[string]any{
-			"advanced_configuration":               flattenProcessArgs(processArgs),
+			"advanced_configuration":               flattenProcessArgs(processArgs20240530, processArgs),
 			"backup_enabled":                       cluster.GetBackupEnabled(),
 			"bi_connector_config":                  flattenBiConnectorConfig(cluster.BiConnector),
 			"cluster_type":                         cluster.GetClusterType(),
@@ -368,7 +372,11 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
-		processArgs, _, err := connV20240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		processArgs20240530, _, err := connV20240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		if err != nil {
+			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
+		}
+		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
@@ -388,7 +396,7 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 		}
 
 		result := map[string]any{
-			"advanced_configuration":               flattenProcessArgs(processArgs),
+			"advanced_configuration":               flattenProcessArgs(processArgs20240530, processArgs),
 			"backup_enabled":                       cluster.GetBackupEnabled(),
 			"bi_connector_config":                  flattenBiConnectorConfig(convertBiConnectToLatest(cluster.BiConnector)),
 			"cluster_type":                         cluster.GetClusterType(),
