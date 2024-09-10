@@ -259,6 +259,10 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"replica_set_scaling_strategy": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -353,6 +357,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"termination_protection_enabled":       cluster.GetTerminationProtectionEnabled(),
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
+			"replica_set_scaling_strategy":         cluster.GetReplicaSetScalingStrategy(),
 		}
 		results = append(results, result)
 	}
@@ -368,12 +373,16 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
 
-		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, cluster.GetGroupId(), cluster.GetName(), connV20240530)
+		clusterDescNew, _, err := connV2.ClustersApi.GetCluster(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(clusterDescNew)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
 
-		replicationSpecs, err := FlattenAdvancedReplicationSpecsOldSDK(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecIDs, cluster.GetDiskSizeGB(), nil, d, connV2)
+		replicationSpecs, err := FlattenAdvancedReplicationSpecsOldSDK(ctx, cluster.GetReplicationSpecs(), zoneNameToZoneIDs, cluster.GetDiskSizeGB(), nil, d, connV2)
 		if err != nil {
 			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
 		}
@@ -400,6 +409,7 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"termination_protection_enabled":       cluster.GetTerminationProtectionEnabled(),
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
+			"replica_set_scaling_strategy":         clusterDescNew.GetReplicaSetScalingStrategy(),
 		}
 		results = append(results, result)
 	}

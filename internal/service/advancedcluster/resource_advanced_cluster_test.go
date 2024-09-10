@@ -716,6 +716,62 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 	})
 }
 
+func TestAccAdvancedCluster_replicaSetScalingStrategy(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "WORKLOAD_TYPE"),
+				Check:  checkReplicaSetScalingStrategy("WORKLOAD_TYPE"),
+			},
+			{
+				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "SEQUENTIAL"),
+				Check:  checkReplicaSetScalingStrategy("SEQUENTIAL"),
+			},
+			{
+				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "NODE_TYPE"),
+				Check:  checkReplicaSetScalingStrategy("NODE_TYPE"),
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_replicaSetScalingStrategyOldSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configReplicaSetScalingStrategyOldSchema(orgID, projectName, clusterName, "WORKLOAD_TYPE"),
+				Check:  checkReplicaSetScalingStrategy("WORKLOAD_TYPE"),
+			},
+			{
+				Config: configReplicaSetScalingStrategyOldSchema(orgID, projectName, clusterName, "SEQUENTIAL"),
+				Check:  checkReplicaSetScalingStrategy("SEQUENTIAL"),
+			},
+			{
+				Config: configReplicaSetScalingStrategyOldSchema(orgID, projectName, clusterName, "NODE_TYPE"),
+				Check:  checkReplicaSetScalingStrategy("NODE_TYPE"),
+			},
+		},
+	})
+}
+
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
@@ -1915,5 +1971,110 @@ func checkGeoShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestChe
 			"replication_specs.0.zone_name": "zone 1",
 			"replication_specs.1.zone_name": "zone 2",
 		},
+	)
+}
+
+func configReplicaSetScalingStrategy(orgID, projectName, name, replicaSetScalingStrategy string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
+			backup_enabled = false
+			cluster_type   = "SHARDED"
+			replica_set_scaling_strategy = %[4]q
+
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size ="M10"
+						node_count    = 3
+						disk_size_gb  = 10
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+						disk_size_gb  = 10
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
+				}
+			}
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+			use_replication_spec_per_shard = true
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			use_replication_spec_per_shard = true
+		}
+	`, orgID, projectName, name, replicaSetScalingStrategy)
+}
+
+func configReplicaSetScalingStrategyOldSchema(orgID, projectName, name, replicaSetScalingStrategy string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
+			backup_enabled = false
+			cluster_type   = "SHARDED"
+			replica_set_scaling_strategy = %[4]q
+
+			replication_specs {
+				num_shards = 2
+				region_configs {
+					electable_specs {
+						instance_size ="M10"
+						node_count    = 3
+						disk_size_gb  = 10
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+						disk_size_gb  = 10
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "EU_WEST_1"
+				}
+			}
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
+	`, orgID, projectName, name, replicaSetScalingStrategy)
+}
+
+func checkReplicaSetScalingStrategy(replicaSetScalingStrategy string) resource.TestCheckFunc {
+	clusterChecks := map[string]string{
+		"replica_set_scaling_strategy": replicaSetScalingStrategy}
+
+	// plural data source checks
+	additionalChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
+		[]string{"results.#", "results.0.replica_set_scaling_strategy"}...)
+	return checkAggr(
+		[]string{},
+		clusterChecks,
+		additionalChecks...,
 	)
 }

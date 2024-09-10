@@ -246,6 +246,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"replica_set_scaling_strategy": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -283,8 +287,15 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err := d.Set("disk_size_gb", clusterDescOld.GetDiskSizeGB()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 		}
+		clusterDescNew, _, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		}
+		if err := d.Set("replica_set_scaling_strategy", clusterDescNew.GetReplicaSetScalingStrategy()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
+		}
 
-		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(ctx, projectID, clusterName, connV2)
+		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(clusterDescNew)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -312,6 +323,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		// root disk_size_gb defined for backwards compatibility avoiding breaking changes
 		if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(clusterDescLatest)); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+		}
+		if err := d.Set("replica_set_scaling_strategy", clusterDescLatest.GetReplicaSetScalingStrategy()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
 		}
 
 		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
