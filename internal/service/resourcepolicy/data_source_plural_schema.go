@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-func PluralDataSourceSchema(ctx context.Context) schema.Schema {
+func DataSourceSchemaPlural(ctx context.Context) schema.Schema {
 	dsAttributes := dataSourceSchema(true)
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
