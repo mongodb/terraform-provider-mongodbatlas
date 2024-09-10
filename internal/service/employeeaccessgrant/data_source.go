@@ -13,7 +13,7 @@ var _ datasource.DataSourceWithConfigure = &employeeAccessGrantDS{}
 func DataSource() datasource.DataSource {
 	return &employeeAccessGrantDS{
 		DSCommon: config.DSCommon{
-			DataSourceName: employeeAccessGrantName,
+			DataSourceName: resourceName,
 		},
 	}
 }
