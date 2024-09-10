@@ -70,7 +70,8 @@ func TestResourcePolicySDKToTFModel(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to unmarshal sdk response: %s", err)
 			}
-			resultModel, diags := resourcepolicy.NewTFResourcePolicy(context.Background(), &SDKModel)
+			ctx := context.Background()
+			resultModel, diags := resourcepolicy.NewTFResourcePolicy(ctx, &SDKModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -88,8 +89,16 @@ func TestResourcePolicySDKToTFModel(t *testing.T) {
 			asserter.Equal(tc.lastUpdatedDate, resultModel.LastUpdatedDate.ValueString())
 			asserter.Equal(tc.orgID, resultModel.OrgID.ValueString())
 			asserter.Equal(tc.version, resultModel.Version.ValueString())
-			// todo: continue
-			// asserter.Equal(tc.policyID, resultModel.Policies.[0].ID.ValueString())
+			var tfPolicies []resourcepolicy.TFPolicyModel
+			diags = resultModel.Policies.ElementsAs(ctx, &tfPolicies, false)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			asserter.Len(tfPolicies, 1)
+			asserter.Equal(resourcepolicy.TFPolicyModel{
+				Body: types.StringValue(tc.policyBody),
+				ID:   types.StringValue(tc.policies0ID),
+			}, tfPolicies[0])
 		})
 	}
 }
