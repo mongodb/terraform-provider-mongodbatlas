@@ -52,7 +52,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckEncryptionAtRestEnvAzure(tb); acc.PreCheckPreviewFlag(tb) },
+		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckEncryptionAtRestEnvAzure(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -95,7 +95,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_approveEndpointWithAzureProvider(t *
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckEncryptionAtRestEnvAzure(t); acc.PreCheckPreviewFlag(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAzapi(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -137,7 +137,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckEncryptionAtRestEnvAzure(t); acc.PreCheckPreviewFlag(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -160,7 +160,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *
 	})
 }
 
-func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T) {
+func TestAccEncryptionAtRest_azure_requirePrivateNetworking(t *testing.T) {
 	var (
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
 
@@ -199,7 +199,6 @@ func TestAccEncryptionAtRest_azure_requirePrivateNetworking_preview(t *testing.T
 		PreCheck: func() {
 			acc.PreCheckEncryptionAtRestPrivateEndpoint(t)
 			acc.PreCheckEncryptionAtRestEnvAzureWithUpdate(t)
-			acc.PreCheckPreviewFlag(t)
 		},
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.EARDestroy,

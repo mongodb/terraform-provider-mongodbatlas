@@ -14,15 +14,7 @@ This example shows how to configure encryption at rest using Azure with customer
 
 The Encryption at Rest using Azure Key Vault over Private Endpoints feature is available by request. To request this functionality for your Atlas deployments, contact your Account Manager.
 
-**2\. Enable `MONGODB_ATLAS_ENABLE_PREVIEW` flag.**
-
-This step is needed to make use of the `mongodbatlas_encryption_at_rest_private_endpoint` resource.
-
-```
-export MONGODB_ATLAS_ENABLE_PREVIEW="true"
-```
-
-**3\. Provide the appropriate values for the input variables.**
+**2\. Provide the appropriate values for the input variables.**
 
 - `atlas_public_key`: The public API key for MongoDB Atlas
 - `atlas_private_key`: The private API key for MongoDB Atlas
@@ -41,7 +33,7 @@ export MONGODB_ATLAS_ENABLE_PREVIEW="true"
 - GET (Key Management Operation), ENCRYPT (Cryptographic Operation) and DECRYPT (Cryptographic Operation) policy permissions.
 - A `Key Vault Reader` role.
 
-**4\. Review the Terraform plan.**
+**3\. Review the Terraform plan.**
 
 Execute the following command and ensure you are happy with the plan.
 
@@ -55,7 +47,7 @@ This project will execute the following changes to acheive a successful Azure Pr
 - Approve the connection from the Azure Key Vault. This is being done through terraform with the `azapi_update_resource` resource. Alternatively, the private connection can be approved through the Azure UI or CLI.
     - CLI example command: `az keyvault private-endpoint-connection approve --approval-description {"OPTIONAL DESCRIPTION"} --resource-group {RG} --vault-name {KEY VAULT NAME} –name {PRIVATE LINK CONNECTION NAME}`
 
-**3\. Execute the Terraform apply.**
+**4\. Execute the Terraform apply.**
 
 Now execute the plan to provision the resources.
 
@@ -63,7 +55,7 @@ Now execute the plan to provision the resources.
 $ terraform apply
 ```
 
-**4\. Destroy the resources.**
+**5\. Destroy the resources.**
 
 When you have finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
 

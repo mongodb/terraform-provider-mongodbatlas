@@ -3,7 +3,7 @@
 `mongodbatlas_encryption_at_rest_private_endpoints` describes private endpoints of a particular cloud provider used for encryption at rest using customer-managed keys.
 
 ~> **IMPORTANT** The Encryption at Rest using Azure Key Vault over Private Endpoints feature is available by request. To request this functionality for your Atlas deployments, contact your Account Manager. 
-Additionally, you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_PREVIEW=true` to use this data source. To learn more about existing limitations, see the [Manage Customer Keys with Azure Key Vault Over Private Endpoints](https://www.mongodb.com/docs/atlas/security/azure-kms-over-private-endpoint/#manage-customer-keys-with-azure-key-vault-over-private-endpoints).
+To learn more about existing limitations, see [Manage Customer Keys with Azure Key Vault Over Private Endpoints](https://www.mongodb.com/docs/atlas/security/azure-kms-over-private-endpoint/#manage-customer-keys-with-azure-key-vault-over-private-endpoints).
 
 ## Example Usages
 
