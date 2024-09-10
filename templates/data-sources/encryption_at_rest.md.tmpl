@@ -1,0 +1,57 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes encryption at rest configuration for an Atlas project with one of the following providers:
+
+[Amazon Web Services Key Management Service](https://docs.atlas.mongodb.com/security-aws-kms/#security-aws-kms)
+[Azure Key Vault](https://docs.atlas.mongodb.com/security-azure-kms/#security-azure-kms)
+[Google Cloud KMS](https://docs.atlas.mongodb.com/security-gcp-kms/#security-gcp-kms)
+
+
+~> **IMPORTANT** By default, Atlas enables encryption at rest for all cluster storage and snapshot volumes.
+
+~> **IMPORTANT** Atlas limits this feature to dedicated cluster tiers of M10 and greater. For more information see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Encryption-at-Rest-using-Customer-Key-Management
+
+-> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
+
+
+## Example Usages
+
+### Configuring encryption at rest using customer key management in AWS
+{{ tffile (printf "examples/%s/aws/atlas-cluster/main.tf" .Name )}}
+
+### Configuring encryption at rest using customer key management in Azure
+{{ tffile (printf "examples/%s/azure/main.tf" .Name )}}
+
+-> **NOTE:** It is possible to configure Atlas Encryption at Rest to communicate with Azure Key Vault using Azure Private Link, ensuring that all traffic between Atlas and Key Vault takes place over Azure’s private network interfaces. Please review `mongodbatlas_encryption_at_rest_private_endpoint` resource for details.
+
+### Configuring encryption at rest using customer key management in GCP
+```terraform
+resource "mongodbatlas_encryption_at_rest" "test" {
+  project_id = var.atlas_project_id
+
+  google_cloud_kms_config {
+    enabled                 = true
+    service_account_key     = "{\"type\": \"service_account\",\"project_id\": \"my-project-common-0\",\"private_key_id\": \"e120598ea4f88249469fcdd75a9a785c1bb3\",\"private_key\": \"-----BEGIN PRIVATE KEY-----\\nMIIEuwIBA(truncated)SfecnS0mT94D9\\n-----END PRIVATE KEY-----\\n\",\"client_email\": \"my-email-kms-0@my-project-common-0.iam.gserviceaccount.com\",\"client_id\": \"10180967717292066\",\"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\"token_uri\": \"https://accounts.google.com/o/oauth2/token\",\"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",\"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/my-email-kms-0%40my-project-common-0.iam.gserviceaccount.com\"}"
+    key_version_resource_id = "projects/my-project-common-0/locations/us-east4/keyRings/my-key-ring-0/cryptoKeys/my-key-0/cryptoKeyVersions/1"
+  }
+}
+
+data "mongodbatlas_encryption_at_rest" "test" {
+  project_id = mongodbatlas_encryption_at_rest.test.project_id
+}
+
+output "is_gcp_encryption_at_rest_valid" {
+  value = data.mongodbatlas_encryption_at_rest.test.google_cloud_kms_config.valid
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}
+
+# Import 
+Encryption at Rest Settings can be imported using project ID, in the format `project_id`, e.g.
+
+```
+$ terraform import mongodbatlas_encryption_at_rest.example 1112222b3bf99403840e8934
+```
+
+For more information see: [MongoDB Atlas API Reference for Encryption at Rest using Customer Key Management.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Encryption-at-Rest-using-Customer-Key-Management)

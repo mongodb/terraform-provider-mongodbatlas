@@ -86,6 +86,15 @@ on:
       mongodb_atlas_federated_settings_associated_domain:
         type: string
         required: true
+      mongodb_atlas_project_ear_pe_id:
+        type: string
+        required: true
+      mongodb_atlas_enable_preview:
+        type: string
+        required: true
+      azure_private_endpoint_region:
+        type: string
+        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -134,6 +143,18 @@ on:
       azure_vnet_name:
         required: true
       azure_vnet_name_updated:
+        required: true
+      azure_client_id:
+        required: true
+      azure_key_vault_name:
+        required: true
+      azure_key_identifier:
+        required: true
+      azure_key_vault_name_updated:
+        required: true
+      azure_key_identifier_updated:
+        required: true
+      azure_app_secret:
         required: true
           
 env:
@@ -235,10 +256,9 @@ jobs:
             - 'internal/service/rolesorgid/*.go'
             - 'internal/service/team/*.go'
             - 'internal/service/thirdpartyintegration/*.go'
-          data_lake:
-            - 'internal/service/datalakepipeline/*.go'
           encryption:
-            - 'internal/service/encryptionatrest/*.go'  
+            - 'internal/service/encryptionatrest/*.go' 
+            - 'internal/service/encryptionatrestprivateendpoint/*.go'
           event_trigger:
             - 'internal/service/eventtrigger/*.go'  
           federated:
@@ -280,6 +300,7 @@ jobs:
           stream:
             - 'internal/service/streamconnection/*.go'
             - 'internal/service/streaminstance/*.go'
+            - 'internal/service/streamprocessor/*.go'
           control_plane_ip_addresses:
             - 'internal/service/controlplaneipaddresses/*.go'
 
@@ -473,28 +494,6 @@ jobs:
             ./internal/service/team
             ./internal/service/thirdpartyintegration
         run: make testacc
-      
-  data_lake:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.data_lake == 'true' || inputs.test_group == 'data_lake' }}
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/service/datalakepipeline
-        run: make testacc
 
   encryption:
     needs: [ change-detection, get-provider-version ]
@@ -515,7 +514,21 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/service/encryptionatrest
+          ACCTEST_PACKAGES: |
+           ./internal/service/encryptionatrest
+           ./internal/service/encryptionatrestprivateendpoint
+          MONGODB_ATLAS_PROJECT_EAR_PE_ID: ${{ inputs.mongodb_atlas_project_ear_pe_id }}
+          AZURE_PRIVATE_ENDPOINT_REGION: ${{ inputs.azure_private_endpoint_region }}
+          AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
+          AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
+          AZURE_TENANT_ID: ${{ vars.azure_tenant_id }}
+          AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
+          AZURE_KEY_VAULT_NAME: ${{ secrets.azure_key_vault_name }}
+          AZURE_KEY_IDENTIFIER: ${{ secrets.azure_key_identifier }}
+          AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.azure_key_vault_name_updated }}
+          AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.azure_key_identifier_updated }}
+          MONGODB_ATLAS_ENABLE_PREVIEW: ${{ inputs.mongodb_atlas_enable_preview }}
         run: make testacc
 
   event_trigger:
@@ -835,6 +848,7 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/service/streamconnection
             ./internal/service/streaminstance
+            ./internal/service/streamprocessor
         run: make testacc
     
   control_plane_ip_addresses:

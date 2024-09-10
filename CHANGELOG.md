@@ -8,9 +8,38 @@ NOTES:
 
 FEATURES:
 
+* **New Data Source:** `data-source/mongodbatlas_encryption_at_rest` ([#2538](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2538))
+* **New Data Source:** `data-source/mongodbatlas_encryption_at_rest_private_endpoint` ([#2527](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2527))
+* **New Data Source:** `data-source/mongodbatlas_encryption_at_rest_private_endpoints` ([#2536](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2536))
 * **New Data Source:** `data-source/mongodbatlas_project_ip_addresses` ([#2533](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2533))
+* **New Data Source:** `data-source/mongodbatlas_stream_processor` ([#2497](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2497))
+* **New Data Source:** `data-source/mongodbatlas_stream_processors` ([#2566](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2566))
+* **New Resource:** `mongodbatlas_stream_processor` ([#2501](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2501))
+* **New Resource:** `resource/mongodbatlas_encryption_at_rest_private_endpoint` ([#2512](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2512))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
+* data-source/mongodbatlas_advanced_cluster: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
+* data-source/mongodbatlas_advanced_cluster: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
+* data-source/mongodbatlas_advanced_clusters: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
+* data-source/mongodbatlas_cluster: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
+* data-source/mongodbatlas_clusters: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
+* resource/mongodbatlas_advanced_cluster: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
+* resource/mongodbatlas_advanced_cluster: supports replica_set_scaling_strategy attribute ([#2539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2539))
+* resource/mongodbatlas_cluster: Supports change_stream_options_pre_and_post_images_expire_after_seconds attribute ([#2528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2528))
+* resource/mongodbatlas_encryption_at_rest: Adds `aws_kms_config.0.valid`, `azure_key_vault_config.0.valid` and `google_cloud_kms_config.0.valid` attribute ([#2538](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2538))
+* resource/mongodbatlas_encryption_at_rest: Adds new `azure_key_vault_config.#.require_private_networking` field to enable connection to Azure Key Vault over private networking ([#2509](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2509))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_advanced_clusters: Sets correct `zone_id` when `use_replication_spec_per_shard` is false ([#2568](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2568))
 
 ## 1.18.1 (August 26, 2024)
+
+NOTES:
+
+* resource/mongodbatlas_advanced_cluster: Documentation adjustment in resource and migration guide to clarify potential `Internal Server Error` when applying updates with new sharding configuration ([#2525](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2525))
 
 ## 1.18.0 (August 14, 2024)
 

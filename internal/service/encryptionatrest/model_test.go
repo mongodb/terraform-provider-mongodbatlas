@@ -4,31 +4,34 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
-	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 )
 
 var (
-	projectID            = "projectID"
-	enabled              = true
-	customerMasterKeyID  = "CustomerMasterKeyID"
-	region               = "Region"
-	accessKeyID          = "AccessKeyID"
-	secretAccessKey      = "SecretAccessKey"
-	roleID               = "RoleID"
-	clientID             = "clientID"
-	azureEnvironment     = "AzureEnvironment"
-	subscriptionID       = "SubscriptionID"
-	resourceGroupName    = "ResourceGroupName"
-	keyVaultName         = "KeyVaultName"
-	keyIdentifier        = "KeyIdentifier"
-	tenantID             = "TenantID"
-	secret               = "Secret"
-	keyVersionResourceID = "KeyVersionResourceID"
-	serviceAccountKey    = "ServiceAccountKey"
-	AWSKMSConfiguration  = &admin.AWSKMSConfiguration{
+	projectID                = "projectID"
+	enabled                  = true
+	requirePrivateNetworking = true
+	customerMasterKeyID      = "CustomerMasterKeyID"
+	region                   = "Region"
+	accessKeyID              = "AccessKeyID"
+	secretAccessKey          = "SecretAccessKey"
+	roleID                   = "RoleID"
+	clientID                 = "clientID"
+	azureEnvironment         = "AzureEnvironment"
+	subscriptionID           = "SubscriptionID"
+	resourceGroupName        = "ResourceGroupName"
+	keyVaultName             = "KeyVaultName"
+	keyIdentifier            = "KeyIdentifier"
+	tenantID                 = "TenantID"
+	secret                   = "Secret"
+	keyVersionResourceID     = "KeyVersionResourceID"
+	serviceAccountKey        = "ServiceAccountKey"
+	AWSKMSConfiguration      = &admin.AWSKMSConfiguration{
 		Enabled:             &enabled,
 		CustomerMasterKeyID: &customerMasterKeyID,
 		Region:              &region,
@@ -36,7 +39,7 @@ var (
 		SecretAccessKey:     &secretAccessKey,
 		RoleId:              &roleID,
 	}
-	TfAwsKmsConfigModel = encryptionatrest.TfAwsKmsConfigModel{
+	TfAwsKmsConfigModel = encryptionatrest.TFAwsKmsConfigModel{
 		Enabled:             types.BoolValue(enabled),
 		CustomerMasterKeyID: types.StringValue(customerMasterKeyID),
 		Region:              types.StringValue(region),
@@ -45,33 +48,35 @@ var (
 		RoleID:              types.StringValue(roleID),
 	}
 	AzureKeyVault = &admin.AzureKeyVault{
-		Enabled:           &enabled,
-		ClientID:          &clientID,
-		AzureEnvironment:  &azureEnvironment,
-		SubscriptionID:    &subscriptionID,
-		ResourceGroupName: &resourceGroupName,
-		KeyVaultName:      &keyVaultName,
-		KeyIdentifier:     &keyIdentifier,
-		TenantID:          &tenantID,
-		Secret:            &secret,
+		Enabled:                  &enabled,
+		ClientID:                 &clientID,
+		AzureEnvironment:         &azureEnvironment,
+		SubscriptionID:           &subscriptionID,
+		ResourceGroupName:        &resourceGroupName,
+		KeyVaultName:             &keyVaultName,
+		KeyIdentifier:            &keyIdentifier,
+		TenantID:                 &tenantID,
+		Secret:                   &secret,
+		RequirePrivateNetworking: &requirePrivateNetworking,
 	}
-	TfAzureKeyVaultConfigModel = encryptionatrest.TfAzureKeyVaultConfigModel{
-		Enabled:           types.BoolValue(enabled),
-		ClientID:          types.StringValue(clientID),
-		AzureEnvironment:  types.StringValue(azureEnvironment),
-		SubscriptionID:    types.StringValue(subscriptionID),
-		ResourceGroupName: types.StringValue(resourceGroupName),
-		KeyVaultName:      types.StringValue(keyVaultName),
-		KeyIdentifier:     types.StringValue(keyIdentifier),
-		TenantID:          types.StringValue(tenantID),
-		Secret:            types.StringValue(secret),
+	TfAzureKeyVaultConfigModel = encryptionatrest.TFAzureKeyVaultConfigModel{
+		Enabled:                  types.BoolValue(enabled),
+		ClientID:                 types.StringValue(clientID),
+		AzureEnvironment:         types.StringValue(azureEnvironment),
+		SubscriptionID:           types.StringValue(subscriptionID),
+		ResourceGroupName:        types.StringValue(resourceGroupName),
+		KeyVaultName:             types.StringValue(keyVaultName),
+		KeyIdentifier:            types.StringValue(keyIdentifier),
+		TenantID:                 types.StringValue(tenantID),
+		Secret:                   types.StringValue(secret),
+		RequirePrivateNetworking: types.BoolValue(requirePrivateNetworking),
 	}
 	GoogleCloudKMS = &admin.GoogleCloudKMS{
 		Enabled:              &enabled,
 		KeyVersionResourceID: &keyVersionResourceID,
 		ServiceAccountKey:    &serviceAccountKey,
 	}
-	TfGcpKmsConfigModel = encryptionatrest.TfGcpKmsConfigModel{
+	TfGcpKmsConfigModel = encryptionatrest.TFGcpKmsConfigModel{
 		Enabled:              types.BoolValue(enabled),
 		KeyVersionResourceID: types.StringValue(keyVersionResourceID),
 		ServiceAccountKey:    types.StringValue(serviceAccountKey),
@@ -95,16 +100,16 @@ func TestNewTfEncryptionAtRestRSModel(t *testing.T) {
 			expectedResult: &encryptionatrest.TfEncryptionAtRestRSModel{
 				ID:                   types.StringValue(projectID),
 				ProjectID:            types.StringValue(projectID),
-				AwsKmsConfig:         []encryptionatrest.TfAwsKmsConfigModel{TfAwsKmsConfigModel},
-				AzureKeyVaultConfig:  []encryptionatrest.TfAzureKeyVaultConfigModel{TfAzureKeyVaultConfigModel},
-				GoogleCloudKmsConfig: []encryptionatrest.TfGcpKmsConfigModel{TfGcpKmsConfigModel},
+				AwsKmsConfig:         []encryptionatrest.TFAwsKmsConfigModel{TfAwsKmsConfigModel},
+				AzureKeyVaultConfig:  []encryptionatrest.TFAzureKeyVaultConfigModel{TfAzureKeyVaultConfigModel},
+				GoogleCloudKmsConfig: []encryptionatrest.TFGcpKmsConfigModel{TfGcpKmsConfigModel},
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := encryptionatrest.NewTfEncryptionAtRestRSModel(context.Background(), projectID, tc.sdkModel)
+			resultModel := encryptionatrest.NewTFEncryptionAtRestRSModel(context.Background(), projectID, tc.sdkModel)
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
@@ -114,19 +119,19 @@ func TestNewTFAwsKmsConfig(t *testing.T) {
 	testCases := []struct {
 		name           string
 		sdkModel       *admin.AWSKMSConfiguration
-		expectedResult []encryptionatrest.TfAwsKmsConfigModel
+		expectedResult []encryptionatrest.TFAwsKmsConfigModel
 	}{
 		{
 			name:     "Success NewTFAwsKmsConfig",
 			sdkModel: AWSKMSConfiguration,
-			expectedResult: []encryptionatrest.TfAwsKmsConfigModel{
+			expectedResult: []encryptionatrest.TFAwsKmsConfigModel{
 				TfAwsKmsConfigModel,
 			},
 		},
 		{
 			name:           "Empty sdkModel",
 			sdkModel:       nil,
-			expectedResult: []encryptionatrest.TfAwsKmsConfigModel{},
+			expectedResult: []encryptionatrest.TFAwsKmsConfigModel{},
 		},
 	}
 
@@ -142,19 +147,19 @@ func TestNewTFAzureKeyVaultConfig(t *testing.T) {
 	testCases := []struct {
 		name           string
 		sdkModel       *admin.AzureKeyVault
-		expectedResult []encryptionatrest.TfAzureKeyVaultConfigModel
+		expectedResult []encryptionatrest.TFAzureKeyVaultConfigModel
 	}{
 		{
 			name:     "Success NewTFAwsKmsConfig",
 			sdkModel: AzureKeyVault,
-			expectedResult: []encryptionatrest.TfAzureKeyVaultConfigModel{
+			expectedResult: []encryptionatrest.TFAzureKeyVaultConfigModel{
 				TfAzureKeyVaultConfigModel,
 			},
 		},
 		{
 			name:           "Empty sdkModel",
 			sdkModel:       nil,
-			expectedResult: []encryptionatrest.TfAzureKeyVaultConfigModel{},
+			expectedResult: []encryptionatrest.TFAzureKeyVaultConfigModel{},
 		},
 	}
 
@@ -170,19 +175,19 @@ func TestNewTFGcpKmsConfig(t *testing.T) {
 	testCases := []struct {
 		name           string
 		sdkModel       *admin.GoogleCloudKMS
-		expectedResult []encryptionatrest.TfGcpKmsConfigModel
+		expectedResult []encryptionatrest.TFGcpKmsConfigModel
 	}{
 		{
 			name:     "Success NewTFGcpKmsConfig",
 			sdkModel: GoogleCloudKMS,
-			expectedResult: []encryptionatrest.TfGcpKmsConfigModel{
+			expectedResult: []encryptionatrest.TFGcpKmsConfigModel{
 				TfGcpKmsConfigModel,
 			},
 		},
 		{
 			name:           "Empty sdkModel",
 			sdkModel:       nil,
-			expectedResult: []encryptionatrest.TfGcpKmsConfigModel{},
+			expectedResult: []encryptionatrest.TFGcpKmsConfigModel{},
 		},
 	}
 
@@ -198,11 +203,11 @@ func TestNewAtlasAwsKms(t *testing.T) {
 	testCases := []struct {
 		name           string
 		expectedResult *admin.AWSKMSConfiguration
-		tfModel        []encryptionatrest.TfAwsKmsConfigModel
+		tfModel        []encryptionatrest.TFAwsKmsConfigModel
 	}{
 		{
 			name:           "Success NewAtlasAwsKms",
-			tfModel:        []encryptionatrest.TfAwsKmsConfigModel{TfAwsKmsConfigModel},
+			tfModel:        []encryptionatrest.TFAwsKmsConfigModel{TfAwsKmsConfigModel},
 			expectedResult: AWSKMSConfiguration,
 		},
 		{
@@ -224,11 +229,11 @@ func TestNewAtlasGcpKms(t *testing.T) {
 	testCases := []struct {
 		name           string
 		expectedResult *admin.GoogleCloudKMS
-		tfModel        []encryptionatrest.TfGcpKmsConfigModel
+		tfModel        []encryptionatrest.TFGcpKmsConfigModel
 	}{
 		{
 			name:           "Success NewAtlasAwsKms",
-			tfModel:        []encryptionatrest.TfGcpKmsConfigModel{TfGcpKmsConfigModel},
+			tfModel:        []encryptionatrest.TFGcpKmsConfigModel{TfGcpKmsConfigModel},
 			expectedResult: GoogleCloudKMS,
 		},
 		{
@@ -250,11 +255,11 @@ func TestNewAtlasAzureKeyVault(t *testing.T) {
 	testCases := []struct {
 		name           string
 		expectedResult *admin.AzureKeyVault
-		tfModel        []encryptionatrest.TfAzureKeyVaultConfigModel
+		tfModel        []encryptionatrest.TFAzureKeyVaultConfigModel
 	}{
 		{
 			name:           "Success NewAtlasAwsKms",
-			tfModel:        []encryptionatrest.TfAzureKeyVaultConfigModel{TfAzureKeyVaultConfigModel},
+			tfModel:        []encryptionatrest.TFAzureKeyVaultConfigModel{TfAzureKeyVaultConfigModel},
 			expectedResult: AzureKeyVault,
 		},
 		{
