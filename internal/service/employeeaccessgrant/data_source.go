@@ -38,7 +38,7 @@ func (d *employeeAccessGrantDS) Read(ctx context.Context, req datasource.ReadReq
 	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	atlasResp, _ := cluster.GetMongoDBEmployeeAccessGrantOk()
 	if err != nil || atlasResp == nil {
-		msg := "info not found"
+		msg := "employee access grant not defined for that cluster"
 		if err != nil {
 			msg = err.Error()
 		}
