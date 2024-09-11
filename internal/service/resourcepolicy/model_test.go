@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
 	"github.com/stretchr/testify/assert"
@@ -76,14 +75,25 @@ func TestResourcePolicySDKToTFModel(t *testing.T) {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
 			asserter := assert.New(t)
-			asserter.Equal(types.ObjectValueMust(resourcepolicy.UserMetadataObjectType.AttrTypes, map[string]attr.Value{
-				"id":   types.StringValue(tc.userIDCreate),
-				"name": types.StringValue(tc.userNameCreate),
-			}), resultModel.CreatedByUser)
-			asserter.Equal(types.ObjectValueMust(resourcepolicy.UserMetadataObjectType.AttrTypes, map[string]attr.Value{
-				"id":   types.StringValue(tc.userIDUpdate),
-				"name": types.StringValue(tc.userNameUpdate),
-			}), resultModel.LastUpdatedByUser)
+			createdByUserExpected := resourcepolicy.TFUserMetadataModel{
+				ID:   types.StringValue(tc.userIDCreate),
+				Name: types.StringValue(tc.userNameCreate),
+			}
+			expectedTFUserCreate, diags := types.ObjectValueFrom(ctx, resourcepolicy.UserMetadataObjectType.AttrTypes, createdByUserExpected)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			asserter.Equal(expectedTFUserCreate, resultModel.CreatedByUser)
+			updatedByUserExpected := resourcepolicy.TFUserMetadataModel{
+				ID:   types.StringValue(tc.userIDUpdate),
+				Name: types.StringValue(tc.userNameUpdate),
+			}
+			expectedTFUserUpdate, diags := types.ObjectValueFrom(ctx, resourcepolicy.UserMetadataObjectType.AttrTypes, updatedByUserExpected)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			asserter.Equal(expectedTFUserUpdate, resultModel.LastUpdatedByUser)
+
 			asserter.Equal(tc.createdDate, resultModel.CreatedDate.ValueString())
 			asserter.Equal(tc.policyID, resultModel.ID.ValueString())
 			asserter.Equal(tc.lastUpdatedDate, resultModel.LastUpdatedDate.ValueString())

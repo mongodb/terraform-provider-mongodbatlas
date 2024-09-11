@@ -25,13 +25,13 @@ func NewTFResourcePolicy(ctx context.Context, apiResp *admin.ApiAtlasResourcePol
 	return &TFResourcePolicyModel{
 		CreatedByUser:     *createdBy,
 		CreatedDate:       types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreatedDate)),
-		ID:                types.StringValue(apiResp.GetId()),
+		ID:                types.StringPointerValue(apiResp.Id),
 		LastUpdatedByUser: *lastUpdatedBy,
 		LastUpdatedDate:   types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.LastUpdatedDate)),
 		Name:              types.StringPointerValue(apiResp.Name),
-		OrgID:             types.StringValue(apiResp.GetOrgId()),
+		OrgID:             types.StringPointerValue(apiResp.OrgId),
 		Policies:          *policies,
-		Version:           types.StringValue(apiResp.GetVersion()),
+		Version:           types.StringPointerValue(apiResp.Version),
 	}, nil
 }
 
@@ -41,8 +41,8 @@ func newUserMetadataObjectType(ctx context.Context, userResp *admin.ApiAtlasUser
 		return &empty, nil
 	}
 	tfModel := TFUserMetadataModel{
-		ID:   types.StringValue(userResp.GetId()),
-		Name: types.StringValue(userResp.GetName()),
+		ID:   types.StringPointerValue(userResp.Id),
+		Name: types.StringPointerValue(userResp.Name),
 	}
 	objType, diags := types.ObjectValueFrom(ctx, UserMetadataObjectType.AttrTypes, tfModel)
 	if diags.HasError() {
@@ -59,8 +59,8 @@ func newPoliciesListType(ctx context.Context, apiResp *[]admin.ApiAtlasPolicy) (
 	var tfList []TFPolicyModel
 	for _, policy := range *apiResp {
 		tfPolicy := TFPolicyModel{
-			Body: types.StringValue(policy.GetBody()),
-			ID:   types.StringValue(policy.GetId()),
+			Body: types.StringPointerValue(policy.Body),
+			ID:   types.StringPointerValue(policy.Id),
 		}
 		tfList = append(tfList, tfPolicy)
 	}
