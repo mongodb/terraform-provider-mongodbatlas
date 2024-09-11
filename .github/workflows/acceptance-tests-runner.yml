@@ -285,7 +285,7 @@ jobs:
             - 'internal/service/pushbasedlogexport/*.go'
           resource_policy:
             - 'internal/service/resourcepolicy/*.go'
-            search_deployment:
+          search_deployment:
             - 'internal/service/searchdeployment/*.go'
           search_index:
             - 'internal/service/searchindex/*.go'
