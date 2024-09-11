@@ -16,7 +16,7 @@ var (
 	resourceID   = fmt.Sprintf("%s.test", resourceType)
 )
 
-func TestAccResourcePolicyRS_basic(t *testing.T) {
+func TestAccResourcePolicy_basic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		policyName  = "test-policy"
@@ -38,7 +38,7 @@ func TestAccResourcePolicyRS_basic(t *testing.T) {
 			},
 			{
 				Config:            configBasic(orgID, &updatedName),
-				ResourceName:      resourceType,
+				ResourceName:      resourceID,
 				ImportStateIdFunc: checkImportStateIDFunc(resourceID),
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -54,11 +54,12 @@ func checksResourcePolicy(orgID string, name *string, policyCount int) resource.
 		"policies.#": fmt.Sprintf("%d", policyCount),
 	}
 	attrSet := []string{
-		"created_by_user",
+		"created_by_user.id",
+		"created_by_user.name",
 		"created_date",
-		"last_updated_by_user",
+		"last_updated_by_user.id",
+		"last_updated_by_user.name",
 		"last_updated_date",
-		"policies",
 		"id",
 		"version",
 	}
