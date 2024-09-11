@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	projectID          = "123456789012345678901234"
-	projectIDInvalid   = "invalid_project_id"
-	clusterName        = "clusterName"
-	clusterNameInvalid = "_invalidClusterName"
+	projectID           = "123456789012345678901234"
+	projectIDInvalid    = "invalid_project_id"
+	clusterName         = "clusterName"
+	clusterNameWithDash = "cluster-name"
+	clusterNameInvalid  = "_invalidClusterName"
 )
 
 func TestIDWithProjectIDClusterName(t *testing.T) {
@@ -27,6 +28,12 @@ func TestIDWithProjectIDClusterName(t *testing.T) {
 			clusterName: clusterName,
 			expectedID:  projectID + "-" + clusterName,
 		},
+		"valid cluster name with dash": {
+			projectID:   projectID,
+			clusterName: clusterNameWithDash,
+			expectedID:  projectID + "-" + clusterNameWithDash,
+		},
+
 		"invalid project_id": {
 			projectID:           projectIDInvalid,
 			clusterName:         clusterName,

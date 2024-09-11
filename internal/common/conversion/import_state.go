@@ -21,7 +21,7 @@ func IDWithProjectIDClusterName(projectID, clusterName string) (string, error) {
 }
 
 func ImportStateProjectIDClusterName(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "-")
+	parts := strings.SplitN(req.ID, "-", 2)
 	if len(parts) != 2 {
 		resp.Diagnostics.AddError("invalid import ID", "expected 2 parts with project_id and cluster_name: "+req.ID)
 		return
