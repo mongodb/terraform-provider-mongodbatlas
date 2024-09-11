@@ -27,4 +27,17 @@ func (d *employeeAccessGrantDS) Schema(ctx context.Context, req datasource.Schem
 }
 
 func (d *employeeAccessGrantDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var tfModel TFModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &tfModel)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	connV2 := d.Client.AtlasV2
+	projectID := tfModel.ProjectID.ValueString()
+	clusterName := tfModel.ClusterName.ValueString()
+	cluster, _, _ := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	atlasResp, _ := cluster.GetMongoDBEmployeeAccessGrantOk()
+	if atlasResp != nil {
+		resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModel(projectID, clusterName, atlasResp))...)
+	}
 }
