@@ -80,6 +80,12 @@ on:
       mongodb_atlas_gov_base_url:
         type: string
         required: true
+      mongodb_atlas_rp_org_id:
+        type: string
+        required: true
+      mongodb_atlas_rp_base_url:
+        type: string
+        required: true
       mongodb_atlas_gov_project_owner_id:
         type: string
         required: true
@@ -125,6 +131,10 @@ on:
         required: true
       mongodb_atlas_gov_public_key:
         required: true
+      mongodb_atlas_rp_private_key:
+        required: true
+      mongodb_atlas_rp_public_key:
+        required: true
       azure_directory_id:
         required: true
       azure_resource_group_name:
@@ -151,6 +161,10 @@ env:
   MONGODB_ATLAS_GOV_PRIVATE_KEY: ${{ secrets.mongodb_atlas_gov_private_key }}
   MONGODB_ATLAS_GOV_BASE_URL:  ${{ inputs.mongodb_atlas_gov_base_url }}
   MONGODB_ATLAS_GOV_ORG_ID:  ${{ inputs.mongodb_atlas_gov_org_id }}
+  MONGODB_ATLAS_RP_PUBLIC_KEY: ${{ secrets.mongodb_atlas_rp_public_key }}
+  MONGODB_ATLAS_RP_PRIVATE_KEY: ${{ secrets.mongodb_atlas_rp_private_key }}
+  MONGODB_ATLAS_RP_BASE_URL:  ${{ inputs.mongodb_atlas_rp_base_url }}
+  MONGODB_ATLAS_RP_ORG_ID:  ${{ inputs.mongodb_atlas_rp_org_id }}
 
 
 jobs:  
@@ -192,6 +206,7 @@ jobs:
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       push_based_log_export: ${{ steps.filter.outputs.push_based_log_export == 'true' || env.mustTrigger == 'true' }}
+      resource_policy: ${{ steps.filter.outputs.resource_policy == 'true' || env.mustTrigger == 'true' }}
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
@@ -268,7 +283,9 @@ jobs:
             - 'internal/service/projectipaccesslist/*.go'
           push_based_log_export:
             - 'internal/service/pushbasedlogexport/*.go'
-          search_deployment:
+          resource_policy:
+            - 'internal/service/resourcepolicy/*.go'
+            search_deployment:
             - 'internal/service/searchdeployment/*.go'
           search_index:
             - 'internal/service/searchindex/*.go'
@@ -740,6 +757,30 @@ jobs:
           ACCTEST_PACKAGES: ./internal/service/pushbasedlogexport
         run: make testacc
 
+  resource_policy:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.resource_policy == 'true' || inputs.test_group == 'resource_policy' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_ENABLE_PREVIEW: "true"
+          ACCTEST_PACKAGES: |
+            ./internal/service/resourcepolicy
+        run: make testacc
+  
   search_deployment:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.search_deployment == 'true' || inputs.test_group == 'search_deployment' }}
