@@ -13,6 +13,7 @@ const (
 	fullResourceName = "mongodbatlas_" + resourceName
 	errorCreate      = "Error creating resource " + fullResourceName
 	errorRead        = "Error retrieving info for resource " + fullResourceName
+	errorDataSource  = "Error retrieving info for data source " + fullResourceName
 	errorDelete      = "Error deleting resource " + fullResourceName
 )
 
