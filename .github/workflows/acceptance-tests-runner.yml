@@ -218,7 +218,7 @@ jobs:
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
       control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
-      employee_access_grant: ${{ steps.filter.outputs.employee_access_grant == 'true' || env.mustTrigger == 'true' }}
+      mongodb_employee_access_grant: ${{ steps.filter.outputs.mongodb_employee_access_grant == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
     - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
@@ -304,8 +304,8 @@ jobs:
             - 'internal/service/streamprocessor/*.go'
           control_plane_ip_addresses:
             - 'internal/service/controlplaneipaddresses/*.go'
-          employee_access_grant:
-            - 'internal/service/employeeaccessgrant/*.go'
+          mongodb_employee_access_grant:
+            - 'internal/service/mongodbemployeeaccessgrant/*.go'
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
@@ -877,9 +877,9 @@ jobs:
             ./internal/service/controlplaneipaddresses
         run: make testacc
 
-  employee_access_grant:
+  mongodb_employee_access_grant:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.employee_access_grant == 'true' || inputs.test_group == 'employee_access_grant' }}
+    if: ${{ needs.change-detection.outputs.mongodb_employee_access_grant == 'true' || inputs.test_group == 'mongodb_employee_access_grant' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -896,6 +896,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/service/employeeaccessgrant
+          ACCTEST_PACKAGES: ./internal/service/mongodbemployeeaccessgrant
         run: make testacc
       

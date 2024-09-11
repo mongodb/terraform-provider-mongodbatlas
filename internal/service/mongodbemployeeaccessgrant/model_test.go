@@ -1,11 +1,11 @@
-package employeeaccessgrant_test
+package mongodbemployeeaccessgrant_test
 
 import (
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/employeeaccessgrant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
@@ -13,7 +13,7 @@ import (
 func TestNewTFModel(t *testing.T) {
 	testCases := map[string]struct {
 		apiResp         *admin.EmployeeAccessGrant
-		expectedTFModel *employeeaccessgrant.TFModel
+		expectedTFModel *mongodbemployeeaccessgrant.TFModel
 		projectID       string
 		clusterName     string
 	}{
@@ -24,7 +24,7 @@ func TestNewTFModel(t *testing.T) {
 				GrantType:      "grantType",
 				ExpirationTime: time.Date(2024, 10, 13, 0, 0, 0, 0, time.UTC),
 			},
-			expectedTFModel: &employeeaccessgrant.TFModel{
+			expectedTFModel: &mongodbemployeeaccessgrant.TFModel{
 				ProjectID:      types.StringValue("projectID"),
 				ClusterName:    types.StringValue("clusterName"),
 				GrantType:      types.StringValue("grantType"),
@@ -34,7 +34,7 @@ func TestNewTFModel(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			tfModel := employeeaccessgrant.NewTFModel(tc.projectID, tc.clusterName, tc.apiResp)
+			tfModel := mongodbemployeeaccessgrant.NewTFModel(tc.projectID, tc.clusterName, tc.apiResp)
 			assert.Equal(t, tc.expectedTFModel, tfModel)
 		})
 	}
@@ -42,12 +42,12 @@ func TestNewTFModel(t *testing.T) {
 
 func TestNewAtlasReq(t *testing.T) {
 	testCases := map[string]struct {
-		tfModel             *employeeaccessgrant.TFModel
+		tfModel             *mongodbemployeeaccessgrant.TFModel
 		expectedReq         *admin.EmployeeAccessGrant
 		expectedErrContains string
 	}{
 		"valid": {
-			tfModel: &employeeaccessgrant.TFModel{
+			tfModel: &mongodbemployeeaccessgrant.TFModel{
 				ProjectID:      types.StringValue("projectID"),
 				ClusterName:    types.StringValue("clusterName"),
 				GrantType:      types.StringValue("grantType"),
@@ -59,7 +59,7 @@ func TestNewAtlasReq(t *testing.T) {
 			},
 		},
 		"invalid expiration time": {
-			tfModel: &employeeaccessgrant.TFModel{
+			tfModel: &mongodbemployeeaccessgrant.TFModel{
 				ProjectID:      types.StringValue("projectID"),
 				ClusterName:    types.StringValue("clusterName"),
 				GrantType:      types.StringValue("grantType"),
@@ -70,7 +70,7 @@ func TestNewAtlasReq(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			req, err := employeeaccessgrant.NewAtlasReq(tc.tfModel)
+			req, err := mongodbemployeeaccessgrant.NewAtlasReq(tc.tfModel)
 			assert.Equal(t, tc.expectedErrContains == "", err == nil)
 			if err == nil {
 				assert.Equal(t, tc.expectedReq, req)

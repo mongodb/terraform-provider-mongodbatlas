@@ -30,9 +30,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/employeeaccessgrant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses"
@@ -443,7 +443,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		encryptionatrest.DataSource,
 		encryptionatrestprivateendpoint.DataSource,
 		encryptionatrestprivateendpoint.PluralDataSource,
-		employeeaccessgrant.DataSource,
+		mongodbemployeeaccessgrant.DataSource,
 	}
 	previewDataSources := []func() datasource.DataSource{} // Data sources not yet in GA
 
@@ -466,7 +466,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		streamconnection.Resource,
 		streamprocessor.Resource,
 		encryptionatrestprivateendpoint.Resource,
-		employeeaccessgrant.Resource,
+		mongodbemployeeaccessgrant.Resource,
 	}
 	previewResources := []func() resource.Resource{} // Resources not yet in GA
 
