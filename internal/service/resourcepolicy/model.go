@@ -70,6 +70,16 @@ func NewPolicyObjectType(ctx context.Context, input *[]admin.ApiAtlasPolicy) (*t
 	return &listType, nil
 }
 
-func NewResourcePolicyReq(ctx context.Context, plan *TFResourcePolicyModel) (*admin.ApiAtlasResourcePolicy, diag.Diagnostics) {
-	return &admin.ApiAtlasResourcePolicy{}, nil
+func NewTFPoliciesModelToSDK(ctx context.Context, input types.List) (*[]admin.ApiAtlasPolicyCreate, diag.Diagnostics) {
+	var tfPolicies []TFPolicyModel
+	if diags := input.ElementsAs(ctx, &tfPolicies, false); diags.HasError() {
+		return nil, diags
+	}
+	apiModels := make([]admin.ApiAtlasPolicyCreate, len(tfPolicies))
+	for i, item := range tfPolicies {
+		apiModels[i] = admin.ApiAtlasPolicyCreate{
+			Body: item.Body.ValueStringPointer(),
+		}
+	}
+	return &apiModels, nil
 }
