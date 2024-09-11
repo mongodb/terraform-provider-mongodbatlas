@@ -78,6 +78,13 @@ func configBasic(projectID, clusterName, grantType, expirationTime string) strin
 			grant_type 			= %[3]q
 			expiration_time = %[4]q
 		}
+
+		data "mongodbatlas_employee_access_grant" "test" {
+			project_id 			= mongodbatlas_employee_access_grant.test.project_id
+			cluster_name 		= mongodbatlas_employee_access_grant.test.cluster_name
+			
+			depends_on 			= [mongodbatlas_employee_access_grant.test]
+		}
 	`, projectID, clusterName, grantType, expirationTime)
 }
 
@@ -90,6 +97,7 @@ func checkBasic(projectID, clusterName, grantType, expirationTime string) resour
 		"expiration_time": expirationTime,
 	}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
