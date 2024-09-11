@@ -34,15 +34,25 @@ func TestIDWithProjectIDClusterName(t *testing.T) {
 			expectedID:  projectID + "-" + clusterNameWithDash,
 		},
 
-		"invalid project_id": {
+		"invalid project_id showing invalid value": {
 			projectID:           projectIDInvalid,
 			clusterName:         clusterName,
 			expectedErrContains: projectIDInvalid,
 		},
-		"invalid cluster_name": {
+		"invalid project_id showing error message": {
+			projectID:           projectIDInvalid,
+			clusterName:         clusterName,
+			expectedErrContains: "project_id must be a 24 character hex string",
+		},
+		"invalid cluster_name showing invalid value": {
 			projectID:           projectID,
 			clusterName:         clusterNameInvalid,
 			expectedErrContains: clusterNameInvalid,
+		},
+		"invalid cluster_name showing error message": {
+			projectID:           projectID,
+			clusterName:         clusterNameInvalid,
+			expectedErrContains: "cluster_name must be a string with length between 1 and 64, starting and ending with an alphanumeric character, and containing only alphanumeric characters and hyphens",
 		},
 	}
 	for name, tc := range testCases {
