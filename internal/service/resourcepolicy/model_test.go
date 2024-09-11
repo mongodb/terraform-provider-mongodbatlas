@@ -70,7 +70,7 @@ func TestResourcePolicySDKToTFModel(t *testing.T) {
 				t.Fatalf("failed to unmarshal sdk response: %s", err)
 			}
 			ctx := context.Background()
-			resultModel, diags := resourcepolicy.NewTFResourcePolicy(ctx, &SDKModel)
+			resultModel, diags := resourcepolicy.NewTFResourcePolicyModel(ctx, &SDKModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

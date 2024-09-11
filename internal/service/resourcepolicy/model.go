@@ -9,24 +9,24 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
-func NewTFResourcePolicy(ctx context.Context, apiResp *admin.ApiAtlasResourcePolicy) (*TFResourcePolicyModel, diag.Diagnostics) {
-	createdBy, diags := newUserMetadataObjectType(ctx, apiResp.CreatedByUser)
+func NewTFResourcePolicyModel(ctx context.Context, apiResp *admin.ApiAtlasResourcePolicy) (*TFResourcePolicyModel, diag.Diagnostics) {
+	createdByUser, diags := NewUserMetadataObjectType(ctx, apiResp.CreatedByUser)
 	if diags.HasError() {
 		return nil, diags
 	}
-	lastUpdatedBy, diags := newUserMetadataObjectType(ctx, apiResp.LastUpdatedByUser)
+	lastUpdatedByUser, diags := NewUserMetadataObjectType(ctx, apiResp.LastUpdatedByUser)
 	if diags.HasError() {
 		return nil, diags
 	}
-	policies, diags := newPoliciesListType(ctx, apiResp.Policies)
+	policies, diags := NewPolicyObjectType(ctx, apiResp.Policies)
 	if diags.HasError() {
 		return nil, diags
 	}
 	return &TFResourcePolicyModel{
-		CreatedByUser:     *createdBy,
+		CreatedByUser:     *createdByUser,
 		CreatedDate:       types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreatedDate)),
 		ID:                types.StringPointerValue(apiResp.Id),
-		LastUpdatedByUser: *lastUpdatedBy,
+		LastUpdatedByUser: *lastUpdatedByUser,
 		LastUpdatedDate:   types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.LastUpdatedDate)),
 		Name:              types.StringPointerValue(apiResp.Name),
 		OrgID:             types.StringPointerValue(apiResp.OrgId),
@@ -35,14 +35,14 @@ func NewTFResourcePolicy(ctx context.Context, apiResp *admin.ApiAtlasResourcePol
 	}, nil
 }
 
-func newUserMetadataObjectType(ctx context.Context, userResp *admin.ApiAtlasUserMetadata) (*types.Object, diag.Diagnostics) {
-	if userResp == nil {
+func NewUserMetadataObjectType(ctx context.Context, apiResp *admin.ApiAtlasUserMetadata) (*types.Object, diag.Diagnostics) {
+	if apiResp == nil {
 		empty := types.ObjectNull(UserMetadataObjectType.AttrTypes)
 		return &empty, nil
 	}
 	tfModel := TFUserMetadataModel{
-		ID:   types.StringPointerValue(userResp.Id),
-		Name: types.StringPointerValue(userResp.Name),
+		ID:   types.StringPointerValue(apiResp.Id),
+		Name: types.StringPointerValue(apiResp.Name),
 	}
 	objType, diags := types.ObjectValueFrom(ctx, UserMetadataObjectType.AttrTypes, tfModel)
 	if diags.HasError() {
@@ -51,20 +51,19 @@ func newUserMetadataObjectType(ctx context.Context, userResp *admin.ApiAtlasUser
 	return &objType, nil
 }
 
-func newPoliciesListType(ctx context.Context, apiResp *[]admin.ApiAtlasPolicy) (*types.List, diag.Diagnostics) {
+func NewPolicyObjectType(ctx context.Context, apiResp *[]admin.ApiAtlasPolicy) (*types.List, diag.Diagnostics) {
 	if apiResp == nil {
 		empty := types.ListNull(PolicyObjectType)
 		return &empty, nil
 	}
-	var tfList []TFPolicyModel
-	for _, policy := range *apiResp {
-		tfPolicy := TFPolicyModel{
-			Body: types.StringPointerValue(policy.Body),
-			ID:   types.StringPointerValue(policy.Id),
+	tfModels := make([]TFPolicyModel, len(*apiResp))
+	for i, item := range *apiResp {
+		tfModels[i] = TFPolicyModel{
+			Body: types.StringPointerValue(item.Body),
+			ID:   types.StringPointerValue(item.Id),
 		}
-		tfList = append(tfList, tfPolicy)
 	}
-	listType, diags := types.ListValueFrom(ctx, PolicyObjectType, tfList)
+	listType, diags := types.ListValueFrom(ctx, PolicyObjectType, tfModels)
 	if diags.HasError() {
 		return nil, diags
 	}
