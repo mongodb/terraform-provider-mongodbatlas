@@ -45,5 +45,10 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 		resp.Diagnostics.AddError(errorDataSource, msg)
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModel(projectID, clusterName, atlasResp))...)
+	tfNewModel, err := NewTFModel(projectID, clusterName, atlasResp)
+	if err != nil {
+		resp.Diagnostics.AddError(errorDataSource, err.Error())
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, tfNewModel)...)
 }

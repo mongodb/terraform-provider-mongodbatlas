@@ -46,6 +46,17 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				Config: configBasic(projectID, clusterName, grantTypeUpdated, expirationTimeUpdated),
 				Check:  checkBasic(projectID, clusterName, grantTypeUpdated, expirationTimeUpdated),
 			},
+			{
+				Config: configBasic(projectID, clusterName, grantType, expirationTime),
+				Check:  checkBasic(projectID, clusterName, grantType, expirationTime),
+			},
+			{
+				Config:            configBasic(projectID, clusterName, grantType, expirationTime),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: acc.ImportStateIDFuncProjectIDClusterName(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	}
 }

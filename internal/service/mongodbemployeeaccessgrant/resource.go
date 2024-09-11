@@ -7,16 +7,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 const (
-	resourceName     = "mongodb_employee_access_grant"
-	fullResourceName = "mongodbatlas_" + resourceName
-	errorCreate      = "Error creating resource " + fullResourceName
-	errorRead        = "Error retrieving info for resource " + fullResourceName
-	errorDataSource  = "Error retrieving info for data source " + fullResourceName
-	errorDelete      = "Error deleting resource " + fullResourceName
+	resourceName      = "mongodb_employee_access_grant"
+	fullResourceName  = "mongodbatlas_" + resourceName
+	errorCreateUpdate = "Error setting resource " + fullResourceName
+	errorRead         = "Error retrieving info for resource " + fullResourceName
+	errorDataSource   = "Error retrieving info for data source " + fullResourceName
+	errorDelete       = "Error deleting resource " + fullResourceName
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -57,7 +59,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	if err != nil {
-		resp.Diagnostics.AddError(errorCreate, err.Error())
+		resp.Diagnostics.AddError(errorRead, err.Error())
 		return
 	}
 	atlasResp, _ := cluster.GetMongoDBEmployeeAccessGrantOk()
@@ -65,7 +67,12 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.State.RemoveResource(ctx)
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModel(projectID, clusterName, atlasResp))...)
+	tfNewModel, err := NewTFModel(projectID, clusterName, atlasResp)
+	if err != nil {
+		resp.Diagnostics.AddError(errorRead, err.Error())
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, tfNewModel)...)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -89,6 +96,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	conversion.ImportStateProjectIDClusterName(ctx, req, resp)
 }
 
 func (r *rs) createOrUpdate(ctx context.Context, tfModelFunc func(context.Context, any) diag.Diagnostics, diagnostics *diag.Diagnostics, state *tfsdk.State) {
@@ -99,15 +107,21 @@ func (r *rs) createOrUpdate(ctx context.Context, tfModelFunc func(context.Contex
 	}
 	atlasReq, err := NewAtlasReq(&tfModel)
 	if err != nil {
-		diagnostics.AddError(errorCreate, err.Error())
+		diagnostics.AddError(errorCreateUpdate, err.Error())
 		return
 	}
 	connV2 := r.Client.AtlasV2
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
 	if _, _, err := connV2.ClustersApi.GrantMongoDBEmployeeAccess(ctx, projectID, clusterName, atlasReq).Execute(); err != nil {
-		diagnostics.AddError(errorCreate, err.Error())
+		diagnostics.AddError(errorCreateUpdate, err.Error())
 		return
 	}
+	id, err := conversion.IDWithProjectIDClusterName(projectID, clusterName)
+	if err != nil {
+		diagnostics.AddError(errorCreateUpdate, err.Error())
+		return
+	}
+	tfModel.ID = types.StringValue(id)
 	diagnostics.Append(state.Set(ctx, tfModel)...)
 }
