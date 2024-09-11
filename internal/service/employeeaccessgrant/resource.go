@@ -4,7 +4,9 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -37,24 +39,7 @@ func (r *employeeAccessGrantRS) Schema(ctx context.Context, req resource.SchemaR
 }
 
 func (r *employeeAccessGrantRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var tfModel TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	atlasReq, err := NewAtlasReq(&tfModel)
-	if err != nil {
-		resp.Diagnostics.AddError(errorCreate, err.Error())
-		return
-	}
-	connV2 := r.Client.AtlasV2
-	projectID := tfModel.ProjectID.ValueString()
-	clusterName := tfModel.ClusterName.ValueString()
-	if _, _, err := connV2.ClustersApi.GrantMongoDBEmployeeAccess(ctx, projectID, clusterName, atlasReq).Execute(); err != nil {
-		resp.Diagnostics.AddError(errorCreate, err.Error())
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, tfModel)...)
+	r.createOrUpdate(ctx, req.Plan.Get, &resp.Diagnostics, &resp.State)
 }
 
 func (r *employeeAccessGrantRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -84,12 +69,7 @@ func (r *employeeAccessGrantRS) Read(ctx context.Context, req resource.ReadReque
 }
 
 func (r *employeeAccessGrantRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var tfPlan TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfPlan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, tfPlan)...)
+	r.createOrUpdate(ctx, req.Plan.Get, &resp.Diagnostics, &resp.State)
 }
 
 func (r *employeeAccessGrantRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -109,4 +89,25 @@ func (r *employeeAccessGrantRS) Delete(ctx context.Context, req resource.DeleteR
 }
 
 func (r *employeeAccessGrantRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+}
+
+func (r *employeeAccessGrantRS) createOrUpdate(ctx context.Context, tfModelFunc func(context.Context, any) diag.Diagnostics, diagnostics *diag.Diagnostics, state *tfsdk.State) {
+	var tfModel TFModel
+	diagnostics.Append(tfModelFunc(ctx, &tfModel)...)
+	if diagnostics.HasError() {
+		return
+	}
+	atlasReq, err := NewAtlasReq(&tfModel)
+	if err != nil {
+		diagnostics.AddError(errorCreate, err.Error())
+		return
+	}
+	connV2 := r.Client.AtlasV2
+	projectID := tfModel.ProjectID.ValueString()
+	clusterName := tfModel.ClusterName.ValueString()
+	if _, _, err := connV2.ClustersApi.GrantMongoDBEmployeeAccess(ctx, projectID, clusterName, atlasReq).Execute(); err != nil {
+		diagnostics.AddError(errorCreate, err.Error())
+		return
+	}
+	diagnostics.Append(state.Set(ctx, tfModel)...)
 }

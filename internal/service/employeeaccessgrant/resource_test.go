@@ -15,8 +15,10 @@ const (
 	resourceName          = "mongodbatlas_employee_access_grant.test"
 	dataSourceName        = "data.mongodbatlas_employee_access_grant.test"
 	grantType             = "CLUSTER_INFRASTRUCTURE"
-	expirationTime        = "2025-08-01T12:00:00Z"
+	grantTypeUpdated      = "CLUSTER_DATABASE_LOGS"
 	grantTypeInvalid      = "invalid_grant_type"
+	expirationTime        = "2025-08-01T12:00:00Z"
+	expirationTimeUpdated = "2025-09-01T12:00:00Z"
 	expirationTimeInvalid = "invalid_time"
 )
 
@@ -35,6 +37,14 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config: configBasic(projectID, clusterName, grantType, expirationTime),
 				Check:  checkBasic(projectID, clusterName, grantType, expirationTime),
+			},
+			{
+				Config: configBasic(projectID, clusterName, grantTypeUpdated, expirationTime),
+				Check:  checkBasic(projectID, clusterName, grantTypeUpdated, expirationTime),
+			},
+			{
+				Config: configBasic(projectID, clusterName, grantTypeUpdated, expirationTimeUpdated),
+				Check:  checkBasic(projectID, clusterName, grantTypeUpdated, expirationTimeUpdated),
 			},
 		},
 	}
@@ -55,6 +65,25 @@ func TestAccEmployeeAccessGrant_invalidExpirationTime(t *testing.T) {
 	})
 }
 
+func TestAccEmployeeAccessGrant_invalidExpirationTimeUpdate(t *testing.T) {
+	projectID, clusterName := acc.ClusterNameExecution(t)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, clusterName, grantType, expirationTime),
+				Check:  checkBasic(projectID, clusterName, grantType, expirationTime),
+			},
+			{
+				Config:      configBasic(projectID, clusterName, grantType, expirationTimeInvalid),
+				ExpectError: regexp.MustCompile("expiration_time format is incorrect.*" + expirationTimeInvalid),
+			},
+		},
+	})
+}
+
 func TestAccEmployeeAccessGrant_invalidGrantType(t *testing.T) {
 	projectID, clusterName := acc.ClusterNameExecution(t)
 	resource.Test(t, resource.TestCase{
@@ -62,6 +91,25 @@ func TestAccEmployeeAccessGrant_invalidGrantType(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
+			{
+				Config:      configBasic(projectID, clusterName, grantTypeInvalid, expirationTime),
+				ExpectError: regexp.MustCompile("invalid enumeration value.*" + grantTypeInvalid),
+			},
+		},
+	})
+}
+
+func TestAccEmployeeAccessGrant_invalidGrantTypeUpdate(t *testing.T) {
+	projectID, clusterName := acc.ClusterNameExecution(t)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, clusterName, grantType, expirationTime),
+				Check:  checkBasic(projectID, clusterName, grantType, expirationTime),
+			},
 			{
 				Config:      configBasic(projectID, clusterName, grantTypeInvalid, expirationTime),
 				ExpectError: regexp.MustCompile("invalid enumeration value.*" + grantTypeInvalid),
