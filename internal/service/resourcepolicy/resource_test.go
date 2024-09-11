@@ -80,7 +80,7 @@ func configBasic(orgID string, policyName *string) string {
 	if policyName != nil {
 		name = fmt.Sprintf("  name = %q", *policyName)
 	}
-	return fmt.Sprintf(`
+	return acc.ConfigRPProvider() + fmt.Sprintf(`
 resource "mongodbatlas_resource_policy" "test" {
 	org_id = %[1]q
 	%[2]s
