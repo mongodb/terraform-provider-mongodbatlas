@@ -35,9 +35,15 @@ func (d *employeeAccessGrantDS) Read(ctx context.Context, req datasource.ReadReq
 	connV2 := d.Client.AtlasV2
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
-	cluster, _, _ := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	atlasResp, _ := cluster.GetMongoDBEmployeeAccessGrantOk()
-	if atlasResp != nil {
-		resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModel(projectID, clusterName, atlasResp))...)
+	if err != nil || atlasResp == nil {
+		msg := "info not found"
+		if err != nil {
+			msg = err.Error()
+		}
+		resp.Diagnostics.AddError(errorDataSource, msg)
+		return
 	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModel(projectID, clusterName, atlasResp))...)
 }
