@@ -1,4 +1,4 @@
-package employeeaccessgrant_test
+package mongodbemployeeaccessgrant_test
 
 import (
 	"os"

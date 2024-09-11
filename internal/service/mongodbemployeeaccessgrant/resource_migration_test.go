@@ -1,4 +1,4 @@
-package employeeaccessgrant_test
+package mongodbemployeeaccessgrant_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestMigEmployeeAccessGrant_basic(t *testing.T) {
+func TestMigMongoDBEmployeeAccessGrant_basic(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.20.0")                  // this feature was introduced in provider version 1.20.0
 	mig.CreateAndRunTestNonParallel(t, basicTestCase(t)) // does not run in parallel to reuse same execution project and cluster
 }

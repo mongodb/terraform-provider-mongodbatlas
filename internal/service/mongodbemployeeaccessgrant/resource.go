@@ -1,4 +1,4 @@
-package employeeaccessgrant
+package mongodbemployeeaccessgrant
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	resourceName     = "employee_access_grant"
+	resourceName     = "mongodb_employee_access_grant"
 	fullResourceName = "mongodbatlas_" + resourceName
 	errorCreate      = "Error creating resource " + fullResourceName
 	errorRead        = "Error retrieving info for resource " + fullResourceName
@@ -19,30 +19,30 @@ const (
 	errorDelete      = "Error deleting resource " + fullResourceName
 )
 
-var _ resource.ResourceWithConfigure = &employeeAccessGrantRS{}
-var _ resource.ResourceWithImportState = &employeeAccessGrantRS{}
+var _ resource.ResourceWithConfigure = &rs{}
+var _ resource.ResourceWithImportState = &rs{}
 
 func Resource() resource.Resource {
-	return &employeeAccessGrantRS{
+	return &rs{
 		RSCommon: config.RSCommon{
 			ResourceName: resourceName,
 		},
 	}
 }
 
-type employeeAccessGrantRS struct {
+type rs struct {
 	config.RSCommon
 }
 
-func (r *employeeAccessGrantRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
 }
 
-func (r *employeeAccessGrantRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	r.createOrUpdate(ctx, req.Plan.Get, &resp.Diagnostics, &resp.State)
 }
 
-func (r *employeeAccessGrantRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var tfModel TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
@@ -68,11 +68,11 @@ func (r *employeeAccessGrantRS) Read(ctx context.Context, req resource.ReadReque
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModel(projectID, clusterName, atlasResp))...)
 }
 
-func (r *employeeAccessGrantRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	r.createOrUpdate(ctx, req.Plan.Get, &resp.Diagnostics, &resp.State)
 }
 
-func (r *employeeAccessGrantRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var tfModel TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
@@ -88,10 +88,10 @@ func (r *employeeAccessGrantRS) Delete(ctx context.Context, req resource.DeleteR
 	}
 }
 
-func (r *employeeAccessGrantRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 }
 
-func (r *employeeAccessGrantRS) createOrUpdate(ctx context.Context, tfModelFunc func(context.Context, any) diag.Diagnostics, diagnostics *diag.Diagnostics, state *tfsdk.State) {
+func (r *rs) createOrUpdate(ctx context.Context, tfModelFunc func(context.Context, any) diag.Diagnostics, diagnostics *diag.Diagnostics, state *tfsdk.State) {
 	var tfModel TFModel
 	diagnostics.Append(tfModelFunc(ctx, &tfModel)...)
 	if diagnostics.HasError() {

@@ -1,4 +1,4 @@
-package employeeaccessgrant_test
+package mongodbemployeeaccessgrant_test
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	resourceName          = "mongodbatlas_employee_access_grant.test"
-	dataSourceName        = "data.mongodbatlas_employee_access_grant.test"
+	resourceName          = "mongodbatlas_mongodb_employee_access_grant.test"
+	dataSourceName        = "data." + resourceName
 	grantType             = "CLUSTER_INFRASTRUCTURE"
 	grantTypeUpdated      = "CLUSTER_DATABASE_LOGS"
 	grantTypeInvalid      = "invalid_grant_type"
@@ -22,7 +22,7 @@ const (
 	expirationTimeInvalid = "invalid_time"
 )
 
-func TestAccEmployeeAccessGrant_basic(t *testing.T) {
+func TestAccMongoDBEmployeeAccessGrant_basic(t *testing.T) {
 	resource.Test(t, *basicTestCase(t))
 }
 
@@ -50,7 +50,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func TestAccEmployeeAccessGrant_invalidExpirationTime(t *testing.T) {
+func TestAccMongoDBEmployeeAccessGrant_invalidExpirationTime(t *testing.T) {
 	projectID, clusterName := acc.ClusterNameExecution(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -65,7 +65,7 @@ func TestAccEmployeeAccessGrant_invalidExpirationTime(t *testing.T) {
 	})
 }
 
-func TestAccEmployeeAccessGrant_invalidExpirationTimeUpdate(t *testing.T) {
+func TestAccMongoDBEmployeeAccessGrant_invalidExpirationTimeUpdate(t *testing.T) {
 	projectID, clusterName := acc.ClusterNameExecution(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -84,7 +84,7 @@ func TestAccEmployeeAccessGrant_invalidExpirationTimeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccEmployeeAccessGrant_invalidGrantType(t *testing.T) {
+func TestAccMongoDBEmployeeAccessGrant_invalidGrantType(t *testing.T) {
 	projectID, clusterName := acc.ClusterNameExecution(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -99,7 +99,7 @@ func TestAccEmployeeAccessGrant_invalidGrantType(t *testing.T) {
 	})
 }
 
-func TestAccEmployeeAccessGrant_invalidGrantTypeUpdate(t *testing.T) {
+func TestAccMongoDBEmployeeAccessGrant_invalidGrantTypeUpdate(t *testing.T) {
 	projectID, clusterName := acc.ClusterNameExecution(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -120,18 +120,18 @@ func TestAccEmployeeAccessGrant_invalidGrantTypeUpdate(t *testing.T) {
 
 func configBasic(projectID, clusterName, grantType, expirationTime string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_employee_access_grant" "test" {
+		resource "mongodbatlas_mongodb_employee_access_grant" "test" {
 			project_id 			= %[1]q
 			cluster_name 		= %[2]q
 			grant_type 			= %[3]q
 			expiration_time = %[4]q
 		}
 
-		data "mongodbatlas_employee_access_grant" "test" {
-			project_id 			= mongodbatlas_employee_access_grant.test.project_id
-			cluster_name 		= mongodbatlas_employee_access_grant.test.cluster_name
+		data "mongodbatlas_mongodb_employee_access_grant" "test" {
+			project_id 			= mongodbatlas_mongodb_employee_access_grant.test.project_id
+			cluster_name 		= mongodbatlas_mongodb_employee_access_grant.test.cluster_name
 			
-			depends_on 			= [mongodbatlas_employee_access_grant.test]
+			depends_on 			= [mongodbatlas_mongodb_employee_access_grant.test]
 		}
 	`, projectID, clusterName, grantType, expirationTime)
 }
@@ -164,7 +164,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 
 func checkDestroy(state *terraform.State) error {
 	for _, rs := range state.RootModule().Resources {
-		if rs.Type == "mongodbatlas_employee_access_grant" {
+		if rs.Type == "mongodbatlas_mongodb_employee_access_grant" {
 			if exists(rs) {
 				return fmt.Errorf("employee access grant still exists")
 			}

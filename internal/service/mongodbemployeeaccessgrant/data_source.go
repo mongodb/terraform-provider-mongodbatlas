@@ -1,4 +1,4 @@
-package employeeaccessgrant
+package mongodbemployeeaccessgrant
 
 import (
 	"context"
@@ -7,26 +7,26 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-var _ datasource.DataSource = &employeeAccessGrantDS{}
-var _ datasource.DataSourceWithConfigure = &employeeAccessGrantDS{}
+var _ datasource.DataSource = &ds{}
+var _ datasource.DataSourceWithConfigure = &ds{}
 
 func DataSource() datasource.DataSource {
-	return &employeeAccessGrantDS{
+	return &ds{
 		DSCommon: config.DSCommon{
 			DataSourceName: resourceName,
 		},
 	}
 }
 
-type employeeAccessGrantDS struct {
+type ds struct {
 	config.DSCommon
 }
 
-func (d *employeeAccessGrantDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = DataSourceSchema(ctx)
 }
 
-func (d *employeeAccessGrantDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var tfModel TFModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {

@@ -1,4 +1,4 @@
-package employeeaccessgrant
+package mongodbemployeeaccessgrant
 
 import (
 	"context"
