@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.19.0 (September 11, 2024)
+
 NOTES:
 
 * data-source/mongodbatlas_project: Deprecates the `ip_addresses` attribute. Use the new `mongodbatlas_project_ip_addresses` data source to obtain this information instead. ([#2541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2541))
