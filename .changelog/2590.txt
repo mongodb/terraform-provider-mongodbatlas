@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_stream_processor: Error during create should only show one error message and required actions
+```
