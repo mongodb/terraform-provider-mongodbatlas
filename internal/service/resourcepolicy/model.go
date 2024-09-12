@@ -33,8 +33,7 @@ func NewTFResourcePolicyModel(ctx context.Context, input *admin.ApiAtlasResource
 func NewUserMetadataObjectType(ctx context.Context, input *admin.ApiAtlasUserMetadata, diags *diag.Diagnostics) types.Object {
 	var nilPointer *admin.ApiAtlasUserMetadata
 	if input == nilPointer {
-		empty := types.ObjectNull(UserMetadataObjectType.AttrTypes)
-		return empty
+		return types.ObjectNull(UserMetadataObjectType.AttrTypes)
 	}
 	tfModel := TFUserMetadataModel{
 		ID:   types.StringPointerValue(input.Id),
@@ -48,8 +47,7 @@ func NewUserMetadataObjectType(ctx context.Context, input *admin.ApiAtlasUserMet
 func NewPolicyObjectType(ctx context.Context, input *[]admin.ApiAtlasPolicy, diags *diag.Diagnostics) types.List {
 	var nilPointer *[]admin.ApiAtlasPolicy
 	if input == nilPointer {
-		empty := types.ListNull(PolicyObjectType)
-		return empty
+		return types.ListNull(PolicyObjectType)
 	}
 	tfModels := make([]TFPolicyModel, len(*input))
 	for i, item := range *input {
