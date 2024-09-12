@@ -134,7 +134,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	requestParameters := &admin.CloudProviderAccessRole{
+	requestParameters := &admin.CloudProviderAccessRoleRequest{
 		ProviderName: d.Get("provider_name").(string),
 	}
 
