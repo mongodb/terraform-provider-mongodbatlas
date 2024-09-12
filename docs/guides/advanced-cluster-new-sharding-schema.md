@@ -199,7 +199,7 @@ Note: The first time `terraform apply` command is run **after** updating the con
 <a id="migration-replicaset"></a>
 ### Migrate advanced_cluster type `REPLICASET`
 
-To learn more, see the documentation on [transitioning from a replicaset to a sharded cluster](https://www.mongodb.com/docs/atlas/scale-cluster/#convert-a-replica-set-to-a-sharded-cluster).
+To learn more, see the documentation on [transitioning from a replica set to a sharded cluster](https://www.mongodb.com/docs/atlas/scale-cluster/#scale-your-replica-set-to-a-sharded-cluster).
 
 Consider the following replica set configuration:
 ```
@@ -222,7 +222,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-To transition a replica set to sharded cluster 2 separate updates must be applied. First, update the `cluster_type` to SHARDED, and apply this change to the cluster.
+To upgrade a replica set to a multi-sharded cluster, you must upgrade to a single shard cluster first, restart your application and reconnect to the cluster, and then add additional shards. If you don't restart the application clients, your data might be inconsistent once Atlas begins distributing data across shards.
+
+First, update the `cluster_type` to SHARDED (single shard), and apply this change to the cluster.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -244,7 +246,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-Once the cluster type is adjusted accordingly, we can proceed to add a new shard:
+Once the cluster type is adjusted accordingly, ensure to restart the application clients. If you don't reconnect the application clients, your application may suffer from data outages.
+
+We can now proceed to add an additional second shard:
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
