@@ -90,7 +90,7 @@ func flattenProcessArgs(p *matlas.ProcessArgs) []map[string]any {
 	if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil {
 		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
 	} else {
-		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1
+		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
 	}
 	return flattenedProcessArgs
 }
