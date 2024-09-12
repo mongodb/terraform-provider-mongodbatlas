@@ -31,8 +31,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"grant_type": schema.StringAttribute{
 				Required:            true,
-				Description:         "Level of access to grant to MongoDB Employees.",
-				MarkdownDescription: "Level of access to grant to MongoDB Employees.",
+				Description:         "Level of access to grant to MongoDB Employees. Possible values are CLUSTER_DATABASE_LOGS, CLUSTER_INFRASTRUCTURE or CLUSTER_INFRASTRUCTURE_AND_APP_SERVICES_SYNC_DATA",
+				MarkdownDescription: "Level of access to grant to MongoDB Employees. Possible values are CLUSTER_DATABASE_LOGS, CLUSTER_INFRASTRUCTURE or CLUSTER_INFRASTRUCTURE_AND_APP_SERVICES_SYNC_DATA",
 			},
 			"expiration_time": schema.StringAttribute{
 				Required:            true,
