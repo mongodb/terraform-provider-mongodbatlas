@@ -36,7 +36,8 @@ func NewTFResourcePolicyModel(ctx context.Context, input *admin.ApiAtlasResource
 }
 
 func NewUserMetadataObjectType(ctx context.Context, input *admin.ApiAtlasUserMetadata) (*types.Object, diag.Diagnostics) {
-	if input == nil {
+	var nilPointer *admin.ApiAtlasUserMetadata
+	if input == nilPointer {
 		empty := types.ObjectNull(UserMetadataObjectType.AttrTypes)
 		return &empty, nil
 	}
@@ -52,7 +53,8 @@ func NewUserMetadataObjectType(ctx context.Context, input *admin.ApiAtlasUserMet
 }
 
 func NewPolicyObjectType(ctx context.Context, input *[]admin.ApiAtlasPolicy) (*types.List, diag.Diagnostics) {
-	if input == nil {
+	var nilPointer *[]admin.ApiAtlasPolicy
+	if input == nilPointer {
 		empty := types.ListNull(PolicyObjectType)
 		return &empty, nil
 	}
