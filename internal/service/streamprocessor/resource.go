@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 const StreamProcessorName = "stream_processor"
