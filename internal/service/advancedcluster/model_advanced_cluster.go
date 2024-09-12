@@ -754,7 +754,7 @@ func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 	return ""
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
+func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
 	res20240530 := admin20240530.ClusterDescriptionProcessArgs{}
 	res := admin.ClusterDescriptionProcessArgs20240805{}
 
@@ -814,14 +814,20 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		}
 	}
 
-	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && isChangeStreamOptionsMinRequiredVersion(mongodbMajorVersion) {
+	// if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && isChangeStreamOptionsMinRequiredVersion(mongodbMajorVersion) {
+	// 	res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
+	// }
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok {
 		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 	}
 	return res20240530, res
 }
 
-func isChangeStreamOptionsMinRequiredVersion(input string) bool {
-	value, _ := strconv.ParseFloat(input, 64)
+func isChangeStreamOptionsMinRequiredVersion(input *string) bool {
+	if input == nil {
+		return true
+	}
+	value, _ := strconv.ParseFloat(*input, 64)
 	return value >= minVersionForChangeStreamOptions
 }
 
