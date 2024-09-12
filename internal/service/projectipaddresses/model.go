@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 func NewTFProjectIPAddresses(ctx context.Context, ipAddresses *admin.GroupIPAddresses) (*TFProjectIpAddressesModel, diag.Diagnostics) {

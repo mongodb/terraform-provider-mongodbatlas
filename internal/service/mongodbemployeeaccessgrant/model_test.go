@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 func TestNewTFModel(t *testing.T) {
