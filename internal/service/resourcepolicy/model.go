@@ -10,12 +10,12 @@ import (
 )
 
 func NewTFResourcePolicyModel(ctx context.Context, input *admin.ApiAtlasResourcePolicy) (*TFResourcePolicyModel, diag.Diagnostics) {
-	diags := diag.Diagnostics{}
-	createdByUser := NewUserMetadataObjectType(ctx, input.CreatedByUser, &diags)
-	lastUpdatedByUser := NewUserMetadataObjectType(ctx, input.LastUpdatedByUser, &diags)
-	policies := NewPolicyObjectType(ctx, input.Policies, &diags)
+	diags := &diag.Diagnostics{}
+	createdByUser := NewUserMetadataObjectType(ctx, input.CreatedByUser, diags)
+	lastUpdatedByUser := NewUserMetadataObjectType(ctx, input.LastUpdatedByUser, diags)
+	policies := NewPolicyObjectType(ctx, input.Policies, diags)
 	if diags.HasError() {
-		return nil, diags
+		return nil, *diags
 	}
 	return &TFResourcePolicyModel{
 		CreatedByUser:     createdByUser,
