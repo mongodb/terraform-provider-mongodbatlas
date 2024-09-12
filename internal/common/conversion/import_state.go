@@ -10,16 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func IDWithProjectIDClusterName(projectID, clusterName string) (string, error) {
-	if err := ValidateProjectID(projectID); err != nil {
-		return "", err
-	}
-	if err := ValidateClusterName(clusterName); err != nil {
-		return "", err
-	}
-	return projectID + "-" + clusterName, nil
-}
-
 func ImportStateProjectIDClusterName(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	parts := strings.SplitN(req.ID, "-", 2)
 	if len(parts) != 2 {

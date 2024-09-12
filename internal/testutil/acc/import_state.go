@@ -14,6 +14,16 @@ func ImportStateIDFuncProjectIDClusterName(resourceName string) resource.ImportS
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return conversion.IDWithProjectIDClusterName(rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
+		return IDWithProjectIDClusterName(rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 	}
+}
+
+func IDWithProjectIDClusterName(projectID, clusterName string) (string, error) {
+	if err := conversion.ValidateProjectID(projectID); err != nil {
+		return "", err
+	}
+	if err := conversion.ValidateClusterName(clusterName); err != nil {
+		return "", err
+	}
+	return projectID + "-" + clusterName, nil
 }
