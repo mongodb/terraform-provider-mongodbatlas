@@ -8,11 +8,13 @@ import (
 	"reflect"
 	"strings"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
@@ -217,7 +219,7 @@ func expandTagSliceFromSetSchema(d *schema.ResourceData) []*matlas.Tag {
 	return res
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.ProcessArgs {
+func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) *matlas.ProcessArgs {
 	res := &matlas.ProcessArgs{}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {
@@ -276,7 +278,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 		}
 	}
 
-	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && advancedcluster.IsChangeStreamOptionsMinRequiredVersion(mongodbMajorVersion) {
 		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(cast.ToInt64(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 	}
 
