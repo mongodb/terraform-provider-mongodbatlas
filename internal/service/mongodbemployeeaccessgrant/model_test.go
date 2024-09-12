@@ -18,14 +18,14 @@ func TestNewTFModel(t *testing.T) {
 		clusterName     string
 	}{
 		"valid": {
-			projectID:   "123456789012345678901234",
+			projectID:   "projectID",
 			clusterName: "clusterName",
 			apiResp: &admin.EmployeeAccessGrant{
 				GrantType:      "grantType",
 				ExpirationTime: time.Date(2024, 10, 13, 0, 0, 0, 0, time.UTC),
 			},
 			expectedTFModel: &mongodbemployeeaccessgrant.TFModel{
-				ProjectID:      types.StringValue("123456789012345678901234"),
+				ProjectID:      types.StringValue("projectID"),
 				ClusterName:    types.StringValue("clusterName"),
 				GrantType:      types.StringValue("grantType"),
 				ExpirationTime: types.StringValue("2024-10-13T00:00:00Z"),
