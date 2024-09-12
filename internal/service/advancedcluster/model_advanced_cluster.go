@@ -814,10 +814,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		}
 	}
 
-	// if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && isChangeStreamOptionsMinRequiredVersion(mongodbMajorVersion) {
-	// 	res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
-	// }
-	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && IsChangeStreamOptionsMinRequiredVersion(mongodbMajorVersion) {
 		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 	}
 	return res20240530, res
