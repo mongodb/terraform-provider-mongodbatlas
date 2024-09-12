@@ -7,6 +7,7 @@ import (
 	"hash/crc32"
 	"log"
 	"slices"
+	"strconv"
 	"strings"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
@@ -20,6 +21,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
+
+const minVersionForChangeStreamOptions = 6.0
 
 var (
 	DSTagsSchema = schema.Schema{
@@ -751,7 +754,7 @@ func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 	return ""
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]any) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
+func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
 	res20240530 := admin20240530.ClusterDescriptionProcessArgs{}
 	res := admin.ClusterDescriptionProcessArgs20240805{}
 
@@ -811,10 +814,15 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) (admin20240530.
 		}
 	}
 
-	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && isChangeStreamOptionsMinRequiredVersion(mongodbMajorVersion) {
 		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 	}
 	return res20240530, res
+}
+
+func isChangeStreamOptionsMinRequiredVersion(input string) bool {
+	value, _ := strconv.ParseFloat(input, 64)
+	return value >= minVersionForChangeStreamOptions
 }
 
 func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLabel, diag.Diagnostics) {
