@@ -10,15 +10,10 @@ import (
 )
 
 func NewTFResourcePolicyModel(ctx context.Context, input *admin.ApiAtlasResourcePolicy) (*TFResourcePolicyModel, diag.Diagnostics) {
-	createdByUser, diags := NewUserMetadataObjectType(ctx, input.CreatedByUser)
-	if diags.HasError() {
-		return nil, diags
-	}
-	lastUpdatedByUser, diags := NewUserMetadataObjectType(ctx, input.LastUpdatedByUser)
-	if diags.HasError() {
-		return nil, diags
-	}
-	policies, diags := NewPolicyObjectType(ctx, input.Policies)
+	diags := diag.Diagnostics{}
+	createdByUser := NewUserMetadataObjectType(ctx, input.CreatedByUser, &diags)
+	lastUpdatedByUser := NewUserMetadataObjectType(ctx, input.LastUpdatedByUser, &diags)
+	policies := NewPolicyObjectType(ctx, input.Policies, &diags)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -35,28 +30,26 @@ func NewTFResourcePolicyModel(ctx context.Context, input *admin.ApiAtlasResource
 	}, nil
 }
 
-func NewUserMetadataObjectType(ctx context.Context, input *admin.ApiAtlasUserMetadata) (*types.Object, diag.Diagnostics) {
+func NewUserMetadataObjectType(ctx context.Context, input *admin.ApiAtlasUserMetadata, diags *diag.Diagnostics) *types.Object {
 	var nilPointer *admin.ApiAtlasUserMetadata
 	if input == nilPointer {
 		empty := types.ObjectNull(UserMetadataObjectType.AttrTypes)
-		return &empty, nil
+		return &empty
 	}
 	tfModel := TFUserMetadataModel{
 		ID:   types.StringPointerValue(input.Id),
 		Name: types.StringPointerValue(input.Name),
 	}
-	objType, diags := types.ObjectValueFrom(ctx, UserMetadataObjectType.AttrTypes, tfModel)
-	if diags.HasError() {
-		return nil, diags
-	}
-	return &objType, nil
+	objType, diagsLocal := types.ObjectValueFrom(ctx, UserMetadataObjectType.AttrTypes, tfModel)
+	diags.Append(diagsLocal...)
+	return &objType
 }
 
-func NewPolicyObjectType(ctx context.Context, input *[]admin.ApiAtlasPolicy) (*types.List, diag.Diagnostics) {
+func NewPolicyObjectType(ctx context.Context, input *[]admin.ApiAtlasPolicy, diags *diag.Diagnostics) *types.List {
 	var nilPointer *[]admin.ApiAtlasPolicy
 	if input == nilPointer {
 		empty := types.ListNull(PolicyObjectType)
-		return &empty, nil
+		return &empty
 	}
 	tfModels := make([]TFPolicyModel, len(*input))
 	for i, item := range *input {
@@ -65,11 +58,9 @@ func NewPolicyObjectType(ctx context.Context, input *[]admin.ApiAtlasPolicy) (*t
 			ID:   types.StringPointerValue(item.Id),
 		}
 	}
-	listType, diags := types.ListValueFrom(ctx, PolicyObjectType, tfModels)
-	if diags.HasError() {
-		return nil, diags
-	}
-	return &listType, nil
+	listType, diagsLocal := types.ListValueFrom(ctx, PolicyObjectType, tfModels)
+	diags.Append(diagsLocal...)
+	return &listType
 }
 
 func NewTFPoliciesModelToSDK(ctx context.Context, input types.List) (*[]admin.ApiAtlasPolicyCreate, diag.Diagnostics) {

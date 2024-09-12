@@ -173,7 +173,8 @@ func parseSDKModel(t *testing.T, sdkRespJSON string) admin.ApiAtlasResourcePolic
 func Test_NewUserMetadataObjectTypeWithNilArg(t *testing.T) {
 	ctx := context.Background()
 	var metadataNil *admin.ApiAtlasUserMetadata
-	obj, diags := resourcepolicy.NewUserMetadataObjectType(ctx, metadataNil)
+	diags := diag.Diagnostics{}
+	obj := resourcepolicy.NewUserMetadataObjectType(ctx, metadataNil, &diags)
 	assertDiagsOK(t, diags)
 	assert.Equal(t, types.ObjectNull(resourcepolicy.UserMetadataObjectType.AttrTypes), *obj)
 }
@@ -181,7 +182,8 @@ func Test_NewUserMetadataObjectTypeWithNilArg(t *testing.T) {
 func Test_NewPolicyObjectTypeWithNilArg(t *testing.T) {
 	ctx := context.Background()
 	var policiesNil *[]admin.ApiAtlasPolicy
-	obj, diags := resourcepolicy.NewPolicyObjectType(ctx, policiesNil)
+	diags := diag.Diagnostics{}
+	obj := resourcepolicy.NewPolicyObjectType(ctx, policiesNil, &diags)
 	assertDiagsOK(t, diags)
 	assert.Equal(t, types.ListNull(resourcepolicy.PolicyObjectType), *obj)
 }
