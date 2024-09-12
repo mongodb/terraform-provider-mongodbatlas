@@ -1,5 +1,10 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_mongodb_employee_access_grant` ([#2591](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2591))
+* **New Resource:** `resource/mongodbatlas_mongodb_employee_access_grant` ([#2591](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2591))
+
 ## 1.19.0 (September 11, 2024)
 
 NOTES:
