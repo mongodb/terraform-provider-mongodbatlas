@@ -17,10 +17,11 @@ const StreamProcessorName = "stream_processor"
 
 var _ resource.ResourceWithConfigure = &streamProcessorRS{}
 var _ resource.ResourceWithImportState = &streamProcessorRS{}
-var (
-	errorDuringCreateStartActions    = "You need to fix the processor and import the resource or delete it manually and re-run terraform apply."
-	errorDuringCreateStart           = fmt.Sprintf("Error starting stream processor. %s", errorDuringCreateStartActions)
-	errorDuringCreateStartTransition = fmt.Sprintf("Error changing state of stream processor. %s", errorDuringCreateStartActions)
+
+const (
+	errorCreateStartActions    = "You need to fix the processor and import the resource or delete it manually and re-run terraform apply."
+	errorCreateStart           = "Error starting stream processor. " + errorCreateStartActions
+	errorCreateStartTransition = "Error changing state of stream processor. " + errorCreateStartActions
 )
 
 func Resource() resource.Resource {
@@ -97,12 +98,12 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 			},
 		).Execute()
 		if err != nil {
-			resp.Diagnostics.AddError(errorDuringCreateStart, err.Error())
+			resp.Diagnostics.AddError(errorCreateStart, err.Error())
 			return
 		}
 		streamProcessorResp, err = WaitStateTransition(ctx, streamProcessorParams, connV2.StreamsApi, []string{CreatedState}, []string{StartedState})
 		if err != nil {
-			resp.Diagnostics.AddError(errorDuringCreateStartTransition, err.Error())
+			resp.Diagnostics.AddError(errorCreateStartTransition, err.Error())
 			return
 		}
 	}
