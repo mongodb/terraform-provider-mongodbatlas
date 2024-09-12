@@ -12,7 +12,6 @@ resource "mongodbatlas_mongodb_employee_access_grant" "example" {
   expiration_time = "2025-01-01T12:00:00Z"
 }
 
-
 data "mongodbatlas_mongodb_employee_access_grant" "ds_example" {
   project_id   = var.project_id
   cluster_name = var.cluster_name
