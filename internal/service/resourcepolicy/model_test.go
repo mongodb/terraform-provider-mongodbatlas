@@ -176,7 +176,7 @@ func Test_NewUserMetadataObjectTypeWithNilArg(t *testing.T) {
 	diags := diag.Diagnostics{}
 	obj := resourcepolicy.NewUserMetadataObjectType(ctx, metadataNil, &diags)
 	assertDiagsOK(t, diags)
-	assert.Equal(t, types.ObjectNull(resourcepolicy.UserMetadataObjectType.AttrTypes), *obj)
+	assert.Equal(t, types.ObjectNull(resourcepolicy.UserMetadataObjectType.AttrTypes), obj)
 }
 
 func Test_NewPolicyObjectTypeWithNilArg(t *testing.T) {
@@ -185,5 +185,5 @@ func Test_NewPolicyObjectTypeWithNilArg(t *testing.T) {
 	diags := diag.Diagnostics{}
 	obj := resourcepolicy.NewPolicyObjectType(ctx, policiesNil, &diags)
 	assertDiagsOK(t, diags)
-	assert.Equal(t, types.ListNull(resourcepolicy.PolicyObjectType), *obj)
+	assert.Equal(t, types.ListNull(resourcepolicy.PolicyObjectType), obj)
 }

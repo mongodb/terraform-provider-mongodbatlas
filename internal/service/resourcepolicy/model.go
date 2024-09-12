@@ -18,23 +18,23 @@ func NewTFResourcePolicyModel(ctx context.Context, input *admin.ApiAtlasResource
 		return nil, diags
 	}
 	return &TFResourcePolicyModel{
-		CreatedByUser:     *createdByUser,
+		CreatedByUser:     createdByUser,
 		CreatedDate:       types.StringPointerValue(conversion.TimePtrToStringPtr(input.CreatedDate)),
 		ID:                types.StringPointerValue(input.Id),
-		LastUpdatedByUser: *lastUpdatedByUser,
+		LastUpdatedByUser: lastUpdatedByUser,
 		LastUpdatedDate:   types.StringPointerValue(conversion.TimePtrToStringPtr(input.LastUpdatedDate)),
 		Name:              types.StringPointerValue(input.Name),
 		OrgID:             types.StringPointerValue(input.OrgId),
-		Policies:          *policies,
+		Policies:          policies,
 		Version:           types.StringPointerValue(input.Version),
 	}, nil
 }
 
-func NewUserMetadataObjectType(ctx context.Context, input *admin.ApiAtlasUserMetadata, diags *diag.Diagnostics) *types.Object {
+func NewUserMetadataObjectType(ctx context.Context, input *admin.ApiAtlasUserMetadata, diags *diag.Diagnostics) types.Object {
 	var nilPointer *admin.ApiAtlasUserMetadata
 	if input == nilPointer {
 		empty := types.ObjectNull(UserMetadataObjectType.AttrTypes)
-		return &empty
+		return empty
 	}
 	tfModel := TFUserMetadataModel{
 		ID:   types.StringPointerValue(input.Id),
@@ -42,14 +42,14 @@ func NewUserMetadataObjectType(ctx context.Context, input *admin.ApiAtlasUserMet
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, UserMetadataObjectType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
-	return &objType
+	return objType
 }
 
-func NewPolicyObjectType(ctx context.Context, input *[]admin.ApiAtlasPolicy, diags *diag.Diagnostics) *types.List {
+func NewPolicyObjectType(ctx context.Context, input *[]admin.ApiAtlasPolicy, diags *diag.Diagnostics) types.List {
 	var nilPointer *[]admin.ApiAtlasPolicy
 	if input == nilPointer {
 		empty := types.ListNull(PolicyObjectType)
-		return &empty
+		return empty
 	}
 	tfModels := make([]TFPolicyModel, len(*input))
 	for i, item := range *input {
@@ -60,7 +60,7 @@ func NewPolicyObjectType(ctx context.Context, input *[]admin.ApiAtlasPolicy, dia
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, PolicyObjectType, tfModels)
 	diags.Append(diagsLocal...)
-	return &listType
+	return listType
 }
 
 func NewTFPoliciesModelToSDK(ctx context.Context, input types.List) (*[]admin.ApiAtlasPolicyCreate, diag.Diagnostics) {
