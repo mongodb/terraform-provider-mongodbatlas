@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -62,17 +61,12 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.Diagnostics.AddError(errorRead, err.Error())
 		return
 	}
-	atlasResp, _ := cluster.GetMongoDBEmployeeAccessGrantOk()
-	if atlasResp == nil {
+	apiResp, _ := cluster.GetMongoDBEmployeeAccessGrantOk()
+	if apiResp == nil {
 		resp.State.RemoveResource(ctx)
 		return
 	}
-	tfNewModel, err := NewTFModel(projectID, clusterName, atlasResp)
-	if err != nil {
-		resp.Diagnostics.AddError(errorRead, err.Error())
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, tfNewModel)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModel(projectID, clusterName, apiResp))...)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -117,11 +111,5 @@ func (r *rs) createOrUpdate(ctx context.Context, tfModelFunc func(context.Contex
 		diagnostics.AddError(errorCreateUpdate, err.Error())
 		return
 	}
-	id, err := conversion.IDWithProjectIDClusterName(projectID, clusterName)
-	if err != nil {
-		diagnostics.AddError(errorCreateUpdate, err.Error())
-		return
-	}
-	tfModel.ID = types.StringValue(id)
 	diagnostics.Append(state.Set(ctx, tfModel)...)
 }

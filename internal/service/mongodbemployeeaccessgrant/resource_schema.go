@@ -13,12 +13,6 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
 			"project_id": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -50,7 +44,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	ID             types.String `tfsdk:"id"`
 	ProjectID      types.String `tfsdk:"project_id"`
 	ClusterName    types.String `tfsdk:"cluster_name"`
 	GrantType      types.String `tfsdk:"grant_type"`
