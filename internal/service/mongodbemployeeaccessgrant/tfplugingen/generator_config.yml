@@ -1,0 +1,17 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  mongodb_employee_access_grant:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}:grantMongoDBEmployeeAccess
+      method: POST
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}:grantMongoDBEmployeeAccess
+      method: POST
+
+data_sources:
+  mongodb_employee_access_grant:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}:grantMongoDBEmployeeAccess
+      method: POST

@@ -83,6 +83,8 @@ jobs:
         run: make generate-doc resource_name=project_ip_addresses
       - name: Doc for stream_processor
         run: make generate-doc resource_name=stream_processor 
+      - name: Doc for mongodb_employee_access_grant
+        run: make generate-doc resource_name=mongodb_employee_access_grant
       - name: Find mutations
         id: self_mutation
         run: |-
