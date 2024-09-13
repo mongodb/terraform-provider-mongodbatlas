@@ -246,7 +246,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-Once the cluster type is adjusted accordingly, ensure to restart the application clients. If you don't reconnect the application clients, your application may suffer from data outages.
+Once the cluster type is adjusted accordingly, you must restart the application clients. If you don't reconnect the application clients, your application may suffer from data outages.
 
 We can now proceed to add an additional second shard:
 
