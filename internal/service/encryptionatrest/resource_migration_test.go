@@ -91,7 +91,7 @@ func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
+						plancheck.ExpectEmptyPlan(), // special case using AWS resources
 					},
 				},
 			},
