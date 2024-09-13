@@ -109,9 +109,8 @@ func PreCheckRPBasic(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_RP_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_RP_PRIVATE_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_RP_BASE_URL") == "" ||
 		os.Getenv("MONGODB_ATLAS_RP_ORG_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_RP_BASE_URL`, `MONGODB_ATLAS_RP_PUBLIC_KEY`, `MONGODB_ATLAS_RP_PRIVATE_KEY`and `MONGODB_ATLAS_RP_ORG_ID` must be set for acceptance testing")
+		tb.Fatal("`MONGODB_ATLAS_RP_PUBLIC_KEY`, `MONGODB_ATLAS_RP_PRIVATE_KEY`and `MONGODB_ATLAS_RP_ORG_ID` must be set for acceptance testing")
 	}
 }
 
