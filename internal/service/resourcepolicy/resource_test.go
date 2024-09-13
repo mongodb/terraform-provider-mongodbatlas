@@ -14,6 +14,7 @@ import (
 var (
 	resourceType = "mongodbatlas_resource_policy"
 	resourceID   = fmt.Sprintf("%s.test", resourceType)
+	dataSourceID = "data.mongodbatlas_resource_policy.test"
 )
 
 func TestAccResourcePolicy_basic(t *testing.T) {
@@ -68,9 +69,12 @@ func checksResourcePolicy(orgID string, name *string, policyCount int) resource.
 	}
 	checks := []resource.TestCheckFunc{checkExists()}
 	checks = acc.AddAttrChecks(resourceID, checks, attrMap)
+	checks = acc.AddAttrChecks(dataSourceID, checks, attrMap)
 	checks = acc.AddAttrSetChecks(resourceID, checks, attrSet...)
+	checks = acc.AddAttrSetChecks(dataSourceID, checks, attrSet...)
 	for i := 0; i < policyCount; i++ {
 		checks = acc.AddAttrSetChecks(resourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
+		checks = acc.AddAttrSetChecks(dataSourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
@@ -97,6 +101,10 @@ resource "mongodbatlas_resource_policy" "test" {
 	EOF
    }
  ]
+}
+data "mongodbatlas_resource_policy" "test" {
+	org_id = mongodbatlas_resource_policy.test.org_id
+	id = mongodbatlas_resource_policy.test.id
 }
 `, orgID, name)
 }
