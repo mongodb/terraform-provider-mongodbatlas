@@ -83,9 +83,6 @@ on:
       mongodb_atlas_rp_org_id:
         type: string
         required: true
-      mongodb_atlas_rp_base_url:
-        type: string
-        required: true
       mongodb_atlas_gov_project_owner_id:
         type: string
         required: true
@@ -163,7 +160,6 @@ env:
   MONGODB_ATLAS_GOV_ORG_ID:  ${{ inputs.mongodb_atlas_gov_org_id }}
   MONGODB_ATLAS_RP_PUBLIC_KEY: ${{ secrets.mongodb_atlas_rp_public_key }}
   MONGODB_ATLAS_RP_PRIVATE_KEY: ${{ secrets.mongodb_atlas_rp_private_key }}
-  MONGODB_ATLAS_RP_BASE_URL:  ${{ inputs.mongodb_atlas_rp_base_url }}
   MONGODB_ATLAS_RP_ORG_ID:  ${{ inputs.mongodb_atlas_rp_org_id }}
 
 
