@@ -98,7 +98,7 @@ func createTFModel(t *testing.T, testCase *sdkToTFModelTestCase) *resourcepolicy
 			ID:   types.StringValue(testCase.userIDUpdate),
 			Name: types.StringValue(testCase.userNameUpdate),
 		}),
-		Policies:        unit.TFListValue(t, resourcepolicy.PolicyObjectType, policies),
+		Policies:        policies,
 		CreatedDate:     types.StringValue(testCase.createdDate),
 		ID:              types.StringValue(testCase.policyID),
 		LastUpdatedDate: types.StringValue(testCase.lastUpdatedDate),
@@ -150,13 +150,4 @@ func Test_NewUserMetadataObjectTypeWithNilArg(t *testing.T) {
 	obj := resourcepolicy.NewUserMetadataObjectType(ctx, metadataNil, &diags)
 	unit.AssertDiagsOK(t, diags)
 	assert.Equal(t, types.ObjectNull(resourcepolicy.UserMetadataObjectType.AttrTypes), obj)
-}
-
-func Test_NewPolicyObjectTypeWithNilArg(t *testing.T) {
-	ctx := context.Background()
-	var policiesNil *[]admin.ApiAtlasPolicy
-	diags := diag.Diagnostics{}
-	obj := resourcepolicy.NewPolicyObjectType(ctx, policiesNil, &diags)
-	unit.AssertDiagsOK(t, diags)
-	assert.Equal(t, types.ListNull(resourcepolicy.PolicyObjectType), obj)
 }
