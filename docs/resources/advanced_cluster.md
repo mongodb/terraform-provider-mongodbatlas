@@ -4,7 +4,7 @@
 
 More information on considerations for using advanced clusters please see [Considerations](https://docs.atlas.mongodb.com/reference/api/cluster-advanced/create-one-cluster-advanced/#considerations)
 
-~> **IMPORTANT:** The primary difference between [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) and [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) is that `mongodbatlas_advanced_cluster` supports multi-cloud clusters.  We recommend new users start with the `mongodbatlas_advanced_cluster` resource.  
+~> **IMPORTANT:** The primary difference between [`mongodbatlas_cluster`](cluster) and [`mongodbatlas_advanced_cluster`](advanced_cluster) is that `mongodbatlas_advanced_cluster` supports multi-cloud clusters.  We recommend new users start with the `mongodbatlas_advanced_cluster` resource.  
 
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
