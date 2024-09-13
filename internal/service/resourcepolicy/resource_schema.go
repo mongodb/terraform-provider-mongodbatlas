@@ -123,13 +123,6 @@ type TFUserMetadataModel struct {
 	Name types.String `tfsdk:"name"`
 }
 
-func (m *TFUserMetadataModel) AttributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"id":   types.StringType,
-		"name": types.StringType,
-	}
-}
-
 var UserMetadataObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"id":   types.StringType,
 	"name": types.StringType,
