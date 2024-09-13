@@ -182,7 +182,7 @@ func TestNewTFResourcePoliciesModel(t *testing.T) {
 	unit.AssertDiagsOK(t, diags)
 	assert.Len(t, resultModel.ResourcePolicies, 2)
 
-	assert.Equal(t, orgID, resultModel.OrgId.ValueString())
+	assert.Equal(t, orgID, resultModel.OrgID.ValueString())
 }
 
 func TestNewTFResourcePoliciesEmptyModel(t *testing.T) {
@@ -191,5 +191,5 @@ func TestNewTFResourcePoliciesEmptyModel(t *testing.T) {
 	resultModel, diags := resourcepolicy.NewTFResourcePoliciesModel(ctx, orgID, []admin.ApiAtlasResourcePolicy{})
 	unit.AssertDiagsOK(t, diags)
 	assert.Empty(t, resultModel.ResourcePolicies)
-	assert.Equal(t, orgID, resultModel.OrgId.ValueString())
+	assert.Equal(t, orgID, resultModel.OrgID.ValueString())
 }

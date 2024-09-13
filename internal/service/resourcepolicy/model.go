@@ -82,6 +82,6 @@ func NewTFResourcePoliciesModel(ctx context.Context, orgID string, input []admin
 	}
 	return &TFResourcePoliciesDSModel{
 		ResourcePolicies: tfModels,
-		OrgId:            types.StringValue(orgID),
+		OrgID:            types.StringValue(orgID),
 	}, *diags
 }

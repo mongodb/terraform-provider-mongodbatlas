@@ -39,7 +39,7 @@ func (d *resourcePolicysDS) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	connV2 := d.Client.AtlasV2
-	orgID := cfg.OrgId.ValueString()
+	orgID := cfg.OrgID.ValueString()
 	apiResp, _, err := connV2.AtlasResourcePoliciesApi.GetAtlasResourcePolicies(ctx, orgID).Execute()
 
 	if err != nil {
@@ -47,7 +47,6 @@ func (d *resourcePolicysDS) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	// TODO: process response into new terraform state
 	newResourcePolicysModel, diags := NewTFResourcePoliciesModel(ctx, orgID, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)

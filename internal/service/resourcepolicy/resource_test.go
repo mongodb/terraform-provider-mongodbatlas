@@ -78,7 +78,7 @@ func checksResourcePolicy(orgID string, name *string, policyCount int) resource.
 	checks = acc.AddAttrChecks(dataSourcePluralID, checks, pluralMap)
 	checks = acc.AddAttrSetChecks(resourceID, checks, attrSet...)
 	checks = acc.AddAttrSetChecks(dataSourceID, checks, attrSet...)
-	// todo; add AddAttrSetChecks when master is merged with new helper function
+	// todo; add AddAttrSetChecks when master is merged with the new helper function supporting multiple ids and prefix
 	for i := 0; i < policyCount; i++ {
 		checks = acc.AddAttrSetChecks(resourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
 		checks = acc.AddAttrSetChecks(dataSourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
