@@ -5,6 +5,10 @@ FEATURES:
 * **New Data Source:** `data-source/mongodbatlas_mongodb_employee_access_grant` ([#2591](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2591))
 * **New Resource:** `resource/mongodbatlas_mongodb_employee_access_grant` ([#2591](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2591))
 
+BUG FIXES:
+
+* resource/mongodbatlas_stream_processor: Error during create should only show one error message and required actions ([#2590](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2590))
+
 ## 1.19.0 (September 11, 2024)
 
 NOTES:
