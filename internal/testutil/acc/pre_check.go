@@ -105,15 +105,6 @@ func PreCheckGovBasic(tb testing.TB) {
 	}
 }
 
-func PreCheckRPBasic(tb testing.TB) {
-	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_RP_PUBLIC_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_RP_PRIVATE_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_RP_ORG_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_RP_PUBLIC_KEY`, `MONGODB_ATLAS_RP_PRIVATE_KEY`and `MONGODB_ATLAS_RP_ORG_ID` must be set for acceptance testing")
-	}
-}
-
 func PreCheckGPCEnv(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("GCP_SERVICE_ACCOUNT_KEY") == "" || os.Getenv("GCP_KEY_VERSION_RESOURCE_ID") == "" {

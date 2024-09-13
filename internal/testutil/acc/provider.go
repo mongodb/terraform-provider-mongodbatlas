@@ -61,7 +61,3 @@ provider %[1]q {
 func ConfigGovProvider() string {
 	return configProvider(os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"), os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"), os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"))
 }
-
-func ConfigRPProvider() string {
-	return configProvider(os.Getenv("MONGODB_ATLAS_RP_PUBLIC_KEY"), os.Getenv("MONGODB_ATLAS_RP_PRIVATE_KEY"), os.Getenv("MONGODB_ATLAS_BASE_URL"))
-}

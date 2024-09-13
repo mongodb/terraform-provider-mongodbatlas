@@ -61,16 +61,6 @@ func ConnV2UsingGov() *admin.APIClient {
 	return client.(*config.MongoDBClient).AtlasV2
 }
 
-func ConnV2UsingResourcePolicy() *admin.APIClient {
-	cfg := config.Config{
-		PublicKey:  os.Getenv("MONGODB_ATLAS_RP_PUBLIC_KEY"),
-		PrivateKey: os.Getenv("MONGODB_ATLAS_RP_PRIVATE_KEY"),
-		BaseURL:    os.Getenv("MONGODB_ATLAS_BASE_URL"),
-	}
-	client, _ := cfg.NewClient(context.Background())
-	return client.(*config.MongoDBClient).AtlasV2
-}
-
 func init() {
 	TestAccProviderV6Factories = map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {

@@ -18,13 +18,13 @@ var (
 
 func TestAccResourcePolicy_basic(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_RP_ORG_ID")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		policyName  = "test-policy"
 		updatedName = "updated-policy"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckRPBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -80,7 +80,7 @@ func configBasic(orgID string, policyName *string) string {
 	if policyName != nil {
 		name = fmt.Sprintf("  name = %q", *policyName)
 	}
-	return acc.ConfigRPProvider() + fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "mongodbatlas_resource_policy" "test" {
 	org_id = %[1]q
 	%[2]s
@@ -117,7 +117,7 @@ func checkExists() resource.TestCheckFunc {
 			if rs.Type == resourceType {
 				orgID := rs.Primary.Attributes["org_id"]
 				id := rs.Primary.Attributes["id"]
-				_, _, err := acc.ConnV2UsingResourcePolicy().AtlasResourcePoliciesApi.GetAtlasResourcePolicy(context.Background(), orgID, id).Execute()
+				_, _, err := acc.ConnV2().AtlasResourcePoliciesApi.GetAtlasResourcePolicy(context.Background(), orgID, id).Execute()
 				if err != nil {
 					return fmt.Errorf("resource policy (%s:%s) not found", orgID, id)
 				}
@@ -132,7 +132,7 @@ func checkDestroy(state *terraform.State) error {
 		if rs.Type == resourceType {
 			orgID := rs.Primary.Attributes["org_id"]
 			id := rs.Primary.Attributes["id"]
-			_, _, err := acc.ConnV2UsingResourcePolicy().AtlasResourcePoliciesApi.GetAtlasResourcePolicy(context.Background(), orgID, id).Execute()
+			_, _, err := acc.ConnV2().AtlasResourcePoliciesApi.GetAtlasResourcePolicy(context.Background(), orgID, id).Execute()
 			if err == nil {
 				return fmt.Errorf("resource policy (%s:%s) still exists", orgID, id)
 			}
