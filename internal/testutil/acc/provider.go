@@ -63,5 +63,5 @@ func ConfigGovProvider() string {
 }
 
 func ConfigRPProvider() string {
-	return configProvider(os.Getenv("MONGODB_ATLAS_RP_PUBLIC_KEY"), os.Getenv("MONGODB_ATLAS_RP_PRIVATE_KEY"), os.Getenv("MONGODB_ATLAS_RP_BASE_URL"))
+	return configProvider(os.Getenv("MONGODB_ATLAS_RP_PUBLIC_KEY"), os.Getenv("MONGODB_ATLAS_RP_PRIVATE_KEY"), os.Getenv("MONGODB_ATLAS_BASE_URL"))
 }

@@ -65,7 +65,6 @@ func ConnV2UsingResourcePolicy() *admin.APIClient {
 	cfg := config.Config{
 		PublicKey:  os.Getenv("MONGODB_ATLAS_RP_PUBLIC_KEY"),
 		PrivateKey: os.Getenv("MONGODB_ATLAS_RP_PRIVATE_KEY"),
-		BaseURL:    os.Getenv("MONGODB_ATLAS_RP_BASE_URL"),
 	}
 	client, _ := cfg.NewClient(context.Background())
 	return client.(*config.MongoDBClient).AtlasV2
