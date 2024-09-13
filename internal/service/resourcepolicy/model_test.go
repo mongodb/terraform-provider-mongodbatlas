@@ -170,3 +170,26 @@ func TestNewAdminPolicies(t *testing.T) {
 	assert.Equal(t, "policy1", apiModels[0].GetBody())
 	assert.Equal(t, "policy2", apiModels[1].GetBody())
 }
+
+func TestNewTFResourcePoliciesModel(t *testing.T) {
+	ctx := context.Background()
+	orgID := "65def6ce0f722a1507105aa5"
+	input := []admin.ApiAtlasResourcePolicy{
+		parseSDKModel(t, clusterForbidCloudProviderJSON),
+		parseSDKModel(t, clusterForbidCloudProviderNoNameJSON),
+	}
+	resultModel, diags := resourcepolicy.NewTFResourcePoliciesModel(ctx, orgID, input)
+	unit.AssertDiagsOK(t, diags)
+	assert.Len(t, resultModel.ResourcePolicies, 2)
+
+	assert.Equal(t, orgID, resultModel.OrgId.ValueString())
+}
+
+func TestNewTFResourcePoliciesEmptyModel(t *testing.T) {
+	ctx := context.Background()
+	orgID := "65def6ce0f722a1507105aa5"
+	resultModel, diags := resourcepolicy.NewTFResourcePoliciesModel(ctx, orgID, []admin.ApiAtlasResourcePolicy{})
+	unit.AssertDiagsOK(t, diags)
+	assert.Empty(t, resultModel.ResourcePolicies)
+	assert.Equal(t, orgID, resultModel.OrgId.ValueString())
+}

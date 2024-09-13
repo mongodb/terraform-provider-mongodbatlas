@@ -68,3 +68,20 @@ func NewAdminPolicies(ctx context.Context, input []TFPolicyModel) (*[]admin.ApiA
 	}
 	return &apiModels, nil
 }
+
+func NewTFResourcePoliciesModel(ctx context.Context, orgID string, input []admin.ApiAtlasResourcePolicy) (*TFResourcePoliciesDSModel, diag.Diagnostics) {
+	diags := &diag.Diagnostics{}
+	tfModels := make([]TFResourcePolicyModel, len(input))
+	for i, item := range input {
+		tfModel, diagsLocal := NewTFResourcePolicyModel(ctx, &item)
+		diags.Append(diagsLocal...)
+		tfModels[i] = *tfModel
+	}
+	if diags.HasError() {
+		return nil, *diags
+	}
+	return &TFResourcePoliciesDSModel{
+		ResourcePolicies: tfModels,
+		OrgId:            types.StringValue(orgID),
+	}, *diags
+}
