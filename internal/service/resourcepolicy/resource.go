@@ -12,15 +12,15 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
-const resourceName = "resource_policy"
-
 var _ resource.ResourceWithConfigure = &resourcePolicyRS{}
 var _ resource.ResourceWithImportState = &resourcePolicyRS{}
 
-var (
-	errorCreate = "error creating resource"
-	errorRead   = "error reading resource"
-	errorUpdate = "error updating resource"
+const (
+	resourceName     = "resource_policy"
+	fullResourceName = "mongodbatlas_" + resourceName
+	errorCreate      = "error creating resource " + fullResourceName
+	errorRead        = "error reading resource " + fullResourceName
+	errorUpdate      = "error updating resource " + fullResourceName
 )
 
 func Resource() resource.Resource {
@@ -46,15 +46,14 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 	orgID := plan.OrgID.ValueString()
-	policies, diags := NewTFPoliciesModelToSDK(ctx, plan.Policies)
+	policies, diags := NewAdminPolicies(ctx, plan.Policies)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
 	connV2 := r.Client.AtlasV2
-	resourcePolicyAPI := connV2.AtlasResourcePoliciesApi
-	policySDK, _, err := resourcePolicyAPI.CreateAtlasResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
+	policySDK, _, err := connV2.AtlasResourcePoliciesApi.CreateAtlasResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
 		Name:     plan.Name.ValueStringPointer(),
 		Policies: policies,
 	}).Execute()
@@ -100,15 +99,13 @@ func (r *resourcePolicyRS) Read(ctx context.Context, req resource.ReadRequest, r
 
 func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan TFResourcePolicyModel
-	var state TFResourcePolicyModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	orgID := plan.OrgID.ValueString()
-	resourcePolicyID := state.ID.ValueString()
-	policies, diags := NewTFPoliciesModelToSDK(ctx, plan.Policies)
+	resourcePolicyID := plan.ID.ValueString()
+	policies, diags := NewAdminPolicies(ctx, plan.Policies)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

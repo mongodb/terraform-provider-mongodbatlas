@@ -142,7 +142,7 @@ func TestResourcePolicySDKToTFModelFull(t *testing.T) {
 	}
 }
 
-func Test_NewUserMetadataObjectTypeWithNilArg(t *testing.T) {
+func TestNewUserMetadataObjectTypeWithNilArg(t *testing.T) {
 	ctx := context.Background()
 	var metadataNil *admin.ApiAtlasUserMetadata
 	diags := diag.Diagnostics{}
@@ -151,7 +151,7 @@ func Test_NewUserMetadataObjectTypeWithNilArg(t *testing.T) {
 	assert.Equal(t, types.ObjectNull(resourcepolicy.UserMetadataObjectType.AttrTypes), obj)
 }
 
-func Test_NewTFPoliciesModelToSDK(t *testing.T) {
+func TestNewAdminPolicies(t *testing.T) {
 	ctx := context.Background()
 	policies := []resourcepolicy.TFPolicyModel{
 		{
@@ -160,10 +160,9 @@ func Test_NewTFPoliciesModelToSDK(t *testing.T) {
 		},
 		{
 			Body: types.StringValue("policy2"),
-			ID:   types.StringValue("id2"),
 		},
 	}
-	apiModelsPtr, diags := resourcepolicy.NewTFPoliciesModelToSDK(ctx, policies)
+	apiModelsPtr, diags := resourcepolicy.NewAdminPolicies(ctx, policies)
 	unit.AssertDiagsOK(t, diags)
 	assert.NotNil(t, apiModelsPtr)
 	apiModels := *apiModelsPtr
