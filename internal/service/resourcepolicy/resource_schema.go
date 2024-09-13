@@ -107,15 +107,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFResourcePolicyModel struct {
-	CreatedByUser     types.Object `tfsdk:"created_by_user"`
-	CreatedDate       types.String `tfsdk:"created_date"`
-	ID                types.String `tfsdk:"id"`
-	LastUpdatedByUser types.Object `tfsdk:"last_updated_by_user"`
-	LastUpdatedDate   types.String `tfsdk:"last_updated_date"`
-	Name              types.String `tfsdk:"name"`
-	OrgID             types.String `tfsdk:"org_id"`
-	Policies          types.List   `tfsdk:"policies"`
-	Version           types.String `tfsdk:"version"`
+	CreatedByUser     types.Object    `tfsdk:"created_by_user"`
+	CreatedDate       types.String    `tfsdk:"created_date"`
+	ID                types.String    `tfsdk:"id"`
+	LastUpdatedByUser types.Object    `tfsdk:"last_updated_by_user"`
+	LastUpdatedDate   types.String    `tfsdk:"last_updated_date"`
+	Name              types.String    `tfsdk:"name"`
+	OrgID             types.String    `tfsdk:"org_id"`
+	Version           types.String    `tfsdk:"version"`
+	Policies          []TFPolicyModel `tfsdk:"policies"`
 }
 
 type TFUserMetadataModel struct {
@@ -132,8 +132,3 @@ type TFPolicyModel struct {
 	Body types.String `tfsdk:"body"`
 	ID   types.String `tfsdk:"id"`
 }
-
-var PolicyObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"body": types.StringType,
-	"id":   types.StringType,
-}}
