@@ -11,7 +11,7 @@
 2. Update the `pipeline` argument setting `config.StartAfter` with the value retrieved in the previous step. More details in the [MongoDB Collection Change Stream](https://www.mongodb.com/docs/atlas/atlas-stream-processing/sp-agg-source/#mongodb-collection-change-stream) documentation.
 	- Example: 
 		```
-		pipeline = jsonencode([{ "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name, "config" = { "startAfter" = { "_data" : "8266C71562000000012B0429296E1404" } } } }, { "$emit" = { "connectionName" : "__testLog" } }])
+		pipeline = jsonencode([{ "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name, "config" = { "startAfter" = { "_data" : "8266C71562000000012B0429296E1404" } } } }, { "$emit" = { "connectionName" : "KafkaConnectionDest", "topic": "kafka-topic" } }])
 		```
 3. Delete the existing Atlas Stream Processor and then create a new Atlas Stream Processor with updated pipeline parameter and the updated values.  
 
