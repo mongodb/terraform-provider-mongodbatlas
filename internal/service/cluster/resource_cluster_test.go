@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	clustersvc "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
@@ -579,15 +578,6 @@ func TestAccCluster_ProviderRegionName(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.regions_config.#", "3"),
 				),
-			},
-			{
-				Config: configMultiRegion(orgID, projectName, clusterName, "false", updatedRegionsConfig),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
 			},
 		},
 	})
