@@ -22,7 +22,6 @@ var (
 	clusterForbidCloudProviderNoNameJSON string
 	//go:embed testdata/policy_multipleEntries.json
 	policyMultipleEntriesJSON string
-	// userIDCreate              = "65def6f00f722a1507105ad8"
 )
 
 type sdkToTFModelTestCase struct {
