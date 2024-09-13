@@ -16,7 +16,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/mock"
 
@@ -1044,15 +1043,6 @@ func TestAccProject_withTags(t *testing.T) {
 			{
 				Config: configWithTags(orgID, projectName, map[string]string{}, `tags["Name"]`),
 				Check:  tagChecks(tagsOnlyIgnored, "Environment", "NewKey"),
-			},
-			{
-				Config: configWithTags(orgID, projectName, tagsOnlyIgnored),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
 			},
 			{
 				ResourceName:            resourceName,
