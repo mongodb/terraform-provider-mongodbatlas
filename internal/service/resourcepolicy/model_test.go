@@ -110,7 +110,6 @@ func createTFModel(t *testing.T, testCase *sdkToTFModelTestCase) *resourcepolicy
 
 func TestResourcePolicySDKToTFModelFull(t *testing.T) {
 	testCases := map[string]sdkToTFModelTestCase{
-		// try no name
 		"clusterForbidCloudProvider": {
 			name:           conversion.StringPtr("clusterForbidCloudProvider"),
 			SDKRespJSON:    clusterForbidCloudProviderJSON,
@@ -143,11 +142,31 @@ func TestResourcePolicySDKToTFModelFull(t *testing.T) {
 	}
 }
 
-func Test_NewUserMetadataObjectTypeWithNilArg(t *testing.T) {
+func TestNewUserMetadataObjectTypeWithNilArg(t *testing.T) {
 	ctx := context.Background()
 	var metadataNil *admin.ApiAtlasUserMetadata
 	diags := diag.Diagnostics{}
 	obj := resourcepolicy.NewUserMetadataObjectType(ctx, metadataNil, &diags)
 	unit.AssertDiagsOK(t, diags)
 	assert.Equal(t, types.ObjectNull(resourcepolicy.UserMetadataObjectType.AttrTypes), obj)
+}
+
+func TestNewAdminPolicies(t *testing.T) {
+	ctx := context.Background()
+	policies := []resourcepolicy.TFPolicyModel{
+		{
+			Body: types.StringValue("policy1"),
+			ID:   types.StringValue("id1"),
+		},
+		{
+			Body: types.StringValue("policy2"),
+		},
+	}
+	apiModelsPtr, diags := resourcepolicy.NewAdminPolicies(ctx, policies)
+	unit.AssertDiagsOK(t, diags)
+	assert.NotNil(t, apiModelsPtr)
+	apiModels := *apiModelsPtr
+	assert.Len(t, apiModels, 2)
+	assert.Equal(t, "policy1", apiModels[0].GetBody())
+	assert.Equal(t, "policy2", apiModels[1].GetBody())
 }

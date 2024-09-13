@@ -59,7 +59,7 @@ func NewTFPolicies(ctx context.Context, input *[]admin.ApiAtlasPolicy, diags *di
 	return tfModels
 }
 
-func NewTFPoliciesModelToSDK(ctx context.Context, input []TFPolicyModel) (*[]admin.ApiAtlasPolicyCreate, diag.Diagnostics) {
+func NewAdminPolicies(ctx context.Context, input []TFPolicyModel) (*[]admin.ApiAtlasPolicyCreate, diag.Diagnostics) {
 	apiModels := make([]admin.ApiAtlasPolicyCreate, len(input))
 	for i, item := range input {
 		apiModels[i] = admin.ApiAtlasPolicyCreate{
