@@ -1,3 +1,9 @@
+---
+subcategory: "Deprecated"    
+---
+
+**WARNING:** Data Lake is deprecated. As of September 2024, Data Lake is deprecated and will reach end-of-life. It will be removed on September 30, 2025. If you use Data Lake, you should migrate to alternative solutions before the service is removed. To learn more, see  _[https://dochub.mongodb.org/core/data-lake-deprecation]_
+
 # Data Source: mongodbatlas_data_lake_pipeline_run
 
 `mongodbatlas_data_lake_pipeline_run` describes a Data Lake Pipeline Run.
