@@ -1202,7 +1202,7 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs, changeStreamOptions *int) string {
 	changeStreamOptionsString := ""
 	if changeStreamOptions != nil {
-		changeStreamOptionsString = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, &changeStreamOptions)
+		changeStreamOptionsString = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *changeStreamOptions)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
