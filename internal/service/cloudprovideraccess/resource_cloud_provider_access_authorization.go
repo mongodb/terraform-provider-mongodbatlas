@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 /*
@@ -260,7 +260,7 @@ func resourceCloudProviderAccessAuthorizationStateUpgradeV0(ctx context.Context,
 }
 
 func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.ResourceData, projectID string, targetRole *admin.CloudProviderAccessRole) diag.Diagnostics {
-	req := &admin.CloudProviderAccessRole{
+	req := &admin.CloudProviderAccessRoleRequestUpdate{
 		ProviderName: targetRole.ProviderName,
 	}
 

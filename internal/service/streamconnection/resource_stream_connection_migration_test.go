@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -15,6 +14,7 @@ func TestMigStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 		resourceName = "mongodbatlas_stream_connection.test"
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
+		config       = kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false)
 	)
 	mig.SkipIfVersionBelow(t, "1.16.0") // when reached GA
 
@@ -24,19 +24,10 @@ func TestMigStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false),
+				Config:            config,
 				Check:             kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, true),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
@@ -46,6 +37,7 @@ func TestMigStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		resourceName = "mongodbatlas_stream_connection.test"
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
+		config       = kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true)
 	)
 	mig.SkipIfVersionBelow(t, "1.16.0") // when reached GA
 
@@ -55,19 +47,10 @@ func TestMigStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true),
+				Config:            config,
 				Check:             kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
@@ -77,6 +60,7 @@ func TestMigStreamRSStreamConnection_cluster(t *testing.T) {
 		resourceName           = "mongodbatlas_stream_connection.test"
 		projectID, clusterName = acc.ClusterNameExecution(t)
 		instanceName           = acc.RandomName()
+		config                 = clusterStreamConnectionConfig(projectID, instanceName, clusterName)
 	)
 	mig.SkipIfVersionBelow(t, "1.16.0") // when reached GA
 
@@ -86,19 +70,10 @@ func TestMigStreamRSStreamConnection_cluster(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            clusterStreamConnectionConfig(projectID, instanceName, clusterName),
+				Config:            config,
 				Check:             clusterStreamConnectionAttributeChecks(resourceName, clusterName),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   clusterStreamConnectionConfig(projectID, instanceName, clusterName),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

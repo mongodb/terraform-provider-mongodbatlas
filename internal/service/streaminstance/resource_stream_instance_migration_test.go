@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
@@ -15,6 +14,7 @@ func TestMigStreamRSStreamInstance_basic(t *testing.T) {
 		resourceName = "mongodbatlas_stream_instance.test"
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
+		config       = acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider)
 	)
 	mig.SkipIfVersionBelow(t, "1.16.0") // when reached GA
 
@@ -24,19 +24,10 @@ func TestMigStreamRSStreamInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider),
+				Config:            config,
 				Check:             streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

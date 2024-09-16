@@ -55,24 +55,33 @@ resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
   project_id     = var.project_id
   instance_name  = mongodbatlas_stream_instance.example.instance_name
   processor_name = "sampleProcessorName"
-  pipeline       = jsonencode([{ "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-sample.connection_name } }, { "$emit" = { "connectionName" : "__testLog" } }])
-  state          = "CREATED"
+  pipeline = jsonencode([
+    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-sample.connection_name } },
+    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "sample", "coll" : "solar", "timeseries" : { "timeField" : "_ts" } } }
+  ])
+  state = "STARTED"
 }
 
-resource "mongodbatlas_stream_processor" "stream-processor-cluster-example" {
+resource "mongodbatlas_stream_processor" "stream-processor-cluster-to-kafka-example" {
   project_id     = var.project_id
   instance_name  = mongodbatlas_stream_instance.example.instance_name
   processor_name = "clusterProcessorName"
-  pipeline       = jsonencode([{ "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name } }, { "$emit" = { "connectionName" : "__testLog" } }])
-  state          = "STARTED"
+  pipeline = jsonencode([
+    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name } },
+    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_from_cluster" } }
+  ])
+  state = "CREATED"
 }
 
-resource "mongodbatlas_stream_processor" "stream-processor-kafka-example" {
+resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-example" {
   project_id     = var.project_id
   instance_name  = mongodbatlas_stream_instance.example.instance_name
   processor_name = "kafkaProcessorName"
-  pipeline       = jsonencode([{ "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name } }, { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "example_topic" } }])
-  state          = "CREATED"
+  pipeline = jsonencode([
+    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_source" } },
+    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "kafka", "coll" : "topic_source", "timeseries" : { "timeField" : "ts" } }
+  }])
+  state = "CREATED"
   options = {
     dlq = {
       coll            = "exampleColumn"

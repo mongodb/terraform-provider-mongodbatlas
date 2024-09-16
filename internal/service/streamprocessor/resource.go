@@ -10,13 +10,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 const StreamProcessorName = "stream_processor"
 
 var _ resource.ResourceWithConfigure = &streamProcessorRS{}
 var _ resource.ResourceWithImportState = &streamProcessorRS{}
+
+const (
+	errorCreateStartActions    = "You need to fix the processor and import the resource or delete it manually and re-run terraform apply."
+	errorCreateStart           = "Error starting stream processor. " + errorCreateStartActions
+	errorCreateStartTransition = "Error changing state of stream processor. " + errorCreateStartActions
+)
 
 func Resource() resource.Resource {
 	return &streamProcessorRS{
@@ -80,6 +86,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 	streamProcessorResp, err := WaitStateTransition(ctx, streamProcessorParams, connV2.StreamsApi, []string{InitiatingState, CreatingState}, []string{CreatedState})
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating stream processor", err.Error())
+		return
 	}
 
 	if needsStarting {
@@ -91,11 +98,13 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 			},
 		).Execute()
 		if err != nil {
-			resp.Diagnostics.AddError("Error starting stream processor", err.Error())
+			resp.Diagnostics.AddError(errorCreateStart, err.Error())
+			return
 		}
 		streamProcessorResp, err = WaitStateTransition(ctx, streamProcessorParams, connV2.StreamsApi, []string{CreatedState}, []string{StartedState})
 		if err != nil {
-			resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
+			resp.Diagnostics.AddError(errorCreateStartTransition, err.Error())
+			return
 		}
 	}
 
@@ -187,6 +196,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("Error stopping stream processor", err.Error())
+			return
 		}
 	default:
 		resp.Diagnostics.AddError("transitions to states other than STARTED or STOPPED are not supported", "")
