@@ -2,7 +2,7 @@
 subcategory: "Deprecated"    
 ---
 
-**WARNING:** Data Lake is deprecated. As of September 2024, Data Lake is deprecated and will reach end-of-life. It will be removed on September 30, 2025. If you use Data Lake, you should migrate to alternative solutions before the service is removed. To learn more, see  _[https://dochub.mongodb.org/core/data-lake-deprecation]_
+**WARNING:** Data Lake is deprecated. As of September 2024, Data Lake is deprecated and will reach end-of-life. It will be removed on September 30, 2025. If you use Data Lake, you should migrate to alternative solutions before the service is removed. To learn more, see <https://dochub.mongodb.org/core/data-lake-deprecation>
 
 # Resource: mongodbatlas_data_lake_pipeline
 
@@ -104,22 +104,22 @@ In addition to all arguments above, the following attributes are exported:
   * `ingestion_schedules.#.frequency_type` - Human-readable label that identifies the frequency type associated with the backup policy.
   * `ingestion_schedules.#.frequency_interval` - Number that indicates the frequency interval for a set of snapshots.
   * `ingestion_schedules.#.retention_unit` - Unit of time in which MongoDB Atlas measures snapshot retention.
-  * `ingestion_schedules.#.retention_value` - Duration in days, weeks, or months that MongoDB Atlas retains the snapshot. 
+  * `ingestion_schedules.#.retention_value` - Duration in days, weeks, or months that MongoDB Atlas retains the snapshot.
 
 ### `sink` - Ingestion destination of a Data Lake Pipeline
-  * `type` - Type of ingestion destination of this Data Lake Pipeline.
-  * `provider` - Target cloud provider for this Data Lake Pipeline.
-  * `region` - Target cloud provider region for this Data Lake Pipeline. [Supported cloud provider regions](https://www.mongodb.com/docs/datalake/limitations).
-  * `partition_fields` - Ordered fields used to physically organize data in the destination.
-    * `partition_fields.#.field_name` - Human-readable label that identifies the field name used to partition data.
-    * `partition_fields.#.order` - Sequence in which MongoDB Atlas slices the collection data to create partitions. The resource expresses this sequence starting with zero.
-### `source` - Ingestion Source of a Data Lake Pipeline.
-  * `type` - Type of ingestion source of this Data Lake Pipeline.
-  * `cluster_name` - Human-readable name that identifies the cluster.
-  * `collection_name` - Human-readable name that identifies the collection.
-  * `database_name` - Human-readable name that identifies the database.
-  * `project_id` - Unique 24-hexadecimal character string that identifies the project.
-  * `policyItemId` - Unique 24-hexadecimal character string that identifies a policy item.
+* `type` - Type of ingestion destination of this Data Lake Pipeline.
+* `provider` - Target cloud provider for this Data Lake Pipeline.
+* `region` - Target cloud provider region for this Data Lake Pipeline. [Supported cloud provider regions](https://www.mongodb.com/docs/datalake/limitations).
+* `partition_fields` - Ordered fields used to physically organize data in the destination.
+  * `partition_fields.#.field_name` - Human-readable label that identifies the field name used to partition data.
+  * `partition_fields.#.order` - Sequence in which MongoDB Atlas slices the collection data to create partitions. The resource expresses this sequence starting with zero.
+### `source` - Ingestion Source of a Data Lake Pipeline
+* `type` - Type of ingestion source of this Data Lake Pipeline.
+* `cluster_name` - Human-readable name that identifies the cluster.
+* `collection_name` - Human-readable name that identifies the collection.
+* `database_name` - Human-readable name that identifies the database.
+* `project_id` - Unique 24-hexadecimal character string that identifies the project.
+* `policyItemId` - Unique 24-hexadecimal character string that identifies a policy item.
 
 
 ## Import
@@ -127,7 +127,7 @@ In addition to all arguments above, the following attributes are exported:
 Data Lake Pipeline can be imported using project ID, name of the data lake and name of the AWS s3 bucket, in the format `project_id`--`name`, e.g.
 
 ```
-$ terraform import mongodbatlas_data_lake_pipeline.example 1112222b3bf99403840e8934--test-data-lake-pipeline-test
+terraform import mongodbatlas_data_lake_pipeline.example 1112222b3bf99403840e8934--test-data-lake-pipeline-test
 ```
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Lake-Pipelines) Documentation for more information.
