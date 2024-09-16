@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
-func NewTFResourcePolicyModel(ctx context.Context, input *admin.ApiAtlasResourcePolicy) (*TFResourcePolicyModel, diag.Diagnostics) {
+func NewTFModel(ctx context.Context, input *admin.ApiAtlasResourcePolicy) (*TFModel, diag.Diagnostics) {
 	diags := &diag.Diagnostics{}
 	createdByUser := NewUserMetadataObjectType(ctx, input.CreatedByUser, diags)
 	lastUpdatedByUser := NewUserMetadataObjectType(ctx, input.LastUpdatedByUser, diags)
@@ -17,7 +17,7 @@ func NewTFResourcePolicyModel(ctx context.Context, input *admin.ApiAtlasResource
 	if diags.HasError() {
 		return nil, *diags
 	}
-	return &TFResourcePolicyModel{
+	return &TFModel{
 		CreatedByUser:     createdByUser,
 		CreatedDate:       types.StringPointerValue(conversion.TimePtrToStringPtr(input.CreatedDate)),
 		ID:                types.StringPointerValue(input.Id),
@@ -69,18 +69,18 @@ func NewAdminPolicies(ctx context.Context, input []TFPolicyModel) (*[]admin.ApiA
 	return &apiModels, nil
 }
 
-func NewTFResourcePoliciesModel(ctx context.Context, orgID string, input []admin.ApiAtlasResourcePolicy) (*TFResourcePoliciesDSModel, diag.Diagnostics) {
+func NewTFModelDSP(ctx context.Context, orgID string, input []admin.ApiAtlasResourcePolicy) (*TFModelDSP, diag.Diagnostics) {
 	diags := &diag.Diagnostics{}
-	tfModels := make([]TFResourcePolicyModel, len(input))
+	tfModels := make([]TFModel, len(input))
 	for i, item := range input {
-		tfModel, diagsLocal := NewTFResourcePolicyModel(ctx, &item)
+		tfModel, diagsLocal := NewTFModel(ctx, &item)
 		diags.Append(diagsLocal...)
 		tfModels[i] = *tfModel
 	}
 	if diags.HasError() {
 		return nil, *diags
 	}
-	return &TFResourcePoliciesDSModel{
+	return &TFModelDSP{
 		ResourcePolicies: tfModels,
 		OrgID:            types.StringValue(orgID),
 	}, *diags

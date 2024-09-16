@@ -31,7 +31,7 @@ func (d *resourcePolicyDS) Schema(ctx context.Context, req datasource.SchemaRequ
 }
 
 func (d *resourcePolicyDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var cfg TFResourcePolicyModel
+	var cfg TFModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &cfg)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -44,7 +44,7 @@ func (d *resourcePolicyDS) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	out, diags := NewTFResourcePolicyModel(ctx, apiResp)
+	out, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

@@ -27,7 +27,7 @@ func DataSourcePluralSchema(ctx context.Context) schema.Schema {
 	}
 }
 
-type TFResourcePoliciesDSModel struct {
-	OrgID            types.String            `tfsdk:"org_id"`
-	ResourcePolicies []TFResourcePolicyModel `tfsdk:"resource_policies"`
+type TFModelDSP struct {
+	OrgID            types.String `tfsdk:"org_id"`
+	ResourcePolicies []TFModel    `tfsdk:"resource_policies"`
 }

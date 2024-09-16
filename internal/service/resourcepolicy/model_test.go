@@ -24,7 +24,7 @@ var (
 	policyMultipleEntriesJSON string
 )
 
-type sdkToTFModelTestCase struct {
+type tfModelTestCase struct {
 	name            *string
 	SDKRespJSON     string
 	userIDCreate    string
@@ -38,7 +38,7 @@ type sdkToTFModelTestCase struct {
 	version         string
 }
 
-func (tc *sdkToTFModelTestCase) addDefaults() {
+func (tc *tfModelTestCase) addDefaults() {
 	if tc.userIDCreate == "" {
 		tc.userIDCreate = "65def6f00f722a1507105ad8"
 	}
@@ -78,7 +78,7 @@ func parseSDKModel(t *testing.T, sdkRespJSON string) admin.ApiAtlasResourcePolic
 	return SDKModel
 }
 
-func createTFModel(t *testing.T, testCase *sdkToTFModelTestCase) *resourcepolicy.TFResourcePolicyModel {
+func createTFModel(t *testing.T, testCase *tfModelTestCase) *resourcepolicy.TFModel {
 	t.Helper()
 	testCase.addDefaults()
 	adminModel := parseSDKModel(t, testCase.SDKRespJSON)
@@ -89,7 +89,7 @@ func createTFModel(t *testing.T, testCase *sdkToTFModelTestCase) *resourcepolicy
 			ID:   types.StringPointerValue(policy.Id),
 		}
 	}
-	return &resourcepolicy.TFResourcePolicyModel{
+	return &resourcepolicy.TFModel{
 		CreatedByUser: unit.TFObjectValue(t, resourcepolicy.UserMetadataObjectType, resourcepolicy.TFUserMetadataModel{
 			ID:   types.StringValue(testCase.userIDCreate),
 			Name: types.StringValue(testCase.userNameCreate),
@@ -108,8 +108,8 @@ func createTFModel(t *testing.T, testCase *sdkToTFModelTestCase) *resourcepolicy
 	}
 }
 
-func TestResourcePolicySDKToTFModelFull(t *testing.T) {
-	testCases := map[string]sdkToTFModelTestCase{
+func TestNewTFModel(t *testing.T) {
+	testCases := map[string]tfModelTestCase{
 		"clusterForbidCloudProvider": {
 			name:           conversion.StringPtr("clusterForbidCloudProvider"),
 			SDKRespJSON:    clusterForbidCloudProviderJSON,
@@ -135,7 +135,7 @@ func TestResourcePolicySDKToTFModelFull(t *testing.T) {
 			SDKModel := parseSDKModel(t, tc.SDKRespJSON)
 			ctx := context.Background()
 			expectedModel := createTFModel(t, &tc)
-			resultModel, diags := resourcepolicy.NewTFResourcePolicyModel(ctx, &SDKModel)
+			resultModel, diags := resourcepolicy.NewTFModel(ctx, &SDKModel)
 			unit.AssertDiagsOK(t, diags)
 			assert.Equal(t, expectedModel, resultModel)
 		})
@@ -171,24 +171,24 @@ func TestNewAdminPolicies(t *testing.T) {
 	assert.Equal(t, "policy2", apiModels[1].GetBody())
 }
 
-func TestNewTFResourcePoliciesModel(t *testing.T) {
+func TestNewTFModelDSP(t *testing.T) {
 	ctx := context.Background()
 	orgID := "65def6ce0f722a1507105aa5"
 	input := []admin.ApiAtlasResourcePolicy{
 		parseSDKModel(t, clusterForbidCloudProviderJSON),
 		parseSDKModel(t, clusterForbidCloudProviderNoNameJSON),
 	}
-	resultModel, diags := resourcepolicy.NewTFResourcePoliciesModel(ctx, orgID, input)
+	resultModel, diags := resourcepolicy.NewTFModelDSP(ctx, orgID, input)
 	unit.AssertDiagsOK(t, diags)
 	assert.Len(t, resultModel.ResourcePolicies, 2)
 
 	assert.Equal(t, orgID, resultModel.OrgID.ValueString())
 }
 
-func TestNewTFResourcePoliciesEmptyModel(t *testing.T) {
+func TestNewTFModelDSPEmptyModel(t *testing.T) {
 	ctx := context.Background()
 	orgID := "65def6ce0f722a1507105aa5"
-	resultModel, diags := resourcepolicy.NewTFResourcePoliciesModel(ctx, orgID, []admin.ApiAtlasResourcePolicy{})
+	resultModel, diags := resourcepolicy.NewTFModelDSP(ctx, orgID, []admin.ApiAtlasResourcePolicy{})
 	unit.AssertDiagsOK(t, diags)
 	assert.Empty(t, resultModel.ResourcePolicies)
 	assert.Equal(t, orgID, resultModel.OrgID.ValueString())

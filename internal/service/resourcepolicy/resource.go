@@ -40,7 +40,7 @@ func (r *resourcePolicyRS) Schema(ctx context.Context, req resource.SchemaReques
 }
 
 func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan TFResourcePolicyModel
+	var plan TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -61,7 +61,7 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 		resp.Diagnostics.AddError(errorCreate, err.Error())
 		return
 	}
-	newResourcePolicyModel, diags := NewTFResourcePolicyModel(ctx, policySDK)
+	newResourcePolicyModel, diags := NewTFModel(ctx, policySDK)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -70,7 +70,7 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 }
 
 func (r *resourcePolicyRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state TFResourcePolicyModel
+	var state TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -89,7 +89,7 @@ func (r *resourcePolicyRS) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	newResourcePolicyModel, diags := NewTFResourcePolicyModel(ctx, policySDK)
+	newResourcePolicyModel, diags := NewTFModel(ctx, policySDK)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -98,7 +98,7 @@ func (r *resourcePolicyRS) Read(ctx context.Context, req resource.ReadRequest, r
 }
 
 func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan TFResourcePolicyModel
+	var plan TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -122,7 +122,7 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 		resp.Diagnostics.AddError(errorUpdate, err.Error())
 		return
 	}
-	newResourcePolicyModel, diags := NewTFResourcePolicyModel(ctx, policySDK)
+	newResourcePolicyModel, diags := NewTFModel(ctx, policySDK)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -131,7 +131,7 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 }
 
 func (r *resourcePolicyRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var resourcePolicyState *TFResourcePolicyModel
+	var resourcePolicyState *TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &resourcePolicyState)...)
 	if resp.Diagnostics.HasError() {
 		return

@@ -106,7 +106,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
-type TFResourcePolicyModel struct {
+type TFModel struct {
 	CreatedByUser     types.Object    `tfsdk:"created_by_user"`
 	CreatedDate       types.String    `tfsdk:"created_date"`
 	ID                types.String    `tfsdk:"id"`
