@@ -818,17 +818,37 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		}
 	}
 
-	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && IsChangeStreamOptionsMinRequiredVersion(mongodbMajorVersion) {
-		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
+		tmp := p["change_stream_options_pre_and_post_images_expire_after_seconds"]
+		tmpInt := cast.ToInt(tmp)
+
+		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(tmpInt)
 	}
 	return res20240530, res
 }
 
-func IsChangeStreamOptionsMinRequiredVersion(input *string) bool {
+// func IsChangeStreamOptionsMinRequiredVersion(input *string) bool {
+// 	if input == nil || *input == "" {
+// 		return true
+// 	}
+// 	value, _ := strconv.ParseFloat(*input, 64)
+// 	return value >= minVersionForChangeStreamOptions
+// }
+
+func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
 	if input == nil || *input == "" {
 		return true
 	}
-	value, _ := strconv.ParseFloat(*input, 64)
+	parts := strings.SplitN(*input, ".", 2)
+	if len(parts) == 0 {
+		return false
+	}
+
+	value, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		return false
+	}
+
 	return value >= minVersionForChangeStreamOptions
 }
 
