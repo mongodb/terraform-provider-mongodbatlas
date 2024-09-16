@@ -716,7 +716,7 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 	})
 }
 
-func TestAccAdvancedCluster_replicaSetScalingStrategy(t *testing.T) {
+func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -729,22 +729,22 @@ func TestAccAdvancedCluster_replicaSetScalingStrategy(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "WORKLOAD_TYPE"),
-				Check:  checkReplicaSetScalingStrategy("WORKLOAD_TYPE"),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "WORKLOAD_TYPE", true),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("WORKLOAD_TYPE", true),
 			},
 			{
-				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "SEQUENTIAL"),
-				Check:  checkReplicaSetScalingStrategy("SEQUENTIAL"),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "SEQUENTIAL", false),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("SEQUENTIAL", false),
 			},
 			{
-				Config: configReplicaSetScalingStrategy(orgID, projectName, clusterName, "NODE_TYPE"),
-				Check:  checkReplicaSetScalingStrategy("NODE_TYPE"),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "NODE_TYPE", true),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("NODE_TYPE", true),
 			},
 		},
 	})
 }
 
-func TestAccAdvancedCluster_replicaSetScalingStrategyOldSchema(t *testing.T) {
+func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -757,16 +757,16 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyOldSchema(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetScalingStrategyOldSchema(orgID, projectName, clusterName, "WORKLOAD_TYPE"),
-				Check:  checkReplicaSetScalingStrategy("WORKLOAD_TYPE"),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "WORKLOAD_TYPE", false),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("WORKLOAD_TYPE", false),
 			},
 			{
-				Config: configReplicaSetScalingStrategyOldSchema(orgID, projectName, clusterName, "SEQUENTIAL"),
-				Check:  checkReplicaSetScalingStrategy("SEQUENTIAL"),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "SEQUENTIAL", true),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("SEQUENTIAL", true),
 			},
 			{
-				Config: configReplicaSetScalingStrategyOldSchema(orgID, projectName, clusterName, "NODE_TYPE"),
-				Check:  checkReplicaSetScalingStrategy("NODE_TYPE"),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "NODE_TYPE", false),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("NODE_TYPE", false),
 			},
 		},
 	})
@@ -1980,7 +1980,7 @@ func checkGeoShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestChe
 	)
 }
 
-func configReplicaSetScalingStrategy(orgID, projectName, name, replicaSetScalingStrategy string) string {
+func configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1993,6 +1993,7 @@ func configReplicaSetScalingStrategy(orgID, projectName, name, replicaSetScaling
 			backup_enabled = false
 			cluster_type   = "SHARDED"
 			replica_set_scaling_strategy = %[4]q
+			redact_client_log_data = %[5]t
 
 			replication_specs {
 				region_configs {
@@ -2023,10 +2024,10 @@ func configReplicaSetScalingStrategy(orgID, projectName, name, replicaSetScaling
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
 		}
-	`, orgID, projectName, name, replicaSetScalingStrategy)
+	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData)
 }
 
-func configReplicaSetScalingStrategyOldSchema(orgID, projectName, name, replicaSetScalingStrategy string) string {
+func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -2039,6 +2040,7 @@ func configReplicaSetScalingStrategyOldSchema(orgID, projectName, name, replicaS
 			backup_enabled = false
 			cluster_type   = "SHARDED"
 			replica_set_scaling_strategy = %[4]q
+			redact_client_log_data = %[5]t
 
 			replication_specs {
 				num_shards = 2
@@ -2068,16 +2070,18 @@ func configReplicaSetScalingStrategyOldSchema(orgID, projectName, name, replicaS
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, orgID, projectName, name, replicaSetScalingStrategy)
+	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData)
 }
 
-func checkReplicaSetScalingStrategy(replicaSetScalingStrategy string) resource.TestCheckFunc {
+func checkReplicaSetScalingStrategyAndRedactClientLogData(replicaSetScalingStrategy string, redactClientLogData bool) resource.TestCheckFunc {
 	clusterChecks := map[string]string{
-		"replica_set_scaling_strategy": replicaSetScalingStrategy}
+		"replica_set_scaling_strategy": replicaSetScalingStrategy,
+		"redact_client_log_data":       strconv.FormatBool(redactClientLogData),
+	}
 
 	// plural data source checks
 	additionalChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
-		[]string{"results.#", "results.0.replica_set_scaling_strategy"}...)
+		[]string{"results.#", "results.0.replica_set_scaling_strategy", "results.0.redact_client_log_data"}...)
 	return checkAggr(
 		[]string{},
 		clusterChecks,

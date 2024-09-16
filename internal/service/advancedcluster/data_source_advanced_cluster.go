@@ -250,6 +250,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"redact_client_log_data": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -294,6 +298,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err := d.Set("replica_set_scaling_strategy", clusterDescNew.GetReplicaSetScalingStrategy()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
 		}
+		if err := d.Set("redact_client_log_data", clusterDescNew.GetRedactClientLogData()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
+		}
 
 		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(clusterDescNew)
 		if err != nil {
@@ -326,6 +333,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		if err := d.Set("replica_set_scaling_strategy", clusterDescLatest.GetReplicaSetScalingStrategy()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
+		}
+		if err := d.Set("redact_client_log_data", clusterDescLatest.GetRedactClientLogData()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
 		}
 
 		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
