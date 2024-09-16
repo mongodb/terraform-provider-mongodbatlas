@@ -341,6 +341,11 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"redact_client_log_data": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),

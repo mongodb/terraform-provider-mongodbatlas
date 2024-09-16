@@ -263,6 +263,10 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"redact_client_log_data": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},
