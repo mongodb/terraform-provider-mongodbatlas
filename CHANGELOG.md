@@ -1,5 +1,13 @@
 ## (Unreleased)
 
+NOTES:
+
+* data-source/mongodbatlas_data_lake_pipeline: Data Lake is deprecated. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation ([#2599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2599))
+* data-source/mongodbatlas_data_lake_pipeline_run: Data Lake is deprecated. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation ([#2599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2599))
+* data-source/mongodbatlas_data_lake_pipeline_runs: Data Lake is deprecated. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation ([#2599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2599))
+* data-source/mongodbatlas_data_lake_pipelines: Data Lake is deprecated. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation ([#2599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2599))
+* resource/mongodbatlas_data_lake_pipeline: Data Lake is deprecated. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation ([#2599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2599))
+
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_mongodb_employee_access_grant` ([#2591](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2591))
