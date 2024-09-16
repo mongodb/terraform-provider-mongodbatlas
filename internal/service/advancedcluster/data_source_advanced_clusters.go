@@ -366,6 +366,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
 			"replica_set_scaling_strategy":         cluster.GetReplicaSetScalingStrategy(),
+			"redact_client_log_data":               cluster.GetRedactClientLogData(),
 		}
 		results = append(results, result)
 	}
@@ -422,6 +423,7 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
 			"replica_set_scaling_strategy":         clusterDescNew.GetReplicaSetScalingStrategy(),
+			"redact_client_log_data":               clusterDescNew.GetRedactClientLogData(),
 		}
 		results = append(results, result)
 	}
