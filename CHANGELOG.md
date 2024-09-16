@@ -7,6 +7,8 @@ FEATURES:
 
 BUG FIXES:
 
+* resource/mongodbatlas_advanced_cluster: Set `advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds` only for compatible MongoDB versions ([#2592](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2592))
+* resource/mongodbatlas_cluster: Set `advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds` only for compatible MongoDB versions ([#2592](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2592))
 * resource/mongodbatlas_stream_processor: Error during create should only show one error message and required actions ([#2590](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2590))
 
 ## 1.19.0 (September 11, 2024)
