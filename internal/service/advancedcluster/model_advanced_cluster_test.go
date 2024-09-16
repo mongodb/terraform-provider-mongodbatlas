@@ -394,25 +394,24 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 	}
 }
 
-func TestAbc(t *testing.T) {
+func TestIsChangeStreamOptionsMinRequiredMajorVersion(t *testing.T) {
 	tests := []struct {
 		name  string
-		input *string
+		input string
 		want  bool
 	}{
-		{"Empty input", new(string), true},
-		{"Nil input", nil, true},
-		{"Valid input equal to 6", conversion.StringPtr("6"), true},
-		{"Valid input greater than 6", conversion.StringPtr("7.0"), true},
-		{"Valid input less than 6", conversion.StringPtr("5"), false},
-		{"Valid float input greater", conversion.StringPtr("6.5"), true},
-		{"Valid float input less", conversion.StringPtr("5.9"), false},
-		{"Valid float complete semantic version", conversion.StringPtr("6.0.2"), true},
+		{"Empty input", "", true},
+		{"Valid input equal to 6", "6", true},
+		{"Valid input greater than 6", "7.0", true},
+		{"Valid input less than 6", "5", false},
+		{"Valid float input greater", "6.5", true},
+		{"Valid float input less", "5.9", false},
+		{"Valid float complete semantic version", "6.0.2", true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := advancedcluster.IsChangeStreamOptionsMinRequiredMajorVersion(tt.input); got != tt.want {
+			if got := advancedcluster.IsChangeStreamOptionsMinRequiredMajorVersion(&tt.input); got != tt.want {
 				t.Errorf("abc(%v) = %v, want %v", tt.input, got, tt.want)
 			}
 		})

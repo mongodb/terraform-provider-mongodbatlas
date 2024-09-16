@@ -827,14 +827,6 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 	return res20240530, res
 }
 
-// func IsChangeStreamOptionsMinRequiredVersion(input *string) bool {
-// 	if input == nil || *input == "" {
-// 		return true
-// 	}
-// 	value, _ := strconv.ParseFloat(*input, 64)
-// 	return value >= minVersionForChangeStreamOptions
-// }
-
 func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
 	if input == nil || *input == "" {
 		return true
