@@ -49,9 +49,7 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 			WebhookSecret:            n.WebhookSecret.ValueStringPointer(),
 			WebhookUrl:               n.WebhookURL.ValueStringPointer(),
 			IntegrationId:            conversion.StringPtr(n.IntegrationID.ValueString()),
-		}
-		if !n.NotifierID.IsUnknown() {
-			notifications[i].NotifierId = n.NotifierID.ValueStringPointer()
+			NotifierId:               conversion.StringPtr(n.NotifierID.ValueString()),
 		}
 	}
 	return &notifications, nil

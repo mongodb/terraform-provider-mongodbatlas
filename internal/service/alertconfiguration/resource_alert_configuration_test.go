@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -412,11 +413,13 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"updated", "notification.0.service_key"}, // service key is not returned by api in import operation
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateProjectIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// service key is not returned by api in import operation
+				// integration_id is not returned during Create
+				ImportStateVerifyIgnore: []string{"updated", "notification.0.service_key", "notification.0.integration_id"},
 			},
 		},
 	})
