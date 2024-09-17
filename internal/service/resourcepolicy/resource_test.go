@@ -12,8 +12,10 @@ import (
 )
 
 var (
-	resourceType = "mongodbatlas_resource_policy"
-	resourceID   = fmt.Sprintf("%s.test", resourceType)
+	resourceType       = "mongodbatlas_resource_policy"
+	resourceID         = fmt.Sprintf("%s.test", resourceType)
+	dataSourceID       = "data.mongodbatlas_resource_policy.test"
+	dataSourcePluralID = "data.mongodbatlas_resource_policies.test"
 )
 
 func TestAccResourcePolicy_basic(t *testing.T) {
@@ -63,14 +65,24 @@ func checksResourcePolicy(orgID string, name *string, policyCount int) resource.
 		"id",
 		"version",
 	}
+	pluralMap := map[string]string{
+		"org_id":              orgID,
+		"resource_policies.#": fmt.Sprintf("%d", policyCount),
+	}
 	if name != nil {
 		attrMap["name"] = *name
 	}
 	checks := []resource.TestCheckFunc{checkExists()}
 	checks = acc.AddAttrChecks(resourceID, checks, attrMap)
+	checks = acc.AddAttrChecks(dataSourceID, checks, attrMap)
+	checks = acc.AddAttrChecks(dataSourcePluralID, checks, pluralMap)
 	checks = acc.AddAttrSetChecks(resourceID, checks, attrSet...)
+	checks = acc.AddAttrSetChecks(dataSourceID, checks, attrSet...)
+	// todo; add AddAttrSetChecks when master is merged with the new helper function supporting multiple ids and prefix
 	for i := 0; i < policyCount; i++ {
 		checks = acc.AddAttrSetChecks(resourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
+		checks = acc.AddAttrSetChecks(dataSourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
+		checks = acc.AddAttrSetChecks(dataSourcePluralID, checks, fmt.Sprintf("resource_policies.0.policies.%d.body", i), fmt.Sprintf("resource_policies.0.policies.%d.id", i))
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
@@ -97,6 +109,13 @@ resource "mongodbatlas_resource_policy" "test" {
 	EOF
    }
  ]
+}
+data "mongodbatlas_resource_policy" "test" {
+	org_id = mongodbatlas_resource_policy.test.org_id
+	id = mongodbatlas_resource_policy.test.id
+}
+data "mongodbatlas_resource_policies" "test" {
+	org_id = mongodbatlas_resource_policy.test.org_id
 }
 `, orgID, name)
 }
