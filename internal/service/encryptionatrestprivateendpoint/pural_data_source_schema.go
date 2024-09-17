@@ -12,8 +12,8 @@ func PluralDataSourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"cloud_provider": schema.StringAttribute{
 				Required:            true,
-				Description:         "Label that identifies the cloud provider for the private endpoints to return.",
-				MarkdownDescription: "Human-readable label that identifies the cloud provider for the private endpoints to return.",
+				Description:         "Label that identifies the cloud provider of the private endpoint.",
+				MarkdownDescription: "Label that identifies the cloud provider of the private endpoint.",
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
