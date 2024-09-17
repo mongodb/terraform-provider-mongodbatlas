@@ -20,7 +20,7 @@ jobs:
       - name: Update files
         run:  make tools update-atlas-sdk
       - name: Verify Changed files
-        uses: tj-actions/verify-changed-files@93ebf6810c83499e08849f66917573f05129589c
+        uses: tj-actions/verify-changed-files@ba611bcdf2d25b81a336cbf9609488213ac16395
         id: verify-changed-files
       - name: Create PR
         uses: peter-evans/create-pull-request@8867c4aba1b742c39f8d0ba35429c2dfa4b6cb20
