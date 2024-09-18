@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
@@ -123,20 +123,12 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	groupID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING"},
-		Target:     []string{"IDLE"},
-		Refresh:    cluster.ResourceClusterRefreshFunc(ctx, d.Get("cluster_name").(string), d.Get("project_id").(string), conn),
-		Timeout:    15 * time.Minute,
-		MinTimeout: 30 * time.Second,
-	}
-	_, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, groupID, clusterName, 15*time.Minute)
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -155,7 +147,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		SnapshotId:  snapshot.GetId(),
 	}
 
-	stateConf = &retry.StateChangeConf{
+	stateConf = retry.StateChangeConf{
 		Pending:    []string{"queued", "inProgress"},
 		Target:     []string{"completed", "failed"},
 		Refresh:    resourceRefreshFunc(ctx, requestParams, connV2),

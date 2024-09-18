@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
-	"strings"
 	"time"
 
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
@@ -1282,34 +1281,6 @@ func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 				},
 			},
 		},
-	}
-}
-
-func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, conn *matlas.Client) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		c, resp, err := conn.Clusters.Get(ctx, projectID, name)
-
-		if err != nil && strings.Contains(err.Error(), "reset by peer") {
-			return nil, "REPEATING", nil
-		}
-
-		if err != nil && c == nil && resp == nil {
-			return nil, "", err
-		} else if err != nil {
-			if resp.StatusCode == 404 {
-				return "", "DELETED", nil
-			}
-			if resp.StatusCode == 503 {
-				return "", "PENDING", nil
-			}
-			return nil, "", err
-		}
-
-		if c.StateName != "" {
-			log.Printf("[DEBUG] status for MongoDB cluster: %s: %s", name, c.StateName)
-		}
-
-		return c, c.StateName, nil
 	}
 }
 
