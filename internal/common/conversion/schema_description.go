@@ -144,6 +144,17 @@ func updateBlock(block schema.Block) schema.Block {
 			v.NestedObject.Blocks[i] = updateBlock(v.NestedObject.Blocks[i])
 		}
 		return v
+	case schema.SingleNestedBlock:
+		if v.Description == "" {
+			v.Description = v.MarkdownDescription
+		}
+		for i := range v.Attributes {
+			v.Attributes[i] = updateAttribute(v.Attributes[i])
+		}
+		for i := range v.Blocks {
+			v.Blocks[i] = updateBlock(v.Blocks[i])
+		}
+		return v
 
 	case dsschema.ListNestedBlock:
 		if v.Description == "" {
@@ -154,6 +165,17 @@ func updateBlock(block schema.Block) schema.Block {
 		}
 		for i := range v.NestedObject.Blocks {
 			v.NestedObject.Blocks[i] = updateBlock(v.NestedObject.Blocks[i])
+		}
+		return v
+	case dsschema.SingleNestedBlock:
+		if v.Description == "" {
+			v.Description = v.MarkdownDescription
+		}
+		for i := range v.Attributes {
+			v.Attributes[i] = updateAttribute(v.Attributes[i])
+		}
+		for i := range v.Blocks {
+			v.Blocks[i] = updateBlock(v.Blocks[i])
 		}
 		return v
 	}
