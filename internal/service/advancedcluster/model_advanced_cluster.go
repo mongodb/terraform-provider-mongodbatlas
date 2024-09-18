@@ -104,7 +104,7 @@ func SchemaAdvancedConfigDS() *schema.Schema {
 					Computed: true,
 				},
 				"oplog_min_retention_hours": {
-					Type:     schema.TypeInt,
+					Type:     schema.TypeFloat,
 					Computed: true,
 				},
 				"transaction_lifetime_limit_seconds": {
@@ -237,7 +237,7 @@ func SchemaAdvancedConfig() *schema.Schema {
 					Computed: true,
 				},
 				"oplog_min_retention_hours": {
-					Type:     schema.TypeInt,
+					Type:     schema.TypeFloat,
 					Optional: true,
 				},
 				"sample_size_bi_connector": {
