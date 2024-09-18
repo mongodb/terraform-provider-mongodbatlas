@@ -589,7 +589,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if v, ok := d.GetOk("redact_client_log_data"); ok {
-		if ret := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutCreate), conn, connV2, projectID, clusterName, v.(bool)); ret != nil {
+		if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutCreate), conn, connV2, projectID, clusterName, v.(bool)); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 	}
@@ -1011,7 +1011,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("redact_client_log_data") {
 		if v, ok := d.GetOk("redact_client_log_data"); ok {
-			if ret := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutUpdate), conn, connV2, projectID, clusterName, v.(bool)); ret != nil {
+			if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutUpdate), conn, connV2, projectID, clusterName, v.(bool)); err != nil {
 				return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 			}
 		}
