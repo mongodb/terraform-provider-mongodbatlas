@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	providerfw "github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
@@ -82,39 +83,49 @@ func TestDataSourceSchemas(t *testing.T) {
 func validateDocumentation(resourceName string, schemaResponse *resource.SchemaResponse) {
 	s := schemaResponse.Schema
 	for attributeName, attribute := range s.GetAttributes() {
-		validateDescription(attribute, resourceName, attributeName, &schemaResponse.Diagnostics)
+		validateAttribute(attribute, resourceName, attributeName, &schemaResponse.Diagnostics)
 	}
-
 	for blockName, block := range s.GetBlocks() {
-		_, _ = blockName, block
+		validateBlock(block, resourceName, blockName, &schemaResponse.Diagnostics)
 	}
 }
 
 func validateDSDocumentation(resourceName string, schemaResponse *datasource.SchemaResponse) {
 	s := schemaResponse.Schema
 	for attributeName, attribute := range s.GetAttributes() {
-		validateDescription(attribute, resourceName, attributeName, &schemaResponse.Diagnostics)
+		validateAttribute(attribute, resourceName, attributeName, &schemaResponse.Diagnostics)
 	}
-
 	for blockName, block := range s.GetBlocks() {
-		_, _ = blockName, block
+		validateBlock(block, resourceName, blockName, &schemaResponse.Diagnostics)
 	}
 }
 
-func validateDescription(d Descriptor, resourceName, attributeName string, diagnostics *diag.Diagnostics) {
-	if d.GetDescription() != "" && d.GetDescription() != d.GetMarkdownDescription() {
+func validateBlock(block schema.Block, resourceName, attributeName string, diagnostics *diag.Diagnostics) {
+	if block.GetDescription() != block.GetMarkdownDescription() {
 		diagnostics.Append(attributeIncorrectDescription(resourceName, attributeName))
 	}
+	for nestedAttributeName, nestedAttribute := range block.GetNestedObject().GetAttributes() {
+		validateAttribute(nestedAttribute, resourceName, attributeName+"."+nestedAttributeName, diagnostics)
+	}
+	for nestedBlockName, nestedBlock := range block.GetNestedObject().GetBlocks() {
+		validateBlock(nestedBlock, resourceName, attributeName+"."+nestedBlockName, diagnostics)
+	}
 }
 
-type Descriptor interface {
-	GetDescription() string
-	GetMarkdownDescription() string
+func validateAttribute(attr schema.Attribute, resourceName, attributeName string, diagnostics *diag.Diagnostics) {
+	if attr.GetDescription() != attr.GetMarkdownDescription() {
+		diagnostics.Append(attributeIncorrectDescription(resourceName, attributeName))
+	}
+	if nested, ok := attr.(schema.NestedAttribute); ok {
+		for nestedAttributeName, nestedAttribute := range nested.GetNestedObject().GetAttributes() {
+			validateAttribute(nestedAttribute, resourceName, attributeName+"."+nestedAttributeName, diagnostics)
+		}
+	}
 }
 
 func attributeIncorrectDescription(resourceName, attributeName string) diag.Diagnostic {
 	return diag.NewErrorDiagnostic(
 		"Incorrect Attribute Description",
-		fmt.Sprintf("The Description and MarkdownDescription fields must be the same for %q attribute in %q resource.", attributeName, resourceName),
+		fmt.Sprintf("The Description and MarkdownDescription fields must be the same for %q.%q.", resourceName, attributeName),
 	)
 }
