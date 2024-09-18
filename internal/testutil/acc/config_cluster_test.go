@@ -18,8 +18,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   project_id     = "project"
 
   replication_specs {
-    num_shards = 1
-    zone_name  = "Zone 1"
+    zone_name = "Zone 1"
 
     region_configs {
       priority      = 7
@@ -52,8 +51,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   }
 
   replication_specs {
-    num_shards = 1
-    zone_name  = "Zone X"
+    zone_name = "Zone X"
 
     region_configs {
       priority      = 7
@@ -82,8 +80,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   project_id     = "project"
 
   replication_specs {
-    num_shards = 1
-    zone_name  = "Zone 1"
+    zone_name = "Zone 1"
 
     region_configs {
       priority      = 7
@@ -111,8 +108,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   project_id     = "project"
 
   replication_specs {
-    num_shards = 1
-    zone_name  = "Zone 1"
+    zone_name = "Zone 1"
 
     region_configs {
       priority      = 7
@@ -140,8 +136,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   project_id     = "project"
 
   replication_specs {
-    num_shards = 1
-    zone_name  = "Zone 1"
+    zone_name = "Zone 1"
 
     region_configs {
       priority      = 7
@@ -157,8 +152,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
     }
   }
   replication_specs {
-    num_shards = 1
-    zone_name  = "Zone 2"
+    zone_name = "Zone 2"
 
     region_configs {
       priority      = 7
@@ -185,8 +179,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   project_id     = "project"
 
   replication_specs {
-    num_shards = 1
-    zone_name  = "Zone 1"
+    zone_name = "Zone 1"
 
     region_configs {
       priority      = 7
@@ -227,8 +220,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   project_id     = "project"
 
   replication_specs {
-    num_shards = 1
-    zone_name  = "Zone 1"
+    zone_name = "Zone 1"
 
     region_configs {
       priority      = 7
@@ -263,8 +255,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   project_id     = "project"
 
   replication_specs {
-    num_shards = 1
-    zone_name  = "Zone 1"
+    zone_name = "Zone 1"
 
     region_configs {
       priority      = 5

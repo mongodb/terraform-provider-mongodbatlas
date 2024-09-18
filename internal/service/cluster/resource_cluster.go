@@ -314,7 +314,7 @@ func Resource() *schema.Resource {
 				Type:       schema.TypeSet,
 				Optional:   true,
 				Set:        advancedcluster.HashFunctionForKeyValuePair,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "September 2024", "tags"),
+				Deprecated: fmt.Sprintf(constant.DeprecationParamFutureWithReplacement, "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -559,7 +559,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	*/
 	ac, ok := d.GetOk("advanced_configuration")
 	if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
+		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any), &clusterRequest.MongoDBMajorVersion)
 
 		if ok {
 			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
@@ -924,9 +924,14 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		Check if advaced configuration option has a changes to update it
 	*/
 	if d.HasChange("advanced_configuration") {
+		var mongoDBMajorVersion string
+		if v, ok := d.GetOk("mongo_db_major_version"); ok {
+			mongoDBMajorVersion = v.(string)
+		}
+
 		ac := d.Get("advanced_configuration")
 		if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any), &mongoDBMajorVersion)
 			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
 				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
 				if err != nil {

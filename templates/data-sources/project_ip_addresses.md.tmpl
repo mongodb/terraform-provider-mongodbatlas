@@ -1,0 +1,10 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` returns the IP addresses in a project categorized by services.
+
+## Example Usages
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Return All IP Addresses for One Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Projects/operation/returnAllIPAddresses) Documentation.

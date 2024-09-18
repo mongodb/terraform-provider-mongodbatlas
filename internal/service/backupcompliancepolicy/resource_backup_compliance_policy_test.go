@@ -116,6 +116,43 @@ func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 	})
 }
 
+func TestAccBackupCompliancePolicy_UpdateSetsAllAttributes(t *testing.T) {
+	var (
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup compliance policy
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID, "7"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
+					resource.TestCheckResourceAttr(resourceName, "authorized_user_last_name", "Last"),
+					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "true"),
+				),
+			},
+			{
+				Config: configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID, "8"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "authorized_user_first_name", "First"),
+					resource.TestCheckResourceAttr(resourceName, "authorized_user_last_name", "Last"),
+					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
 func basicTestCase(tb testing.TB, useYearly bool) *resource.TestCase {
 	tb.Helper()
 
@@ -418,4 +455,49 @@ func basicChecks() []resource.TestCheckFunc {
 	checks = acc.AddAttrChecks(dataSourceName, checks, commonChecks)
 	checks = append(checks, checkExists(resourceName), checkExists(dataSourceName))
 	return checks
+}
+
+func configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID, restreWindowDays string) string {
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) +
+		fmt.Sprintf(`resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
+		project_id                 = mongodbatlas_project.test.id
+		authorized_email           = "test@example.com"
+		authorized_user_first_name = "First"
+		authorized_user_last_name  = "Last"
+		copy_protection_enabled    = true
+		pit_enabled                = false
+		encryption_at_rest_enabled = false
+		
+		restore_window_days = %[1]s
+		
+		on_demand_policy_item {
+			frequency_interval = 0
+			retention_unit     = "days"
+			retention_value    = 3
+		}
+		
+		policy_item_hourly {
+			frequency_interval = 6
+			retention_unit     = "days"
+			retention_value    = 7
+		}
+		
+		policy_item_daily {
+			frequency_interval = 0
+			retention_unit     = "days"
+			retention_value    = 7
+		}
+		
+		policy_item_weekly {
+			frequency_interval = 0
+			retention_unit     = "weeks"
+			retention_value    = 4
+		}
+		
+		policy_item_monthly {
+			frequency_interval = 0
+			retention_unit     = "months"
+			retention_value    = 12
+		}
+  }`, restreWindowDays)
 }

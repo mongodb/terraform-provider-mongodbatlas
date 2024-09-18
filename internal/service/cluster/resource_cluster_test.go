@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	clustersvc "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
@@ -179,6 +178,7 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
 					SampleSizeBIConnector:            conversion.Pointer[int64](110),
 					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+					ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.Pointer[int64](113),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -190,6 +190,7 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds", "113"),
 				),
 			},
 			{
@@ -206,6 +207,7 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds", "-1"),
 				),
 			},
 		},
@@ -576,15 +578,6 @@ func TestAccCluster_ProviderRegionName(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.regions_config.#", "3"),
 				),
-			},
-			{
-				Config: configMultiRegion(orgID, projectName, clusterName, "false", updatedRegionsConfig),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
 			},
 		},
 	})
@@ -1486,11 +1479,12 @@ func configAdvancedConfDefaultWriteRead(projectID, name, autoscalingEnabled stri
 				sample_refresh_interval_bi_connector = %[9]d
 				default_read_concern                 = %[10]q
 				default_write_concern                = %[11]q
+				change_stream_options_pre_and_post_images_expire_after_seconds = %[12]d
 			}
 		}
 	`, projectID, name, autoscalingEnabled,
 		*p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
-		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, p.DefaultReadConcern, p.DefaultWriteConcern)
+		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, p.DefaultReadConcern, p.DefaultWriteConcern, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
 }
 
 func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {

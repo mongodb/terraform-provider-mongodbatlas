@@ -3,8 +3,9 @@ set -euo pipefail
 
 : "${1?"Name of resource or data source must be provided."}"
 
+SDK_BRANCH="${SDK_BRANCH:-"main"}"
 # URL to download Atlas Admin API Spec
-atlas_admin_api_spec="https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
+atlas_admin_api_spec="https://raw.githubusercontent.com/mongodb/atlas-sdk-go/${SDK_BRANCH}/openapi/atlas-api-transformed.yaml"
 
 echo "Downloading api spec"
 curl -L "$atlas_admin_api_spec" -o "./api-spec.yml"
@@ -50,5 +51,5 @@ rename_file() {
 }
 
 rename_file "${resource_name_snake_case}_data_source_gen.go" "data_source_schema.go"
-rename_file "${resource_name_snake_case}s_data_source_gen.go" "pural_data_source_schema.go"
+rename_file "${resource_name_snake_case}s_data_source_gen.go" "plural_data_source_schema.go"
 rename_file "${resource_name_snake_case}_resource_gen.go" "resource_schema.go"

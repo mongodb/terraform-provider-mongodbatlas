@@ -67,6 +67,11 @@ if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}s.md.tmpl" ]; th
     printf "Skipping this check: We assume that the resource does not have a plural data source.\n\n"
 fi
 
+# ensure preview resource and data sources are also included during generation
+export MONGODB_ATLAS_ENABLE_PREVIEW="true" 
+
+trap 'rm -R docs-out/' EXIT # temp dir cleanup when script exits
+
 tfplugindocs generate --tf-version "${TF_VERSION}" --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out"
 
 if [ ! -f "docs-out/resources/${resource_name}.md" ]; then
@@ -95,7 +100,5 @@ else
     printf "\nMoving the generated plural data-source file %s.md to the website folder.\n" "${resource_name}s"
     mv "docs-out/data-sources/${resource_name}s.md" "docs/data-sources/${resource_name}s.md"
 fi
-
-rm -R docs-out/
 
 printf "\nThe documentation for %s has been created.\n" "${resource_name}"

@@ -31,12 +31,16 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -433,8 +437,16 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		streamconnection.DataSource,
 		streamconnection.PluralDataSource,
 		controlplaneipaddresses.DataSource,
+		projectipaddresses.DataSource,
+		streamprocessor.DataSource,
+		streamprocessor.PluralDataSource,
+		encryptionatrest.DataSource,
+		encryptionatrestprivateendpoint.DataSource,
+		encryptionatrestprivateendpoint.PluralDataSource,
+		mongodbemployeeaccessgrant.DataSource,
 	}
 	previewDataSources := []func() datasource.DataSource{} // Data sources not yet in GA
+
 	if providerEnablePreview {
 		dataSources = append(dataSources, previewDataSources...)
 	}
@@ -452,8 +464,12 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		pushbasedlogexport.Resource,
 		streaminstance.Resource,
 		streamconnection.Resource,
+		streamprocessor.Resource,
+		encryptionatrestprivateendpoint.Resource,
+		mongodbemployeeaccessgrant.Resource,
 	}
 	previewResources := []func() resource.Resource{} // Resources not yet in GA
+
 	if providerEnablePreview {
 		resources = append(resources, previewResources...)
 	}

@@ -30,9 +30,13 @@ data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `iam_role_id` - Unique identifier of the role that Atlas can use to access the bucket. You must also specify the `bucket_name`.
-* `bucket_name` - Name of the bucket that the provided role ID is authorized to access. You must also specify the `iam_role_id`.
-* `cloud_provider` - Name of the provider of the cloud service where Atlas can access the S3 bucket. Atlas only supports `AWS`.
+* `iam_role_id` - Unique identifier of the role that Atlas can use to access the bucket.
+* `bucket_name` - Name of the bucket that the provided role ID is authorized to access.
+* `cloud_provider` - Name of the provider of the cloud service where Atlas can access the S3 bucket.
+* `role_id` - Unique identifier of the Azure Service Principal that Atlas can use to access the Azure Blob Storage Container.
+* `service_url` - URL that identifies the blob Endpoint of the Azure Blob Storage Account.
+* `tenant_id` - UUID that identifies the Azure Active Directory Tenant ID.
+
 
 
 

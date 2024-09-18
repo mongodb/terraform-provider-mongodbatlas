@@ -3,24 +3,28 @@ package advancedcluster_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/mockadmin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
-	"go.mongodb.org/atlas-sdk/v20240530002/mockadmin"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 var (
 	dummyClusterName = "clusterName"
 	dummyProjectID   = "projectId"
 	errGeneric       = errors.New("generic")
-	advancedClusters = []admin.AdvancedClusterDescription{{StateName: conversion.StringPtr("NOT IDLE")}}
+	advancedClusters = []admin.ClusterDescription20240805{{StateName: conversion.StringPtr("NOT IDLE")}}
 )
 
 func TestFlattenReplicationSpecs(t *testing.T) {
@@ -31,7 +35,7 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 		unexpectedID       = "id2"
 		expectedZoneName   = "z1"
 		unexpectedZoneName = "z2"
-		regionConfigAdmin  = []admin.CloudRegionConfig{{
+		regionConfigAdmin  = []admin20240530.CloudRegionConfig{{
 			ProviderName: &providerName,
 			RegionName:   &regionName,
 		}}
@@ -44,8 +48,8 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 			"region_name":   regionName,
 			"zone_name":     unexpectedZoneName,
 		}
-		apiSpecExpected  = admin.ReplicationSpec{Id: &expectedID, ZoneName: &expectedZoneName, RegionConfigs: &regionConfigAdmin}
-		apiSpecDifferent = admin.ReplicationSpec{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &regionConfigAdmin}
+		apiSpecExpected  = admin20240530.ReplicationSpec{Id: &expectedID, ZoneName: &expectedZoneName, RegionConfigs: &regionConfigAdmin}
+		apiSpecDifferent = admin20240530.ReplicationSpec{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &regionConfigAdmin}
 		testSchema       = map[string]*schema.Schema{
 			"project_id": {Type: schema.TypeString},
 		}
@@ -75,47 +79,47 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 		}
 	)
 	testCases := map[string]struct {
-		adminSpecs   []admin.ReplicationSpec
+		adminSpecs   []admin20240530.ReplicationSpec
 		tfInputSpecs []any
 		expectedLen  int
 	}{
 		"empty admin spec should return empty list": {
-			[]admin.ReplicationSpec{},
+			[]admin20240530.ReplicationSpec{},
 			[]any{tfSameIDSameZone},
 			0,
 		},
 		"existing id, should match admin": {
-			[]admin.ReplicationSpec{apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecExpected},
 			[]any{tfSameIDSameZone},
 			1,
 		},
 		"existing different id, should change to admin spec": {
-			[]admin.ReplicationSpec{apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecExpected},
 			[]any{tfdiffIDDiffZone},
 			1,
 		},
 		"missing id, should be set when zone_name matches": {
-			[]admin.ReplicationSpec{apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecExpected},
 			[]any{tfNoIDSameZone},
 			1,
 		},
 		"missing id and diff zone, should change to admin spec": {
-			[]admin.ReplicationSpec{apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecExpected},
 			[]any{tfNoIDDiffZone},
 			1,
 		},
 		"existing id, should match correct api spec using `id` and extra api spec added": {
-			[]admin.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
 			[]any{tfSameIDSameZone},
 			2,
 		},
 		"missing id, should match correct api spec using `zone_name` and extra api spec added": {
-			[]admin.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
+			[]admin20240530.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
 			[]any{tfNoIDSameZone},
 			2,
 		},
 		"two matching specs should be set to api specs": {
-			[]admin.ReplicationSpec{apiSpecExpected, apiSpecDifferent},
+			[]admin20240530.ReplicationSpec{apiSpecExpected, apiSpecDifferent},
 			[]any{tfSameIDSameZone, tfdiffIDDiffZone},
 			2,
 		},
@@ -133,7 +137,7 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 			}
 			resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]any{"project_id": "p1"})
 
-			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecs(context.Background(), tc.adminSpecs, tc.tfInputSpecs, resourceData, client)
+			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldSDK(context.Background(), tc.adminSpecs, nil, 0, tc.tfInputSpecs, resourceData, client)
 
 			require.NoError(t, err)
 			assert.Len(t, tfOutputSpecs, tc.expectedLen)
@@ -141,6 +145,46 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 				assert.Equal(t, expectedID, tfOutputSpecs[0]["id"])
 				assert.Equal(t, expectedZoneName, tfOutputSpecs[0]["zone_name"])
 			}
+		})
+	}
+}
+
+func TestGetDiskSizeGBFromReplicationSpec(t *testing.T) {
+	diskSizeGBValue := 40.0
+
+	testCases := map[string]struct {
+		clusterDescription     admin.ClusterDescription20240805
+		expectedDiskSizeResult float64
+	}{
+		"cluster description with disk size gb value at electable spec": {
+			clusterDescription: admin.ClusterDescription20240805{
+				ReplicationSpecs: &[]admin.ReplicationSpec20240805{{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{{
+						ElectableSpecs: &admin.HardwareSpec20240805{
+							DiskSizeGB: admin.PtrFloat64(diskSizeGBValue),
+						},
+					}},
+				}},
+			},
+			expectedDiskSizeResult: diskSizeGBValue,
+		},
+		"cluster description with no electable spec": {
+			clusterDescription: admin.ClusterDescription20240805{
+				ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+					{RegionConfigs: &[]admin.CloudRegionConfig20240805{{}}},
+				},
+			},
+			expectedDiskSizeResult: 0,
+		},
+		"cluster description with no replication spec": {
+			clusterDescription:     admin.ClusterDescription20240805{},
+			expectedDiskSizeResult: 0,
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result := advancedcluster.GetDiskSizeGBFromReplicationSpec(&tc.clusterDescription)
+			assert.Equal(t, fmt.Sprintf("%.f", tc.expectedDiskSizeResult), fmt.Sprintf("%.f", result)) // formatting to string to avoid float comparison
 		})
 	}
 }
@@ -153,7 +197,7 @@ type Result struct {
 
 func TestUpgradeRefreshFunc(t *testing.T) {
 	testCases := []struct {
-		mockCluster    *admin.AdvancedClusterDescription
+		mockCluster    *admin.ClusterDescription20240805
 		mockResponse   *http.Response
 		expectedResult Result
 		mockError      error
@@ -215,11 +259,11 @@ func TestUpgradeRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful",
-			mockCluster:   &admin.AdvancedClusterDescription{StateName: conversion.StringPtr("stateName")},
+			mockCluster:   &admin.ClusterDescription20240805{StateName: conversion.StringPtr("stateName")},
 			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
-				response: &admin.AdvancedClusterDescription{StateName: conversion.StringPtr("stateName")},
+				response: &admin.ClusterDescription20240805{StateName: conversion.StringPtr("stateName")},
 				state:    "stateName",
 				error:    nil,
 			},
@@ -247,7 +291,7 @@ func TestUpgradeRefreshFunc(t *testing.T) {
 
 func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 	testCases := []struct {
-		mockCluster    *admin.PaginatedAdvancedClusterDescription
+		mockCluster    *admin.PaginatedClusterDescription20240805
 		mockResponse   *http.Response
 		expectedResult Result
 		mockError      error
@@ -309,7 +353,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful but with at least one cluster not idle",
-			mockCluster:   &admin.PaginatedAdvancedClusterDescription{Results: &advancedClusters},
+			mockCluster:   &admin.PaginatedClusterDescription20240805{Results: &advancedClusters},
 			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
@@ -320,11 +364,11 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful",
-			mockCluster:   &admin.PaginatedAdvancedClusterDescription{},
+			mockCluster:   &admin.PaginatedClusterDescription20240805{},
 			mockResponse:  &http.Response{StatusCode: 200},
 			expectedError: false,
 			expectedResult: Result{
-				response: &admin.PaginatedAdvancedClusterDescription{},
+				response: &admin.PaginatedClusterDescription20240805{},
 				state:    "IDLE",
 				error:    nil,
 			},
@@ -346,6 +390,30 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 			assert.Equal(t, tc.expectedResult.error, err)
 			assert.Equal(t, tc.expectedResult.response, result)
 			assert.Equal(t, tc.expectedResult.state, stateName)
+		})
+	}
+}
+
+func TestIsChangeStreamOptionsMinRequiredMajorVersion(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  bool
+	}{
+		{"Empty input", "", true},
+		{"Valid input equal to 6", "6", true},
+		{"Valid input greater than 6", "7.0", true},
+		{"Valid input less than 6", "5", false},
+		{"Valid float input greater", "6.5", true},
+		{"Valid float input less", "5.9", false},
+		{"Valid float complete semantic version", "6.0.2", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := advancedcluster.IsChangeStreamOptionsMinRequiredMajorVersion(&tt.input); got != tt.want {
+				t.Errorf("abc(%v) = %v, want %v", tt.input, got, tt.want)
+			}
 		})
 	}
 }

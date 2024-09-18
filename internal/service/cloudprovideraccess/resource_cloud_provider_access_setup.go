@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -134,7 +134,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	requestParameters := &admin.CloudProviderAccessRole{
+	requestParameters := &admin.CloudProviderAccessRoleRequest{
 		ProviderName: d.Get("provider_name").(string),
 	}
 

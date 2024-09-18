@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20240530002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 func ClusterDatasourceHcl(req *ClusterRequest) (configStr, clusterName, resourceName string, err error) {
@@ -45,7 +45,7 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	projectID := req.ProjectID
 	req.AddDefaults()
 	specRequests := req.ReplicationSpecs
-	specs := make([]admin.ReplicationSpec, len(specRequests))
+	specs := make([]admin.ReplicationSpec20240805, len(specRequests))
 	for i := range specRequests {
 		specRequest := specRequests[i]
 		specs[i] = replicationSpec(&specRequest)
@@ -119,7 +119,7 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	return "\n" + string(f.Bytes()), clusterName, clusterResourceName, err
 }
 
-func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec) error {
+func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec20240805) error {
 	replicationBlock := cluster.AppendNewBlock("replication_specs", nil).Body()
 	err := addPrimitiveAttributesViaJSON(replicationBlock, spec)
 	if err != nil {

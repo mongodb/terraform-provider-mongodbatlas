@@ -28,6 +28,16 @@ func PreCheck(tb testing.TB) {
 	}
 }
 
+func PreCheckEncryptionAtRestPrivateEndpoint(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
+		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
+		os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID") == "" ||
+		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, `MONGODB_ATLAS_PROJECT_EAR_PE_ID` and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
+	}
+}
+
 func PreCheckCert(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
@@ -136,19 +146,26 @@ func PreCheckPeeringEnvAzure(tb testing.TB) {
 func PreCheckEncryptionAtRestEnvAzure(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AZURE_CLIENT_ID") == "" ||
-		os.Getenv("AZURE_CLIENT_ID_UPDATED") == "" ||
 		os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
 		os.Getenv("AZURE_RESOURCE_GROUP_NAME") == "" ||
-		os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED") == "" ||
-		os.Getenv("AZURE_SECRET") == "" ||
+		os.Getenv("AZURE_APP_SECRET") == "" ||
 		os.Getenv("AZURE_KEY_VAULT_NAME") == "" ||
-		os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED") == "" ||
 		os.Getenv("AZURE_KEY_IDENTIFIER") == "" ||
-		os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED") == "" ||
 		os.Getenv("AZURE_TENANT_ID") == "" {
-		tb.Fatal(`'AZURE_CLIENT_ID','AZURE_CLIENT_ID_UPDATED', 'AZURE_SUBSCRIPTION_ID',
-		'AZURE_RESOURCE_GROUP_NAME','AZURE_RESOURCE_GROUP_NAME_UPDATED', 'AZURE_SECRET',
-		'AZURE_SECRET_UPDATED', 'AZURE_KEY_VAULT_NAME', 'AZURE_KEY_IDENTIFIER', 'AZURE_KEY_VAULT_NAME_UPDATED',
+		tb.Fatal(`'AZURE_CLIENT_ID', 'AZURE_SUBSCRIPTION_ID',
+		'AZURE_RESOURCE_GROUP_NAME', 'AZURE_APP_SECRET', 'AZURE_KEY_VAULT_NAME', 'AZURE_KEY_IDENTIFIER', and 'AZURE_TENANT_ID' must be set for Encryption At Rest acceptance testing`)
+	}
+}
+
+func PreCheckEncryptionAtRestEnvAzureWithUpdate(tb testing.TB) {
+	tb.Helper()
+	PreCheckEncryptionAtRestEnvAzure(tb)
+
+	if os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED") == "" ||
+		os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED") == "" {
+		tb.Fatal(`'AZURE_CLIENT_ID', 'AZURE_SUBSCRIPTION_ID',
+		'AZURE_RESOURCE_GROUP_NAME', 'AZURE_APP_SECRET',
+		, 'AZURE_KEY_VAULT_NAME', 'AZURE_KEY_IDENTIFIER', 'AZURE_KEY_VAULT_NAME_UPDATED',
 		'AZURE_KEY_IDENTIFIER_UPDATED', and 'AZURE_TENANT_ID' must be set for Encryption At Rest acceptance testing`)
 	}
 }
@@ -294,5 +311,13 @@ func PreCheckS3Bucket(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AWS_S3_BUCKET") == "" {
 		tb.Fatal("`AWS_S3_BUCKET` must be set ")
+	}
+}
+
+func PreCheckAzureExportBucket(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AZURE_SERVICE_URL") == "" ||
+		os.Getenv("AZURE_BLOB_STORAGE_CONTAINER_NAME") == "" {
+		tb.Fatal("`AZURE_SERVICE_URL` and `AZURE_SERVICE_URL`must be set for Cloud Backup Snapshot Export Bucket acceptance testing")
 	}
 }
