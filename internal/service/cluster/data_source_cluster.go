@@ -317,6 +317,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"redact_client_log_data": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -487,6 +491,14 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 
 	if err := d.Set("snapshot_backup_policy", snapshotBackupPolicy); err != nil {
 		return diag.FromErr(err)
+	}
+
+	redactClientLogData, err := newAtlasGet(ctx, meta.(*config.MongoDBClient).AtlasV2, projectID, clusterName)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
+	}
+	if err := d.Set("redact_client_log_data", redactClientLogData); err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "redact_client_log_data", clusterName, err))
 	}
 
 	d.SetId(cluster.ID)
