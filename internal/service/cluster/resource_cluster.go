@@ -375,6 +375,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	var (
 		conn             = meta.(*config.MongoDBClient).Atlas
+		connV2           = meta.(*config.MongoDBClient).AtlasV2
 		projectID        = d.Get("project_id").(string)
 		clusterName      = d.Get("name").(string)
 		providerName     = d.Get("provider_name").(string)
@@ -588,7 +589,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if v, ok := d.GetOk("redact_client_log_data"); ok {
-		if ret := newAtlasUpdate(ctx, meta.(*config.MongoDBClient).AtlasV2, projectID, clusterName, v.(bool)); ret != nil {
+		if ret := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutCreate), conn, connV2, projectID, clusterName, v.(bool)); ret != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 	}
@@ -604,8 +605,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -786,7 +787,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(err)
 	}
 
-	redactClientLogData, err := newAtlasGet(ctx, meta.(*config.MongoDBClient).AtlasV2, projectID, clusterName)
+	redactClientLogData, err := newAtlasGet(ctx, connV2, projectID, clusterName)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
 	}
@@ -798,15 +799,19 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
-
-	cluster := new(matlas.Cluster)
-	clusterChangeDetect := new(matlas.Cluster)
-	clusterChangeDetect.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
+	var (
+		conn                = meta.(*config.MongoDBClient).Atlas
+		connV2              = meta.(*config.MongoDBClient).AtlasV2
+		ids                 = conversion.DecodeStateID(d.Id())
+		projectID           = ids["project_id"]
+		clusterName         = ids["cluster_name"]
+		cluster             = new(matlas.Cluster)
+		clusterChangeDetect = &matlas.Cluster{
+			AutoScaling: &matlas.AutoScaling{
+				Compute: &matlas.Compute{},
+			},
+		}
+	)
 
 	if d.HasChange("name") {
 		cluster.Name, _ = d.Get("name").(string)
@@ -1006,7 +1011,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("redact_client_log_data") {
 		if v, ok := d.GetOk("redact_client_log_data"); ok {
-			if ret := newAtlasUpdate(ctx, meta.(*config.MongoDBClient).AtlasV2, projectID, clusterName, v.(bool)); ret != nil {
+			if ret := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutUpdate), conn, connV2, projectID, clusterName, v.(bool)); ret != nil {
 				return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 			}
 		}
