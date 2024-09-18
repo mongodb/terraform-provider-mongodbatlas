@@ -1362,30 +1362,18 @@ func TestAccCluster_basic_RedactClientLogData(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configRedactClientLogData(projectID, clusterName, nil),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "redact_client_log_data", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "redact_client_log_data", "false"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.redact_client_log_data", "false"),
-				),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+					nil, map[string]string{"redact_client_log_data": "false"}),
 			},
 			{
 				Config: configRedactClientLogData(projectID, clusterName, conversion.Pointer(false)),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "redact_client_log_data", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "redact_client_log_data", "false"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.redact_client_log_data", "false"),
-				),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+					nil, map[string]string{"redact_client_log_data": "false"}),
 			},
 			{
 				Config: configRedactClientLogData(projectID, clusterName, conversion.Pointer(true)),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "redact_client_log_data", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "redact_client_log_data", "true"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.redact_client_log_data", "true"),
-				),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+					nil, map[string]string{"redact_client_log_data": "true"}),
 			},
 		},
 	})
@@ -1404,13 +1392,8 @@ func TestAccCluster_create_RedactClientLogData(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configRedactClientLogData(projectID, clusterName, conversion.Pointer(true)),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "redact_client_log_data", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "redact_client_log_data", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "redact_client_log_data", "true"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.redact_client_log_data", "true"),
-				),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+					nil, map[string]string{"redact_client_log_data": "true"}),
 			},
 		},
 	})
