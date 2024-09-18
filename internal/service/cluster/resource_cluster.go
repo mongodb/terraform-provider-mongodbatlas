@@ -40,12 +40,12 @@ var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atla
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasClusterCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasClusterRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasClusterUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasClusterDelete,
+		CreateWithoutTimeout: resourceCreate,
+		ReadWithoutTimeout:   resourceRead,
+		UpdateWithoutTimeout: resourceUpdate,
+		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasClusterImportState,
+			StateContext: resourceImport,
 		},
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
@@ -366,7 +366,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if v, ok := d.GetOk("accept_data_risks_and_force_replica_set_reconfig"); ok {
 		if v.(string) != "" {
 			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
@@ -600,10 +600,10 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		"provider_name": providerName,
 	}))
 
-	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -797,7 +797,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -1012,7 +1012,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
 func IsMultiRegionCluster(repSpecs []matlas.ReplicationSpec) bool {
@@ -1046,7 +1046,7 @@ func didErrOnPausedCluster(err error) bool {
 	return errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER"
 }
 
-func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*config.MongoDBClient).Atlas
 	ids := conversion.DecodeStateID(d.Id())
@@ -1085,7 +1085,7 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 	return nil
 }
 
-func resourceMongoDBAtlasClusterImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID, name, err := splitSClusterImportID(d.Id())
