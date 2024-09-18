@@ -4,12 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func newAtlasUpdate(ctx context.Context, timeout time.Duration, conn *matlas.Client, connV2 *admin.APIClient, projectID, clusterName string, redactClientLogData bool) error {
+func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.APIClient, projectID, clusterName string, redactClientLogData bool) error {
 	current, err := newAtlasGet(ctx, connV2, projectID, clusterName)
 	if err != nil {
 		return err
@@ -23,14 +22,7 @@ func newAtlasUpdate(ctx context.Context, timeout time.Duration, conn *matlas.Cli
 	if _, _, err = connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 		return err
 	}
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
-		Target:     []string{"IDLE"},
-		Refresh:    ResourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
+	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return err
 	}
