@@ -59,6 +59,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttrSet(resourceName, "snapshot_backup_policy.0.policies.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "connection_strings.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "connection_strings.0.private_endpoint.#"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_min_retention_hours", "4"),
 				),
 			},
 			{
@@ -1375,6 +1376,15 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func configAWS(projectID, name string, backupEnabled, autoDiskGBEnabled bool) string {
+	var advancedConfiguration string
+	if autoDiskGBEnabled {
+		// oplog_min_retention_hours can only be active when auto_scaling_disk_gb_enabled
+		advancedConfiguration = `
+		advanced_configuration  {
+			oplog_min_retention_hours = 4
+		}
+		`
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id                   = %[1]q
@@ -1396,8 +1406,9 @@ func configAWS(projectID, name string, backupEnabled, autoDiskGBEnabled bool) st
 			auto_scaling_disk_gb_enabled = %[4]t
 			provider_name               = "AWS"
 			provider_instance_size_name = "M30"
+			%[5]s
 		}
-	`, projectID, name, backupEnabled, autoDiskGBEnabled)
+	`, projectID, name, backupEnabled, autoDiskGBEnabled, advancedConfiguration)
 }
 
 func configAdvancedConf(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
