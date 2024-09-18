@@ -351,6 +351,11 @@ func Resource() *schema.Resource {
 				Computed:    true,
 				Description: "Submit this field alongside your topology reconfiguration to request a new regional outage resistant topology",
 			},
+			"redact_client_log_data": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 		},
 		CustomizeDiff: resourceClusterCustomizeDiff,
 		Timeouts: &schema.ResourceTimeout{
@@ -368,15 +373,16 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	projectID := d.Get("project_id").(string)
-	providerName := d.Get("provider_name").(string)
-
-	computeEnabled := d.Get("auto_scaling_compute_enabled").(bool)
-	scaleDownEnabled := d.Get("auto_scaling_compute_scale_down_enabled").(bool)
-	minInstanceSize := d.Get("provider_auto_scaling_compute_min_instance_size").(string)
-	maxInstanceSize := d.Get("provider_auto_scaling_compute_max_instance_size").(string)
+	var (
+		conn             = meta.(*config.MongoDBClient).Atlas
+		projectID        = d.Get("project_id").(string)
+		clusterName      = d.Get("name").(string)
+		providerName     = d.Get("provider_name").(string)
+		computeEnabled   = d.Get("auto_scaling_compute_enabled").(bool)
+		scaleDownEnabled = d.Get("auto_scaling_compute_scale_down_enabled").(bool)
+		minInstanceSize  = d.Get("provider_auto_scaling_compute_min_instance_size").(string)
+		maxInstanceSize  = d.Get("provider_auto_scaling_compute_max_instance_size").(string)
+	)
 
 	if scaleDownEnabled && !computeEnabled {
 		return diag.FromErr(fmt.Errorf("`auto_scaling_compute_scale_down_enabled` must be set when `auto_scaling_compute_enabled` is set"))
@@ -474,7 +480,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	clusterRequest := &matlas.Cluster{
-		Name:                     d.Get("name").(string),
+		Name:                     clusterName,
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
 		ClusterType:              clusterType,
 		BackupEnabled:            conversion.Pointer(d.Get("backup_enabled").(bool)),
@@ -541,7 +547,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    ResourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+		Refresh:    ResourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -575,16 +581,22 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 			Paused: conversion.Pointer(v),
 		}
 
-		_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, d.Get("name").(string), timeout)
+		_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterUpdate, d.Get("name").(string), err))
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+		}
+	}
+
+	if v, ok := d.GetOk("redact_client_log_data"); ok {
+		if ret := newAtlasUpdate(ctx, meta.(*config.MongoDBClient).AtlasV2, projectID, clusterName, v.(bool)); ret != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"cluster_id":    cluster.ID,
 		"project_id":    projectID,
-		"cluster_name":  cluster.Name,
+		"cluster_name":  clusterName,
 		"provider_name": providerName,
 	}))
 
@@ -772,6 +784,14 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 
 	if err := d.Set("snapshot_backup_policy", snapshotBackupPolicy); err != nil {
 		return diag.FromErr(err)
+	}
+
+	redactClientLogData, err := newAtlasGet(ctx, meta.(*config.MongoDBClient).AtlasV2, projectID, clusterName)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
+	}
+	if err := d.Set("redact_client_log_data", redactClientLogData); err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "redact_client_log_data", clusterName, err))
 	}
 
 	return nil
@@ -981,6 +1001,14 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+		}
+	}
+
+	if d.HasChange("redact_client_log_data") {
+		if v, ok := d.GetOk("redact_client_log_data"); ok {
+			if ret := newAtlasUpdate(ctx, meta.(*config.MongoDBClient).AtlasV2, projectID, clusterName, v.(bool)); ret != nil {
+				return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+			}
 		}
 	}
 
