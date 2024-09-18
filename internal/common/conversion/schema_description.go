@@ -30,48 +30,66 @@ func updateAttribute(attr schema.Attribute) schema.Attribute {
 	case schema.StringAttribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		return v
 	case schema.BoolAttribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		return v
 	case schema.Int64Attribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		return v
 
 	case dsschema.StringAttribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		return v
 	case dsschema.BoolAttribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		return v
 	case dsschema.Int64Attribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		return v
 	case dsschema.MapAttribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		return v
 	case dsschema.ListAttribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		return v
 
 	case schema.SingleNestedAttribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		for i := range v.Attributes {
 			v.Attributes[i] = updateAttribute(v.Attributes[i])
@@ -80,6 +98,8 @@ func updateAttribute(attr schema.Attribute) schema.Attribute {
 	case schema.ListNestedAttribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		for i := range v.NestedObject.Attributes {
 			v.NestedObject.Attributes[i] = updateAttribute(v.NestedObject.Attributes[i])
@@ -89,6 +109,8 @@ func updateAttribute(attr schema.Attribute) schema.Attribute {
 	case dsschema.SingleNestedAttribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		for i := range v.Attributes {
 			v.Attributes[i] = updateAttribute(v.Attributes[i])
@@ -97,6 +119,8 @@ func updateAttribute(attr schema.Attribute) schema.Attribute {
 	case dsschema.ListNestedAttribute:
 		if v.Description == "" {
 			v.Description = v.MarkdownDescription
+		} else if v.MarkdownDescription == "" {
+			v.MarkdownDescription = v.Description
 		}
 		for i := range v.NestedObject.Attributes {
 			v.NestedObject.Attributes[i] = updateAttribute(v.NestedObject.Attributes[i])
