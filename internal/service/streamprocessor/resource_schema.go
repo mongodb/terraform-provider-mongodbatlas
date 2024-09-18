@@ -19,31 +19,26 @@ func optionsSchema(isDatasource bool) schema.SingleNestedAttribute {
 					"coll": schema.StringAttribute{
 						Required:            !isDatasource,
 						Computed:            isDatasource,
-						Description:         "Name of the collection to use for the DLQ.",
 						MarkdownDescription: "Name of the collection to use for the DLQ.",
 					},
 					"connection_name": schema.StringAttribute{
 						Required:            !isDatasource,
 						Computed:            isDatasource,
-						Description:         "Name of the connection to write DLQ messages to. Must be an Atlas connection.",
 						MarkdownDescription: "Name of the connection to write DLQ messages to. Must be an Atlas connection.",
 					},
 					"db": schema.StringAttribute{
 						Required:            !isDatasource,
 						Computed:            isDatasource,
-						Description:         "Name of the database to use for the DLQ.",
 						MarkdownDescription: "Name of the database to use for the DLQ.",
 					},
 				},
 				Required:            !isDatasource,
 				Computed:            isDatasource,
-				Description:         "Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information.",
 				MarkdownDescription: "Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information.",
 			},
 		},
 		Optional:            !isDatasource,
 		Computed:            isDatasource,
-		Description:         "Optional configuration for the stream processor.",
 		MarkdownDescription: "Optional configuration for the stream processor.",
 	}
 }
@@ -53,7 +48,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				Description:         "Unique 24-hexadecimal character string that identifies the stream processor.",
 				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the stream processor.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -61,39 +55,31 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"instance_name": schema.StringAttribute{
 				Required:            true,
-				Description:         "Human-readable label that identifies the stream instance.",
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
 			},
 			"pipeline": schema.StringAttribute{
 				CustomType: fwtypes.JSONStringType,
 				Required:   true,
-				Description: "Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation)" +
-					" contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when settig this attribute. For more details see [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
 				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation)" +
 					" contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when settig this attribute. For more details see [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
 			},
 			"processor_name": schema.StringAttribute{
 				Required:            true,
-				Description:         "Human-readable label that identifies the stream processor.",
 				MarkdownDescription: "Human-readable label that identifies the stream processor.",
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
-				Description:         "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 			},
 			"state": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Description: "The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`." +
-					" When a Stream Processor is created without specifying the state, it will default to `CREATED` state.\n\n**NOTE** When a stream processor is created, the only valid states are CREATED or STARTED. A stream processor can be automatically started when creating it if the state is set to STARTED.",
 				MarkdownDescription: "The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`." +
 					" When a Stream Processor is created without specifying the state, it will default to `CREATED` state.\n\n**NOTE** When a stream processor is created, the only valid states are CREATED or STARTED. A stream processor can be automatically started when creating it if the state is set to STARTED.",
 			},
 			"options": optionsSchema(false),
 			"stats": schema.StringAttribute{
 				Computed:            true,
-				Description:         "The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.",
 				MarkdownDescription: "The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.",
 			},
 		},
