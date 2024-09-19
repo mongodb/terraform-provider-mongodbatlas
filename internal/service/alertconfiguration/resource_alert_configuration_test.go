@@ -368,6 +368,12 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 }
 
 func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
+	resource.ParallelTest(t, *datadogTestCase(t))
+}
+
+func datadogTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
 	proxyPort := replay.SetupReplayProxy(t)
 
 	var (
@@ -398,7 +404,7 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 		}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
 		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
@@ -422,7 +428,8 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 				),
 			},
 		},
-	})
+	}
+
 }
 
 func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
