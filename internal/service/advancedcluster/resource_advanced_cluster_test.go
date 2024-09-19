@@ -385,6 +385,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_min_retention_hours", "5.5"),
 				),
 			},
 			{
@@ -1399,6 +1400,9 @@ func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.A
 					priority      = 7
 					region_name   = "US_WEST_2"
 				}
+			}
+			advanced_configuration  {
+			    oplog_min_retention_hours = 5.5
 			}
 		}
 	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
