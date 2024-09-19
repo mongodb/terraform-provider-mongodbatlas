@@ -1848,7 +1848,6 @@ func configRedactClientLogData(projectID, name string, redactClientLogData *bool
 		resource "mongodbatlas_cluster" "test" {
 			project_id                   = %[1]q
 			name                         = %[2]q
-			disk_size_gb                 = 100
 			cluster_type = "REPLICASET"
 			replication_specs {
 			  num_shards = 1
