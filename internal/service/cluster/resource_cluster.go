@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
-	"strings"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -40,12 +40,12 @@ var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atla
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasClusterCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasClusterRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasClusterUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasClusterDelete,
+		CreateWithoutTimeout: resourceCreate,
+		ReadWithoutTimeout:   resourceRead,
+		UpdateWithoutTimeout: resourceUpdate,
+		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasClusterImportState,
+			StateContext: resourceImport,
 		},
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
@@ -351,6 +351,11 @@ func Resource() *schema.Resource {
 				Computed:    true,
 				Description: "Submit this field alongside your topology reconfiguration to request a new regional outage resistant topology",
 			},
+			"redact_client_log_data": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 		},
 		CustomizeDiff: resourceClusterCustomizeDiff,
 		Timeouts: &schema.ResourceTimeout{
@@ -361,22 +366,24 @@ func Resource() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if v, ok := d.GetOk("accept_data_risks_and_force_replica_set_reconfig"); ok {
 		if v.(string) != "" {
 			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
 		}
 	}
 
-	conn := meta.(*config.MongoDBClient).Atlas
-
-	projectID := d.Get("project_id").(string)
-	providerName := d.Get("provider_name").(string)
-
-	computeEnabled := d.Get("auto_scaling_compute_enabled").(bool)
-	scaleDownEnabled := d.Get("auto_scaling_compute_scale_down_enabled").(bool)
-	minInstanceSize := d.Get("provider_auto_scaling_compute_min_instance_size").(string)
-	maxInstanceSize := d.Get("provider_auto_scaling_compute_max_instance_size").(string)
+	var (
+		conn             = meta.(*config.MongoDBClient).Atlas
+		connV2           = meta.(*config.MongoDBClient).AtlasV2
+		projectID        = d.Get("project_id").(string)
+		clusterName      = d.Get("name").(string)
+		providerName     = d.Get("provider_name").(string)
+		computeEnabled   = d.Get("auto_scaling_compute_enabled").(bool)
+		scaleDownEnabled = d.Get("auto_scaling_compute_scale_down_enabled").(bool)
+		minInstanceSize  = d.Get("provider_auto_scaling_compute_min_instance_size").(string)
+		maxInstanceSize  = d.Get("provider_auto_scaling_compute_max_instance_size").(string)
+	)
 
 	if scaleDownEnabled && !computeEnabled {
 		return diag.FromErr(fmt.Errorf("`auto_scaling_compute_scale_down_enabled` must be set when `auto_scaling_compute_enabled` is set"))
@@ -474,7 +481,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	clusterRequest := &matlas.Cluster{
-		Name:                     d.Get("name").(string),
+		Name:                     clusterName,
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
 		ClusterType:              clusterType,
 		BackupEnabled:            conversion.Pointer(d.Get("backup_enabled").(bool)),
@@ -538,18 +545,8 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
-		Target:     []string{"IDLE"},
-		Refresh:    ResourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 1 * time.Minute,
-		Delay:      3 * time.Minute,
-	}
-
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
 	}
 
@@ -575,25 +572,31 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 			Paused: conversion.Pointer(v),
 		}
 
-		_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, d.Get("name").(string), timeout)
+		_, _, err = updateCluster(ctx, conn, connV2, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterUpdate, d.Get("name").(string), err))
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+		}
+	}
+
+	if v, ok := d.GetOk("redact_client_log_data"); ok {
+		if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutCreate), connV2, projectID, clusterName, v.(bool)); err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"cluster_id":    cluster.ID,
 		"project_id":    projectID,
-		"cluster_name":  cluster.Name,
+		"cluster_name":  clusterName,
 		"provider_name": providerName,
 	}))
 
-	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
+	return resourceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -774,19 +777,31 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
+	redactClientLogData, err := newAtlasGet(ctx, connV2, projectID, clusterName)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
+	}
+	if err := d.Set("redact_client_log_data", redactClientLogData); err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "redact_client_log_data", clusterName, err))
+	}
+
 	return nil
 }
 
-func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*config.MongoDBClient).Atlas
-	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
-
-	cluster := new(matlas.Cluster)
-	clusterChangeDetect := new(matlas.Cluster)
-	clusterChangeDetect.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	var (
+		conn                = meta.(*config.MongoDBClient).Atlas
+		connV2              = meta.(*config.MongoDBClient).AtlasV2
+		ids                 = conversion.DecodeStateID(d.Id())
+		projectID           = ids["project_id"]
+		clusterName         = ids["cluster_name"]
+		cluster             = new(matlas.Cluster)
+		clusterChangeDetect = &matlas.Cluster{
+			AutoScaling: &matlas.AutoScaling{
+				Compute: &matlas.Compute{},
+			},
+		}
+	)
 
 	if d.HasChange("name") {
 		cluster.Name, _ = d.Get("name").(string)
@@ -937,7 +952,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if isUpgradeRequired(d) {
-		updatedCluster, _, err := upgradeCluster(ctx, conn, cluster, projectID, clusterName, timeout)
+		updatedCluster, _, err := upgradeCluster(ctx, conn, connV2, cluster, projectID, clusterName, timeout)
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
@@ -951,14 +966,14 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}))
 	} else if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-			_, _, err := updateCluster(ctx, conn, cluster, projectID, clusterName, timeout)
+			_, _, err := updateCluster(ctx, conn, connV2, cluster, projectID, clusterName, timeout)
 
 			if didErrOnPausedCluster(err) {
 				clusterRequest := &matlas.Cluster{
 					Paused: conversion.Pointer(false),
 				}
 
-				_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
+				_, _, err = updateCluster(ctx, conn, connV2, clusterRequest, projectID, clusterName, timeout)
 			}
 
 			if err != nil {
@@ -978,13 +993,21 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			Paused: conversion.Pointer(true),
 		}
 
-		_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
+		_, _, err := updateCluster(ctx, conn, connV2, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 	}
 
-	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
+	if d.HasChange("redact_client_log_data") {
+		if v, ok := d.GetOk("redact_client_log_data"); ok {
+			if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutUpdate), connV2, projectID, clusterName, v.(bool)); err != nil {
+				return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+			}
+		}
+	}
+
+	return resourceRead(ctx, d, meta)
 }
 
 func IsMultiRegionCluster(repSpecs []matlas.ReplicationSpec) bool {
@@ -1018,9 +1041,9 @@ func didErrOnPausedCluster(err error) bool {
 	return errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER"
 }
 
-func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -1037,27 +1060,15 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf(errorClusterDelete, clusterName, err))
 	}
 
-	log.Println("[INFO] Waiting for MongoDB Cluster to be destroyed")
-
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
-		Target:     []string{"DELETED"},
-		Refresh:    ResourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
-		Timeout:    d.Timeout(schema.TimeoutDelete),
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute, // Wait 30 secs before starting
-	}
-
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	stateConf := advancedcluster.DeleteStateChangeConfig(ctx, connV2, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterDelete, clusterName, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasClusterImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
 	projectID, name, err := splitSClusterImportID(d.Id())
@@ -1180,24 +1191,14 @@ func isEqualProviderAutoScalingMaxInstanceSize(k, old, newStr string, d *schema.
 	return true
 }
 
-func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
+func updateCluster(ctx context.Context, conn *matlas.Client, connV2 *admin.APIClient, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
 	cluster, resp, err := conn.Clusters.Update(ctx, projectID, name, request)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
-		Target:     []string{"IDLE"},
-		Refresh:    ResourceClusterRefreshFunc(ctx, name, projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
-
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, name, timeout)
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return nil, nil, err
 	}
 
@@ -1283,35 +1284,7 @@ func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
 	}
 }
 
-func ResourceClusterRefreshFunc(ctx context.Context, name, projectID string, conn *matlas.Client) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		c, resp, err := conn.Clusters.Get(ctx, projectID, name)
-
-		if err != nil && strings.Contains(err.Error(), "reset by peer") {
-			return nil, "REPEATING", nil
-		}
-
-		if err != nil && c == nil && resp == nil {
-			return nil, "", err
-		} else if err != nil {
-			if resp.StatusCode == 404 {
-				return "", "DELETED", nil
-			}
-			if resp.StatusCode == 503 {
-				return "", "PENDING", nil
-			}
-			return nil, "", err
-		}
-
-		if c.StateName != "" {
-			log.Printf("[DEBUG] status for MongoDB cluster: %s: %s", name, c.StateName)
-		}
-
-		return c, c.StateName, nil
-	}
-}
-
-func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
+func upgradeCluster(ctx context.Context, conn *matlas.Client, connV2 *admin.APIClient, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
 	request.Name = name
 
 	cluster, resp, err := conn.Clusters.Upgrade(ctx, projectID, request)
@@ -1319,18 +1292,8 @@ func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cl
 		return nil, nil, err
 	}
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
-		Target:     []string{"IDLE"},
-		Refresh:    ResourceClusterRefreshFunc(ctx, name, projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
-
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, name, timeout)
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return nil, nil, err
 	}
 

@@ -106,6 +106,7 @@ In addition to all arguments above, the following attributes are exported:
 * `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
 * `global_cluster_self_managed_sharding` - Flag that indicates if cluster uses Atlas-Managed Sharding (false) or Self-Managed Sharding (true).
 * `replica_set_scaling_strategy` - (Optional) Replica set scaling mode for your cluster.
+* `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see [param reference](https://www.mongodb.com/docs/manual/reference/parameters/#mongodb-parameter-param.redactClientLogData) for more info.
 
 ### bi_connector_config
 
