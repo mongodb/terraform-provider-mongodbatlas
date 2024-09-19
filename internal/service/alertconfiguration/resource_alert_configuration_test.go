@@ -374,6 +374,28 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 		projectID = replay.ManageProjectID(t, acc.ProjectIDExecution)
 		ddAPIKey  = dummy32CharKey
 		ddRegion  = "US"
+
+		groupNotificationMap = map[string]string{
+			"type_name":    "GROUP",
+			"interval_min": "5",
+			"delay_min":    "0",
+		}
+
+		ddNotificationMap = map[string]string{
+			"type_name":       "DATADOG",
+			"interval_min":    "5",
+			"delay_min":       "0",
+			"datadog_api_key": ddAPIKey,
+			"datadog_region":  ddRegion,
+		}
+
+		ddNotificationUpdatedMap = map[string]string{
+			"type_name":       "DATADOG",
+			"interval_min":    "6",
+			"delay_min":       "0",
+			"datadog_api_key": ddAPIKey,
+			"datadog_region":  ddRegion,
+		}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -382,10 +404,21 @@ func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
 			{
-				Config: configWithDataDog(projectID, ddAPIKey, ddRegion, true),
+				Config: configWithDataDog(projectID, ddAPIKey, ddRegion, true, ddNotificationMap, groupNotificationMap),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExistsUsingProxy(proxyPort, resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "notification.*", groupNotificationMap),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "notification.*", ddNotificationMap),
+				),
+			},
+			{
+				Config: configWithDataDog(projectID, ddAPIKey, ddRegion, true, ddNotificationUpdatedMap, groupNotificationMap),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExistsUsingProxy(proxyPort, resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "notification.*", groupNotificationMap),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "notification.*", ddNotificationUpdatedMap),
 				),
 			},
 		},
@@ -739,7 +772,28 @@ func configWithThresholdUpdated(projectID string, enabled bool, threshold float6
 	`, projectID, enabled, threshold)
 }
 
-func configWithDataDog(projectID, dataDogAPIKey, dataDogRegion string, enabled bool) string {
+func configWithDataDog(projectID, dataDogAPIKey, dataDogRegion string, enabled bool, ddNotificationMap, groupNotificationMap map[string]string) string {
+	ddNotificationBlock := fmt.Sprintf(`
+	notification {
+		type_name = %[1]q
+		datadog_api_key = mongodbatlas_third_party_integration.atlas_datadog.api_key
+		datadog_region = mongodbatlas_third_party_integration.atlas_datadog.region
+		interval_min  = %[2]v
+		delay_min     = %[3]v
+	}
+	`, ddNotificationMap["type_name"], ddNotificationMap["interval_min"], ddNotificationMap["delay_min"])
+
+	groupNotificationBlock := fmt.Sprintf(`
+	notification {
+		type_name     = %[1]q
+		interval_min  = %[2]v
+		delay_min     = %[3]v
+		sms_enabled   = false
+		email_enabled = true
+		roles         = ["GROUP_OWNER"]
+	}
+	`, groupNotificationMap["type_name"], groupNotificationMap["interval_min"], groupNotificationMap["delay_min"])
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_third_party_integration" "atlas_datadog" {
 			project_id = %[1]q
@@ -753,22 +807,9 @@ func configWithDataDog(projectID, dataDogAPIKey, dataDogRegion string, enabled b
 			event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
 			enabled    = %[4]t
 
-			notification {
-				type_name     = "GROUP"
-				interval_min  = 5
-				delay_min     = 0
-				sms_enabled   = false
-				email_enabled = true
-				roles         = ["GROUP_OWNER"]
-			}
+			%[5]s
 
-			notification {
-				type_name = "DATADOG"
-				datadog_api_key = mongodbatlas_third_party_integration.atlas_datadog.api_key
-				datadog_region = mongodbatlas_third_party_integration.atlas_datadog.region
-				interval_min  = 5
-				delay_min     = 0
-			}
+			%[6]s
 
 			matcher {
 				field_name = "REPLICA_SET_NAME"
@@ -782,7 +823,7 @@ func configWithDataDog(projectID, dataDogAPIKey, dataDogRegion string, enabled b
 				units       = "HOURS"
 			}
 		}
-	`, projectID, dataDogAPIKey, dataDogRegion, enabled)
+	`, projectID, dataDogAPIKey, dataDogRegion, enabled, groupNotificationBlock, ddNotificationBlock)
 }
 
 func configWithPagerDuty(projectID, serviceKey string, enabled bool) string {
