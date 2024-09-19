@@ -429,7 +429,6 @@ func datadogTestCase(t *testing.T) *resource.TestCase {
 			},
 		},
 	}
-
 }
 
 func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
