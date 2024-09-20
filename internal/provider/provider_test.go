@@ -84,10 +84,10 @@ func validateDocumentation(resourceName string, schemaResponse *resource.SchemaR
 	s := schemaResponse.Schema
 	checkDescriptor(resourceName+".", s, &schemaResponse.Diagnostics)
 	for attributeName, attribute := range s.GetAttributes() {
-		validateAttribute(attribute, resourceName, attributeName, &schemaResponse.Diagnostics)
+		validateAttribute(resourceName+"."+attributeName, attribute, &schemaResponse.Diagnostics)
 	}
 	for blockName, block := range s.GetBlocks() {
-		validateBlock(block, resourceName, blockName, &schemaResponse.Diagnostics)
+		validateBlock(resourceName+"."+blockName, block, &schemaResponse.Diagnostics)
 	}
 }
 
@@ -95,28 +95,28 @@ func validateDSDocumentation(resourceName string, schemaResponse *datasource.Sch
 	s := schemaResponse.Schema
 	checkDescriptor(resourceName+".", s, &schemaResponse.Diagnostics)
 	for attributeName, attribute := range s.GetAttributes() {
-		validateAttribute(attribute, resourceName, attributeName, &schemaResponse.Diagnostics)
+		validateAttribute(resourceName+"."+attributeName, attribute, &schemaResponse.Diagnostics)
 	}
 	for blockName, block := range s.GetBlocks() {
-		validateBlock(block, resourceName, blockName, &schemaResponse.Diagnostics)
+		validateBlock(resourceName+"."+blockName, block, &schemaResponse.Diagnostics)
 	}
 }
 
-func validateBlock(block schema.Block, resourceName, attributeName string, diagnostics *diag.Diagnostics) {
-	checkDescriptor(resourceName+"."+attributeName, block, diagnostics)
+func validateBlock(name string, block schema.Block, diagnostics *diag.Diagnostics) {
+	checkDescriptor(name, block, diagnostics)
 	for nestedAttributeName, nestedAttribute := range block.GetNestedObject().GetAttributes() {
-		validateAttribute(nestedAttribute, resourceName, attributeName+"."+nestedAttributeName, diagnostics)
+		validateAttribute(name+"."+nestedAttributeName, nestedAttribute, diagnostics)
 	}
 	for nestedBlockName, nestedBlock := range block.GetNestedObject().GetBlocks() {
-		validateBlock(nestedBlock, resourceName, attributeName+"."+nestedBlockName, diagnostics)
+		validateBlock(name+"."+nestedBlockName, nestedBlock, diagnostics)
 	}
 }
 
-func validateAttribute(attr schema.Attribute, resourceName, attributeName string, diagnostics *diag.Diagnostics) {
-	checkDescriptor(resourceName+"."+attributeName, attr, diagnostics)
+func validateAttribute(name string, attr schema.Attribute, diagnostics *diag.Diagnostics) {
+	checkDescriptor(name, attr, diagnostics)
 	if nested, ok := attr.(schema.NestedAttribute); ok {
 		for nestedAttributeName, nestedAttribute := range nested.GetNestedObject().GetAttributes() {
-			validateAttribute(nestedAttribute, resourceName, attributeName+"."+nestedAttributeName, diagnostics)
+			validateAttribute(name+"."+nestedAttributeName, nestedAttribute, diagnostics)
 		}
 	}
 }
