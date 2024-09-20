@@ -138,7 +138,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   replication_specs {   # shard 1
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -148,7 +148,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
      region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -160,7 +160,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   replication_specs {   # shard 2
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -168,9 +168,9 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_name   = "US_EAST_1"
     }
 
-     region_configs { 
+    region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -200,7 +200,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -210,7 +210,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -224,7 +224,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -234,7 +234,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -248,7 +248,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -258,7 +258,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -272,7 +272,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -282,7 +282,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -347,10 +347,10 @@ output "endpoint_service_connection_string" {
 # Example return string: connection_string = "mongodb+srv://cluster-atlas-pl-0.ygo1m.mongodb.net"
 ```
 Refer to the following for full privatelink endpoint connection string examples:
-* [GCP Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/gcp-atlas-privatelink)
-* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/azure-atlas-privatelink)
-* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/aws-privatelink-endpoint/cluster)
-* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint/cluster-geosharded)
+* [GCP Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp)
+* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/azure)
+* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 ## Argument Reference
 

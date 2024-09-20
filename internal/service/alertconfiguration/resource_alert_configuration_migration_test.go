@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -141,4 +142,9 @@ func TestMigConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *testing.T)
 			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
+}
+
+func TestMigConfigRSAlertConfiguration_withDataDog(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "1.20.0")
+	mig.CreateAndRunTest(t, datadogTestCase(t))
 }

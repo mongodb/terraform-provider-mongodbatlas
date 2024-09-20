@@ -12,11 +12,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   replication_specs { # shard 1
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       analytics_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 1
       }
       provider_name = "AWS"
@@ -26,11 +26,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       analytics_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 1
       }
       provider_name = "AZURE"
@@ -42,11 +42,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   replication_specs { # shard 2
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       analytics_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 1
       }
       provider_name = "AWS"
@@ -56,11 +56,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       analytics_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 1
       }
       provider_name = "AZURE"
