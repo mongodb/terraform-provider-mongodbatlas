@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -270,12 +269,6 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 					Optional: true,
-				},
-				"cluster_id": {
-					Type:       schema.TypeString,
-					Computed:   true,
-					Optional:   true,
-					Deprecated: fmt.Sprintf(constant.DeprecationParamByDate, "September 2024"),
 				},
 				"project_id": {
 					Type:     schema.TypeString,
