@@ -1,5 +1,14 @@
 ## (Unreleased)
 
+BREAKING CHANGES:
+
+* data-source/mongodbatlas_cloud_backup_snapshot_export_job: Removes `err_msg` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+* data-source/mongodbatlas_cloud_backup_snapshot_export_jobs: Removes `err_msg` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+* data-source/mongodbatlas_federated_database_instance: Removes `storage_stores.#.cluster_id` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+* data-source/mongodbatlas_federated_database_instances: Removes `storage_stores.#.cluster_id` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+* resource/mongodbatlas_cloud_backup_snapshot_export_job: Removes `err_msg` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+* resource/mongodbatlas_federated_database_instance: Removes `storage_stores.#.cluster_id` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+
 NOTES:
 
 * data-source/mongodbatlas_data_lake_pipeline: Data Lake is deprecated. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation ([#2599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2599))
