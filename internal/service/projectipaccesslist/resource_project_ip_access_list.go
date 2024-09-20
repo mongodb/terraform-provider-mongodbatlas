@@ -129,6 +129,7 @@ func (r *projectIPAccessListRS) Schema(ctx context.Context, req resource.SchemaR
 			}),
 		},
 	}
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

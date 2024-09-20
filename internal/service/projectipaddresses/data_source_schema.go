@@ -15,7 +15,6 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{
 				Required:            true,
-				Description:         "Unique 24-hexadecimal digit string that identifies your project.",
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
 			},
 			"services": schema.SingleNestedAttribute{
@@ -25,30 +24,25 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							Attributes: map[string]schema.Attribute{
 								"cluster_name": schema.StringAttribute{
 									Computed:            true,
-									Description:         "Human-readable label that identifies the cluster.",
 									MarkdownDescription: "Human-readable label that identifies the cluster.",
 								},
 								"inbound": schema.ListAttribute{
 									ElementType:         types.StringType,
 									Computed:            true,
-									Description:         "List of inbound IP addresses associated with the cluster. If your network allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your application can connect to your Atlas cluster.",
 									MarkdownDescription: "List of inbound IP addresses associated with the cluster. If your network allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your application can connect to your Atlas cluster.",
 								},
 								"outbound": schema.ListAttribute{
 									ElementType:         types.StringType,
 									Computed:            true,
-									Description:         "List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.",
 									MarkdownDescription: "List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.",
 								},
 							},
 						},
 						Computed:            true,
-						Description:         "IP addresses of clusters.",
 						MarkdownDescription: "IP addresses of clusters.",
 					},
 				},
 				Computed:            true,
-				Description:         "List of IP addresses in a project categorized by services.",
 				MarkdownDescription: "List of IP addresses in a project categorized by services.",
 			},
 		},

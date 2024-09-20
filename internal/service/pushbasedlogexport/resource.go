@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -41,6 +42,7 @@ type pushBasedLogExportRS struct {
 
 func (r *pushBasedLogExportRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

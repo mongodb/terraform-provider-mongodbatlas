@@ -25,7 +25,7 @@ output "number_of_endpoints" {
 
 ### Required
 
-- `cloud_provider` (String) Human-readable label that identifies the cloud provider for the private endpoints to return.
+- `cloud_provider` (String) Label that identifies the cloud provider of the private endpoint.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 
 ### Read-Only

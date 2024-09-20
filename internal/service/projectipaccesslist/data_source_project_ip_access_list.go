@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -89,6 +90,7 @@ func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 			},
 		},
 	}
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
