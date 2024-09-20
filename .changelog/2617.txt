@@ -11,13 +11,13 @@ data-source/mongodbatlas_cloud_backup_snapshot_export_jobs: Removes `err_msg` at
 ```
 
 ```release-note:breaking-change
-resource/resource_federated_database_instance: Removes `storage_stores.#.cluster_id` attribute
+resource/mongodbatlas_federated_database_instance: Removes `storage_stores.#.cluster_id` attribute
 ```
 
 ```release-note:breaking-change
-data-source/resource_federated_database_instance: Removes `storage_stores.#.cluster_id` attribute
+data-source/mongodbatlas_federated_database_instance: Removes `storage_stores.#.cluster_id` attribute
 ```
 
 ```release-note:breaking-change
-data-source/resource_federated_database_instances: Removes `storage_stores.#.cluster_id` attribute
+data-source/mongodbatlas_federated_database_instances: Removes `storage_stores.#.cluster_id` attribute
 ```
