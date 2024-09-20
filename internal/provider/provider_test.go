@@ -126,6 +126,6 @@ func validateAttribute(attr schema.Attribute, resourceName, attributeName string
 func attributeIncorrectDescription(resourceName, attributeName string) diag.Diagnostic {
 	return diag.NewErrorDiagnostic(
 		"Incorrect Attribute Description",
-		fmt.Sprintf("The Description and MarkdownDescription fields must be the same for %q.%q.", resourceName, attributeName),
+		fmt.Sprintf("Description and MarkdownDescription differs for %q.%q.", resourceName, attributeName),
 	)
 }
