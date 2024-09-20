@@ -82,6 +82,7 @@ func TestDataSourceSchemas(t *testing.T) {
 
 func validateDocumentation(resourceName string, schemaResponse *resource.SchemaResponse) {
 	s := schemaResponse.Schema
+	checkDescriptor(resourceName+".", s, &schemaResponse.Diagnostics)
 	for attributeName, attribute := range s.GetAttributes() {
 		validateAttribute(attribute, resourceName, attributeName, &schemaResponse.Diagnostics)
 	}
@@ -92,6 +93,7 @@ func validateDocumentation(resourceName string, schemaResponse *resource.SchemaR
 
 func validateDSDocumentation(resourceName string, schemaResponse *datasource.SchemaResponse) {
 	s := schemaResponse.Schema
+	checkDescriptor(resourceName+".", s, &schemaResponse.Diagnostics)
 	for attributeName, attribute := range s.GetAttributes() {
 		validateAttribute(attribute, resourceName, attributeName, &schemaResponse.Diagnostics)
 	}
@@ -101,9 +103,7 @@ func validateDSDocumentation(resourceName string, schemaResponse *datasource.Sch
 }
 
 func validateBlock(block schema.Block, resourceName, attributeName string, diagnostics *diag.Diagnostics) {
-	if block.GetDescription() != block.GetMarkdownDescription() {
-		diagnostics.Append(attributeIncorrectDescription(resourceName, attributeName))
-	}
+	checkDescriptor(resourceName+"."+attributeName, block, diagnostics)
 	for nestedAttributeName, nestedAttribute := range block.GetNestedObject().GetAttributes() {
 		validateAttribute(nestedAttribute, resourceName, attributeName+"."+nestedAttributeName, diagnostics)
 	}
@@ -113,9 +113,7 @@ func validateBlock(block schema.Block, resourceName, attributeName string, diagn
 }
 
 func validateAttribute(attr schema.Attribute, resourceName, attributeName string, diagnostics *diag.Diagnostics) {
-	if attr.GetDescription() != attr.GetMarkdownDescription() {
-		diagnostics.Append(attributeIncorrectDescription(resourceName, attributeName))
-	}
+	checkDescriptor(resourceName+"."+attributeName, attr, diagnostics)
 	if nested, ok := attr.(schema.NestedAttribute); ok {
 		for nestedAttributeName, nestedAttribute := range nested.GetNestedObject().GetAttributes() {
 			validateAttribute(nestedAttribute, resourceName, attributeName+"."+nestedAttributeName, diagnostics)
@@ -123,9 +121,16 @@ func validateAttribute(attr schema.Attribute, resourceName, attributeName string
 	}
 }
 
-func attributeIncorrectDescription(resourceName, attributeName string) diag.Diagnostic {
-	return diag.NewErrorDiagnostic(
-		"Incorrect Attribute Description",
-		fmt.Sprintf("Description and MarkdownDescription differs for %q.%q.", resourceName, attributeName),
-	)
+type descriptor interface {
+	GetDescription() string
+	GetMarkdownDescription() string
+}
+
+func checkDescriptor(name string, d descriptor, diagnostics *diag.Diagnostics) {
+	if d.GetDescription() != d.GetMarkdownDescription() {
+		diagnostics.Append(diag.NewErrorDiagnostic(
+			"Conflicting Attribute Description",
+			fmt.Sprintf("Description and MarkdownDescription differ for %q.", name),
+		))
+	}
 }
