@@ -7,11 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-func UpdateSchemaDescription(s *schema.Schema) {
-	updateAttr(s)
-}
-
-func UpdateDSSchemaDescription(s *dsschema.Schema) {
+func UpdateSchemaDescription[T schema.Schema | dsschema.Schema](s *T) {
 	updateAttr(s)
 }
 

@@ -26,7 +26,7 @@ type encryptionAtRestDS struct {
 
 func (d *encryptionAtRestDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = DataSourceSchema(ctx)
-	conversion.UpdateDSSchemaDescription(&resp.Schema)
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *encryptionAtRestDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

@@ -90,7 +90,7 @@ func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 			},
 		},
 	}
-	conversion.UpdateDSSchemaDescription(&resp.Schema)
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

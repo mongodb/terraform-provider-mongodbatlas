@@ -46,7 +46,7 @@ func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRe
 			},
 		},
 	}
-	conversion.UpdateDSSchemaDescription(&resp.Schema)
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 type TFStreamProcessorsDSModel struct {

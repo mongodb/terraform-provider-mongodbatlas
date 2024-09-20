@@ -30,7 +30,7 @@ type encryptionAtRestPrivateEndpointsDS struct {
 
 func (d *encryptionAtRestPrivateEndpointsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = PluralDataSourceSchema(ctx)
-	conversion.UpdateDSSchemaDescription(&resp.Schema)
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *encryptionAtRestPrivateEndpointsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
