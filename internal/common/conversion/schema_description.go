@@ -40,16 +40,13 @@ func updateDesc(v reflect.Value) {
 		panic("invalid desc fields, please fix caller")
 	}
 	strDescr, strMDDescr := fDescr.String(), fMDDescr.String()
-	if strDescr == "" && strMDDescr != "" {
+	if strDescr != "" && strMDDescr != "" {
+		panic("both descriptions exist, please fix caller: " + strDescr)
+	}
+	if strDescr == "" {
 		fDescr.SetString(fMDDescr.String())
-		return
-	}
-	if strMDDescr == "" && strDescr != "" {
+	} else {
 		fMDDescr.SetString(fDescr.String())
-		return
-	}
-	if strDescr != "" && strDescr != strMDDescr {
-		panic("conflicting descriptions, please fix caller: " + strDescr)
 	}
 }
 
