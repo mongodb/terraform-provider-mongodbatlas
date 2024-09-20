@@ -16,7 +16,7 @@ const errorDataLakePipelineRunList = "error reading MongoDB Atlas DataLake Runs 
 
 func PluralDataSourceRun() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: "Data Lake is deprecated. As of September 2024, Data Lake is deprecated and will reach end-of-life. It will be removed on September 30, 2025. If you use Data Lake, you should migrate to alternative solutions before the service is removed. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation",
+		DeprecationMessage: "Data Lake is deprecated. As of September 2024, Data Lake is deprecated and will reach end-of-life. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation",
 		ReadContext:        dataSourcePluralRunRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
