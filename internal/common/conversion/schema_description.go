@@ -1,184 +1,80 @@
 package conversion
 
 import (
-	"fmt"
+	"reflect"
 
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
 func UpdateSchemaDescription(s *schema.Schema) {
-	for i := range s.Attributes {
-		s.Attributes[i] = updateAttribute(s.Attributes[i])
-	}
-	for i := range s.Blocks {
-		s.Blocks[i] = updateBlock(s.Blocks[i])
-	}
+	updateAttr(s)
 }
 
 func UpdateDSSchemaDescription(s *dsschema.Schema) {
-	for i := range s.Attributes {
-		s.Attributes[i] = updateAttribute(s.Attributes[i])
+	updateAttr(s)
+}
+
+func updateAttr(attr any) {
+	ptr := reflect.ValueOf(attr)
+	if ptr.Kind() != reflect.Ptr {
+		panic("not ptr, please fix caller")
 	}
-	for i := range s.Blocks {
-		s.Blocks[i] = updateBlock(s.Blocks[i])
+	v := ptr.Elem()
+	if v.Kind() != reflect.Struct {
+		panic("not struct, please fix caller")
+	}
+	updateDesc(v)
+	updateMap(v, "Attributes")
+	updateMap(v, "Blocks")
+	updateNested(v, "NestedObject")
+}
+
+func updateDesc(v reflect.Value) {
+	fDescr, fMDDescr := v.FieldByName("Description"), v.FieldByName("MarkdownDescription")
+	if !fDescr.IsValid() || !fMDDescr.IsValid() {
+		return
+	}
+	if !fDescr.CanSet() || fDescr.Kind() != reflect.String ||
+		!fMDDescr.CanSet() || fMDDescr.Kind() != reflect.String {
+		panic("invalid desc fields, please fix caller")
+	}
+	strDescr, strMDDescr := fDescr.String(), fMDDescr.String()
+	if strDescr == "" && strMDDescr != "" {
+		fDescr.SetString(fMDDescr.String())
+		return
+	}
+	if strMDDescr == "" && strDescr != "" {
+		fMDDescr.SetString(fDescr.String())
+		return
+	}
+	if strDescr != "" && strDescr != strMDDescr {
+		panic("conflicting descriptions, please fix caller: " + strDescr)
 	}
 }
 
-func updateAttribute(attr schema.Attribute) schema.Attribute {
-	switch v := attr.(type) {
-	case schema.StringAttribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		return v
-	case schema.BoolAttribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		return v
-	case schema.Int64Attribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		return v
-
-	case dsschema.StringAttribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		return v
-	case dsschema.BoolAttribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		return v
-	case dsschema.Int64Attribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		return v
-	case dsschema.MapAttribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		return v
-	case dsschema.ListAttribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		return v
-
-	case schema.SingleNestedAttribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		for i := range v.Attributes {
-			v.Attributes[i] = updateAttribute(v.Attributes[i])
-		}
-		return v
-	case schema.ListNestedAttribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		for i := range v.NestedObject.Attributes {
-			v.NestedObject.Attributes[i] = updateAttribute(v.NestedObject.Attributes[i])
-		}
-		return v
-
-	case dsschema.SingleNestedAttribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		for i := range v.Attributes {
-			v.Attributes[i] = updateAttribute(v.Attributes[i])
-		}
-		return v
-	case dsschema.ListNestedAttribute:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		} else if v.MarkdownDescription == "" {
-			v.MarkdownDescription = v.Description
-		}
-		for i := range v.NestedObject.Attributes {
-			v.NestedObject.Attributes[i] = updateAttribute(v.NestedObject.Attributes[i])
-		}
-		return v
+func updateMap(v reflect.Value, mapName string) {
+	f := v.FieldByName(mapName)
+	if !f.IsValid() {
+		return
 	}
-	// add more attribute types as needed
-	panic(fmt.Sprintf("unsupported attribute updating description, type: %T, value: %+v", attr, attr))
+	if f.Kind() != reflect.Map {
+		panic("not map, please fix caller: " + mapName)
+	}
+	for _, k := range f.MapKeys() {
+		v := f.MapIndex(k).Elem()
+		newPtr := reflect.New(v.Type())
+		newPtr.Elem().Set(v)
+		updateAttr(newPtr.Interface())
+		f.SetMapIndex(k, newPtr.Elem())
+	}
 }
 
-func updateBlock(block schema.Block) schema.Block {
-	switch v := block.(type) {
-	case schema.ListNestedBlock:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		}
-		for i := range v.NestedObject.Attributes {
-			v.NestedObject.Attributes[i] = updateAttribute(v.NestedObject.Attributes[i])
-		}
-		for i := range v.NestedObject.Blocks {
-			v.NestedObject.Blocks[i] = updateBlock(v.NestedObject.Blocks[i])
-		}
-		return v
-	case schema.SingleNestedBlock:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		}
-		for i := range v.Attributes {
-			v.Attributes[i] = updateAttribute(v.Attributes[i])
-		}
-		for i := range v.Blocks {
-			v.Blocks[i] = updateBlock(v.Blocks[i])
-		}
-		return v
-
-	case dsschema.ListNestedBlock:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		}
-		for i := range v.NestedObject.Attributes {
-			v.NestedObject.Attributes[i] = updateAttribute(v.NestedObject.Attributes[i])
-		}
-		for i := range v.NestedObject.Blocks {
-			v.NestedObject.Blocks[i] = updateBlock(v.NestedObject.Blocks[i])
-		}
-		return v
-	case dsschema.SingleNestedBlock:
-		if v.Description == "" {
-			v.Description = v.MarkdownDescription
-		}
-		for i := range v.Attributes {
-			v.Attributes[i] = updateAttribute(v.Attributes[i])
-		}
-		for i := range v.Blocks {
-			v.Blocks[i] = updateBlock(v.Blocks[i])
-		}
-		return v
+func updateNested(v reflect.Value, nestedName string) {
+	f := v.FieldByName(nestedName)
+	if !f.IsValid() {
+		return
 	}
-	// add more block types as needed
-	panic(fmt.Sprintf("unsupported block updating description, type: %T, value: %+v", block, block))
+	ptr := f.Addr()
+	updateAttr(ptr.Interface())
 }
