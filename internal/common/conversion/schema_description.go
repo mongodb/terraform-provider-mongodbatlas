@@ -8,10 +8,11 @@ import (
 )
 
 func UpdateSchemaDescription[T schema.Schema | dsschema.Schema](s *T) {
-	updateAttr(s)
+	UpdateAttr(s)
 }
 
-func updateAttr(attr any) {
+// UpdateAttr is exported for testing purposes only and should not be used directly.
+func UpdateAttr(attr any) {
 	ptr := reflect.ValueOf(attr)
 	if ptr.Kind() != reflect.Ptr {
 		panic("not ptr, please fix caller")
@@ -58,7 +59,7 @@ func updateMap(v reflect.Value, mapName string) {
 		v := f.MapIndex(k).Elem()
 		newPtr := reflect.New(v.Type())
 		newPtr.Elem().Set(v)
-		updateAttr(newPtr.Interface())
+		UpdateAttr(newPtr.Interface())
 		f.SetMapIndex(k, newPtr.Elem())
 	}
 }
@@ -69,5 +70,5 @@ func updateNested(v reflect.Value, nestedName string) {
 		return
 	}
 	ptr := f.Addr()
-	updateAttr(ptr.Interface())
+	UpdateAttr(ptr.Interface())
 }
