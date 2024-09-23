@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,10 +13,26 @@ import (
 )
 
 var (
-	resourceType       = "mongodbatlas_resource_policy"
-	resourceID         = fmt.Sprintf("%s.test", resourceType)
-	dataSourceID       = "data.mongodbatlas_resource_policy.test"
-	dataSourcePluralID = "data.mongodbatlas_resource_policies.test"
+	resourceType                      = "mongodbatlas_resource_policy"
+	resourceID                        = fmt.Sprintf("%s.test", resourceType)
+	dataSourceID                      = "data.mongodbatlas_resource_policy.test"
+	dataSourcePluralID                = "data.mongodbatlas_resource_policies.test"
+	invalidPolicyUnknownCloudProvider = `
+	forbid (
+	principal,
+	action == cloud::Action::"cluster.createEdit",
+	resource
+	) when {
+	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws222"])
+	};`
+	validPolicyForbidAwsCloudProvider = `
+	forbid (
+	principal,
+	action == cloud::Action::"cluster.createEdit",
+	resource
+	) when {
+	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws"])
+	};`
 )
 
 func TestAccResourcePolicy_basic(t *testing.T) {
@@ -44,6 +61,30 @@ func TestAccResourcePolicy_basic(t *testing.T) {
 				ImportStateIdFunc: checkImportStateIDFunc(resourceID),
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	},
+	)
+}
+
+func TestAccResourcePolicy_invalidConfig(t *testing.T) {
+	var (
+		orgID      = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		policyName = "test-policy-invalid"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithPolicyBodies(orgID, policyName, invalidPolicyUnknownCloudProvider),
+				ExpectError: regexp.MustCompile(`entity id aws222 does not exist in the context of this organization`),
+			},
+			{
+				Config:      configWithPolicyBodies(orgID, policyName, validPolicyForbidAwsCloudProvider, invalidPolicyUnknownCloudProvider),
+				ExpectError: regexp.MustCompile(`entity id aws222 does not exist in the context of this organization`),
 			},
 		},
 	},
@@ -113,6 +154,29 @@ data "mongodbatlas_resource_policies" "test" {
 	org_id = mongodbatlas_resource_policy.test.org_id
 }
 `, orgID, policyName)
+}
+
+func configWithPolicyBodies(orgID, policyName string, bodies ...string) string {
+	policies := ""
+	for _, body := range bodies {
+		policies += fmt.Sprintf(`
+		{
+			body = <<EOF
+			%s
+			EOF
+		},
+		`, body)
+	}
+	return fmt.Sprintf(`
+resource "mongodbatlas_resource_policy" "test" {
+	org_id = %[1]q
+	name   = %[2]q
+	
+	policies = [
+%s
+	]
+	}
+	`, orgID, policyName, policies)
 }
 
 func checkImportStateIDFunc(resourceID string) resource.ImportStateIdFunc {

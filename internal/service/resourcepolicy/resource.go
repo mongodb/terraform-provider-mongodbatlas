@@ -3,17 +3,20 @@ package resourcepolicy
 import (
 	"context"
 	"errors"
+	"math/rand"
 	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 var _ resource.ResourceWithConfigure = &resourcePolicyRS{}
 var _ resource.ResourceWithImportState = &resourcePolicyRS{}
+var _ resource.ResourceWithModifyPlan = &resourcePolicyRS{}
 
 const (
 	resourceName     = "resource_policy"
@@ -33,6 +36,40 @@ func Resource() resource.Resource {
 
 type resourcePolicyRS struct {
 	config.RSCommon
+}
+
+var charSetAlphaNum = []rune("abcdefghijklmnopqrstuvwxyz012346789")
+
+// randPolicyName to workaround for POLICY_CANNOT_CONTAIN_A_DUPLICATE_NAME error until https://jira.mongodb.org/browse/CLOUDP-272944 is resolved.
+func randPolicyName(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = charSetAlphaNum[rand.Intn(len(charSetAlphaNum))] //nolint:gosec // This is not a security-sensitive operation, only to avoid POLICY_CANNOT_CONTAIN_A_DUPLICATE_NAME error
+	}
+	return string(b)
+}
+
+func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	var policies []TFPolicyModel
+	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("policies"), &policies)...)
+	sdkPolicies := NewAdminPolicies(ctx, policies)
+	var orgID *string
+	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("org_id"), &orgID)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if orgID == nil {
+		return
+	}
+	sdkCreate := &admin.ApiAtlasResourcePolicyCreate{
+		Name:     randPolicyName(16),
+		Policies: sdkPolicies,
+	}
+	connV2 := r.Client.AtlasV2
+	_, _, err := connV2.AtlasResourcePoliciesApi.ValidateAtlasResourcePolicy(ctx, *orgID, sdkCreate).Execute()
+	if err != nil {
+		conversion.AddJSONBodyErrorToDiagnostics("Policy Validation failed: ", err, &resp.Diagnostics)
+	}
 }
 
 func (r *resourcePolicyRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
