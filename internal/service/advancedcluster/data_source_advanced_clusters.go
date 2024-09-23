@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -259,6 +259,10 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"replica_set_scaling_strategy": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -316,7 +320,11 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
-		processArgs, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		if err != nil {
+			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
+		}
+		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
@@ -332,7 +340,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 		}
 
 		result := map[string]any{
-			"advanced_configuration":               flattenProcessArgs(processArgs),
+			"advanced_configuration":               flattenProcessArgs(processArgs20240530, processArgs),
 			"backup_enabled":                       cluster.GetBackupEnabled(),
 			"bi_connector_config":                  flattenBiConnectorConfig(cluster.BiConnector),
 			"cluster_type":                         cluster.GetClusterType(),
@@ -353,6 +361,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"termination_protection_enabled":       cluster.GetTerminationProtectionEnabled(),
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
+			"replica_set_scaling_strategy":         cluster.GetReplicaSetScalingStrategy(),
 		}
 		results = append(results, result)
 	}
@@ -363,23 +372,31 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
-		processArgs, _, err := connV20240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		processArgs20240530, _, err := connV20240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		if err != nil {
+			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
+		}
+		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
 
-		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, cluster.GetGroupId(), cluster.GetName(), connV20240530)
+		clusterDescNew, _, err := connV2.ClustersApi.GetCluster(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(clusterDescNew)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
 
-		replicationSpecs, err := FlattenAdvancedReplicationSpecsOldSDK(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecIDs, cluster.GetDiskSizeGB(), nil, d, connV2)
+		replicationSpecs, err := FlattenAdvancedReplicationSpecsOldSDK(ctx, cluster.GetReplicationSpecs(), zoneNameToZoneIDs, cluster.GetDiskSizeGB(), nil, d, connV2)
 		if err != nil {
 			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
 		}
 
 		result := map[string]any{
-			"advanced_configuration":               flattenProcessArgs(processArgs),
+			"advanced_configuration":               flattenProcessArgs(processArgs20240530, processArgs),
 			"backup_enabled":                       cluster.GetBackupEnabled(),
 			"bi_connector_config":                  flattenBiConnectorConfig(convertBiConnectToLatest(cluster.BiConnector)),
 			"cluster_type":                         cluster.GetClusterType(),
@@ -400,6 +417,7 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"termination_protection_enabled":       cluster.GetTerminationProtectionEnabled(),
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
+			"replica_set_scaling_strategy":         clusterDescNew.GetReplicaSetScalingStrategy(),
 		}
 		results = append(results, result)
 	}

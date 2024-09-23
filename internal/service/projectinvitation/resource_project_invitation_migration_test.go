@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -17,6 +16,7 @@ func TestMigProjectInvitation_basic(t *testing.T) {
 		projectName  = acc.RandomProjectName()
 		name         = acc.RandomEmail()
 		roles        = []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_CLUSTER_MANAGER"}
+		config       = configBasic(orgID, projectName, name, roles)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -25,7 +25,7 @@ func TestMigProjectInvitation_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configBasic(orgID, projectName, name, roles),
+				Config:            config,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -36,16 +36,7 @@ func TestMigProjectInvitation_basic(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", roles[1]),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configBasic(orgID, projectName, name, roles),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

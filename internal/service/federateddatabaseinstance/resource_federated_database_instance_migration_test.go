@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -16,6 +15,7 @@ func TestMigFederatedDatabaseInstance_basic(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
 		name         = acc.RandomName()
+		config       = configFirstSteps(name, projectName, orgID)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,7 +24,7 @@ func TestMigFederatedDatabaseInstance_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configFirstSteps(name, projectName, orgID),
+				Config:            config,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -34,15 +34,7 @@ func TestMigFederatedDatabaseInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "storage_databases.0.collections.0.data_sources.0.database", "sample_airbnb"),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configFirstSteps(name, projectName, orgID),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }

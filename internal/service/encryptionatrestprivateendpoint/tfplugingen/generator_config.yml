@@ -1,0 +1,34 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  encryption_at_rest_private_endpoint:
+    schema:
+      attributes:
+        overrides:
+          cloud_provider:
+            description: Label that identifies the cloud provider of the private endpoint.
+    read:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
+      method: DELETE
+
+data_sources:
+  encryption_at_rest_private_endpoint:
+    schema:
+      attributes:
+        overrides:
+          cloud_provider:
+            description: Label that identifies the cloud provider of the private endpoint.
+    read:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
+      method: GET
+  # encryption_at_rest_private_endpoints:
+  #   read:
+  #     path: /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints
+  #     method: GET

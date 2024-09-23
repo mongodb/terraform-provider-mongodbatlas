@@ -219,9 +219,12 @@ We ship binaries but do not prioritize fixes for the following operating system 
 ## Examples from MongoDB and the Community
 
 <!-- NOTE: the below examples link is updated during the release process, when doing changes in the following sentence verify scripts/update-examples-reference-in-docs.sh is not impacted-->
-We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.18.1/examples)
+We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.20.0/examples)
 in our GitHub repo that will help both beginner and more advanced users.
 
 Have a good example you've created and want to share?
 Let us know the details via an [issue](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
 or submit a PR of your work to add it to the `examples` directory in our [GitHub repo](https://github.com/mongodb/terraform-provider-mongodbatlas/).
+
+## Terraform MongoDB Atlas Modules
+You can now leverage our [Terraform Modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) to easily get started with MongoDB Atlas and critical features like [Push-based log export](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/push-based-log-export/mongodbatlas/latest), [Private Endpoints](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest), etc.

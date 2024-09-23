@@ -19,10 +19,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run:  make update-tf-compatibility-matrix
       - name: Verify Changed files
-        uses: tj-actions/verify-changed-files@79f398ac63ab46f7f820470c821d830e5c340ef9
+        uses: tj-actions/verify-changed-files@ba611bcdf2d25b81a336cbf9609488213ac16395
         id: verify-changed-files
       - name: Create PR
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
+        uses: peter-evans/create-pull-request@6cd32fd93684475c31847837f87bb135d40a2b79
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         with:
           token: ${{ secrets.APIX_BOT_PAT }}

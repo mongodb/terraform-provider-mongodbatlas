@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -18,9 +20,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 const (
@@ -324,6 +326,7 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						},
 						"integration_id": schema.StringAttribute{
 							Optional: true,
+							Computed: true,
 						},
 						"type_name": schema.StringAttribute{
 							Required: true,

@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
 )
 
 func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificationRootForGroup, error) {
@@ -46,10 +48,8 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 			MicrosoftTeamsWebhookUrl: n.MicrosoftTeamsWebhookURL.ValueStringPointer(),
 			WebhookSecret:            n.WebhookSecret.ValueStringPointer(),
 			WebhookUrl:               n.WebhookURL.ValueStringPointer(),
-			IntegrationId:            n.IntegrationID.ValueStringPointer(),
-		}
-		if !n.NotifierID.IsUnknown() {
-			notifications[i].NotifierId = n.NotifierID.ValueStringPointer()
+			IntegrationId:            conversion.StringPtr(n.IntegrationID.ValueString()),
+			NotifierId:               conversion.StringPtr(n.NotifierID.ValueString()),
 		}
 	}
 	return &notifications, nil

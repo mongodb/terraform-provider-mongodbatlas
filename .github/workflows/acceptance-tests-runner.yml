@@ -89,6 +89,15 @@ on:
       mongodb_atlas_federated_settings_associated_domain:
         type: string
         required: true
+      mongodb_atlas_project_ear_pe_id:
+        type: string
+        required: true
+      mongodb_atlas_enable_preview:
+        type: string
+        required: true
+      azure_private_endpoint_region:
+        type: string
+        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -142,6 +151,18 @@ on:
         required: true
       azure_vnet_name_updated:
         required: true
+      azure_client_id:
+        required: true
+      azure_key_vault_name:
+        required: true
+      azure_key_identifier:
+        required: true
+      azure_key_vault_name_updated:
+        required: true
+      azure_key_identifier_updated:
+        required: true
+      azure_app_secret:
+        required: true
           
 env:
   TF_ACC: 1
@@ -183,19 +204,20 @@ jobs:
     permissions: {}
     env:
       mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '' )  }}
-    outputs:
+    outputs: # ensure resources are sorted alphabetically
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
+      control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
       cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
       config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
-      data_lake: ${{ steps.filter.outputs.data_lake == 'true' || env.mustTrigger == 'true' }}
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
       ldap: ${{ steps.filter.outputs.ldap == 'true' || env.mustTrigger == 'true' }}
+      mongodb_employee_access_grant: ${{ steps.filter.outputs.mongodb_employee_access_grant == 'true' || env.mustTrigger == 'true' }}
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
       push_based_log_export: ${{ steps.filter.outputs.push_based_log_export == 'true' || env.mustTrigger == 'true' }}
@@ -204,7 +226,6 @@ jobs:
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
-      control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
     - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
@@ -223,6 +244,8 @@ jobs:
             - 'internal/service/cloudbackupsnapshotexportjob/*.go'
             - 'internal/service/cloudbackupsnapshotrestorejob/*.go'  
             - 'internal/service/onlinearchive/*.go'
+          control_plane_ip_addresses:
+            - 'internal/service/controlplaneipaddresses/*.go'
           cluster:
             - 'internal/service/cluster/*.go'
             - 'internal/service/globalclusterconfig/*.go'
@@ -243,10 +266,9 @@ jobs:
             - 'internal/service/rolesorgid/*.go'
             - 'internal/service/team/*.go'
             - 'internal/service/thirdpartyintegration/*.go'
-          data_lake:
-            - 'internal/service/datalakepipeline/*.go'
           encryption:
-            - 'internal/service/encryptionatrest/*.go'  
+            - 'internal/service/encryptionatrest/*.go' 
+            - 'internal/service/encryptionatrestprivateendpoint/*.go'
           event_trigger:
             - 'internal/service/eventtrigger/*.go'  
           federated:
@@ -262,6 +284,8 @@ jobs:
           ldap:
             - 'internal/service/ldapconfiguration/*.go'
             - 'internal/service/ldapverify/*.go'  
+          mongodb_employee_access_grant:
+            - 'internal/service/mongodbemployeeaccessgrant/*.go'
           network:
             - 'internal/service/networkcontainer/*.go'
             - 'internal/service/networkpeering/*.go'
@@ -274,6 +298,7 @@ jobs:
             - 'internal/service/project/*.go'
             - 'internal/service/projectinvitation/*.go'  
             - 'internal/service/projectipaccesslist/*.go'
+            - 'internal/service/projectipaddresses/*.go'
           push_based_log_export:
             - 'internal/service/pushbasedlogexport/*.go'
           resource_policy:
@@ -289,8 +314,7 @@ jobs:
           stream:
             - 'internal/service/streamconnection/*.go'
             - 'internal/service/streaminstance/*.go'
-          control_plane_ip_addresses:
-            - 'internal/service/controlplaneipaddresses/*.go'
+            - 'internal/service/streamprocessor/*.go'
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
@@ -392,6 +416,29 @@ jobs:
             ./internal/service/onlinearchive
         run: make testacc
 
+  control_plane_ip_addresses:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.control_plane_ip_addresses == 'true' || inputs.test_group == 'control_plane_ip_addresses' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_PACKAGES: |
+            ./internal/service/controlplaneipaddresses
+        run: make testacc
+      
   cluster:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.cluster == 'true' || inputs.test_group == 'cluster' }}
@@ -482,28 +529,6 @@ jobs:
             ./internal/service/team
             ./internal/service/thirdpartyintegration
         run: make testacc
-      
-  data_lake:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.data_lake == 'true' || inputs.test_group == 'data_lake' }}
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/service/datalakepipeline
-        run: make testacc
 
   encryption:
     needs: [ change-detection, get-provider-version ]
@@ -524,7 +549,21 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/service/encryptionatrest
+          ACCTEST_PACKAGES: |
+           ./internal/service/encryptionatrest
+           ./internal/service/encryptionatrestprivateendpoint
+          MONGODB_ATLAS_PROJECT_EAR_PE_ID: ${{ inputs.mongodb_atlas_project_ear_pe_id }}
+          AZURE_PRIVATE_ENDPOINT_REGION: ${{ inputs.azure_private_endpoint_region }}
+          AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
+          AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
+          AZURE_TENANT_ID: ${{ vars.azure_tenant_id }}
+          AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
+          AZURE_KEY_VAULT_NAME: ${{ secrets.azure_key_vault_name }}
+          AZURE_KEY_IDENTIFIER: ${{ secrets.azure_key_identifier }}
+          AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.azure_key_vault_name_updated }}
+          AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.azure_key_identifier_updated }}
+          MONGODB_ATLAS_ENABLE_PREVIEW: ${{ inputs.mongodb_atlas_enable_preview }}
         run: make testacc
 
   event_trigger:
@@ -613,7 +652,7 @@ jobs:
             ./internal/service/backupcompliancepolicy
             ./internal/service/x509authenticationdatabaseuser
         run: make testacc
-      
+
   ldap:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.ldap == 'true' || inputs.test_group == 'ldap' }}
@@ -642,7 +681,29 @@ jobs:
             ./internal/service/ldapconfiguration
             ./internal/service/ldapverify
         run: make testacc
-      
+
+  mongodb_employee_access_grant:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.mongodb_employee_access_grant == 'true' || inputs.test_group == 'mongodb_employee_access_grant' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_PACKAGES: ./internal/service/mongodbemployeeaccessgrant
+        run: make testacc
+        
   network:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.network == 'true' || inputs.test_group == 'network' }}
@@ -723,6 +784,7 @@ jobs:
             ./internal/service/project
             ./internal/service/projectinvitation
             ./internal/service/projectipaccesslist
+            ./internal/service/projectipaddresses
         run: make testacc
 
   push_based_log_export:
@@ -870,27 +932,5 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/service/streamconnection
             ./internal/service/streaminstance
-        run: make testacc
-    
-  control_plane_ip_addresses:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.control_plane_ip_addresses == 'true' || inputs.test_group == 'control_plane_ip_addresses' }}
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: |
-            ./internal/service/controlplaneipaddresses
+            ./internal/service/streamprocessor
         run: make testacc

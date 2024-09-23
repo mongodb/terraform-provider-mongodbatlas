@@ -12,7 +12,8 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceRead,
+		ReadContext:        dataSourceRead,
+		DeprecationMessage: "Data Lake is deprecated. As of September 2024, Data Lake is deprecated and will reach end-of-life. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation",
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

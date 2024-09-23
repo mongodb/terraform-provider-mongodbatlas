@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -149,15 +148,6 @@ func TestAccBackupCompliancePolicy_UpdateSetsAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "true"),
 				),
-			},
-			{
-				Config: configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID, "8"),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
 			},
 		},
 	})

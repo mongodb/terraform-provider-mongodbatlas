@@ -4,21 +4,17 @@
 
 More information on considerations for using advanced clusters please see [Considerations](https://docs.atlas.mongodb.com/reference/api/cluster-advanced/create-one-cluster-advanced/#considerations)
 
-~> **IMPORTANT:**
-<br> &#8226; The primary difference between [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) and [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) is that `mongodbatlas_advanced_cluster` supports multi-cloud clusters.  We recommend new users start with the `mongodbatlas_advanced_cluster` resource.  
+~> **IMPORTANT:** The primary difference between [`mongodbatlas_cluster`](cluster) and [`mongodbatlas_advanced_cluster`](advanced_cluster) is that `mongodbatlas_advanced_cluster` supports multi-cloud clusters.  We recommend new users start with the `mongodbatlas_advanced_cluster` resource.  
 
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
-
-
-<br> &#8226; Upgrading the shared tier is supported. Any change from a shared tier cluster (a tenant) to a different instance size will be considered a tenant upgrade. When upgrading from the shared tier, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below.   Note you can upgrade a shared tier cluster only to a single provider on an M10-tier cluster or greater.  
-<br> &#8226; **IMPORTANT NOTE** When upgrading from the shared tier, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
--> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
 
 -> **NOTE:** A network container is created for each provider/region combination on the advanced cluster. This can be referenced via a computed attribute for use with other resources. Refer to the `replication_specs.#.container_id` attribute in the [Attributes Reference](#attributes_reference) for more information.
 
 -> **NOTE:** To enable Cluster Extended Storage Sizes use the `is_extended_storage_sizes_enabled` parameter in the [mongodbatlas_project resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project).
 
 -> **NOTE:** The Low-CPU instance clusters are prefixed with `R`, for example `R40`. For complete list of Low-CPU instance clusters see Cluster Configuration Options under each Cloud Provider (https://www.mongodb.com/docs/atlas/reference/cloud-providers/).
+
+-> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
 
 
 ## Example Usage
@@ -70,6 +66,11 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }
 }
 ```
+
+**NOTE**: Upgrading the shared tier is supported. Any change from a shared tier cluster (a tenant) to a different instance size will be considered a tenant upgrade. When upgrading from the shared tier, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below. You can upgrade a shared tier cluster only to a single provider on an M10-tier cluster or greater. 
+
+When upgrading from the shared tier, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
+
 
 ### Example Tenant Cluster Upgrade
 
@@ -137,7 +138,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   replication_specs {   # shard 1
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -147,7 +148,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
      region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -159,7 +160,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   replication_specs {   # shard 2
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -167,9 +168,9 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_name   = "US_EAST_1"
     }
 
-     region_configs { 
+    region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -199,7 +200,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -209,7 +210,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -223,7 +224,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -233,7 +234,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -247,7 +248,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -257,7 +258,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -271,7 +272,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -281,7 +282,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -346,10 +347,10 @@ output "endpoint_service_connection_string" {
 # Example return string: connection_string = "mongodb+srv://cluster-atlas-pl-0.ygo1m.mongodb.net"
 ```
 Refer to the following for full privatelink endpoint connection string examples:
-* [GCP Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/gcp-atlas-privatelink)
-* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/azure-atlas-privatelink)
-* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/aws-privatelink-endpoint/cluster)
-* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint/cluster-geosharded)
+* [GCP Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp)
+* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/azure)
+* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 ## Argument Reference
 
@@ -397,6 +398,7 @@ This parameter defaults to false.
 * `timeouts`- (Optional) The duration of time to wait for Cluster to be created, updated, or deleted. The timeout value is defined by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Advanced Cluster create & delete is `3h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `accept_data_risks_and_force_replica_set_reconfig` - (Optional) If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set `accept_data_risks_and_force_replica_set_reconfig` to the current date. Learn more about Reconfiguring a Replica Set during a regional outage [here](https://dochub.mongodb.org/core/regional-outage-reconfigure-replica-set).
 * `global_cluster_self_managed_sharding` - (Optional) Flag that indicates if cluster uses Atlas-Managed Sharding (false, default) or Self-Managed Sharding (true). It can only be enabled for Global Clusters (`GEOSHARDED`). It cannot be changed once the cluster is created. Use this mode if you're an advanced user and the default configuration is too restrictive for your workload. If you select this option, you must manually configure the sharding strategy, more info [here](https://www.mongodb.com/docs/atlas/tutorial/create-global-cluster/#select-your-sharding-configuration).
+* `replica_set_scaling_strategy` - (Optional) Replica set scaling mode for your cluster. Valid values are `WORKLOAD_TYPE`, `SEQUENTIAL` and `NODE_TYPE`. By default, Atlas scales under `WORKLOAD_TYPE`. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes. When configured as `SEQUENTIAL`, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads. When configured as `NODE_TYPE`, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads. [Modify the Replica Set Scaling Mode](https://dochub.mongodb.org/core/scale-nodes)
 
 ### bi_connector_config
 
@@ -455,6 +457,7 @@ Include **desired options** within advanced_configuration:
 * `sample_size_bi_connector` - (Optional) Number of documents per database to sample when gathering schema information. Defaults to 100. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `sample_refresh_interval_bi_connector` - (Optional) Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `transaction_lifetime_limit_seconds` - (Optional) Lifetime, in seconds, of multi-document transactions. Defaults to 60 seconds.
+* `change_stream_options_pre_and_post_images_expire_after_seconds` - (Optional) The minimum pre- and post-image retention time in seconds. This option corresponds to the `changeStreamOptions.preAndPostImages.expireAfterSeconds` cluster parameter. Defaults to `-1`(off). This setting controls the retention policy of change stream pre- and post-images. Pre- and post-images are the versions of a document before and after document modification, respectively. `expireAfterSeconds` controls how long MongoDB retains pre- and post-images. When set to -1 (off), MongoDB uses the default retention policy: pre- and post-images are retained until the corresponding change stream events are removed from the oplog. To set the minimum pre- and post-image retention time, specify an integer value greater than zero. Setting this too low could increase the risk of interrupting Realm sync or triggers processing. This parameter is only supported for MongoDB version 6.0 and above.
 
 
 ### Tags

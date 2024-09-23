@@ -2,15 +2,13 @@ package cloudbackupsnapshotexportjob
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -80,11 +78,6 @@ func PluralDataSource() *schema.Resource {
 						"created_at": {
 							Type:     schema.TypeString,
 							Computed: true,
-						},
-						"err_msg": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.20.0"),
 						},
 						"export_bucket_id": {
 							Type:     schema.TypeString,
@@ -163,7 +156,6 @@ func flattenCloudBackupSnapshotExportJobs(jobs []admin.DiskBackupExportJob) []ma
 			"components":                         flattenExportJobsComponents(job.GetComponents()),
 			"custom_data":                        flattenExportJobsCustomData(job.GetCustomData()),
 			"export_bucket_id":                   job.GetExportBucketId(),
-			"err_msg":                            "",
 			"export_status_exported_collections": job.ExportStatus.GetExportedCollections(),
 			"export_status_total_collections":    job.ExportStatus.GetTotalCollections(),
 			"finished_at":                        conversion.TimePtrToStringPtr(job.FinishedAt),

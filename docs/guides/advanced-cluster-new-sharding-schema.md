@@ -102,7 +102,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     num_shards = 2
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -117,7 +117,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -140,7 +140,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     zone_name  = "zone n1"
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -153,7 +153,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     zone_name  = "zone n1"
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -166,7 +166,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     zone_name  = "zone n2"
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -179,7 +179,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     zone_name  = "zone n2"
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -199,7 +199,7 @@ Note: The first time `terraform apply` command is run **after** updating the con
 <a id="migration-replicaset"></a>
 ### Migrate advanced_cluster type `REPLICASET`
 
-To learn more, see the documentation on [transitioning from a replicaset to a sharded cluster](https://www.mongodb.com/docs/atlas/scale-cluster/#convert-a-replica-set-to-a-sharded-cluster).
+To learn more, see the documentation on [transitioning from a replica set to a sharded cluster](https://www.mongodb.com/docs/atlas/scale-cluster/#scale-your-replica-set-to-a-sharded-cluster).
 
 Consider the following replica set configuration:
 ```
@@ -211,7 +211,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     replication_specs {
         region_configs {
             electable_specs {
-                instance_size = "M10"
+                instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"
@@ -222,7 +222,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-To transition a replica set to sharded cluster 2 separate updates must be applied. First, update the `cluster_type` to SHARDED, and apply this change to the cluster.
+To upgrade a replica set to a multi-sharded cluster, you must upgrade to a single shard cluster first, restart your application and reconnect to the cluster, and then add additional shards. If you don't restart the application clients, your data might be inconsistent once Atlas begins distributing data across shards.
+
+First, update the `cluster_type` to SHARDED (single shard), and apply this change to the cluster.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -233,7 +235,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     replication_specs {
         region_configs {
             electable_specs {
-                instance_size = "M10"
+                instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"
@@ -244,7 +246,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-Once the cluster type is adjusted accordingly, we can proceed to add a new shard:
+Once the cluster type is adjusted accordingly, you must restart the application clients. If you don't reconnect the application clients, your application may suffer from data outages.
+
+We can now proceed to add an additional second shard:
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -255,7 +259,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     replication_specs { # first shard
         region_configs {
             electable_specs {
-                instance_size = "M10"
+                instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"
@@ -267,7 +271,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     replication_specs { # second shard
         region_configs {
             electable_specs {
-                instance_size = "M10"
+                instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"

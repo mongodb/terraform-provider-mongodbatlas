@@ -7,10 +7,11 @@ import (
 	"hash/crc32"
 	"log"
 	"slices"
+	"strconv"
 	"strings"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -20,6 +21,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
+
+const minVersionForChangeStreamOptions = 6.0
 
 var (
 	DSTagsSchema = schema.Schema{
@@ -101,10 +104,14 @@ func SchemaAdvancedConfigDS() *schema.Schema {
 					Computed: true,
 				},
 				"oplog_min_retention_hours": {
-					Type:     schema.TypeInt,
+					Type:     schema.TypeFloat,
 					Computed: true,
 				},
 				"transaction_lifetime_limit_seconds": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"change_stream_options_pre_and_post_images_expire_after_seconds": {
 					Type:     schema.TypeInt,
 					Computed: true,
 				},
@@ -230,7 +237,7 @@ func SchemaAdvancedConfig() *schema.Schema {
 					Computed: true,
 				},
 				"oplog_min_retention_hours": {
-					Type:     schema.TypeInt,
+					Type:     schema.TypeFloat,
 					Optional: true,
 				},
 				"sample_size_bi_connector": {
@@ -247,6 +254,11 @@ func SchemaAdvancedConfig() *schema.Schema {
 					Type:     schema.TypeInt,
 					Optional: true,
 					Computed: true,
+				},
+				"change_stream_options_pre_and_post_images_expire_after_seconds": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Default:  -1,
 				},
 			},
 		},
@@ -446,25 +458,33 @@ func expandBiConnectorConfig(d *schema.ResourceData) *admin.BiConnector {
 	return nil
 }
 
-func flattenProcessArgs(p *admin20240530.ClusterDescriptionProcessArgs) []map[string]any {
-	if p == nil {
+func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) []map[string]any {
+	if p20240530 == nil {
 		return nil
 	}
-	return []map[string]any{
+	flattenedProcessArgs := []map[string]any{
 		{
-			"default_read_concern":                 p.GetDefaultReadConcern(),
-			"default_write_concern":                p.GetDefaultWriteConcern(),
-			"fail_index_key_too_long":              p.GetFailIndexKeyTooLong(),
-			"javascript_enabled":                   p.GetJavascriptEnabled(),
-			"minimum_enabled_tls_protocol":         p.GetMinimumEnabledTlsProtocol(),
-			"no_table_scan":                        p.GetNoTableScan(),
-			"oplog_size_mb":                        p.GetOplogSizeMB(),
-			"oplog_min_retention_hours":            p.GetOplogMinRetentionHours(),
-			"sample_size_bi_connector":             p.GetSampleSizeBIConnector(),
-			"sample_refresh_interval_bi_connector": p.GetSampleRefreshIntervalBIConnector(),
-			"transaction_lifetime_limit_seconds":   p.GetTransactionLifetimeLimitSeconds(),
+			"default_read_concern":                 p20240530.GetDefaultReadConcern(),
+			"default_write_concern":                p20240530.GetDefaultWriteConcern(),
+			"fail_index_key_too_long":              p20240530.GetFailIndexKeyTooLong(),
+			"javascript_enabled":                   p20240530.GetJavascriptEnabled(),
+			"minimum_enabled_tls_protocol":         p20240530.GetMinimumEnabledTlsProtocol(),
+			"no_table_scan":                        p20240530.GetNoTableScan(),
+			"oplog_size_mb":                        p20240530.GetOplogSizeMB(),
+			"oplog_min_retention_hours":            p20240530.GetOplogMinRetentionHours(),
+			"sample_size_bi_connector":             p20240530.GetSampleSizeBIConnector(),
+			"sample_refresh_interval_bi_connector": p20240530.GetSampleRefreshIntervalBIConnector(),
+			"transaction_lifetime_limit_seconds":   p20240530.GetTransactionLifetimeLimitSeconds(),
 		},
 	}
+	if p != nil {
+		if v := p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds; v == nil {
+			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
+		} else {
+			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
+		}
+	}
+	return flattenedProcessArgs
 }
 
 func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []admin20240530.ReplicationSpec, zoneNameToZoneIDs map[string]string, rootDiskSizeGB float64, tfMapObjects []any,
@@ -738,44 +758,45 @@ func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 	return ""
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]any) admin20240530.ClusterDescriptionProcessArgs {
-	res := admin20240530.ClusterDescriptionProcessArgs{}
+func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
+	res20240530 := admin20240530.ClusterDescriptionProcessArgs{}
+	res := admin.ClusterDescriptionProcessArgs20240805{}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {
-		res.DefaultReadConcern = conversion.StringPtr(cast.ToString(p["default_read_concern"]))
+		res20240530.DefaultReadConcern = conversion.StringPtr(cast.ToString(p["default_read_concern"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_write_concern"); ok {
-		res.DefaultWriteConcern = conversion.StringPtr(cast.ToString(p["default_write_concern"]))
+		res20240530.DefaultWriteConcern = conversion.StringPtr(cast.ToString(p["default_write_concern"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.fail_index_key_too_long"); ok {
-		res.FailIndexKeyTooLong = conversion.Pointer(cast.ToBool(p["fail_index_key_too_long"]))
+		res20240530.FailIndexKeyTooLong = conversion.Pointer(cast.ToBool(p["fail_index_key_too_long"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.javascript_enabled"); ok {
-		res.JavascriptEnabled = conversion.Pointer(cast.ToBool(p["javascript_enabled"]))
+		res20240530.JavascriptEnabled = conversion.Pointer(cast.ToBool(p["javascript_enabled"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
-		res.MinimumEnabledTlsProtocol = conversion.StringPtr(cast.ToString(p["minimum_enabled_tls_protocol"]))
+		res20240530.MinimumEnabledTlsProtocol = conversion.StringPtr(cast.ToString(p["minimum_enabled_tls_protocol"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.no_table_scan"); ok {
-		res.NoTableScan = conversion.Pointer(cast.ToBool(p["no_table_scan"]))
+		res20240530.NoTableScan = conversion.Pointer(cast.ToBool(p["no_table_scan"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.sample_size_bi_connector"); ok {
-		res.SampleSizeBIConnector = conversion.Pointer(cast.ToInt(p["sample_size_bi_connector"]))
+		res20240530.SampleSizeBIConnector = conversion.Pointer(cast.ToInt(p["sample_size_bi_connector"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.sample_refresh_interval_bi_connector"); ok {
-		res.SampleRefreshIntervalBIConnector = conversion.Pointer(cast.ToInt(p["sample_refresh_interval_bi_connector"]))
+		res20240530.SampleRefreshIntervalBIConnector = conversion.Pointer(cast.ToInt(p["sample_refresh_interval_bi_connector"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
 		if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
-			res.OplogSizeMB = conversion.Pointer(cast.ToInt(p["oplog_size_mb"]))
+			res20240530.OplogSizeMB = conversion.Pointer(cast.ToInt(p["oplog_size_mb"]))
 		} else {
 			log.Printf(ErrorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
 		}
@@ -783,7 +804,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) admin20240530.C
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_min_retention_hours"); ok {
 		if minRetentionHours := cast.ToFloat64(p["oplog_min_retention_hours"]); minRetentionHours >= 0 {
-			res.OplogMinRetentionHours = conversion.Pointer(cast.ToFloat64(p["oplog_min_retention_hours"]))
+			res20240530.OplogMinRetentionHours = conversion.Pointer(cast.ToFloat64(p["oplog_min_retention_hours"]))
 		} else {
 			log.Printf(ErrorClusterSetting, `oplog_min_retention_hours`, "", cast.ToString(minRetentionHours))
 		}
@@ -791,12 +812,36 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) admin20240530.C
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.transaction_lifetime_limit_seconds"); ok {
 		if transactionLifetimeLimitSeconds := cast.ToInt64(p["transaction_lifetime_limit_seconds"]); transactionLifetimeLimitSeconds > 0 {
-			res.TransactionLifetimeLimitSeconds = conversion.Pointer(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
+			res20240530.TransactionLifetimeLimitSeconds = conversion.Pointer(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
 		} else {
 			log.Printf(ErrorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
 		}
 	}
-	return res
+
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
+		tmp := p["change_stream_options_pre_and_post_images_expire_after_seconds"]
+		tmpInt := cast.ToInt(tmp)
+
+		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(tmpInt)
+	}
+	return res20240530, res
+}
+
+func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
+	if input == nil || *input == "" {
+		return true
+	}
+	parts := strings.SplitN(*input, ".", 2)
+	if len(parts) == 0 {
+		return false
+	}
+
+	value, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		return false
+	}
+
+	return value >= minVersionForChangeStreamOptions
 }
 
 func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLabel, diag.Diagnostics) {

@@ -4,15 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"log"
-	"reflect"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
@@ -115,27 +114,7 @@ func UnmarshalStoredSource(str string) (any, diag.Diagnostics) {
 }
 
 func diffSuppressJSON(k, old, newStr string, d *schema.ResourceData) bool {
-	var j, j2 any
-
-	if old == "" {
-		old = "{}"
-	}
-
-	if newStr == "" {
-		newStr = "{}"
-	}
-
-	if err := json.Unmarshal([]byte(old), &j); err != nil {
-		log.Printf("[ERROR] cannot unmarshal old search index analyzer json %v", err)
-	}
-	if err := json.Unmarshal([]byte(newStr), &j2); err != nil {
-		log.Printf("[ERROR] cannot unmarshal new search index analyzer json %v", err)
-	}
-	if !reflect.DeepEqual(&j, &j2) {
-		return false
-	}
-
-	return true
+	return schemafunc.EqualJSON(old, newStr, "vector search index")
 }
 
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
