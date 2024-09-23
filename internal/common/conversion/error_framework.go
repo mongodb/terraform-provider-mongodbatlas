@@ -10,7 +10,9 @@ type ErrBody interface {
 	Body() []byte
 }
 
-func AddJSONErrDiagnostics(msgPrefix string, err error, diags *diag.Diagnostics) {
+// AddJSONBodyErrorToDiagnostics tries to get the JSON body from the error and add it to the diagnostics.
+// For example, admin.GenericOpenAPIError has the Body() []byte method.
+func AddJSONBodyErrorToDiagnostics(msgPrefix string, err error, diags *diag.Diagnostics) {
 	errGeneric, ok := err.(ErrBody)
 	if !ok {
 		diags.AddError(msgPrefix, err.Error())

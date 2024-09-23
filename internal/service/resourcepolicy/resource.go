@@ -40,6 +40,7 @@ type resourcePolicyRS struct {
 
 var charSetAlphaNum = []rune("abcdefghijklmnopqrstuvwxyz012346789")
 
+// randPolicyName to workaround for POLICY_CANNOT_CONTAIN_A_DUPLICATE_NAME error until https://jira.mongodb.org/browse/CLOUDP-272944 is resolved.
 func randPolicyName(n int) string {
 	b := make([]rune, n)
 	for i := range b {
@@ -67,7 +68,7 @@ func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPl
 	connV2 := r.Client.AtlasV2
 	_, _, err := connV2.AtlasResourcePoliciesApi.ValidateAtlasResourcePolicy(ctx, *orgID, sdkCreate).Execute()
 	if err != nil {
-		conversion.AddJSONErrDiagnostics("Policy Validation failed: ", err, &resp.Diagnostics)
+		conversion.AddJSONBodyErrorToDiagnostics("Policy Validation failed: ", err, &resp.Diagnostics)
 	}
 }
 

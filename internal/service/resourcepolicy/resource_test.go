@@ -25,6 +25,14 @@ var (
 	) when {
 	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws222"])
 	};`
+	validPolicyForbidAwsCloudProvider = `
+	forbid (
+	principal,
+	action == cloud::Action::"cluster.createEdit",
+	resource
+	) when {
+	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws"])
+	};`
 )
 
 func TestAccResourcePolicy_basic(t *testing.T) {
@@ -73,7 +81,10 @@ func TestAccResourcePolicy_invalidConfig(t *testing.T) {
 			{
 				Config:      configWithPolicyBodies(orgID, policyName, invalidPolicyUnknownCloudProvider),
 				ExpectError: regexp.MustCompile(`entity id aws222 does not exist in the context of this organization`),
-				Check:       checksResourcePolicy(orgID, policyName, 1),
+			},
+			{
+				Config:      configWithPolicyBodies(orgID, policyName, validPolicyForbidAwsCloudProvider, invalidPolicyUnknownCloudProvider),
+				ExpectError: regexp.MustCompile(`entity id aws222 does not exist in the context of this organization`),
 			},
 		},
 	},
