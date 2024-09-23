@@ -2,6 +2,7 @@ package resourcepolicy
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"regexp"
@@ -14,6 +15,7 @@ import (
 
 var _ resource.ResourceWithConfigure = &resourcePolicyRS{}
 var _ resource.ResourceWithImportState = &resourcePolicyRS{}
+var _ resource.ResourceWithModifyPlan = &resourcePolicyRS{}
 
 const (
 	resourceName     = "resource_policy"
@@ -33,6 +35,44 @@ func Resource() resource.Resource {
 
 type resourcePolicyRS struct {
 	config.RSCommon
+}
+
+func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	var policies []TFPolicyModel
+	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("policies"), &policies)...)
+	sdkPolicies := NewAdminPolicies(ctx, policies)
+	var name, orgID string
+	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("name"), &name)...)
+	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("org_id"), &orgID)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	sdkCreate := &admin.ApiAtlasResourcePolicyCreate{
+		Name:     name,
+		Policies: sdkPolicies,
+	}
+	connV2 := r.Client.AtlasV2
+	_, _, err := connV2.AtlasResourcePoliciesApi.ValidateAtlasResourcePolicy(ctx, orgID, sdkCreate).Execute()
+	if err != nil {
+		errGeneric, ok := err.(*admin.GenericOpenAPIError)
+		if ok {
+			var errJson map[string]any
+			errMarshall := json.Unmarshal(errGeneric.Body(), &errJson)
+			if errMarshall != nil {
+				resp.Diagnostics.AddError("Policy Validation failed: ", err.Error())
+				return
+			}
+			errorBytes, errMarshall := json.MarshalIndent(errJson, "", "  ")
+			if errMarshall != nil {
+				resp.Diagnostics.AddError("Policy Validation failed: ", err.Error())
+				return
+			}
+			// resp.Diagnostics.AddError("Policy Validation failed: ", strings.ReplaceAll(strings.ReplaceAll(errBody, "\\n", "\n"), "\\t", "\t"))
+			resp.Diagnostics.AddError("Policy Validation failed: ", string(errorBytes))
+		} else {
+			resp.Diagnostics.AddError("Policy Validation failed: ", err.Error())
+		}
+	}
 }
 
 func (r *resourcePolicyRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
