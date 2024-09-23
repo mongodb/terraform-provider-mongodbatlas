@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 var _ resource.ResourceWithConfigure = &resourcePolicyRS{}
@@ -46,15 +46,11 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 	orgID := plan.OrgID.ValueString()
-	policies, diags := NewAdminPolicies(ctx, plan.Policies)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
+	policies := NewAdminPolicies(ctx, plan.Policies)
 
 	connV2 := r.Client.AtlasV2
 	policySDK, _, err := connV2.AtlasResourcePoliciesApi.CreateAtlasResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
-		Name:     plan.Name.ValueStringPointer(),
+		Name:     plan.Name.ValueString(),
 		Policies: policies,
 	}).Execute()
 	if err != nil {
@@ -105,18 +101,13 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 	}
 	orgID := plan.OrgID.ValueString()
 	resourcePolicyID := plan.ID.ValueString()
-	policies, diags := NewAdminPolicies(ctx, plan.Policies)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
 	connV2 := r.Client.AtlasV2
-	resourcePolicyAPI := connV2.AtlasResourcePoliciesApi
-	policySDK, _, err := resourcePolicyAPI.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &admin.ApiAtlasResourcePolicyEdit{
+	policies := NewAdminPolicies(ctx, plan.Policies)
+	editAdmin := admin.ApiAtlasResourcePolicyEdit{
 		Name:     plan.Name.ValueStringPointer(),
-		Policies: policies,
-	}).Execute()
+		Policies: &policies,
+	}
+	policySDK, _, err := connV2.AtlasResourcePoliciesApi.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(errorUpdate, err.Error())

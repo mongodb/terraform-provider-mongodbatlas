@@ -12,5 +12,5 @@ We autogenerate the documentation of our provider resources and data sources via
 - Add the resource/data source templates to the [templates](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/templates) folder. See [README.md](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/templates/README.md) for more info.
 - Run the Makefile command `generate-doc`
 ```bash
-export resource_name=search_deployment && make generate-doc
+make generate-doc resource_name=search_deployment
 ```

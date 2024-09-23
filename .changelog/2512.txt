@@ -1,0 +1,3 @@
+```release-note:new-resource
+resource/mongodbatlas_encryption_at_rest_private_endpoint
+```

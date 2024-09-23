@@ -68,7 +68,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"name": schema.StringAttribute{
 				Description:         "Human-readable label that describes the atlas resource policy.",
 				MarkdownDescription: "Human-readable label that describes the atlas resource policy.",
-				Optional:            true,
+				Required:            true,
 			},
 			"org_id": schema.StringAttribute{
 				Description:         "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",

@@ -31,15 +31,15 @@ func TestAccResourcePolicy_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, &policyName),
-				Check:  checksResourcePolicy(orgID, &policyName, 1),
+				Config: configBasic(orgID, policyName),
+				Check:  checksResourcePolicy(orgID, policyName, 1),
 			},
 			{
-				Config: configBasic(orgID, &updatedName),
-				Check:  checksResourcePolicy(orgID, &updatedName, 1),
+				Config: configBasic(orgID, updatedName),
+				Check:  checksResourcePolicy(orgID, updatedName, 1),
 			},
 			{
-				Config:            configBasic(orgID, &updatedName),
+				Config:            configBasic(orgID, updatedName),
 				ResourceName:      resourceID,
 				ImportStateIdFunc: checkImportStateIDFunc(resourceID),
 				ImportState:       true,
@@ -50,10 +50,11 @@ func TestAccResourcePolicy_basic(t *testing.T) {
 	)
 }
 
-func checksResourcePolicy(orgID string, name *string, policyCount int) resource.TestCheckFunc {
+func checksResourcePolicy(orgID, name string, policyCount int) resource.TestCheckFunc {
 	attrMap := map[string]string{
 		"org_id":     orgID,
 		"policies.#": fmt.Sprintf("%d", policyCount),
+		"name":       name,
 	}
 	attrSet := []string{
 		"created_by_user.id",
@@ -68,9 +69,6 @@ func checksResourcePolicy(orgID string, name *string, policyCount int) resource.
 	pluralMap := map[string]string{
 		"org_id":              orgID,
 		"resource_policies.#": fmt.Sprintf("%d", policyCount),
-	}
-	if name != nil {
-		attrMap["name"] = *name
 	}
 	checks := []resource.TestCheckFunc{checkExists()}
 	checks = acc.AddAttrChecks(resourceID, checks, attrMap)
@@ -87,15 +85,12 @@ func checksResourcePolicy(orgID string, name *string, policyCount int) resource.
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func configBasic(orgID string, policyName *string) string {
-	var name string
-	if policyName != nil {
-		name = fmt.Sprintf("  name = %q", *policyName)
-	}
+func configBasic(orgID, policyName string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_resource_policy" "test" {
 	org_id = %[1]q
-	%[2]s
+	name   = %[2]q
+	
 	policies = [
 	{
 		body = <<EOF
@@ -117,7 +112,7 @@ data "mongodbatlas_resource_policy" "test" {
 data "mongodbatlas_resource_policies" "test" {
 	org_id = mongodbatlas_resource_policy.test.org_id
 }
-`, orgID, name)
+`, orgID, policyName)
 }
 
 func checkImportStateIDFunc(resourceID string) resource.ImportStateIdFunc {

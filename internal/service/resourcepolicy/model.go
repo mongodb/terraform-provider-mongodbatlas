@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 func NewTFModel(ctx context.Context, input *admin.ApiAtlasResourcePolicy) (*TFModel, diag.Diagnostics) {
@@ -59,14 +59,14 @@ func NewTFPolicies(ctx context.Context, input *[]admin.ApiAtlasPolicy, diags *di
 	return tfModels
 }
 
-func NewAdminPolicies(ctx context.Context, input []TFPolicyModel) (*[]admin.ApiAtlasPolicyCreate, diag.Diagnostics) {
+func NewAdminPolicies(ctx context.Context, input []TFPolicyModel) []admin.ApiAtlasPolicyCreate {
 	apiModels := make([]admin.ApiAtlasPolicyCreate, len(input))
 	for i, item := range input {
 		apiModels[i] = admin.ApiAtlasPolicyCreate{
-			Body: item.Body.ValueStringPointer(),
+			Body: item.Body.ValueString(),
 		}
 	}
-	return &apiModels, nil
+	return apiModels
 }
 
 func NewTFModelDSP(ctx context.Context, orgID string, input []admin.ApiAtlasResourcePolicy) (*TFModelDSP, diag.Diagnostics) {

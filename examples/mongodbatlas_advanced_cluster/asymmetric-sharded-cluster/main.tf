@@ -22,10 +22,10 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
   }
 
-  replication_specs { # shard 2 - M20 instance size
+  replication_specs { # shard 2 - M30 instance size
     region_configs {
       electable_specs {
-        instance_size = "M20"
+        instance_size = "M30"
         disk_iops     = 3000
         node_count    = 3
       }
@@ -35,10 +35,10 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
   }
 
-  replication_specs { # shard 3 - M10 instance size
+  replication_specs { # shard 3 - M40 instance size
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M40"
         disk_iops     = 3000
         node_count    = 3
       }
@@ -48,10 +48,10 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
   }
 
-  replication_specs { # shard 4 - M10 instance size
+  replication_specs { # shard 4 - M40 instance size
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M40"
         disk_iops     = 3000
         node_count    = 3
       }

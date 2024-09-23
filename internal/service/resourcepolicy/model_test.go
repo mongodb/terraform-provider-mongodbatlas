@@ -8,24 +8,21 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 var (
 	//go:embed testdata/policy_clusterForbidCloudProvider.json
 	clusterForbidCloudProviderJSON string
-	//go:embed testdata/policy_clusterForbidCloudProvider_no_name.json
-	clusterForbidCloudProviderNoNameJSON string
 	//go:embed testdata/policy_multipleEntries.json
 	policyMultipleEntriesJSON string
 )
 
 type tfModelTestCase struct {
-	name            *string
+	name            string
 	SDKRespJSON     string
 	userIDCreate    string
 	userIDUpdate    string
@@ -102,7 +99,7 @@ func createTFModel(t *testing.T, testCase *tfModelTestCase) *resourcepolicy.TFMo
 		CreatedDate:     types.StringValue(testCase.createdDate),
 		ID:              types.StringValue(testCase.policyID),
 		LastUpdatedDate: types.StringValue(testCase.lastUpdatedDate),
-		Name:            types.StringPointerValue(testCase.name),
+		Name:            types.StringValue(testCase.name),
 		OrgID:           types.StringValue(testCase.orgID),
 		Version:         types.StringValue(testCase.version),
 	}
@@ -111,19 +108,14 @@ func createTFModel(t *testing.T, testCase *tfModelTestCase) *resourcepolicy.TFMo
 func TestNewTFModel(t *testing.T) {
 	testCases := map[string]tfModelTestCase{
 		"clusterForbidCloudProvider": {
-			name:           conversion.StringPtr("clusterForbidCloudProvider"),
+			name:           "clusterForbidCloudProvider",
 			SDKRespJSON:    clusterForbidCloudProviderJSON,
-			userIDUpdate:   "65def6f00f722a1507105ad9",
-			userNameUpdate: "updateUser",
-		},
-		"policyNoName": {
-			SDKRespJSON:    clusterForbidCloudProviderNoNameJSON,
 			userIDUpdate:   "65def6f00f722a1507105ad9",
 			userNameUpdate: "updateUser",
 		},
 		"policyMultipleEntriesJSON": {
 			SDKRespJSON:     policyMultipleEntriesJSON,
-			name:            conversion.StringPtr("multipleEntries"),
+			name:            "multipleEntries",
 			createdDate:     "2024-09-11T13:36:18Z",
 			lastUpdatedDate: "2024-09-11T13:36:18Z",
 			policyID:        "66e19cd2fdc0332d1fa5e877",
@@ -162,10 +154,7 @@ func TestNewAdminPolicies(t *testing.T) {
 			Body: types.StringValue("policy2"),
 		},
 	}
-	apiModelsPtr, diags := resourcepolicy.NewAdminPolicies(ctx, policies)
-	unit.AssertDiagsOK(t, diags)
-	assert.NotNil(t, apiModelsPtr)
-	apiModels := *apiModelsPtr
+	apiModels := resourcepolicy.NewAdminPolicies(ctx, policies)
 	assert.Len(t, apiModels, 2)
 	assert.Equal(t, "policy1", apiModels[0].GetBody())
 	assert.Equal(t, "policy2", apiModels[1].GetBody())
@@ -176,7 +165,7 @@ func TestNewTFModelDSP(t *testing.T) {
 	orgID := "65def6ce0f722a1507105aa5"
 	input := []admin.ApiAtlasResourcePolicy{
 		parseSDKModel(t, clusterForbidCloudProviderJSON),
-		parseSDKModel(t, clusterForbidCloudProviderNoNameJSON),
+		parseSDKModel(t, policyMultipleEntriesJSON),
 	}
 	resultModel, diags := resourcepolicy.NewTFModelDSP(ctx, orgID, input)
 	unit.AssertDiagsOK(t, diags)

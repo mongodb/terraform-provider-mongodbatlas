@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -140,7 +141,8 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 				},
 			},
 			"ip_addresses": schema.SingleNestedAttribute{
-				Computed: true,
+				Computed:           true,
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "1.21.0", "mongodbatlas_project_ip_addresses data source"),
 				Attributes: map[string]schema.Attribute{
 					"services": schema.SingleNestedAttribute{
 						Computed: true,

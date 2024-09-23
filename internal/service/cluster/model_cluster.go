@@ -8,11 +8,13 @@ import (
 	"reflect"
 	"strings"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
@@ -70,7 +72,7 @@ func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
 }
 
 func flattenProcessArgs(p *matlas.ProcessArgs) []map[string]any {
-	return []map[string]any{
+	flattenedProcessArgs := []map[string]any{
 		{
 			"default_read_concern":                 p.DefaultReadConcern,
 			"default_write_concern":                p.DefaultWriteConcern,
@@ -85,6 +87,12 @@ func flattenProcessArgs(p *matlas.ProcessArgs) []map[string]any {
 			"transaction_lifetime_limit_seconds":   p.TransactionLifetimeLimitSeconds,
 		},
 	}
+	if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil {
+		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
+	} else {
+		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
+	}
+	return flattenedProcessArgs
 }
 
 func flattenLabels(l []matlas.Label) []map[string]any {
@@ -213,7 +221,7 @@ func expandTagSliceFromSetSchema(d *schema.ResourceData) []*matlas.Tag {
 	return res
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.ProcessArgs {
+func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) *matlas.ProcessArgs {
 	res := &matlas.ProcessArgs{}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {
@@ -270,6 +278,10 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.Process
 		} else {
 			log.Printf(advancedcluster.ErrorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
 		}
+	}
+
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && advancedcluster.IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
+		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(cast.ToInt64(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 	}
 
 	return res

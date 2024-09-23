@@ -1,0 +1,17 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  encryption_at_rest:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest
+      method: PATCH
+    read:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest
+      method: GET
+
+data_sources:
+  encryption_at_rest:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest
+      method: GET

@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
@@ -45,6 +44,7 @@ func TestMigProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		cidrBlock    = acc.RandomIP(179, 154, 226) + "/32"
 		description  = acc.RandomName()
+		config       = configWithCIDRBlock(orgID, description, cidrBlock)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -53,24 +53,14 @@ func TestMigProjectAccesslistAPIKey_SettingCIDRBlock(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders("1.14.0"),
-				Config:            configWithCIDRBlock(orgID, description, cidrBlock),
+				Config:            config,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
 				),
 			},
-			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            configWithCIDRBlock(orgID, description, cidrBlock),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						acc.DebugPlan(),
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
-			},
-			mig.TestStepCheckEmptyPlan(configWithCIDRBlock(orgID, description, cidrBlock)),
+			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
 }
