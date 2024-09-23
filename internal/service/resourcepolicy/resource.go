@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"reflect"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -95,27 +94,20 @@ func (r *resourcePolicyRS) Read(ctx context.Context, req resource.ReadRequest, r
 }
 
 func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state TFModel
+	var plan TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	orgID := plan.OrgID.ValueString()
 	resourcePolicyID := plan.ID.ValueString()
 	connV2 := r.Client.AtlasV2
-	resourcePolicyAPI := connV2.AtlasResourcePoliciesApi
-	editAdmin := admin.ApiAtlasResourcePolicyEdit{}
-	if plan.Name.ValueString() != state.Name.ValueString() {
-		editAdmin.SetName(plan.Name.ValueString())
+	policies := NewAdminPolicies(ctx, plan.Policies)
+	editAdmin := admin.ApiAtlasResourcePolicyEdit{
+		Name:     plan.Name.ValueStringPointer(),
+		Policies: &policies,
 	}
-	policiesBefore := NewAdminPolicies(ctx, state.Policies)
-	policiesAfter := NewAdminPolicies(ctx, plan.Policies)
-	// comparing SDK models to check only the policy.Body for changes to avoid nested policy.Id updates
-	if !reflect.DeepEqual(policiesBefore, policiesAfter) {
-		editAdmin.SetPolicies(policiesAfter)
-	}
-	policySDK, _, err := resourcePolicyAPI.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
+	policySDK, _, err := connV2.AtlasResourcePoliciesApi.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(errorUpdate, err.Error())
