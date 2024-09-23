@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"reflect"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805003/admin"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 var _ resource.ResourceWithConfigure = &resourcePolicyRS{}
@@ -46,15 +47,11 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 	orgID := plan.OrgID.ValueString()
-	policies, diags := NewAdminPolicies(ctx, plan.Policies)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
+	policies := NewAdminPolicies(ctx, plan.Policies)
 
 	connV2 := r.Client.AtlasV2
 	policySDK, _, err := connV2.AtlasResourcePoliciesApi.CreateAtlasResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
-		Name:     plan.Name.ValueStringPointer(),
+		Name:     plan.Name.ValueString(),
 		Policies: policies,
 	}).Execute()
 	if err != nil {
@@ -98,25 +95,27 @@ func (r *resourcePolicyRS) Read(ctx context.Context, req resource.ReadRequest, r
 }
 
 func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan TFModel
+	var plan, state TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	orgID := plan.OrgID.ValueString()
 	resourcePolicyID := plan.ID.ValueString()
-	policies, diags := NewAdminPolicies(ctx, plan.Policies)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
 	connV2 := r.Client.AtlasV2
 	resourcePolicyAPI := connV2.AtlasResourcePoliciesApi
-	policySDK, _, err := resourcePolicyAPI.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &admin.ApiAtlasResourcePolicyEdit{
-		Name:     plan.Name.ValueStringPointer(),
-		Policies: policies,
-	}).Execute()
+	editAdmin := admin.ApiAtlasResourcePolicyEdit{}
+	if plan.Name.ValueString() != state.Name.ValueString() {
+		editAdmin.SetName(plan.Name.ValueString())
+	}
+	policiesBefore := NewAdminPolicies(ctx, state.Policies)
+	policiesAfter := NewAdminPolicies(ctx, plan.Policies)
+	// comparing SDK models to check only the policy.Body for changes to avoid nested policy.Id updates
+	if !reflect.DeepEqual(policiesBefore, policiesAfter) {
+		editAdmin.SetPolicies(policiesAfter)
+	}
+	policySDK, _, err := resourcePolicyAPI.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(errorUpdate, err.Error())
