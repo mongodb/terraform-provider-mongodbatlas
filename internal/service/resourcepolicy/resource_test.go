@@ -25,6 +25,14 @@ var (
 	) when {
 	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws222"])
 	};`
+	invalidPolicyMissingComma = `
+	forbid (
+	principal,
+	action == cloud::Action::"cluster.createEdit"
+	resource
+	) when {
+	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws"])
+	};`
 	validPolicyForbidAwsCloudProvider = `
 	forbid (
 	principal,
@@ -36,13 +44,19 @@ var (
 )
 
 func TestAccResourcePolicy_basic(t *testing.T) {
+	tc := basicTestCase(t)
+	resource.ParallelTest(t, *tc)
+}
+
+func basicTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		policyName  = "test-policy"
 		updatedName = "updated-policy"
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -63,8 +77,7 @@ func TestAccResourcePolicy_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	},
-	)
+	}
 }
 
 func TestAccResourcePolicy_invalidConfig(t *testing.T) {
@@ -78,6 +91,10 @@ func TestAccResourcePolicy_invalidConfig(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
+			{
+				Config:      configWithPolicyBodies(orgID, policyName, invalidPolicyMissingComma),
+				ExpectError: regexp.MustCompile("unexpected token `resource`"),
+			},
 			{
 				Config:      configWithPolicyBodies(orgID, policyName, invalidPolicyUnknownCloudProvider),
 				ExpectError: regexp.MustCompile(`entity id aws222 does not exist in the context of this organization`),
