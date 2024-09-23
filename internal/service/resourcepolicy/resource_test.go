@@ -41,6 +41,15 @@ var (
 	) when {
 	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws"])
 	};`
+	validPolicyProjectForbidIPAccessAnywhere = `
+	forbid (
+		principal,
+		action == cloud::Action::"project.edit",
+		resource
+	) 
+		when {
+		context.project.ipAccessList.contains(ip("0.0.0.0/0"))
+	};`
 )
 
 func TestAccResourcePolicy_basic(t *testing.T) {
@@ -108,6 +117,31 @@ func TestAccResourcePolicy_invalidConfig(t *testing.T) {
 	)
 }
 
+func TestAccResourcePolicy_multipleNestedPolicies(t *testing.T) {
+	var (
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPolicyBodies(orgID, "test-policy-multiple", validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
+				Check:  checksResourcePolicy(orgID, "test-policy-multiple", 2),
+			},
+			{
+				Config:            configWithPolicyBodies(orgID, "test-policy-multiple", validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
+				ResourceName:      resourceID,
+				ImportStateIdFunc: checkImportStateIDFunc(resourceID),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	},
+	)
+}
+
 func checksResourcePolicy(orgID, name string, policyCount int) resource.TestCheckFunc {
 	attrMap := map[string]string{
 		"org_id":     orgID,
@@ -126,7 +160,7 @@ func checksResourcePolicy(orgID, name string, policyCount int) resource.TestChec
 	}
 	pluralMap := map[string]string{
 		"org_id":              orgID,
-		"resource_policies.#": fmt.Sprintf("%d", policyCount),
+		"resource_policies.#": "1",
 	}
 	checks := []resource.TestCheckFunc{checkExists()}
 	checks = acc.AddAttrChecks(resourceID, checks, attrMap)
@@ -144,33 +178,7 @@ func checksResourcePolicy(orgID, name string, policyCount int) resource.TestChec
 }
 
 func configBasic(orgID, policyName string) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_resource_policy" "test" {
-	org_id = %[1]q
-	name   = %[2]q
-	
-	policies = [
-	{
-		body = <<EOF
-	forbid (
-	principal,
-	action == cloud::Action::"cluster.createEdit",
-	resource
-	) when {
-	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws"])
-	};
-	EOF
-   }
- ]
-}
-data "mongodbatlas_resource_policy" "test" {
-	org_id = mongodbatlas_resource_policy.test.org_id
-	id = mongodbatlas_resource_policy.test.id
-}
-data "mongodbatlas_resource_policies" "test" {
-	org_id = mongodbatlas_resource_policy.test.org_id
-}
-`, orgID, policyName)
+	return configWithPolicyBodies(orgID, policyName, validPolicyForbidAwsCloudProvider)
 }
 
 func configWithPolicyBodies(orgID, policyName string, bodies ...string) string {
@@ -192,7 +200,14 @@ resource "mongodbatlas_resource_policy" "test" {
 	policies = [
 %s
 	]
-	}
+}
+data "mongodbatlas_resource_policy" "test" {
+	org_id = mongodbatlas_resource_policy.test.org_id
+	id = mongodbatlas_resource_policy.test.id
+}
+data "mongodbatlas_resource_policies" "test" {
+	org_id = mongodbatlas_resource_policy.test.org_id
+}
 	`, orgID, policyName, policies)
 }
 
