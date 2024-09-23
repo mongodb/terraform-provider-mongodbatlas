@@ -2,13 +2,13 @@ package resourcepolicy
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
@@ -54,24 +54,7 @@ func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPl
 	connV2 := r.Client.AtlasV2
 	_, _, err := connV2.AtlasResourcePoliciesApi.ValidateAtlasResourcePolicy(ctx, orgID, sdkCreate).Execute()
 	if err != nil {
-		errGeneric, ok := err.(*admin.GenericOpenAPIError)
-		if ok {
-			var errJson map[string]any
-			errMarshall := json.Unmarshal(errGeneric.Body(), &errJson)
-			if errMarshall != nil {
-				resp.Diagnostics.AddError("Policy Validation failed: ", err.Error())
-				return
-			}
-			errorBytes, errMarshall := json.MarshalIndent(errJson, "", "  ")
-			if errMarshall != nil {
-				resp.Diagnostics.AddError("Policy Validation failed: ", err.Error())
-				return
-			}
-			// resp.Diagnostics.AddError("Policy Validation failed: ", strings.ReplaceAll(strings.ReplaceAll(errBody, "\\n", "\n"), "\\t", "\t"))
-			resp.Diagnostics.AddError("Policy Validation failed: ", string(errorBytes))
-		} else {
-			resp.Diagnostics.AddError("Policy Validation failed: ", err.Error())
-		}
+		conversion.AddJSONErrDiagnostics("Policy Validation failed: ", err, &resp.Diagnostics)
 	}
 }
 
