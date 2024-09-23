@@ -3,6 +3,7 @@ package resourcepolicy
 import (
 	"context"
 	"errors"
+	"math/rand"
 	"net/http"
 	"regexp"
 
@@ -37,22 +38,34 @@ type resourcePolicyRS struct {
 	config.RSCommon
 }
 
+var charSetAlphaNum = []rune("abcdefghijklmnopqrstuvwxyz012346789")
+
+func randPolicyName(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = charSetAlphaNum[rand.Intn(len(charSetAlphaNum))] //nolint:gosec // This is not a security-sensitive operation, only to avoid POLICY_CANNOT_CONTAIN_A_DUPLICATE_NAME error
+	}
+	return string(b)
+}
+
 func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	var policies []TFPolicyModel
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("policies"), &policies)...)
 	sdkPolicies := NewAdminPolicies(ctx, policies)
-	var name, orgID string
-	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("name"), &name)...)
+	var orgID *string
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("org_id"), &orgID)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	if orgID == nil {
+		return
+	}
 	sdkCreate := &admin.ApiAtlasResourcePolicyCreate{
-		Name:     name,
+		Name:     randPolicyName(16),
 		Policies: sdkPolicies,
 	}
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.AtlasResourcePoliciesApi.ValidateAtlasResourcePolicy(ctx, orgID, sdkCreate).Execute()
+	_, _, err := connV2.AtlasResourcePoliciesApi.ValidateAtlasResourcePolicy(ctx, *orgID, sdkCreate).Execute()
 	if err != nil {
 		conversion.AddJSONErrDiagnostics("Policy Validation failed: ", err, &resp.Diagnostics)
 	}
