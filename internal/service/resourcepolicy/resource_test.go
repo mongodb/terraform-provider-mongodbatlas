@@ -54,7 +54,7 @@ var (
 
 func TestAccResourcePolicy_basic(t *testing.T) {
 	tc := basicTestCase(t)
-	resource.ParallelTest(t, *tc)
+	resource.Test(t, *tc)
 }
 
 func basicTestCase(t *testing.T) *resource.TestCase {
@@ -89,6 +89,31 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	}
 }
 
+func TestAccResourcePolicy_multipleNestedPolicies(t *testing.T) {
+	var (
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPolicyBodies(orgID, "test-policy-multiple", validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
+				Check:  checksResourcePolicy(orgID, "test-policy-multiple", 2),
+			},
+			{
+				Config:            configWithPolicyBodies(orgID, "test-policy-multiple", validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
+				ResourceName:      resourceID,
+				ImportStateIdFunc: checkImportStateIDFunc(resourceID),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	},
+	)
+}
+
 func TestAccResourcePolicy_invalidConfig(t *testing.T) {
 	var (
 		orgID      = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -117,31 +142,6 @@ func TestAccResourcePolicy_invalidConfig(t *testing.T) {
 	)
 }
 
-func TestAccResourcePolicy_multipleNestedPolicies(t *testing.T) {
-	var (
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithPolicyBodies(orgID, "test-policy-multiple", validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
-				Check:  checksResourcePolicy(orgID, "test-policy-multiple", 2),
-			},
-			{
-				Config:            configWithPolicyBodies(orgID, "test-policy-multiple", validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
-				ResourceName:      resourceID,
-				ImportStateIdFunc: checkImportStateIDFunc(resourceID),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	},
-	)
-}
-
 func checksResourcePolicy(orgID, name string, policyCount int) resource.TestCheckFunc {
 	attrMap := map[string]string{
 		"org_id":     orgID,
@@ -163,18 +163,14 @@ func checksResourcePolicy(orgID, name string, policyCount int) resource.TestChec
 		"resource_policies.#": "1",
 	}
 	checks := []resource.TestCheckFunc{checkExists()}
-	checks = acc.AddAttrChecks(resourceID, checks, attrMap)
-	checks = acc.AddAttrChecks(dataSourceID, checks, attrMap)
 	checks = acc.AddAttrChecks(dataSourcePluralID, checks, pluralMap)
-	checks = acc.AddAttrSetChecks(resourceID, checks, attrSet...)
-	checks = acc.AddAttrSetChecks(dataSourceID, checks, attrSet...)
-	// todo; add AddAttrSetChecks when master is merged with the new helper function supporting multiple ids and prefix
 	for i := 0; i < policyCount; i++ {
 		checks = acc.AddAttrSetChecks(resourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
 		checks = acc.AddAttrSetChecks(dataSourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
 		checks = acc.AddAttrSetChecks(dataSourcePluralID, checks, fmt.Sprintf("resource_policies.0.policies.%d.body", i), fmt.Sprintf("resource_policies.0.policies.%d.id", i))
 	}
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	// cannot use dataSourcePluralID as it doesn't have the `results` attribute
+	return acc.CheckRSAndDS(resourceID, &dataSourceID, nil, attrSet, attrMap, resource.ComposeAggregateTestCheckFunc(checks...))
 }
 
 func configBasic(orgID, policyName string) string {
