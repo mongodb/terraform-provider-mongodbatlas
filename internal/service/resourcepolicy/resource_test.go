@@ -64,8 +64,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		policyName  = "test-policy"
 		updatedName = "updated-policy"
 	)
-
-	return &resource.TestCase{
+	return &resource.TestCase{ // Need sequential execution for assertions to be deterministic (plural data source)
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
