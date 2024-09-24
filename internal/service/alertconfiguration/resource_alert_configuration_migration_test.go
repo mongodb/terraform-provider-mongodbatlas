@@ -146,5 +146,5 @@ func TestMigConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *testing.T)
 
 func TestMigConfigRSAlertConfiguration_withDataDog(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.20.0")
-	mig.CreateAndRunTest(t, datadogTestCase(t))
+	mig.CreateAndRunTestNonParallel(t, datadogTestCase(t)) // not run in parallel so acc and mig tests don't interfere
 }
