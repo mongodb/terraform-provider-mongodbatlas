@@ -3,6 +3,7 @@ package resourcepolicy
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"regexp"
@@ -40,7 +41,7 @@ type resourcePolicyRS struct {
 
 var charSetAlphaNum = []rune("abcdefghijklmnopqrstuvwxyz012346789")
 
-// randPolicyName to workaround for POLICY_CANNOT_CONTAIN_A_DUPLICATE_NAME error until https://jira.mongodb.org/browse/CLOUDP-272944 is resolved.
+// randPolicyName to workaround for POLICY_CANNOT_CONTAIN_A_DUPLICATE_NAME error until https://jira.mongodb.org/browse/CLOUDP-274990 is resolved.
 func randPolicyName(n int) string {
 	b := make([]rune, n)
 	for i := range b {
@@ -53,12 +54,13 @@ func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPl
 	var policies []TFPolicyModel
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("policies"), &policies)...)
 	sdkPolicies := NewAdminPolicies(ctx, policies)
-	var orgID *string
+	var orgID, name *string
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("org_id"), &orgID)...)
+	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("name"), &name)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if orgID == nil {
+	if name == nil || orgID == nil {
 		return
 	}
 	sdkCreate := &admin.ApiAtlasResourcePolicyCreate{
@@ -68,7 +70,7 @@ func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPl
 	connV2 := r.Client.AtlasV2
 	_, _, err := connV2.AtlasResourcePoliciesApi.ValidateAtlasResourcePolicy(ctx, *orgID, sdkCreate).Execute()
 	if err != nil {
-		conversion.AddJSONBodyErrorToDiagnostics("Policy Validation failed: ", err, &resp.Diagnostics)
+		conversion.AddJSONBodyErrorToDiagnostics(fmt.Sprintf("Policy Validation failed (name=%s): ", *name), err, &resp.Diagnostics)
 	}
 }
 

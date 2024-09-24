@@ -25,6 +25,14 @@ var (
 	) when {
 	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws222"])
 	};`
+	invalidPolicyMissingComma = `
+	forbid (
+	principal,
+	action == cloud::Action::"cluster.createEdit"
+	resource
+	) when {
+	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws"])
+	};`
 	validPolicyForbidAwsCloudProvider = `
 	forbid (
 	principal,
@@ -33,16 +41,30 @@ var (
 	) when {
 	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws"])
 	};`
+	validPolicyProjectForbidIPAccessAnywhere = `
+	forbid (
+		principal,
+		action == cloud::Action::"project.edit",
+		resource
+	) 
+		when {
+		context.project.ipAccessList.contains(ip("0.0.0.0/0"))
+	};`
 )
 
 func TestAccResourcePolicy_basic(t *testing.T) {
+	tc := basicTestCase(t)
+	resource.Test(t, *tc)
+}
+
+func basicTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		policyName  = "test-policy"
 		updatedName = "updated-policy"
 	)
-
-	resource.ParallelTest(t, resource.TestCase{
+	return &resource.TestCase{ // Need sequential execution for assertions to be deterministic (plural data source)
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -57,6 +79,30 @@ func TestAccResourcePolicy_basic(t *testing.T) {
 			},
 			{
 				Config:            configBasic(orgID, updatedName),
+				ResourceName:      resourceID,
+				ImportStateIdFunc: checkImportStateIDFunc(resourceID),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func TestAccResourcePolicy_multipleNestedPolicies(t *testing.T) {
+	var (
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPolicyBodies(orgID, "test-policy-multiple", validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
+				Check:  checksResourcePolicy(orgID, "test-policy-multiple", 2),
+			},
+			{
+				Config:            configWithPolicyBodies(orgID, "test-policy-multiple", validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
 				ResourceName:      resourceID,
 				ImportStateIdFunc: checkImportStateIDFunc(resourceID),
 				ImportState:       true,
@@ -78,6 +124,10 @@ func TestAccResourcePolicy_invalidConfig(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
+			{
+				Config:      configWithPolicyBodies(orgID, policyName, invalidPolicyMissingComma),
+				ExpectError: regexp.MustCompile("unexpected token `resource`"),
+			},
 			{
 				Config:      configWithPolicyBodies(orgID, policyName, invalidPolicyUnknownCloudProvider),
 				ExpectError: regexp.MustCompile(`entity id aws222 does not exist in the context of this organization`),
@@ -109,51 +159,21 @@ func checksResourcePolicy(orgID, name string, policyCount int) resource.TestChec
 	}
 	pluralMap := map[string]string{
 		"org_id":              orgID,
-		"resource_policies.#": fmt.Sprintf("%d", policyCount),
+		"resource_policies.#": "1",
 	}
 	checks := []resource.TestCheckFunc{checkExists()}
-	checks = acc.AddAttrChecks(resourceID, checks, attrMap)
-	checks = acc.AddAttrChecks(dataSourceID, checks, attrMap)
 	checks = acc.AddAttrChecks(dataSourcePluralID, checks, pluralMap)
-	checks = acc.AddAttrSetChecks(resourceID, checks, attrSet...)
-	checks = acc.AddAttrSetChecks(dataSourceID, checks, attrSet...)
-	// todo; add AddAttrSetChecks when master is merged with the new helper function supporting multiple ids and prefix
 	for i := 0; i < policyCount; i++ {
 		checks = acc.AddAttrSetChecks(resourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
 		checks = acc.AddAttrSetChecks(dataSourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
 		checks = acc.AddAttrSetChecks(dataSourcePluralID, checks, fmt.Sprintf("resource_policies.0.policies.%d.body", i), fmt.Sprintf("resource_policies.0.policies.%d.id", i))
 	}
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	// cannot use dataSourcePluralID as it doesn't have the `results` attribute
+	return acc.CheckRSAndDS(resourceID, &dataSourceID, nil, attrSet, attrMap, resource.ComposeAggregateTestCheckFunc(checks...))
 }
 
 func configBasic(orgID, policyName string) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_resource_policy" "test" {
-	org_id = %[1]q
-	name   = %[2]q
-	
-	policies = [
-	{
-		body = <<EOF
-	forbid (
-	principal,
-	action == cloud::Action::"cluster.createEdit",
-	resource
-	) when {
-	context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"aws"])
-	};
-	EOF
-   }
- ]
-}
-data "mongodbatlas_resource_policy" "test" {
-	org_id = mongodbatlas_resource_policy.test.org_id
-	id = mongodbatlas_resource_policy.test.id
-}
-data "mongodbatlas_resource_policies" "test" {
-	org_id = mongodbatlas_resource_policy.test.org_id
-}
-`, orgID, policyName)
+	return configWithPolicyBodies(orgID, policyName, validPolicyForbidAwsCloudProvider)
 }
 
 func configWithPolicyBodies(orgID, policyName string, bodies ...string) string {
@@ -175,7 +195,14 @@ resource "mongodbatlas_resource_policy" "test" {
 	policies = [
 %s
 	]
-	}
+}
+data "mongodbatlas_resource_policy" "test" {
+	org_id = mongodbatlas_resource_policy.test.org_id
+	id = mongodbatlas_resource_policy.test.id
+}
+data "mongodbatlas_resource_policies" "test" {
+	org_id = mongodbatlas_resource_policy.test.org_id
+}
 	`, orgID, policyName, policies)
 }
 
