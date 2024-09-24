@@ -41,7 +41,7 @@ type resourcePolicyRS struct {
 
 var charSetAlphaNum = []rune("abcdefghijklmnopqrstuvwxyz012346789")
 
-// randPolicyName to workaround for POLICY_CANNOT_CONTAIN_A_DUPLICATE_NAME error until https://jira.mongodb.org/browse/CLOUDP-272944 is resolved.
+// randPolicyName to workaround for POLICY_CANNOT_CONTAIN_A_DUPLICATE_NAME error until https://jira.mongodb.org/browse/CLOUDP-274990 is resolved.
 func randPolicyName(n int) string {
 	b := make([]rune, n)
 	for i := range b {
