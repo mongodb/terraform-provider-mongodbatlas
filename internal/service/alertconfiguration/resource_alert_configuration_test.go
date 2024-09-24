@@ -368,7 +368,7 @@ func TestAccConfigRSAlertConfiguration_updatePagerDutyWithNotifierId(t *testing.
 }
 
 func TestAccConfigRSAlertConfiguration_withDataDog(t *testing.T) {
-	resource.Test(t, *datadogTestCase(t))
+	resource.Test(t, *datadogTestCase(t)) // not run in parallel so acc and mig tests don't interfere
 }
 
 func datadogTestCase(t *testing.T) *resource.TestCase {
