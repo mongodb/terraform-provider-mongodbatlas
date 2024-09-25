@@ -16,39 +16,6 @@ import (
 const (
 	resourceName   = "mongodbatlas_global_cluster_config.config"
 	dataSourceName = "data.mongodbatlas_global_cluster_config.config"
-
-	customZone = `
-		custom_zone_mappings {
-			location = "US"
-			zone     = "US"
-		}
-		custom_zone_mappings {
-			location = "IE"
-			zone     = "EU"
-		}
-		custom_zone_mappings {
-			location = "DE"
-			zone     = "DE"
-		}
-	`
-	customZoneUpdated = `
-		custom_zone_mappings {
-			location = "US"
-			zone     = "US"
-		}
-		custom_zone_mappings {
-			location = "IE"
-			zone     = "EU"
-		}
-		custom_zone_mappings {
-			location = "DE"
-			zone     = "DE"
-		}
-		custom_zone_mappings {
-			location = "JP"
-			zone     = "JP"
-		}
-	`
 )
 
 func TestAccGlobalClusterConfig_basic(t *testing.T) {
@@ -120,6 +87,42 @@ func TestAccGlobalClusterConfig_withAWSAndBackup(t *testing.T) {
 }
 
 func TestAccGlobalClusterConfig_database(t *testing.T) {
+	const (
+		customZone = `
+			custom_zone_mappings {
+				location = "US"
+				zone     = "US"
+			}
+			custom_zone_mappings {
+				location = "IE"
+				zone     = "EU"
+			}
+			custom_zone_mappings {
+				location = "DE"
+				zone     = "DE"
+			}
+		`
+
+		customZoneUpdated = `
+			custom_zone_mappings {
+				location = "US"
+				zone     = "US"
+			}
+			custom_zone_mappings {
+				location = "IE"
+				zone     = "EU"
+			}
+			custom_zone_mappings {
+				location = "DE"
+				zone     = "DE"
+			}
+			custom_zone_mappings {
+				location = "JP"
+				zone     = "JP"
+			}
+		`
+	)
+
 	var (
 		specUS      = acc.ReplicationSpecRequest{ZoneName: "US", Region: "US_EAST_1"}
 		specEU      = acc.ReplicationSpecRequest{ZoneName: "EU", Region: "EU_WEST_1"}
@@ -233,8 +236,9 @@ func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) st
 		}
 
 		data "mongodbatlas_global_cluster_config" "config" {
-			cluster_name     = %[1]s
-			project_id       = %[2]q
+			project_id       = mongodbatlas_global_cluster_config.config.project_id			
+			cluster_name     = mongodbatlas_global_cluster_config.config.cluster_name
+			depends_on = [mongodbatlas_global_cluster_config.config]
 		}	
 	`, info.TerraformNameRef, info.ProjectID, isCustomShard, isShardKeyUnique)
 }
@@ -272,5 +276,11 @@ func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
 			}
 			%[3]s
 		}
+
+		data "mongodbatlas_global_cluster_config" "config" {
+			project_id       = mongodbatlas_global_cluster_config.config.project_id			
+			cluster_name     = mongodbatlas_global_cluster_config.config.cluster_name
+			depends_on = [mongodbatlas_global_cluster_config.config]
+		}	
 	`, info.TerraformNameRef, info.ProjectID, zones)
 }
