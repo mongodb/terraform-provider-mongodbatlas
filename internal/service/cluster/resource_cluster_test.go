@@ -1351,7 +1351,8 @@ func TestAccCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 
 func TestAccCluster_basic_RedactClientLogData(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution so redactClientLogData tests can be run in parallel because plural data source
 		clusterName = acc.RandomClusterName()
 	)
 
@@ -1361,22 +1362,22 @@ func TestAccCluster_basic_RedactClientLogData(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configRedactClientLogData(projectID, clusterName, nil),
+				Config: configRedactClientLogData(orgID, projectName, clusterName, nil),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "false"}),
 			},
 			{
-				Config: configRedactClientLogData(projectID, clusterName, conversion.Pointer(false)),
+				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(false)),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "false"}),
 			},
 			{
-				Config: configRedactClientLogData(projectID, clusterName, conversion.Pointer(true)),
+				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(true)),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "true"}),
 			},
 			{
-				Config: configRedactClientLogData(projectID, clusterName, conversion.Pointer(false)),
+				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(false)),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "false"}),
 			},
@@ -1386,7 +1387,8 @@ func TestAccCluster_basic_RedactClientLogData(t *testing.T) {
 
 func TestAccCluster_create_RedactClientLogData(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution so redactClientLogData tests can be run in parallel because plural data source
 		clusterName = acc.RandomClusterName()
 	)
 
@@ -1396,7 +1398,7 @@ func TestAccCluster_create_RedactClientLogData(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configRedactClientLogData(projectID, clusterName, conversion.Pointer(true)),
+				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(true)),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "true"}),
 			},
@@ -1843,16 +1845,21 @@ func configTenantUpdated(orgID, projectName, name string) string {
 	`, orgID, projectName, name)
 }
 
-func configRedactClientLogData(projectID, name string, redactClientLogData *bool) string {
+func configRedactClientLogData(orgID, projectName, clusterName string, redactClientLogData *bool) string {
 	var addtionalStr string
 	if redactClientLogData != nil {
 		addtionalStr = fmt.Sprintf(`redact_client_log_data     = %t`, *redactClientLogData)
 	}
 
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
 		resource "mongodbatlas_cluster" "test" {
-			project_id                   = %[1]q
-			name                         = %[2]q
+			project_id = mongodbatlas_project.test.id
+			name                         = %[3]q
 			cluster_type = "REPLICASET"
 			replication_specs {
 			  num_shards = 1
@@ -1865,7 +1872,7 @@ func configRedactClientLogData(projectID, name string, redactClientLogData *bool
 		    }
 			provider_name               = "AWS"
 			provider_instance_size_name = "M10"
-			%[3]s
+			%[4]s
 		}
 
 		data "mongodbatlas_cluster" "test" {
@@ -1878,7 +1885,7 @@ func configRedactClientLogData(projectID, name string, redactClientLogData *bool
 			project_id = mongodbatlas_cluster.test.project_id
 			depends_on = ["mongodbatlas_cluster.test"]
 		}
-	`, projectID, name, addtionalStr)
+	`, orgID, projectName, clusterName, addtionalStr)
 }
 
 func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabled, tier, region string, labels []matlas.Label) string {
