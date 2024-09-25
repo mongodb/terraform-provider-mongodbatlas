@@ -7,5 +7,5 @@ import (
 )
 
 func TestMigGlobalClusterConfig_basic(t *testing.T) {
-	mig.CreateAndRunTest(t, basicTestCase(t))
+	mig.CreateAndRunTest(t, basicTestCase(t, false))
 }

@@ -19,12 +19,16 @@ const (
 )
 
 func TestAccGlobalClusterConfig_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.ParallelTest(t, *basicTestCase(t, false))
 }
 
-func basicTestCase(tb testing.TB) *resource.TestCase {
+func TestAccGlobalClusterConfig_withBackup(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t, true))
+}
+
+func basicTestCase(tb testing.TB, withBackup bool) *resource.TestCase {
 	tb.Helper()
-	clusterInfo := acc.GetClusterInfo(tb, &acc.ClusterRequest{Geosharded: true})
+	clusterInfo := acc.GetClusterInfo(tb, &acc.ClusterRequest{Geosharded: true, CloudBackup: withBackup})
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(tb) },
@@ -35,37 +39,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				Config: configBasic(&clusterInfo, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
-						[]string{"custom_zone_mappings.#", "custom_zone_mapping.%", "custom_zone_mapping.CA", "project_id"},
-						map[string]string{
-							"cluster_name":         clusterInfo.Name,
-							"managed_namespaces.#": "1",
-							"managed_namespaces.0.is_custom_shard_key_hashed": "false",
-							"managed_namespaces.0.is_shard_key_unique":        "false",
-						}),
-				),
-			},
-			{
-				Config:      configBasic(&clusterInfo, true, false),
-				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed"),
-			},
-		},
-	}
-}
-
-func TestAccGlobalClusterConfig_withAWSAndBackup(t *testing.T) {
-	clusterInfo := acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, CloudBackup: true})
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(&clusterInfo, false, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
+					acc.CheckRSAndDS(resourceName, nil, nil,
 						[]string{"custom_zone_mappings.#", "custom_zone_mapping.%", "custom_zone_mapping.CA", "project_id"},
 						map[string]string{
 							"cluster_name":         clusterInfo.Name,
@@ -82,8 +56,12 @@ func TestAccGlobalClusterConfig_withAWSAndBackup(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"custom_zone_mappings"},
 			},
+			{
+				Config:      configBasic(&clusterInfo, true, false),
+				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed"),
+			},
 		},
-	})
+	}
 }
 
 func TestAccGlobalClusterConfig_database(t *testing.T) {
@@ -140,7 +118,7 @@ func TestAccGlobalClusterConfig_database(t *testing.T) {
 				Config: configWithDBConfig(&clusterInfo, customZone),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
+					acc.CheckRSAndDS(resourceName, nil, nil,
 						[]string{"custom_zone_mappings.#", "custom_zone_mapping.%", "custom_zone_mapping.US", "custom_zone_mapping.IE", "custom_zone_mapping.DE", "project_id"},
 						map[string]string{
 							"cluster_name":         clusterInfo.Name,
