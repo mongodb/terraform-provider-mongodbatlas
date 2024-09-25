@@ -15,8 +15,8 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 func dataSourceSchema(isPlural bool) map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"created_by_user": schema.SingleNestedAttribute{
-			Description:         "The user that last updated the atlas resource policy.",
-			MarkdownDescription: "The user that last updated the atlas resource policy.",
+			Description:         "The user that last updated the Atlas resource policy.",
+			MarkdownDescription: "The user that last updated the Atlas resource policy.",
 			Computed:            true,
 			Attributes: map[string]schema.Attribute{
 				"id": schema.StringAttribute{
@@ -32,19 +32,19 @@ func dataSourceSchema(isPlural bool) map[string]schema.Attribute {
 			},
 		},
 		"created_date": schema.StringAttribute{
-			Description:         "Date and time in UTC when the atlas resource policy was created.",
-			MarkdownDescription: "Date and time in UTC when the atlas resource policy was created.",
+			Description:         "Date and time in UTC when the Atlas resource policy was created.",
+			MarkdownDescription: "Date and time in UTC when the Atlas resource policy was created.",
 			Computed:            true,
 		},
 		"id": schema.StringAttribute{
-			Description:         "Unique 24-hexadecimal digit string that identifies an atlas resource policy.",
-			MarkdownDescription: "Unique 24-hexadecimal digit string that identifies an atlas resource policy.",
+			Description:         "Unique 24-hexadecimal digit string that identifies an Atlas resource policy.",
+			MarkdownDescription: "Unique 24-hexadecimal digit string that identifies an Atlas resource policy.",
 			Required:            !isPlural,
 			Computed:            isPlural,
 		},
 		"last_updated_by_user": schema.SingleNestedAttribute{
-			Description:         "The user that last updated the atlas resource policy.",
-			MarkdownDescription: "The user that last updated the atlas resource policy.",
+			Description:         "The user that last updated the Atlas resource policy.",
+			MarkdownDescription: "The user that last updated the Atlas resource policy.",
 			Computed:            true,
 			Attributes: map[string]schema.Attribute{
 				"id": schema.StringAttribute{
@@ -60,13 +60,13 @@ func dataSourceSchema(isPlural bool) map[string]schema.Attribute {
 			},
 		},
 		"last_updated_date": schema.StringAttribute{
-			Description:         "Date and time in UTC when the atlas resource policy was last updated.",
-			MarkdownDescription: "Date and time in UTC when the atlas resource policy was last updated.",
+			Description:         "Date and time in UTC when the Atlas resource policy was last updated.",
+			MarkdownDescription: "Date and time in UTC when the Atlas resource policy was last updated.",
 			Computed:            true,
 		},
 		"name": schema.StringAttribute{
-			Description:         "Human-readable label that describes the atlas resource policy.",
-			MarkdownDescription: "Human-readable label that describes the atlas resource policy.",
+			Description:         "Human-readable label that describes the Atlas resource policy.",
+			MarkdownDescription: "Human-readable label that describes the Atlas resource policy.",
 			Computed:            true,
 		},
 		"org_id": schema.StringAttribute{
@@ -76,7 +76,7 @@ func dataSourceSchema(isPlural bool) map[string]schema.Attribute {
 			MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
 		},
 		"policies": schema.ListNestedAttribute{
-			Description: "List of policies that make up the atlas resource policy.",
+			Description: "List of policies that make up the Atlas resource policy.",
 			Computed:    true,
 			NestedObject: schema.NestedAttributeObject{
 				Attributes: map[string]schema.Attribute{
@@ -94,8 +94,8 @@ func dataSourceSchema(isPlural bool) map[string]schema.Attribute {
 			},
 		},
 		"version": schema.StringAttribute{
-			Description:         "A string that identifies the version of the atlas resource policy.",
-			MarkdownDescription: "A string that identifies the version of the atlas resource policy.",
+			Description:         "A string that identifies the version of the Atlas resource policy.",
+			MarkdownDescription: "A string that identifies the version of the Atlas resource policy.",
 			Computed:            true,
 		},
 	}

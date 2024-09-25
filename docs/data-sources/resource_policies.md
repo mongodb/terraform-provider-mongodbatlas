@@ -2,7 +2,7 @@
 
 `mongodbatlas_resource_policies` returns all resource policies in an organization.
 
--> **NOTE**: Resource Policies are currently in Public Preview. You will need to
+-> **NOTE**: Resource Policies are currently in Public Preview. To use this feature, you must take the following actions:
 1. Enable the `Atlas Resource Policies` Beta Feature in your organization (contact MongoDB Support).
 2. Enable the [Preview Features](https://github.com/mongodb/terraform-provider-mongodbatlas?tab=readme-ov-file#preview-features) when running `terraform` commands.
 
@@ -104,15 +104,15 @@ output "policy_ids" {
 
 Read-Only:
 
-- `created_by_user` (Attributes) The user that last updated the atlas resource policy. (see [below for nested schema](#nestedatt--resource_policies--created_by_user))
-- `created_date` (String) Date and time in UTC when the atlas resource policy was created.
-- `id` (String) Unique 24-hexadecimal digit string that identifies an atlas resource policy.
-- `last_updated_by_user` (Attributes) The user that last updated the atlas resource policy. (see [below for nested schema](#nestedatt--resource_policies--last_updated_by_user))
-- `last_updated_date` (String) Date and time in UTC when the atlas resource policy was last updated.
-- `name` (String) Human-readable label that describes the atlas resource policy.
+- `created_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--resource_policies--created_by_user))
+- `created_date` (String) Date and time in UTC when the Atlas resource policy was created.
+- `id` (String) Unique 24-hexadecimal digit string that identifies an Atlas resource policy.
+- `last_updated_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--resource_policies--last_updated_by_user))
+- `last_updated_date` (String) Date and time in UTC when the Atlas resource policy was last updated.
+- `name` (String) Human-readable label that describes the Atlas resource policy.
 - `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
-- `policies` (Attributes List) List of policies that make up the atlas resource policy. (see [below for nested schema](#nestedatt--resource_policies--policies))
-- `version` (String) A string that identifies the version of the atlas resource policy.
+- `policies` (Attributes List) List of policies that make up the Atlas resource policy. (see [below for nested schema](#nestedatt--resource_policies--policies))
+- `version` (String) A string that identifies the version of the Atlas resource policy.
 
 <a id="nestedatt--resource_policies--created_by_user"></a>
 ### Nested Schema for `resource_policies.created_by_user`
