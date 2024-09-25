@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 	"go.mongodb.org/atlas-sdk/v20240805004/mockadmin"
 
@@ -391,6 +390,30 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 			assert.Equal(t, tc.expectedResult.error, err)
 			assert.Equal(t, tc.expectedResult.response, result)
 			assert.Equal(t, tc.expectedResult.state, stateName)
+		})
+	}
+}
+
+func TestIsChangeStreamOptionsMinRequiredMajorVersion(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  bool
+	}{
+		{"Empty input", "", true},
+		{"Valid input equal to 6", "6", true},
+		{"Valid input greater than 6", "7.0", true},
+		{"Valid input less than 6", "5", false},
+		{"Valid float input greater", "6.5", true},
+		{"Valid float input less", "5.9", false},
+		{"Valid float complete semantic version", "6.0.2", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := advancedcluster.IsChangeStreamOptionsMinRequiredMajorVersion(&tt.input); got != tt.want {
+				t.Errorf("abc(%v) = %v, want %v", tt.input, got, tt.want)
+			}
 		})
 	}
 }

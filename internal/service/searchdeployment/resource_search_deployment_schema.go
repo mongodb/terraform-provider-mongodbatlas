@@ -18,7 +18,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				Description:         "Unique 24-hexadecimal digit string that identifies the search deployment.",
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the search deployment.",
 			},
 			"cluster_name": schema.StringAttribute{
@@ -26,7 +25,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				Description:         "Label that identifies the cluster to return the search nodes for.",
 				MarkdownDescription: "Label that identifies the cluster to return the search nodes for.",
 			},
 			"project_id": schema.StringAttribute{
@@ -34,7 +32,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				Description:         "Unique 24-hexadecimal character string that identifies the project.",
 				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the project.",
 			},
 			"specs": schema.ListNestedAttribute{
@@ -47,22 +44,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					Attributes: map[string]schema.Attribute{
 						"instance_size": schema.StringAttribute{
 							Required:            true,
-							Description:         "Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).",
 							MarkdownDescription: "Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).",
 						},
 						"node_count": schema.Int64Attribute{
 							Required:            true,
-							Description:         "Number of search nodes in the cluster.",
 							MarkdownDescription: "Number of search nodes in the cluster.",
 						},
 					},
 				},
-				Description:         "List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element.",
 				MarkdownDescription: "List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element.",
 			},
 			"state_name": schema.StringAttribute{
 				Computed:            true,
-				Description:         "Human-readable label that indicates the current operating condition of this search deployment.",
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this search deployment.",
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{

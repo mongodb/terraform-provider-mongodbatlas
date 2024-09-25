@@ -27,10 +27,11 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCreate,
-		ReadContext:   resourceRead,
-		UpdateContext: resourceUpdate,
-		DeleteContext: resourceDelete,
+		DeprecationMessage: "Data Lake is deprecated. As of September 2024, Data Lake is deprecated and will reach end-of-life. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation",
+		CreateContext:      resourceCreate,
+		ReadContext:        resourceRead,
+		UpdateContext:      resourceUpdate,
+		DeleteContext:      resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},

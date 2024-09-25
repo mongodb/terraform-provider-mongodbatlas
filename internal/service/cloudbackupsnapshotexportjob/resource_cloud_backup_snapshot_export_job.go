@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
@@ -94,11 +93,6 @@ func returnCloudBackupSnapshotExportJobSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"err_msg": {
-			Type:       schema.TypeString,
-			Computed:   true,
-			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.20.0"),
-		},
 		"export_status_exported_collections": {
 			Type:     schema.TypeInt,
 			Computed: true,
@@ -182,10 +176,6 @@ func setExportJobFields(d *schema.ResourceData, exportJob *admin.DiskBackupExpor
 	}
 
 	if err := d.Set("created_at", conversion.TimePtrToStringPtr(exportJob.CreatedAt)); err != nil {
-		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("err_msg", ""); err != nil {
 		return diag.Errorf("error setting `created_at` for snapshot export job (%s): %s", d.Id(), err)
 	}
 

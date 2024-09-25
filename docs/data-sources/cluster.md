@@ -233,6 +233,6 @@ Contains a key-value pair that tags that the cluster was created by a Terraform 
 * `sample_size_bi_connector` - Number of documents per database to sample when gathering schema information. Defaults to 100. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `sample_refresh_interval_bi_connector` - Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `transaction_lifetime_limit_seconds` - Lifetime, in seconds, of multi-document transactions. Defaults to 60 seconds.
-* `change_stream_options_pre_and_post_images_expire_after_seconds` - (Optional) The minimum pre- and post-image retention time in seconds.
+* `change_stream_options_pre_and_post_images_expire_after_seconds` - (Optional) The minimum pre- and post-image retention time in seconds. This parameter is only supported for MongoDB version 6.0 and above. Defaults to `-1`(off).
 
 See detailed information for arguments and attributes: [MongoDB API Clusters](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/)

@@ -1,3 +1,9 @@
+---
+subcategory: "Deprecated"    
+---
+
+**WARNING:** Data Lake is deprecated. To learn more, see <https://dochub.mongodb.org/core/data-lake-deprecation>
+
 # Data Source: mongodbatlas_data_lake_pipeline_runs
 
 `mongodbatlas_data_lake_pipeline_run` describes Data Lake Pipeline Runs.
@@ -56,7 +62,7 @@ data "mongodbatlas_data_lake_pipeline_runs" "test" {
 * `created_date` - Timestamp that indicates when the pipeline run was created.
 * `last_updated_date` - Unique 24-hexadecimal character string that identifies a Data Lake Pipeline run.
 * `state` - State of the pipeline run.
-* `dataset_name` - Human-readable label that identifies the dataset that Atlas generates during this pipeline run. 
+* `dataset_name` - Human-readable label that identifies the dataset that Atlas generates during this pipeline run.
 * `phase` - Processing phase of the Data Lake Pipeline.
 * `pipeline_id` - Unique 24-hexadecimal character string that identifies a Data Lake Pipeline.
 * `snapshot_id` - Unique 24-hexadecimal character string that identifies the snapshot of a cluster.

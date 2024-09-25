@@ -1,5 +1,25 @@
 ## (Unreleased)
 
+## 1.20.0 (September 20, 2024)
+
+BREAKING CHANGES:
+
+* data-source/mongodbatlas_cloud_backup_snapshot_export_job: Removes `err_msg` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+* data-source/mongodbatlas_cloud_backup_snapshot_export_jobs: Removes `err_msg` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+* data-source/mongodbatlas_federated_database_instance: Removes `storage_stores.#.cluster_id` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+* data-source/mongodbatlas_federated_database_instances: Removes `storage_stores.#.cluster_id` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+* resource/mongodbatlas_cloud_backup_snapshot_export_job: Removes `err_msg` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+* resource/mongodbatlas_federated_database_instance: Removes `storage_stores.#.cluster_id` attribute ([#2617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2617))
+
+NOTES:
+
+* data-source/mongodbatlas_data_lake_pipeline: Data Lake is deprecated. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation ([#2599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2599))
+* data-source/mongodbatlas_data_lake_pipeline_run: Data Lake is deprecated. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation ([#2599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2599))
+* data-source/mongodbatlas_data_lake_pipeline_runs: Data Lake is deprecated. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation ([#2599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2599))
+* data-source/mongodbatlas_data_lake_pipelines: Data Lake is deprecated. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation ([#2599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2599))
+* resource/mongodbatlas_alert_configuration: Updates `notification.#.integration_id` to be Optional & Computed ([#2603](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2603))
+* resource/mongodbatlas_data_lake_pipeline: Data Lake is deprecated. To learn more, see https://dochub.mongodb.org/core/data-lake-deprecation ([#2599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2599))
+
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_mongodb_employee_access_grant` ([#2591](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2591))
@@ -7,6 +27,10 @@ FEATURES:
 
 BUG FIXES:
 
+* resource/mongodbatlas_advanced_cluster: Set `advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds` only for compatible MongoDB versions ([#2592](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2592))
+* resource/mongodbatlas_advanced_cluster: Supports using decimal in advanced_configuration `oplog_min_retention_hours` ([#2604](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2604))
+* resource/mongodbatlas_cluster: Set `advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds` only for compatible MongoDB versions ([#2592](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2592))
+* resource/mongodbatlas_cluster: Supports using decimal in advanced_configuration `oplog_min_retention_hours` ([#2604](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2604))
 * resource/mongodbatlas_stream_processor: Error during create should only show one error message and required actions ([#2590](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2590))
 
 ## 1.19.0 (September 11, 2024)
@@ -1394,7 +1418,7 @@ BUG FIXES:
 - Add [`search_index`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index) error handling [\#1077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1077) - INTMDB-600
 - New / Improved Upon [Resource Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples): 
   - [`cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) with NVMe Upgrade ([Non-Volatile Memory Express](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ssd-instance-store.html)) [\#1037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1037) - INTMDB-32. See example [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cluster)
-  - [`privatelink_endpoint_serverless`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_serverless) Examples for AWS + Azure [\#1043](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1043) - INTMDB-424. See example for [AWS](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-serverless) and [Azure](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/azure-atlas-privatelink-serverless)
+  - [`privatelink_endpoint_serverless`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_serverless) Examples for AWS + Azure [\#1043](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1043) - INTMDB-424. See example for [AWS](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-serverless) and [Azure](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/azure-serverless)
   - Improvement for [`private_link_endpoint`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint) [\#1082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082) - INTMDB-410. see example [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint)
   - Improvement for [`encryption_at_rest`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/encryption_at_rest) [\#1060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1060). see example [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-encryption-at-rest/aws)
 

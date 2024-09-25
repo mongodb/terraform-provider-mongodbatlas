@@ -556,7 +556,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	*/
 	ac, ok := d.GetOk("advanced_configuration")
 	if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
+		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any), &clusterRequest.MongoDBMajorVersion)
 
 		if ok {
 			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
@@ -939,9 +939,14 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Check if advaced configuration option has a changes to update it
 	*/
 	if d.HasChange("advanced_configuration") {
+		var mongoDBMajorVersion string
+		if v, ok := d.GetOk("mongo_db_major_version"); ok {
+			mongoDBMajorVersion = v.(string)
+		}
+
 		ac := d.Get("advanced_configuration")
 		if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any), &mongoDBMajorVersion)
 			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
 				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
 				if err != nil {

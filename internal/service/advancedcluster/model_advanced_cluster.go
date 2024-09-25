@@ -7,6 +7,7 @@ import (
 	"hash/crc32"
 	"log"
 	"slices"
+	"strconv"
 	"strings"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
@@ -20,6 +21,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
+
+const minVersionForChangeStreamOptions = 6.0
 
 var (
 	DSTagsSchema = schema.Schema{
@@ -101,7 +104,7 @@ func SchemaAdvancedConfigDS() *schema.Schema {
 					Computed: true,
 				},
 				"oplog_min_retention_hours": {
-					Type:     schema.TypeInt,
+					Type:     schema.TypeFloat,
 					Computed: true,
 				},
 				"transaction_lifetime_limit_seconds": {
@@ -234,7 +237,7 @@ func SchemaAdvancedConfig() *schema.Schema {
 					Computed: true,
 				},
 				"oplog_min_retention_hours": {
-					Type:     schema.TypeInt,
+					Type:     schema.TypeFloat,
 					Optional: true,
 				},
 				"sample_size_bi_connector": {
@@ -475,7 +478,11 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 		},
 	}
 	if p != nil {
-		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
+		if v := p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds; v == nil {
+			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
+		} else {
+			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
+		}
 	}
 	return flattenedProcessArgs
 }
@@ -751,7 +758,7 @@ func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 	return ""
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]any) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
+func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
 	res20240530 := admin20240530.ClusterDescriptionProcessArgs{}
 	res := admin.ClusterDescriptionProcessArgs20240805{}
 
@@ -811,10 +818,30 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any) (admin20240530.
 		}
 	}
 
-	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok {
-		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
+		tmp := p["change_stream_options_pre_and_post_images_expire_after_seconds"]
+		tmpInt := cast.ToInt(tmp)
+
+		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(tmpInt)
 	}
 	return res20240530, res
+}
+
+func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
+	if input == nil || *input == "" {
+		return true
+	}
+	parts := strings.SplitN(*input, ".", 2)
+	if len(parts) == 0 {
+		return false
+	}
+
+	value, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		return false
+	}
+
+	return value >= minVersionForChangeStreamOptions
 }
 
 func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLabel, diag.Diagnostics) {
