@@ -1005,10 +1005,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("redact_client_log_data") {
-		if v, ok := d.GetOk("redact_client_log_data"); ok {
-			if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutUpdate), connV2, projectID, clusterName, v.(bool)); err != nil {
-				return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
-			}
+		redactClientLogData := d.Get("redact_client_log_data").(bool)
+		if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutUpdate), connV2, projectID, clusterName, redactClientLogData); err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 	}
 

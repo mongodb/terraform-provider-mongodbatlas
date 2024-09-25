@@ -1375,6 +1375,11 @@ func TestAccCluster_basic_RedactClientLogData(t *testing.T) {
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "true"}),
 			},
+			{
+				Config: configRedactClientLogData(projectID, clusterName, conversion.Pointer(false)),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+					nil, map[string]string{"redact_client_log_data": "false"}),
+			},
 		},
 	})
 }
