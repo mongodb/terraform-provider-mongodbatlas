@@ -13,45 +13,25 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
-	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true})
-	)
+const (
+	resourceName   = "mongodbatlas_global_cluster_config.config"
+	dataSourceName = "data.mongodbatlas_global_cluster_config.config"
+)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(&clusterInfo, false, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "false"),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
-				),
-			},
-			{
-				Config:      configBasic(&clusterInfo, true, false),
-				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed"),
-			},
-		},
-	})
+func TestAccGlobalClusterConfig_basic(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t, false))
 }
 
-func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
-	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, CloudBackup: true})
-	)
+func TestAccGlobalClusterConfig_withBackup(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t, true))
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+func basicTestCase(tb testing.TB, withBackup bool) *resource.TestCase {
+	tb.Helper()
+	clusterInfo := acc.GetClusterInfo(tb, &acc.ClusterRequest{Geosharded: true, CloudBackup: withBackup})
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -59,12 +39,14 @@ func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
 				Config: configBasic(&clusterInfo, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+					acc.CheckRSAndDS(resourceName, nil, nil,
+						[]string{"custom_zone_mappings.#", "custom_zone_mapping.%", "custom_zone_mapping.CA", "project_id"},
+						map[string]string{
+							"cluster_name":         clusterInfo.Name,
+							"managed_namespaces.#": "1",
+							"managed_namespaces.0.is_custom_shard_key_hashed": "false",
+							"managed_namespaces.0.is_shard_key_unique":        "false",
+						}),
 				),
 			},
 			{
@@ -74,11 +56,51 @@ func TestAccClusterRSGlobalCluster_withAWSAndBackup(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"custom_zone_mappings"},
 			},
+			{
+				Config:      configBasic(&clusterInfo, true, false),
+				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed"),
+			},
 		},
-	})
+	}
 }
 
-func TestAccClusterRSGlobalCluster_database(t *testing.T) {
+func TestAccGlobalClusterConfig_database(t *testing.T) {
+	const (
+		customZone = `
+			custom_zone_mappings {
+				location = "US"
+				zone     = "US"
+			}
+			custom_zone_mappings {
+				location = "IE"
+				zone     = "EU"
+			}
+			custom_zone_mappings {
+				location = "DE"
+				zone     = "DE"
+			}
+		`
+
+		customZoneUpdated = `
+			custom_zone_mappings {
+				location = "US"
+				zone     = "US"
+			}
+			custom_zone_mappings {
+				location = "IE"
+				zone     = "EU"
+			}
+			custom_zone_mappings {
+				location = "DE"
+				zone     = "DE"
+			}
+			custom_zone_mappings {
+				location = "JP"
+				zone     = "JP"
+			}
+		`
+	)
+
 	var (
 		specUS      = acc.ReplicationSpecRequest{ZoneName: "US", Region: "US_EAST_1"}
 		specEU      = acc.ReplicationSpecRequest{ZoneName: "EU", Region: "EU_WEST_1"}
@@ -96,14 +118,12 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 				Config: configWithDBConfig(&clusterInfo, customZone),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.#", "5"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.US"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.IE"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.DE"),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+					acc.CheckRSAndDS(resourceName, nil, nil,
+						[]string{"custom_zone_mappings.#", "custom_zone_mapping.%", "custom_zone_mapping.US", "custom_zone_mapping.IE", "custom_zone_mapping.DE", "project_id"},
+						map[string]string{
+							"cluster_name":         clusterInfo.Name,
+							"managed_namespaces.#": "5",
+						}),
 				),
 			},
 			{
@@ -194,8 +214,9 @@ func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) st
 		}
 
 		data "mongodbatlas_global_cluster_config" "config" {
-			cluster_name     = %[1]s
-			project_id       = %[2]q
+			project_id       = mongodbatlas_global_cluster_config.config.project_id			
+			cluster_name     = mongodbatlas_global_cluster_config.config.cluster_name
+			depends_on = [mongodbatlas_global_cluster_config.config]
 		}	
 	`, info.TerraformNameRef, info.ProjectID, isCustomShard, isShardKeyUnique)
 }
@@ -233,43 +254,11 @@ func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
 			}
 			%[3]s
 		}
+
+		data "mongodbatlas_global_cluster_config" "config" {
+			project_id       = mongodbatlas_global_cluster_config.config.project_id			
+			cluster_name     = mongodbatlas_global_cluster_config.config.cluster_name
+			depends_on = [mongodbatlas_global_cluster_config.config]
+		}	
 	`, info.TerraformNameRef, info.ProjectID, zones)
 }
-
-const (
-	resourceName   = "mongodbatlas_global_cluster_config.config"
-	dataSourceName = "data.mongodbatlas_global_cluster_config.config"
-
-	customZone = `
-		custom_zone_mappings {
-			location = "US"
-			zone     = "US"
-		}
-		custom_zone_mappings {
-			location = "IE"
-			zone     = "EU"
-		}
-		custom_zone_mappings {
-			location = "DE"
-			zone     = "DE"
-		}
-	`
-	customZoneUpdated = `
-		custom_zone_mappings {
-			location = "US"
-			zone     = "US"
-		}
-		custom_zone_mappings {
-			location = "IE"
-			zone     = "EU"
-		}
-		custom_zone_mappings {
-			location = "DE"
-			zone     = "DE"
-		}
-		custom_zone_mappings {
-			location = "JP"
-			zone     = "JP"
-		}
-	`
-)
