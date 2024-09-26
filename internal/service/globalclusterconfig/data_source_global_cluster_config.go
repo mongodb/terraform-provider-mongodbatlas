@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -54,8 +55,9 @@ func DataSource() *schema.Resource {
 				},
 			},
 			"custom_zone_mapping": {
-				Type:     schema.TypeMap,
-				Computed: true,
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "1.23.0", "custom_zone_mapping_zone_id"),
+				Type:       schema.TypeMap,
+				Computed:   true,
 			},
 			"custom_zone_mapping_zone_id": {
 				Type:     schema.TypeMap,
