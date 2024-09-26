@@ -34,28 +34,26 @@ type Schema struct {
 type Attributes []Attribute
 
 type Attribute struct {
-	Name               string
-	Description        *string
+	List               *ListAttribute
+	SetNested          *SetNestedAttribute
 	DeprecationMessage *string
-
-	Sensitive  *bool
-	IsComputed *bool
-	IsOptional *bool
-	IsRequired *bool
-
-	Bool         *BoolAttribute
-	Float64      *Float64Attribute
-	Int64        *Int64Attribute
-	List         *ListAttribute
-	ListNested   *ListNestedAttribute
-	Map          *MapAttribute
-	MapNested    *MapNestedAttribute
-	Number       *NumberAttribute
-	Object       *ObjectAttribute
-	Set          *SetAttribute
-	SetNested    *SetNestedAttribute
-	SingleNested *SingleNestedAttribute
-	String       *StringAttribute
+	Sensitive          *bool
+	IsComputed         *bool
+	IsOptional         *bool
+	IsRequired         *bool
+	Float64            *Float64Attribute
+	String             *StringAttribute
+	Description        *string
+	Bool               *BoolAttribute
+	ListNested         *ListNestedAttribute
+	Map                *MapAttribute
+	MapNested          *MapNestedAttribute
+	Number             *NumberAttribute
+	Object             *ObjectAttribute
+	Set                *SetAttribute
+	Int64              *Int64Attribute
+	SingleNested       *SingleNestedAttribute
+	Name               string
 }
 
 type BoolAttribute struct {
