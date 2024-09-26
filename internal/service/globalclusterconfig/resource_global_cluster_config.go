@@ -94,7 +94,7 @@ func Resource() *schema.Resource {
 				},
 			},
 			"custom_zone_mapping": {
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByDateWithReplacement, "1.23.0", "custom_zone_mapping_zone_id"),
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.23.0", "custom_zone_mapping_zone_id"),
 				Type:       schema.TypeMap,
 				Computed:   true,
 			},
