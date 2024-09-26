@@ -73,6 +73,14 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
+	resp, httpResp, err := connV2.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		if httpResp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
+	}
 	oldResp, httpResp, err := connV220240530.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if httpResp.StatusCode == http.StatusNotFound {
@@ -81,22 +89,14 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
-	newResp, httpResp, err := connV2.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if httpResp.StatusCode == http.StatusNotFound {
-			d.SetId("")
-			return nil
-		}
+
+	if err := d.Set("managed_namespaces", flattenManagedNamespaces(resp.GetManagedNamespaces())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
-
-	if err := d.Set("managed_namespaces", flattenManagedNamespaces(oldResp.GetManagedNamespaces())); err != nil {
+	if err := d.Set("custom_zone_mapping_zone_id", resp.GetCustomZoneMapping()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 	if err := d.Set("custom_zone_mapping", oldResp.GetCustomZoneMapping()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
-	}
-	if err := d.Set("custom_zone_mapping_zone_id", newResp.GetCustomZoneMapping()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 
