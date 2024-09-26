@@ -234,6 +234,8 @@ func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) st
 				location = "CA"
 				zone     = "Zone 1"
 			}
+
+			depends_on = [%[5]s]
 		}
 
 		data "mongodbatlas_global_cluster_config" "config" {
@@ -241,7 +243,7 @@ func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) st
 			cluster_name     = mongodbatlas_global_cluster_config.config.cluster_name
 			depends_on = [mongodbatlas_global_cluster_config.config]
 		}	
-	`, info.TerraformNameRef, info.ProjectID, isCustomShard, isShardKeyUnique)
+	`, info.TerraformNameRef, info.ProjectID, isCustomShard, isShardKeyUnique, info.ResourceName)
 }
 
 func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
@@ -276,6 +278,8 @@ func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
 				custom_shard_key = "orgId"
 			}
 			%[3]s
+
+			depends_on = [%[4]s]
 		}
 
 		data "mongodbatlas_global_cluster_config" "config" {
@@ -283,5 +287,5 @@ func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
 			cluster_name     = mongodbatlas_global_cluster_config.config.cluster_name
 			depends_on = [mongodbatlas_global_cluster_config.config]
 		}	
-	`, info.TerraformNameRef, info.ProjectID, zones)
+	`, info.TerraformNameRef, info.ProjectID, zones, info.ResourceName)
 }
