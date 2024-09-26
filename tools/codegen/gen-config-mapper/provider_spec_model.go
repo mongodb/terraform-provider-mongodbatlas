@@ -1,5 +1,19 @@
 package genconfigmapper
 
+type ElemType int
+
+const (
+	Bool ElemType = iota
+	Float64
+	Int64
+	List
+	Map
+	Number
+	Object
+	Set
+	String
+)
+
 type CodeSpecification struct {
 	Resources Resource
 }
@@ -20,15 +34,14 @@ type Schema struct {
 type Attributes []Attribute
 
 type Attribute struct {
+	Name               string
+	Description        *string
+	DeprecationMessage *string
+
 	Sensitive  *bool
 	IsComputed *bool
 	IsOptional *bool
 	IsRequired *bool
-
-	Description        *string
-	DeprecationMessage *string
-
-	Name string
 
 	Bool         *BoolAttribute
 	Float64      *Float64Attribute
@@ -91,7 +104,6 @@ type ListNestedAttribute struct {
 	Default      *CustomDefault
 	NestedObject NestedAttributeObject
 }
-
 type NestedAttributeObject struct {
 	Attributes Attributes
 }
@@ -100,17 +112,3 @@ type CustomDefault struct {
 	Definition string
 	Imports    []string
 }
-
-type ElemType int
-
-const (
-	Bool ElemType = iota
-	Float64
-	Int64
-	List
-	Map
-	Number
-	Object
-	Set
-	String
-)
