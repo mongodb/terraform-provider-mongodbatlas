@@ -2,7 +2,6 @@ package genconfig
 
 type Config struct {
 	Resources map[string]Resource `yaml:"resources"`
-	// DataSources map[string]DataSource `yaml:"data_sources"`
 }
 
 type Resource struct {
@@ -12,16 +11,6 @@ type Resource struct {
 	Delete        *APIOperation `yaml:"delete"`
 	SchemaOptions SchemaOptions `yaml:"schema"`
 }
-
-// type DataSource struct {
-// 	Read          *OperationPath `yaml:"read"`
-// 	SchemaOptions SchemaOptions  `yaml:"schema"`
-// }
-
-// type DataSourcePlural struct {
-// 	Read          *OperationPath `yaml:"read"`
-// 	SchemaOptions SchemaOptions  `yaml:"schema"`
-// }
 
 type APIOperation struct {
 	Path   string `yaml:"path"`

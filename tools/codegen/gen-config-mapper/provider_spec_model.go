@@ -5,51 +5,50 @@ import (
 )
 
 type CodeSpecification struct {
-	DataSource       DataSource       `json:"datasource,omitempty"`
-	DataSourcePlural DataSourcePlural `json:"datasourceplural,omitempty"`
-	Resources        Resource         `json:"resource,omitempty"`
+	DataSource       DataSource
+	DataSourcePlural DataSourcePlural
+	Resources        Resource
 }
 
 type DataSourcePlural struct {
-	Schema *Schema `json:"schema,omitempty"`
-	Name   string  `json:"name"`
+	Schema *Schema
+	Name   string
 }
 
 type DataSource struct {
-	Schema *Schema `json:"schema,omitempty"`
-	Name   string  `json:"name"`
+	Schema *Schema
+	Name   string
 }
 
 type Resource struct {
-	Schema *Schema `json:"schema,omitempty"`
-	Name   string  `json:"name"`
+	Schema *Schema
+	Name   string
 }
 
 type Schema struct {
-	Description         *string `json:"description,omitempty"`
-	MarkdownDescription *string `json:"markdown_description,omitempty"`
-	DeprecationMessage  *string `json:"deprecation_message,omitempty"`
+	Description         *string
+	MarkdownDescription *string
+	DeprecationMessage  *string
 
-	// Blocks              Blocks  `json:"blocks,omitempty"`
-	Attributes Attributes `json:"attributes,omitempty"`
+	Attributes Attributes
 }
 
 type Attributes []Attribute
 
 type Attribute struct {
-	Bool         *resource.BoolAttribute         `json:"bool,omitempty"`
-	Float64      *resource.Float64Attribute      `json:"float64,omitempty"`
-	Int64        *resource.Int64Attribute        `json:"int64,omitempty"`
-	List         *resource.ListAttribute         `json:"list,omitempty"`
-	ListNested   *resource.ListNestedAttribute   `json:"list_nested,omitempty"`
-	Map          *resource.MapAttribute          `json:"map,omitempty"`
-	MapNested    *resource.MapNestedAttribute    `json:"map_nested,omitempty"`
-	Number       *resource.NumberAttribute       `json:"number,omitempty"`
-	Object       *resource.ObjectAttribute       `json:"object,omitempty"`
-	Set          *resource.SetAttribute          `json:"set,omitempty"`
-	SetNested    *resource.SetNestedAttribute    `json:"set_nested,omitempty"`
-	SingleNested *resource.SingleNestedAttribute `json:"single_nested,omitempty"`
-	String       *resource.StringAttribute       `json:"string,omitempty"`
+	Bool         *resource.BoolAttribute
+	Float64      *resource.Float64Attribute
+	Int64        *resource.Int64Attribute
+	List         *resource.ListAttribute
+	ListNested   *resource.ListNestedAttribute
+	Map          *resource.MapAttribute
+	MapNested    *resource.MapNestedAttribute
+	Number       *resource.NumberAttribute
+	Object       *resource.ObjectAttribute
+	Set          *resource.SetAttribute
+	SetNested    *resource.SetNestedAttribute
+	SingleNested *resource.SingleNestedAttribute
+	String       *resource.StringAttribute
 
-	Name string `json:"name"`
+	Name string
 }
