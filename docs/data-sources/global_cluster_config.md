@@ -97,7 +97,7 @@ resource "mongodbatlas_global_cluster_config" "config" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create the database user.
-* `cluster_name - (Required) The name of the Global Cluster.
+* `cluster_name` - (Required) The name of the Global Cluster.
 
 ## Attributes Reference
 
