@@ -458,6 +458,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
+	for _, spec := range params.GetReplicationSpecs() {
+		configs := spec.GetRegionConfigs()
+		for i := 0; i < len(configs)-1; i++ {
+			if configs[i].GetPriority() < configs[i+1].GetPriority() {
+				return diag.FromErr(fmt.Errorf("priority values in region_configs must be in descending order"))
+			}
+		}
+	}
+
 	cluster, _, err := connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))

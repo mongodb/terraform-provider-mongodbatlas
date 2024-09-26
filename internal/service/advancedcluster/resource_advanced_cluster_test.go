@@ -804,6 +804,25 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyOldSchema(t *testing.T) {
 	})
 }
 
+func TestAccClusterAdvancedCluster_priority(t *testing.T) {
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:      configPriority(projectID, clusterName),
+				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
+			},
+		},
+	})
+}
+
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
@@ -2123,4 +2142,39 @@ func checkReplicaSetScalingStrategy(replicaSetScalingStrategy string) resource.T
 		clusterChecks,
 		additionalChecks...,
 	)
+}
+
+func configPriority(projectID, name string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			backup_enabled = false
+			cluster_type   = "REPLICASET"
+
+			replication_specs {
+
+					region_configs {
+						provider_name = "AWS"
+						priority      = 6
+						region_name   = "US_WEST_2"
+						electable_specs {
+							node_count    = 3
+							instance_size = "M10"
+						}
+					}
+
+					region_configs {
+						provider_name = "AWS"
+						priority      = 7
+						region_name   = "US_EAST_1"
+						electable_specs {
+							node_count    = 3
+							instance_size = "M10"
+						}
+					}
+
+			}
+		}
+	`, projectID, name)
 }
