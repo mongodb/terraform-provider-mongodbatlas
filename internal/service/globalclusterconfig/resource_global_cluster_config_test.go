@@ -39,10 +39,7 @@ func basicTestCase(tb testing.TB, withBackup bool) *resource.TestCase {
 				Config: configBasic(&clusterInfo, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttrPair(resourceName, "custom_zone_mapping_zone_id.CA", clusterInfo.ResourceName, "replication_specs.0.zone_id"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "custom_zone_mapping_zone_id.CA", clusterInfo.ResourceName, "replication_specs.0.zone_id"),
-					resource.TestCheckResourceAttrPair(resourceName, "custom_zone_mapping.CA", clusterInfo.ResourceName, "replication_specs.0.id"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "custom_zone_mapping.CA", clusterInfo.ResourceName, "replication_specs.0.id"),
+					checkZone(0, "CA", clusterInfo.ResourceName),
 					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
 						[]string{"project_id"},
 						map[string]string{
@@ -50,8 +47,8 @@ func basicTestCase(tb testing.TB, withBackup bool) *resource.TestCase {
 							"managed_namespaces.#": "1",
 							"managed_namespaces.0.is_custom_shard_key_hashed": "false",
 							"managed_namespaces.0.is_shard_key_unique":        "false",
-							"custom_zone_mapping.%":                           "1",
 							"custom_zone_mapping_zone_id.%":                   "1",
+							"custom_zone_mapping.%":                           "1",
 						}),
 				),
 			},
@@ -124,11 +121,18 @@ func TestAccGlobalClusterConfig_database(t *testing.T) {
 				Config: configWithDBConfig(&clusterInfo, customZone),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
+					checkZone(0, "US", clusterInfo.ResourceName),
+					checkZone(1, "IE", clusterInfo.ResourceName),
+					checkZone(2, "DE", clusterInfo.ResourceName),
 					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
-						[]string{"custom_zone_mapping.%", "custom_zone_mapping.US", "custom_zone_mapping.IE", "custom_zone_mapping.DE", "project_id"},
+						[]string{"project_id"},
 						map[string]string{
 							"cluster_name":         clusterInfo.Name,
 							"managed_namespaces.#": "5",
+							"managed_namespaces.0.is_custom_shard_key_hashed": "false",
+							"managed_namespaces.0.is_shard_key_unique":        "false",
+							"custom_zone_mapping_zone_id.%":                   "3",
+							"custom_zone_mapping.%":                           "3",
 						}),
 				),
 			},
@@ -145,6 +149,19 @@ func TestAccGlobalClusterConfig_database(t *testing.T) {
 			},
 		},
 	})
+}
+
+func checkZone(pos int, zone, clusterName string) resource.TestCheckFunc {
+	firstID := fmt.Sprintf("custom_zone_mapping.%s", zone)
+	secondID := fmt.Sprintf("replication_specs.%d.id", pos)
+	firstZoneID := fmt.Sprintf("custom_zone_mapping_zone_id.%s", zone)
+	secondZoneID := fmt.Sprintf("replication_specs.%d.zone_id", pos)
+	return resource.ComposeAggregateTestCheckFunc([]resource.TestCheckFunc{
+		resource.TestCheckResourceAttrPair(resourceName, firstID, clusterName, secondID),
+		resource.TestCheckResourceAttrPair(dataSourceName, firstID, clusterName, secondID),
+		resource.TestCheckResourceAttrPair(resourceName, firstZoneID, clusterName, secondZoneID),
+		resource.TestCheckResourceAttrPair(dataSourceName, firstZoneID, clusterName, secondZoneID),
+	}...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
