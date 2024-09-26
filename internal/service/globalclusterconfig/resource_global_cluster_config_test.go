@@ -28,11 +28,7 @@ func TestAccGlobalClusterConfig_withBackup(t *testing.T) {
 
 func basicTestCase(tb testing.TB, withBackup bool) *resource.TestCase {
 	tb.Helper()
-	var specs []acc.ReplicationSpecRequest
-	if withBackup {
-		specs = []acc.ReplicationSpecRequest{{Region: "US_EAST_1"}}
-	}
-	clusterInfo := acc.GetClusterInfo(tb, &acc.ClusterRequest{Geosharded: true, CloudBackup: withBackup, ReplicationSpecs: specs})
+	clusterInfo := acc.GetClusterInfo(tb, &acc.ClusterRequest{Geosharded: true, CloudBackup: withBackup})
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(tb) },
