@@ -39,13 +39,19 @@ func basicTestCase(tb testing.TB, withBackup bool) *resource.TestCase {
 				Config: configBasic(&clusterInfo, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					acc.CheckRSAndDS(resourceName, nil, nil,
-						[]string{"custom_zone_mappings.#", "custom_zone_mapping.%", "custom_zone_mapping.CA", "project_id"},
+					resource.TestCheckResourceAttrPair(resourceName, "custom_zone_mapping_zone_id.CA", clusterInfo.ResourceName, "replication_specs.0.zone_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "custom_zone_mapping_zone_id.CA", clusterInfo.ResourceName, "replication_specs.0.zone_id"),
+					resource.TestCheckResourceAttrPair(resourceName, "custom_zone_mapping.CA", clusterInfo.ResourceName, "replication_specs.0.id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "custom_zone_mapping.CA", clusterInfo.ResourceName, "replication_specs.0.id"),
+					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
+						[]string{"project_id"},
 						map[string]string{
 							"cluster_name":         clusterInfo.Name,
 							"managed_namespaces.#": "1",
 							"managed_namespaces.0.is_custom_shard_key_hashed": "false",
 							"managed_namespaces.0.is_shard_key_unique":        "false",
+							"custom_zone_mapping.%":                           "1",
+							"custom_zone_mapping_zone_id.%":                   "1",
 						}),
 				),
 			},
@@ -118,8 +124,8 @@ func TestAccGlobalClusterConfig_database(t *testing.T) {
 				Config: configWithDBConfig(&clusterInfo, customZone),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					acc.CheckRSAndDS(resourceName, nil, nil,
-						[]string{"custom_zone_mappings.#", "custom_zone_mapping.%", "custom_zone_mapping.US", "custom_zone_mapping.IE", "custom_zone_mapping.DE", "project_id"},
+					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
+						[]string{"custom_zone_mapping.%", "custom_zone_mapping.US", "custom_zone_mapping.IE", "custom_zone_mapping.DE", "project_id"},
 						map[string]string{
 							"cluster_name":         clusterInfo.Name,
 							"managed_namespaces.#": "5",
