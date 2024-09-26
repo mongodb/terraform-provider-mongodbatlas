@@ -1,25 +1,7 @@
 package genconfigmapper
 
-import (
-	"log"
-
-	"github.com/hashicorp/terraform-plugin-codegen-spec/resource"
-)
-
 type CodeSpecification struct {
-	DataSource       DataSource
-	DataSourcePlural DataSourcePlural
-	Resources        Resource
-}
-
-type DataSourcePlural struct {
-	Schema *Schema
-	Name   string
-}
-
-type DataSource struct {
-	Schema *Schema
-	Name   string
+	Resources Resource
 }
 
 type Resource struct {
@@ -38,74 +20,80 @@ type Schema struct {
 type Attributes []Attribute
 
 type Attribute struct {
+	Sensitive  *bool
+	IsComputed *bool
+	IsOptional *bool
+	IsRequired *bool
+
+	Description        *string
+	DeprecationMessage *string
+
+	Name string
+
 	Bool         *BoolAttribute
 	Float64      *Float64Attribute
 	Int64        *Int64Attribute
 	List         *ListAttribute
 	ListNested   *ListNestedAttribute
-	Map          *resource.MapAttribute
-	MapNested    *resource.MapNestedAttribute
-	Number       *resource.NumberAttribute
-	Object       *resource.ObjectAttribute
-	Set          *resource.SetAttribute
-	SetNested    *resource.SetNestedAttribute
-	SingleNested *resource.SingleNestedAttribute
-	String       *resource.StringAttribute
-
-	Name               string
-	Description        *string `json:"description,omitempty"`
-	DeprecationMessage *string `json:"deprecation_message,omitempty"`
-	Sensitive          *bool   `json:"sensitive,omitempty"`
-
-	IsComputed *bool `json:"is_computed,omitempty"`
-	IsOptional *bool `json:"is_optional,omitempty"`
-	IsRequired *bool `json:"is_required,omitempty"`
-
-	// TODO:
-	// PlanModifiers PlanModifiers `json:"plan_modifiers,omitempty"`
-	// Validators BoolValidators `json:"validators,omitempty"`
-
-}
-
-func temp() {
-	listA := ListAttribute{
-		Default: &ListDefault{
-			Custom: &CustomDefault{
-				Definition: "",
-				Imports:    []string{""},
-			},
-		},
-		ElementType: Bool,
-	}
-	log.Print(listA.ElementType)
+	Map          *MapAttribute
+	MapNested    *MapNestedAttribute
+	Number       *NumberAttribute
+	Object       *ObjectAttribute
+	Set          *SetAttribute
+	SetNested    *SetNestedAttribute
+	SingleNested *SingleNestedAttribute
+	String       *StringAttribute
 }
 
 type BoolAttribute struct {
-	Default *bool `json:"default,omitempty"`
+	Default *bool
 }
 type Float64Attribute struct {
-	Default *float64 `json:"default,omitempty"`
+	Default *float64
 }
 type Int64Attribute struct {
-	Default *int64 `json:"default,omitempty"`
+	Default *int64
+}
+type MapAttribute struct {
+	Default     *CustomDefault
+	ElementType ElemType
+}
+type MapNestedAttribute struct {
+	Default      *CustomDefault
+	NestedObject NestedAttributeObject
+}
+type NumberAttribute struct {
+	Default *CustomDefault
+}
+type ObjectAttribute struct {
+	Default *CustomDefault
+}
+type SetAttribute struct {
+	Default     *CustomDefault
+	ElementType ElemType
+}
+type SetNestedAttribute struct {
+	Default      *CustomDefault
+	NestedObject NestedAttributeObject
+}
+type SingleNestedAttribute struct {
+	Default    *CustomDefault
+	Attributes Attributes
+}
+type StringAttribute struct {
+	Default *string
 }
 type ListAttribute struct {
-	Default     *ListDefault `json:"default,omitempty"`
-	ElementType ElemType     `json:"element_type"`
+	Default     *CustomDefault
+	ElementType ElemType
 }
 type ListNestedAttribute struct {
-	Default      *ListDefault          `json:"default,omitempty"`
-	NestedObject NestedAttributeObject `json:"nested_object"`
-}
-type ListDefault struct {
-	Custom *CustomDefault `json:"custom,omitempty"`
+	Default      *CustomDefault
+	NestedObject NestedAttributeObject
 }
 
 type NestedAttributeObject struct {
-	Attributes Attributes `json:"attributes,omitempty"`
-	// TODO:
-	// PlanModifiers schema.ObjectPlanModifiers `json:"plan_modifiers,omitempty"`
-	// Validators schema.ObjectValidators `json:"validators,omitempty"`
+	Attributes Attributes
 }
 
 type CustomDefault struct {
