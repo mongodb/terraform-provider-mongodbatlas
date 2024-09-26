@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin" // fixed to old API due to CLOUDP-263795
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
 
 const (
@@ -96,6 +96,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeMap,
 				Computed: true,
 			},
+			"custom_zone_mapping_zone_id": {
+				Type:     schema.TypeMap,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -166,26 +170,36 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530 // fixed to old API due to CLOUDP-263795
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	globalCluster, resp, err := connV220240530.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
+	oldResp, httpResp, err := connV220240530.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if httpResp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-
+		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
+	}
+	newResp, httpResp, err := connV2.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		if httpResp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 
-	if err := d.Set("managed_namespaces", flattenManagedNamespaces(globalCluster.GetManagedNamespaces())); err != nil {
+	if err := d.Set("managed_namespaces", flattenManagedNamespaces(oldResp.GetManagedNamespaces())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
-
-	if err := d.Set("custom_zone_mapping", globalCluster.GetCustomZoneMapping()); err != nil {
+	if err := d.Set("custom_zone_mapping", oldResp.GetCustomZoneMapping()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
+	}
+	if err := d.Set("custom_zone_mapping_zone_id", newResp.GetCustomZoneMapping()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 
