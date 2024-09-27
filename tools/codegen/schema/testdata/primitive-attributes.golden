@@ -1,0 +1,22 @@
+package test_name
+
+import (
+	"context"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	
+)
+
+func ResourceSchema(ctx context.Context) schema.Schema {
+	return schema.Schema{
+		Attributes: map[string]schema.Attribute{
+		
+		"str_attr": schema.StringAttribute{
+				Optional: true,
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the search deployment.",
+			},
+		"other": schema.StringAttribute{
+				Optional: true,
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the search deployment.",
+			},
+	}
+}

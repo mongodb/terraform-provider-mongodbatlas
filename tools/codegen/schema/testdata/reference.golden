@@ -1,0 +1,33 @@
+package searchdeployment
+
+import (
+	"context"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	// "github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+func ResourceSchema(ctx context.Context) schema.Schema {
+	return schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"str_attr": schema.StringAttribute{
+				Optional: true,
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the search deployment.",
+			},
+			"list_attr": schema.ListAttribute{
+				Required: true,
+				ElementType: types.StringType,
+				MarkdownDescription: "Label that identifies the cluster to return the search nodes for.",
+			},
+			"map_attr": schema.MapAttribute{
+				Required: true,
+				ElementType: types.StringType,
+				MarkdownDescription: "Label that identifies the cluster to return the search nodes for.",
+			},
+			// "timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+			// 	Create: true,
+			// 	Update: true,
+			// 	Delete: true,
+			// }),
+		},
+	}
+}
