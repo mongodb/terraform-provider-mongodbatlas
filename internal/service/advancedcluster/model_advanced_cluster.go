@@ -399,6 +399,7 @@ func flattenTags(tags *[]admin.ResourceTag) []map[string]string {
 	return ret
 }
 
+// CheckRegionConfigsPriorityOrder will be deleted in CLOUDP-275825
 func CheckRegionConfigsPriorityOrder(regionConfigs []admin.ReplicationSpec20240805) error {
 	for _, spec := range regionConfigs {
 		configs := spec.GetRegionConfigs()
@@ -411,6 +412,7 @@ func CheckRegionConfigsPriorityOrder(regionConfigs []admin.ReplicationSpec202408
 	return nil
 }
 
+// CheckRegionConfigsPriorityOrderOld will be deleted in CLOUDP-275825
 func CheckRegionConfigsPriorityOrderOld(regionConfigs []admin20240530.ReplicationSpec) error {
 	for _, spec := range regionConfigs {
 		configs := spec.GetRegionConfigs()

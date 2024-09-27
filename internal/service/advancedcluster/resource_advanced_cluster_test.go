@@ -804,6 +804,7 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyOldSchema(t *testing.T) {
 	})
 }
 
+// TestAccClusterAdvancedCluster_priorityOldSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
@@ -831,6 +832,7 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 	})
 }
 
+// TestAccClusterAdvancedCluster_priorityNewSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
