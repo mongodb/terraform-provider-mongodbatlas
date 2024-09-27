@@ -19,6 +19,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.34.0
 	github.com/hashicorp/terraform-plugin-testing v1.9.0
 	github.com/mongodb-forks/digest v1.1.0
+	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/pb33f/libopenapi v0.18.1
 	github.com/spf13/cast v1.6.0
 	github.com/stretchr/testify v1.9.0
