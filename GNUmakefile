@@ -153,3 +153,7 @@ check-changelog-entry-file:
 .PHONY: jira-release-version
 jira-release-version:
 	go run ./tools/jira-release-version/*.go
+
+.PHONY: generate-schema
+generate-schema:
+	@go run ./tools/codegen/main.go $(resource_name)
