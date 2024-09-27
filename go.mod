@@ -1,6 +1,6 @@
 module github.com/mongodb/terraform-provider-mongodbatlas
 
-go 1.23
+go 1.23.0
 
 require (
 	github.com/andygrunwald/go-jira/v2 v2.0.0-20240116150243-50d59fe116d6
@@ -27,7 +27,6 @@ require (
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
 	go.mongodb.org/atlas-sdk/v20240805004 v20240805004.2.0
 	go.mongodb.org/realm v0.1.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -145,6 +144,8 @@ require (
 	google.golang.org/grpc v1.66.2 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+
 )
 
 exclude github.com/denis-tingajkin/go-header v0.4.2
