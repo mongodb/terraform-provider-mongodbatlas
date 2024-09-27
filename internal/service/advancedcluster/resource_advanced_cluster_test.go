@@ -807,7 +807,8 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyOldSchema(t *testing.T) {
 // TestAccClusterAdvancedCluster_priorityOldSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName = acc.RandomClusterName()
 	)
 
@@ -817,15 +818,15 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configPriority(projectID, clusterName, true, true),
+				Config:      configPriority(orgID, projectName, clusterName, true, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 			{
-				Config: configPriority(projectID, clusterName, true, false),
+				Config: configPriority(orgID, projectName, clusterName, true, false),
 				Check:  resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 			{
-				Config:      configPriority(projectID, clusterName, true, true),
+				Config:      configPriority(orgID, projectName, clusterName, true, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 		},
@@ -835,7 +836,8 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 // TestAccClusterAdvancedCluster_priorityNewSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName = acc.RandomClusterName()
 	)
 
@@ -845,15 +847,15 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configPriority(projectID, clusterName, false, true),
+				Config:      configPriority(orgID, projectName, clusterName, false, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 			{
-				Config: configPriority(projectID, clusterName, false, false),
+				Config: configPriority(orgID, projectName, clusterName, false, false),
 				Check:  resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 			{
-				Config:      configPriority(projectID, clusterName, false, true),
+				Config:      configPriority(orgID, projectName, clusterName, false, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 		},
@@ -2181,7 +2183,7 @@ func checkReplicaSetScalingStrategy(replicaSetScalingStrategy string) resource.T
 	)
 }
 
-func configPriority(projectID, name string, oldSchema, swapPriorities bool) string {
+func configPriority(orgID, projectName, clusterName string, oldSchema, swapPriorities bool) string {
 	const (
 		config7 = `
 			region_configs {
@@ -2216,16 +2218,21 @@ func configPriority(projectID, name string, oldSchema, swapPriorities bool) stri
 	}
 
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
-			cluster_type   = %[3]q
+			project_id   = mongodbatlas_project.test.id
+			name         = %[3]q
+			cluster_type   = %[4]q
 			backup_enabled = false
 			
 			replication_specs {
- 					%[4]s
  					%[5]s
+ 					%[6]s
 			}
 		}
-	`, projectID, name, strType, strNumShards, strConfigs)
+	`, orgID, projectName, clusterName, strType, strNumShards, strConfigs)
 }
