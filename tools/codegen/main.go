@@ -3,10 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
 
 const (
@@ -22,14 +18,14 @@ func main() {
 		fmt.Printf("Resource name: %s\n", *resourceName)
 	}
 
-	apiDocModel, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecURL)
-	if err != nil {
-		panic(err)
-	}
+	// apiDocModel, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecURL)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	genConfig, _ := config.ParseGenConfigYAML(configPath)
+	// genConfig, _ := config.ParseGenConfigYAML(configPath)
 
-	_ = codespec.ConvertToProviderSpec(apiDocModel, *genConfig, resourceName)
+	// _ = codespec.ConvertToProviderSpec(apiDocModel, *genConfig, resourceName)
 }
 
 func getOsArg() *string {
