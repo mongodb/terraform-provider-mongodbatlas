@@ -1,16 +1,20 @@
 //nolint:gocritic
 package codespec
 
-// "github.com/pb33f/libopenapi"
-// v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
+import (
+	"github.com/pb33f/libopenapi"
+	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 
-// func ConvertToProviderSpec(openAPIModel *libopenapi.DocumentModel[v3.Document], config genconfig.Config, resourceName *string) *CodeSpecification {
-// 	// var resourceSpec genconfig.Resource
-// 	// if resourceName != nil {
-// 	// 	resourceSpec = config.Resources[*resourceName]
-// 	// }
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
+)
 
-// 	// TODO: convert openAPIModel and config to  CodeSpecification
+func ConvertToProviderSpec(openAPIModel *libopenapi.DocumentModel[v3.Document], config config.Config, resourceName *string) *CodeSpecification {
+	// var resourceSpec genconfig.Resource
+	// if resourceName != nil {
+	// 	resourceSpec = config.Resources[*resourceName]
+	// }
 
-// 	return &CodeSpecification{}
-// }
+	// TODO: convert openAPIModel and config to  CodeSpecification
+
+	return &CodeSpecification{}
+}
