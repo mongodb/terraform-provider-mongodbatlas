@@ -1,4 +1,4 @@
-package genconfigmapper
+package codespec
 
 type ElemType int
 
@@ -24,9 +24,8 @@ type Resource struct {
 }
 
 type Schema struct {
-	Description         *string
-	MarkdownDescription *string
-	DeprecationMessage  *string
+	Description        *string
+	DeprecationMessage *string
 
 	Attributes Attributes
 }

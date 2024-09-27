@@ -1,11 +1,11 @@
 //nolint:gocritic
-package genconfigmapper
+package codespec
 
 import (
 	"github.com/pb33f/libopenapi"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 
-	genconfig "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gen-config"
+	genconfig "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 )
 
 func ConvertToProviderSpec(openAPIModel *libopenapi.DocumentModel[v3.Document], config genconfig.Config, resourceName *string) *CodeSpecification {

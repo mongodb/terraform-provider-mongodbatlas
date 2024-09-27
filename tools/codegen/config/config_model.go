@@ -1,4 +1,4 @@
-package genconfig
+package config
 
 type Config struct {
 	Resources map[string]Resource `yaml:"resources"`

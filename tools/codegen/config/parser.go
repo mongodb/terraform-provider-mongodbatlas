@@ -1,4 +1,4 @@
-package genconfig
+package config
 
 import (
 	"os"

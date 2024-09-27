@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	genconfig "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gen-config"
-	genconfigmapper "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gen-config-mapper"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
 
@@ -27,9 +27,9 @@ func main() {
 		panic(err)
 	}
 
-	genConfig, _ := genconfig.ParseGenConfigYAML(configPath)
+	genConfig, _ := config.ParseGenConfigYAML(configPath)
 
-	_ = genconfigmapper.ConvertToProviderSpec(apiDocModel, *genConfig, resourceName)
+	_ = codespec.ConvertToProviderSpec(apiDocModel, *genConfig, resourceName)
 }
 
 func getOsArg() *string {
