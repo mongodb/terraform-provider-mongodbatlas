@@ -458,7 +458,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	if err := checkRegionConfigsPriorityOrder(params.GetReplicationSpecs()); err != nil {
+	if err := CheckRegionConfigsPriorityOrder(params.GetReplicationSpecs()); err != nil {
 		return diag.FromErr(err)
 	}
 	cluster, _, err := connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
@@ -802,7 +802,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		clusterChangeDetect := new(admin20240530.AdvancedClusterDescription)
 		if !reflect.DeepEqual(req, clusterChangeDetect) {
-			if err := checkRegionConfigsPriorityOrderOld(req.GetReplicationSpecs()); err != nil {
+			if err := CheckRegionConfigsPriorityOrderOld(req.GetReplicationSpecs()); err != nil {
 				return diag.FromErr(err)
 			}
 			if _, _, err := connV220240530.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
@@ -829,7 +829,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		clusterChangeDetect := new(admin.ClusterDescription20240805)
 		if !reflect.DeepEqual(req, clusterChangeDetect) {
-			if err := checkRegionConfigsPriorityOrder(req.GetReplicationSpecs()); err != nil {
+			if err := CheckRegionConfigsPriorityOrder(req.GetReplicationSpecs()); err != nil {
 				return diag.FromErr(err)
 			}
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
@@ -1295,28 +1295,4 @@ func waitForUpdateToFinish(ctx context.Context, connV2 *admin.APIClient, project
 
 	_, err := stateConf.WaitForStateContext(ctx)
 	return err
-}
-
-func checkRegionConfigsPriorityOrder(regionConfigs []admin.ReplicationSpec20240805) error {
-	for _, spec := range regionConfigs {
-		configs := spec.GetRegionConfigs()
-		for i := 0; i < len(configs)-1; i++ {
-			if configs[i].GetPriority() < configs[i+1].GetPriority() {
-				return errors.New("priority values in region_configs must be in descending order")
-			}
-		}
-	}
-	return nil
-}
-
-func checkRegionConfigsPriorityOrderOld(regionConfigs []admin20240530.ReplicationSpec) error {
-	for _, spec := range regionConfigs {
-		configs := spec.GetRegionConfigs()
-		for i := 0; i < len(configs)-1; i++ {
-			if configs[i].GetPriority() < configs[i+1].GetPriority() {
-				return errors.New("priority values in region_configs must be in descending order")
-			}
-		}
-	}
-	return nil
 }
