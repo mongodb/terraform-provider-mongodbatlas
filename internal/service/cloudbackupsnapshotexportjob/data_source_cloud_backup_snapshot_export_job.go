@@ -2,11 +2,9 @@ package cloudbackupsnapshotexportjob
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
 func DataSource() *schema.Resource {
@@ -67,11 +65,6 @@ func DataSource() *schema.Resource {
 			"created_at": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"err_msg": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.20.0"),
 			},
 			"export_bucket_id": {
 				Type:     schema.TypeString,

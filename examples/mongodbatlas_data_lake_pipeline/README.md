@@ -2,13 +2,13 @@
 
 This project provides an example of MongoDB Atlas DataLake Pipeline.
 
-**WARNING:** Data Lake is deprecated. As of September 2024, Data Lake is deprecated and will reach end-of-life. It will be removed on September 30, 2025. If you use Data Lake, you should migrate to alternative solutions before the service is removed. To learn more, see <https://dochub.mongodb.org/core/data-lake-deprecation>
+**WARNING:** Data Lake is deprecated. To learn more, see <https://dochub.mongodb.org/core/data-lake-deprecation>
 
 
 ## Dependencies
 
 * Terraform v0.13
-* A MongoDB Atlas account 
+* A MongoDB Atlas account
 You will also need to install the Atlas Terraform provider:
 ```
 Terraform v0.13.0
@@ -28,22 +28,22 @@ Now create **terraform.tfvars** file with all the variable values and make sure 
 Execute the following command:
 
 ``` bash
-$ terraform plan
+terraform plan
 ```
 Review the output of `terraform plan` to make sure the changes are correct.
 
 This project will deploy the following:
 
-- MongoDB Atlas Project
-- MongoDB Atlas Cluster
-- MongoDB Atlas DataLake Pipeline
+* MongoDB Atlas Project
+* MongoDB Atlas Cluster
+* MongoDB Atlas DataLake Pipeline
 
 **5\. Execute the Terraform apply.**
 
 Now execute the plan to provision the Atlas Cluster and Federated settings resources.
 
 ``` bash
-$ terraform apply
+terraform apply
 ```
 
 **6\. Load Sample data to your recently create Atlas cluster using [AtlasCLI](https://www.mongodb.com/tools/atlas-cli)**
@@ -56,5 +56,5 @@ $ terraform apply
 When you finish testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
 
 ``` bash
-$ terraform destroy
+terraform destroy
 ```

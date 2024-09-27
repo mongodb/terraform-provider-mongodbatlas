@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -54,6 +55,11 @@ func DataSource() *schema.Resource {
 				},
 			},
 			"custom_zone_mapping": {
+				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.23.0", "custom_zone_mapping_zone_id"),
+				Type:       schema.TypeMap,
+				Computed:   true,
+			},
+			"custom_zone_mapping_zone_id": {
 				Type:     schema.TypeMap,
 				Computed: true,
 			},
@@ -62,28 +68,38 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	globalCluster, resp, err := connV220240530.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
+	resp, httpResp, err := connV2.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if httpResp.StatusCode == http.StatusNotFound {
+			d.SetId("")
 			return nil
 		}
-
+		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
+	}
+	oldResp, httpResp, err := connV220240530.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		if httpResp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 
-	if err := d.Set("managed_namespaces", flattenManagedNamespaces(globalCluster.GetManagedNamespaces())); err != nil {
+	if err := d.Set("managed_namespaces", flattenManagedNamespaces(resp.GetManagedNamespaces())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
-
-	if err := d.Set("custom_zone_mapping", globalCluster.GetCustomZoneMapping()); err != nil {
+	if err := d.Set("custom_zone_mapping_zone_id", resp.GetCustomZoneMapping()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
+	}
+	if err := d.Set("custom_zone_mapping", oldResp.GetCustomZoneMapping()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 
 	d.SetId(clusterName)
-
 	return nil
 }

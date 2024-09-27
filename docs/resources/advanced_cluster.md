@@ -138,7 +138,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   replication_specs {   # shard 1
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -148,7 +148,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
      region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -160,7 +160,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   replication_specs {   # shard 2
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -168,9 +168,9 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_name   = "US_EAST_1"
     }
 
-     region_configs { 
+    region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -200,7 +200,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -210,7 +210,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -224,7 +224,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -234,7 +234,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -248,7 +248,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -258,7 +258,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -272,7 +272,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs { 
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
@@ -282,7 +282,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
     region_configs {
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
@@ -347,10 +347,10 @@ output "endpoint_service_connection_string" {
 # Example return string: connection_string = "mongodb+srv://cluster-atlas-pl-0.ygo1m.mongodb.net"
 ```
 Refer to the following for full privatelink endpoint connection string examples:
-* [GCP Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/gcp-atlas-privatelink)
-* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/azure-atlas-privatelink)
-* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/aws-privatelink-endpoint/cluster)
-* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint/cluster-geosharded)
+* [GCP Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp)
+* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/azure)
+* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 ## Argument Reference
 
@@ -382,7 +382,7 @@ This parameter defaults to false.
 * `encryption_at_rest_provider` - (Optional) Possible values are AWS, GCP, AZURE or NONE.  Only needed if you desire to manage the keys, see [Encryption at Rest using Customer Key Management](https://docs.atlas.mongodb.com/security-kms-encryption/) for complete documentation.  You must configure encryption at rest for the Atlas project before enabling it on any cluster in the project. For Documentation, see [AWS](https://docs.atlas.mongodb.com/security-aws-kms/), [GCP](https://docs.atlas.mongodb.com/security-kms-encryption/) and [Azure](https://docs.atlas.mongodb.com/security-azure-kms/#std-label-security-azure-kms). Requirements are if `replication_specs.#.region_configs.#.<type>Specs.instance_size` is M10 or greater and `backup_enabled` is false or omitted.   
 * `tags` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 * `labels` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
-* `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports the following MongoDB versions for M10+ clusters: `4.4`, `5.0`, `6.0` or `7.0`. If omitted, Atlas deploys a cluster that runs MongoDB 7.0. If `replication_specs#.region_configs#.<type>Specs.instance_size`: `M0`, `M2` or `M5`, Atlas deploys MongoDB 4.4. Atlas always deploys the cluster with the latest stable release of the specified version.  If you set a value to this parameter and set `version_release_system` `CONTINUOUS`, the resource returns an error. Either clear this parameter or set `version_release_system`: `LTS`.
+* `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports all the MongoDB versions that have **not** reached [End of Live](https://www.mongodb.com/legal/support-policy/lifecycles) for M10+ clusters. If omitted, Atlas deploys the cluster with the default version. For more details, see [documentation](https://www.mongodb.com/docs/atlas/reference/faq/database/#which-versions-of-mongodb-do-service-clusters-use-). Atlas always deploys the cluster with the latest stable release of the specified version.  If you set a value to this parameter and set `version_release_system` `CONTINUOUS`, the resource returns an error. Either clear this parameter or set `version_release_system`: `LTS`.
 * `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Continuous Cloud Backup.
 * `replication_specs` - List of settings that configure your cluster regions. This attribute has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. If for each replication_spec `num_shards` is configured with a value greater than 1 (using deprecated sharding configurations), then each object represents a zone with one or more shards. See [below](#replication_specs)
 * `root_cert_type` - (Optional) - Certificate Authority that MongoDB Atlas clusters use. You can specify ISRGROOTX1 (for ISRG Root X1).

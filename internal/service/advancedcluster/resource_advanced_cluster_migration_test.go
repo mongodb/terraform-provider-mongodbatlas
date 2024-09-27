@@ -154,12 +154,18 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
-		extraArgs   = `
+		// necessary to test oplog_min_retention_hours
+		autoScalingConfigured = `
+			auto_scaling {
+				disk_gb_enabled = true
+			}`
+		extraArgs = `
 			advanced_configuration  {
 				fail_index_key_too_long              = false
 				javascript_enabled                   = true
 				minimum_enabled_tls_protocol         = "TLS1_1"
 				no_table_scan                        = false
+				oplog_min_retention_hours 		     = 4
 			}
 
 			bi_connector_config {
@@ -181,8 +187,8 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					enabled = false
 					read_preference = "secondary"
 			}`
-		config        = configPartialAdvancedConfig(projectID, clusterName, extraArgs)
-		configUpdated = configPartialAdvancedConfig(projectID, clusterName, extraArgsUpdated)
+		config        = configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScalingConfigured)
+		configUpdated = configPartialAdvancedConfig(projectID, clusterName, extraArgsUpdated, "")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -198,6 +204,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_min_retention_hours", "4"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "true"),
 				),
 			},
@@ -217,11 +224,12 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
 				),
 			},
+			mig.TestStepCheckEmptyPlan(configUpdated),
 		},
 	})
 }
 
-func configPartialAdvancedConfig(projectID, clusterName, extraArgs string) string {
+func configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScaling string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
@@ -241,9 +249,10 @@ func configPartialAdvancedConfig(projectID, clusterName, extraArgs string) strin
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_WEST_2"
+					%[4]s
 				}
 			}
 			%[3]s
 		}
-	`, projectID, clusterName, extraArgs)
+	`, projectID, clusterName, extraArgs, autoScaling)
 }

@@ -102,7 +102,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     num_shards = 2
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -117,7 +117,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -140,7 +140,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     zone_name  = "zone n1"
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -153,7 +153,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     zone_name  = "zone n1"
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -166,7 +166,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     zone_name  = "zone n2"
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -179,7 +179,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     zone_name  = "zone n2"
     region_configs {
     electable_specs {
-        instance_size = "M10"
+        instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
@@ -211,7 +211,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     replication_specs {
         region_configs {
             electable_specs {
-                instance_size = "M10"
+                instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"
@@ -235,7 +235,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     replication_specs {
         region_configs {
             electable_specs {
-                instance_size = "M10"
+                instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"
@@ -259,7 +259,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     replication_specs { # first shard
         region_configs {
             electable_specs {
-                instance_size = "M10"
+                instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"
@@ -271,7 +271,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     replication_specs { # second shard
         region_configs {
             electable_specs {
-                instance_size = "M10"
+                instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"

@@ -70,3 +70,11 @@ variable "region_configs_list" {
 
 ```
 
+## Issue: `mongodbatlas_alert_configuration` resource attribute `notification.#.integration_id` causes drift detection (non-empty plan) as shown below if no value is set:
+```
+~ notification {
+          - integration_id  = "xxxxxxxxxxxxxxxxxxxxxxxx" -> null
+```
+
+### Cause:
+Due to recent updates in the Atlas API [Alert Configuration](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Alert-Configurations/operation/getAlertConfiguration), a computed value for `integration_id` might be returned. This affects MongoDB Atlas Provider versions **1.16.0 to 1.19.0**. Please review the Breaking Changes section in our [1.20.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.20.0-upgrade-guide) to learn more.
