@@ -13,7 +13,7 @@ import (
 )
 
 func ParseAtlasAdminAPI(urlPath string) (*openapi3.T, error) {
-	specFilePath := fmt.Sprintf("open-api-spec.yml")
+	specFilePath := "open-api-spec.yml"
 	if err := downloadOpenAPISpec(urlPath, specFilePath); err != nil {
 		return nil, err
 	}
