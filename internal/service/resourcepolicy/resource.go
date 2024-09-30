@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"regexp"
 
@@ -39,17 +38,6 @@ type resourcePolicyRS struct {
 	config.RSCommon
 }
 
-var charSetAlphaNum = []rune("abcdefghijklmnopqrstuvwxyz012346789")
-
-// randPolicyName to workaround for POLICY_CANNOT_CONTAIN_A_DUPLICATE_NAME error until https://jira.mongodb.org/browse/CLOUDP-274990 is resolved.
-func randPolicyName(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = charSetAlphaNum[rand.Intn(len(charSetAlphaNum))] //nolint:gosec // This is not a security-sensitive operation, only to avoid POLICY_CANNOT_CONTAIN_A_DUPLICATE_NAME error
-	}
-	return string(b)
-}
-
 func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	var policies []TFPolicyModel
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("policies"), &policies)...)
@@ -64,7 +52,7 @@ func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPl
 		return
 	}
 	sdkCreate := &admin.ApiAtlasResourcePolicyCreate{
-		Name:     randPolicyName(16),
+		Name:     *name,
 		Policies: sdkPolicies,
 	}
 	connV2 := r.Client.AtlasV2
