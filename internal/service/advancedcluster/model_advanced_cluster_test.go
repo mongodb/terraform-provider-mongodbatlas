@@ -417,3 +417,49 @@ func TestIsChangeStreamOptionsMinRequiredMajorVersion(t *testing.T) {
 		})
 	}
 }
+
+func TestCheckRegionConfigsPriorityOrder(t *testing.T) {
+	testCases := map[string]struct {
+		priorities    []int
+		errorExpected bool
+	}{
+		"Priority order 3 entries": {
+			priorities: []int{7, 6, 5},
+		},
+		"Priority order 2 entries": {
+			priorities: []int{7, 6},
+		},
+		"Only 1 entry": {
+			priorities: []int{7},
+		},
+		"Same order 3 entries": {
+			priorities: []int{7, 0, 0},
+		},
+		"Same order 2 entries": {
+			priorities: []int{0, 0},
+		},
+		"Invalid priority order 2 entries": {
+			priorities:    []int{6, 7},
+			errorExpected: true,
+		},
+		"Invalid priority order 3 entries": {
+			priorities:    []int{7, 5, 6},
+			errorExpected: true,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			configs := make([]admin.CloudRegionConfig20240805, len(tc.priorities))
+			configsOld := make([]admin20240530.CloudRegionConfig, len(tc.priorities))
+			for i, priority := range tc.priorities {
+				configs[i].Priority = conversion.IntPtr(priority)
+				configsOld[i].Priority = conversion.IntPtr(priority)
+			}
+			err := advancedcluster.CheckRegionConfigsPriorityOrder([]admin.ReplicationSpec20240805{{RegionConfigs: &configs}})
+			assert.Equal(t, tc.errorExpected, err != nil)
+			err = advancedcluster.CheckRegionConfigsPriorityOrderOld([]admin20240530.ReplicationSpec{{RegionConfigs: &configsOld}})
+			assert.Equal(t, tc.errorExpected, err != nil)
+		})
+	}
+}
