@@ -5,13 +5,13 @@ import (
 	"os"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
 
 const (
 	atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
 	configPath           = "schema-generation/config.yml"
+	specFilePath         = "open-api-spec.yml"
 )
 
 func main() {
@@ -22,14 +22,18 @@ func main() {
 		fmt.Printf("Resource name: %s\n", *resourceName)
 	}
 
-	apiDocModel, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecURL)
-	if err != nil {
+	if err := openapi.DownloadOpenAPISpec(atlasAdminAPISpecURL, specFilePath); err != nil {
 		panic(err)
 	}
 
-	genConfig, _ := config.ParseGenConfigYAML(configPath)
+	// apiDocModel, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecURL)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	_ = codespec.ConvertToProviderSpec(apiDocModel, *genConfig, resourceName)
+	// genConfig, _ := config.ParseGenConfigYAML(configPath)
+
+	_ = codespec.ToProviderSpec(specFilePath, configPath, resourceName)
 }
 
 func getOsArg() *string {
