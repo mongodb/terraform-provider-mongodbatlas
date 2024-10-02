@@ -16,10 +16,20 @@
 
 set -euo pipefail
 
+CURRENT_SDK_RELEASE=$(grep 'go.mongodb.org/atlas-sdk/v' go.mod | 
+											awk '{print $1}' | 
+											sed 's/go.mongodb.org\/atlas-sdk\///' | 
+											sort -V | 
+											tail -n 1)
+echo "CURRENT_SDK_RELEASE: $CURRENT_SDK_RELEASE"
+
 LATEST_SDK_TAG=$(curl -sSfL -X GET  https://api.github.com/repos/mongodb/atlas-sdk-go/releases/latest | jq -r '.tag_name')
+echo "LATEST_SDK_TAG: $LATEST_SDK_TAG"
 
 LATEST_SDK_RELEASE=$(echo "${LATEST_SDK_TAG}" | cut -d '.' -f 1)
-echo  "==> Updating SDK to latest major version ${LATEST_SDK_TAG}"
-gomajor get "go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}@${LATEST_SDK_TAG}"
+echo "LATEST_SDK_RELEASE: $LATEST_SDK_RELEASE"
+echo  "==> Updating SDK ${CURRENT_SDK_RELEASE} to latest major version ${LATEST_SDK_TAG}"
+
+gomajor get --rewrite "go.mongodb.org/atlas-sdk/${CURRENT_SDK_RELEASE}" "go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}@${LATEST_SDK_TAG}"
 go mod tidy
 echo "Done"
