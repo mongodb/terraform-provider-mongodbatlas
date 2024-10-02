@@ -2,6 +2,7 @@
 package codespec
 
 import (
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
@@ -20,5 +21,50 @@ func ToProviderSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceN
 		_ = genConfig.Resources[*resourceName]
 	}
 
-	return &CodeSpecification{}
+	// TODO: remove after ToProviderSpecModel() implemented
+	return TestExampleCodeSpecification()
+}
+
+func TestExampleCodeSpecification() *CodeSpecification {
+	testFieldDesc := "Test field description"
+	return &CodeSpecification{
+		Resources: Resource{
+			Schema: &Schema{
+				Attributes: Attributes{
+					Attribute{
+						Name:        "project_id",
+						IsRequired:  conversion.Pointer(true),
+						String:      &StringAttribute{},
+						Description: conversion.StringPtr("Overridden project_id description"),
+					},
+					Attribute{
+						Name:        "bucket_name",
+						IsRequired:  conversion.Pointer(true),
+						String:      &StringAttribute{},
+						Description: &testFieldDesc,
+					},
+					Attribute{
+						Name:        "iam_role_id",
+						IsRequired:  conversion.Pointer(true),
+						String:      &StringAttribute{},
+						Description: &testFieldDesc,
+					},
+					Attribute{
+						Name:        "state",
+						IsComputed:  conversion.Pointer(true),
+						String:      &StringAttribute{},
+						Description: &testFieldDesc,
+					},
+					Attribute{
+						Name:        "prefix_path",
+						String:      &StringAttribute{},
+						IsComputed:  conversion.Pointer(true),
+						IsOptional:  conversion.Pointer(true),
+						Description: &testFieldDesc,
+					},
+				},
+			},
+			Name: "test_resource",
+		},
+	}
 }
