@@ -8,19 +8,12 @@ import (
 	"os"
 	"time"
 
-	// "github.com/getkin/kin-openapi/openapi3"
-	// "github.com/ghodss/yaml"
 	"github.com/pb33f/libopenapi"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
-func ParseAtlasAdminAPI(urlPath string) (*libopenapi.DocumentModel[v3.Document], error) {
-	// err := fetchOpenAPISpec(context.Background(), urlPath)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	atlasAPISpec, _ := os.ReadFile("open-api-spec.yml")
+func ParseAtlasAdminAPI(filePath string) (*libopenapi.DocumentModel[v3.Document], error) {
+	atlasAPISpec, _ := os.ReadFile(filePath)
 	document, err := libopenapi.NewDocument(atlasAPISpec)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create new document: %e", err)
@@ -66,36 +59,6 @@ func fetchOpenAPISpec(ctx context.Context, urlPath string) error {
 	println("Downloaded Atlas API spec")
 	return nil
 }
-
-// func ParseAtlasAdminAPI(specFilePath string) (*openapi3.T, error) {
-// 	// specFilePath := "open-api-spec.yml"
-// 	// if err := downloadOpenAPISpec(urlPath, specFilePath); err != nil {
-// 	// 	return nil, err
-// 	// }
-
-// 	openAPISpecFileYaml, err := os.ReadFile(specFilePath)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	specYaml, err := yaml.YAMLToJSON(openAPISpecFileYaml)
-// 	if err != nil {
-// 		fmt.Printf("err: %v\n", err)
-
-// 		return nil, err
-// 	}
-// 	doc, err := openapi3.NewLoader().LoadFromData(specYaml)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	if doc == nil {
-// 		fmt.Println("empty document found")
-// 		os.Exit(1)
-// 	}
-
-// 	return doc, nil
-// }
 
 func DownloadOpenAPISpec(url, specFilePath string) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)

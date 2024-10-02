@@ -26,14 +26,7 @@ func main() {
 		panic(err)
 	}
 
-	// apiDocModel, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecURL)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// genConfig, _ := config.ParseGenConfigYAML(configPath)
-
-	_ = codespec.ToProviderSpec(specFilePath, configPath, resourceName)
+	_ = codespec.ToProviderSpecModel(specFilePath, configPath, resourceName)
 }
 
 func getOsArg() *string {
