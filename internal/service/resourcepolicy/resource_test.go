@@ -222,7 +222,7 @@ func checkExists() resource.TestCheckFunc {
 			if rs.Type == resourceType {
 				orgID := rs.Primary.Attributes["org_id"]
 				id := rs.Primary.Attributes["id"]
-				_, _, err := acc.ConnV2().AtlasResourcePoliciesApi.GetAtlasResourcePolicy(context.Background(), orgID, id).Execute()
+				_, _, err := acc.ConnV2().ResourcePoliciesApi.GetAtlasResourcePolicy(context.Background(), orgID, id).Execute()
 				if err != nil {
 					return fmt.Errorf("resource policy (%s:%s) not found", orgID, id)
 				}
@@ -237,7 +237,7 @@ func checkDestroy(state *terraform.State) error {
 		if rs.Type == resourceType {
 			orgID := rs.Primary.Attributes["org_id"]
 			id := rs.Primary.Attributes["id"]
-			_, _, err := acc.ConnV2().AtlasResourcePoliciesApi.GetAtlasResourcePolicy(context.Background(), orgID, id).Execute()
+			_, _, err := acc.ConnV2().ResourcePoliciesApi.GetAtlasResourcePolicy(context.Background(), orgID, id).Execute()
 			if err == nil {
 				return fmt.Errorf("resource policy (%s:%s) still exists", orgID, id)
 			}

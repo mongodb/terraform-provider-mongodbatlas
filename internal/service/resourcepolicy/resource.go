@@ -56,7 +56,7 @@ func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPl
 		Policies: sdkPolicies,
 	}
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.AtlasResourcePoliciesApi.ValidateAtlasResourcePolicy(ctx, *orgID, sdkCreate).Execute()
+	_, _, err := connV2.ResourcePoliciesApi.ValidateAtlasResourcePolicy(ctx, *orgID, sdkCreate).Execute()
 	if err != nil {
 		conversion.AddJSONBodyErrorToDiagnostics(fmt.Sprintf("Policy Validation failed (name=%s): ", *name), err, &resp.Diagnostics)
 	}
@@ -76,7 +76,7 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 	policies := NewAdminPolicies(ctx, plan.Policies)
 
 	connV2 := r.Client.AtlasV2
-	policySDK, _, err := connV2.AtlasResourcePoliciesApi.CreateAtlasResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
+	policySDK, _, err := connV2.ResourcePoliciesApi.CreateAtlasResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
 		Name:     plan.Name.ValueString(),
 		Policies: policies,
 	}).Execute()
@@ -101,7 +101,7 @@ func (r *resourcePolicyRS) Read(ctx context.Context, req resource.ReadRequest, r
 	orgID := state.OrgID.ValueString()
 	resourcePolicyID := state.ID.ValueString()
 	connV2 := r.Client.AtlasV2
-	policySDK, apiResp, err := connV2.AtlasResourcePoliciesApi.GetAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute()
+	policySDK, apiResp, err := connV2.ResourcePoliciesApi.GetAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute()
 
 	if err != nil {
 		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
@@ -134,7 +134,7 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 		Name:     plan.Name.ValueStringPointer(),
 		Policies: &policies,
 	}
-	policySDK, _, err := connV2.AtlasResourcePoliciesApi.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
+	policySDK, _, err := connV2.ResourcePoliciesApi.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(errorUpdate, err.Error())
@@ -157,7 +157,7 @@ func (r *resourcePolicyRS) Delete(ctx context.Context, req resource.DeleteReques
 	orgID := resourcePolicyState.OrgID.ValueString()
 	resourcePolicyID := resourcePolicyState.ID.ValueString()
 	connV2 := r.Client.AtlasV2
-	resourcePolicyAPI := connV2.AtlasResourcePoliciesApi
+	resourcePolicyAPI := connV2.ResourcePoliciesApi
 	if _, _, err := resourcePolicyAPI.DeleteAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
