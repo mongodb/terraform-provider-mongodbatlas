@@ -458,6 +458,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
+	if err := CheckRegionConfigsPriorityOrder(params.GetReplicationSpecs()); err != nil {
+		return diag.FromErr(err)
+	}
 	cluster, _, err := connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
@@ -799,6 +802,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		clusterChangeDetect := new(admin20240530.AdvancedClusterDescription)
 		if !reflect.DeepEqual(req, clusterChangeDetect) {
+			if err := CheckRegionConfigsPriorityOrderOld(req.GetReplicationSpecs()); err != nil {
+				return diag.FromErr(err)
+			}
 			if _, _, err := connV220240530.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
@@ -823,6 +829,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		clusterChangeDetect := new(admin.ClusterDescription20240805)
 		if !reflect.DeepEqual(req, clusterChangeDetect) {
+			if err := CheckRegionConfigsPriorityOrder(req.GetReplicationSpecs()); err != nil {
+				return diag.FromErr(err)
+			}
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}

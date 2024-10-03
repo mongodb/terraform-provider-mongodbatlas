@@ -1,5 +1,19 @@
 ## (Unreleased)
 
+NOTES:
+
+* data-source/mongodbatlas_global_cluster_config: Deprecates `custom_zone_mapping` in favor of `custom_zone_mapping_zone_id` ([#2637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2637))
+* resource/mongodbatlas_global_cluster_config: Deprecates `custom_zone_mapping` in favor of `custom_zone_mapping_zone_id` ([#2637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2637))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_global_cluster_config: Adds `custom_zone_mapping_zone_id` attribute ([#2637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2637))
+* resource/mongodbatlas_global_cluster_config: Adds `custom_zone_mapping_zone_id` attribute ([#2637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2637))
+
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster: Enforces `priority` descending order in `region_configs` avoiding potential non-empty plans after apply ([#2640](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2640))
+
 ## 1.20.0 (September 20, 2024)
 
 BREAKING CHANGES:
