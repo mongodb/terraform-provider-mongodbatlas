@@ -8,7 +8,7 @@ import (
 )
 
 // using blank identifiers for now, will be removed in follow-up PRs once logic for conversion is added
-func ToProviderSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName *string) *CodeSpecification {
+func ToProviderSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName *string) *Model {
 	_, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecFilePath)
 	if err != nil {
 		panic(err)
@@ -25,9 +25,9 @@ func ToProviderSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceN
 	return TestExampleCodeSpecification()
 }
 
-func TestExampleCodeSpecification() *CodeSpecification {
+func TestExampleCodeSpecification() *Model {
 	testFieldDesc := "Test field description"
-	return &CodeSpecification{
+	return &Model{
 		Resources: Resource{
 			Schema: &Schema{
 				Attributes: Attributes{

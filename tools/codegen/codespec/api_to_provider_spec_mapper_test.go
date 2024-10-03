@@ -9,7 +9,7 @@ import (
 )
 
 type convertToSpecTestCase struct {
-	expectedResult       *codespec.CodeSpecification
+	expectedResult       *codespec.Model
 	inputOpenAPISpecPath string
 	inputConfigPath      string
 	inputResourceName    string

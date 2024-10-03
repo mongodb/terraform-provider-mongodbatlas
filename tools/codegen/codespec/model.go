@@ -14,7 +14,7 @@ const (
 	String
 )
 
-type CodeSpecification struct {
+type Model struct {
 	Resources Resource
 }
 
