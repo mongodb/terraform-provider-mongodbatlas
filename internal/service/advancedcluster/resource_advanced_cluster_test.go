@@ -808,6 +808,64 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 	})
 }
 
+// TestAccClusterAdvancedCluster_priorityOldSchema will be able to be simplied or deleted in CLOUDP-275825
+func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:      configPriority(orgID, projectName, clusterName, true, true),
+				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
+			},
+			{
+				Config: configPriority(orgID, projectName, clusterName, true, false),
+				Check:  resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.#", "2"),
+			},
+			{
+				Config:      configPriority(orgID, projectName, clusterName, true, true),
+				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
+			},
+		},
+	})
+}
+
+// TestAccClusterAdvancedCluster_priorityNewSchema will be able to be simplied or deleted in CLOUDP-275825
+func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:      configPriority(orgID, projectName, clusterName, false, true),
+				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
+			},
+			{
+				Config: configPriority(orgID, projectName, clusterName, false, false),
+				Check:  resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.#", "2"),
+			},
+			{
+				Config:      configPriority(orgID, projectName, clusterName, false, true),
+				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
+			},
+		},
+	})
+}
+
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
@@ -2131,4 +2189,58 @@ func checkReplicaSetScalingStrategyAndRedactClientLogData(replicaSetScalingStrat
 		clusterChecks,
 		additionalChecks...,
 	)
+}
+
+func configPriority(orgID, projectName, clusterName string, oldSchema, swapPriorities bool) string {
+	const (
+		config7 = `
+			region_configs {
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "US_EAST_1"
+				electable_specs {
+					node_count    = 2
+					instance_size = "M10"
+				}
+			}
+		`
+		config6 = `
+			region_configs {
+				provider_name = "AWS"
+				priority      = 6
+				region_name   = "US_WEST_2"
+				electable_specs {
+					node_count    = 1
+					instance_size = "M10"
+				}
+			}
+		`
+	)
+	strType, strNumShards, strConfigs := "REPLICASET", "", config7+config6
+	if oldSchema {
+		strType = "SHARDED"
+		strNumShards = "num_shards = 2"
+	}
+	if swapPriorities {
+		strConfigs = config6 + config7
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = mongodbatlas_project.test.id
+			name         = %[3]q
+			cluster_type   = %[4]q
+			backup_enabled = false
+			
+			replication_specs {
+ 					%[5]s
+ 					%[6]s
+			}
+		}
+	`, orgID, projectName, clusterName, strType, strNumShards, strConfigs)
 }

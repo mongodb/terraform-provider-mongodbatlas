@@ -3,6 +3,7 @@ package advancedcluster
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"hash/crc32"
 	"log"
@@ -396,6 +397,32 @@ func flattenTags(tags *[]admin.ResourceTag) []map[string]string {
 		}
 	}
 	return ret
+}
+
+// CheckRegionConfigsPriorityOrder will be deleted in CLOUDP-275825
+func CheckRegionConfigsPriorityOrder(regionConfigs []admin.ReplicationSpec20240805) error {
+	for _, spec := range regionConfigs {
+		configs := spec.GetRegionConfigs()
+		for i := 0; i < len(configs)-1; i++ {
+			if configs[i].GetPriority() < configs[i+1].GetPriority() {
+				return errors.New("priority values in region_configs must be in descending order")
+			}
+		}
+	}
+	return nil
+}
+
+// CheckRegionConfigsPriorityOrderOld will be deleted in CLOUDP-275825
+func CheckRegionConfigsPriorityOrderOld(regionConfigs []admin20240530.ReplicationSpec) error {
+	for _, spec := range regionConfigs {
+		configs := spec.GetRegionConfigs()
+		for i := 0; i < len(configs)-1; i++ {
+			if configs[i].GetPriority() < configs[i+1].GetPriority() {
+				return errors.New("priority values in region_configs must be in descending order")
+			}
+		}
+	}
+	return nil
 }
 
 func flattenConnectionStrings(str admin.ClusterConnectionStrings) []map[string]any {
