@@ -338,9 +338,10 @@ func featureUsagesSchema() *schema.Resource {
 }
 
 func featureToSchema(feature admin.CloudProviderAccessFeatureUsage) map[string]any {
-	featureID, _ := feature.GetFeatureId().ToMap()
+	featureID := feature.GetFeatureId()
+	featureIDMap, _ := featureID.ToMap()
 	return map[string]any{
 		"feature_type": feature.GetFeatureType(),
-		"feature_id":   featureID,
+		"feature_id":   featureIDMap,
 	}
 }
