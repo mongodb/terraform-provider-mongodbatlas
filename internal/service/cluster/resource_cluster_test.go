@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	resourceName   = "mongodbatlas_cluster.test"
-	dataSourceName = "data.mongodbatlas_cluster.test"
+	resourceName         = "mongodbatlas_cluster.test"
+	dataSourceName       = "data.mongodbatlas_cluster.test"
+	dataSourcePluralName = "data.mongodbatlas_clusters.test"
 )
 
 func TestAccCluster_basicAWS_simple(t *testing.T) {
@@ -693,10 +694,9 @@ func TestAccCluster_AWSWithLabels(t *testing.T) {
 
 func TestAccCluster_WithTags(t *testing.T) {
 	var (
-		dataSourceClustersName = "data.mongodbatlas_clusters.test"
-		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName            = acc.RandomProjectName() // No ProjectIDExecution because this test has plural datasource
-		clusterName            = acc.RandomClusterName()
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution because this test has plural datasource
+		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -713,7 +713,7 @@ func TestAccCluster_WithTags(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "0"),
 				),
 			},
 			{
@@ -740,9 +740,9 @@ func TestAccCluster_WithTags(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap1),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap2),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap1),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap2),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", acc.ClusterTagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", acc.ClusterTagsMap2),
 				),
 			},
 			{
@@ -763,8 +763,8 @@ func TestAccCluster_WithTags(t *testing.T) {
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", acc.ClusterTagsMap3),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", acc.ClusterTagsMap3),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", acc.ClusterTagsMap3),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", acc.ClusterTagsMap3),
 				),
 			},
 		},
@@ -1349,6 +1349,63 @@ func TestAccCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 	})
 }
 
+func TestAccCluster_basic_RedactClientLogData(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution so redactClientLogData tests can be run in parallel because plural data source
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configRedactClientLogData(orgID, projectName, clusterName, nil),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+					nil, map[string]string{"redact_client_log_data": "false"}),
+			},
+			{
+				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(false)),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+					nil, map[string]string{"redact_client_log_data": "false"}),
+			},
+			{
+				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(true)),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+					nil, map[string]string{"redact_client_log_data": "true"}),
+			},
+			{
+				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(false)),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+					nil, map[string]string{"redact_client_log_data": "false"}),
+			},
+		},
+	})
+}
+
+func TestAccCluster_create_RedactClientLogData(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution so redactClientLogData tests can be run in parallel because plural data source
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(true)),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+					nil, map[string]string{"redact_client_log_data": "true"}),
+			},
+		},
+	})
+}
+
 func testAccGetMongoDBAtlasMajorVersion() string {
 	conn, _ := matlas.New(http.DefaultClient, matlas.SetBaseURL(matlas.CloudURL))
 	majorVersion, _, _ := conn.DefaultMongoDBMajorVersion.Get(context.Background())
@@ -1786,6 +1843,49 @@ func configTenantUpdated(orgID, projectName, name string) string {
 		auto_scaling_disk_gb_enabled = true
 	  }
 	`, orgID, projectName, name)
+}
+
+func configRedactClientLogData(orgID, projectName, clusterName string, redactClientLogData *bool) string {
+	var addtionalStr string
+	if redactClientLogData != nil {
+		addtionalStr = fmt.Sprintf(`redact_client_log_data     = %t`, *redactClientLogData)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
+		resource "mongodbatlas_cluster" "test" {
+			project_id = mongodbatlas_project.test.id
+			name                         = %[3]q
+			cluster_type = "REPLICASET"
+			replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "US_WEST_2"
+			     electable_nodes = 3
+			     priority        = 7
+							read_only_nodes = 0
+		       }
+		    }
+			provider_name               = "AWS"
+			provider_instance_size_name = "M10"
+			%[4]s
+		}
+
+		data "mongodbatlas_cluster" "test" {
+			project_id = mongodbatlas_cluster.test.project_id
+			name 	     = mongodbatlas_cluster.test.name
+			depends_on = ["mongodbatlas_cluster.test"]
+		}
+	
+		data "mongodbatlas_clusters" "test" {
+			project_id = mongodbatlas_cluster.test.project_id
+			depends_on = ["mongodbatlas_cluster.test"]
+		}
+	`, orgID, projectName, clusterName, addtionalStr)
 }
 
 func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabled, tier, region string, labels []matlas.Label) string {

@@ -15,7 +15,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasClusterRead,
+		ReadContext: dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -317,13 +317,17 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"redact_client_log_data": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
 
-func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
 
@@ -487,6 +491,14 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 
 	if err := d.Set("snapshot_backup_policy", snapshotBackupPolicy); err != nil {
 		return diag.FromErr(err)
+	}
+
+	redactClientLogData, err := newAtlasGet(ctx, connV2, projectID, clusterName)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
+	}
+	if err := d.Set("redact_client_log_data", redactClientLogData); err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "redact_client_log_data", clusterName, err))
 	}
 
 	d.SetId(cluster.ID)
