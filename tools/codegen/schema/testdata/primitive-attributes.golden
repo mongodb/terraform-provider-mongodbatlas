@@ -3,20 +3,43 @@ package test_name
 import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-		
-		"str_attr": schema.StringAttribute{
-				Optional: true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the search deployment.",
+
+			"string_attr": schema.string{
+				MarkdownDescription: "string description",
 			},
-		"other": schema.StringAttribute{
-				Optional: true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the search deployment.",
+
+			"bool_attr": schema.string{
+				MarkdownDescription: "bool description",
 			},
+
+			"int_attr": schema.string{
+				MarkdownDescription: "int description",
+			},
+
+			"float_attr": schema.string{
+				MarkdownDescription: "float description",
+			},
+
+			"number_attr": schema.string{
+				MarkdownDescription: "number description",
+			},
+
+			"simple_list_attr": schema.string{
+				MarkdownDescription: "simple arr description",
+			},
+
+			"simple_set_attr": schema.string{
+				MarkdownDescription: "simple set description",
+			},
+
+			"simple_map_attr": schema.string{
+				MarkdownDescription: "simple map description",
+			},
+		},
 	}
 }
