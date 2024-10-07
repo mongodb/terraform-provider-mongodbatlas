@@ -2,6 +2,7 @@ package schema
 
 import (
 	"bytes"
+	"go/format"
 	"text/template"
 
 	genconfigmapper "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
@@ -27,9 +28,8 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-		{{ range  .Attributes }}
-		{{ . }},
-		{{- end }}
+			{{ range  .Attributes }}{{ . }}{{- end }}
+		},
 	}
 }
 `
@@ -38,16 +38,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	tmplInputs := TemplateInputs{
 		PackageName:       input.Name, // TODO adjust format
 		AdditionalImports: []string{},
-		Attributes: []string{`"str_attr": schema.StringAttribute{
-				Optional: true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the search deployment.",
-			}`, `"other": schema.StringAttribute{
-				Optional: true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the search deployment.",
-			}`},
+		Attributes:        RenderAttributes(input.Schema.Attributes),
 	}
 	// Parse the template
-	t, err := template.New("code").Parse(tmpl)
+	t, err := template.New("schema-template").Parse(tmpl)
 	if err != nil {
 		panic(err)
 	}
@@ -58,5 +52,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		panic(err)
 	}
 
-	return buf.String()
+	formattedResult, err := format.Source(buf.Bytes())
+	if err != nil {
+		panic(err)
+	}
+
+	return string(formattedResult[:])
 }
