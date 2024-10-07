@@ -247,7 +247,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
-		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
+		Target:     []string{"FAILED", "AVAILABLE", "PENDING_ACCEPTANCE"},
 		Refresh:    resourceRefreshFunc(ctx, peer.GetId(), projectID, peerRequest.GetContainerId(), conn.NetworkPeeringApi),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
@@ -313,7 +313,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	return setCommonFields(d, peer, peerID, accepterRegionName)
+
+	diags := setCommonFields(d, peer, peerID, accepterRegionName)
+
+	if peer.GetStatusName() == "FAILED" {
+		diags = append(diags, diag.FromErr(fmt.Errorf("peer network in a failed state: %s", peer.GetErrorState()))...)
+	}
+
+	return diags
 }
 
 func setCommonFields(d *schema.ResourceData, peer *admin.BaseNetworkPeeringConnectionSettings, peerID, accepterRegionName string) diag.Diagnostics {
