@@ -49,7 +49,7 @@ func ProjectIDExecution(tb testing.TB) string {
 		tb.Logf("Creating execution project: %s\n", sharedInfo.projectName)
 		sharedInfo.projectID = createProject(tb, sharedInfo.projectName)
 	} else {
-		time.Sleep(5 * time.Second) // HELP-65223: sleep a few seconds so clusters are not created concurrently in the execution project
+		time.Sleep(20 * time.Second) // HELP-65223: sleep a few seconds so clusters are not created concurrently in the execution project
 	}
 
 	return sharedInfo.projectID
