@@ -5,6 +5,12 @@ NOTES:
 * data-source/mongodbatlas_global_cluster_config: Deprecates `custom_zone_mapping` in favor of `custom_zone_mapping_zone_id` ([#2637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2637))
 * resource/mongodbatlas_global_cluster_config: Deprecates `custom_zone_mapping` in favor of `custom_zone_mapping_zone_id` ([#2637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2637))
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_resource_policies` ([#2598](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2598))
+* **New Data Source:** `data-source/mongodbatlas_resource_policy` ([#2598](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2598))
+* **New Resource:** `resource/mongodbatlas_resource_policy` ([#2585](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2585))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: Supports `redact_client_log_data` attribute ([#2600](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2600))
