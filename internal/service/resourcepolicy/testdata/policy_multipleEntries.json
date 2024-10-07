@@ -1,0 +1,30 @@
+{
+    "createdByUser": {
+        "id": "65def6f00f722a1507105ad8",
+        "name": "mvccpeou"
+    },
+    "createdDate": "2024-09-11T13:36:18Z",
+    "id": "66e19cd2fdc0332d1fa5e877",
+    "lastUpdatedByUser": {
+        "id": "65def6f00f722a1507105ad8",
+        "name": "mvccpeou"
+    },
+    "lastUpdatedDate": "2024-09-11T13:36:18Z",
+    "name": "multipleEntries",
+    "orgId": "65def6ce0f722a1507105aa5",
+    "policies": [
+        {
+            "body": "\n\tforbid (\n\t\tprincipal,\n\t\taction == cloud::Action::\"cluster.createEdit\",\n\t\tresource\n\t) when {\n\t\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\"aws\"])\n\t};",
+            "id": "66e19cd2fdc0332d1fa5e874"
+        },
+        {
+            "body": "\n\tforbid (\n\t\tprincipal,\n\t\taction == cloud::Action::\"project.edit\",\n\t\tresource\n\t) \n\t\twhen {\n\t\tcontext.project.ipAccessList.contains(ip(\"0.0.0.0/0\"))\n\t};",
+            "id": "66e19cd2fdc0332d1fa5e875"
+        },
+        {
+            "body": "\n\tforbid (\n\tprincipal,\n\taction,\n\tresource == cloud::cluster::\"60f7b3b4e4b0f1b4b7f7b3b4\"\n\t) when {\n\tresource in cloud::project::\"664619d870c247237f4b86a6\" \u0026\u0026\n\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\"aws\", cloud::cloudProvider::\"azure\"])\n\t};",
+            "id": "66e19cd2fdc0332d1fa5e876"
+        }
+    ],
+    "version": "v1"
+}

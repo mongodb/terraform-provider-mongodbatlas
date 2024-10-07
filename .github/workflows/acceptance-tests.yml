@@ -57,6 +57,8 @@ jobs:
       mongodb_atlas_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_QA || secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
       mongodb_atlas_gov_public_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_GOV_PUBLIC_KEY_QA || secrets.MONGODB_ATLAS_GOV_PUBLIC_KEY_DEV }}
       mongodb_atlas_gov_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_GOV_PRIVATE_KEY_QA || secrets.MONGODB_ATLAS_GOV_PRIVATE_KEY_DEV }}
+      mongodb_atlas_rp_public_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_RP_PUBLIC_KEY_QA || secrets.MONGODB_ATLAS_RP_PUBLIC_KEY_DEV }}
+      mongodb_atlas_rp_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_RP_PRIVATE_KEY_QA || secrets.MONGODB_ATLAS_RP_PRIVATE_KEY_DEV }}
       ca_cert: ${{ secrets.CA_CERT }}
       aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
       aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -113,3 +115,4 @@ jobs:
       mongodb_atlas_project_ear_pe_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_EAR_PE_ID_QA || vars.MONGODB_ATLAS_PROJECT_EAR_PE_ID_DEV }}
       mongodb_atlas_enable_preview: ${{ vars.MONGODB_ATLAS_ENABLE_PREVIEW }}
       azure_private_endpoint_region: ${{ vars.AZURE_PRIVATE_ENDPOINT_REGION }}
+      mongodb_atlas_rp_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_RP_ORG_ID_QA || vars.MONGODB_ATLAS_RP_ORG_ID_DEV }}
