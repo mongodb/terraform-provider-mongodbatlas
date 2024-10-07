@@ -341,6 +341,11 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"redact_client_log_data": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),
@@ -450,6 +455,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if v, ok := d.GetOk("replica_set_scaling_strategy"); ok {
 		params.ReplicaSetScalingStrategy = conversion.StringPtr(v.(string))
 	}
+	if v, ok := d.GetOk("redact_client_log_data"); ok {
+		params.RedactClientLogData = conversion.Pointer(v.(bool))
+	}
 
 	// Validate oplog_size_mb to show the error before the cluster is created.
 	if oplogSizeMB, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
@@ -553,6 +561,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
 		}
+		if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
+		}
 
 		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(cluster)
 		if err != nil {
@@ -581,6 +592,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 		if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
+		}
+		if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
 		}
 
 		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
@@ -811,9 +825,13 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
-		} else if d.HasChange("replica_set_scaling_strategy") {
-			request := &admin.ClusterDescription20240805{
-				ReplicaSetScalingStrategy: conversion.Pointer(d.Get("replica_set_scaling_strategy").(string)),
+		} else if d.HasChange("replica_set_scaling_strategy") || d.HasChange("redact_client_log_data") {
+			request := new(admin.ClusterDescription20240805)
+			if d.HasChange("replica_set_scaling_strategy") {
+				request.ReplicaSetScalingStrategy = conversion.Pointer(d.Get("replica_set_scaling_strategy").(string))
+			}
+			if d.HasChange("redact_client_log_data") {
+				request.RedactClientLogData = conversion.Pointer(d.Get("redact_client_log_data").(bool))
 			}
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
@@ -972,6 +990,10 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 	if d.HasChange("replica_set_scaling_strategy") {
 		cluster.ReplicaSetScalingStrategy = conversion.Pointer(d.Get("replica_set_scaling_strategy").(string))
 	}
+	if d.HasChange("redact_client_log_data") {
+		cluster.RedactClientLogData = conversion.Pointer(d.Get("redact_client_log_data").(bool))
+	}
+
 	return cluster, nil
 }
 

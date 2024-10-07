@@ -1,0 +1,25 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  resource_policy:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+      method: POST
+
+data_sources:
+  resource_policy:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: GET
+  resource_policies:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+      method: GET
+  non_compliant_resources:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/nonCompliantResources
+      method: GET
