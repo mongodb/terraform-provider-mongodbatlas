@@ -1,0 +1,155 @@
+package codespec
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/pb33f/libopenapi/orderedmap"
+)
+
+func buildResourceAttributes(s *OASSchema) (Attributes, error) {
+	objectAttributes := Attributes{}
+
+	sortedProperties := orderedmap.SortAlpha(s.Schema.Properties)
+	for pair := range orderedmap.Iterate(context.TODO(), sortedProperties) {
+		name := pair.Key()
+
+		pProxy := pair.Value()
+
+		pSchema, err := BuildSchema(pProxy)
+		if err != nil {
+			return nil, err
+		}
+
+		attribute, err := pSchema.buildResourceAttr(name, s.GetComputability(name))
+		if err != nil {
+			return nil, err
+		}
+
+		if attribute != nil {
+			objectAttributes = append(objectAttributes, *attribute)
+		}
+	}
+
+	return objectAttributes, nil
+}
+
+func (s *OASSchema) buildResourceAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+	switch s.Type {
+	case OASTypeString:
+		return s.buildStringAttr(name, computability)
+	case OASTypeInteger:
+		return s.buildIntegerAttr(name, computability)
+	case OASTypeNumber:
+		return s.buildNumberAttr(name, computability)
+	case OASTypeBoolean:
+		return s.buildBoolAttr(name, computability)
+	case OASTypeArray, OASTypeObject:
+		return nil, nil
+	default:
+		return nil, fmt.Errorf("invalid schema type '%s'", s.Type)
+	}
+}
+
+func (s *OASSchema) buildStringAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+	result := &Attribute{
+		Name:                     terraformAttrName(name),
+		ComputedOptionalRequired: computability,
+		DeprecationMessage:       s.GetDeprecationMessage(),
+		Description:              s.GetDescription(),
+		Sensitive:                s.IsSensitive(),
+		String:                   &StringAttribute{},
+	}
+
+	if s.Schema.Default != nil {
+		var staticDefault string
+		if err := s.Schema.Default.Decode(&staticDefault); err == nil {
+			if computability == Required {
+				result.ComputedOptionalRequired = ComputedOptional
+			}
+
+			result.String.Default = &staticDefault
+		}
+	}
+
+	return result, nil
+}
+
+func (s *OASSchema) buildIntegerAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+	result := &Attribute{
+		Name:                     terraformAttrName(name),
+		ComputedOptionalRequired: computability,
+		DeprecationMessage:       s.GetDeprecationMessage(),
+		Description:              s.GetDescription(),
+		Int64:                    &Int64Attribute{},
+	}
+
+	if s.Schema.Default != nil {
+		var staticDefault int64
+		if err := s.Schema.Default.Decode(&staticDefault); err == nil {
+			if computability == Required {
+				result.ComputedOptionalRequired = ComputedOptional
+			}
+
+			result.Int64.Default = &staticDefault
+		}
+	}
+
+	return result, nil
+}
+
+func (s *OASSchema) buildNumberAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+	if s.Format == OASFormatDouble || s.Format == OASFormatFloat {
+		result := &Attribute{
+			Name:                     terraformAttrName(name),
+			ComputedOptionalRequired: computability,
+			DeprecationMessage:       s.GetDeprecationMessage(),
+			Description:              s.GetDescription(),
+			Float64:                  &Float64Attribute{},
+		}
+
+		if s.Schema.Default != nil {
+			var staticDefault float64
+			if err := s.Schema.Default.Decode(&staticDefault); err == nil {
+				if computability == Required {
+					result.ComputedOptionalRequired = ComputedOptional
+				}
+
+				result.Float64.Default = &staticDefault
+			}
+		}
+
+		return result, nil
+	}
+
+	return &Attribute{
+		Name:                     name,
+		ComputedOptionalRequired: computability,
+		DeprecationMessage:       s.GetDeprecationMessage(),
+		Description:              s.GetDescription(),
+		Number:                   &NumberAttribute{},
+	}, nil
+}
+
+func (s *OASSchema) buildBoolAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+	result := &Attribute{
+		Name:                     terraformAttrName(name),
+		ComputedOptionalRequired: computability,
+		DeprecationMessage:       s.GetDeprecationMessage(),
+		Description:              s.GetDescription(),
+		Bool:                     &BoolAttribute{},
+	}
+
+	if s.Schema.Default != nil {
+		var staticDefault bool
+		if err := s.Schema.Default.Decode(&staticDefault); err == nil {
+			if computability == Required {
+				result.ComputedOptionalRequired = ComputedOptional
+			}
+
+			result.Bool.Default = &staticDefault
+		}
+	}
+
+	return result, nil
+}

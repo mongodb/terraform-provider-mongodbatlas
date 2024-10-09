@@ -26,7 +26,10 @@ func main() {
 		panic(err)
 	}
 
-	_ = codespec.ToProviderSpecModel(specFilePath, configPath, resourceName)
+	_, err := codespec.ToProviderSpecModel(specFilePath, configPath, *resourceName)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func getOsArg() *string {
