@@ -267,6 +267,14 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"config_server_management_mode": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"config_server_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},

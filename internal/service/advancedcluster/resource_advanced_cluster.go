@@ -346,6 +346,15 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"config_server_management_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"config_server_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),
@@ -458,6 +467,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if v, ok := d.GetOk("redact_client_log_data"); ok {
 		params.RedactClientLogData = conversion.Pointer(v.(bool))
 	}
+	if v, ok := d.GetOk("config_server_management_mode"); ok {
+		params.ConfigServerManagementMode = conversion.StringPtr(v.(string))
+	}
 
 	// Validate oplog_size_mb to show the error before the cluster is created.
 	if oplogSizeMB, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
@@ -564,7 +576,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
 		}
-
 		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(cluster)
 		if err != nil {
 			return diag.FromErr(err)
@@ -576,6 +587,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 
 		clusterResp = convertClusterDescToLatestExcludeRepSpecs(clusterOldSDK)
+		clusterResp.ConfigServerManagementMode = cluster.ConfigServerManagementMode
+		clusterResp.ConfigServerType = cluster.ConfigServerType
 	} else {
 		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 		if err != nil {
@@ -748,7 +761,16 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 	if err := d.Set("global_cluster_self_managed_sharding", cluster.GetGlobalClusterSelfManagedSharding()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "global_cluster_self_managed_sharding", clusterName, err))
 	}
-
+	if cluster.ConfigServerType != nil {
+		if err := d.Set("config_server_type", *cluster.ConfigServerType); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "config_server_type", clusterName, err))
+		}
+	}
+	if cluster.ConfigServerManagementMode != nil {
+		if err := d.Set("config_server_management_mode", *cluster.ConfigServerManagementMode); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "config_server_management_mode", clusterName, err))
+		}
+	}
 	return nil
 }
 
@@ -825,13 +847,16 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
-		} else if d.HasChange("replica_set_scaling_strategy") || d.HasChange("redact_client_log_data") {
+		} else if d.HasChange("replica_set_scaling_strategy") || d.HasChange("redact_client_log_data") || d.HasChange("config_server_management_mode") {
 			request := new(admin.ClusterDescription20240805)
 			if d.HasChange("replica_set_scaling_strategy") {
 				request.ReplicaSetScalingStrategy = conversion.Pointer(d.Get("replica_set_scaling_strategy").(string))
 			}
 			if d.HasChange("redact_client_log_data") {
 				request.RedactClientLogData = conversion.Pointer(d.Get("redact_client_log_data").(bool))
+			}
+			if d.HasChange("config_server_management_mode") {
+				request.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
 			}
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
@@ -992,6 +1017,9 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 	}
 	if d.HasChange("redact_client_log_data") {
 		cluster.RedactClientLogData = conversion.Pointer(d.Get("redact_client_log_data").(bool))
+	}
+	if d.HasChange("config_server_management_mode") {
+		cluster.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
 	}
 
 	return cluster, nil

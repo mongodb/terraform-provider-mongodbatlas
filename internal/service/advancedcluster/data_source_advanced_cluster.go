@@ -254,6 +254,14 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"config_server_management_mode": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"config_server_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -312,7 +320,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		diags := setRootFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterDescOld), false)
+		clusterDesc := convertClusterDescToLatestExcludeRepSpecs(clusterDescOld)
+		clusterDesc.ConfigServerManagementMode = clusterDescNew.ConfigServerManagementMode
+		clusterDesc.ConfigServerType = clusterDescNew.ConfigServerType
+		diags := setRootFields(d, clusterDesc, false)
 		if diags.HasError() {
 			return diags
 		}
