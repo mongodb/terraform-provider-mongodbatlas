@@ -65,6 +65,58 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSTeam_updatingUsernames(t *testing.T) {
+	var (
+		resourceName          = "mongodbatlas_team.test"
+		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		firstUser             = os.Getenv("MONGODB_ATLAS_USERNAME")
+		secondUser            = os.Getenv("MONGODB_ATLAS_USERNAME_2")
+		usernames             = []string{firstUser}
+		updatedSingleUsername = []string{secondUser}
+		updatedBothUsername   = []string{firstUser, secondUser}
+		name                  = acc.RandomName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckAtlasUsernames(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyTeam,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(orgID, name, usernames),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "usernames.*", usernames[0]),
+				),
+			},
+			{
+				Config: configBasic(orgID, name, updatedSingleUsername),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "usernames.*", updatedSingleUsername[0]),
+				),
+			},
+			{
+				Config: configBasic(orgID, name, updatedBothUsername),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "2"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "usernames.*", updatedBothUsername[0]),
+					resource.TestCheckTypeSetElemAttr(resourceName, "usernames.*", updatedBothUsername[1]),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConfigRSTeam_legacyName(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_teams.test"

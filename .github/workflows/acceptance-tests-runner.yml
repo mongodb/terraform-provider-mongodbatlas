@@ -38,9 +38,6 @@ on:
       mongodb_atlas_teams_ids:
         type: string
         required: true  
-      mongodb_atlas_username:
-        type: string
-        required: true 
       azure_atlas_app_id:
         type: string
         required: true
@@ -503,7 +500,8 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
-          MONGODB_ATLAS_USERNAME: ${{ inputs.mongodb_atlas_username }}
+          MONGODB_ATLAS_USERNAME: ${{ vars.MONGODB_ATLAS_USERNAME }}
+          MONGODB_ATLAS_USERNAME_2: ${{ vars.MONGODB_ATLAS_USERNAME_2 }}
           AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
           AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
           AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
