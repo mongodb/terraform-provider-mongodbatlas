@@ -28,43 +28,43 @@ func ToProviderSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceN
 func TestExampleCodeSpecification() *Model {
 	testFieldDesc := "Test field description"
 	return &Model{
-		Resources: Resource{
+		Resources: []Resource{{
 			Schema: &Schema{
 				Attributes: Attributes{
 					Attribute{
-						Name:        "project_id",
-						IsRequired:  conversion.Pointer(true),
-						String:      &StringAttribute{},
-						Description: conversion.StringPtr("Overridden project_id description"),
+						Name:                     "project_id",
+						ComputedOptionalRequired: Required,
+						String:                   &StringAttribute{},
+						Description:              conversion.StringPtr("Overridden project_id description"),
 					},
 					Attribute{
-						Name:        "bucket_name",
-						IsRequired:  conversion.Pointer(true),
-						String:      &StringAttribute{},
-						Description: &testFieldDesc,
+						Name:                     "bucket_name",
+						ComputedOptionalRequired: Required,
+						String:                   &StringAttribute{},
+						Description:              &testFieldDesc,
 					},
 					Attribute{
-						Name:        "iam_role_id",
-						IsRequired:  conversion.Pointer(true),
-						String:      &StringAttribute{},
-						Description: &testFieldDesc,
+						Name:                     "iam_role_id",
+						ComputedOptionalRequired: Required,
+						String:                   &StringAttribute{},
+						Description:              &testFieldDesc,
 					},
 					Attribute{
-						Name:        "state",
-						IsComputed:  conversion.Pointer(true),
-						String:      &StringAttribute{},
-						Description: &testFieldDesc,
+						Name:                     "state",
+						ComputedOptionalRequired: Computed,
+						String:                   &StringAttribute{},
+						Description:              &testFieldDesc,
 					},
 					Attribute{
-						Name:        "prefix_path",
-						String:      &StringAttribute{},
-						IsComputed:  conversion.Pointer(true),
-						IsOptional:  conversion.Pointer(true),
-						Description: &testFieldDesc,
+						Name:                     "prefix_path",
+						String:                   &StringAttribute{},
+						ComputedOptionalRequired: ComputedOptional,
+						Description:              &testFieldDesc,
 					},
 				},
 			},
 			Name: "test_resource",
+		},
 		},
 	}
 }

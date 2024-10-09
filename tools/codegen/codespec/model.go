@@ -15,7 +15,7 @@ const (
 )
 
 type Model struct {
-	Resources Resource
+	Resources []Resource
 }
 
 type Resource struct {
@@ -33,26 +33,27 @@ type Schema struct {
 type Attributes []Attribute
 
 type Attribute struct {
-	List               *ListAttribute
-	SetNested          *SetNestedAttribute
-	DeprecationMessage *string
-	Sensitive          *bool
-	IsComputed         *bool
-	IsOptional         *bool
-	IsRequired         *bool
-	Float64            *Float64Attribute
-	String             *StringAttribute
-	Description        *string
-	Bool               *BoolAttribute
-	ListNested         *ListNestedAttribute
-	Map                *MapAttribute
-	MapNested          *MapNestedAttribute
-	Number             *NumberAttribute
-	Object             *ObjectAttribute
-	Set                *SetAttribute
-	Int64              *Int64Attribute
-	SingleNested       *SingleNestedAttribute
-	Name               string
+	List      *ListAttribute
+	SetNested *SetNestedAttribute
+
+	Float64 *Float64Attribute
+	String  *StringAttribute
+
+	Bool         *BoolAttribute
+	ListNested   *ListNestedAttribute
+	Map          *MapAttribute
+	MapNested    *MapNestedAttribute
+	Number       *NumberAttribute
+	Object       *ObjectAttribute
+	Set          *SetAttribute
+	Int64        *Int64Attribute
+	SingleNested *SingleNestedAttribute
+
+	Description              *string
+	Name                     string
+	DeprecationMessage       *string
+	Sensitive                *bool
+	ComputedOptionalRequired ComputedOptionalRequired
 }
 
 type BoolAttribute struct {
