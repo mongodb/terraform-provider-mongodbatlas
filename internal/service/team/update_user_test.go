@@ -141,8 +141,6 @@ func TestUpdateTeamUsers(t *testing.T) {
 				removeCall := mockTeamsApi.EXPECT().RemoveTeamUser(mock.Anything, mock.Anything, mock.Anything, validuser2).Return(admin.RemoveTeamUserApiRequest{ApiService: mockTeamsApi})
 				removeCall.NotBefore(addCall.Call) // Ensures new additions are made before removing
 				mockTeamsApi.EXPECT().RemoveTeamUserExecute(mock.Anything).Return(nil, nil)
-
-				
 			},
 			existingTeamUsers: &admin.PaginatedApiAppUser{Results: &[]admin.CloudAppUser{{Id: &validuser2}}},
 			usernames:         []string{validuser1},
