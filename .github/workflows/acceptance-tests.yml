@@ -97,7 +97,6 @@ jobs:
       mongodb_atlas_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}
       mongodb_atlas_project_owner_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_OWNER_ID_QA || vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
       mongodb_atlas_teams_ids: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_TEAMS_IDS_QA || vars.MONGODB_ATLAS_TEAMS_IDS }}
-      mongodb_atlas_username: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_USERNAME_CLOUD_QA || vars.MONGODB_ATLAS_USERNAME_CLOUD_DEV }}
       azure_atlas_app_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_ATLAS_APP_ID_QA || vars.AZURE_ATLAS_APP_ID }}
       azure_service_principal_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_SERVICE_PRINCIPAL_ID_QA || vars.AZURE_SERVICE_PRINCIPAL_ID }}
       azure_tenant_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_TENANT_ID_QA || vars.AZURE_TENANT_ID }}

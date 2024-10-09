@@ -69,9 +69,11 @@ func TestAccConfigRSTeam_updatingUsernames(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_team.test"
 		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		usernames             = []string{os.Getenv("MONGODB_ATLAS_USERNAME")}
-		updatedSingleUsername = []string{os.Getenv("MONGODB_ATLAS_USERNAME_2")}
-		updatedBothUsername   = []string{os.Getenv("MONGODB_ATLAS_USERNAME"), os.Getenv("MONGODB_ATLAS_USERNAME_2")}
+		firstUser             = os.Getenv("MONGODB_ATLAS_USERNAME")
+		secondUser            = os.Getenv("MONGODB_ATLAS_USERNAME_2")
+		usernames             = []string{firstUser}
+		updatedSingleUsername = []string{secondUser}
+		updatedBothUsername   = []string{firstUser, secondUser}
 		name                  = acc.RandomName()
 	)
 
