@@ -48,7 +48,6 @@ Computability:
   - Successful response body of GET and POST methods.
     Properties present in the response body that are not part of requests will be computed only.
     Optional + computed would be used for the case of optional properties that define a default value.
-  - If attr has default != nil then Optional + computed
 */
 func oasResourceToProviderSpecModel(oasResource APISpecResource, resourceConfig config.Resource, name string) *Resource {
 	createOp := oasResource.CreateOp
