@@ -82,6 +82,14 @@ func PreCheckAtlasUsername(tb testing.TB) {
 	}
 }
 
+func PreCheckAtlasUsernames(tb testing.TB) {
+	tb.Helper()
+	PreCheckAtlasUsername(tb)
+	if os.Getenv("MONGODB_ATLAS_USERNAME_2") == "" {
+		tb.Fatal("`MONGODB_ATLAS_USERNAME_2` must be set")
+	}
+}
+
 func PreCheckProjectTeamsIDsWithMinCount(tb testing.TB, minTeamsCount int) {
 	tb.Helper()
 	envVar := os.Getenv("MONGODB_ATLAS_TEAMS_IDS")

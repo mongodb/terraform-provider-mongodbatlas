@@ -148,63 +148,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("usernames") {
-		users, _, err := connV2.TeamsApi.ListTeamUsers(ctx, orgID, teamID).Execute()
-
+		existingUsers, _, err := connV2.TeamsApi.ListTeamUsers(ctx, orgID, teamID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 		}
+		newUsernames := conversion.ExpandStringList(d.Get("usernames").(*schema.Set).List())
 
-		index := make(map[string]admin.CloudAppUser)
-		for i := range users.GetResults() {
-			index[users.GetResults()[i].GetUsername()] = users.GetResults()[i]
-		}
-
-		cleanUsers := func() error {
-			for i := range users.GetResults() {
-				_, err := connV2.TeamsApi.RemoveTeamUser(ctx, orgID, teamID, users.GetResults()[i].GetId()).Execute()
-				if err != nil {
-					return fmt.Errorf("error deleting Atlas User (%s) information: %s", teamID, err)
-				}
-			}
-			return nil
-		}
-
-		var newUsers []admin.AddUserToTeam
-
-		for _, username := range d.Get("usernames").(*schema.Set).List() {
-			user, _, err := connV2.MongoDBCloudUsersApi.GetUserByUsername(ctx, username.(string)).Execute()
-
-			updatedUserData := user
-
-			if err != nil {
-				if !strings.Contains(err.Error(), "401") {
-					return diag.FromErr(fmt.Errorf("error getting Atlas User (%s) information: %s", username, err))
-				}
-
-				log.Printf("[WARN] error fetching information user for (%s): %s\n", username, err)
-				if user == nil {
-					log.Printf("[WARN] there is no runtime information to fetch, checking in the existing users")
-
-					cached, ok := index[username.(string)]
-
-					if !ok {
-						log.Printf("[WARN] no information in cached for (%s)", username)
-						return diag.FromErr(fmt.Errorf("error getting Atlas User (%s) information: %s", username, err))
-					}
-					updatedUserData = &cached
-				}
-			}
-			newUsers = append(newUsers, admin.AddUserToTeam{Id: updatedUserData.GetId()})
-		}
-
-		err = cleanUsers()
+		err = UpdateTeamUsers(connV2.TeamsApi, connV2.MongoDBCloudUsersApi, existingUsers, newUsernames, orgID, teamID)
 		if err != nil {
-			return diag.FromErr(err)
-		}
-
-		_, _, err = connV2.TeamsApi.AddTeamUser(ctx, orgID, teamID, &newUsers).Execute()
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorTeamAddUsers, err))
+			return diag.FromErr(fmt.Errorf("error when updating usernames in team: %s", err))
 		}
 	}
 
