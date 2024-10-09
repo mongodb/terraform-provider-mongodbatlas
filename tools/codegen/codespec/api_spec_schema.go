@@ -9,13 +9,13 @@ import (
 
 var errInvalidSchema = fmt.Errorf("invalid schema")
 
-type OASSchema struct {
+type APISpecSchema struct {
 	Schema *base.Schema
 	Type   string
 	Format string
 }
 
-type OASResource struct {
+type APISpecResource struct {
 	Description      *string
 	CreateOp         *high.Operation
 	ReadOp           *high.Operation
@@ -24,7 +24,7 @@ type OASResource struct {
 	CommonParameters []*high.Parameter
 }
 
-func (s *OASSchema) GetComputability(name string) ComputedOptionalRequired {
+func (s *APISpecSchema) GetComputability(name string) ComputedOptionalRequired {
 	for _, prop := range s.Schema.Required {
 		if name == prop {
 			return Required
@@ -34,7 +34,7 @@ func (s *OASSchema) GetComputability(name string) ComputedOptionalRequired {
 	return ComputedOptional
 }
 
-func (s *OASSchema) GetDeprecationMessage() *string {
+func (s *APISpecSchema) GetDeprecationMessage() *string {
 	if s.Schema.Deprecated == nil || !(*s.Schema.Deprecated) {
 		return nil
 	}
@@ -44,7 +44,7 @@ func (s *OASSchema) GetDeprecationMessage() *string {
 	return &deprecationMessage
 }
 
-func (s *OASSchema) GetDescription() *string {
+func (s *APISpecSchema) GetDescription() *string {
 	if s.Schema.Description == "" {
 		return nil
 	}
@@ -52,7 +52,7 @@ func (s *OASSchema) GetDescription() *string {
 	return &s.Schema.Description
 }
 
-func (s *OASSchema) IsSensitive() *bool {
+func (s *APISpecSchema) IsSensitive() *bool {
 	isSensitive := s.Format == OASFormatPassword
 
 	if !isSensitive {

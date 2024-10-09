@@ -50,7 +50,7 @@ Computability:
     Optional + computed would be used for the case of optional properties that define a default value.
   - If attr has default != nil then Optional + computed
 */
-func oasResourceToProviderSpecModel(oasResource OASResource, resourceConfig config.Resource, name string) *Resource {
+func oasResourceToProviderSpecModel(oasResource APISpecResource, resourceConfig config.Resource, name string) *Resource {
 	createOp := oasResource.CreateOp
 	readOp := oasResource.ReadOp
 
@@ -148,7 +148,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 	return responseAttributes
 }
 
-func getOASResource(spec high.Document, resourceConfig config.Resource, name string) (OASResource, error) {
+func getOASResource(spec high.Document, resourceConfig config.Resource, name string) (APISpecResource, error) {
 	var errResult error
 
 	createOp, err := extractOp(spec.Paths, resourceConfig.Create)
@@ -173,7 +173,7 @@ func getOASResource(spec high.Document, resourceConfig config.Resource, name str
 		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s' common parameters: %w", name, err))
 	}
 
-	return OASResource{
+	return APISpecResource{
 		Description:      &createOp.Description,
 		CreateOp:         createOp,
 		ReadOp:           readOp,

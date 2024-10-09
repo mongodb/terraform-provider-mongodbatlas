@@ -15,8 +15,8 @@ var (
 )
 
 // This function only builds the schema from a proxy and returns the basic type and format without handling oneOf, anyOf, allOf, or nullable types.
-func BuildSchema(proxy *base.SchemaProxy) (*OASSchema, error) {
-	resp := &OASSchema{}
+func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
+	resp := &APISpecSchema{}
 
 	schema, err := proxy.BuildSchema()
 	if err != nil {
@@ -34,7 +34,7 @@ func BuildSchema(proxy *base.SchemaProxy) (*OASSchema, error) {
 	return resp, nil
 }
 
-func getSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType]) (*OASSchema, error) {
+func getSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType]) (*APISpecSchema, error) {
 	if mediaTypes == nil {
 		return nil, errSchemaNotFound
 	}
@@ -64,7 +64,7 @@ func getSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType])
 	return nil, errSchemaNotFound
 }
 
-func buildSchemaFromRequest(op *high.Operation) (*OASSchema, error) {
+func buildSchemaFromRequest(op *high.Operation) (*APISpecSchema, error) {
 	if op == nil || op.RequestBody == nil || op.RequestBody.Content == nil || op.RequestBody.Content.Len() == 0 {
 		return nil, errSchemaNotFound
 	}
@@ -72,7 +72,7 @@ func buildSchemaFromRequest(op *high.Operation) (*OASSchema, error) {
 	return getSchemaFromMediaType(op.RequestBody.Content)
 }
 
-func buildSchemaFromResponse(op *high.Operation) (*OASSchema, error) {
+func buildSchemaFromResponse(op *high.Operation) (*APISpecSchema, error) {
 	if op == nil || op.Responses == nil || op.Responses.Codes == nil || op.Responses.Codes.Len() == 0 {
 		return nil, errSchemaNotFound
 	}

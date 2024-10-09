@@ -7,7 +7,7 @@ import (
 	"github.com/pb33f/libopenapi/orderedmap"
 )
 
-func buildResourceAttributes(s *OASSchema) (Attributes, error) {
+func buildResourceAttributes(s *APISpecSchema) (Attributes, error) {
 	objectAttributes := Attributes{}
 
 	sortedProperties := orderedmap.SortAlpha(s.Schema.Properties)
@@ -34,7 +34,7 @@ func buildResourceAttributes(s *OASSchema) (Attributes, error) {
 	return objectAttributes, nil
 }
 
-func (s *OASSchema) buildResourceAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	switch s.Type {
 	case OASTypeString:
 		return s.buildStringAttr(name, computability)
@@ -51,7 +51,7 @@ func (s *OASSchema) buildResourceAttr(name string, computability ComputedOptiona
 	}
 }
 
-func (s *OASSchema) buildStringAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
 		Name:                     terraformAttrName(name),
 		ComputedOptionalRequired: computability,
@@ -75,7 +75,7 @@ func (s *OASSchema) buildStringAttr(name string, computability ComputedOptionalR
 	return result, nil
 }
 
-func (s *OASSchema) buildIntegerAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
 		Name:                     terraformAttrName(name),
 		ComputedOptionalRequired: computability,
@@ -98,7 +98,7 @@ func (s *OASSchema) buildIntegerAttr(name string, computability ComputedOptional
 	return result, nil
 }
 
-func (s *OASSchema) buildNumberAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	if s.Format == OASFormatDouble || s.Format == OASFormatFloat {
 		result := &Attribute{
 			Name:                     terraformAttrName(name),
@@ -131,7 +131,7 @@ func (s *OASSchema) buildNumberAttr(name string, computability ComputedOptionalR
 	}, nil
 }
 
-func (s *OASSchema) buildBoolAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
 		Name:                     terraformAttrName(name),
 		ComputedOptionalRequired: computability,
