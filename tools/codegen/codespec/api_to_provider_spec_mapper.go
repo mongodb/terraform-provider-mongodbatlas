@@ -120,7 +120,7 @@ func opRequestToAttributes(op *high.Operation) Attributes {
 		return nil
 	}
 
-	requestAttributes, err = buildResourceAttributes(requestSchema)
+	requestAttributes, err = buildResourceAttrs(requestSchema)
 	if err != nil {
 		log.Printf("[WARN] Request attributes could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		return nil
@@ -131,7 +131,7 @@ func opRequestToAttributes(op *high.Operation) Attributes {
 
 func opResponseToAttributes(op *high.Operation) Attributes {
 	var responseAttributes Attributes
-	createResponseSchema, err := buildSchemaFromResponse(op)
+	responseSchema, err := buildSchemaFromResponse(op)
 	if err != nil {
 		if errors.Is(err, errSchemaNotFound) {
 			log.Printf("[INFO] Operation response body schema not found (OperationId: %s)", op.OperationId)
@@ -139,7 +139,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}
 	} else {
-		responseAttributes, err = buildResourceAttributes(createResponseSchema)
+		responseAttributes, err = buildResourceAttrs(responseSchema)
 		if err != nil {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}

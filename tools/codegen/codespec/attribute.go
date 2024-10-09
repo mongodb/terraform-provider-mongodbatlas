@@ -7,21 +7,20 @@ import (
 	"github.com/pb33f/libopenapi/orderedmap"
 )
 
-func buildResourceAttributes(s *APISpecSchema) (Attributes, error) {
+func buildResourceAttrs(s *APISpecSchema) (Attributes, error) {
 	objectAttributes := Attributes{}
 
 	sortedProperties := orderedmap.SortAlpha(s.Schema.Properties)
 	for pair := range orderedmap.Iterate(context.TODO(), sortedProperties) {
 		name := pair.Key()
+		proxy := pair.Value()
 
-		pProxy := pair.Value()
-
-		pSchema, err := BuildSchema(pProxy)
+		schema, err := BuildSchema(proxy)
 		if err != nil {
 			return nil, err
 		}
 
-		attribute, err := pSchema.buildResourceAttr(name, s.GetComputability(name))
+		attribute, err := schema.buildResourceAttr(name, s.GetComputability(name))
 		if err != nil {
 			return nil, err
 		}
