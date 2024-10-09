@@ -58,10 +58,6 @@ func GetChangesForTeamUsers(currentUsers, newUsers []admin.CloudAppUser) (toAdd,
 	currentUsersSet := InitUserSet(currentUsers)
 	newUsersSet := InitUserSet(newUsers)
 
-	// Create two arrays to store the elements to be added and deleted
-	toAdd = []string{}
-	toDelete = []string{}
-
 	// Iterate over the elements in B and add them to the toAdd array if they are not in A
 	for elem := range newUsersSet {
 		if _, ok := currentUsersSet[elem]; !ok {
@@ -76,7 +72,6 @@ func GetChangesForTeamUsers(currentUsers, newUsers []admin.CloudAppUser) (toAdd,
 		}
 	}
 
-	// Return the two arrays
 	return toAdd, toDelete, nil
 }
 
