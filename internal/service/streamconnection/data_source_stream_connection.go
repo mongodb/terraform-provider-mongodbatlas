@@ -103,6 +103,19 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 				},
 			},
 		},
+		"networking": schema.SingleNestedAttribute{
+			Computed: true,
+			Attributes: map[string]schema.Attribute{
+				"access": schema.SingleNestedAttribute{
+					Computed: true,
+					Attributes: map[string]schema.Attribute{
+						"type": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
