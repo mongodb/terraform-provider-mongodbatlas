@@ -1239,9 +1239,11 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 		data "mongodbatlas_advanced_cluster" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
+			depends_on = [mongodbatlas_advanced_cluster.test]
 		}
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
+			depends_on = [mongodbatlas_advanced_cluster.test]
 		}
 	`, orgID, projectName, name, numShards, analyticsSize, rootConfig)
 }
