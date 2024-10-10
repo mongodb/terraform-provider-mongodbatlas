@@ -2,6 +2,8 @@ package acc
 
 import (
 	"fmt"
+	"runtime/debug"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -36,10 +38,14 @@ func ProjectIDExecution(tb testing.TB) string {
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
 
+	name := RandomName()
+	tb.Log("HELLO BEGIN ProjectIDExecution", name, timeStamp(), "\n", stackTrace(tb), "\n")
+
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
 
 	if id := projectIDLocal(tb); id != "" {
+		tb.Log("HELLO END LOCAL ProjectIDExecution", name, timeStamp(), "\n")
 		return id
 	}
 
@@ -52,7 +58,28 @@ func ProjectIDExecution(tb testing.TB) string {
 		time.Sleep(20 * time.Second) // HELP-65223: sleep a few seconds so clusters are not created concurrently in the execution project
 	}
 
+	tb.Log("HELLO END ProjectIDExecution", name, timeStamp(), "\n")
+
 	return sharedInfo.projectID
+}
+
+func stackTrace(tb testing.TB) string {
+	tb.Helper()
+	var ret string
+	stack := debug.Stack()
+	lines := strings.Split(string(stack), "\n")
+	count := 0
+	for i := len(lines) - 1; i >= 0 && count < 6; i-- {
+		if strings.Contains(lines[i], "terraform-provider-mongodbatlas") {
+			ret += lines[i] + "\n"
+			count++
+		}
+	}
+	return ret
+}
+
+func timeStamp() string {
+	return time.Now().Format(time.TimeOnly)
 }
 
 // ClusterNameExecution returns the name of a created cluster for the execution of the tests in the resource package.
