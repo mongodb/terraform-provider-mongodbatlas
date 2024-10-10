@@ -32,7 +32,7 @@ func singleRegionTestCase(t *testing.T) *resource.TestCase {
 		clusterName = clusterInfo.Name
 	)
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.PreCheckBasicSleep(t),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -80,7 +80,7 @@ func multiRegionTestCase(t *testing.T) *resource.TestCase {
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.PreCheckBasicSleep(t),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
