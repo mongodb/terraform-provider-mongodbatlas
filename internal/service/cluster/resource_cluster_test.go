@@ -36,7 +36,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		PreCheck:                 acc.PreCheckBasicSleep(tb),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -101,7 +101,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		PreCheck:                 acc.PreCheckBasicSleep(tb),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -163,7 +163,7 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.PreCheckBasicSleep(t),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -222,7 +222,7 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.PreCheckBasicSleep(t),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -264,7 +264,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.PreCheckBasicSleep(t),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -625,7 +625,7 @@ func TestAccCluster_AWSWithLabels(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.PreCheckBasicSleep(t),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -986,7 +986,7 @@ func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.PreCheckBasicSleep(t),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -1267,7 +1267,7 @@ func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.PreCheckBasicSleep(t),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -1315,7 +1315,7 @@ func TestAccCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.PreCheckBasicSleep(t),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
