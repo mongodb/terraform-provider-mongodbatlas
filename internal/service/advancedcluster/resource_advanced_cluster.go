@@ -837,6 +837,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diags
 		}
 		clusterChangeDetect := new(admin20240530.AdvancedClusterDescription)
+		var waitOnUpdate bool
 		if !reflect.DeepEqual(req, clusterChangeDetect) {
 			if err := CheckRegionConfigsPriorityOrderOld(req.GetReplicationSpecs()); err != nil {
 				return diag.FromErr(err)
@@ -844,10 +845,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if _, _, err := connV220240530.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
-			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
-				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
-			}
-		} else if d.HasChange("replica_set_scaling_strategy") || d.HasChange("redact_client_log_data") || d.HasChange("config_server_management_mode") {
+			waitOnUpdate = true
+		}
+		if d.HasChange("replica_set_scaling_strategy") || d.HasChange("redact_client_log_data") || d.HasChange("config_server_management_mode") {
 			request := new(admin.ClusterDescription20240805)
 			if d.HasChange("replica_set_scaling_strategy") {
 				request.ReplicaSetScalingStrategy = conversion.Pointer(d.Get("replica_set_scaling_strategy").(string))
@@ -861,6 +861,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
+			waitOnUpdate = true
+		}
+		if waitOnUpdate {
 			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
