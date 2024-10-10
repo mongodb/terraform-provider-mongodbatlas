@@ -47,7 +47,7 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     mig.PreCheckBasicSleep(t),
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -192,7 +192,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
+		PreCheck:     mig.PreCheckBasicSleep(t),
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
