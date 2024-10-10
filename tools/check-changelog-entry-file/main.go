@@ -12,7 +12,7 @@ import (
 
 var (
 	skipLabelName              = "skip-changelog-check"
-	skipTitles                 = []string{"chore", "test", "doc", "ci"} // Dependabot uses chore.
+	skipTitles                 = []string{"chore", "test", "doc", "ci", "refactor"} // Dependabot uses chore.
 	allowedTypeValues          = getValidTypes("scripts/changelog/allowed-types.txt")
 	typesRequireResourcePrefix = []string{"breaking-change", "enhancement", "bug"}
 )
