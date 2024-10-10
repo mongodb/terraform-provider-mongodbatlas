@@ -54,20 +54,20 @@ func ValidateUsernames(c admin.MongoDBCloudUsersApi, usernames []string) ([]admi
 }
 
 func GetChangesForTeamUsers(currentUsers, newUsers []admin.CloudAppUser) (toAdd, toDelete []string, err error) {
-	// Create two sets to store the elements in A and B
+	// Create two sets to store the elements of current and new users
 	currentUsersSet := InitUserSet(currentUsers)
 	newUsersSet := InitUserSet(newUsers)
 
-	// Iterate over the elements in B and add them to the toAdd array if they are not in A
+	// Iterate over new users and add them to the toAdd array if they are not in current users
 	for elem := range newUsersSet {
-		if _, ok := currentUsersSet[elem]; !ok {
+		if !currentUsersSet[elem] {
 			toAdd = append(toAdd, elem)
 		}
 	}
 
-	// Iterate over the elements in A and add them to the toDelete array if they are not in B
+	// Iterate over current users and add them to the toDelete array if they are not in new users
 	for elem := range currentUsersSet {
-		if _, ok := newUsersSet[elem]; !ok {
+		if !newUsersSet[elem] {
 			toDelete = append(toDelete, elem)
 		}
 	}
@@ -75,8 +75,8 @@ func GetChangesForTeamUsers(currentUsers, newUsers []admin.CloudAppUser) (toAdd,
 	return toAdd, toDelete, nil
 }
 
-func InitUserSet(users []admin.CloudAppUser) map[string]interface{} {
-	usersSet := make(map[string]interface{}, len(users))
+func InitUserSet(users []admin.CloudAppUser) map[string]bool {
+	usersSet := make(map[string]bool, len(users))
 	for i := 0; i < len(users); i++ {
 		usersSet[users[i].GetId()] = true
 	}
