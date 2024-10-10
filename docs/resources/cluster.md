@@ -522,8 +522,6 @@ To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-t
 
 ### Labels
 
-**WARNING:** This property is deprecated and will be removed in the future, use the `tags` attribute instead.
-
  ```terraform
  labels {
         key   = "Key 1"

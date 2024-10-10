@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -287,9 +286,8 @@ func DataSource() *schema.Resource {
 				Computed: true,
 			},
 			"labels": {
-				Type:       schema.TypeSet,
-				Computed:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamFutureWithReplacement, "tags"),
+				Type:     schema.TypeSet,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {

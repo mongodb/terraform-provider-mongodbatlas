@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/spf13/cast"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -311,10 +310,9 @@ func Resource() *schema.Resource {
 			},
 			"advanced_configuration": advancedcluster.SchemaAdvancedConfig(),
 			"labels": {
-				Type:       schema.TypeSet,
-				Optional:   true,
-				Set:        advancedcluster.HashFunctionForKeyValuePair,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamFutureWithReplacement, "tags"),
+				Type:     schema.TypeSet,
+				Optional: true,
+				Set:      advancedcluster.HashFunctionForKeyValuePair,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
