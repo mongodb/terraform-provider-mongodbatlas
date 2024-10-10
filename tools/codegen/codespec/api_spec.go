@@ -29,7 +29,6 @@ func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
 
 	resp.Type = schema.Type[0]
 	resp.Schema = schema
-	resp.Format = resp.Schema.Format
 
 	return resp, nil
 }
@@ -50,7 +49,7 @@ func getSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType])
 	}
 
 	sortedMediaTypes := orderedmap.SortAlpha(mediaTypes)
-	for pair := range orderedmap.Iterate(context.TODO(), sortedMediaTypes) {
+	for pair := range orderedmap.Iterate(context.Background(), sortedMediaTypes) {
 		mediaType := pair.Value()
 		if mediaType.Schema != nil {
 			s, err := BuildSchema(mediaType.Schema)
@@ -88,7 +87,7 @@ func buildSchemaFromResponse(op *high.Operation) (*APISpecSchema, error) {
 	}
 
 	sortedCodes := orderedmap.SortAlpha(op.Responses.Codes)
-	for pair := range orderedmap.Iterate(context.TODO(), sortedCodes) {
+	for pair := range orderedmap.Iterate(context.Background(), sortedCodes) {
 		responseCode := pair.Value()
 		statusCode, err := strconv.Atoi(pair.Key())
 		if err != nil {

@@ -12,16 +12,16 @@ var errInvalidSchema = fmt.Errorf("invalid schema")
 type APISpecSchema struct {
 	Schema *base.Schema
 	Type   string
-	Format string
 }
 
 type APISpecResource struct {
-	Description      *string
-	CreateOp         *high.Operation
-	ReadOp           *high.Operation
-	UpdateOp         *high.Operation
-	DeleteOp         *high.Operation
-	CommonParameters []*high.Parameter
+	Description        *string
+	DeprecationMessage *string
+	CreateOp           *high.Operation
+	ReadOp             *high.Operation
+	UpdateOp           *high.Operation
+	DeleteOp           *high.Operation
+	CommonParameters   []*high.Parameter
 }
 
 func (s *APISpecSchema) GetComputability(name string) ComputedOptionalRequired {
@@ -31,7 +31,7 @@ func (s *APISpecSchema) GetComputability(name string) ComputedOptionalRequired {
 		}
 	}
 
-	return ComputedOptional
+	return Optional
 }
 
 func (s *APISpecSchema) GetDeprecationMessage() *string {
@@ -53,7 +53,7 @@ func (s *APISpecSchema) GetDescription() *string {
 }
 
 func (s *APISpecSchema) IsSensitive() *bool {
-	isSensitive := s.Format == OASFormatPassword
+	isSensitive := s.Schema.Format == OASFormatPassword
 
 	if !isSensitive {
 		return nil

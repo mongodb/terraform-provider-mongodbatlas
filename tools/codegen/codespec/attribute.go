@@ -11,7 +11,7 @@ func buildResourceAttrs(s *APISpecSchema) (Attributes, error) {
 	objectAttributes := Attributes{}
 
 	sortedProperties := orderedmap.SortAlpha(s.Schema.Properties)
-	for pair := range orderedmap.Iterate(context.TODO(), sortedProperties) {
+	for pair := range orderedmap.Iterate(context.Background(), sortedProperties) {
 		name := pair.Key()
 		proxy := pair.Value()
 
@@ -63,9 +63,7 @@ func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptio
 	if s.Schema.Default != nil {
 		var staticDefault string
 		if err := s.Schema.Default.Decode(&staticDefault); err == nil {
-			if computability == Required {
-				result.ComputedOptionalRequired = ComputedOptional
-			}
+			result.ComputedOptionalRequired = ComputedOptional
 
 			result.String.Default = &staticDefault
 		}
@@ -86,9 +84,7 @@ func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOpti
 	if s.Schema.Default != nil {
 		var staticDefault int64
 		if err := s.Schema.Default.Decode(&staticDefault); err == nil {
-			if computability == Required {
-				result.ComputedOptionalRequired = ComputedOptional
-			}
+			result.ComputedOptionalRequired = ComputedOptional
 
 			result.Int64.Default = &staticDefault
 		}
@@ -98,7 +94,7 @@ func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOpti
 }
 
 func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
-	if s.Format == OASFormatDouble || s.Format == OASFormatFloat {
+	if s.Schema.Format == OASFormatDouble || s.Schema.Format == OASFormatFloat {
 		result := &Attribute{
 			Name:                     terraformAttrName(name),
 			ComputedOptionalRequired: computability,
@@ -110,9 +106,7 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 		if s.Schema.Default != nil {
 			var staticDefault float64
 			if err := s.Schema.Default.Decode(&staticDefault); err == nil {
-				if computability == Required {
-					result.ComputedOptionalRequired = ComputedOptional
-				}
+				result.ComputedOptionalRequired = ComputedOptional
 
 				result.Float64.Default = &staticDefault
 			}
@@ -142,10 +136,7 @@ func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptiona
 	if s.Schema.Default != nil {
 		var staticDefault bool
 		if err := s.Schema.Default.Decode(&staticDefault); err == nil {
-			if computability == Required {
-				result.ComputedOptionalRequired = ComputedOptional
-			}
-
+			result.ComputedOptionalRequired = ComputedOptional
 			result.Bool.Default = &staticDefault
 		}
 	}

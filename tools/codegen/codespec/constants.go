@@ -16,4 +16,6 @@ const (
 
 	OASPathParam  = "path"
 	OASQueryParam = "query"
+
+	DefaultDeprecationMsg = "This resource has been deprecated"
 )

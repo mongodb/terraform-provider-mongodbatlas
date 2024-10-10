@@ -33,46 +33,26 @@ func ToProviderSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceN
 	}
 
 	// map OAS resource model to CodeSpecModel
-	_ = oasResourceToProviderSpecModel(oasResource, genConfig.Resources[resourceName], resourceName)
+	codeSpecResource := oasResourceToProviderSpecModel(oasResource, genConfig.Resources[resourceName], resourceName)
 
-	// return &Model{Resources: []Resource{*codeSpecResource}}, nil
-	return TestExampleCodeSpecification(), nil
+	return &Model{Resources: []Resource{*codeSpecResource}}, nil
 }
 
-/*
-Computability:
-  - Path parameters defined in GET and POST methods of the resource.
-    All attributes will be defined as required.
-  - Request body of POST method.
-    Optional or required will be set as defined in each property.
-  - Successful response body of GET and POST methods.
-    Properties present in the response body that are not part of requests will be computed only.
-    Optional + computed would be used for the case of optional properties that define a default value.
-*/
 func oasResourceToProviderSpecModel(oasResource APISpecResource, resourceConfig config.Resource, name string) *Resource {
 	createOp := oasResource.CreateOp
 	readOp := oasResource.ReadOp
 
-	attributes := Attributes{}
-
 	pathParamAttributes := pathParamsToAttributes(createOp, readOp)
-
 	createRequestAttributes := opRequestToAttributes(createOp)
-
 	createResponseAttributes := opResponseToAttributes(createOp)
-
 	readResponseAttributes := opResponseToAttributes(readOp)
 
-	// TODO: "merge" common attrs and update computability
-	attributes = append(attributes, pathParamAttributes...)
-	attributes = append(attributes, createRequestAttributes...)
-	attributes = append(attributes, createResponseAttributes...)
-	attributes = append(attributes, readResponseAttributes...)
+	attributes := mergeAttributes(pathParamAttributes, createRequestAttributes, createResponseAttributes, readResponseAttributes)
 
 	schema := &Schema{
-		Description: oasResource.Description,
-		// DeprecationMessage: ,
-		Attributes: attributes,
+		Description:        oasResource.Description,
+		DeprecationMessage: oasResource.DeprecationMessage,
+		Attributes:         attributes,
 	}
 
 	resource := &Resource{
@@ -149,6 +129,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 
 func getOASResource(spec high.Document, resourceConfig config.Resource, name string) (APISpecResource, error) {
 	var errResult error
+	var resourceDeprecationMsg *string
 
 	createOp, err := extractOp(spec.Paths, resourceConfig.Create)
 	if err != nil {
@@ -172,13 +153,18 @@ func getOASResource(spec high.Document, resourceConfig config.Resource, name str
 		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s' common parameters: %w", name, err))
 	}
 
+	if readOp.Deprecated != nil && *readOp.Deprecated {
+		resourceDeprecationMsg = conversion.StringPtr(DefaultDeprecationMsg)
+	}
+
 	return APISpecResource{
-		Description:      &createOp.Description,
-		CreateOp:         createOp,
-		ReadOp:           readOp,
-		UpdateOp:         updateOp,
-		DeleteOp:         deleteOp,
-		CommonParameters: commonParameters,
+		Description:        &createOp.Description,
+		DeprecationMessage: resourceDeprecationMsg,
+		CreateOp:           createOp,
+		ReadOp:             readOp,
+		UpdateOp:           updateOp,
+		DeleteOp:           deleteOp,
+		CommonParameters:   commonParameters,
 	}, errResult
 }
 
@@ -229,48 +215,4 @@ func extractCommonParameters(paths *high.Paths, path string) ([]*high.Parameter,
 
 func applyConfigSchemaOptions(resourceConfig config.Resource, resource *Resource) {
 	// TODO: implement in follow-up PR
-}
-
-func TestExampleCodeSpecification() *Model {
-	testFieldDesc := "Test field description"
-	return &Model{
-		Resources: []Resource{{
-			Schema: &Schema{
-				Attributes: Attributes{
-					Attribute{
-						Name:                     "project_id",
-						ComputedOptionalRequired: Required,
-						String:                   &StringAttribute{},
-						Description:              conversion.StringPtr("Overridden project_id description"),
-					},
-					Attribute{
-						Name:                     "bucket_name",
-						ComputedOptionalRequired: Required,
-						String:                   &StringAttribute{},
-						Description:              &testFieldDesc,
-					},
-					Attribute{
-						Name:                     "iam_role_id",
-						ComputedOptionalRequired: Required,
-						String:                   &StringAttribute{},
-						Description:              &testFieldDesc,
-					},
-					Attribute{
-						Name:                     "state",
-						ComputedOptionalRequired: Computed,
-						String:                   &StringAttribute{},
-						Description:              &testFieldDesc,
-					},
-					Attribute{
-						Name:                     "prefix_path",
-						String:                   &StringAttribute{},
-						ComputedOptionalRequired: ComputedOptional,
-						Description:              &testFieldDesc,
-					},
-				},
-			},
-			Name: "test_resource",
-		},
-		},
-	}
 }
