@@ -1,10 +1,10 @@
 resources:
   test_resource:
     read:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      path: /api/atlas/v2/groups/{groupId}/testResource
       method: GET
     create:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      path: /api/atlas/v2/groups/{groupId}/testResource
       method: POST
     schema:
       aliases:

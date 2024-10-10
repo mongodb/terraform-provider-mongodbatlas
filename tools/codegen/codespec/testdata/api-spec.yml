@@ -122,7 +122,7 @@ components:
   parameters:
     groupId:
       description: >-
-        GroupId description
+        GroupId path param test description
       in: path
       name: groupId
       required: true
@@ -141,10 +141,10 @@ components:
     CreateTestResourceRequest:
       type: object
       properties:
-        bucketName:
+        strReqAttr1:
           type: string
           description: Test field description
-        iamRoleId:
+        strReqAttr2:
           type: string
           description: Test field description
         links:
@@ -158,24 +158,36 @@ components:
           items:
             $ref: "#/components/schemas/Link"
           readOnly: true
-        prefixPath:
+        strReqAttr3:
           type: string
           description: Test field description
+        boolDefaultAttr:
+          type: boolean
+          default: false
+        count:
+          type: integer
+          format: int32
+          description: Test field description
+        numDoubleDefaultAttr:
+          type: number
+          format: double
+          default: 2.0
       required:
-        - bucketName
-        - iamRoleId
-        - prefixPath
+        - strReqAttr1
+        - strReqAttr2
+        - strReqAttr3
     TestResource:
       type: object
       properties:
-        bucketName:
+        strReqAttr1:
           type: string
           description: Test field description
+        createDate:
           type: string
           format: date-time
-          description: Date and time that this feature was enabled on.
+          description: Test field description
           readOnly: true
-        iamRoleId:
+        strReqAttr2:
           type: string
           description: Test field description
         links:
@@ -189,13 +201,24 @@ components:
           items:
             $ref: "#/components/schemas/Link"
           readOnly: true
-        prefixPath:
+        strReqAttr3:
           type: string
           description: Test field description
-        state:
+        strComputedAttr:
           type: string
           description: Test field description
           readOnly: true
+        boolDefaultAttr:
+          type: boolean
+          default: false
+        count:
+          type: integer
+          format: int32
+          description: Test field description
+        numDoubleDefaultAttr:
+          type: number
+          format: double
+          default: 2.0
     Link:
       type: object
       properties:
