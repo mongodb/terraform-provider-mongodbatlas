@@ -17,7 +17,7 @@ func TestMigBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     mig.PreCheckBasicSleep(t),
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{

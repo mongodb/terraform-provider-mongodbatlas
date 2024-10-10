@@ -43,7 +43,7 @@ func TestAccCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.PreCheckBasicSleep(t),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -75,7 +75,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		PreCheck:                 acc.PreCheckBasicSleep(tb),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{

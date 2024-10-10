@@ -54,7 +54,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, attrsPluralDS)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		PreCheck:                 acc.PreCheckBasicSleep(tb),
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
