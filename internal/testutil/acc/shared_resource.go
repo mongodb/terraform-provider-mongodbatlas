@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -84,10 +85,23 @@ func ClusterNameExecution(tb testing.TB) (projectID, clusterName string) {
 	return sharedInfo.projectID, sharedInfo.clusterName
 }
 
+// SerialSleep waits a few seconds so clusters are not created concurrently in the execution project, see HELP-65223.
+// This must be called once the test is marked as parallel, e.g. in PreCheck inside resource.ParallelTest.
+func SerialSleep(tb testing.TB) {
+	tb.Helper()
+	SkipInUnitTest(tb)
+	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+
+	sharedInfo.muSleep.Lock()
+	defer sharedInfo.muSleep.Unlock()
+	time.Sleep(10 * time.Second)
+}
+
 var sharedInfo = struct {
 	projectID   string
 	projectName string
 	clusterName string
 	mu          sync.Mutex
+	muSleep     sync.Mutex
 	init        bool
 }{}
