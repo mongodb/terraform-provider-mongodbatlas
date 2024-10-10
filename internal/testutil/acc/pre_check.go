@@ -16,7 +16,7 @@ func PreCheckBasic(tb testing.TB) {
 }
 
 // PreCheckBasicSleep is a helper function to call SerialSleep, see its help for more info.
-// Some examples of use are when the test is calling ProjectIDExecution or GetClusterInfo.
+// Some examples of use are when the test is calling ProjectIDExecution or GetClusterInfo to create clusters.
 func PreCheckBasicSleep(tb testing.TB) func() {
 	tb.Helper()
 	return func() {

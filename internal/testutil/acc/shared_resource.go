@@ -86,7 +86,7 @@ func ClusterNameExecution(tb testing.TB) (projectID, clusterName string) {
 }
 
 // SerialSleep waits a few seconds so clusters are not created concurrently in the execution project, see HELP-65223.
-// This must be called once the test is marked as parallel, e.g. in PreCheck inside resource.ParallelTest.
+// This must be called once the test is marked as parallel, e.g. in PreCheck inside Terraform tests.
 func SerialSleep(tb testing.TB) {
 	tb.Helper()
 	SkipInUnitTest(tb)
