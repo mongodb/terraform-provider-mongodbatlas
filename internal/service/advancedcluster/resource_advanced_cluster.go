@@ -761,15 +761,13 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 	if err := d.Set("global_cluster_self_managed_sharding", cluster.GetGlobalClusterSelfManagedSharding()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "global_cluster_self_managed_sharding", clusterName, err))
 	}
-	if cluster.ConfigServerType != nil {
-		if err := d.Set("config_server_type", *cluster.ConfigServerType); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "config_server_type", clusterName, err))
-		}
+
+	if err := d.Set("config_server_type", cluster.GetConfigServerType()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "config_server_type", clusterName, err))
 	}
-	if cluster.ConfigServerManagementMode != nil {
-		if err := d.Set("config_server_management_mode", *cluster.ConfigServerManagementMode); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "config_server_management_mode", clusterName, err))
-		}
+
+	if err := d.Set("config_server_management_mode", cluster.GetConfigServerManagementMode()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "config_server_management_mode", clusterName, err))
 	}
 	return nil
 }
