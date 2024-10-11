@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"unicode/utf8"
 )
 
 var (
@@ -20,12 +19,10 @@ func terraformAttrName(attrName string) string {
 	removedUnsupported := unsupportedCharacters.ReplaceAllString(attrName, "")
 
 	insertedUnderscores := camelCase.ReplaceAllStringFunc(removedUnsupported, func(s string) string {
-		firstRune, size := utf8.DecodeRuneInString(s)
-		if firstRune == utf8.RuneError && size <= 1 {
-			return s
-		}
-
-		return fmt.Sprintf("%s_%s", string(firstRune), strings.ToLower(s[size:]))
+		firstChar := s[0]
+		restOfString := s[1:]
+		return fmt.Sprintf("%c_%s", firstChar, strings.ToLower(restOfString))
 	})
+
 	return strings.ToLower(insertedUnderscores)
 }

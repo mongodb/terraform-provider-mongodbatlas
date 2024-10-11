@@ -12,7 +12,7 @@ import (
 const (
 	testFieldDesc     = "Test field description"
 	testResourceDesc  = "Configures the project level settings for the Test Resource feature."
-	testPathParamDesc = "GroupId path param test description"
+	testPathParamDesc = "Path param test description"
 )
 
 type convertToSpecTestCase struct {
@@ -55,7 +55,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 								Name:                     "group_id",
 								ComputedOptionalRequired: codespec.Required,
 								String:                   &codespec.StringAttribute{},
-								// Description: &testPathParamDesc,
+								Description:              conversion.StringPtr(testPathParamDesc),
 							},
 							codespec.Attribute{
 								Name:                     "num_double_default_attr",

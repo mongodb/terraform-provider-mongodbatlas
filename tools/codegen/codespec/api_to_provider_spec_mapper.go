@@ -82,6 +82,7 @@ func pathParamsToAttributes(createOp, readOp *high.Operation) Attributes {
 		}
 
 		paramName := param.Name
+		s.Schema.Description = param.Description
 		parameterAttribute, err := s.buildResourceAttr(paramName, ComputedOptional)
 		if err != nil {
 			log.Printf("[WARN] Path param %s could not be mapped: %s", paramName, err)
