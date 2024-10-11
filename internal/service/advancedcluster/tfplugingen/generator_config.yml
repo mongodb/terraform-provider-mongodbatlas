@@ -1,23 +1,21 @@
 provider:
   name: mongodbatlas
 
-# TODO: Endpoints from Atlas Admin API must be specified for schema and model generation. Singular or plural data sources can be removed if not used.
-
 resources:
   advanced_cluster:
     read:
-      path: /api/atlas/v2/*
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
       method: GET
     create:
-      path: /api/atlas/v2/*
+      path: /api/atlas/v2/groups/{groupId}/clusters
       method: POST
 
 data_sources:
   advanced_cluster:
     read:
-      path: /api/atlas/v2/*
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
       method: GET
   advanced_clusters:
     read:
-      path: /api/atlas/v2/*
+      path: /api/atlas/v2/groups/{groupId}/clusters
       method: GET
