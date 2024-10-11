@@ -98,7 +98,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			result, _ := codespec.ToProviderSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, tc.inputResourceName)
-			assert.Equal(t, tc.expectedResult.Resources[0], result.Resources[0], "Expected result to match the specified structure")
+			assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 		})
 	}
 }
