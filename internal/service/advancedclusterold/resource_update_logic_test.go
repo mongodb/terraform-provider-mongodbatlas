@@ -1,9 +1,9 @@
-package advancedcluster_test
+package advancedclusterold_test
 
 import (
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
@@ -118,7 +118,7 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			resultSpecs := advancedcluster.AddIDsToReplicationSpecs(tc.ReplicationSpecs, tc.ZoneToReplicationSpecsIDs)
+			resultSpecs := advancedclusterold.AddIDsToReplicationSpecs(tc.ReplicationSpecs, tc.ZoneToReplicationSpecsIDs)
 			assert.Equal(t, tc.ExpectedReplicationSpecs, resultSpecs)
 		})
 	}
@@ -285,7 +285,7 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			specs := &tc.ReplicationSpecs
-			advancedcluster.SyncAutoScalingConfigs(specs)
+			advancedclusterold.SyncAutoScalingConfigs(specs)
 			assert.Equal(t, tc.ExpectedReplicationSpecs, *specs)
 		})
 	}

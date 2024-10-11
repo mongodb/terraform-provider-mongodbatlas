@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
@@ -22,7 +22,7 @@ func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.AP
 	if _, _, err = connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 		return err
 	}
-	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
+	stateConf := advancedclusterold.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return err
 	}

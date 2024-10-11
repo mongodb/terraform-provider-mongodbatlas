@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -32,7 +32,7 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"advanced_configuration": advancedcluster.SchemaAdvancedConfigDS(),
+						"advanced_configuration": advancedclusterold.SchemaAdvancedConfigDS(),
 						"auto_scaling_disk_gb_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -306,7 +306,7 @@ func PluralDataSource() *schema.Resource {
 								},
 							},
 						},
-						"tags":                   &advancedcluster.DSTagsSchema,
+						"tags":                   &advancedclusterold.DSTagsSchema,
 						"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 						"container_id": {
 							Type:     schema.TypeString,
@@ -354,7 +354,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	if err := d.Set("results", flattenClusters(ctx, d, conn, clusters, redactClientLogDataMap)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "results", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "results", d.Id(), err))
 	}
 
 	return nil

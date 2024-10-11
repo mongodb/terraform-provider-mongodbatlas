@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -25,7 +25,7 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"advanced_configuration": advancedcluster.SchemaAdvancedConfigDS(),
+			"advanced_configuration": advancedclusterold.SchemaAdvancedConfigDS(),
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -303,7 +303,7 @@ func DataSource() *schema.Resource {
 					},
 				},
 			},
-			"tags":                   &advancedcluster.DSTagsSchema,
+			"tags":                   &advancedclusterold.DSTagsSchema,
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 			"container_id": {
 				Type:     schema.TypeString,
@@ -341,94 +341,94 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if err := d.Set("auto_scaling_compute_enabled", cluster.AutoScaling.Compute.Enabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "auto_scaling_compute_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "auto_scaling_compute_enabled", clusterName, err))
 	}
 
 	if err := d.Set("auto_scaling_compute_scale_down_enabled", cluster.AutoScaling.Compute.ScaleDownEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "auto_scaling_compute_scale_down_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "auto_scaling_compute_scale_down_enabled", clusterName, err))
 	}
 
 	if err := d.Set("provider_auto_scaling_compute_min_instance_size", cluster.ProviderSettings.AutoScaling.Compute.MinInstanceSize); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "provider_auto_scaling_compute_min_instance_size", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "provider_auto_scaling_compute_min_instance_size", clusterName, err))
 	}
 
 	if err := d.Set("provider_auto_scaling_compute_max_instance_size", cluster.ProviderSettings.AutoScaling.Compute.MaxInstanceSize); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "provider_auto_scaling_compute_max_instance_size", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "provider_auto_scaling_compute_max_instance_size", clusterName, err))
 	}
 
 	if err := d.Set("auto_scaling_disk_gb_enabled", cluster.AutoScaling.DiskGBEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "auto_scaling_disk_gb_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "auto_scaling_disk_gb_enabled", clusterName, err))
 	}
 
 	if err := d.Set("backup_enabled", cluster.BackupEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "backup_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "backup_enabled", clusterName, err))
 	}
 
 	if err := d.Set("pit_enabled", cluster.PitEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "pit_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "pit_enabled", clusterName, err))
 	}
 
 	if err := d.Set("provider_backup_enabled", cluster.ProviderBackupEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "provider_backup_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "provider_backup_enabled", clusterName, err))
 	}
 
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "cluster_type", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "cluster_type", clusterName, err))
 	}
 
 	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "connection_strings", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "connection_strings", clusterName, err))
 	}
 
 	if err := d.Set("disk_size_gb", cluster.DiskSizeGB); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "disk_size_gb", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "disk_size_gb", clusterName, err))
 	}
 
 	if err := d.Set("encryption_at_rest_provider", cluster.EncryptionAtRestProvider); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "encryption_at_rest_provider", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
 	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_db_major_version", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "mongo_db_major_version", clusterName, err))
 	}
 
 	// Avoid Global Cluster issues. (NumShards is not present in Global Clusters)
 	if cluster.NumShards != nil {
 		if err := d.Set("num_shards", cluster.NumShards); err != nil {
-			return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "num_shards", clusterName, err))
+			return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "num_shards", clusterName, err))
 		}
 	}
 
 	if err := d.Set("mongo_db_version", cluster.MongoDBVersion); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_db_version", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "mongo_db_version", clusterName, err))
 	}
 
 	if err := d.Set("mongo_uri", cluster.MongoURI); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_uri", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "mongo_uri", clusterName, err))
 	}
 
 	if err := d.Set("mongo_uri_updated", cluster.MongoURIUpdated); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_uri_updated", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "mongo_uri_updated", clusterName, err))
 	}
 
 	if err := d.Set("mongo_uri_with_options", cluster.MongoURIWithOptions); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_uri_with_options", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "mongo_uri_with_options", clusterName, err))
 	}
 
 	if err := d.Set("paused", cluster.Paused); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "paused", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "paused", clusterName, err))
 	}
 
 	if err := d.Set("srv_address", cluster.SrvAddress); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "srv_address", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "srv_address", clusterName, err))
 	}
 
 	if err := d.Set("state_name", cluster.StateName); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "state_name", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "state_name", clusterName, err))
 	}
 
 	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "bi_connector_config", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "bi_connector_config", clusterName, err))
 	}
 
 	if cluster.ProviderSettings != nil {
@@ -436,27 +436,27 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if err := d.Set("replication_specs", flattenReplicationSpecs(cluster.ReplicationSpecs)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "replication_specs", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "replication_specs", clusterName, err))
 	}
 
 	if err := d.Set("replication_factor", cluster.ReplicationFactor); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "replication_factor", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "replication_factor", clusterName, err))
 	}
 
 	if err := d.Set("labels", flattenLabels(cluster.Labels)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "labels", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "labels", clusterName, err))
 	}
 
 	if err := d.Set("tags", flattenTags(cluster.Tags)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "tags", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "tags", clusterName, err))
 	}
 
 	if err := d.Set("termination_protection_enabled", cluster.TerminationProtectionEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "termination_protection_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "termination_protection_enabled", clusterName, err))
 	}
 
 	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "version_release_system", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "version_release_system", clusterName, err))
 	}
 
 	if cluster.ProviderSettings != nil && cluster.ProviderSettings.ProviderName != "TENANT" {
@@ -467,7 +467,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 
 		if err := d.Set("container_id", getContainerID(containers, cluster)); err != nil {
-			return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "container_id", clusterName, err))
+			return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "container_id", clusterName, err))
 		}
 	}
 
@@ -476,11 +476,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	*/
 	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorAdvancedConfRead, clusterName, err))
 	}
 
 	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "advanced_configuration", clusterName, err))
 	}
 
 	// Get the snapshot policy and set the data
@@ -498,7 +498,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
 	}
 	if err := d.Set("redact_client_log_data", redactClientLogData); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "redact_client_log_data", clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedclusterold.ErrorClusterSetting, "redact_client_log_data", clusterName, err))
 	}
 
 	d.SetId(cluster.ID)

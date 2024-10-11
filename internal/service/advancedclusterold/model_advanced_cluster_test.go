@@ -1,4 +1,4 @@
-package advancedcluster_test
+package advancedclusterold_test
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
 )
 
 var (
@@ -137,7 +137,7 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 			}
 			resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]any{"project_id": "p1"})
 
-			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldSDK(context.Background(), tc.adminSpecs, nil, 0, tc.tfInputSpecs, resourceData, client)
+			tfOutputSpecs, err := advancedclusterold.FlattenAdvancedReplicationSpecsOldSDK(context.Background(), tc.adminSpecs, nil, 0, tc.tfInputSpecs, resourceData, client)
 
 			require.NoError(t, err)
 			assert.Len(t, tfOutputSpecs, tc.expectedLen)
@@ -183,7 +183,7 @@ func TestGetDiskSizeGBFromReplicationSpec(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			result := advancedcluster.GetDiskSizeGBFromReplicationSpec(&tc.clusterDescription)
+			result := advancedclusterold.GetDiskSizeGBFromReplicationSpec(&tc.clusterDescription)
 			assert.Equal(t, fmt.Sprintf("%.f", tc.expectedDiskSizeResult), fmt.Sprintf("%.f", result)) // formatting to string to avoid float comparison
 		})
 	}
@@ -277,7 +277,7 @@ func TestUpgradeRefreshFunc(t *testing.T) {
 			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetClusterApiRequest{ApiService: testObject}).Once()
 			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
 
-			result, stateName, err := advancedcluster.UpgradeRefreshFunc(context.Background(), dummyClusterName, dummyProjectID, testObject)()
+			result, stateName, err := advancedclusterold.UpgradeRefreshFunc(context.Background(), dummyClusterName, dummyProjectID, testObject)()
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
 			}
@@ -382,7 +382,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 			testObject.EXPECT().ListClusters(mock.Anything, mock.Anything).Return(admin.ListClustersApiRequest{ApiService: testObject}).Once()
 			testObject.EXPECT().ListClustersExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
 
-			result, stateName, err := advancedcluster.ResourceClusterListAdvancedRefreshFunc(context.Background(), dummyProjectID, testObject)()
+			result, stateName, err := advancedclusterold.ResourceClusterListAdvancedRefreshFunc(context.Background(), dummyProjectID, testObject)()
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
 			}
@@ -411,7 +411,7 @@ func TestIsChangeStreamOptionsMinRequiredMajorVersion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := advancedcluster.IsChangeStreamOptionsMinRequiredMajorVersion(&tt.input); got != tt.want {
+			if got := advancedclusterold.IsChangeStreamOptionsMinRequiredMajorVersion(&tt.input); got != tt.want {
 				t.Errorf("abc(%v) = %v, want %v", tt.input, got, tt.want)
 			}
 		})
@@ -456,9 +456,9 @@ func TestCheckRegionConfigsPriorityOrder(t *testing.T) {
 				configs[i].Priority = conversion.IntPtr(priority)
 				configsOld[i].Priority = conversion.IntPtr(priority)
 			}
-			err := advancedcluster.CheckRegionConfigsPriorityOrder([]admin.ReplicationSpec20240805{{RegionConfigs: &configs}})
+			err := advancedclusterold.CheckRegionConfigsPriorityOrder([]admin.ReplicationSpec20240805{{RegionConfigs: &configs}})
 			assert.Equal(t, tc.errorExpected, err != nil)
-			err = advancedcluster.CheckRegionConfigsPriorityOrderOld([]admin20240530.ReplicationSpec{{RegionConfigs: &configsOld}})
+			err = advancedclusterold.CheckRegionConfigsPriorityOrderOld([]admin20240530.ReplicationSpec{{RegionConfigs: &configsOld}})
 			assert.Equal(t, tc.errorExpected, err != nil)
 		})
 	}

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
@@ -186,7 +186,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+		Refresh:    advancedclusterold.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Minute,
@@ -194,7 +194,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
 		// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
-		log.Printf(advancedcluster.ErrorAdvancedClusterListStatus, err)
+		log.Printf(advancedclusterold.ErrorAdvancedClusterListStatus, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -310,7 +310,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterConf := &retry.StateChangeConf{
 			Pending:    []string{"REPEATING", "PENDING"},
 			Target:     []string{"IDLE", "DELETED"},
-			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+			Refresh:    advancedclusterold.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: 5 * time.Second,
 			Delay:      5 * time.Minute,
@@ -318,7 +318,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
 			// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
-			log.Printf(advancedcluster.ErrorAdvancedClusterListStatus, err)
+			log.Printf(advancedclusterold.ErrorAdvancedClusterListStatus, err)
 		}
 	}
 

@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
 )
 
 func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
@@ -260,7 +260,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
 			res.OplogSizeMB = conversion.Pointer(cast.ToInt64(p["oplog_size_mb"]))
 		} else {
-			log.Printf(advancedcluster.ErrorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
+			log.Printf(advancedclusterold.ErrorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
 		}
 	}
 
@@ -268,7 +268,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		if minRetentionHours := cast.ToFloat64(p["oplog_min_retention_hours"]); minRetentionHours >= 0 {
 			res.OplogMinRetentionHours = conversion.Pointer(cast.ToFloat64(p["oplog_min_retention_hours"]))
 		} else {
-			log.Printf(advancedcluster.ErrorClusterSetting, `oplog_min_retention_hours`, "", cast.ToString(minRetentionHours))
+			log.Printf(advancedclusterold.ErrorClusterSetting, `oplog_min_retention_hours`, "", cast.ToString(minRetentionHours))
 		}
 	}
 
@@ -276,11 +276,11 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		if transactionLifetimeLimitSeconds := cast.ToInt64(p["transaction_lifetime_limit_seconds"]); transactionLifetimeLimitSeconds > 0 {
 			res.TransactionLifetimeLimitSeconds = conversion.Pointer(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
 		} else {
-			log.Printf(advancedcluster.ErrorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
+			log.Printf(advancedclusterold.ErrorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
 		}
 	}
 
-	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && advancedcluster.IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && advancedclusterold.IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
 		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(cast.ToInt64(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 	}
 
@@ -492,40 +492,40 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSettings, clusterName string) {
 	if settings.ProviderName == "TENANT" {
 		if err := d.Set("backing_provider_name", settings.BackingProviderName); err != nil {
-			log.Printf(advancedcluster.ErrorClusterSetting, "backing_provider_name", clusterName, err)
+			log.Printf(advancedclusterold.ErrorClusterSetting, "backing_provider_name", clusterName, err)
 		}
 	}
 
 	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 {
 		if err := d.Set("provider_disk_iops", *settings.DiskIOPS); err != nil {
-			log.Printf(advancedcluster.ErrorClusterSetting, "provider_disk_iops", clusterName, err)
+			log.Printf(advancedclusterold.ErrorClusterSetting, "provider_disk_iops", clusterName, err)
 		}
 	}
 
 	if err := d.Set("provider_disk_type_name", settings.DiskTypeName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_disk_type_name", clusterName, err)
+		log.Printf(advancedclusterold.ErrorClusterSetting, "provider_disk_type_name", clusterName, err)
 	}
 
 	if settings.EncryptEBSVolume != nil {
 		if err := d.Set("provider_encrypt_ebs_volume_flag", *settings.EncryptEBSVolume); err != nil {
-			log.Printf(advancedcluster.ErrorClusterSetting, "provider_encrypt_ebs_volume_flag", clusterName, err)
+			log.Printf(advancedclusterold.ErrorClusterSetting, "provider_encrypt_ebs_volume_flag", clusterName, err)
 		}
 	}
 
 	if err := d.Set("provider_instance_size_name", settings.InstanceSizeName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_instance_size_name", clusterName, err)
+		log.Printf(advancedclusterold.ErrorClusterSetting, "provider_instance_size_name", clusterName, err)
 	}
 
 	if err := d.Set("provider_name", settings.ProviderName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_name", clusterName, err)
+		log.Printf(advancedclusterold.ErrorClusterSetting, "provider_name", clusterName, err)
 	}
 
 	if err := d.Set("provider_region_name", settings.RegionName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_region_name", clusterName, err)
+		log.Printf(advancedclusterold.ErrorClusterSetting, "provider_region_name", clusterName, err)
 	}
 
 	if err := d.Set("provider_volume_type", settings.VolumeType); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_volume_type", clusterName, err)
+		log.Printf(advancedclusterold.ErrorClusterSetting, "provider_volume_type", clusterName, err)
 	}
 }
 

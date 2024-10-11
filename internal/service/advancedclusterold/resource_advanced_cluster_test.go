@@ -1,4 +1,4 @@
-package advancedcluster_test
+package advancedclusterold_test
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -461,7 +461,7 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 			},
 			{
 				Config:      configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 2, false),
-				ExpectError: regexp.MustCompile(advancedcluster.ErrorOperationNotPermitted),
+				ExpectError: regexp.MustCompile(advancedclusterold.ErrorOperationNotPermitted),
 			},
 		},
 	})
