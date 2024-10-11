@@ -38,17 +38,6 @@ func getSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType])
 		return nil, errSchemaNotFound
 	}
 
-	// hard-coding a default API version for now, if "application/vnd.atlas.2023-01-01+json" version is not found
-	// then sortedMediaTypes below will read the available media type
-	jsonMediaType, ok := mediaTypes.Get("application/vnd.atlas.2023-01-01+json")
-	if ok && jsonMediaType.Schema != nil {
-		s, err := BuildSchema(jsonMediaType.Schema)
-		if err != nil {
-			return nil, err
-		}
-		return s, nil
-	}
-
 	sortedMediaTypes := orderedmap.SortAlpha(mediaTypes)
 	for pair := range orderedmap.Iterate(context.Background(), sortedMediaTypes) {
 		mediaType := pair.Value()
