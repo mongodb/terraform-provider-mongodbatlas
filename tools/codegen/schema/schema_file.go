@@ -9,9 +9,9 @@ import (
 )
 
 type TemplateInputs struct {
-	PackageName       string
-	AdditionalImports []string
-	Attributes        []string
+	PackageName string
+	Imports     []string
+	Attributes  []string
 }
 
 func GenerateGoCode(input genconfigmapper.Resource) string {
@@ -19,8 +19,7 @@ func GenerateGoCode(input genconfigmapper.Resource) string {
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	{{range .AdditionalImports }}
+	{{range .Imports }}
 	"{{ . }}"
 	{{- end }}
 )
@@ -32,12 +31,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 `
-	// TODO get attributes
+	schemaAttrs := GenerateSchemaAttributes(input.Schema.Attributes)
+	attrsCode := []string{}
+	imports := []string{}
+	for _, attr := range schemaAttrs {
+		attrsCode = append(attrsCode, attr.Result)
+		imports = append(imports, attr.Imports...)
+	}
 
 	tmplInputs := TemplateInputs{
-		PackageName:       input.Name, // TODO adjust format
-		AdditionalImports: []string{},
-		Attributes:        GenerateSchemaAttributes(input.Schema.Attributes),
+		PackageName: input.Name,
+		Imports:     imports,
+		Attributes:  attrsCode,
 	}
 	// Parse the template
 	t, err := template.New("schema-template").Parse(tmpl)

@@ -7,27 +7,42 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 )
 
-func GenerateSchemaAttributes(attrs codespec.Attributes) []string {
-	result := []string{}
+type CodeStatement struct {
+	Result  string
+	Imports []string
+}
+
+func GenerateSchemaAttributes(attrs codespec.Attributes) []CodeStatement {
+	result := []CodeStatement{}
 	for i := range attrs {
 		result = append(result, attribute(&attrs[i]))
 	}
 	return result
 }
 
-func attribute(attr *codespec.Attribute) string {
+func attribute(attr *codespec.Attribute) CodeStatement {
 	generator := typeGenerator(attr)
 
 	typeDefinition := generator.TypeDefinition()
-	typeSpecificProps := generator.TypeSpecificProperties()
-	generalProps := commonProperties(attr)
-	properties := strings.Join(append(generalProps, typeSpecificProps...), ",\n") + ","
+	additionalPropertyStatements := generator.TypeSpecificProperties()
+
+	properties := commonProperties(attr)
+	imports := []string{"github.com/hashicorp/terraform-plugin-framework/resource/schema"}
+	for i := range additionalPropertyStatements {
+		properties = append(properties, additionalPropertyStatements[i].Result)
+		imports = append(imports, additionalPropertyStatements[i].Imports...)
+	}
 
 	name := attr.Name
-	return fmt.Sprintf(`
+	propsResultString := strings.Join(properties, ",\n") + ","
+	code := fmt.Sprintf(`
 	"%s": %s{
 		%s
-	},`, name, typeDefinition, properties)
+	},`, name, typeDefinition, propsResultString)
+	return CodeStatement{
+		Result:  code,
+		Imports: imports,
+	}
 }
 
 func commonProperties(attr *codespec.Attribute) []string {
@@ -52,7 +67,7 @@ func commonProperties(attr *codespec.Attribute) []string {
 
 type schemaAttrGenerator interface {
 	TypeDefinition() string
-	TypeSpecificProperties() []string
+	TypeSpecificProperties() []CodeStatement
 }
 
 func typeGenerator(attr *codespec.Attribute) schemaAttrGenerator {
@@ -96,160 +111,4 @@ func typeGenerator(attr *codespec.Attribute) schemaAttrGenerator {
 		return &SingleNestedAttrGenerator{model: *attr.SingleNested}
 	}
 	panic("Attribute with unknown type defined")
-}
-
-type Int64AttrGenerator struct {
-	model codespec.Int64Attribute
-}
-
-func (i *Int64AttrGenerator) TypeDefinition() string {
-	return "schema.Int64Attribute"
-}
-
-func (i *Int64AttrGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type Float64AttrGenerator struct {
-	model codespec.Float64Attribute
-}
-
-func (f *Float64AttrGenerator) TypeDefinition() string {
-	return "schema.Float64Attribute"
-}
-
-func (f *Float64AttrGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type StringAttrGenerator struct {
-	model codespec.StringAttribute
-}
-
-func (s *StringAttrGenerator) TypeDefinition() string {
-	return "schema.StringAttribute"
-}
-
-func (s *StringAttrGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type BoolAttrGenerator struct {
-	model codespec.BoolAttribute
-}
-
-func (b *BoolAttrGenerator) TypeDefinition() string {
-	return "schema.BoolAttribute"
-}
-
-func (b *BoolAttrGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type ListAttrGenerator struct {
-	model codespec.ListAttribute
-}
-
-func (l *ListAttrGenerator) TypeDefinition() string {
-	return "schema.ListAttribute"
-}
-
-func (l *ListAttrGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type ListNestedAttrGenerator struct {
-	model codespec.ListNestedAttribute
-}
-
-func (l *ListNestedAttrGenerator) TypeDefinition() string {
-	return "schema.ListNestedAttribute"
-}
-
-func (l *ListNestedAttrGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type MapAttrGenerator struct {
-	model codespec.MapAttribute
-}
-
-func (m *MapAttrGenerator) TypeDefinition() string {
-	return "schema.MapAttribute"
-}
-
-func (m *MapAttrGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type MapNestedAttrGenerator struct {
-	model codespec.MapNestedAttribute
-}
-
-func (m *MapNestedAttrGenerator) TypeDefinition() string {
-	return "schema.MapNestedAttribute"
-}
-
-func (m *MapNestedAttrGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type NumberAttrGenerator struct {
-	model codespec.NumberAttribute
-}
-
-func (n *NumberAttrGenerator) TypeDefinition() string {
-	return "schema.NumberAttribute"
-}
-
-func (n *NumberAttrGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type ObjectAttrGenerator struct {
-	model codespec.ObjectAttribute
-}
-
-func (o *ObjectAttrGenerator) TypeDefinition() string {
-	return "schema.ObjectAttribute"
-}
-
-func (o *ObjectAttrGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type SetAttrGenerator struct {
-	model codespec.SetAttribute
-}
-
-func (s *SetAttrGenerator) TypeDefinition() string {
-	return "schema.SetAttribute"
-}
-
-func (s *SetAttrGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type SetNestedGenerator struct {
-	model codespec.SetNestedAttribute
-}
-
-func (s *SetNestedGenerator) TypeDefinition() string {
-	return "schema.SetNestedAttribute"
-}
-
-func (s *SetNestedGenerator) TypeSpecificProperties() []string {
-	return nil
-}
-
-type SingleNestedAttrGenerator struct {
-	model codespec.SingleNestedAttribute
-}
-
-func (s *SingleNestedAttrGenerator) TypeDefinition() string {
-	return "schema.SingleNestedAttribute"
-}
-
-func (s *SingleNestedAttrGenerator) TypeSpecificProperties() []string {
-	return nil
 }

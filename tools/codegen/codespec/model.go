@@ -6,11 +6,7 @@ const (
 	Bool ElemType = iota
 	Float64
 	Int64
-	List
-	Map
 	Number
-	Object
-	Set
 	String
 )
 

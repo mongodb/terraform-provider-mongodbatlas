@@ -2,7 +2,9 @@ package test_name
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -32,14 +34,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"simple_list_attr": schema.ListAttribute{
 				Optional:            true,
 				MarkdownDescription: "simple arr description",
+				ElementType:         types.StringType,
 			},
 			"simple_set_attr": schema.SetAttribute{
 				Optional:            true,
 				MarkdownDescription: "simple set description",
+				ElementType:         types.Float64,
 			},
 			"simple_map_attr": schema.MapAttribute{
 				Optional:            true,
 				MarkdownDescription: "simple map description",
+				ElementType:         types.BoolType,
 			},
 		},
 	}

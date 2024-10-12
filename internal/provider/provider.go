@@ -212,7 +212,7 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 				},
 			},
 			"tags": schema.MapAttribute{
-				ElementType: types.StringType,
+				ElementType: types.MapType{},
 				Optional:    true,
 				Description: "Assume role session tags.",
 			},
