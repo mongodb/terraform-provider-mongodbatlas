@@ -123,6 +123,8 @@ issues:
     - linters:
         - gocritic
       text: "^hugeParam: req is heavy"
+    - path: "_schema\\.go" # exclude rules for schema files as it's auto-genereated from OpenAPI spec
+      text: "fieldalignment|hugeParam|var-naming|ST1003|S1007|exceeds the maximum|too long|regexpSimplify|nolint"
 run:
   timeout: 10m
   tests: true
