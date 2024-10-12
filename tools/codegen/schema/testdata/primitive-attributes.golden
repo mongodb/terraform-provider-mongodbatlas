@@ -8,36 +8,37 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-
-			"string_attr": schema.string{
+			"string_attr": schema.StringAttribute{
+				Required:            true,
 				MarkdownDescription: "string description",
 			},
-
-			"bool_attr": schema.string{
+			"bool_attr": schema.BoolAttribute{
+				Optional:            true,
 				MarkdownDescription: "bool description",
 			},
-
-			"int_attr": schema.string{
+			"int_attr": schema.Int64Attribute{
+				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "int description",
 			},
-
-			"float_attr": schema.string{
+			"float_attr": schema.Float64Attribute{
+				Optional:            true,
 				MarkdownDescription: "float description",
 			},
-
-			"number_attr": schema.string{
+			"number_attr": schema.NumberAttribute{
+				Optional:            true,
 				MarkdownDescription: "number description",
 			},
-
-			"simple_list_attr": schema.string{
+			"simple_list_attr": schema.ListAttribute{
+				Optional:            true,
 				MarkdownDescription: "simple arr description",
 			},
-
-			"simple_set_attr": schema.string{
+			"simple_set_attr": schema.SetAttribute{
+				Optional:            true,
 				MarkdownDescription: "simple set description",
 			},
-
-			"simple_map_attr": schema.string{
+			"simple_map_attr": schema.MapAttribute{
+				Optional:            true,
 				MarkdownDescription: "simple map description",
 			},
 		},

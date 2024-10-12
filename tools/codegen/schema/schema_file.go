@@ -27,8 +27,7 @@ import (
 
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			{{ range  .Attributes }}{{ . }}{{- end }}
+		Attributes: map[string]schema.Attribute{ {{ range .Attributes }}{{ . }}{{- end }}
 		},
 	}
 }
@@ -38,7 +37,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	tmplInputs := TemplateInputs{
 		PackageName:       input.Name, // TODO adjust format
 		AdditionalImports: []string{},
-		Attributes:        RenderAttributes(input.Schema.Attributes),
+		Attributes:        GenerateSchemaAttributes(input.Schema.Attributes),
 	}
 	// Parse the template
 	t, err := template.New("schema-template").Parse(tmpl)
@@ -52,10 +51,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		panic(err)
 	}
 
+	result := buf.String()
+
+	print(result)
+
 	formattedResult, err := format.Source(buf.Bytes())
 	if err != nil {
 		panic(err)
 	}
 
-	return string(formattedResult[:])
+	return string(formattedResult)
 }
