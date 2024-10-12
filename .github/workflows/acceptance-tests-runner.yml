@@ -202,6 +202,7 @@ jobs:
     env:
       mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '' )  }}
     outputs: # ensure resources are sorted alphabetically
+      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       advanced_cluster_old: ${{ steps.filter.outputs.advanced_cluster_old == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
@@ -231,6 +232,8 @@ jobs:
       if: ${{ inputs.test_group == ''  && env.mustTrigger == 'false' }}
       with:
         filters: |
+          advanced_cluster:
+            - 'internal/service/advancedcluster/*.go'
           advanced_cluster_old:
             - 'internal/service/advancedclusterold/*.go'
           assume_role:
@@ -314,6 +317,28 @@ jobs:
             - 'internal/service/streamconnection/*.go'
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamprocessor/*.go'
+
+  advanced_cluster:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
+        run: make testacc
 
   advanced_cluster_old:
     needs: [ change-detection, get-provider-version ]
