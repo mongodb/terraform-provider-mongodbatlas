@@ -11,7 +11,7 @@ import (
 
 type sdkToTFModelTestCase struct {
 	SDKResp         *admin.{{.NamePascalCase}}
-	expectedTFModel *{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model
+	expectedTFModel *{{.NameLowerNoSpaces}}.TFModel
 }
 
 func Test{{.NamePascalCase}}SDKToTFModel(t *testing.T) {
@@ -19,14 +19,14 @@ func Test{{.NamePascalCase}}SDKToTFModel(t *testing.T) {
 		"Complete SDK response": {
 			SDKResp: &admin.{{.NamePascalCase}}{
 			},
-			expectedTFModel: &{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model{
+			expectedTFModel: &{{.NameLowerNoSpaces}}.TFModel{
 			},
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := {{.NameLowerNoSpaces}}.NewTF{{.NamePascalCase}}(context.Background(), tc.SDKResp)
+			resultModel, diags := {{.NameLowerNoSpaces}}.NewTFModel(context.Background(), tc.SDKResp)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -37,14 +37,14 @@ func Test{{.NamePascalCase}}SDKToTFModel(t *testing.T) {
 
 {{if eq .GenerationType "resource"}}
 type tfToSDKModelTestCase struct {
-	tfModel        *{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model
+	tfModel        *{{.NameLowerNoSpaces}}.TFModel
 	expectedSDKReq *admin.{{.NamePascalCase}}
 }
 
 func Test{{.NamePascalCase}}TFModelToSDK(t *testing.T) {
 	testCases := map[string]tfToSDKModelTestCase{
 		"Complete TF state": {
-			tfModel: &{{.NameLowerNoSpaces}}.TF{{.NamePascalCase}}Model{
+			tfModel: &{{.NameLowerNoSpaces}}.TFModel{
 			},
 			expectedSDKReq: &admin.{{.NamePascalCase}}{
 			},
@@ -53,7 +53,7 @@ func Test{{.NamePascalCase}}TFModelToSDK(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			apiReqResult, diags := {{.NameLowerNoSpaces}}.New{{.NamePascalCase}}Req(context.Background(), tc.tfModel)
+			apiReqResult, diags := {{.NameLowerNoSpaces}}.NewAtlasReq(context.Background(), tc.tfModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

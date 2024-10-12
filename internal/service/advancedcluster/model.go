@@ -8,18 +8,18 @@ import (
 )
 
 // TODO: `ctx` parameter and `diags` return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
-func NewTFAdvancedCluster(ctx context.Context, apiResp *admin.AdvancedCluster) (*TFAdvancedClusterModel, diag.Diagnostics) {
+func NewTFModel(ctx context.Context, apiResp *admin.AdvancedCluster) (*TFModel, diag.Diagnostics) {
 	// complexAttr, diagnostics := types.ListValueFrom(ctx, InnerObjectType, newTFComplexAttrModel(apiResp.ComplexAttr))
 	// if diagnostics.HasError() {
 	// 	return nil, diagnostics
 	// }
-	return &TFAdvancedClusterModel{}, nil
+	return &TFModel{}, nil
 }
 
 
 // TODO: If SDK defined different models for create and update separate functions will need to be defined.
 // TODO: `ctx` parameter and `diags` in return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
-func NewAdvancedClusterReq(ctx context.Context, plan *TFAdvancedClusterModel) (*admin.AdvancedCluster, diag.Diagnostics) {
+func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.AdvancedCluster, diag.Diagnostics) {
     // var tfList []complexArgumentData
 	// resp.Diagnostics.Append(plan.ComplexArgument.ElementsAs(ctx, &tfList, false)...)
 	// if resp.Diagnostics.HasError() {
@@ -27,5 +27,6 @@ func NewAdvancedClusterReq(ctx context.Context, plan *TFAdvancedClusterModel) (*
 	// }
 	return &admin.AdvancedCluster{}, nil
 }
+
 
 

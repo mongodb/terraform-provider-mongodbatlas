@@ -9,32 +9,32 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const {{.NameCamelCase}}Name = "{{.NameSnakeCase}}" // TODO: if resource exists this can be deleted
+const resourceName = "{{.NameSnakeCase}}" // TODO: if resource exists this can be deleted
 
-var _ datasource.DataSource = &{{.NameCamelCase}}DS{}
-var _ datasource.DataSourceWithConfigure = &{{.NameCamelCase}}DS{}
+var _ datasource.DataSource = &ds{}
+var _ datasource.DataSourceWithConfigure = &ds{}
 
 func DataSource() datasource.DataSource {
-	return &{{.NameCamelCase}}DS{
+	return &ds{
 		DSCommon: config.DSCommon{
-			DataSourceName: {{.NameCamelCase}}Name,
+			DataSourceName: resourceName,
 		},
 	}
 }
 
-type {{.NameCamelCase}}DS struct {
+type ds struct {
 	config.DSCommon
 }
 
 
-func (d *{{.NameCamelCase}}DS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	// TODO: Schema and model must be defined in data_source_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = DataSourceSchema(ctx)
 }
 
-func (d *{{.NameCamelCase}}DS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var {{.NameCamelCase}}Config TF{{.NamePascalCase}}Model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &{{.NameCamelCase}}Config)...)
+func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var tfModel TFModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -48,7 +48,7 @@ func (d *{{.NameCamelCase}}DS) Read(ctx context.Context, req datasource.ReadRequ
 	//}
 
 	// TODO: process response into new terraform state
-	new{{.NamePascalCase}}Model, diags := NewTF{{.NamePascalCase}}(ctx, apiResp)
+	new{{.NamePascalCase}}Model, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

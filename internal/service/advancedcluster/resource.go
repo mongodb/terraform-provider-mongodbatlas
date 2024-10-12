@@ -9,36 +9,36 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const advancedClusterName = "advanced_cluster"
+const resourceName = "advanced_cluster"
 
-var _ resource.ResourceWithConfigure = &advancedClusterRS{}
-var _ resource.ResourceWithImportState = &advancedClusterRS{}
+var _ resource.ResourceWithConfigure = &rs{}
+var _ resource.ResourceWithImportState = &rs{}
 
 func Resource() resource.Resource {
-	return &advancedClusterRS{
+	return &rs{
 		RSCommon: config.RSCommon{
-			ResourceName: advancedClusterName,
+			ResourceName: resourceName,
 		},
 	}
 }
 
-type advancedClusterRS struct {
+type rs struct {
 	config.RSCommon
 }
 
-func (r *advancedClusterRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
     // TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = ResourceSchema(ctx)
 }
 
-func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var advancedClusterPlan TFAdvancedClusterModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &advancedClusterPlan)...)
+func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var tfModel TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-    advancedClusterReq, diags := NewAdvancedClusterReq(ctx, &advancedClusterPlan)
+    advancedClusterReq, diags := NewAtlasReq(ctx, &tfModel)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -53,7 +53,7 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	//}
 	
     // TODO: process response into new terraform state
-	newAdvancedClusterModel, diags := NewTFAdvancedCluster(ctx, apiResp)
+	newAdvancedClusterModel, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -61,8 +61,8 @@ func (r *advancedClusterRS) Create(ctx context.Context, req resource.CreateReque
 	resp.Diagnostics.Append(resp.State.Set(ctx, newAdvancedClusterModel)...)
 }
 
-func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var advancedClusterState TFAdvancedClusterModel
+func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var advancedClusterState TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &advancedClusterState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -81,7 +81,7 @@ func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, 
 	//}
 
 	// TODO: process response into new terraform state
-	newAdvancedClusterModel, diags := NewTFAdvancedCluster(ctx, apiResp)
+	newAdvancedClusterModel, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -89,14 +89,14 @@ func (r *advancedClusterRS) Read(ctx context.Context, req resource.ReadRequest, 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newAdvancedClusterModel)...)
 }
 
-func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var advancedClusterPlan TFAdvancedClusterModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &advancedClusterPlan)...)
+func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var tfModel TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	advancedClusterReq, diags := NewAdvancedClusterReq(ctx, &advancedClusterPlan)
+	advancedClusterReq, diags := NewAtlasReq(ctx, &tfModel)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -111,7 +111,7 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 
 	// TODO: process response into new terraform state
 
-	newAdvancedClusterModel, diags := NewTFAdvancedCluster(ctx, apiResp)
+	newAdvancedClusterModel, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -119,8 +119,8 @@ func (r *advancedClusterRS) Update(ctx context.Context, req resource.UpdateReque
 	resp.Diagnostics.Append(resp.State.Set(ctx, newAdvancedClusterModel)...)
 }
 
-func (r *advancedClusterRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var advancedClusterState *TFAdvancedClusterModel
+func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var advancedClusterState *TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &advancedClusterState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -135,7 +135,7 @@ func (r *advancedClusterRS) Delete(ctx context.Context, req resource.DeleteReque
 	// }
 }
 
-func (r *advancedClusterRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// TODO: parse req.ID string taking into account documented format. Example:
 	
 	// projectID, other, err := splitAdvancedClusterImportID(req.ID)

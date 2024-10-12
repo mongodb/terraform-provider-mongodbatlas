@@ -9,32 +9,32 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const advancedClusterName = "advanced_cluster" // TODO: if resource exists this can be deleted
+const resourceName = "advanced_cluster" // TODO: if resource exists this can be deleted
 
-var _ datasource.DataSource = &advancedClusterDS{}
-var _ datasource.DataSourceWithConfigure = &advancedClusterDS{}
+var _ datasource.DataSource = &ds{}
+var _ datasource.DataSourceWithConfigure = &ds{}
 
 func DataSource() datasource.DataSource {
-	return &advancedClusterDS{
+	return &ds{
 		DSCommon: config.DSCommon{
-			DataSourceName: advancedClusterName,
+			DataSourceName: resourceName,
 		},
 	}
 }
 
-type advancedClusterDS struct {
+type ds struct {
 	config.DSCommon
 }
 
 
-func (d *advancedClusterDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	// TODO: Schema and model must be defined in data_source_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = DataSourceSchema(ctx)
 }
 
-func (d *advancedClusterDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var advancedClusterConfig TFAdvancedClusterModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &advancedClusterConfig)...)
+func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var tfModel TFModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -48,7 +48,7 @@ func (d *advancedClusterDS) Read(ctx context.Context, req datasource.ReadRequest
 	//}
 
 	// TODO: process response into new terraform state
-	newAdvancedClusterModel, diags := NewTFAdvancedCluster(ctx, apiResp)
+	newAdvancedClusterModel, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

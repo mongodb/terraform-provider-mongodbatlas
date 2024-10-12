@@ -9,36 +9,36 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const {{.NameCamelCase}}Name = "{{.NameSnakeCase}}"
+const resourceName = "{{.NameSnakeCase}}"
 
-var _ resource.ResourceWithConfigure = &{{.NameCamelCase}}RS{}
-var _ resource.ResourceWithImportState = &{{.NameCamelCase}}RS{}
+var _ resource.ResourceWithConfigure = &rs{}
+var _ resource.ResourceWithImportState = &rs{}
 
 func Resource() resource.Resource {
-	return &{{.NameCamelCase}}RS{
+	return &rs{
 		RSCommon: config.RSCommon{
-			ResourceName: {{.NameCamelCase}}Name,
+			ResourceName: resourceName,
 		},
 	}
 }
 
-type {{.NameCamelCase}}RS struct {
+type rs struct {
 	config.RSCommon
 }
 
-func (r *{{.NameCamelCase}}RS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
     // TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = ResourceSchema(ctx)
 }
 
-func (r *{{.NameCamelCase}}RS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var {{.NameCamelCase}}Plan TF{{.NamePascalCase}}Model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &{{.NameCamelCase}}Plan)...)
+func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var tfModel TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-    {{.NameCamelCase}}Req, diags := New{{.NamePascalCase}}Req(ctx, &{{.NameCamelCase}}Plan)
+    {{.NameCamelCase}}Req, diags := NewAtlasReq(ctx, &tfModel)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -53,7 +53,7 @@ func (r *{{.NameCamelCase}}RS) Create(ctx context.Context, req resource.CreateRe
 	//}
 	
     // TODO: process response into new terraform state
-	new{{.NamePascalCase}}Model, diags := NewTF{{.NamePascalCase}}(ctx, apiResp)
+	new{{.NamePascalCase}}Model, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -61,8 +61,8 @@ func (r *{{.NameCamelCase}}RS) Create(ctx context.Context, req resource.CreateRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, new{{.NamePascalCase}}Model)...)
 }
 
-func (r *{{.NameCamelCase}}RS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var {{.NameCamelCase}}State TF{{.NamePascalCase}}Model
+func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var {{.NameCamelCase}}State TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &{{.NameCamelCase}}State)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -81,7 +81,7 @@ func (r *{{.NameCamelCase}}RS) Read(ctx context.Context, req resource.ReadReques
 	//}
 
 	// TODO: process response into new terraform state
-	new{{.NamePascalCase}}Model, diags := NewTF{{.NamePascalCase}}(ctx, apiResp)
+	new{{.NamePascalCase}}Model, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -89,14 +89,14 @@ func (r *{{.NameCamelCase}}RS) Read(ctx context.Context, req resource.ReadReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, new{{.NamePascalCase}}Model)...)
 }
 
-func (r *{{.NameCamelCase}}RS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var {{.NameCamelCase}}Plan TF{{.NamePascalCase}}Model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &{{.NameCamelCase}}Plan)...)
+func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var tfModel TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	{{.NameCamelCase}}Req, diags := New{{.NamePascalCase}}Req(ctx, &{{.NameCamelCase}}Plan)
+	{{.NameCamelCase}}Req, diags := NewAtlasReq(ctx, &tfModel)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -111,7 +111,7 @@ func (r *{{.NameCamelCase}}RS) Update(ctx context.Context, req resource.UpdateRe
 
 	// TODO: process response into new terraform state
 
-	new{{.NamePascalCase}}Model, diags := NewTF{{.NamePascalCase}}(ctx, apiResp)
+	new{{.NamePascalCase}}Model, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -119,8 +119,8 @@ func (r *{{.NameCamelCase}}RS) Update(ctx context.Context, req resource.UpdateRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, new{{.NamePascalCase}}Model)...)
 }
 
-func (r *{{.NameCamelCase}}RS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var {{.NameCamelCase}}State *TF{{.NamePascalCase}}Model
+func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var {{.NameCamelCase}}State *TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &{{.NameCamelCase}}State)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -135,7 +135,7 @@ func (r *{{.NameCamelCase}}RS) Delete(ctx context.Context, req resource.DeleteRe
 	// }
 }
 
-func (r *{{.NameCamelCase}}RS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// TODO: parse req.ID string taking into account documented format. Example:
 	
 	// projectID, other, err := split{{.NamePascalCase}}ImportID(req.ID)

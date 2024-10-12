@@ -11,29 +11,29 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 )
 
-var _ datasource.DataSource = &advancedClustersDS{}
-var _ datasource.DataSourceWithConfigure = &advancedClustersDS{}
+var _ datasource.DataSource = &pluralDS{}
+var _ datasource.DataSourceWithConfigure = &pluralDS{}
 
 func PluralDataSource() datasource.DataSource {
-	return &advancedClustersDS{
+	return &pluralDS{
 		DSCommon: config.DSCommon{
-			DataSourceName: fmt.Sprintf("%ss", advancedClusterName),
+			DataSourceName: fmt.Sprintf("%ss", resourceName),
 		},
 	}
 }
 
-type advancedClustersDS struct {
+type pluralDS struct {
 	config.DSCommon
 }
 
-func (d *advancedClustersDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	// TODO: Schema and model must be defined in plural_data_source_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = PluralDataSourceSchema(ctx)
 }
 
-func (d *advancedClustersDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var advancedClustersConfig TFAdvancedClustersDSModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &advancedClustersConfig)...)
+func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var tfModel TFAdvancedClustersDSModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -47,7 +47,7 @@ func (d *advancedClustersDS) Read(ctx context.Context, req datasource.ReadReques
 	//}
 
 	// TODO: process response into new terraform state
-	newAdvancedClustersModel, diags := NewTFAdvancedClusters(ctx, apiResp)
+	newAdvancedClustersModel, diags := NewTFModelPluralDS(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

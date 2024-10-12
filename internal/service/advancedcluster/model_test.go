@@ -11,7 +11,7 @@ import (
 
 type sdkToTFModelTestCase struct {
 	SDKResp         *admin.AdvancedCluster
-	expectedTFModel *advancedcluster.TFAdvancedClusterModel
+	expectedTFModel *advancedcluster.TFModel
 }
 
 func TestAdvancedClusterSDKToTFModel(t *testing.T) {
@@ -19,14 +19,14 @@ func TestAdvancedClusterSDKToTFModel(t *testing.T) {
 		"Complete SDK response": {
 			SDKResp: &admin.AdvancedCluster{
 			},
-			expectedTFModel: &advancedcluster.TFAdvancedClusterModel{
+			expectedTFModel: &advancedcluster.TFModel{
 			},
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := advancedcluster.NewTFAdvancedCluster(context.Background(), tc.SDKResp)
+			resultModel, diags := advancedcluster.NewTFModel(context.Background(), tc.SDKResp)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -37,14 +37,14 @@ func TestAdvancedClusterSDKToTFModel(t *testing.T) {
 
 
 type tfToSDKModelTestCase struct {
-	tfModel        *advancedcluster.TFAdvancedClusterModel
+	tfModel        *advancedcluster.TFModel
 	expectedSDKReq *admin.AdvancedCluster
 }
 
 func TestAdvancedClusterTFModelToSDK(t *testing.T) {
 	testCases := map[string]tfToSDKModelTestCase{
 		"Complete TF state": {
-			tfModel: &advancedcluster.TFAdvancedClusterModel{
+			tfModel: &advancedcluster.TFModel{
 			},
 			expectedSDKReq: &admin.AdvancedCluster{
 			},
@@ -53,7 +53,7 @@ func TestAdvancedClusterTFModelToSDK(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			apiReqResult, diags := advancedcluster.NewAdvancedClusterReq(context.Background(), tc.tfModel)
+			apiReqResult, diags := advancedcluster.NewAtlasReq(context.Background(), tc.tfModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
