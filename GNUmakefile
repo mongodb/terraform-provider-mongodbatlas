@@ -84,6 +84,7 @@ tools:  ## Install dev tools
 	go install github.com/hashicorp/terraform-plugin-codegen-framework/cmd/tfplugingen-framework@latest
 	go install github.com/hashicorp/go-changelog/cmd/changelog-build@latest
 	go install github.com/hashicorp/go-changelog/cmd/changelog-entry@latest
+	go install golang.org/x/tools/cmd/goimports@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
 .PHONY: docs
@@ -153,3 +154,24 @@ check-changelog-entry-file:
 .PHONY: jira-release-version
 jira-release-version:
 	go run ./tools/jira-release-version/*.go
+
+.PHONY: enable-new-advancedcluster
+enable-new-advancedcluster:
+	make delete-lines filename="./internal/provider/provider_sdk2.go" delete="mongodbatlas_advanced_cluster"
+	make add-lines filename=./internal/provider/provider.go find="project.Resource," add="advancedcluster.Resource,"
+	make add-lines filename=./internal/provider/provider.go find="project.DataSource," add="advancedcluster.DataSource,"
+	make add-lines filename=./internal/provider/provider.go find="project.PluralDataSource," add="advancedcluster.PluralDataSource,"
+
+.PHONY: delete-lines ${filename} ${delete}
+delete-lines:
+	rm -f file.tmp
+	grep -v "${delete}" "${filename}" > file.tmp
+	mv file.tmp ${filename}
+	goimports -w ${filename}
+
+.PHONY: add-lines ${filename} ${find} ${add}
+add-lines:
+	rm -f file.tmp
+	sed 's/${find}/${find}${add}/' "${filename}" > "file.tmp"
+	mv file.tmp ${filename}
+	goimports -w ${filename}
