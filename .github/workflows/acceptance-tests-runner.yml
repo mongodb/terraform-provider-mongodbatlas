@@ -334,6 +334,8 @@ jobs:
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
+      - name: Prepare new advanced_cluster
+        run: make tools enable-new-advancedcluster
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
