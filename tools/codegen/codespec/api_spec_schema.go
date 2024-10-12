@@ -1,13 +1,11 @@
 package codespec
 
 import (
-	"fmt"
+	"slices"
 
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	high "github.com/pb33f/libopenapi/datamodel/high/v3"
 )
-
-var errInvalidSchema = fmt.Errorf("invalid schema")
 
 type APISpecSchema struct {
 	Schema *base.Schema
@@ -25,10 +23,8 @@ type APISpecResource struct {
 }
 
 func (s *APISpecSchema) GetComputability(name string) ComputedOptionalRequired {
-	for _, prop := range s.Schema.Required {
-		if name == prop {
-			return Required
-		}
+	if slices.Contains(s.Schema.Required, name) {
+		return Required
 	}
 
 	return Optional

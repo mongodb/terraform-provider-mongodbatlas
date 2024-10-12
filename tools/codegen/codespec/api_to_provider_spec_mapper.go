@@ -15,34 +15,34 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
 
-func ToProviderSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName string) (*Model, error) {
+func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName string) (*Model, error) {
 	apiSpec, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecFilePath)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("unable to parse Atlas Admin API: %v", err)
 	}
 
-	genConfig, err := config.ParseGenConfigYAML(configPath)
+	config, err := config.ParseGenConfigYAML(configPath)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("unable to parse config file: %v", err)
 	}
 
 	// find resource operations, schemas, etc from OAS
-	oasResource, err := getOASResource(apiSpec.Model, genConfig.Resources[resourceName], resourceName)
+	oasResource, err := getAPISpecResource(apiSpec.Model, config.Resources[resourceName], resourceName)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
 	}
 
 	// map OAS resource model to CodeSpecModel
-	codeSpecResource := oasResourceToProviderSpecModel(oasResource, genConfig.Resources[resourceName], resourceName)
+	codeSpecResource := apiSpecResourceToCodeSpecModel(oasResource, config.Resources[resourceName], resourceName)
 
 	return &Model{Resources: []Resource{*codeSpecResource}}, nil
 }
 
-func oasResourceToProviderSpecModel(oasResource APISpecResource, resourceConfig config.Resource, name string) *Resource {
+func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig config.Resource, name string) *Resource {
 	createOp := oasResource.CreateOp
 	readOp := oasResource.ReadOp
 
-	pathParamAttributes := pathParamsToAttributes(createOp, readOp)
+	pathParamAttributes := pathParamsToAttributes(createOp)
 	createRequestAttributes := opRequestToAttributes(createOp)
 	createResponseAttributes := opResponseToAttributes(createOp)
 	readResponseAttributes := opResponseToAttributes(readOp)
@@ -65,14 +65,12 @@ func oasResourceToProviderSpecModel(oasResource APISpecResource, resourceConfig 
 	return resource
 }
 
-func pathParamsToAttributes(createOp, readOp *high.Operation) Attributes {
+func pathParamsToAttributes(createOp *high.Operation) Attributes {
 	pathParams := createOp.Parameters
-	pathParams = append(pathParams, readOp.Parameters...)
 
-	// TODO: fix path param description not mapping
 	pathAttributes := Attributes{}
 	for _, param := range pathParams {
-		if param.In != OASPathParam && param.In != OASQueryParam {
+		if param.In != OASPathParam {
 			continue
 		}
 
@@ -83,7 +81,7 @@ func pathParamsToAttributes(createOp, readOp *high.Operation) Attributes {
 
 		paramName := param.Name
 		s.Schema.Description = param.Description
-		parameterAttribute, err := s.buildResourceAttr(paramName, ComputedOptional)
+		parameterAttribute, err := s.buildResourceAttr(paramName, Required)
 		if err != nil {
 			log.Printf("[WARN] Path param %s could not be mapped: %s", paramName, err)
 			continue
@@ -128,7 +126,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 	return responseAttributes
 }
 
-func getOASResource(spec high.Document, resourceConfig config.Resource, name string) (APISpecResource, error) {
+func getAPISpecResource(spec high.Document, resourceConfig config.Resource, name string) (APISpecResource, error) {
 	var errResult error
 	var resourceDeprecationMsg *string
 

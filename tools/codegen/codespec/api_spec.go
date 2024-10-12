@@ -24,7 +24,7 @@ func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
 	}
 
 	if len(schema.Type) == 0 {
-		return nil, errInvalidSchema
+		return nil, fmt.Errorf("invalid schema. no values for schema.Type found")
 	}
 
 	resp.Type = schema.Type[0]

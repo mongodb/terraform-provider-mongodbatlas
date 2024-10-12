@@ -14,8 +14,7 @@ const (
 	OASResponseCodeOK      = "200"
 	OASResponseCodeCreated = "201"
 
-	OASPathParam  = "path"
-	OASQueryParam = "query"
+	OASPathParam = "path"
 
 	DefaultDeprecationMsg = "This resource has been deprecated"
 )

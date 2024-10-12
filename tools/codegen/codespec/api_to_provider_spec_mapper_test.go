@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
@@ -97,7 +98,8 @@ func TestConvertToProviderSpec(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			result, _ := codespec.ToProviderSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, tc.inputResourceName)
+			result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, tc.inputResourceName)
+			require.NoError(t, err)
 			assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 		})
 	}

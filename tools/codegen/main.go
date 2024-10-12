@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
@@ -17,18 +17,17 @@ const (
 func main() {
 	resourceName := getOsArg()
 	if resourceName == nil {
-		fmt.Println("No resource name provided")
-	} else {
-		fmt.Printf("Resource name: %s\n", *resourceName)
+		log.Fatal("No resource name provided")
 	}
+	log.Printf("Resource name: %s\n", *resourceName)
 
 	if err := openapi.DownloadOpenAPISpec(atlasAdminAPISpecURL, specFilePath); err != nil {
-		panic(err)
+		log.Fatalf("an error occurred when downloading Atlas Admin API spec: %v", err)
 	}
 
-	_, err := codespec.ToProviderSpecModel(specFilePath, configPath, *resourceName)
+	_, err := codespec.ToCodeSpecModel(specFilePath, configPath, *resourceName)
 	if err != nil {
-		panic(err)
+		log.Fatalf("an error occurred while generating codespec.Model: %v", err)
 	}
 }
 
