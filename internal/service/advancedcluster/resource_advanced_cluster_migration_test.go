@@ -1,4 +1,4 @@
-package advancedclusterold_test
+package advancedcluster_test
 
 import (
 	"fmt"

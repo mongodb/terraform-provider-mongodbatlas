@@ -1,9 +1,9 @@
 # advancedcluster package
 
-This package contains the WIP for `mongodbatlas_advanced_cluster` in TPF. Current exposed implementation is in `advancedclusterold` package. 
+This package contains current exposed implementation of `mongodbatlas_advanced_cluster`. 
 
-**Note:** This file will be deleted once the update is complete and `advancedclusterold` package will be deleted.
+**Note:** This file and complete package will be deleted once the TPF update in `advancedclustertpf` is ready.
 
-## Changes in advancedclusterold that needs to be added here
-(list changes done in advancedclusterold which couldn't also be done here at that moment)
-
+If you change something in this package, please:
+- Do the same change in `advancedclustertpf` package
+- Or if you can't, add a note to [`advancedclustertpf` README.md file](../advancedclustertpf/README.md#changes-in-advancedcluster-that-needs-to-be-added-here)

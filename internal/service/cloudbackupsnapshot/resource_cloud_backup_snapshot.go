@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
@@ -127,7 +127,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	groupID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	stateConf := advancedclusterold.CreateStateChangeConfig(ctx, connV2, groupID, clusterName, 15*time.Minute)
+	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, groupID, clusterName, 15*time.Minute)
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.FromErr(err)
 	}

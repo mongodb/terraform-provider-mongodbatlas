@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
@@ -119,7 +119,7 @@ func resourceSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
-		"tags": &advancedclusterold.RSTagsSchema,
+		"tags": &advancedcluster.RSTagsSchema,
 	}
 }
 
@@ -363,15 +363,15 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	if err := d.Set("project_id", instance.GetGroupId()); err != nil {
-		log.Printf(advancedclusterold.ErrorClusterSetting, "project_id", instance.GetId(), err)
+		log.Printf(advancedcluster.ErrorClusterSetting, "project_id", instance.GetId(), err)
 	}
 
 	if err := d.Set("name", instance.GetName()); err != nil {
-		log.Printf(advancedclusterold.ErrorClusterSetting, "name", instance.GetId(), err)
+		log.Printf(advancedcluster.ErrorClusterSetting, "name", instance.GetId(), err)
 	}
 
 	if err := d.Set("continuous_backup_enabled", instance.ServerlessBackupOptions.GetServerlessContinuousBackupEnabled()); err != nil {
-		log.Printf(advancedclusterold.ErrorClusterSetting, "continuous_backup_enabled", instance.GetId(), err)
+		log.Printf(advancedcluster.ErrorClusterSetting, "continuous_backup_enabled", instance.GetId(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

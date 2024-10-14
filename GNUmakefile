@@ -155,12 +155,12 @@ check-changelog-entry-file:
 jira-release-version:
 	go run ./tools/jira-release-version/*.go
 
-.PHONY: enable-new-advancedcluster
-enable-new-advancedcluster:
+.PHONY: enable-advancedclustertpf
+enable-advancedclustertpf:
 	make delete-lines filename="./internal/provider/provider_sdk2.go" delete="mongodbatlas_advanced_cluster"
-	make add-lines filename=./internal/provider/provider.go find="project.Resource," add="advancedcluster.Resource,"
-	make add-lines filename=./internal/provider/provider.go find="project.DataSource," add="advancedcluster.DataSource,"
-	make add-lines filename=./internal/provider/provider.go find="project.PluralDataSource," add="advancedcluster.PluralDataSource,"
+	make add-lines filename=./internal/provider/provider.go find="project.Resource," add="advancedclustertpf.Resource,"
+	make add-lines filename=./internal/provider/provider.go find="project.DataSource," add="advancedclustertpf.DataSource,"
+	make add-lines filename=./internal/provider/provider.go find="project.PluralDataSource," add="advancedclustertpf.PluralDataSource,"
 
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:

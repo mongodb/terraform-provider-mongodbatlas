@@ -1,11 +1,11 @@
-package advancedclusterold_test
+package advancedcluster_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -41,7 +41,7 @@ func TestMigAdvancedCluster_empty_advancedConfig(t *testing.T) {
 	}
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
-	diags := advancedclusterold.ResourceV0().Validate(v0Config)
+	diags := advancedcluster.ResourceV0().Validate(v0Config)
 
 	if len(diags) > 0 {
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
@@ -50,10 +50,10 @@ func TestMigAdvancedCluster_empty_advancedConfig(t *testing.T) {
 	}
 
 	// test migrate function
-	v1State := advancedclusterold.MigrateBIConnectorConfig(v0State)
+	v1State := advancedcluster.MigrateBIConnectorConfig(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
-	diags = advancedclusterold.Resource().Validate(v1Config)
+	diags = advancedcluster.Resource().Validate(v1Config)
 	if len(diags) > 0 {
 		fmt.Println(diags)
 		t.Error("migrated cluster advanced config is invalid")
@@ -107,7 +107,7 @@ func TestMigAdvancedCluster_v0StateUpgrade_ReplicationSpecs(t *testing.T) {
 	}
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
-	diags := advancedclusterold.ResourceV0().Validate(v0Config)
+	diags := advancedcluster.ResourceV0().Validate(v0Config)
 
 	if diags.HasError() {
 		fmt.Println(diags)
@@ -117,10 +117,10 @@ func TestMigAdvancedCluster_v0StateUpgrade_ReplicationSpecs(t *testing.T) {
 	}
 
 	// test migrate function
-	v1State := advancedclusterold.MigrateBIConnectorConfig(v0State)
+	v1State := advancedcluster.MigrateBIConnectorConfig(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
-	diags = advancedclusterold.Resource().Validate(v1Config)
+	diags = advancedcluster.Resource().Validate(v1Config)
 	if diags.HasError() {
 		fmt.Println(diags)
 		t.Error("migrated advanced cluster replication_specs invalid")

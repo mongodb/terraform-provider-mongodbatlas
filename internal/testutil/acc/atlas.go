@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
@@ -38,7 +38,7 @@ func createCluster(tb testing.TB, projectID, name string) string {
 	_, _, err := ConnV2().ClustersApi.CreateCluster(context.Background(), projectID, &req).Execute()
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 
-	stateConf := advancedclusterold.CreateStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
+	stateConf := advancedcluster.CreateStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(context.Background())
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 
@@ -50,7 +50,7 @@ func deleteCluster(projectID, name string) {
 	if err != nil {
 		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)
 	}
-	stateConf := advancedclusterold.DeleteStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
+	stateConf := advancedcluster.DeleteStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(context.Background())
 	if err != nil {
 		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)

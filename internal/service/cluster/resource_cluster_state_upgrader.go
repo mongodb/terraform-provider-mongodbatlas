@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclusterold"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 func ResourceClusterResourceV0() *schema.Resource {
@@ -106,7 +106,7 @@ func ResourceClusterResourceV0() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: advancedclusterold.FormatMongoDBMajorVersion,
+				StateFunc: advancedcluster.FormatMongoDBMajorVersion,
 			},
 			"num_shards": {
 				Type:     schema.TypeInt,
@@ -299,7 +299,7 @@ func ResourceClusterResourceV0() *schema.Resource {
 			"labels": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Set:      advancedclusterold.HashFunctionForKeyValuePair,
+				Set:      advancedcluster.HashFunctionForKeyValuePair,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
