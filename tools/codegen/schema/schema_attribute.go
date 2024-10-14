@@ -12,15 +12,22 @@ type CodeStatement struct {
 	Imports []string
 }
 
-func GenerateSchemaAttributes(attrs codespec.Attributes) []CodeStatement {
-	result := []CodeStatement{}
+func GenerateSchemaAttributes(attrs codespec.Attributes) CodeStatement {
+	attrsCode := []string{}
+	imports := []string{}
 	for i := range attrs {
-		result = append(result, attribute(&attrs[i]))
+		result := generateAttribute(&attrs[i])
+		attrsCode = append(attrsCode, result.Result)
+		imports = append(imports, result.Imports...)
 	}
-	return result
+	finalAttrs := strings.Join(attrsCode, ",\n") + ","
+	return CodeStatement{
+		Result:  finalAttrs,
+		Imports: imports,
+	}
 }
 
-func attribute(attr *codespec.Attribute) CodeStatement {
+func generateAttribute(attr *codespec.Attribute) CodeStatement {
 	generator := typeGenerator(attr)
 
 	typeDefinition := generator.TypeDefinition()
@@ -35,10 +42,9 @@ func attribute(attr *codespec.Attribute) CodeStatement {
 
 	name := attr.Name
 	propsResultString := strings.Join(properties, ",\n") + ","
-	code := fmt.Sprintf(`
-	"%s": %s{
+	code := fmt.Sprintf(`"%s": %s{
 		%s
-	},`, name, typeDefinition, propsResultString)
+	}`, name, typeDefinition, propsResultString)
 	return CodeStatement{
 		Result:  code,
 		Imports: imports,

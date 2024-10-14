@@ -11,8 +11,8 @@ var schemaFileTemplate string
 
 type SchemaFileInputs struct {
 	PackageName      string
+	SchemaAttributes string
 	Imports          []string
-	SchemaAttributes []string
 }
 
 func ApplySchemaFileTemplate(inputs SchemaFileInputs) bytes.Buffer {
