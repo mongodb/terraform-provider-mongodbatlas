@@ -265,6 +265,14 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"config_server_management_mode": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"config_server_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -365,6 +373,8 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
 			"replica_set_scaling_strategy":         cluster.GetReplicaSetScalingStrategy(),
 			"redact_client_log_data":               cluster.GetRedactClientLogData(),
+			"config_server_management_mode":        cluster.GetConfigServerManagementMode(),
+			"config_server_type":                   cluster.GetConfigServerType(),
 		}
 		results = append(results, result)
 	}
@@ -422,6 +432,8 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
 			"replica_set_scaling_strategy":         clusterDescNew.GetReplicaSetScalingStrategy(),
 			"redact_client_log_data":               clusterDescNew.GetRedactClientLogData(),
+			"config_server_management_mode":        clusterDescNew.GetConfigServerManagementMode(),
+			"config_server_type":                   clusterDescNew.GetConfigServerType(),
 		}
 		results = append(results, result)
 	}

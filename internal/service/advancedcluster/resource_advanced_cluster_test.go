@@ -24,6 +24,11 @@ const (
 	dataSourcePluralName = "data.mongodbatlas_advanced_clusters.test"
 )
 
+var (
+	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
+	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
+)
+
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	var (
 		projectID          = acc.ProjectIDExecution(t)
@@ -142,12 +147,12 @@ func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 1, "M10"),
-				Check:  checkShardedOldSchemaMultiCloud(clusterName, 1, "M10", true),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 1, "M10", nil),
+				Check:  checkShardedOldSchemaMultiCloud(clusterName, 1, "M10", true, nil),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M10"),
-				Check:  checkShardedOldSchemaMultiCloud(clusterNameUpdated, 1, "M10", true),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M10", nil),
+				Check:  checkShardedOldSchemaMultiCloud(clusterNameUpdated, 1, "M10", true, nil),
 			},
 			{
 				ResourceName:            resourceName,
@@ -555,12 +560,12 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M10"),
-				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M10", false),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
+				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M10", false, &configServerManagementModeFixedToDedicated),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M20"),
-				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M20", false),
+				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
+				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
 			},
 		},
 	})
@@ -1181,7 +1186,17 @@ func checkReplicaSetMultiCloud(name string, regionConfigs int) resource.TestChec
 	)
 }
 
-func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards int, analyticsSize string) string {
+func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards int, analyticsSize string, configServerManagementMode *string) string {
+	var rootConfig string
+	if configServerManagementMode != nil {
+		// valid values: FIXED_TO_DEDICATED or ATLAS_MANAGED (default)
+		// only valid for Major version 8 and later
+		// cluster must be SHARDED
+		rootConfig = fmt.Sprintf(`
+		  mongo_db_major_version = "8"
+		  config_server_management_mode = %[1]q
+		`, *configServerManagementMode)
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1192,6 +1207,7 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 			project_id   = mongodbatlas_project.cluster_project.id
 			name         = %[3]q
 			cluster_type = "SHARDED"
+			%[6]s
 
 			replication_specs {
 				num_shards = %[4]d
@@ -1223,11 +1239,16 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 		data "mongodbatlas_advanced_cluster" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
+			depends_on = [mongodbatlas_advanced_cluster.test]
 		}
-	`, orgID, projectName, name, numShards, analyticsSize)
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			depends_on = [mongodbatlas_advanced_cluster.test]
+		}
+	`, orgID, projectName, name, numShards, analyticsSize, rootConfig)
 }
 
-func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize string, verifyExternalID bool) resource.TestCheckFunc {
+func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
@@ -1241,6 +1262,17 @@ func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize s
 		additionalChecks = append(
 			additionalChecks,
 			resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
+	}
+	if configServerManagementMode != nil {
+		additionalChecks = append(
+			additionalChecks,
+			resource.TestCheckResourceAttr(resourceName, "config_server_management_mode", *configServerManagementMode),
+			resource.TestCheckResourceAttrSet(resourceName, "config_server_type"),
+			resource.TestCheckResourceAttr(dataSourceName, "config_server_management_mode", *configServerManagementMode),
+			resource.TestCheckResourceAttrSet(dataSourceName, "config_server_type"),
+			resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.config_server_management_mode", *configServerManagementMode),
+			resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.config_server_type"),
+		)
 	}
 
 	return checkAggr(
