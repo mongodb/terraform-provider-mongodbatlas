@@ -123,10 +123,9 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"labels": {
-				Type:       schema.TypeSet,
-				Optional:   true,
-				Set:        HashFunctionForKeyValuePair,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamFutureWithReplacement, "tags"),
+				Type:     schema.TypeSet,
+				Optional: true,
+				Set:      HashFunctionForKeyValuePair,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {

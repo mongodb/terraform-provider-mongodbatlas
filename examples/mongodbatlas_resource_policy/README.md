@@ -1,8 +1,8 @@
 # MongoDB Atlas Provider -- Atlas Resource Policy
 This example creates three different resource policies in an organization.
 
-**NOTE**: Resource Policies are currently in Public Preview. To use this feature, you must take the following actions:
-1. Enable the `Atlas Resource Policies` Beta Feature in your organization (contact MongoDB Support).
+**NOTE**: Resource Policies are currently in Private Preview. To use this feature, you must take the following actions:
+1. Enable the `Atlas Resource Policies` Preview Feature in your organization (contact [MongoDB Support](https://www.mongodb.com/services/support)).
 2. Enable the [Preview Features](../../README.md#preview-features) when running `terraform` commands.
 
 

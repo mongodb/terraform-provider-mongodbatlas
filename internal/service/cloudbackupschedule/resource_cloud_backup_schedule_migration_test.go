@@ -22,7 +22,7 @@ func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     mig.PreCheckBasicSleep(t),
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -109,7 +109,7 @@ func TestMigBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 	checksUpdateWithZoneID := acc.AddAttrSetChecks(resourceName, checksCreate, "copy_settings.0.zone_id")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
+		PreCheck:     mig.PreCheckBasicSleep(t),
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{

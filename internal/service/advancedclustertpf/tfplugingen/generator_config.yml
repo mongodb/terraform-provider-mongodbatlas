@@ -1,0 +1,21 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  advanced_cluster:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters
+      method: POST
+
+data_sources:
+  advanced_cluster:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+      method: GET
+  advanced_clusters:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters
+      method: GET

@@ -8,18 +8,18 @@ import (
 )
 
 // TODO: `ctx` parameter and `diags` return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
-func NewTF{{.NamePascalCase}}(ctx context.Context, apiResp *admin.{{.NamePascalCase}}) (*TF{{.NamePascalCase}}Model, diag.Diagnostics) {
+func NewTFModel(ctx context.Context, apiResp *admin.{{.NamePascalCase}}) (*TFModel, diag.Diagnostics) {
 	// complexAttr, diagnostics := types.ListValueFrom(ctx, InnerObjectType, newTFComplexAttrModel(apiResp.ComplexAttr))
 	// if diagnostics.HasError() {
 	// 	return nil, diagnostics
 	// }
-	return &TF{{.NamePascalCase}}Model{}, nil
+	return &TFModel{}, nil
 }
 
 {{if eq .GenerationType "resource"}}
 // TODO: If SDK defined different models for create and update separate functions will need to be defined.
 // TODO: `ctx` parameter and `diags` in return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
-func New{{.NamePascalCase}}Req(ctx context.Context, plan *TF{{.NamePascalCase}}Model) (*admin.{{.NamePascalCase}}, diag.Diagnostics) {
+func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.{{.NamePascalCase}}, diag.Diagnostics) {
     // var tfList []complexArgumentData
 	// resp.Diagnostics.Append(plan.ComplexArgument.ElementsAs(ctx, &tfList, false)...)
 	// if resp.Diagnostics.HasError() {
@@ -30,7 +30,7 @@ func New{{.NamePascalCase}}Req(ctx context.Context, plan *TF{{.NamePascalCase}}M
 {{end}}
 
 {{if eq .GenerationType "plural-data-source"}}
-func NewTF{{.NamePascalCase}}s(ctx context.Context, paginatedResult *admin.Paginated{{.NamePascalCase}}) (*TF{{.NamePascalCase}}sDSModel, diag.Diagnostics) {
+func NewTFModelPluralDS(ctx context.Context, paginatedResult *admin.Paginated{{.NamePascalCase}}) (*TF{{.NamePascalCase}}sDSModel, diag.Diagnostics) {
 	return &TF{{.NamePascalCase}}sDSModel{}, nil
 }
 {{end}}

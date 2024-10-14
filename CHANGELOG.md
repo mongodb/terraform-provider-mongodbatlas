@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+## 1.21.1 (October 09, 2024)
+
+BUG FIXES:
+
+* resource/mongodbatlas_team: Fixes update logic of `usernames` attribute ensuring team is never emptied ([#2669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2669))
+
 ## 1.21.0 (October 07, 2024)
 
 NOTES:

@@ -119,7 +119,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
 
-* `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see [param reference](https://www.mongodb.com/docs/manual/reference/parameters/#mongodb-parameter-param.redactClientLogData) for more info.
+* `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more info.
 
 ### BI Connector
 
@@ -158,8 +158,6 @@ Key-value pairs between 1 to 255 characters in length for tagging and categorizi
 To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas).
 
 ### Labels
-
-**WARNING:** This property is deprecated and will be removed in the future, use the `tags` attribute instead.
 
 Key-value pairs that categorize the cluster. Each key and value has a maximum length of 255 characters.  You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
 

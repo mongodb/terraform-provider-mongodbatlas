@@ -15,6 +15,16 @@ func PreCheckBasic(tb testing.TB) {
 	}
 }
 
+// PreCheckBasicSleep is a helper function to call SerialSleep, see its help for more info.
+// Some examples of use are when the test is calling ProjectIDExecution or GetClusterInfo to create clusters.
+func PreCheckBasicSleep(tb testing.TB) func() {
+	tb.Helper()
+	return func() {
+		PreCheckBasic(tb)
+		SerialSleep(tb)
+	}
+}
+
 // PreCheck checks common Atlas environment variables and MONGODB_ATLAS_PROJECT_ID.
 // Deprecated: it should not be used as MONGODB_ATLAS_PROJECT_ID is not intended to be used in CI.
 // Use PreCheckBasic instead.
@@ -79,6 +89,14 @@ func PreCheckAtlasUsername(tb testing.TB) {
 	PreCheckBasic(tb)
 	if os.Getenv("MONGODB_ATLAS_USERNAME") == "" {
 		tb.Fatal("`MONGODB_ATLAS_USERNAME` must be set ")
+	}
+}
+
+func PreCheckAtlasUsernames(tb testing.TB) {
+	tb.Helper()
+	PreCheckAtlasUsername(tb)
+	if os.Getenv("MONGODB_ATLAS_USERNAME_2") == "" {
+		tb.Fatal("`MONGODB_ATLAS_USERNAME_2` must be set")
 	}
 }
 
