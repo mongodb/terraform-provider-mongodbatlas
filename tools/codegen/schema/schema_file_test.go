@@ -9,6 +9,13 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
 
+var stringAttr = codespec.Attribute{
+	Name:                     "string_attr",
+	String:                   &codespec.StringAttribute{},
+	Description:              admin.PtrString("string attribute"),
+	ComputedOptionalRequired: codespec.Optional,
+}
+
 type schemaGenerationTestCase struct {
 	inputModel     codespec.Resource
 	goldenFileName string
@@ -79,6 +86,52 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 				},
 			},
 			goldenFileName: "primitive-attributes",
+		},
+		"Nested attributes": {
+			inputModel: codespec.Resource{
+				Name: "test_name",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							Name:                     "nested_single_attr",
+							Description:              admin.PtrString("nested single attribute"),
+							ComputedOptionalRequired: codespec.Required,
+							SingleNested: &codespec.SingleNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{
+										stringAttr,
+									},
+								},
+							},
+						},
+						{
+							Name:                     "nested_list_attr",
+							Description:              admin.PtrString("nested list attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{
+										stringAttr,
+									},
+								},
+							},
+						},
+						{
+							Name:                     "set_nested_attribute",
+							Description:              admin.PtrString("set nested attribute"),
+							ComputedOptionalRequired: codespec.ComputedOptional,
+							SetNested: &codespec.SetNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{
+										stringAttr,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			goldenFileName: "nested-attributes",
 		},
 	}
 
