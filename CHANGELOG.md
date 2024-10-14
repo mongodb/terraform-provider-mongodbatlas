@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
+* data-source/mongodbatlas_advanced_clusters: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
+* resource/mongodbatlas_advanced_cluster: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
+
 ## 1.21.1 (October 09, 2024)
 
 BUG FIXES:
