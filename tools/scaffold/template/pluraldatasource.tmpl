@@ -11,29 +11,29 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 )
 
-var _ datasource.DataSource = &{{.NameCamelCase}}sDS{}
-var _ datasource.DataSourceWithConfigure = &{{.NameCamelCase}}sDS{}
+var _ datasource.DataSource = &pluralDS{}
+var _ datasource.DataSourceWithConfigure = &pluralDS{}
 
 func PluralDataSource() datasource.DataSource {
-	return &{{.NameCamelCase}}sDS{
+	return &pluralDS{
 		DSCommon: config.DSCommon{
-			DataSourceName: fmt.Sprintf("%ss", {{.NameCamelCase}}Name),
+			DataSourceName: fmt.Sprintf("%ss", resourceName),
 		},
 	}
 }
 
-type {{.NameCamelCase}}sDS struct {
+type pluralDS struct {
 	config.DSCommon
 }
 
-func (d *{{.NameCamelCase}}sDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	// TODO: Schema and model must be defined in plural_data_source_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = PluralDataSourceSchema(ctx)
 }
 
-func (d *{{.NameCamelCase}}sDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var {{.NameCamelCase}}sConfig TF{{.NamePascalCase}}sDSModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &{{.NameCamelCase}}sConfig)...)
+func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var tfModel TF{{.NamePascalCase}}sDSModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -47,7 +47,7 @@ func (d *{{.NameCamelCase}}sDS) Read(ctx context.Context, req datasource.ReadReq
 	//}
 
 	// TODO: process response into new terraform state
-	new{{.NamePascalCase}}sModel, diags := NewTF{{.NamePascalCase}}s(ctx, apiResp)
+	new{{.NamePascalCase}}sModel, diags := NewTFModelPluralDS(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
