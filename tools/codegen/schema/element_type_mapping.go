@@ -14,10 +14,12 @@ var elementTypeToString = map[codespec.ElemType]string{
 	codespec.String:  "types.StringType",
 }
 
+const typesImportStatement = "github.com/hashicorp/terraform-plugin-framework/types"
+
 func ElementTypeProperty(elementType codespec.ElemType) CodeStatement {
 	result := elementTypeToString[elementType]
 	return CodeStatement{
 		Result:  fmt.Sprintf("ElementType: %s", result),
-		Imports: []string{"github.com/hashicorp/terraform-plugin-framework/types"},
+		Imports: []string{typesImportStatement},
 	}
 }
