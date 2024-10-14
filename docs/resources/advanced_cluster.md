@@ -592,7 +592,7 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
 
 ### auto_scaling
 
-* `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. This parameter defaults to true.
+* `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. This parameter defaults to false.
     - Set to `true` to enable disk auto-scaling.
     - Set to `false` to disable disk auto-scaling.
 
@@ -632,7 +632,7 @@ After adding the `lifecycle` block to explicitly change `instance_size` comment 
 
 ### analytics_auto_scaling
 
-* `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. This parameter defaults to true.
+* `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. This parameter defaults to false.
 * `compute_enabled` - (Optional) Flag that indicates whether instance size auto-scaling is enabled. This parameter defaults to false.
 
 ~> **IMPORTANT:** If `compute_enabled` is true, then Atlas will automatically scale up to the maximum provided and down to the minimum, if provided.
