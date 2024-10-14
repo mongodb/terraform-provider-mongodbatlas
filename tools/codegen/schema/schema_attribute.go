@@ -65,12 +65,12 @@ func commonProperties(attr *codespec.Attribute) []string {
 	return result
 }
 
-type schemaAttrGenerator interface {
+type schemaAttributeGenerator interface {
 	TypeDefinition() string
 	TypeSpecificProperties() []CodeStatement
 }
 
-func typeGenerator(attr *codespec.Attribute) schemaAttrGenerator {
+func typeGenerator(attr *codespec.Attribute) schemaAttributeGenerator {
 	if attr.Int64 != nil {
 		return &Int64AttrGenerator{model: *attr.Int64}
 	}
