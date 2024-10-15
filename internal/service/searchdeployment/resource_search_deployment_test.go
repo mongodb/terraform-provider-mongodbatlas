@@ -60,7 +60,7 @@ func TestAccSearchDeployment_multiRegion(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: clusterInfo.TerraformStr + configSearchDeployment(clusterInfo.ProjectID, clusterInfo.TerraformNameRef, "M10", 2),
+				Config: clusterInfo.TerraformStr + configSearchDeployment(clusterInfo.ProjectID, clusterInfo.TerraformNameRef, "S20_HIGHCPU_NVME", 2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceID),
 					resource.TestCheckResourceAttr(resourceID, "specs.#", "1"),
