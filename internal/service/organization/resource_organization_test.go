@@ -148,7 +148,7 @@ func TestAccOrganizationCreate_Errors(t *testing.T) {
 		roleName    = "ORG_OWNER"
 		unknownUser = "65def6160f722a1507105aaa"
 	)
-	acc.SkipTestForCI(t) // affects the org
+	acc.SkipTestForCI(t) // test will fail in CI since API_KEY_MUST_BE_ASSOCIATED_WITH_PAYING_ORG is returned
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
