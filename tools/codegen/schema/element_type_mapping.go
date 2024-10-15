@@ -8,8 +8,8 @@ import (
 
 var elementTypeToString = map[codespec.ElemType]string{
 	codespec.Bool:    "types.BoolType",
-	codespec.Float64: "types.Float64",
-	codespec.Int64:   "types.Int64",
+	codespec.Float64: "types.Float64Type",
+	codespec.Int64:   "types.Int64Type",
 	codespec.Number:  "types.NumberType",
 	codespec.String:  "types.StringType",
 }

@@ -38,18 +38,6 @@ func (m *MapNestedAttrGenerator) TypeSpecificProperties() []CodeStatement {
 	return nil
 }
 
-type ObjectAttrGenerator struct {
-	model codespec.ObjectAttribute
-}
-
-func (o *ObjectAttrGenerator) TypeDefinition() string {
-	return "schema.ObjectAttribute"
-}
-
-func (o *ObjectAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return nil
-}
-
 type SingleNestedAttrGenerator struct {
 	model codespec.SingleNestedAttribute
 }

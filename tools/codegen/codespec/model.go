@@ -40,7 +40,6 @@ type Attribute struct {
 	Map          *MapAttribute
 	MapNested    *MapNestedAttribute
 	Number       *NumberAttribute
-	Object       *ObjectAttribute
 	Set          *SetAttribute
 	Int64        *Int64Attribute
 	SingleNested *SingleNestedAttribute

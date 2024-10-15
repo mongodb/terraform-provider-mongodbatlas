@@ -98,9 +98,6 @@ func typeGenerator(attr *codespec.Attribute) schemaAttributeGenerator {
 	if attr.Number != nil {
 		return &NumberAttrGenerator{model: *attr.Number}
 	}
-	if attr.Object != nil {
-		return &ObjectAttrGenerator{model: *attr.Object}
-	}
 	if attr.Set != nil {
 		return &SetAttrGenerator{model: *attr.Set}
 	}

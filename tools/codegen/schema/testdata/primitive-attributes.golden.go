@@ -39,7 +39,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"simple_set_attr": schema.SetAttribute{
 				Optional:            true,
 				MarkdownDescription: "simple set description",
-				ElementType:         types.Float64,
+				ElementType:         types.Float64Type,
 			},
 			"simple_map_attr": schema.MapAttribute{
 				Optional:            true,
