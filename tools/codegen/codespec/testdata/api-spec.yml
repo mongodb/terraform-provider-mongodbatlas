@@ -329,17 +329,6 @@ components:
         strReqAttr2:
           type: string
           description: Test field description
-        links:
-          type: array
-          description: List of one or more Uniform Resource Locators (URLs) that point to
-            API sub-resources, related API resources, or both. RFC 5988 outlines
-            these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
         strReqAttr3:
           type: string
           description: Test field description
@@ -372,17 +361,6 @@ components:
         strReqAttr2:
           type: string
           description: Test field description
-        links:
-          type: array
-          description: List of one or more Uniform Resource Locators (URLs) that point to
-            API sub-resources, related API resources, or both. RFC 5988 outlines
-            these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
         strReqAttr3:
           type: string
           description: Test field description
@@ -401,21 +379,6 @@ components:
           type: number
           format: double
           default: 2.0
-    Link:
-      type: object
-      properties:
-        href:
-          type: string
-          description: Uniform Resource Locator (URL) that points another API resource to
-            which this response has some relationship. This URL often begins
-            with `https://cloud.mongodb.com/api/atlas`.
-          example: https://cloud.mongodb.com/api/atlas
-        rel:
-          type: string
-          description: Uniform Resource Locator (URL) that defines the semantic
-            relationship between this resource and another API resource. This
-            URL often begins with `https://cloud.mongodb.com/api/atlas`.
-          example: self
     NestedTestResourceResponse:
       type: object
       properties:

@@ -35,53 +35,53 @@ func TestConvertToProviderSpec(t *testing.T) {
 					Schema: &codespec.Schema{
 						Description: conversion.StringPtr(testResourceDesc),
 						Attributes: codespec.Attributes{
-							codespec.Attribute{
+							{
 								Name:                     "bool_default_attr",
 								ComputedOptionalRequired: codespec.ComputedOptional,
 								Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
 							},
-							codespec.Attribute{
+							{
 								Name:                     "count",
 								ComputedOptionalRequired: codespec.Optional,
 								Int64:                    &codespec.Int64Attribute{},
 								Description:              conversion.StringPtr(testFieldDesc),
 							},
-							codespec.Attribute{
+							{
 								Name:                     "create_date",
 								String:                   &codespec.StringAttribute{},
 								ComputedOptionalRequired: codespec.Computed,
 								Description:              conversion.StringPtr(testFieldDesc),
 							},
-							codespec.Attribute{
+							{
 								Name:                     "group_id",
 								ComputedOptionalRequired: codespec.Required,
 								String:                   &codespec.StringAttribute{},
 								Description:              conversion.StringPtr(testPathParamDesc),
 							},
-							codespec.Attribute{
+							{
 								Name:                     "num_double_default_attr",
 								Float64:                  &codespec.Float64Attribute{Default: conversion.Pointer(2.0)},
 								ComputedOptionalRequired: codespec.ComputedOptional,
 							},
-							codespec.Attribute{
+							{
 								Name:                     "str_computed_attr",
 								ComputedOptionalRequired: codespec.Computed,
 								String:                   &codespec.StringAttribute{},
 								Description:              conversion.StringPtr(testFieldDesc),
 							},
-							codespec.Attribute{
+							{
 								Name:                     "str_req_attr1",
 								ComputedOptionalRequired: codespec.Required,
 								String:                   &codespec.StringAttribute{},
 								Description:              conversion.StringPtr(testFieldDesc),
 							},
-							codespec.Attribute{
+							{
 								Name:                     "str_req_attr2",
 								ComputedOptionalRequired: codespec.Required,
 								String:                   &codespec.StringAttribute{},
 								Description:              conversion.StringPtr(testFieldDesc),
 							},
-							codespec.Attribute{
+							{
 								Name:                     "str_req_attr3",
 								String:                   &codespec.StringAttribute{},
 								ComputedOptionalRequired: codespec.Required,
@@ -117,25 +117,25 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 					Schema: &codespec.Schema{
 						Description: conversion.StringPtr(testResourceDesc),
 						Attributes: codespec.Attributes{
-							codespec.Attribute{
+							{
 								Name:                     "cluster_name",
 								ComputedOptionalRequired: codespec.Required,
 								String:                   &codespec.StringAttribute{},
 								Description:              conversion.StringPtr(testPathParamDesc),
 							},
-							codespec.Attribute{
+							{
 								Name:                     "group_id",
 								ComputedOptionalRequired: codespec.Required,
 								String:                   &codespec.StringAttribute{},
 								Description:              conversion.StringPtr(testPathParamDesc),
 							},
-							codespec.Attribute{
+							{
 								Name:                     "id",
 								ComputedOptionalRequired: codespec.Computed,
 								String:                   &codespec.StringAttribute{},
 								Description:              conversion.StringPtr(testFieldDesc),
 							},
-							codespec.Attribute{
+							{
 								Name:                     "list_primitive_string_attr",
 								ComputedOptionalRequired: codespec.Computed,
 								List: &codespec.ListAttribute{
@@ -143,25 +143,25 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 								},
 								Description: conversion.StringPtr(testFieldDesc),
 							},
-							codespec.Attribute{
+							{
 								Name:                     "nested_object_array_attr",
 								ComputedOptionalRequired: codespec.Required,
 								ListNested: &codespec.ListNestedAttribute{
 									NestedObject: codespec.NestedAttributeObject{
 										Attributes: codespec.Attributes{
-											codespec.Attribute{
+											{
 												Name:                     "inner_num_attr",
 												ComputedOptionalRequired: codespec.Required,
 												Int64:                    &codespec.Int64Attribute{},
 												Description:              conversion.StringPtr(testFieldDesc),
 											},
-											codespec.Attribute{
+											{
 												Name:                     "inner_str_attr",
 												ComputedOptionalRequired: codespec.Required,
 												String:                   &codespec.StringAttribute{},
 												Description:              conversion.StringPtr(testFieldDesc),
 											},
-											codespec.Attribute{
+											{
 												Name:                     "list_primitive_string_attr",
 												ComputedOptionalRequired: codespec.Optional,
 												List: &codespec.ListAttribute{
@@ -174,7 +174,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 								},
 								Description: conversion.StringPtr(testFieldDesc),
 							},
-							codespec.Attribute{
+							{
 								Name:                     "str_computed_attr",
 								ComputedOptionalRequired: codespec.Computed,
 								String:                   &codespec.StringAttribute{},
