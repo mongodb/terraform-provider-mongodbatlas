@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 
@@ -88,7 +89,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	organization, resp, err := conn.OrganizationsApi.CreateOrganization(ctx, newCreateOrganizationRequest(d)).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if resp.StatusCode == http.StatusNotFound && !strings.Contains(err.Error(), "USER_NOT_FOUND") {
 			d.SetId("")
 			return nil
 		}

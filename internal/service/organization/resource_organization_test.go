@@ -143,6 +143,24 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 	})
 }
 
+func TestAccOrganizationCreate_Errors(t *testing.T) {
+	var (
+		roleName    = "ORG_OWNER"
+		unknownUser = "65def6160f722a1507105aaa"
+	)
+	acc.SkipTestForCI(t) // test will fail in CI since API_KEY_MUST_BE_ASSOCIATED_WITH_PAYING_ORG is returned
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheck(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configBasic(unknownUser, acc.RandomName(), "should fail since user is not found", roleName),
+				ExpectError: regexp.MustCompile(`USER_NOT_FOUND`),
+			},
+		},
+	})
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
