@@ -2,7 +2,6 @@ package searchdeployment
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -26,7 +25,7 @@ func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchD
 	}
 }
 
-func NewTFSearchDeployment(ctx context.Context, clusterName string, deployResp *admin.ApiSearchDeploymentResponse, timeout *timeouts.Value, forceSpecLength int) (*TFSearchDeploymentRSModel, diag.Diagnostics) {
+func NewTFSearchDeployment(ctx context.Context, clusterName string, deployResp *admin.ApiSearchDeploymentResponse, timeout *timeouts.Value, allowMultipleSpecs bool) (*TFSearchDeploymentRSModel, diag.Diagnostics) {
 	result := TFSearchDeploymentRSModel{
 		ID:          types.StringPointerValue(deployResp.Id),
 		ClusterName: types.StringValue(clusterName),
@@ -38,19 +37,14 @@ func NewTFSearchDeployment(ctx context.Context, clusterName string, deployResp *
 		result.Timeouts = *timeout
 	}
 
-	allSpecs := deployResp.GetSpecs()
-	fullLen := len(allSpecs)
-	if forceSpecLength > 0 {
-		allSpecs = allSpecs[:forceSpecLength]
+	specs := deployResp.GetSpecs()
+	if !allowMultipleSpecs && len(specs) > 1 {
+		specs = specs[:1]
 	}
-	specsList, diagnostics := types.ListValueFrom(ctx, SpecObjectType, newTFSpecsModel(allSpecs))
+	specsList, diagnostics := types.ListValueFrom(ctx, SpecObjectType, newTFSpecsModel(specs))
 	if diagnostics.HasError() {
 		return nil, diagnostics
 	}
-	if forceSpecLength > 0 && fullLen != forceSpecLength {
-		diagnostics.Append(diag.NewWarningDiagnostic("spec length missmatch", fmt.Sprintf("your configuration has %d specs, but the actual deployment has %d specs, please update your configuration", forceSpecLength, fullLen)))
-	}
-
 	result.Specs = specsList
 	return &result, diagnostics
 }

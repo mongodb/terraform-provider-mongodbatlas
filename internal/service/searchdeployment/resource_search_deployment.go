@@ -75,7 +75,7 @@ func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
 		return
 	}
-	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, len(searchDeploymentReq.GetSpecs()))
+	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, false)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -103,7 +103,7 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, 0)
+	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, false)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -138,7 +138,7 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.AddError("error during search deployment update", err.Error())
 		return
 	}
-	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, len(searchDeploymentReq.GetSpecs()))
+	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, false)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
