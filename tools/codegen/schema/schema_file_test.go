@@ -16,6 +16,13 @@ var stringAttr = codespec.Attribute{
 	ComputedOptionalRequired: codespec.Optional,
 }
 
+var intAttr = codespec.Attribute{
+	Name:                     "int_attr",
+	Int64:                    &codespec.Int64Attribute{},
+	Description:              admin.PtrString("int attribute"),
+	ComputedOptionalRequired: codespec.Required,
+}
+
 type schemaGenerationTestCase struct {
 	inputModel     codespec.Resource
 	goldenFileName string
@@ -98,9 +105,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							ComputedOptionalRequired: codespec.Required,
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{
-										stringAttr,
-									},
+									Attributes: []codespec.Attribute{stringAttr, intAttr},
 								},
 							},
 						},
@@ -110,9 +115,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							ComputedOptionalRequired: codespec.Optional,
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{
-										stringAttr,
-									},
+									Attributes: []codespec.Attribute{stringAttr, intAttr},
 								},
 							},
 						},
@@ -122,9 +125,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							SetNested: &codespec.SetNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{
-										stringAttr,
-									},
+									Attributes: []codespec.Attribute{stringAttr, intAttr},
 								},
 							},
 						},

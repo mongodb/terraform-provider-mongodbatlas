@@ -19,7 +19,7 @@ const typesImportStatement = "github.com/hashicorp/terraform-plugin-framework/ty
 func ElementTypeProperty(elementType codespec.ElemType) CodeStatement {
 	result := elementTypeToString[elementType]
 	return CodeStatement{
-		Result:  fmt.Sprintf("ElementType: %s", result),
+		Code:    fmt.Sprintf("ElementType: %s", result),
 		Imports: []string{typesImportStatement},
 	}
 }
