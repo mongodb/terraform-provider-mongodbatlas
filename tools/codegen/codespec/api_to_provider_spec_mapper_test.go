@@ -12,7 +12,7 @@ import (
 
 const (
 	testFieldDesc     = "Test field description"
-	testResourceDesc  = "Configures the project level settings for the Test Resource feature."
+	testResourceDesc  = "POST API description"
 	testPathParamDesc = "Path param test description"
 )
 
@@ -90,6 +90,99 @@ func TestConvertToProviderSpec(t *testing.T) {
 						},
 					},
 					Name: "test_resource",
+				},
+				},
+			},
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, tc.inputResourceName)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+		})
+	}
+}
+
+func TestConvertToProviderSpec_nested(t *testing.T) {
+	testCases := map[string]convertToSpecTestCase{
+		"Valid input": {
+			inputOpenAPISpecPath: "testdata/api-spec.yml",
+			inputConfigPath:      "testdata/config-nested-schema.yml",
+			inputResourceName:    "test_resource_with_nested_attr",
+
+			expectedResult: &codespec.Model{
+				Resources: []codespec.Resource{{
+					Schema: &codespec.Schema{
+						Description: conversion.StringPtr(testResourceDesc),
+						Attributes: codespec.Attributes{
+							codespec.Attribute{
+								Name:                     "cluster_name",
+								ComputedOptionalRequired: codespec.Required,
+								String:                   &codespec.StringAttribute{},
+								Description:              conversion.StringPtr(testPathParamDesc),
+							},
+							codespec.Attribute{
+								Name:                     "group_id",
+								ComputedOptionalRequired: codespec.Required,
+								String:                   &codespec.StringAttribute{},
+								Description:              conversion.StringPtr(testPathParamDesc),
+							},
+							codespec.Attribute{
+								Name:                     "id",
+								ComputedOptionalRequired: codespec.Computed,
+								String:                   &codespec.StringAttribute{},
+								Description:              conversion.StringPtr(testFieldDesc),
+							},
+							codespec.Attribute{
+								Name:                     "list_primitive_string_attr",
+								ComputedOptionalRequired: codespec.Computed,
+								List: &codespec.ListAttribute{
+									ElementType: codespec.String,
+								},
+								Description: conversion.StringPtr(testFieldDesc),
+							},
+							codespec.Attribute{
+								Name:                     "nested_object_array_attr",
+								ComputedOptionalRequired: codespec.Required,
+								ListNested: &codespec.ListNestedAttribute{
+									NestedObject: codespec.NestedAttributeObject{
+										Attributes: codespec.Attributes{
+											codespec.Attribute{
+												Name:                     "inner_num_attr",
+												ComputedOptionalRequired: codespec.Required,
+												Int64:                    &codespec.Int64Attribute{},
+												Description:              conversion.StringPtr(testFieldDesc),
+											},
+											codespec.Attribute{
+												Name:                     "inner_str_attr",
+												ComputedOptionalRequired: codespec.Required,
+												String:                   &codespec.StringAttribute{},
+												Description:              conversion.StringPtr(testFieldDesc),
+											},
+											codespec.Attribute{
+												Name:                     "list_primitive_string_attr",
+												ComputedOptionalRequired: codespec.Optional,
+												List: &codespec.ListAttribute{
+													ElementType: codespec.String,
+												},
+												Description: conversion.StringPtr(testFieldDesc),
+											},
+										},
+									},
+								},
+								Description: conversion.StringPtr(testFieldDesc),
+							},
+							codespec.Attribute{
+								Name:                     "str_computed_attr",
+								ComputedOptionalRequired: codespec.Computed,
+								String:                   &codespec.StringAttribute{},
+								Description:              conversion.StringPtr(testFieldDesc),
+							},
+						},
+					},
+					Name: "test_resource_with_nested_attr",
 				},
 				},
 			},

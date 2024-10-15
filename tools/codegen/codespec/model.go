@@ -1,15 +1,5 @@
 package codespec
 
-type ElemType int
-
-const (
-	Bool ElemType = iota
-	Float64
-	Int64
-	Number
-	String
-)
-
 type Model struct {
 	Resources []Resource
 }

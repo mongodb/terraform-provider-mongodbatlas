@@ -43,7 +43,9 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 		return s.buildNumberAttr(name, computability)
 	case OASTypeBoolean:
 		return s.buildBoolAttr(name, computability)
-	case OASTypeArray, OASTypeObject:
+	case OASTypeArray:
+		return s.buildArrayAttr(name, computability)
+	case OASTypeObject:
 		return nil, nil
 	default:
 		return nil, fmt.Errorf("invalid schema type '%s'", s.Type)
@@ -131,6 +133,81 @@ func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptiona
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
 		Bool:                     &BoolAttribute{},
+	}
+
+	if s.Schema.Default != nil {
+		var staticDefault bool
+		if err := s.Schema.Default.Decode(&staticDefault); err == nil {
+			result.ComputedOptionalRequired = ComputedOptional
+			result.Bool.Default = &staticDefault
+		}
+	}
+
+	return result, nil
+}
+
+func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+	if !s.Schema.Items.IsA() {
+		return nil, fmt.Errorf("invalid array items property, doesn't have a schema: %s", name)
+	}
+	itemSchema, err := BuildSchema(s.Schema.Items.A)
+	if err != nil {
+		return nil, fmt.Errorf("error while building nested schema: %s", name)
+	}
+
+	if itemSchema.Type == OASTypeObject {
+		objectAttributes, err := buildResourceAttrs(itemSchema)
+		if err != nil {
+			return nil, fmt.Errorf("error while building nested schema: %s", name)
+		}
+
+		result := &Attribute{
+			Name:                     terraformAttrName(name),
+			ComputedOptionalRequired: computability,
+			DeprecationMessage:       s.GetDeprecationMessage(),
+			Description:              s.GetDescription(),
+			ListNested: &ListNestedAttribute{
+				NestedObject: NestedAttributeObject{
+					Attributes: objectAttributes,
+				},
+			},
+		}
+
+		return result, nil
+	}
+
+	elemType, err := itemSchema.buildElementType()
+	if err != nil {
+		return nil, fmt.Errorf("error while building nested schema: %s", name)
+	}
+
+	// if s.Format == util.TF_format_set {
+	// 	result := &attrmapper.ResourceSetAttribute{
+	// 		Name: name,
+	// 		SetAttribute: resource.SetAttribute{
+	// 			ElementType:              elemType,
+	// 			ComputedOptionalRequired: computability,
+	// 			DeprecationMessage:       s.GetDeprecationMessage(),
+	// 			Description:              s.GetDescription(),
+	// 		},
+	// 	}
+
+	// 	if computability != schema.Computed {
+	// 		result.Validators = s.GetSetValidators()
+	// 	}
+
+	// 	return result, nil
+	// }
+
+	result := &Attribute{
+		Name:                     terraformAttrName(name),
+		ComputedOptionalRequired: computability,
+		DeprecationMessage:       s.GetDeprecationMessage(),
+		Description:              s.GetDescription(),
+		List: &ListAttribute{
+			ElementType: elemType,
+			// Default: ,
+		},
 	}
 
 	if s.Schema.Default != nil {
