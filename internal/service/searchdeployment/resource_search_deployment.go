@@ -37,14 +37,14 @@ func (r *searchDeploymentRS) Schema(ctx context.Context, req resource.SchemaRequ
 }
 
 const defaultSearchNodeTimeout time.Duration = 3 * time.Hour
-const minTimeoutCreateUpdate time.Duration = 1 * time.Minute
+const minTimeoutCreateUpdate time.Duration = 30 * time.Second
 const minTimeoutDelete time.Duration = 30 * time.Second
 
 func retryTimeConfig(configuredTimeout, minTimeout time.Duration) retrystrategy.TimeConfig {
 	return retrystrategy.TimeConfig{
 		Timeout:    configuredTimeout,
 		MinTimeout: minTimeout,
-		Delay:      1 * time.Minute,
+		Delay:      30 * time.Second,
 	}
 }
 
@@ -75,7 +75,7 @@ func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
 		return
 	}
-	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts)
+	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, len(searchDeploymentReq.GetSpecs()))
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -103,7 +103,7 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts)
+	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, 0)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -138,7 +138,7 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.AddError("error during search deployment update", err.Error())
 		return
 	}
-	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts)
+	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, len(searchDeploymentReq.GetSpecs()))
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return

@@ -55,7 +55,7 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := searchdeployment.NewTFSearchDeployment(context.Background(), tc.clusterName, tc.SDKResp, nil)
+			resultModel, diags := searchdeployment.NewTFSearchDeployment(context.Background(), tc.clusterName, tc.SDKResp, nil, 0)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
