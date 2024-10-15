@@ -402,12 +402,8 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	projectID := project.GetId()
-	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
+	projectRes, _, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 	if err != nil {
-		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
@@ -529,12 +525,8 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
+	projectRes, _, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 	if err != nil {
-		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
