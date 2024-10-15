@@ -140,12 +140,6 @@ paths:
                 $ref: "#/components/schemas/NoBody"
               x-xgen-version: 2024-05-30
           description: This endpoint does not return a response body.
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
       security:
         - DigestAuth: []
       summary: Delete Search Nodes
@@ -173,12 +167,6 @@ paths:
                 $ref: "#/components/schemas/NestedTestResourceResponse"
               x-xgen-version: 2024-05-30
           description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
       security:
         - DigestAuth: []
       summary: Return Search Nodes
@@ -213,12 +201,6 @@ paths:
                 $ref: "#/components/schemas/NestedTestResourceResponse"
               x-xgen-version: 2024-05-30
           description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
       security:
         - DigestAuth: []
       summary: Update Search Nodes
@@ -253,12 +235,6 @@ paths:
                 $ref: "#/components/schemas/NestedTestResourceResponse"
               x-xgen-version: 2024-05-30
           description: Created
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
       security:
         - DigestAuth: []
       summary: Create Nested Test Resource
@@ -281,44 +257,6 @@ components:
   responses:
     accepted:
       description: Accepted.
-    badRequest:
-      content:
-        application/json:
-          example:
-            detail: (This is just an example, the exception may not be related to this
-              endpoint) No provider AWS exists.
-            error: 400
-            errorCode: VALIDATION_ERROR
-            reason: Bad Request
-          schema:
-            $ref: "#/components/schemas/ApiError"
-      description: Bad Request.
-    internalServerError:
-      content:
-        application/json:
-          example:
-            detail: (This is just an example, the exception may not be related to this
-              endpoint)
-            error: 500
-            errorCode: UNEXPECTED_ERROR
-            reason: Internal Server Error
-          schema:
-            $ref: "#/components/schemas/ApiError"
-      description: Internal Server Error.
-    noBody:
-      description: This endpoint does not return a response body.
-    notFound:
-      content:
-        application/json:
-          example:
-            detail: (This is just an example, the exception may not be related to this
-              endpoint) Cannot find resource AWS
-            error: 404
-            errorCode: RESOURCE_NOT_FOUND
-            reason: Not Found
-          schema:
-            $ref: "#/components/schemas/ApiError"
-      description: Not Found.
   schemas:
     CreateTestResourceRequest:
       type: object
@@ -485,13 +423,3 @@ components:
     NoBody:
       type: object
       description: Endpoint does not return a response body.
-    FieldViolation:
-      type: object
-      properties:
-        description:
-          type: string
-          description: A description of why the request element is bad.
-        field:
-          type: string
-          description: A path that leads to a field in the request body.
-   
