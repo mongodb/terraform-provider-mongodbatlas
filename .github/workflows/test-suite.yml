@@ -91,13 +91,13 @@ jobs:
         with:
           payload: |
             {
-              "text": ":red_circle: Test Suite failed",
+              "text": ":red_circle: Test Suite failed (reminder to log failures)",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Test Suite failed* ${{ secrets.SLACK_ONCALL_TAG }}"
+                    "text": "*Test Suite failed (reminder to log failures)* ${{ secrets.SLACK_ONCALL_TAG }}"
                   }
                 },
                 {
