@@ -29,12 +29,15 @@ func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resou
 }
 
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var tfModel struct{} // TEMPORARY: empty model
+	var tfModel TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	var tfNewModel struct{} // TEMPORARY: empty model
+	tfNewModel := NewTFModel(ctx, nil, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, tfNewModel)...)
 }
 
