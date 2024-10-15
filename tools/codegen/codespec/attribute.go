@@ -116,7 +116,7 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 	}
 
 	return &Attribute{
-		Name:                     name,
+		Name:                     terraformAttrName(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),

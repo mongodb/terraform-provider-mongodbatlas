@@ -11,9 +11,9 @@ var (
 	unsupportedCharacters = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
 )
 
-func terraformAttrName(attrName string) string {
+func terraformAttrName(attrName string) AttributeName {
 	if attrName == "" {
-		return attrName
+		return AttributeName(attrName)
 	}
 
 	removedUnsupported := unsupportedCharacters.ReplaceAllString(attrName, "")
@@ -24,5 +24,5 @@ func terraformAttrName(attrName string) string {
 		return fmt.Sprintf("%c_%s", firstChar, strings.ToLower(restOfString))
 	})
 
-	return strings.ToLower(insertedUnderscores)
+	return AttributeName(strings.ToLower(insertedUnderscores))
 }
