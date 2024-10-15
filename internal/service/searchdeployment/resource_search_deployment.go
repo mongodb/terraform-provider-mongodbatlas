@@ -37,14 +37,14 @@ func (r *searchDeploymentRS) Schema(ctx context.Context, req resource.SchemaRequ
 }
 
 const defaultSearchNodeTimeout time.Duration = 3 * time.Hour
-const minTimeoutCreateUpdate time.Duration = 30 * time.Second
+const minTimeoutCreateUpdate time.Duration = 1 * time.Minute
 const minTimeoutDelete time.Duration = 30 * time.Second
 
 func retryTimeConfig(configuredTimeout, minTimeout time.Duration) retrystrategy.TimeConfig {
 	return retrystrategy.TimeConfig{
 		Timeout:    configuredTimeout,
 		MinTimeout: minTimeout,
-		Delay:      30 * time.Second,
+		Delay:      1 * time.Minute,
 	}
 }
 
