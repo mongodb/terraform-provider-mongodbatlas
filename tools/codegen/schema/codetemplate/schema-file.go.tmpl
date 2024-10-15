@@ -1,0 +1,15 @@
+package {{ .PackageName }}
+
+import (
+	"context"
+	{{range .Imports }}
+	"{{ . }}"
+	{{- end }}
+)
+
+func ResourceSchema(ctx context.Context) schema.Schema {
+	return schema.Schema{
+		Attributes: map[string]schema.Attribute{ {{ range .SchemaAttributes }}{{ . }}{{- end }}
+		},
+	}
+}

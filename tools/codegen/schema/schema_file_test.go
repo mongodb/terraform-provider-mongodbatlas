@@ -1,0 +1,92 @@
+package schema_test
+
+import (
+	"testing"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/schema"
+	"github.com/sebdah/goldie/v2"
+	"go.mongodb.org/atlas-sdk/v20240530005/admin"
+)
+
+type schemaGenerationTestCase struct {
+	inputModel     codespec.Resource
+	goldenFileName string
+}
+
+func TestSchemaGenerationFromCodeSpec(t *testing.T) {
+	testCases := map[string]schemaGenerationTestCase{
+		"Primitive attributes": {
+			inputModel: codespec.Resource{
+				Name: "test_name", // TODO sync with parsing to see how string is formatted
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							Name:                     "string_attr",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("string description"),
+							ComputedOptionalRequired: codespec.Required,
+						},
+						{
+							Name:                     "bool_attr",
+							Bool:                     &codespec.BoolAttribute{},
+							Description:              admin.PtrString("bool description"),
+							ComputedOptionalRequired: codespec.Optional,
+						},
+						{
+							Name:                     "int_attr",
+							Int64:                    &codespec.Int64Attribute{},
+							Description:              admin.PtrString("int description"),
+							ComputedOptionalRequired: codespec.ComputedOptional,
+						},
+						{
+							Name:                     "float_attr",
+							Float64:                  &codespec.Float64Attribute{},
+							Description:              admin.PtrString("float description"),
+							ComputedOptionalRequired: codespec.Optional,
+						},
+						{
+							Name:                     "number_attr",
+							Number:                   &codespec.NumberAttribute{},
+							Description:              admin.PtrString("number description"),
+							ComputedOptionalRequired: codespec.Optional,
+						},
+						{
+							Name: "simple_list_attr",
+							List: &codespec.ListAttribute{
+								ElementType: codespec.String,
+							},
+							Description:              admin.PtrString("simple arr description"),
+							ComputedOptionalRequired: codespec.Optional,
+						},
+						{
+							Name: "simple_set_attr",
+							Set: &codespec.SetAttribute{
+								ElementType: codespec.Float64,
+							},
+							Description:              admin.PtrString("simple set description"),
+							ComputedOptionalRequired: codespec.Optional,
+						},
+						{
+							Name: "simple_map_attr",
+							Map: &codespec.MapAttribute{
+								ElementType: codespec.Bool,
+							},
+							Description:              admin.PtrString("simple map description"),
+							ComputedOptionalRequired: codespec.Optional,
+						},
+					},
+				},
+			},
+			goldenFileName: "primitive-attributes",
+		},
+	}
+
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			result := schema.GenerateGoCode(tc.inputModel)
+			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
+			g.Assert(t, tc.goldenFileName, []byte(result))
+		})
+	}
+}

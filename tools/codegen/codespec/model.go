@@ -6,11 +6,7 @@ const (
 	Bool ElemType = iota
 	Float64
 	Int64
-	List
-	Map
 	Number
-	Object
-	Set
 	String
 )
 
@@ -44,7 +40,6 @@ type Attribute struct {
 	Map          *MapAttribute
 	MapNested    *MapNestedAttribute
 	Number       *NumberAttribute
-	Object       *ObjectAttribute
 	Set          *SetAttribute
 	Int64        *Int64Attribute
 	SingleNested *SingleNestedAttribute
