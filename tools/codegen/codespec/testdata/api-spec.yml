@@ -386,40 +386,6 @@ components:
           minItems: 1
       required:
         - nestedObjectArrayAttr
-    ApiError:
-      type: object
-      properties:
-        badRequestDetail:
-          $ref: "#/components/schemas/BadRequestDetail"
-        detail:
-          type: string
-          description: Describes the specific conditions or reasons that cause each type
-            of error.
-        error:
-          type: integer
-          format: int32
-          description: HTTP status code returned with this error.
-          externalDocs:
-            url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-        errorCode:
-          type: string
-          description: Application error code returned with this error.
-        parameters:
-          type: array
-          description: Parameters used to give more information about the error.
-          items: {}
-        reason:
-          type: string
-          description: Application error message returned with this error.
-    BadRequestDetail:
-      type: object
-      description: Bad request detail.
-      properties:
-        fields:
-          type: array
-          description: Describes all violations in a client request.
-          items:
-            $ref: "#/components/schemas/FieldViolation"
     NoBody:
       type: object
       description: Endpoint does not return a response body.
