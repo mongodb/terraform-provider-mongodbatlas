@@ -23,5 +23,11 @@ func configBasic() string {
 	return `	
 		resource "mongodbatlas_advanced_cluster" "test" {
 		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+		}
+
+		data "mongodbatlas_advanced_clusters" "tests" {
+		}
 	`
 }
