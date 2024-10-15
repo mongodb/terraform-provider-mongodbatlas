@@ -144,8 +144,6 @@ paths:
           $ref: "#/components/responses/badRequest"
         "404":
           $ref: "#/components/responses/notFound"
-        "409":
-          $ref: "#/components/responses/conflict"
         "500":
           $ref: "#/components/responses/internalServerError"
       security:
@@ -219,8 +217,6 @@ paths:
           $ref: "#/components/responses/badRequest"
         "404":
           $ref: "#/components/responses/notFound"
-        "409":
-          $ref: "#/components/responses/conflict"
         "500":
           $ref: "#/components/responses/internalServerError"
       security:
@@ -261,13 +257,11 @@ paths:
           $ref: "#/components/responses/badRequest"
         "404":
           $ref: "#/components/responses/notFound"
-        "409":
-          $ref: "#/components/responses/conflict"
         "500":
           $ref: "#/components/responses/internalServerError"
       security:
         - DigestAuth: []
-      summary: Create Search Nodes
+      summary: Create Nested Test Resource
       tags:
         - Atlas Search 
 components:
@@ -299,43 +293,6 @@ components:
           schema:
             $ref: "#/components/schemas/ApiError"
       description: Bad Request.
-    conflict:
-      content:
-        application/json:
-          example:
-            detail: "(This is just an example, the exception may not be related to this
-              endpoint) Cannot delete organization link while there is active
-              migration in following project ids: 60c4fd418ebe251047c50554"
-            error: 409
-            errorCode: CANNOT_DELETE_ORG_ACTIVE_LIVE_MIGRATION_ATLAS_ORG_LINK
-            reason: Conflict
-          schema:
-            $ref: "#/components/schemas/ApiError"
-      description: Conflict.
-    forbidden:
-      content:
-        application/json:
-          example:
-            detail: (This is just an example, the exception may not be related to this
-              endpoint)
-            error: 403
-            errorCode: CANNOT_CHANGE_GROUP_NAME
-            reason: Forbidden
-          schema:
-            $ref: "#/components/schemas/ApiError"
-      description: Forbidden.
-    gone:
-      content:
-        application/json:
-          example:
-            detail: This happens when a resource is marked for sunset and the sunset date is
-              in the past.
-            error: 410
-            errorCode: VERSION_GONE
-            reason: Gone
-          schema:
-            $ref: "#/components/schemas/ApiError"
-      description: Gone.
     internalServerError:
       content:
         application/json:
@@ -348,18 +305,6 @@ components:
           schema:
             $ref: "#/components/schemas/ApiError"
       description: Internal Server Error.
-    methodNotAllowed:
-      content:
-        application/json:
-          example:
-            detail: (This is just an example, the exception may not be related to this
-              endpoint)
-            error: 405
-            errorCode: ATLAS_BACKUP_CANCEL_SHARD_RESTORE_JOB_NOT_ALLOWED
-            reason: Method Not Allowed
-          schema:
-            $ref: "#/components/schemas/ApiError"
-      description: Method Not Allowed.
     noBody:
       description: This endpoint does not return a response body.
     notFound:

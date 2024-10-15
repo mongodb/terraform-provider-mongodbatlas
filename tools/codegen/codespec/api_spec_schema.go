@@ -57,7 +57,3 @@ func (s *APISpecSchema) IsSensitive() *bool {
 
 	return &isSensitive
 }
-
-func (s *APISpecSchema) IsMap() bool {
-	return s.Schema.AdditionalProperties != nil && s.Schema.AdditionalProperties.IsA()
-}

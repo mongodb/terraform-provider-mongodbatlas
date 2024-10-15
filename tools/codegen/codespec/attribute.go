@@ -46,7 +46,7 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 	case OASTypeArray:
 		return s.buildArrayAttr(name, computability)
 	case OASTypeObject:
-		return nil, nil
+		return nil, nil // TODO: add support for SingleNestedObject and MapAttribute
 	default:
 		return nil, fmt.Errorf("invalid schema type '%s'", s.Type)
 	}
@@ -148,14 +148,14 @@ func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptiona
 
 func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	if !s.Schema.Items.IsA() {
-		return nil, fmt.Errorf("invalid array items property, doesn't have a schema: %s", name)
+		return nil, fmt.Errorf("invalid array items property, schema doesn't exist: %s", name)
 	}
 	itemSchema, err := BuildSchema(s.Schema.Items.A)
 	if err != nil {
 		return nil, fmt.Errorf("error while building nested schema: %s", name)
 	}
 
-	if itemSchema.Type == OASTypeObject {
+	if itemSchema.Type == OASTypeObject { // TODO: add support for Set and SetNested Attributes
 		objectAttributes, err := buildResourceAttrs(itemSchema)
 		if err != nil {
 			return nil, fmt.Errorf("error while building nested schema: %s", name)
@@ -181,24 +181,6 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 		return nil, fmt.Errorf("error while building nested schema: %s", name)
 	}
 
-	// if s.Format == util.TF_format_set {
-	// 	result := &attrmapper.ResourceSetAttribute{
-	// 		Name: name,
-	// 		SetAttribute: resource.SetAttribute{
-	// 			ElementType:              elemType,
-	// 			ComputedOptionalRequired: computability,
-	// 			DeprecationMessage:       s.GetDeprecationMessage(),
-	// 			Description:              s.GetDescription(),
-	// 		},
-	// 	}
-
-	// 	if computability != schema.Computed {
-	// 		result.Validators = s.GetSetValidators()
-	// 	}
-
-	// 	return result, nil
-	// }
-
 	result := &Attribute{
 		Name:                     terraformAttrName(name),
 		ComputedOptionalRequired: computability,
@@ -206,7 +188,6 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 		Description:              s.GetDescription(),
 		List: &ListAttribute{
 			ElementType: elemType,
-			// Default: ,
 		},
 	}
 
