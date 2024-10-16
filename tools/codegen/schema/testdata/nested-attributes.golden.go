@@ -54,6 +54,21 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"map_nested_attribute": schema.MapNestedAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "map nested attribute",
+				Attributes: map[string]schema.Attribute{
+					"string_attr": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "string attribute",
+					},
+					"int_attr": schema.Int64Attribute{
+						Required:            true,
+						MarkdownDescription: "int attribute",
+					},
+				},
+			},
 		},
 	}
 }
@@ -62,7 +77,18 @@ type TFModel struct {
 	NestedSingleAttr   types.Object `tfsdk:"nested_single_attr"`
 	NestedListAttr     types.List   `tfsdk:"nested_list_attr"`
 	SetNestedAttribute types.Set    `tfsdk:"set_nested_attribute"`
+	MapNestedAttribute types.Map    `tfsdk:"map_nested_attribute"`
 }
+type TFNestedSingleAttrModel struct {
+	StringAttr types.String `tfsdk:"string_attr"`
+	IntAttr    types.Int64  `tfsdk:"int_attr"`
+}
+
+var TFNestedSingleAttrModelObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"string_attr": types.StringType,
+	"int_attr":    types.Int64Type,
+}}
+
 type TFNestedListAttrModel struct {
 	StringAttr types.String `tfsdk:"string_attr"`
 	IntAttr    types.Int64  `tfsdk:"int_attr"`
@@ -70,7 +96,7 @@ type TFNestedListAttrModel struct {
 
 var TFNestedListAttrModelObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"string_attr": types.StringType,
-	"int_attr":    types.StringType,
+	"int_attr":    types.Int64Type,
 }}
 
 type TFSetNestedAttributeModel struct {
@@ -80,5 +106,15 @@ type TFSetNestedAttributeModel struct {
 
 var TFSetNestedAttributeModelObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"string_attr": types.StringType,
-	"int_attr":    types.StringType,
+	"int_attr":    types.Int64Type,
+}}
+
+type TFMapNestedAttributeModel struct {
+	StringAttr types.String `tfsdk:"string_attr"`
+	IntAttr    types.Int64  `tfsdk:"int_attr"`
+}
+
+var TFMapNestedAttributeModelObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"string_attr": types.StringType,
+	"int_attr":    types.Int64Type,
 }}

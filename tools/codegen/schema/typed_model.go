@@ -32,7 +32,8 @@ func generateTypedModels(attributes codespec.Attributes, name string, isNested b
 func generateModelObjType(attrs codespec.Attributes, name string) CodeStatement {
 	structProperties := []string{}
 	for i := range attrs {
-		prop := fmt.Sprintf(`%q: types.StringType,`, attrs[i].Name.SnakeCase())
+		propType := attrModelType(&attrs[i])
+		prop := fmt.Sprintf(`%q: %sType,`, attrs[i].Name.SnakeCase(), propType)
 		structProperties = append(structProperties, prop)
 	}
 	structPropsCode := strings.Join(structProperties, "\n")
@@ -48,6 +49,9 @@ func getAdditionalModelIfNested(attribute *codespec.Attribute) *CodeStatement {
 	var nested *codespec.NestedAttributeObject
 	if attribute.ListNested != nil {
 		nested = &attribute.ListNested.NestedObject
+	}
+	if attribute.SingleNested != nil {
+		nested = &attribute.SingleNested.NestedObject
 	}
 	if attribute.MapNested != nil {
 		nested = &attribute.MapNested.NestedObject
@@ -79,11 +83,11 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string) Cod
 
 func typedModelProperty(attr *codespec.Attribute) string {
 	namePascalCase := attr.Name.PascalCase()
-	propType := propertyType(attr)
+	propType := attrModelType(attr)
 	return fmt.Sprintf("%s %s", namePascalCase, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.Name.SnakeCase()) + "`"
 }
 
-func propertyType(attr *codespec.Attribute) string {
+func attrModelType(attr *codespec.Attribute) string {
 	switch {
 	case attr.Float64 != nil:
 		return "types.Float64"

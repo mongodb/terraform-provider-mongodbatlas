@@ -129,6 +129,16 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 								},
 							},
 						},
+						{
+							Name:                     "map_nested_attribute",
+							Description:              admin.PtrString("map nested attribute"),
+							ComputedOptionalRequired: codespec.ComputedOptional,
+							MapNested: &codespec.MapNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{stringAttr, intAttr},
+								},
+							},
+						},
 					},
 				},
 			},
