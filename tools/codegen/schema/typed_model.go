@@ -99,6 +99,7 @@ func attrModelType(attr *codespec.Attribute) string {
 		return "types.Number"
 	case attr.Int64 != nil:
 		return "types.Int64"
+	// For nested attributes the generic type is used, this is to ensure the model can store all possible values. e.g. nested computed only attributes need to be defined with TPF types to avoid error when getting the config.
 	case attr.List != nil || attr.ListNested != nil:
 		return "types.List"
 	case attr.Set != nil || attr.SetNested != nil:
