@@ -72,9 +72,6 @@ type MapNestedAttribute struct {
 type NumberAttribute struct {
 	Default *CustomDefault
 }
-type ObjectAttribute struct {
-	Default *CustomDefault
-}
 type SetAttribute struct {
 	Default     *CustomDefault
 	ElementType ElemType
@@ -84,8 +81,8 @@ type SetNestedAttribute struct {
 	NestedObject NestedAttributeObject
 }
 type SingleNestedAttribute struct {
-	Default    *CustomDefault
-	Attributes Attributes
+	Default      *CustomDefault
+	NestedObject NestedAttributeObject
 }
 type StringAttribute struct {
 	Default *string
