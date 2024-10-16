@@ -43,8 +43,10 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 		return s.buildNumberAttr(name, computability)
 	case OASTypeBoolean:
 		return s.buildBoolAttr(name, computability)
-	case OASTypeArray, OASTypeObject:
-		return nil, nil
+	case OASTypeArray:
+		return s.buildArrayAttr(name, computability)
+	case OASTypeObject:
+		return nil, nil // TODO: add support for SingleNestedObject and MapAttribute
 	default:
 		return nil, fmt.Errorf("invalid schema type '%s'", s.Type)
 	}
@@ -132,6 +134,71 @@ func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptiona
 		Description:              s.GetDescription(),
 		Bool:                     &BoolAttribute{},
 	}
+
+	if s.Schema.Default != nil {
+		var staticDefault bool
+		if err := s.Schema.Default.Decode(&staticDefault); err == nil {
+			result.ComputedOptionalRequired = ComputedOptional
+			result.Bool.Default = &staticDefault
+		}
+	}
+
+	return result, nil
+}
+
+func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+	if !s.Schema.Items.IsA() {
+		return nil, fmt.Errorf("invalid array items property, schema doesn't exist: %s", name)
+	}
+
+	itemSchema, err := BuildSchema(s.Schema.Items.A)
+	if err != nil {
+		return nil, fmt.Errorf("error while building nested schema: %s", name)
+	}
+
+	isSet := s.Schema.Format == OASFormatSet || (s.Schema.UniqueItems != nil && *s.Schema.UniqueItems)
+
+	createAttribute := func(nestedObject *NestedAttributeObject, elemType ElemType) *Attribute {
+		attr := &Attribute{
+			Name:                     terraformAttrName(name),
+			ComputedOptionalRequired: computability,
+			DeprecationMessage:       s.GetDeprecationMessage(),
+			Description:              s.GetDescription(),
+		}
+
+		if nestedObject != nil {
+			if isSet {
+				attr.SetNested = &SetNestedAttribute{NestedObject: *nestedObject}
+			} else {
+				attr.ListNested = &ListNestedAttribute{NestedObject: *nestedObject}
+			}
+		} else {
+			if isSet {
+				attr.Set = &SetAttribute{ElementType: elemType}
+			} else {
+				attr.List = &ListAttribute{ElementType: elemType}
+			}
+		}
+
+		return attr
+	}
+
+	if itemSchema.Type == OASTypeObject {
+		objectAttributes, err := buildResourceAttrs(itemSchema)
+		if err != nil {
+			return nil, fmt.Errorf("error while building nested schema: %s", name)
+		}
+		nestedObject := &NestedAttributeObject{Attributes: objectAttributes}
+
+		return createAttribute(nestedObject, Unknown), nil // Using Unknown ElemType as a placeholder for no ElemType
+	}
+
+	elemType, err := itemSchema.buildElementType()
+	if err != nil {
+		return nil, fmt.Errorf("error while building nested schema: %s", name)
+	}
+
+	result := createAttribute(nil, elemType)
 
 	if s.Schema.Default != nil {
 		var staticDefault bool

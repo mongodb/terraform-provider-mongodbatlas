@@ -36,7 +36,7 @@ tags:
 paths:
   "/api/atlas/v2/groups/{groupId}/testResource":
     delete:
-      description: Test Resource disable operation
+      description: DELETE API description
       operationId: deleteTestResourceConfiguration
       parameters:
         - $ref: "#/components/parameters/groupId"
@@ -70,7 +70,7 @@ paths:
       tags:
         - Test Resource
     patch:
-      description: Updates the project level settings for the Test Resource feature.
+      description: PATCH API description
       operationId: updateTestResourceConfiguration
       parameters:
         - $ref: "#/components/parameters/groupId"
@@ -94,8 +94,7 @@ paths:
       tags:
         - Test Resource
     post:
-      description: Configures the project level settings for the Test Resource
-        feature.
+      description: POST API description
       operationId: createTestResourceConfiguration
       parameters:
         - $ref: "#/components/parameters/groupId"
@@ -118,6 +117,129 @@ paths:
       summary: Enable the Test Resource feature for a project
       tags:
         - Test Resource
+  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource":
+    delete:
+      description: DELETE API description
+      operationId: deleteNestedTestResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Path param test description
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+            minLength: 1
+            pattern: ^([a-zA-Z0-9][a-zA-Z0-9-]*)?[a-zA-Z0-9]+$
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/NoBody"
+              x-xgen-version: 2024-05-30
+          description: This endpoint does not return a response body.
+      security:
+        - DigestAuth: []
+      summary: Delete Search Nodes
+      tags:
+        - Atlas Search
+    get:
+      description: GET API description
+      operationId: getNestedTestResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Path param test description
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+            minLength: 1
+            pattern: ^([a-zA-Z0-9][a-zA-Z0-9-]*)?[a-zA-Z0-9]+$
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/NestedTestResourceResponse"
+              x-xgen-version: 2024-05-30
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Return Search Nodes
+      tags:
+        - Atlas Search
+    patch:
+      description: PATCH API description
+      operationId: updateNestedTestResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Path param test description
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+            minLength: 1
+            pattern: ^([a-zA-Z0-9][a-zA-Z0-9-]*)?[a-zA-Z0-9]+$
+      requestBody:
+        content:
+          application/vnd.atlas.2024-05-30+json:
+            schema:
+              $ref: "#/components/schemas/NestedTestResourceRequest"
+        description: Updates the Search Nodes for the specified cluster.
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/NestedTestResourceResponse"
+              x-xgen-version: 2024-05-30
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update Search Nodes
+      tags:
+        - Atlas Search
+    post:
+      description: POST API description      
+      operationId: createNestedTestResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Path param test description
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+            minLength: 1
+            pattern: ^([a-zA-Z0-9][a-zA-Z0-9-]*)?[a-zA-Z0-9]+$
+      requestBody:
+        content:
+          application/vnd.atlas.2024-05-30+json:
+            schema:
+              $ref: "#/components/schemas/NestedTestResourceRequest"
+        description: Creates Search Nodes for the specified cluster.
+        required: true
+      responses:
+        "201":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/NestedTestResourceResponse"
+              x-xgen-version: 2024-05-30
+          description: Created
+      security:
+        - DigestAuth: []
+      summary: Create Nested Test Resource
+      tags:
+        - Atlas Search 
 components:
   parameters:
     groupId:
@@ -135,8 +257,6 @@ components:
   responses:
     accepted:
       description: Accepted.
-    noBody:
-      description: This endpoint does not return a response body.
   schemas:
     CreateTestResourceRequest:
       type: object
@@ -147,17 +267,6 @@ components:
         strReqAttr2:
           type: string
           description: Test field description
-        links:
-          type: array
-          description: List of one or more Uniform Resource Locators (URLs) that point to
-            API sub-resources, related API resources, or both. RFC 5988 outlines
-            these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
         strReqAttr3:
           type: string
           description: Test field description
@@ -190,17 +299,6 @@ components:
         strReqAttr2:
           type: string
           description: Test field description
-        links:
-          type: array
-          description: List of one or more Uniform Resource Locators (URLs) that point to
-            API sub-resources, related API resources, or both. RFC 5988 outlines
-            these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
         strReqAttr3:
           type: string
           description: Test field description
@@ -219,19 +317,79 @@ components:
           type: number
           format: double
           default: 2.0
-    Link:
+    NestedTestResourceResponse:
       type: object
       properties:
-        href:
+        groupId:
           type: string
-          description: Uniform Resource Locator (URL) that points another API resource to
-            which this response has some relationship. This URL often begins
-            with `https://cloud.mongodb.com/api/atlas`.
-          example: https://cloud.mongodb.com/api/atlas
-        rel:
+          description: Path param test description
+          example: 32b6e34b3d91647abb20e7b8
+          maxLength: 24
+          minLength: 24
+          pattern: ^([a-f0-9]{24})$
+          readOnly: true
+        id:
           type: string
-          description: Uniform Resource Locator (URL) that defines the semantic
-            relationship between this resource and another API resource. This
-            URL often begins with `https://cloud.mongodb.com/api/atlas`.
-          example: self
-    
+          description: Test field description
+          example: 32b6e34b3d91647abb20e7b8
+          maxLength: 24
+          minLength: 24
+          pattern: ^([a-f0-9]{24})$
+          readOnly: true
+        nestedObjectArrayAttr:
+          type: array
+          description: Test field description
+          items:
+            $ref: "#/components/schemas/NestedObjectAttr"
+          readOnly: true
+        setPrimitiveStringAttr:
+          type: array
+          description: Test field description
+          items:
+            type: string
+          uniqueItems: true
+        listPrimitiveStringAttr:
+          type: array
+          description: Test field description
+          items:
+            type: string
+        strComputedAttr:
+          type: string
+          description: Test field description
+          readOnly: true
+    NestedObjectAttr:
+      type: object
+      properties:
+        innerStrAttr:
+          type: string
+          description: Test field description
+        innerNumAttr:
+          type: integer
+          format: int32
+          description: Test field description
+          example: 2
+          maximum: 32
+          minimum: 2
+        listPrimitiveStringAttr:
+          type: array
+          description: Test field description
+          items:
+            type: string
+      required:
+        - innerStrAttr
+        - innerNumAttr
+    NestedTestResourceRequest:
+      type: object
+      properties:
+        nestedObjectArrayAttr:
+          type: array
+          description: Test field description
+          items:
+            $ref: "#/components/schemas/NestedObjectAttr"
+          maxItems: 1
+          minItems: 1
+      required:
+        - nestedObjectArrayAttr
+    NoBody:
+      type: object
+      description: Endpoint does not return a response body.

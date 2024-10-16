@@ -2,6 +2,7 @@ package codespec
 
 import "sort"
 
+// TODO: update to infer computability of inner nested attributes
 func mergeAttributes(pathParams, createRequest, createResponse, readResponse Attributes) Attributes {
 	merged := make(map[string]*Attribute)
 

@@ -8,6 +8,7 @@ const (
 	Int64
 	Number
 	String
+	Unknown
 )
 
 type Model struct {
