@@ -156,7 +156,7 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 		return nil, fmt.Errorf("error while building nested schema: %s", name)
 	}
 
-	isSet := s.Schema.UniqueItems != nil && *s.Schema.UniqueItems
+	isSet := s.Schema.Format == OASFormatSet || (s.Schema.UniqueItems != nil && *s.Schema.UniqueItems)
 
 	createAttribute := func(nestedObject *NestedAttributeObject, elemType ElemType) *Attribute {
 		attr := &Attribute{
