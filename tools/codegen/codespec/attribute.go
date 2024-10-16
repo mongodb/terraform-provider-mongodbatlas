@@ -150,30 +150,47 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 	if !s.Schema.Items.IsA() {
 		return nil, fmt.Errorf("invalid array items property, schema doesn't exist: %s", name)
 	}
+
 	itemSchema, err := BuildSchema(s.Schema.Items.A)
 	if err != nil {
 		return nil, fmt.Errorf("error while building nested schema: %s", name)
 	}
 
-	if itemSchema.Type == OASTypeObject { // TODO: add support for Set and SetNested Attributes
-		objectAttributes, err := buildResourceAttrs(itemSchema)
-		if err != nil {
-			return nil, fmt.Errorf("error while building nested schema: %s", name)
-		}
+	isSet := s.Schema.UniqueItems != nil && *s.Schema.UniqueItems
 
-		result := &Attribute{
+	createAttribute := func(nestedObject *NestedAttributeObject, elemType ElemType) *Attribute {
+		attr := &Attribute{
 			Name:                     terraformAttrName(name),
 			ComputedOptionalRequired: computability,
 			DeprecationMessage:       s.GetDeprecationMessage(),
 			Description:              s.GetDescription(),
-			ListNested: &ListNestedAttribute{
-				NestedObject: NestedAttributeObject{
-					Attributes: objectAttributes,
-				},
-			},
 		}
 
-		return result, nil
+		if nestedObject != nil {
+			if isSet {
+				attr.SetNested = &SetNestedAttribute{NestedObject: *nestedObject}
+			} else {
+				attr.ListNested = &ListNestedAttribute{NestedObject: *nestedObject}
+			}
+		} else {
+			if isSet {
+				attr.Set = &SetAttribute{ElementType: elemType}
+			} else {
+				attr.List = &ListAttribute{ElementType: elemType}
+			}
+		}
+
+		return attr
+	}
+
+	if itemSchema.Type == OASTypeObject {
+		objectAttributes, err := buildResourceAttrs(itemSchema)
+		if err != nil {
+			return nil, fmt.Errorf("error while building nested schema: %s", name)
+		}
+		nestedObject := &NestedAttributeObject{Attributes: objectAttributes}
+
+		return createAttribute(nestedObject, Unknown), nil // Using Unknown ElemType as a placeholder for no ElemType
 	}
 
 	elemType, err := itemSchema.buildElementType()
@@ -181,15 +198,7 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 		return nil, fmt.Errorf("error while building nested schema: %s", name)
 	}
 
-	result := &Attribute{
-		Name:                     terraformAttrName(name),
-		ComputedOptionalRequired: computability,
-		DeprecationMessage:       s.GetDeprecationMessage(),
-		Description:              s.GetDescription(),
-		List: &ListAttribute{
-			ElementType: elemType,
-		},
-	}
+	result := createAttribute(nil, elemType)
 
 	if s.Schema.Default != nil {
 		var staticDefault bool

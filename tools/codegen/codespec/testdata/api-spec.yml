@@ -342,12 +342,17 @@ components:
           items:
             $ref: "#/components/schemas/NestedObjectAttr"
           readOnly: true
-        listPrimitiveStringAttr:
+        setPrimitiveStringAttr:
           type: array
           description: Test field description
           items:
             type: string
           uniqueItems: true
+        listPrimitiveStringAttr:
+          type: array
+          description: Test field description
+          items:
+            type: string
         strComputedAttr:
           type: string
           description: Test field description
@@ -370,7 +375,6 @@ components:
           description: Test field description
           items:
             type: string
-          uniqueItems: true
       required:
         - innerStrAttr
         - innerNumAttr

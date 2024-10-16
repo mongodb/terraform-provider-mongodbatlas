@@ -175,6 +175,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 								Description: conversion.StringPtr(testFieldDesc),
 							},
 							{
+								Name:                     "set_primitive_string_attr",
+								ComputedOptionalRequired: codespec.Computed,
+								Set: &codespec.SetAttribute{
+									ElementType: codespec.String,
+								},
+								Description: conversion.StringPtr(testFieldDesc),
+							},
+							{
 								Name:                     "str_computed_attr",
 								ComputedOptionalRequired: codespec.Computed,
 								String:                   &codespec.StringAttribute{},

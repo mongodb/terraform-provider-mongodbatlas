@@ -2,17 +2,6 @@ package codespec
 
 import "fmt"
 
-type ElemType int
-
-const (
-	Bool ElemType = iota
-	Float64
-	Int64
-	Number
-	String
-	Unknown
-)
-
 func (s *APISpecSchema) buildElementType() (ElemType, error) {
 	switch s.Type {
 	case OASTypeString:
@@ -24,7 +13,7 @@ func (s *APISpecSchema) buildElementType() (ElemType, error) {
 	case OASTypeNumber:
 		return Number, nil
 	case OASTypeArray, OASTypeObject:
-		return Unknown, nil // ignoring because complex element types unsupported
+		return String, nil // complex element types are unsupported so this defaults to string for now to provide best effort generation
 	default:
 		return Unknown, fmt.Errorf("invalid schema type '%s'", s.Type)
 	}
