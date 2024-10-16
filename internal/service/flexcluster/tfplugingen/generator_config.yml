@@ -1,0 +1,11 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  flex_cluster:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters
+      method: POST
