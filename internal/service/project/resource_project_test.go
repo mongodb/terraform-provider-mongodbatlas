@@ -55,9 +55,9 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 		groupResponse       GroupSettingsResponse
 		ipAddressesResponse IPAddressesResponse
 		name                string
+		getManagedSlowMs    string
 		limitResponse       LimitsResponse
 		expectedError       bool
-		getManagedSlowMs    string
 	}{
 		{
 			name:            "Successful",
