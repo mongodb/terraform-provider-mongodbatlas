@@ -420,6 +420,11 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
+	err = SetSlowOperationThresholding(ctx, connV2.PerformanceAdvisorApi, projectID, projectPlan.IsSlowOperationThresholdingEnabled)
+	if err != nil {
+		resp.Diagnostics.AddError(fmt.Sprintf("error when setting slow operation thresholding after create (%s): %s", projectID, err.Error()), "")
+		return
+	}
 
 	// get project props
 	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID)
@@ -431,11 +436,6 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	err = SetSlowOperationThresholding(ctx, connV2.PerformanceAdvisorApi, projectID, projectPlan.IsSlowOperationThresholdingEnabled)
-	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error when setting slow operation thresholding after create (%s): %s", projectID, err.Error()), "")
-		return
-	}
 	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
