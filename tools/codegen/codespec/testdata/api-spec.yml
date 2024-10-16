@@ -328,20 +328,19 @@ components:
           minLength: 24
           pattern: ^([a-f0-9]{24})$
           readOnly: true
-        id:
-          type: string
-          description: Test field description
-          example: 32b6e34b3d91647abb20e7b8
-          maxLength: 24
-          minLength: 24
-          pattern: ^([a-f0-9]{24})$
-          readOnly: true
-        nestedObjectArrayAttr:
+        nestedObjectArrayListAttr:
           type: array
           description: Test field description
           items:
             $ref: "#/components/schemas/NestedObjectAttr"
           readOnly: true
+        nestedObjectArraySetAttr:
+          type: array
+          description: Test field description
+          items:
+            $ref: "#/components/schemas/NestedObjectAttr"
+          readOnly: true
+          uniqueItems: true
         setPrimitiveStringAttr:
           type: array
           description: Test field description
@@ -353,16 +352,43 @@ components:
           description: Test field description
           items:
             type: string
-        strComputedAttr:
-          type: string
-          description: Test field description
+        singleNestedAttrWithNestedMaps:
+          $ref: "#/components/schemas/SingleNestedAttrWithNestedMaps"
+        singleNestedAttr:
+          $ref: "#/components/schemas/SingleNestedAttr"
+    SingleNestedAttrWithNestedMaps:
+      type: object
+      description: Test field description
+      properties:
+        aws:
+          type: object
+          additionalProperties:
+            type: string
+            readOnly: true
           readOnly: true
+        azure:
+          type: object
+          additionalProperties:
+            type: string
+            readOnly: true
+          readOnly: true
+      readOnly: true
+      title: Outbound Control Plane IP Addresses By Cloud Provider
+    SingleNestedAttr:
+      type: object
+      description: Test field description
+      properties:
+        innerIntAttr:
+          type: integer
+          description: Test field description
+        innerStrAttr:
+          $ref: "#/components/schemas/SimpleStringRefObject"
+      required:
+        - innerIntAttr
+        - innerStrAttr
     NestedObjectAttr:
       type: object
       properties:
-        innerStrAttr:
-          type: string
-          description: Test field description
         innerNumAttr:
           type: integer
           format: int32
@@ -376,12 +402,11 @@ components:
           items:
             type: string
       required:
-        - innerStrAttr
         - innerNumAttr
     NestedTestResourceRequest:
       type: object
       properties:
-        nestedObjectArrayAttr:
+        nestedObjectArrayListAttr:
           type: array
           description: Test field description
           items:
@@ -389,7 +414,10 @@ components:
           maxItems: 1
           minItems: 1
       required:
-        - nestedObjectArrayAttr
+        - nestedObjectArrayListAttr
+    SimpleStringRefObject:
+      type: string
+      description: Test field description
     NoBody:
       type: object
       description: Endpoint does not return a response body.

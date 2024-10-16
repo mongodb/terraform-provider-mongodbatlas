@@ -130,12 +130,6 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 								Description:              conversion.StringPtr(testPathParamDesc),
 							},
 							{
-								Name:                     "id",
-								ComputedOptionalRequired: codespec.Computed,
-								String:                   &codespec.StringAttribute{},
-								Description:              conversion.StringPtr(testFieldDesc),
-							},
-							{
 								Name:                     "list_primitive_string_attr",
 								ComputedOptionalRequired: codespec.Computed,
 								List: &codespec.ListAttribute{
@@ -144,7 +138,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 								Description: conversion.StringPtr(testFieldDesc),
 							},
 							{
-								Name:                     "nested_object_array_attr",
+								Name:                     "nested_object_array_list_attr",
 								ComputedOptionalRequired: codespec.Required,
 								ListNested: &codespec.ListNestedAttribute{
 									NestedObject: codespec.NestedAttributeObject{
@@ -156,9 +150,28 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 												Description:              conversion.StringPtr(testFieldDesc),
 											},
 											{
-												Name:                     "inner_str_attr",
+												Name:                     "list_primitive_string_attr",
+												ComputedOptionalRequired: codespec.Optional,
+												List: &codespec.ListAttribute{
+													ElementType: codespec.String,
+												},
+												Description: conversion.StringPtr(testFieldDesc),
+											},
+										},
+									},
+								},
+								Description: conversion.StringPtr(testFieldDesc),
+							},
+							{
+								Name:                     "nested_object_array_set_attr",
+								ComputedOptionalRequired: codespec.Computed,
+								SetNested: &codespec.SetNestedAttribute{
+									NestedObject: codespec.NestedAttributeObject{
+										Attributes: codespec.Attributes{
+											{
+												Name:                     "inner_num_attr",
 												ComputedOptionalRequired: codespec.Required,
-												String:                   &codespec.StringAttribute{},
+												Int64:                    &codespec.Int64Attribute{},
 												Description:              conversion.StringPtr(testFieldDesc),
 											},
 											{
@@ -183,10 +196,52 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 								Description: conversion.StringPtr(testFieldDesc),
 							},
 							{
-								Name:                     "str_computed_attr",
+								Name:                     "single_nested_attr",
 								ComputedOptionalRequired: codespec.Computed,
-								String:                   &codespec.StringAttribute{},
-								Description:              conversion.StringPtr(testFieldDesc),
+								SingleNested: &codespec.SingleNestedAttribute{
+									NestedObject: codespec.NestedAttributeObject{
+										Attributes: codespec.Attributes{
+											{
+												Name:                     "inner_int_attr",
+												ComputedOptionalRequired: codespec.Required,
+												Int64:                    &codespec.Int64Attribute{},
+												Description:              conversion.StringPtr(testFieldDesc),
+											},
+											{
+												Name:                     "inner_str_attr",
+												ComputedOptionalRequired: codespec.Required,
+												String:                   &codespec.StringAttribute{},
+												Description:              conversion.StringPtr(testFieldDesc),
+											},
+										},
+									},
+								},
+								Description: conversion.StringPtr(testFieldDesc),
+							},
+							{
+								Name:                     "single_nested_attr_with_nested_maps",
+								ComputedOptionalRequired: codespec.Computed,
+								SingleNested: &codespec.SingleNestedAttribute{
+									NestedObject: codespec.NestedAttributeObject{
+										Attributes: codespec.Attributes{
+											{
+												Name:                     "aws",
+												ComputedOptionalRequired: codespec.Optional,
+												Map: &codespec.MapAttribute{
+													ElementType: codespec.String,
+												},
+											},
+											{
+												Name:                     "azure",
+												ComputedOptionalRequired: codespec.Optional,
+												Map: &codespec.MapAttribute{
+													ElementType: codespec.String,
+												},
+											},
+										},
+									},
+								},
+								Description: conversion.StringPtr(testFieldDesc),
 							},
 						},
 					},
