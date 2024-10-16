@@ -18,7 +18,7 @@ func TestMigProject_basic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
-		config      = configBasic(orgID, projectName, "", false, nil)
+		config      = configBasic(orgID, projectName, "", false, nil, nil)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -57,7 +57,7 @@ func TestMigProject_withTeams(t *testing.T) {
 					TeamId:    &teamsIDs[1],
 					RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 				},
-			})
+			}, nil)
 	)
 
 	resource.Test(t, resource.TestCase{
