@@ -1,16 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/schema"
 )
 
 const (
 	atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
-	configPath           = "schema-generation/config.yml"
+	configPath           = "tools/codegen/config.yml"
 	specFilePath         = "open-api-spec.yml"
 )
 
@@ -19,15 +21,26 @@ func main() {
 	if resourceName == nil {
 		log.Fatal("No resource name provided")
 	}
+	if !codespec.ValidateSnakeCase(*resourceName) {
+		log.Fatal("Resource name must be snake case")
+	}
 	log.Printf("Resource name: %s\n", *resourceName)
 
 	if err := openapi.DownloadOpenAPISpec(atlasAdminAPISpecURL, specFilePath); err != nil {
 		log.Fatalf("an error occurred when downloading Atlas Admin API spec: %v", err)
 	}
 
-	_, err := codespec.ToCodeSpecModel(specFilePath, configPath, *resourceName)
+	model, err := codespec.ToCodeSpecModel(specFilePath, configPath, codespec.SnakeCaseString(*resourceName))
 	if err != nil {
 		log.Fatalf("an error occurred while generating codespec.Model: %v", err)
+	}
+
+	for i := range model.Resources {
+		resourceModel := model.Resources[i]
+		schemaCode := schema.GenerateGoCode(resourceModel)
+		if err := writeToFile(fmt.Sprintf("internal/service/%s/resource_schema.go", resourceModel.Name.LowerCaseNoUnderscore()), schemaCode); err != nil {
+			log.Fatalf("an error occurred when writing content to file: %v", err)
+		}
 	}
 }
 
@@ -36,4 +49,20 @@ func getOsArg() *string {
 		return nil
 	}
 	return &os.Args[1]
+}
+
+func writeToFile(fileName, content string) error {
+	// Open the file with write-only permission, create it if it doesn't exist and truncate its content if it exists
+	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(content)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

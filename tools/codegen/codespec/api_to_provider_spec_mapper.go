@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
 
-func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName string) (*Model, error) {
+func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName SnakeCaseString) (*Model, error) {
 	apiSpec, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse Atlas Admin API: %v", err)
@@ -27,18 +27,18 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	}
 
 	// find resource operations, schemas, etc from OAS
-	oasResource, err := getAPISpecResource(apiSpec.Model, config.Resources[resourceName], resourceName)
+	oasResource, err := getAPISpecResource(apiSpec.Model, config.Resources[resourceName.SnakeCase()], resourceName)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
 	}
 
 	// map OAS resource model to CodeSpecModel
-	codeSpecResource := apiSpecResourceToCodeSpecModel(oasResource, config.Resources[resourceName], resourceName)
+	codeSpecResource := apiSpecResourceToCodeSpecModel(oasResource, config.Resources[resourceName.SnakeCase()], resourceName)
 
 	return &Model{Resources: []Resource{*codeSpecResource}}, nil
 }
 
-func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig config.Resource, name string) *Resource {
+func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig config.Resource, name SnakeCaseString) *Resource {
 	createOp := oasResource.CreateOp
 	readOp := oasResource.ReadOp
 
@@ -126,7 +126,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 	return responseAttributes
 }
 
-func getAPISpecResource(spec high.Document, resourceConfig config.Resource, name string) (APISpecResource, error) {
+func getAPISpecResource(spec high.Document, resourceConfig config.Resource, name SnakeCaseString) (APISpecResource, error) {
 	var errResult error
 	var resourceDeprecationMsg *string
 
