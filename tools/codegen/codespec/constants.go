@@ -10,6 +10,7 @@ const (
 	OASFormatDouble   = "double"
 	OASFormatFloat    = "float"
 	OASFormatPassword = "password"
+	OASFormatSet      = "set"
 
 	OASResponseCodeOK      = "200"
 	OASResponseCodeCreated = "201"
