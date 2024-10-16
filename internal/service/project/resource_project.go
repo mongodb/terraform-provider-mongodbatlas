@@ -559,11 +559,6 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
-	err = SetSlowOperationThresholding(ctx, connV2.PerformanceAdvisorApi, projectID, projectPlan.IsSlowOperationThresholdingEnabled)
-	if err != nil {
-		resp.Diagnostics.AddError("error when setting slow operation thresholding", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
-		return
-	}
 	var planLimits []TFLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
 
@@ -720,7 +715,8 @@ func updateProjectSettings(ctx context.Context, projectsAPI admin.ProjectsApi, p
 			return fmt.Errorf("error updating project's settings assigned: %v", err.Error())
 		}
 	}
-	if err := SetSlowOperationThresholding(ctx, performanceAdvisorAPI, projectID, plan.IsSlowOperationThresholdingEnabled); err != nil {
+	err = SetSlowOperationThresholding(ctx, performanceAdvisorAPI, projectID, plan.IsSlowOperationThresholdingEnabled)
+	if err != nil {
 		return fmt.Errorf("error updating project's slow operation thresholding: %v", err.Error())
 	}
 	return nil
