@@ -654,7 +654,7 @@ func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, 
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", projectID, err.Error())
 	}
-	IsSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, performanceAdvisorAPI, projectID)
+	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, performanceAdvisorAPI, projectID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", projectID, err.Error())
 	}
@@ -664,7 +664,7 @@ func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, 
 		Limits:                             limits,
 		Settings:                           projectSettings,
 		IPAddresses:                        ipAddresses,
-		IsSlowOperationThresholdingEnabled: IsSlowOperationThresholdingEnabled,
+		IsSlowOperationThresholdingEnabled: isSlowOperationThresholdingEnabled,
 	}, nil
 }
 
