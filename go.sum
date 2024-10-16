@@ -782,6 +782,8 @@ go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0 h1:d/gbYJ+obR0EM/3DZf7+ZM
 go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0/go.mod h1:O47ZrMMfcWb31wznNIq2PQkkdoFoK0ea2GlmRqGJC2s=
 go.mongodb.org/atlas-sdk/v20240805004 v20240805004.7.0 h1:v899BXuHGSWZAPXtckDSG2ih2Xop87JhJxQeG7X4gFw=
 go.mongodb.org/atlas-sdk/v20240805004 v20240805004.7.0/go.mod h1:7KSDRNJm1Dxc+ggk2MOggp2/4zUpM4aRcP12evvsrQ4=
+go.mongodb.org/atlas-sdk/v20240805004 v20240805004.7.1-0.20241014083710-751495520a4e h1:vODkoN49BfTZ/eVT/kiuVoe4IiRq795XbxOyZvVEJV4=
+go.mongodb.org/atlas-sdk/v20240805004 v20240805004.7.1-0.20241014083710-751495520a4e/go.mod h1:7KSDRNJm1Dxc+ggk2MOggp2/4zUpM4aRcP12evvsrQ4=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
