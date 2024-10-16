@@ -384,12 +384,8 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 	projectID := encryptionAtRestState.ProjectID.ValueString()
-	atlasEncryptionAtRest, atlasResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
+	atlasEncryptionAtRest, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
 	if err != nil {
-		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		resp.Diagnostics.AddError("error when getting encryption at rest resource during update", fmt.Sprintf(project.ErrorProjectRead, projectID, err.Error()))
 		return
 	}
