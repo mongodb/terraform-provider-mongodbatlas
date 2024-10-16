@@ -1,6 +1,10 @@
 package schema
 
-import "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
+import (
+	"fmt"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
+)
 
 type ListNestedAttrGenerator struct {
 	model codespec.ListNestedAttribute
@@ -11,7 +15,7 @@ func (l *ListNestedAttrGenerator) TypeDefinition() string {
 }
 
 func (l *ListNestedAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return nil
+	return []CodeStatement{getPropertyForNestedObj(l.model.NestedObject)}
 }
 
 type SetNestedGenerator struct {
@@ -23,7 +27,7 @@ func (s *SetNestedGenerator) TypeDefinition() string {
 }
 
 func (s *SetNestedGenerator) TypeSpecificProperties() []CodeStatement {
-	return nil
+	return []CodeStatement{getPropertyForNestedObj(s.model.NestedObject)}
 }
 
 type MapNestedAttrGenerator struct {
@@ -35,7 +39,7 @@ func (m *MapNestedAttrGenerator) TypeDefinition() string {
 }
 
 func (m *MapNestedAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return nil
+	return []CodeStatement{getPropertyForNestedObj(m.model.NestedObject)}
 }
 
 type SingleNestedAttrGenerator struct {
@@ -47,5 +51,16 @@ func (s *SingleNestedAttrGenerator) TypeDefinition() string {
 }
 
 func (s *SingleNestedAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return nil
+	return []CodeStatement{getPropertyForNestedObj(s.model.NestedObject)}
+}
+
+func getPropertyForNestedObj(nested codespec.NestedAttributeObject) CodeStatement {
+	attrs := GenerateSchemaAttributes(nested.Attributes)
+	attributeProperty := fmt.Sprintf(`Attributes: map[string]schema.Attribute{ 
+		%s 
+	}`, attrs.Result)
+	return CodeStatement{
+		Result:  attributeProperty,
+		Imports: attrs.Imports,
+	}
 }
