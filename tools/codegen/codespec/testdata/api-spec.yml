@@ -356,6 +356,8 @@ components:
           $ref: "#/components/schemas/SingleNestedAttrWithNestedMaps"
         singleNestedAttr:
           $ref: "#/components/schemas/SingleNestedAttr"
+        nestedObjectMapAttr:
+          $ref: "#/components/schemas/NestedObjectMapAttr"
     SingleNestedAttrWithNestedMaps:
       type: object
       description: Test field description
@@ -421,3 +423,11 @@ components:
     NoBody:
       type: object
       description: Endpoint does not return a response body.
+    NestedObjectMapAttr:
+      type: object
+      additionalProperties:
+        type: object
+        properties:
+          attr:
+            type: string
+

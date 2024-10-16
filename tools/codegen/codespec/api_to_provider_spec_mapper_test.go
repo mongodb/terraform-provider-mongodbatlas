@@ -188,6 +188,21 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 								Description: conversion.StringPtr(testFieldDesc),
 							},
 							{
+								Name:                     "nested_object_map_attr",
+								ComputedOptionalRequired: codespec.Computed,
+								MapNested: &codespec.MapNestedAttribute{
+									NestedObject: codespec.NestedAttributeObject{
+										Attributes: codespec.Attributes{
+											{
+												Name:                     "attr",
+												ComputedOptionalRequired: codespec.Optional,
+												String:                   &codespec.StringAttribute{},
+											},
+										},
+									},
+								},
+							},
+							{
 								Name:                     "set_primitive_string_attr",
 								ComputedOptionalRequired: codespec.Computed,
 								Set: &codespec.SetAttribute{
