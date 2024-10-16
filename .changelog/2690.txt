@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_event_trigger: Always includes `disabled` in the PUT payload
+```
