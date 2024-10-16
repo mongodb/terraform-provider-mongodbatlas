@@ -328,13 +328,13 @@ components:
           minLength: 24
           pattern: ^([a-f0-9]{24})$
           readOnly: true
-        nestedObjectArrayListAttr:
+        nestedListArrayAttr:
           type: array
           description: Test field description
           items:
             $ref: "#/components/schemas/NestedObjectAttr"
           readOnly: true
-        nestedObjectArraySetAttr:
+        nestedSetArrayAttr:
           type: array
           description: Test field description
           items:
@@ -356,19 +356,19 @@ components:
           $ref: "#/components/schemas/SingleNestedAttrWithNestedMaps"
         singleNestedAttr:
           $ref: "#/components/schemas/SingleNestedAttr"
-        nestedObjectMapAttr:
-          $ref: "#/components/schemas/NestedObjectMapAttr"
+        nestedMapObjectAttr:
+          $ref: "#/components/schemas/NestedMapObjectAttr"
     SingleNestedAttrWithNestedMaps:
       type: object
       description: Test field description
       properties:
-        aws:
+        mapAttr1:
           type: object
           additionalProperties:
             type: string
             readOnly: true
           readOnly: true
-        azure:
+        mapAttr2:
           type: object
           additionalProperties:
             type: string
@@ -408,7 +408,7 @@ components:
     NestedTestResourceRequest:
       type: object
       properties:
-        nestedObjectArrayListAttr:
+        nestedListArrayAttr:
           type: array
           description: Test field description
           items:
@@ -416,14 +416,14 @@ components:
           maxItems: 1
           minItems: 1
       required:
-        - nestedObjectArrayListAttr
+        - nestedListArrayAttr
     SimpleStringRefObject:
       type: string
       description: Test field description
     NoBody:
       type: object
       description: Endpoint does not return a response body.
-    NestedObjectMapAttr:
+    NestedMapObjectAttr:
       type: object
       additionalProperties:
         type: object

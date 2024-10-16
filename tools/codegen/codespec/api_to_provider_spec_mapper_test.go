@@ -138,7 +138,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 								Description: conversion.StringPtr(testFieldDesc),
 							},
 							{
-								Name:                     "nested_object_array_list_attr",
+								Name:                     "nested_list_array_attr",
 								ComputedOptionalRequired: codespec.Required,
 								ListNested: &codespec.ListNestedAttribute{
 									NestedObject: codespec.NestedAttributeObject{
@@ -163,7 +163,22 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 								Description: conversion.StringPtr(testFieldDesc),
 							},
 							{
-								Name:                     "nested_object_array_set_attr",
+								Name:                     "nested_map_object_attr",
+								ComputedOptionalRequired: codespec.Computed,
+								MapNested: &codespec.MapNestedAttribute{
+									NestedObject: codespec.NestedAttributeObject{
+										Attributes: codespec.Attributes{
+											{
+												Name:                     "attr",
+												ComputedOptionalRequired: codespec.Optional,
+												String:                   &codespec.StringAttribute{},
+											},
+										},
+									},
+								},
+							},
+							{
+								Name:                     "nested_set_array_attr",
 								ComputedOptionalRequired: codespec.Computed,
 								SetNested: &codespec.SetNestedAttribute{
 									NestedObject: codespec.NestedAttributeObject{
@@ -186,21 +201,6 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 									},
 								},
 								Description: conversion.StringPtr(testFieldDesc),
-							},
-							{
-								Name:                     "nested_object_map_attr",
-								ComputedOptionalRequired: codespec.Computed,
-								MapNested: &codespec.MapNestedAttribute{
-									NestedObject: codespec.NestedAttributeObject{
-										Attributes: codespec.Attributes{
-											{
-												Name:                     "attr",
-												ComputedOptionalRequired: codespec.Optional,
-												String:                   &codespec.StringAttribute{},
-											},
-										},
-									},
-								},
 							},
 							{
 								Name:                     "set_primitive_string_attr",
@@ -240,14 +240,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 									NestedObject: codespec.NestedAttributeObject{
 										Attributes: codespec.Attributes{
 											{
-												Name:                     "aws",
+												Name:                     "map_attr1",
 												ComputedOptionalRequired: codespec.Optional,
 												Map: &codespec.MapAttribute{
 													ElementType: codespec.String,
 												},
 											},
 											{
-												Name:                     "azure",
+												Name:                     "map_attr2",
 												ComputedOptionalRequired: codespec.Optional,
 												Map: &codespec.MapAttribute{
 													ElementType: codespec.String,

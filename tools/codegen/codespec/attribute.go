@@ -46,7 +46,7 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 	case OASTypeArray:
 		return s.buildArrayAttr(name, computability)
 	case OASTypeObject:
-		if s.Schema.AdditionalProperties != nil {
+		if s.Schema.AdditionalProperties != nil && s.Schema.AdditionalProperties.IsA() {
 			return s.buildMapAttr(name, computability)
 		}
 		return s.buildSingleNestedAttr(name, computability)
@@ -215,38 +215,7 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 }
 
 func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
-	// // Maps are detected as `type: object`, with an `additionalProperties` field that is a schema. `additionalProperties` can
-	// // also be a boolean (which we should ignore and map to an SingleNestedAttribute), so calling functions should call s.IsMap() first.
-	// if !s.IsMap() {
-	// 	return nil, s.SchemaErrorFromProperty(errors.New("invalid map, additionalProperties doesn't have a valid schema"), name)
-	// }
-
 	mapSchema, err := BuildSchema(s.Schema.AdditionalProperties.A)
-	if err != nil {
-		return nil, err
-	}
-
-	if mapSchema.Type == OASTypeObject {
-		mapAttributes, err := buildResourceAttrs(mapSchema)
-		if err != nil {
-			return nil, err
-		}
-		result := &Attribute{
-			Name:                     terraformAttrName(name),
-			ComputedOptionalRequired: computability,
-			DeprecationMessage:       s.GetDeprecationMessage(),
-			Description:              s.GetDescription(),
-			MapNested: &MapNestedAttribute{
-				NestedObject: NestedAttributeObject{
-					Attributes: mapAttributes,
-				},
-			},
-		}
-
-		return result, nil
-	}
-
-	elemType, err := mapSchema.buildElementType()
 	if err != nil {
 		return nil, err
 	}
@@ -256,9 +225,28 @@ func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptional
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
-		Map: &MapAttribute{
+	}
+
+	if mapSchema.Type == OASTypeObject {
+		mapAttributes, err := buildResourceAttrs(mapSchema)
+		if err != nil {
+			return nil, err
+		}
+
+		result.MapNested = &MapNestedAttribute{
+			NestedObject: NestedAttributeObject{
+				Attributes: mapAttributes,
+			},
+		}
+	} else {
+		elemType, err := mapSchema.buildElementType()
+		if err != nil {
+			return nil, err
+		}
+
+		result.Map = &MapAttribute{
 			ElementType: elemType,
-		},
+		}
 	}
 
 	return result, nil
