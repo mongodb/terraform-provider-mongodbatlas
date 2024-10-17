@@ -129,7 +129,7 @@ type TFModel struct {
 	ConnectionStrings            TFConnectionStrings `tfsdk:"connection_strings"`
 	Tags                         types.Map           `tfsdk:"tags"`
 	CreateDate                   types.String        `tfsdk:"create_date"`
-	GroupId                      types.String        `tfsdk:"group_id"`
+	ProjectId                    types.String        `tfsdk:"group_id"`
 	Id                           types.String        `tfsdk:"id"`
 	MongoDbversion               types.String        `tfsdk:"mongo_dbversion"`
 	Name                         types.String        `tfsdk:"name"`

@@ -28,38 +28,37 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	// TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = ResourceSchema(ctx)
 }
 
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	// var tfModel TFModel
-	// resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
-	// if resp.Diagnostics.HasError() {
-	// 	return
-	// }
+	var tfModel TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// flexClusterReq, diags := NewAtlasReq(ctx, &tfModel)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
+	flexClusterReq, diags := NewAtlasReq(ctx, &tfModel)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
 
-	// TODO: make POST request to Atlas API and handle error in response
+	projectID := tfModel.ProjectId.ValueString()
 
-	// connV2 := r.Client.AtlasV2
-	//if err != nil {
-	//	resp.Diagnostics.AddError("error creating resource", err.Error())
-	//	return
-	//}
+	connV2 := r.Client.AtlasV2
+	apiResp, _, err := connV2.FlexClustersApi.CreateFlexcluster(ctx, projectID, flexClusterReq).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("error creating resource", err.Error())
+		return
+	}
 
-	// TODO: process response into new terraform state
-	// newFlexClusterModel, diags := NewTFModel(ctx, apiResp)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
-	// resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+	newFlexClusterModel, diags := NewTFModel(ctx, apiResp)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
