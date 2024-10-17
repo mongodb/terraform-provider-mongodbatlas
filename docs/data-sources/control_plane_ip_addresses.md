@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_control_plane_ip_addresses
 
-`mongodbatlas_control_plane_ip_addresses` returns all control plane IP addresses.
+`mongodbatlas_control_plane_ip_addresses` returns all control plane IP addresses. Currently, inbound Atlas control plane IP addresses are not yet available. The inbound IP address list in your API response is empty. To manually retrieve a list of inbound Atlas control plane IP addresses, see [Required Inbound Access](https://www.mongodb.com/docs/atlas/setup-cluster-security/#std-label-atlas-required-inbound-access).
 
 ## Example Usages
 ```terraform
