@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -47,6 +48,7 @@ type TFStreamConnectionModel struct {
 	Config           types.Map    `tfsdk:"config"`
 	Security         types.Object `tfsdk:"security"`
 	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
+	Networking       types.Object `tfsdk:"networking"`
 }
 
 type TFConnectionAuthenticationModel struct {
@@ -81,11 +83,30 @@ var DBRoleToExecuteObjectType = types.ObjectType{AttrTypes: map[string]attr.Type
 	"type": types.StringType,
 }}
 
+type TFNetworkingAccessModel struct {
+	Type types.String `tfsdk:"type"`
+}
+
+var NetworkingAccessObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"type": types.StringType,
+}}
+
+type TFNetworkingModel struct {
+	Access TFNetworkingAccessModel `tfsdk:"access"`
+}
+
+var NetworkingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"access": NetworkingAccessObjectType,
+}}
+
 func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"project_id": schema.StringAttribute{
 				Required: true,
@@ -162,6 +183,23 @@ func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequ
 					},
 					"protocol": schema.StringAttribute{
 						Optional: true,
+					},
+				},
+			},
+			"networking": schema.SingleNestedAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
+				Attributes: map[string]schema.Attribute{
+					"access": schema.SingleNestedAttribute{
+						Required: true,
+						Attributes: map[string]schema.Attribute{
+							"type": schema.StringAttribute{
+								Required: true,
+							},
+						},
 					},
 				},
 			},
