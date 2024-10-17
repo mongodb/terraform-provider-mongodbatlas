@@ -49,24 +49,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Group of cloud provider settings that configure the provisioned MongoDB flex cluster.",
 				MarkdownDescription: "Group of cloud provider settings that configure the provisioned MongoDB flex cluster.",
 			},
-			"tags": schema.MapNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"key": schema.StringAttribute{
-							Required:            true,
-							Description:         "Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.",
-							MarkdownDescription: "Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.",
-						},
-						"value": schema.StringAttribute{
-							Required:            true,
-							Description:         "Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.",
-							MarkdownDescription: "Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.",
-						},
-					},
-				},
+			"tags": schema.MapAttribute{
+				ElementType:         types.StringType,
 				Optional:            true,
-				Description:         "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.",
-				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.",
+				Description:         "Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.",
+				MarkdownDescription: "Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.",
 			},
 			"backup_settings": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
