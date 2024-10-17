@@ -33,3 +33,16 @@ resources:
             computed: true
       
       timeouts: ["create", "read", "delete"]
+  
+  search_deployment:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+      method: POST
+    schema:
+      aliases:
+        group_id: project_id
+      ignores: ["links"]
+      timeouts: ["create", "read", "delete"]

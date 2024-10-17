@@ -1,7 +1,6 @@
 package codespec
 
 import (
-	"regexp"
 	"strings"
 )
 
@@ -24,13 +23,4 @@ func (snake SnakeCaseString) PascalCase() string {
 
 func (snake SnakeCaseString) LowerCaseNoUnderscore() string {
 	return strings.ReplaceAll(string(snake), "_", "")
-}
-
-func ValidateSnakeCase(s string) bool {
-	snakeCaseRegex := `^[a-z]+(_[a-z]+)*$`
-	matched, err := regexp.MatchString(snakeCaseRegex, s)
-	if err != nil {
-		return false
-	}
-	return matched
 }
