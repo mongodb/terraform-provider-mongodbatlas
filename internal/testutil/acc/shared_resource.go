@@ -95,19 +95,19 @@ func SerialSleep(tb testing.TB) {
 	sharedInfo.muSleep.Lock()
 	defer sharedInfo.muSleep.Unlock()
 
-	if sharedInfo.alreadySlept {
-		return
+	sharedInfo.testCount++
+	// SerialSleep is called in tests before they create the cluster, so wait in the second test after the first cluster is being created before creating the second cluster
+	if sharedInfo.testCount == 2 {
+		time.Sleep(5 * time.Second)
 	}
-	time.Sleep(5 * time.Second)
-	sharedInfo.alreadySlept = true
 }
 
 var sharedInfo = struct {
-	projectID    string
-	projectName  string
-	clusterName  string
-	mu           sync.Mutex
-	muSleep      sync.Mutex
-	alreadySlept bool
-	init         bool
+	projectID   string
+	projectName string
+	clusterName string
+	mu          sync.Mutex
+	muSleep     sync.Mutex
+	testCount   int
+	init        bool
 }{}
