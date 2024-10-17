@@ -42,7 +42,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
+<<<<<<< HEAD
 	flexClusterReq, diags := NewAtlasCreateReq(ctx, &tfModel)
+=======
+	flexClusterReq, diags := NewAtlasReq(ctx, &tfModel)
+>>>>>>> 8cce85db (create implementation)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
