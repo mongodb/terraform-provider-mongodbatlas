@@ -84,7 +84,7 @@ type TFNestedSingleAttrModel struct {
 	IntAttr    types.Int64  `tfsdk:"int_attr"`
 }
 
-var TFNestedSingleAttrModelObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var NestedSingleAttrObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"string_attr": types.StringType,
 	"int_attr":    types.Int64Type,
 }}
@@ -94,7 +94,7 @@ type TFNestedListAttrModel struct {
 	IntAttr    types.Int64  `tfsdk:"int_attr"`
 }
 
-var TFNestedListAttrModelObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var NestedListAttrObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"string_attr": types.StringType,
 	"int_attr":    types.Int64Type,
 }}
@@ -104,7 +104,7 @@ type TFSetNestedAttributeModel struct {
 	IntAttr    types.Int64  `tfsdk:"int_attr"`
 }
 
-var TFSetNestedAttributeModelObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var SetNestedAttributeObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"string_attr": types.StringType,
 	"int_attr":    types.Int64Type,
 }}
@@ -114,7 +114,7 @@ type TFMapNestedAttributeModel struct {
 	IntAttr    types.Int64  `tfsdk:"int_attr"`
 }
 
-var TFMapNestedAttributeModelObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var MapNestedAttributeObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"string_attr": types.StringType,
 	"int_attr":    types.Int64Type,
 }}

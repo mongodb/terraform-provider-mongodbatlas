@@ -19,8 +19,6 @@ func GenerateGoCode(input genconfigmapper.Resource) string {
 	}
 	result := codetemplate.ApplySchemaFileTemplate(tmplInputs)
 
-	print(result.String())
-
 	formattedResult, err := format.Source(result.Bytes())
 	if err != nil {
 		panic(err)

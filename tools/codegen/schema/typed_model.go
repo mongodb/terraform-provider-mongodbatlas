@@ -8,7 +8,7 @@ import (
 )
 
 func GenerateTypedModels(attributes codespec.Attributes) CodeStatement {
-	return generateTypedModels(attributes, "TFModel", false)
+	return generateTypedModels(attributes, "", false) // empty string for root model, results in TFModel
 }
 
 func generateTypedModels(attributes codespec.Attributes, name string, isNested bool) CodeStatement {
@@ -19,14 +19,13 @@ func generateTypedModels(attributes codespec.Attributes, name string, isNested b
 	}
 
 	for i := range attributes {
-		additionalModel := getAdditionalModelIfNested(&attributes[i])
+		additionalModel := getNestedModel(&attributes[i])
 		if additionalModel != nil {
 			models = append(models, *additionalModel)
 		}
 	}
 
-	result := GroupCodeStatements(models, func(list []string) string { return strings.Join(list, "\n") })
-	return result
+	return GroupCodeStatements(models, func(list []string) string { return strings.Join(list, "\n") })
 }
 
 func generateModelObjType(attrs codespec.Attributes, name string) CodeStatement {
@@ -45,7 +44,7 @@ func generateModelObjType(attrs codespec.Attributes, name string) CodeStatement 
 	}
 }
 
-func getAdditionalModelIfNested(attribute *codespec.Attribute) *CodeStatement {
+func getNestedModel(attribute *codespec.Attribute) *CodeStatement {
 	var nested *codespec.NestedAttributeObject
 	if attribute.ListNested != nil {
 		nested = &attribute.ListNested.NestedObject
@@ -62,8 +61,7 @@ func getAdditionalModelIfNested(attribute *codespec.Attribute) *CodeStatement {
 	if nested == nil {
 		return nil
 	}
-	name := fmt.Sprintf("TF%sModel", attribute.Name.PascalCase())
-	res := generateTypedModels(nested.Attributes, name, true)
+	res := generateTypedModels(nested.Attributes, attribute.Name.PascalCase(), true)
 	return &res
 }
 
@@ -74,7 +72,7 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string) Cod
 	}
 	structPropsCode := strings.Join(structProperties, "\n")
 	return CodeStatement{
-		Code: fmt.Sprintf(`type %s struct {
+		Code: fmt.Sprintf(`type TF%sModel struct {
 			%s
 		}`, name, structPropsCode),
 		Imports: []string{"github.com/hashicorp/terraform-plugin-framework/types"},

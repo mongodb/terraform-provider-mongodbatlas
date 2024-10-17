@@ -32,7 +32,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 	testCases := map[string]schemaGenerationTestCase{
 		"Primitive attributes": {
 			inputModel: codespec.Resource{
-				Name: "test_name", // TODO sync with parsing to see how string is formatted
+				Name: "test_name",
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{
