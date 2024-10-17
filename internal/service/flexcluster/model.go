@@ -22,18 +22,18 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202501
 		return nil, nil //TODO
 	}
 	return &TFModel{
-		ProviderSettings: providerSettings,
-		ConnectionStrings: connectionStrings,
-		Tags: tags,
-		CreateDate: types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreateDate)),
-		ProjectId: types.StringPointerValue(apiResp.GroupId),
-		Id: types.StringPointerValue(apiResp.Id),
-		MongoDbversion: types.StringPointerValue(apiResp.MongoDBVersion),
-		Name: types.StringPointerValue(apiResp.Name),
-		ClusterType: types.StringPointerValue(apiResp.ClusterType),
-		StateName: types.StringPointerValue(apiResp.StateName),
-		VersionReleaseSystem: types.StringPointerValue(apiResp.VersionReleaseSystem),
-		BackupSettings: backupSettings,
+		ProviderSettings:             providerSettings,
+		ConnectionStrings:            connectionStrings,
+		Tags:                         tags,
+		CreateDate:                   types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreateDate)),
+		ProjectId:                    types.StringPointerValue(apiResp.GroupId),
+		Id:                           types.StringPointerValue(apiResp.Id),
+		MongoDbversion:               types.StringPointerValue(apiResp.MongoDBVersion),
+		Name:                         types.StringPointerValue(apiResp.Name),
+		ClusterType:                  types.StringPointerValue(apiResp.ClusterType),
+		StateName:                    types.StringPointerValue(apiResp.StateName),
+		VersionReleaseSystem:         types.StringPointerValue(apiResp.VersionReleaseSystem),
+		BackupSettings:               backupSettings,
 		TerminationProtectionEnabled: types.BoolPointerValue(apiResp.TerminationProtectionEnabled),
 	}, nil
 }
@@ -54,21 +54,17 @@ func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 }
 
 func newProviderSettings() TFProviderSettings {
-
 	return TFProviderSettings{}
 }
 
 func newConnectionStrings() TFConnectionStrings {
-
 	return TFConnectionStrings{}
 }
 
 func newTags() basetypes.MapValue {
-
 	return basetypes.MapValue{}
 }
 
 func newBackupSettings() TFBackupSettings {
-
 	return TFBackupSettings{}
 }
