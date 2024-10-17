@@ -13,24 +13,17 @@ import (
 const (
 	atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
 	configPath           = "tools/codegen/config.yml"
-	specFilePath         = "open-api-spec.yml"
+	specFilePath         = "tools/codegen/open-api-spec.yml"
 )
 
 func main() {
 	resourceName := getOsArg()
-	if resourceName == nil {
-		log.Fatal("No resource name provided")
-	}
-	if !codespec.ValidateSnakeCase(*resourceName) {
-		log.Fatal("Resource name must be snake case")
-	}
-	log.Printf("Resource name: %s\n", *resourceName)
 
 	if err := openapi.DownloadOpenAPISpec(atlasAdminAPISpecURL, specFilePath); err != nil {
 		log.Fatalf("an error occurred when downloading Atlas Admin API spec: %v", err)
 	}
 
-	model, err := codespec.ToCodeSpecModel(specFilePath, configPath, codespec.SnakeCaseString(*resourceName))
+	model, err := codespec.ToCodeSpecModel(specFilePath, configPath, resourceName)
 	if err != nil {
 		log.Fatalf("an error occurred while generating codespec.Model: %v", err)
 	}
