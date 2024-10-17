@@ -3,6 +3,7 @@ package flexcluster
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	// "github.com/hashicorp/terraform-plugin-framework/types"
@@ -62,31 +63,29 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	// var flexClusterState TFModel
-	// resp.Diagnostics.Append(req.State.Get(ctx, &flexClusterState)...)
-	// if resp.Diagnostics.HasError() {
-	// 	return
-	// }
+	var flexClusterState TFModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &flexClusterState)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// TODO: make get request to resource
+	connV2 := r.Client.AtlasV2
+	flexCluster, apiResp, err := connV2.FlexClustersApi.GetFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString()).Execute()
+	if err != nil {
+		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		return
+	}
 
-	// connV2 := r.Client.AtlasV2
-	// if err != nil {
-	// 	if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
-	// 		resp.State.RemoveResource(ctx)
-	// 		return
-	// 	}
-	// 	resp.Diagnostics.AddError("error fetching resource", err.Error())
-	// 	return
-	// }
-
-	// TODO: process response into new terraform state
-	// newFlexClusterModel, diags := NewTFModel(ctx, apiResp)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
-	// resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+	newFlexClusterModel, diags := NewTFModel(ctx, flexCluster)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
