@@ -49,7 +49,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Group of cloud provider settings that configure the provisioned MongoDB flex cluster.",
 				MarkdownDescription: "Group of cloud provider settings that configure the provisioned MongoDB flex cluster.",
 			},
-			"tags": schema.ListNestedAttribute{
+			"tags": schema.MapNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
@@ -139,9 +139,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	ProviderSettings             TFProviderSettings  `tfsdk:"provider_settings"`
-	Links                        types.List          `tfsdk:"links"`
 	ConnectionStrings            TFConnectionStrings `tfsdk:"connection_strings"`
-	Tags                         types.List          `tfsdk:"tags"`
+	Tags                         types.Map           `tfsdk:"tags"`
 	CreateDate                   types.String        `tfsdk:"create_date"`
 	GroupId                      types.String        `tfsdk:"group_id"`
 	Id                           types.String        `tfsdk:"id"`
