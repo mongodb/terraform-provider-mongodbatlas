@@ -1,5 +1,7 @@
 package codespec
 
+import "strings"
+
 type ElemType int
 
 const (
@@ -46,10 +48,27 @@ type Attribute struct {
 	SingleNested *SingleNestedAttribute
 
 	Description              *string
-	Name                     string
+	Name                     AttributeName
 	DeprecationMessage       *string
 	Sensitive                *bool
 	ComputedOptionalRequired ComputedOptionalRequired
+}
+
+type AttributeName string // stored in snake case
+
+func (snake AttributeName) SnakeCase() string {
+	return string(snake)
+}
+
+func (snake AttributeName) PascalCase() string {
+	words := strings.Split(string(snake), "_")
+	var pascalCase string
+	for i := range words {
+		if words[i] != "" {
+			pascalCase += strings.ToUpper(string(words[i][0])) + strings.ToLower(words[i][1:])
+		}
+	}
+	return pascalCase
 }
 
 type BoolAttribute struct {

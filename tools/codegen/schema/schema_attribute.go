@@ -7,22 +7,17 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 )
 
-type CodeStatement struct {
-	Result  string
-	Imports []string
-}
-
 func GenerateSchemaAttributes(attrs codespec.Attributes) CodeStatement {
 	attrsCode := []string{}
 	imports := []string{}
 	for i := range attrs {
 		result := generateAttribute(&attrs[i])
-		attrsCode = append(attrsCode, result.Result)
+		attrsCode = append(attrsCode, result.Code)
 		imports = append(imports, result.Imports...)
 	}
 	finalAttrs := strings.Join(attrsCode, ",\n") + ","
 	return CodeStatement{
-		Result:  finalAttrs,
+		Code:    finalAttrs,
 		Imports: imports,
 	}
 }
@@ -36,7 +31,7 @@ func generateAttribute(attr *codespec.Attribute) CodeStatement {
 	properties := commonProperties(attr)
 	imports := []string{"github.com/hashicorp/terraform-plugin-framework/resource/schema"}
 	for i := range additionalPropertyStatements {
-		properties = append(properties, additionalPropertyStatements[i].Result)
+		properties = append(properties, additionalPropertyStatements[i].Code)
 		imports = append(imports, additionalPropertyStatements[i].Imports...)
 	}
 
@@ -46,7 +41,7 @@ func generateAttribute(attr *codespec.Attribute) CodeStatement {
 		%s
 	}`, name, typeDefinition, propsResultString)
 	return CodeStatement{
-		Result:  code,
+		Code:    code,
 		Imports: imports,
 	}
 }

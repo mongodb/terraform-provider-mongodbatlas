@@ -9,11 +9,13 @@ import (
 
 func GenerateGoCode(input genconfigmapper.Resource) string {
 	schemaAttrs := GenerateSchemaAttributes(input.Schema.Attributes)
+	models := GenerateTypedModels(input.Schema.Attributes)
 
 	tmplInputs := codetemplate.SchemaFileInputs{
 		PackageName:      input.Name,
-		Imports:          schemaAttrs.Imports,
-		SchemaAttributes: schemaAttrs.Result,
+		Imports:          append(schemaAttrs.Imports, models.Imports...),
+		SchemaAttributes: schemaAttrs.Code,
+		Models:           models.Code,
 	}
 	result := codetemplate.ApplySchemaFileTemplate(tmplInputs)
 
