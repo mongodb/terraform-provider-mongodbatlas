@@ -15,30 +15,40 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
 
-func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName string) (*Model, error) {
+func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName *string) (*Model, error) {
 	apiSpec, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse Atlas Admin API: %v", err)
 	}
 
-	config, err := config.ParseGenConfigYAML(configPath)
+	configModel, err := config.ParseGenConfigYAML(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse config file: %v", err)
 	}
 
-	// find resource operations, schemas, etc from OAS
-	oasResource, err := getAPISpecResource(apiSpec.Model, config.Resources[resourceName], resourceName)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
+	resourceConfigsToIterate := configModel.Resources
+	if resourceName != nil { // only generate a specific resource
+		resourceConfigsToIterate = map[string]config.Resource{
+			*resourceName: configModel.Resources[*resourceName],
+		}
 	}
 
-	// map OAS resource model to CodeSpecModel
-	codeSpecResource := apiSpecResourceToCodeSpecModel(oasResource, config.Resources[resourceName], resourceName)
+	var results []Resource
+	for name, resourceConfig := range resourceConfigsToIterate {
+		log.Printf("Generating resource: %s", name)
+		// find resource operations, schemas, etc from OAS
+		oasResource, err := getAPISpecResource(apiSpec.Model, resourceConfig, SnakeCaseString(name))
+		if err != nil {
+			return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
+		}
+		// map OAS resource model to CodeSpecModel
+		results = append(results, *apiSpecResourceToCodeSpecModel(oasResource, resourceConfig, SnakeCaseString(name)))
+	}
 
-	return &Model{Resources: []Resource{*codeSpecResource}}, nil
+	return &Model{Resources: results}, nil
 }
 
-func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig config.Resource, name string) *Resource {
+func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig config.Resource, name SnakeCaseString) *Resource {
 	createOp := oasResource.CreateOp
 	readOp := oasResource.ReadOp
 
@@ -126,7 +136,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 	return responseAttributes
 }
 
-func getAPISpecResource(spec high.Document, resourceConfig config.Resource, name string) (APISpecResource, error) {
+func getAPISpecResource(spec high.Document, resourceConfig config.Resource, name SnakeCaseString) (APISpecResource, error) {
 	var errResult error
 	var resourceDeprecationMsg *string
 

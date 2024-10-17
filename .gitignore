@@ -41,3 +41,6 @@ vendor/
 *.winfile eol=crlf
 /.vs
 node_modules
+
+#used for schema code generation but is not commited to avoid constant updates
+tools/codegen/open-api-spec.yml
