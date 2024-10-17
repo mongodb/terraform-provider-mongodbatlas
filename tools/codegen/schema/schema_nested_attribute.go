@@ -15,7 +15,7 @@ func (l *ListNestedAttrGenerator) TypeDefinition() string {
 }
 
 func (l *ListNestedAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return []CodeStatement{getPropertyForNestedObj(l.model.NestedObject)}
+	return []CodeStatement{nestedObjectProperty(l.model.NestedObject)}
 }
 
 type SetNestedGenerator struct {
@@ -27,7 +27,7 @@ func (s *SetNestedGenerator) TypeDefinition() string {
 }
 
 func (s *SetNestedGenerator) TypeSpecificProperties() []CodeStatement {
-	return []CodeStatement{getPropertyForNestedObj(s.model.NestedObject)}
+	return []CodeStatement{nestedObjectProperty(s.model.NestedObject)}
 }
 
 type MapNestedAttrGenerator struct {
@@ -39,7 +39,7 @@ func (m *MapNestedAttrGenerator) TypeDefinition() string {
 }
 
 func (m *MapNestedAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return []CodeStatement{getPropertyForNestedObj(m.model.NestedObject)}
+	return []CodeStatement{nestedObjectProperty(m.model.NestedObject)}
 }
 
 type SingleNestedAttrGenerator struct {
@@ -51,10 +51,10 @@ func (s *SingleNestedAttrGenerator) TypeDefinition() string {
 }
 
 func (s *SingleNestedAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return []CodeStatement{getPropertyForNestedObj(s.model.NestedObject)}
+	return []CodeStatement{attributesProperty(s.model.NestedObject)}
 }
 
-func getPropertyForNestedObj(nested codespec.NestedAttributeObject) CodeStatement {
+func attributesProperty(nested codespec.NestedAttributeObject) CodeStatement {
 	attrs := GenerateSchemaAttributes(nested.Attributes)
 	attributeProperty := fmt.Sprintf(`Attributes: map[string]schema.Attribute{ 
 		%s 
@@ -62,5 +62,16 @@ func getPropertyForNestedObj(nested codespec.NestedAttributeObject) CodeStatemen
 	return CodeStatement{
 		Code:    attributeProperty,
 		Imports: attrs.Imports,
+	}
+}
+
+func nestedObjectProperty(nested codespec.NestedAttributeObject) CodeStatement {
+	result := attributesProperty(nested)
+	nestedObj := fmt.Sprintf(`NestedObject: schema.NestedAttributeObject{
+		%s,
+	}`, result.Code)
+	return CodeStatement{
+		Code:    nestedObj,
+		Imports: result.Imports,
 	}
 }
