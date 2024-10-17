@@ -46,7 +46,10 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 	case OASTypeArray:
 		return s.buildArrayAttr(name, computability)
 	case OASTypeObject:
-		return nil, nil // TODO: add support for SingleNestedObject and MapAttribute
+		if s.Schema.AdditionalProperties != nil && s.Schema.AdditionalProperties.IsA() {
+			return s.buildMapAttr(name, computability)
+		}
+		return s.buildSingleNestedAttr(name, computability)
 	default:
 		return nil, fmt.Errorf("invalid schema type '%s'", s.Type)
 	}
@@ -209,4 +212,61 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 	}
 
 	return result, nil
+}
+
+func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+	mapSchema, err := BuildSchema(s.Schema.AdditionalProperties.A)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &Attribute{
+		Name:                     terraformAttrName(name),
+		ComputedOptionalRequired: computability,
+		DeprecationMessage:       s.GetDeprecationMessage(),
+		Description:              s.GetDescription(),
+	}
+
+	if mapSchema.Type == OASTypeObject {
+		mapAttributes, err := buildResourceAttrs(mapSchema)
+		if err != nil {
+			return nil, err
+		}
+
+		result.MapNested = &MapNestedAttribute{
+			NestedObject: NestedAttributeObject{
+				Attributes: mapAttributes,
+			},
+		}
+	} else {
+		elemType, err := mapSchema.buildElementType()
+		if err != nil {
+			return nil, err
+		}
+
+		result.Map = &MapAttribute{
+			ElementType: elemType,
+		}
+	}
+
+	return result, nil
+}
+
+func (s *APISpecSchema) buildSingleNestedAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+	objectAttributes, err := buildResourceAttrs(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Attribute{
+		Name:                     terraformAttrName(name),
+		ComputedOptionalRequired: computability,
+		DeprecationMessage:       s.GetDeprecationMessage(),
+		Description:              s.GetDescription(),
+		SingleNested: &SingleNestedAttribute{
+			NestedObject: NestedAttributeObject{
+				Attributes: objectAttributes,
+			},
+		},
+	}, nil
 }
