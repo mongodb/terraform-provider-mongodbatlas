@@ -39,7 +39,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	flexClusterReq, diags := NewAtlasReq(ctx, &tfModel)
+	flexClusterReq, diags := NewAtlasCreateReq(ctx, &tfModel)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -89,49 +89,45 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// var tfModel TFModel
-	// resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
-	// if resp.Diagnostics.HasError() {
-	// 	return
-	// }
+	var tfModel TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// flexClusterReq, diags := NewAtlasReq(ctx, &tfModel)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
+	flexClusterReq, diags := NewAtlasUpdateReq(ctx, &tfModel)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
 
-	// TODO: make PATCH request to Atlas API and handle error in response
-	// connV2 := r.Client.AtlasV2
-	//if err != nil {
-	//	resp.Diagnostics.AddError("error updating resource", err.Error())
-	//	return
-	//}
+	connV2 := r.Client.AtlasV2
+	flexCluster, _, err := connV2.FlexClustersApi.UpdateFlexCluster(ctx, tfModel.ProjectId.ValueString(), tfModel.Name.ValueString(), flexClusterReq).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("error updating resource", err.Error())
+		return
+	}
 
-	// TODO: process response into new terraform state
-
-	// newFlexClusterModel, diags := NewTFModel(ctx, apiResp)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
-	// resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+	newFlexClusterModel, diags := NewTFModel(ctx, flexCluster)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// var flexClusterState *TFModel
-	// resp.Diagnostics.Append(req.State.Get(ctx, &flexClusterState)...)
-	// if resp.Diagnostics.HasError() {
-	// 	return
-	// }
+	var flexClusterState *TFModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &flexClusterState)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// TODO: make Delete request to Atlas API
-
-	// connV2 := r.Client.AtlasV2
-	// if _, _, err := connV2.Api.Delete().Execute(); err != nil {
-	// 	 resp.Diagnostics.AddError("error deleting resource", err.Error())
-	// 	 return
-	// }
+	connV2 := r.Client.AtlasV2
+	if _, _, err := connV2.FlexClustersApi.DeleteFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString()).Execute(); err != nil {
+		resp.Diagnostics.AddError("error deleting resource", err.Error())
+		return
+	}
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -139,9 +135,9 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 
 	// projectID, other, err := splitFlexClusterImportID(req.ID)
 	// if err != nil {
-	//	resp.Diagnostics.AddError("error splitting import ID", err.Error())
-	//	return
-	//}
+	// 	resp.Diagnostics.AddError("error splitting import ID", err.Error())
+	// 	return
+	// }
 
 	// TODO: define attributes that are required for read operation to work correctly. Example:
 
