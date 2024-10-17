@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20240805005/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"

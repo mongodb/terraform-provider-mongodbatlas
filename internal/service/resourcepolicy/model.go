@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20240805005/admin"
 )
 
 func NewTFModel(ctx context.Context, input *admin.ApiAtlasResourcePolicy) (*TFModel, diag.Diagnostics) {
