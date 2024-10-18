@@ -60,7 +60,7 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		Schema: schema,
 	}
 
-	applyConfigSchemaOptions(resourceConfig, resource)
+	applyConfigSchemaOptions(&resourceConfig, resource)
 
 	return resource
 }
@@ -210,8 +210,4 @@ func extractCommonParameters(paths *high.Paths, path string) ([]*high.Parameter,
 	pathItem, _ := paths.PathItems.Get(path)
 
 	return pathItem.Parameters, nil
-}
-
-func applyConfigSchemaOptions(resourceConfig config.Resource, resource *Resource) {
-	// TODO: implement in follow-up PR
 }
