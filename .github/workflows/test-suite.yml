@@ -54,13 +54,13 @@ jobs:
   day_of_week:
     runs-on: ubuntu-latest
     outputs:
-      day: ${{ steps.set_day.outputs.day }}
+      day: ${{ steps.set_day.outputs.DAY }}
     steps:
       - name: set day
         id: set_day
         run: |
-          echo "day=$(date +'%a')"
-          echo "day=$(date +'%a')" >> "$GITHUB_OUTPUT"
+          echo "DAY=$(date +'%a')"
+          echo "DAY=$(date +'%a')" >> "$GITHUB_OUTPUT"
   clean-before:
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
@@ -80,7 +80,7 @@ jobs:
     with:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
-      atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.day_of_week.outputs.day == 'Sun' && 'qa' || 'dev' }}
+      atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.day_of_week.outputs.day == 'Sun' && 'qa' }}
 
   clean-after:
     needs: tests
