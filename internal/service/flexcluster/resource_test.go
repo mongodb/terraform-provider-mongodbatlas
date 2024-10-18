@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -23,7 +24,8 @@ func TestAccFlexClusterRS_basic(t *testing.T) {
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomName()
 	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -31,15 +33,15 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, false),
-				Check:  checksFlexCluster(),
+				Config: configBasic(projectID, clusterName, false),
+				Check:  checksFlexCluster(projectID, clusterName, false),
 			},
 			{
-				Config: configBasic(projectID, true),
-				Check:  checksFlexCluster(),
+				Config: configBasic(projectID, clusterName, true),
+				Check:  checksFlexCluster(projectID, clusterName, true),
 			},
 			{
-				Config:            configBasic(projectID, true),
+				Config:            configBasic(projectID, clusterName, true),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -49,21 +51,27 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	}
 }
 
-func configBasic(projectID string, terminationProtectionEnabled bool) string {
+func configBasic(projectID, clusterName string, terminationProtectionEnabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_flex_cluster" "flex_cluster" {
 			project_id = %[1]q
-			name       = "flexClusterName"
+			name       = %[2]q
 			provider_settings = {
 				backing_provider_name = "AWS"
 				region_name           = "US_EAST_1"
 			}
-			termination_protection_enabled = %[2]t
-		}`, projectID, terminationProtectionEnabled)
+			termination_protection_enabled = %[3]t
+		}`, projectID, clusterName, terminationProtectionEnabled)
 }
 
-func checksFlexCluster() resource.TestCheckFunc {
+func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabled bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists()}
+	attributes := map[string]string{
+		"project_id":                     projectID,
+		"name":                           clusterName,
+		"termination_protection_enabled": fmt.Sprintf("%v", terminationProtectionEnabled),
+	}
+	checks = acc.AddAttrChecks(resourceName, checks, attributes)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
@@ -84,6 +92,7 @@ func checkExists() resource.TestCheckFunc {
 }
 
 func checkDestroy(state *terraform.State) error {
+	time.Sleep(1 * time.Minute) //TODO: To be removed once CLOUDP-279544 is implemented
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == resourceType {
 			projectID := rs.Primary.Attributes["project_id"]
