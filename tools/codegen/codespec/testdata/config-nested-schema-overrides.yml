@@ -1,0 +1,27 @@
+resources:
+  test_resource_with_nested_attr_overrides:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: DELETE
+    schema:
+      aliases:
+        group_id: project_id
+        nested_list_array_attr.inner_num_attr: inner_num_attr_alias
+        outer_object.nested_level1.level_field1: level_field1_alias
+      
+      ignores: ["nested_list_array_attr.list_primitive_string_attr", "cluster_name", "list_primitive_string_attr", "nested_map_object_attr", "nested_set_array_attr","set_primitive_string_attr", "single_nested_attr", "single_nested_attr_with_nested_maps"]
+      
+      overrides:
+        nested_list_array_attr.inner_num_attr_alias:
+          description: "Overridden inner_num_attr_alias description"
+        outer_object.nested_level1.level_field1_alias:
+          description: "Overridden level_field1_alias description"
