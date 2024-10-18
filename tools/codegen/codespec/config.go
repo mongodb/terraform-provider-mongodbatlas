@@ -34,7 +34,7 @@ func applySchemaOptions(schemaOptions config.SchemaOptions, attributes *Attribut
 		finalAttributes = append(finalAttributes, *attr)
 	}
 
-	if timeoutAttr := applyTimeoutConfig(schemaOptions); timeoutAttr != nil {
+	if timeoutAttr := applyTimeoutConfig(schemaOptions); parentName == "" && timeoutAttr != nil { // will not run for nested attributes
 		finalAttributes = append(finalAttributes, *timeoutAttr)
 	}
 

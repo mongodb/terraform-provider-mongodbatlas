@@ -87,12 +87,6 @@ func TestConvertToProviderSpec(t *testing.T) {
 								ComputedOptionalRequired: codespec.Required,
 								Description:              conversion.StringPtr(testFieldDesc),
 							},
-							{
-								Name: "timeouts",
-								Timeouts: &codespec.TimeoutsAttribute{
-									ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Read, codespec.Delete},
-								},
-							},
 						},
 					},
 					Name: "test_resource",
@@ -341,6 +335,12 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 											},
 										},
 									},
+								},
+							},
+							{
+								Name: "timeouts",
+								Timeouts: &codespec.TimeoutsAttribute{
+									ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Read, codespec.Update, codespec.Delete},
 								},
 							},
 						},
