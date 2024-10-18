@@ -17,7 +17,7 @@ func applySchemaOptions(schemaOptions config.SchemaOptions, attributes *Attribut
 
 	for i := range *attributes {
 		attr := &(*attributes)[i]
-		attrPathName := getAttributePathName(attr.Name, parentName)
+		attrPathName := getAttributePathName(string(attr.Name), parentName)
 
 		if shouldIgnoreAttribute(attrPathName, ignoredAttrs) {
 			continue
@@ -65,7 +65,7 @@ func applyAlias(attr *Attribute, attrPathName *string, schemaOptions config.Sche
 			parts[i] = newName
 
 			if i == len(parts)-1 {
-				attr.Name = newName
+				attr.Name = AttributeName(newName)
 			}
 		}
 	}
