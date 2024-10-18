@@ -51,7 +51,7 @@ jobs:
         id: set_day
         run: |
           echo "day=$(date +'%d')"
-          echo "day=$(date +'%d')" >> $GITHUB_OUTPUT
+          echo "day=$(date +'%d')" >> "$GITHUB_OUTPUT"
 
   versions:
     env:
