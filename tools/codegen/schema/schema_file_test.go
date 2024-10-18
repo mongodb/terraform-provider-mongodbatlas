@@ -152,7 +152,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 						{
 							Name: "timeouts",
 							Timeouts: &codespec.TimeoutsAttribute{
-								ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Read, codespec.Delete},
+								ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Update, codespec.Delete},
 							},
 						},
 					},

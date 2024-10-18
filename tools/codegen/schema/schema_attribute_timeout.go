@@ -12,15 +12,15 @@ type timeoutAttributeGenerator struct {
 
 func (s *timeoutAttributeGenerator) AttributeCode() CodeStatement {
 	var optionProperties string
-	for op := range s.timeouts.ConfigurableTimeouts {
+	for _, op := range s.timeouts.ConfigurableTimeouts {
 		switch op {
-		case int(codespec.Create):
+		case codespec.Create:
 			optionProperties += "Create: true,\n"
-		case int(codespec.Update):
+		case codespec.Update:
 			optionProperties += "Update: true,\n"
-		case int(codespec.Delete):
+		case codespec.Delete:
 			optionProperties += "Delete: true,\n"
-		case int(codespec.Read):
+		case codespec.Read:
 			optionProperties += "Read: true,\n"
 		}
 	}
