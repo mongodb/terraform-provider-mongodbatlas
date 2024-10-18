@@ -3,16 +3,16 @@ package schema
 import (
 	"go/format"
 
-	genconfigmapper "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/schema/codetemplate"
 )
 
-func GenerateGoCode(input genconfigmapper.Resource) string {
+func GenerateGoCode(input codespec.Resource) string {
 	schemaAttrs := GenerateSchemaAttributes(input.Schema.Attributes)
 	models := GenerateTypedModels(input.Schema.Attributes)
 
 	tmplInputs := codetemplate.SchemaFileInputs{
-		PackageName:      input.Name,
+		PackageName:      input.Name.LowerCaseNoUnderscore(),
 		Imports:          append(schemaAttrs.Imports, models.Imports...),
 		SchemaAttributes: schemaAttrs.Code,
 		Models:           models.Code,
