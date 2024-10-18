@@ -45,17 +45,10 @@ func getOsArg() *string {
 }
 
 func writeToFile(fileName, content string) error {
-	// Open the file with write-only permission, create it if it doesn't exist and truncate its content if it exists
-	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
+	// will override content if file exists
+	err := os.WriteFile(fileName, []byte(content), 0o600)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-
-	_, err = file.WriteString(content)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
