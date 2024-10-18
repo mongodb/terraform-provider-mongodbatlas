@@ -67,7 +67,7 @@ jobs:
 
   clean-before:
     needs: day_of_month
-    if: ${{ github.workflow != 'Test Suite' || needs.day_of_month.outputs.first_day_of_month != '00'}}
+    if: ${{ github.workflow != 'Test Suite' || needs.day_of_month.outputs.first_day_of_month != '01'}}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
