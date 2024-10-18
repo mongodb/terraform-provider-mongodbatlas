@@ -216,8 +216,63 @@ func TestNewAtlasCreateReq(t *testing.T) {
 func TestNewAtlasUpdateReq(t *testing.T) {
 	testCases := map[string]NewAtlasUpdateReqTestCase{
 		"Complete TF state": {
-			input:          &flexcluster.TFModel{},
-			expectedSDKReq: &admin.FlexClusterDescription20250101{},
+			input: &flexcluster.TFModel{
+				ProjectId: types.StringValue(projectID),
+				Id:        types.StringValue(id),
+				Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
+					key1: types.StringValue(value1),
+				}),
+				ProviderSettings: flexcluster.TFProviderSettings{
+					ProviderName:        types.StringValue(providerName),
+					RegionName:          types.StringValue(regionName),
+					BackingProviderName: types.StringValue(backingProviderName),
+					DiskSizeGb:          types.Float64Value(diskSizeGb),
+				},
+				ConnectionStrings: flexcluster.TFConnectionStrings{
+					Standard:    types.StringValue(standardConnectionString),
+					StandardSrv: types.StringValue(standardSrvConnectionString),
+				},
+				CreateDate:           types.StringValue(createDate),
+				MongoDbversion:       types.StringValue(mongoDBVersion),
+				Name:                 types.StringValue(name),
+				ClusterType:          types.StringValue(clusterType),
+				StateName:            types.StringValue(stateName),
+				VersionReleaseSystem: types.StringValue(versionReleaseSystem),
+				BackupSettings: flexcluster.TFBackupSettings{
+					Enabled: types.BoolValue(true),
+				},
+				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
+			},
+			expectedSDKReq: &admin.FlexClusterDescription20250101{
+				GroupId: &projectID,
+				Id:      &id,
+				Tags: &[]admin.ResourceTag{
+					{
+						Key:   key1,
+						Value: value1,
+					},
+				},
+				ProviderSettings: admin.FlexProviderSettings20250101{
+					ProviderName:        &providerName,
+					RegionName:          &regionName,
+					BackingProviderName: &backingProviderName,
+					DiskSizeGB:          &diskSizeGb,
+				},
+				ConnectionStrings: &admin.FlexConnectionStrings20250101{
+					Standard:    &standardConnectionString,
+					StandardSrv: &standardSrvConnectionString,
+				},
+				CreateDate:           &createDateTime,
+				MongoDBVersion:       &mongoDBVersion,
+				Name:                 &name,
+				ClusterType:          &clusterType,
+				StateName:            &stateName,
+				VersionReleaseSystem: &versionReleaseSystem,
+				BackupSettings: &admin.FlexBackupSettings20250101{
+					Enabled: conversion.Pointer(true),
+				},
+				TerminationProtectionEnabled: &terminationProtectionEnabled,
+			},
 		},
 	}
 

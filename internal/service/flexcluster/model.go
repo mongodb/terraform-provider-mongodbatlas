@@ -51,7 +51,32 @@ func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 }
 
 func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescription20250101, diag.Diagnostics) {
-	return &admin.FlexClusterDescription20250101{}, nil
+	createDateAsTime, _ := conversion.StringToTime(plan.CreateDate.ValueString())
+	return &admin.FlexClusterDescription20250101{
+		BackupSettings: &admin.FlexBackupSettings20250101{
+			Enabled: plan.BackupSettings.Enabled.ValueBoolPointer(),
+		},
+		ClusterType: plan.ClusterType.ValueStringPointer(),
+		ConnectionStrings: &admin.FlexConnectionStrings20250101{
+			Standard:    plan.ConnectionStrings.Standard.ValueStringPointer(),
+			StandardSrv: plan.ConnectionStrings.StandardSrv.ValueStringPointer(),
+		},
+		CreateDate:     &createDateAsTime,
+		GroupId:        plan.ProjectId.ValueStringPointer(),
+		Id:             plan.Id.ValueStringPointer(),
+		MongoDBVersion: plan.MongoDbversion.ValueStringPointer(),
+		Name:           plan.Name.ValueStringPointer(),
+		ProviderSettings: admin.FlexProviderSettings20250101{
+			BackingProviderName: plan.ProviderSettings.BackingProviderName.ValueStringPointer(),
+			DiskSizeGB:          plan.ProviderSettings.DiskSizeGb.ValueFloat64Pointer(),
+			ProviderName:        plan.ProviderSettings.ProviderName.ValueStringPointer(),
+			RegionName:          plan.ProviderSettings.RegionName.ValueStringPointer(),
+		},
+		StateName:                    plan.StateName.ValueStringPointer(),
+		TerminationProtectionEnabled: plan.TerminationProtectionEnabled.ValueBoolPointer(),
+		Tags:                         newResourceTags(ctx, plan.Tags),
+		VersionReleaseSystem:         plan.VersionReleaseSystem.ValueStringPointer(),
+	}, nil
 }
 
 func newProviderSettings(providerSettings admin.FlexProviderSettings20250101) TFProviderSettings {
