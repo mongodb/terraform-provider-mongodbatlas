@@ -34,14 +34,25 @@ on:
 
   schedule:
     # https://crontab.guru/#0_0_2-31_*_0
-    - cron: "0 0 2-31 * 1-6" # workflow runs at 00:00 on every day-of-month from 2 through 31 and on every day-of-week from Monday through Saturday.
-    - cron: "0 0 2-31 * 0" # workflow runs at 00:00 on every day-of-month from 2 through 31 and on Sunday.
+    - cron: "0 0 * * 1-6" # workflow runs at 00:00 on every day-of-week from Monday through Saturday.
+    - cron: "0 0 * * 0" # workflow runs at 00:00 on Sunday.
    
 concurrency:
   group: '${{ github.workflow }}'
   cancel-in-progress: false
    
 jobs:
+  day_of_month:
+    runs-on: ubuntu-latest
+    outputs:
+      first_day_of_month: ${{ steps.set_day.outputs.day }}
+    steps:
+      - name: set day
+        id: set_day
+        run: |
+          echo "day=$(date +'%d')"
+          echo "day=$(date +'%d')" >> $GITHUB_OUTPUT
+
   versions:
     env:
       schedule_terraform_matrix: '["${{ vars.TF_VERSION_LATEST }}"]'
@@ -55,6 +66,8 @@ jobs:
         run: echo jobs need steps
 
   clean-before:
+    needs: day_of_month
+    if: ${{ github.workflow != 'Test Suite' || needs.day_of_month.outputs.first_day_of_month != '00'}}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
@@ -73,7 +86,7 @@ jobs:
     with:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
-      atlas_cloud_env: ${{ inputs.atlas_cloud_env || github.event.schedule == '0 0 2-31 * 0' && 'qa' || 'dev' }}
+      atlas_cloud_env: ${{ inputs.atlas_cloud_env || github.event.schedule == '0 0 * * 0' && 'qa' || 'dev' }}
 
   clean-after:
     needs: tests
