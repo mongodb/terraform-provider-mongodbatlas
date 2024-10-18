@@ -235,32 +235,11 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
 			},
 			expectedSDKReq: &admin.FlexClusterDescription20250101{
-				GroupId: &projectID,
-				Id:      &id,
 				Tags: &[]admin.ResourceTag{
 					{
 						Key:   key1,
 						Value: value1,
 					},
-				},
-				ProviderSettings: admin.FlexProviderSettings20250101{
-					ProviderName:        &providerName,
-					RegionName:          &regionName,
-					BackingProviderName: &backingProviderName,
-					DiskSizeGB:          &diskSizeGb,
-				},
-				ConnectionStrings: &admin.FlexConnectionStrings20250101{
-					Standard:    &standardConnectionString,
-					StandardSrv: &standardSrvConnectionString,
-				},
-				CreateDate:           &createDateTime,
-				MongoDBVersion:       &mongoDBVersion,
-				Name:                 &name,
-				ClusterType:          &clusterType,
-				StateName:            &stateName,
-				VersionReleaseSystem: &versionReleaseSystem,
-				BackupSettings: &admin.FlexBackupSettings20250101{
-					Enabled: conversion.Pointer(true),
 				},
 				TerminationProtectionEnabled: &terminationProtectionEnabled,
 			},

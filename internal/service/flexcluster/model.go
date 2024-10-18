@@ -50,46 +50,9 @@ func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 }
 
 func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescription20250101, diag.Diagnostics) {
-	createDateAsTime, _ := conversion.StringToTime(plan.CreateDate.ValueString())
-
 	updateRequest := &admin.FlexClusterDescription20250101{
-		ClusterType:    plan.ClusterType.ValueStringPointer(),
-		CreateDate:     &createDateAsTime,
-		GroupId:        plan.ProjectId.ValueStringPointer(),
-		Id:             plan.Id.ValueStringPointer(),
-		MongoDBVersion: plan.MongoDbversion.ValueStringPointer(),
-		Name:           plan.Name.ValueStringPointer(),
-		ProviderSettings: admin.FlexProviderSettings20250101{
-			BackingProviderName: plan.ProviderSettings.BackingProviderName.ValueStringPointer(),
-			DiskSizeGB:          plan.ProviderSettings.DiskSizeGb.ValueFloat64Pointer(),
-			ProviderName:        plan.ProviderSettings.ProviderName.ValueStringPointer(),
-			RegionName:          plan.ProviderSettings.RegionName.ValueStringPointer(),
-		},
-		StateName:                    plan.StateName.ValueStringPointer(),
 		TerminationProtectionEnabled: plan.TerminationProtectionEnabled.ValueBoolPointer(),
 		Tags:                         newResourceTags(ctx, plan.Tags),
-		VersionReleaseSystem:         plan.VersionReleaseSystem.ValueStringPointer(),
-	}
-
-	if !plan.BackupSettings.IsNull() && !plan.BackupSettings.IsUnknown() {
-		backupSettings := &TFBackupSettings{}
-		if diags := plan.BackupSettings.As(ctx, backupSettings, basetypes.ObjectAsOptions{}); diags.HasError() {
-			return nil, diags
-		}
-		updateRequest.BackupSettings = &admin.FlexBackupSettings20250101{
-			Enabled: backupSettings.Enabled.ValueBoolPointer(),
-		}
-	}
-
-	if !plan.ConnectionStrings.IsNull() && !plan.ConnectionStrings.IsUnknown() {
-		connectionStrings := &TFConnectionStrings{}
-		if diags := plan.ConnectionStrings.As(ctx, connectionStrings, basetypes.ObjectAsOptions{}); diags.HasError() {
-			return nil, diags
-		}
-		updateRequest.ConnectionStrings = &admin.FlexConnectionStrings20250101{
-			Standard:    connectionStrings.Standard.ValueStringPointer(),
-			StandardSrv: connectionStrings.StandardSrv.ValueStringPointer(),
-		}
 	}
 
 	return updateRequest, nil
