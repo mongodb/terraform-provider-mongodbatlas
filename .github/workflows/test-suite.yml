@@ -34,7 +34,6 @@ on:
 
   schedule:
     - cron: "0 0 2-31 * *" # workflow runs every day at midnight UTC except on the first day of the month
-   
 concurrency:
   group: '${{ github.workflow }}'
   cancel-in-progress: false
@@ -52,12 +51,22 @@ jobs:
       - if: false
         run: echo jobs need steps
 
+  day_of_week:
+    runs-on: ubuntu-latest
+    outputs:
+      day: ${{ steps.set_day.outputs.day }}
+    steps:
+      - name: set day
+        id: set_day
+        run: |
+          echo "day=$(date +'%a')"
+          echo "day=$(date +'%a')" >> "$GITHUB_OUTPUT"
   clean-before:
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
   tests:
-    needs: [clean-before, versions]
+    needs: [clean-before, versions, day_of_week]
     if: ${{ !cancelled() }}
     strategy:
       max-parallel: 1
@@ -71,7 +80,7 @@ jobs:
     with:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
-      atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
+      atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.day_of_week.outputs.day == 'Sun' && 'qa' || 'dev' }}
 
   clean-after:
     needs: tests

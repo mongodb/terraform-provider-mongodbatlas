@@ -47,7 +47,7 @@ jobs:
     uses: ./.github/workflows/test-suite.yml
     with:
       terraform_matrix: '["${{ matrix.terraform_version }}"]'
-      atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
+      atlas_cloud_env: ${{ inputs.atlas_cloud_env || 'dev' }}
       send_notification: false
   
   slack-notification:
