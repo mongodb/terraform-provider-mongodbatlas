@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	adminPreview "github.com/mongodb/atlas-sdk-go/admin"
+	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20240805005/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
@@ -33,7 +33,7 @@ type MongoDBClient struct {
 	Atlas           *matlasClient.Client
 	AtlasV2         *admin.APIClient
 	AtlasV220240530 *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes
-	AtlasPreview    *adminPreview.APIClient  // used for preview features, don't use in resources exposed in the provider list
+	AtlasPreview    *adminpreview.APIClient  // used for preview features, don't use in resources exposed in the provider list
 	Config          *Config
 }
 
@@ -155,14 +155,14 @@ func (c *Config) newSDKV220240530Client(client *http.Client) (*admin20240530.API
 	return sdk, nil
 }
 
-func (c *Config) newSDKPreviewClient(client *http.Client) (*adminPreview.APIClient, error) {
-	opts := []adminPreview.ClientModifier{
-		adminPreview.UseHTTPClient(client),
-		adminPreview.UseUserAgent(userAgent(c)),
-		adminPreview.UseBaseURL(c.BaseURL),
-		adminPreview.UseDebug(false)}
+func (c *Config) newSDKPreviewClient(client *http.Client) (*adminpreview.APIClient, error) {
+	opts := []adminpreview.ClientModifier{
+		adminpreview.UseHTTPClient(client),
+		adminpreview.UseUserAgent(userAgent(c)),
+		adminpreview.UseBaseURL(c.BaseURL),
+		adminpreview.UseDebug(false)}
 
-	sdk, err := adminPreview.NewClient(opts...)
+	sdk, err := adminpreview.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}
