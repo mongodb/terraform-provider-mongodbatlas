@@ -31,5 +31,9 @@ echo "LATEST_SDK_RELEASE: $LATEST_SDK_RELEASE"
 echo  "==> Updating SDK ${CURRENT_SDK_RELEASE} to latest major version ${LATEST_SDK_TAG}"
 
 gomajor get --rewrite "go.mongodb.org/atlas-sdk/${CURRENT_SDK_RELEASE}" "go.mongodb.org/atlas-sdk/${LATEST_SDK_RELEASE}@${LATEST_SDK_TAG}"
+
+echo "==> Updating SDK Preview version"
+go get github.com/mongodb/atlas-sdk-go@preview-latest
+
 go mod tidy
 echo "Done"
