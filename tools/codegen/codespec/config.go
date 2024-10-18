@@ -1,6 +1,7 @@
 package codespec
 
 import (
+	"log"
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
@@ -31,6 +32,10 @@ func applySchemaOptions(schemaOptions config.SchemaOptions, attributes *Attribut
 		processNestedAttributes(attr, schemaOptions, attrPathName)
 
 		finalAttributes = append(finalAttributes, *attr)
+	}
+
+	if timeoutAttr := applyTimeoutConfig(schemaOptions); parentName == "" && timeoutAttr != nil { // will not run for nested attributes
+		finalAttributes = append(finalAttributes, *timeoutAttr)
 	}
 
 	*attributes = finalAttributes
@@ -90,4 +95,29 @@ func processNestedAttributes(attr *Attribute, schemaOptions config.SchemaOptions
 	case attr.MapNested != nil:
 		applySchemaOptions(schemaOptions, &attr.MapNested.NestedObject.Attributes, attrPathName)
 	}
+}
+
+func applyTimeoutConfig(options config.SchemaOptions) *Attribute {
+	var result []Operation
+	for _, op := range options.Timeouts {
+		switch op {
+		case "create":
+			result = append(result, Create)
+		case "read":
+			result = append(result, Read)
+		case "delete":
+			result = append(result, Delete)
+		case "update":
+			result = append(result, Update)
+		default:
+			log.Printf("[WARN] Unknown operation type defined in timeout configuration: %s", op)
+		}
+	}
+	if result != nil {
+		return &Attribute{
+			Name:     "timeouts",
+			Timeouts: &TimeoutsAttribute{ConfigurableTimeouts: result},
+		}
+	}
+	return nil
 }

@@ -44,6 +44,7 @@ type Attribute struct {
 	Set          *SetAttribute
 	Int64        *Int64Attribute
 	SingleNested *SingleNestedAttribute
+	Timeouts     *TimeoutsAttribute
 
 	Description              *string
 	Name                     SnakeCaseString
@@ -98,6 +99,19 @@ type ListNestedAttribute struct {
 type NestedAttributeObject struct {
 	Attributes Attributes
 }
+
+type TimeoutsAttribute struct {
+	ConfigurableTimeouts []Operation
+}
+
+type Operation int
+
+const (
+	Create Operation = iota
+	Update
+	Read
+	Delete
+)
 
 type CustomDefault struct {
 	Definition string

@@ -32,7 +32,7 @@ resources:
             optional: true
             computed: true
       
-      timeouts: ["create", "read", "delete"]
+      timeouts: ["create", "update", "delete"]
   
   search_deployment:
     read:
@@ -45,4 +45,4 @@ resources:
       aliases:
         group_id: project_id
       ignores: ["links"]
-      timeouts: ["create", "read", "delete"]
+      timeouts: ["create", "update", "delete"]
