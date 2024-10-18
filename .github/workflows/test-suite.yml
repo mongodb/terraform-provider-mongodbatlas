@@ -39,7 +39,7 @@ concurrency:
   cancel-in-progress: false
    
 jobs:
-  versions:
+  variables:
     env:
       schedule_terraform_matrix: '["${{ vars.TF_VERSION_LATEST }}"]'
       schedule_provider_matrix: '[""]' # "" for latest version    
@@ -47,13 +47,6 @@ jobs:
     outputs:
       terraform_matrix: ${{ inputs.terraform_matrix || env.schedule_terraform_matrix }}
       provider_matrix: ${{ inputs.provider_matrix || env.schedule_provider_matrix }}
-    steps:
-      - if: false
-        run: echo jobs need steps
-
-  day_of_week:
-    runs-on: ubuntu-latest
-    outputs:
       day: ${{ steps.set_day.outputs.DAY }}
     steps:
       - name: set day
@@ -66,21 +59,21 @@ jobs:
     uses: ./.github/workflows/cleanup-test-env.yml
 
   tests:
-    needs: [clean-before, versions, day_of_week]
+    needs: [clean-before, variables]
     if: ${{ !cancelled() }}
     strategy:
       max-parallel: 1
       fail-fast: false
       matrix:
-        terraform_version: ${{ fromJSON(needs.versions.outputs.terraform_matrix) }}
-        provider_version: ${{ fromJSON(needs.versions.outputs.provider_matrix) }}
+        terraform_version: ${{ fromJSON(needs.variables.outputs.terraform_matrix) }}
+        provider_version: ${{ fromJSON(needs.variables.outputs.provider_matrix) }}
     name: tests-${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
-      atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.day_of_week.outputs.day == 'Sun' && 'qa' }}
+      atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.day == 'Sun' && 'qa' }}
 
   clean-after:
     needs: tests
