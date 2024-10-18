@@ -3,9 +3,13 @@ package flexcluster
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	// "github.com/hashicorp/terraform-plugin-framework/types"
 	// "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -133,15 +137,27 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// TODO: parse req.ID string taking into account documented format. Example:
+	projectID, name, err := splitFlexClusterImportID(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError("error splitting import ID", err.Error())
+		return
+	}
 
-	// projectID, other, err := splitFlexClusterImportID(req.ID)
-	// if err != nil {
-	// 	resp.Diagnostics.AddError("error splitting import ID", err.Error())
-	// 	return
-	// }
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
+}
 
-	// TODO: define attributes that are required for read operation to work correctly. Example:
+func splitFlexClusterImportID(id string) (projectID, clusterName *string, err error) {
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
+	parts := re.FindStringSubmatch(id)
 
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
+	if len(parts) != 3 {
+		err = errors.New("import format error: to import a flex cluster, use the format {project_id}-{cluster_name}")
+		return
+	}
+
+	projectID = &parts[1]
+	clusterName = &parts[2]
+
+	return
 }
