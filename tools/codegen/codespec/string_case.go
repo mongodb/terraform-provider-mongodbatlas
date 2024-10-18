@@ -2,6 +2,8 @@ package codespec
 
 import (
 	"strings"
+
+	"github.com/huandu/xstrings"
 )
 
 type SnakeCaseString string
@@ -11,14 +13,7 @@ func (snake SnakeCaseString) SnakeCase() string {
 }
 
 func (snake SnakeCaseString) PascalCase() string {
-	words := strings.Split(string(snake), "_")
-	var pascalCase string
-	for i := range words {
-		if words[i] != "" {
-			pascalCase += strings.ToUpper(string(words[i][0])) + strings.ToLower(words[i][1:])
-		}
-	}
-	return pascalCase
+	return xstrings.ToCamelCase(string(snake)) // in xstrings v1.15.0 we can switch to using ToPascalCase for same functionality
 }
 
 func (snake SnakeCaseString) LowerCaseNoUnderscore() string {
