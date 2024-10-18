@@ -87,6 +87,12 @@ func TestConvertToProviderSpec(t *testing.T) {
 								ComputedOptionalRequired: codespec.Required,
 								Description:              conversion.StringPtr(testFieldDesc),
 							},
+							{
+								Name: "timeouts",
+								Timeouts: &codespec.TimeoutsAttribute{
+									ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Read, codespec.Delete},
+								},
+							},
 						},
 					},
 					Name: "test_resource",

@@ -12,3 +12,6 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/testResource
       method: DELETE
+
+    schema:
+      timeouts: ["create", "read", "delete"]

@@ -97,6 +97,8 @@ func attrModelType(attr *codespec.Attribute) string {
 		return "types.Number"
 	case attr.Int64 != nil:
 		return "types.Int64"
+	case attr.Timeouts != nil:
+		return "timeouts.Value" // TODO add import statement
 	// For nested attributes the generic type is used, this is to ensure the model can store all possible values. e.g. nested computed only attributes need to be defined with TPF types to avoid error when getting the config.
 	case attr.List != nil || attr.ListNested != nil:
 		return "types.List"
@@ -107,6 +109,6 @@ func attrModelType(attr *codespec.Attribute) string {
 	case attr.SingleNested != nil:
 		return "types.Object"
 	default:
-		panic("Attribute with unknown type defined")
+		panic("Attribute with unknown type defined when generating typed model")
 	}
 }

@@ -144,6 +144,22 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "nested-attributes",
 		},
+		"timeout attribute": {
+			inputModel: codespec.Resource{
+				Name: "test_name",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							Name: "timeouts",
+							Timeouts: &codespec.TimeoutsAttribute{
+								ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Read, codespec.Delete},
+							},
+						},
+					},
+				},
+			},
+			goldenFileName: "timeouts",
+		},
 	}
 
 	for testName, tc := range testCases {

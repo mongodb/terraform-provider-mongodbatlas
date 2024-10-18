@@ -221,3 +221,35 @@ func extractCommonParameters(paths *high.Paths, path string) ([]*high.Parameter,
 
 	return pathItem.Parameters, nil
 }
+
+func applyConfigSchemaOptions(resourceConfig config.Resource, resource *Resource) {
+	parseTimeoutConfig(resourceConfig, resource)
+}
+
+func parseTimeoutConfig(config config.Resource, resource *Resource) {
+	var result []Operation
+	for _, op := range config.SchemaOptions.Timeouts {
+		switch op {
+		case "create":
+			result = append(result, Create)
+		case "read":
+			result = append(result, Read)
+		case "delete":
+			result = append(result, Delete)
+		case "update":
+			result = append(result, Update)
+		default:
+			log.Printf("[WARN] Unknown operation type defined in timeout configuration: %s", op)
+		}
+	}
+	if result != nil {
+		existing := resource.Schema.Attributes
+		resource.Schema.Attributes = append(existing,
+			Attribute{
+				Name: "timeouts",
+				Timeouts: &TimeoutsAttribute{
+					ConfigurableTimeouts: result},
+			},
+		)
+	}
+}

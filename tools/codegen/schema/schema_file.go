@@ -11,9 +11,13 @@ func GenerateGoCode(input codespec.Resource) string {
 	schemaAttrs := GenerateSchemaAttributes(input.Schema.Attributes)
 	models := GenerateTypedModels(input.Schema.Attributes)
 
+	imports := []string{"github.com/hashicorp/terraform-plugin-framework/resource/schema"}
+	imports = append(imports, schemaAttrs.Imports...)
+	imports = append(imports, models.Imports...)
+
 	tmplInputs := codetemplate.SchemaFileInputs{
 		PackageName:      input.Name.LowerCaseNoUnderscore(),
-		Imports:          append(schemaAttrs.Imports, models.Imports...),
+		Imports:          imports,
 		SchemaAttributes: schemaAttrs.Code,
 		Models:           models.Code,
 	}
