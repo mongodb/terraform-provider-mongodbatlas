@@ -12,6 +12,7 @@ var schemaFileTemplate string
 type SchemaFileInputs struct {
 	PackageName      string
 	SchemaAttributes string
+	Models           string
 	Imports          []string
 }
 

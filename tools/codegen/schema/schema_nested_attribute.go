@@ -58,9 +58,9 @@ func getPropertyForNestedObj(nested codespec.NestedAttributeObject) CodeStatemen
 	attrs := GenerateSchemaAttributes(nested.Attributes)
 	attributeProperty := fmt.Sprintf(`Attributes: map[string]schema.Attribute{ 
 		%s 
-	}`, attrs.Result)
+	}`, attrs.Code)
 	return CodeStatement{
-		Result:  attributeProperty,
+		Code:    attributeProperty,
 		Imports: attrs.Imports,
 	}
 }

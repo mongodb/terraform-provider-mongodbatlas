@@ -7,7 +7,7 @@ func mergeAttributes(pathParams, createRequest, createResponse, readResponse Att
 	merged := make(map[string]*Attribute)
 
 	addOrUpdate := func(attr *Attribute, computability ComputedOptionalRequired) {
-		if existingAttr, exists := merged[attr.Name]; exists {
+		if existingAttr, exists := merged[attr.Name.SnakeCase()]; exists {
 			if existingAttr.Description == nil || *existingAttr.Description == "" {
 				existingAttr.Description = attr.Description
 			}
@@ -20,7 +20,7 @@ func mergeAttributes(pathParams, createRequest, createResponse, readResponse Att
 		} else {
 			newAttr := *attr
 			newAttr.ComputedOptionalRequired = computability
-			merged[attr.Name] = &newAttr
+			merged[attr.Name.SnakeCase()] = &newAttr
 		}
 	}
 
@@ -36,7 +36,7 @@ func mergeAttributes(pathParams, createRequest, createResponse, readResponse Att
 
 	// POST/GET response body: properties not in the request body are "computed" or "computed_optional" (if a default is present)
 	for i := range createResponse {
-		if _, exists := merged[createResponse[i].Name]; !exists {
+		if _, exists := merged[createResponse[i].Name.SnakeCase()]; !exists {
 			if isOptional(&createResponse[i]) {
 				addOrUpdate(&createResponse[i], ComputedOptional)
 			} else {
@@ -46,7 +46,7 @@ func mergeAttributes(pathParams, createRequest, createResponse, readResponse Att
 	}
 
 	for i := range readResponse {
-		if _, exists := merged[readResponse[i].Name]; !exists {
+		if _, exists := merged[readResponse[i].Name.SnakeCase()]; !exists {
 			if isOptional(&readResponse[i]) {
 				addOrUpdate(&readResponse[i], ComputedOptional)
 			} else {

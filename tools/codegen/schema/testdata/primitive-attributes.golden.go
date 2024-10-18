@@ -49,3 +49,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		},
 	}
 }
+
+type TFModel struct {
+	StringAttr     types.String  `tfsdk:"string_attr"`
+	BoolAttr       types.Bool    `tfsdk:"bool_attr"`
+	IntAttr        types.Int64   `tfsdk:"int_attr"`
+	FloatAttr      types.Float64 `tfsdk:"float_attr"`
+	NumberAttr     types.Number  `tfsdk:"number_attr"`
+	SimpleListAttr types.List    `tfsdk:"simple_list_attr"`
+	SimpleSetAttr  types.Set     `tfsdk:"simple_set_attr"`
+	SimpleMapAttr  types.Map     `tfsdk:"simple_map_attr"`
+}
