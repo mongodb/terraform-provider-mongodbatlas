@@ -250,7 +250,26 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
-			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
+			assert.Equal(t, tc.expectedtfModel, tfModel, "created TF model did not match expected output")
 		})
 	}
+}
+
+func TestNewAtlasCreateReq(t *testing.T) {
+	// testCases := map[string]tfToSDKModelTestCase{
+	// 	"Complete TF state": {
+	// 		tfModel:        &flexcluster.TFModel{},
+	// 		expectedSDKReq: &admin.FlexClusterDescriptionCreate20250101{},
+	// 	},
+	// }
+
+	// for testName, tc := range testCases {
+	// 	t.Run(testName, func(t *testing.T) {
+	// 		apiReqResult, diags := flexcluster.NewAtlasCreateReq(context.Background(), tc.tfModel)
+	// 		if diags.HasError() {
+	// 			t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+	// 		}
+	// 		assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
+	// 	})
+	// }
 }
