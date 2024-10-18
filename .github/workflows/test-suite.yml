@@ -1,6 +1,8 @@
 name: 'Test Suite'
 
-# Runs acceptance and migrations tests with a set of terraform versions and provider versions (used for migration tests). This worflow is scheduled daily except Saturdays, but can also be run manually.
+# Runs acceptance and migrations tests with a set of terraform versions and provider versions (used for migration tests). 
+# This worflow is scheduled daily and runs against dev every day except for Sunday when we run against QA. It can also be run manually.
+# The 1st day of the month we run terraform-compatibility-matrix.yml and therefore, we skip the test-suite (see shedule->cron below).
 on:
   workflow_dispatch:
     inputs:
