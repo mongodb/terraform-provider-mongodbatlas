@@ -1,4 +1,3 @@
-//nolint:gocritic
 package flexcluster
 
 import (
@@ -52,23 +51,9 @@ func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 
 func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescription20250101, diag.Diagnostics) {
 	createDateAsTime, _ := conversion.StringToTime(plan.CreateDate.ValueString())
-	var backupSettings TFBackupSettings
-	if diags := plan.BackupSettings.As(ctx, backupSettings, basetypes.ObjectAsOptions{}); diags.HasError() {
-		return nil, diags
-	}
-	var connectionStrings TFConnectionStrings
-	if diags := plan.ConnectionStrings.As(ctx, connectionStrings, basetypes.ObjectAsOptions{}); diags.HasError() {
-		return nil, diags
-	}
-	return &admin.FlexClusterDescription20250101{
-		BackupSettings: &admin.FlexBackupSettings20250101{
-			Enabled: backupSettings.Enabled.ValueBoolPointer(),
-		},
-		ClusterType: plan.ClusterType.ValueStringPointer(),
-		ConnectionStrings: &admin.FlexConnectionStrings20250101{
-			Standard:    connectionStrings.Standard.ValueStringPointer(),
-			StandardSrv: connectionStrings.StandardSrv.ValueStringPointer(),
-		},
+
+	updateRequest := &admin.FlexClusterDescription20250101{
+		ClusterType:    plan.ClusterType.ValueStringPointer(),
 		CreateDate:     &createDateAsTime,
 		GroupId:        plan.ProjectId.ValueStringPointer(),
 		Id:             plan.Id.ValueStringPointer(),
@@ -84,7 +69,30 @@ func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 		TerminationProtectionEnabled: plan.TerminationProtectionEnabled.ValueBoolPointer(),
 		Tags:                         newResourceTags(ctx, plan.Tags),
 		VersionReleaseSystem:         plan.VersionReleaseSystem.ValueStringPointer(),
-	}, nil
+	}
+
+	if !plan.BackupSettings.IsNull() && !plan.BackupSettings.IsUnknown() {
+		backupSettings := &TFBackupSettings{}
+		if diags := plan.BackupSettings.As(ctx, backupSettings, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		updateRequest.BackupSettings = &admin.FlexBackupSettings20250101{
+			Enabled: backupSettings.Enabled.ValueBoolPointer(),
+		}
+	}
+
+	if !plan.ConnectionStrings.IsNull() && !plan.ConnectionStrings.IsUnknown() {
+		connectionStrings := &TFConnectionStrings{}
+		if diags := plan.ConnectionStrings.As(ctx, connectionStrings, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		updateRequest.ConnectionStrings = &admin.FlexConnectionStrings20250101{
+			Standard:    connectionStrings.Standard.ValueStringPointer(),
+			StandardSrv: connectionStrings.StandardSrv.ValueStringPointer(),
+		}
+	}
+
+	return updateRequest, nil
 }
 
 func newProviderSettings(providerSettings admin.FlexProviderSettings20250101) TFProviderSettings {
