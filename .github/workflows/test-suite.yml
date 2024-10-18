@@ -33,9 +33,7 @@ on:
         default: true
 
   schedule:
-    # https://crontab.guru/#0_0_2-31_*_0
-    - cron: "0 0 2-31 * 1-6" # workflow runs at 00:00 on every day-of-month from 2 through 31 and on every day-of-week from Monday through Saturday.
-    - cron: "0 0 2-31 * 0" # workflow runs at 00:00 on every day-of-month from 2 through 31 and on Sunday.
+    - cron: "0 0 2-31 * *" # workflow runs every day at midnight UTC except on the first day of the month
    
 concurrency:
   group: '${{ github.workflow }}'
@@ -73,7 +71,7 @@ jobs:
     with:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
-      atlas_cloud_env: ${{ inputs.atlas_cloud_env || github.event.schedule == '0 0 2-31 * 0' && 'qa' || 'dev' }}
+      atlas_cloud_env: ${{ inputs.atlas_cloud_env }}
 
   clean-after:
     needs: tests
