@@ -1,22 +1,141 @@
-//nolint:gocritic
 package flexcluster
 
-// TODO: `ctx` parameter and `diags` return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
-// func NewTFModel(ctx context.Context, apiResp *admin.FlexCluster) (*TFModel, diag.Diagnostics) {
-// 	// complexAttr, diagnostics := types.ListValueFrom(ctx, InnerObjectType, newTFComplexAttrModel(apiResp.ComplexAttr))
-// 	// if diagnostics.HasError() {
-// 	// 	return nil, diagnostics
-// 	// }
-// 	return &TFModel{}, nil
-// }
+import (
+	"context"
 
-// TODO: If SDK defined different models for create and update separate functions will need to be defined.
-// TODO: `ctx` parameter and `diags` in return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
-// func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.FlexCluster, diag.Diagnostics) {
-//     // var tfList []complexArgumentData
-// 	// resp.Diagnostics.Append(plan.ComplexArgument.ElementsAs(ctx, &tfList, false)...)
-// 	// if resp.Diagnostics.HasError() {
-// 	// 	return nil, diagnostics
-// 	// }
-// 	return &admin.FlexCluster{}, nil
-// }
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+)
+
+func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription20250101) (*TFModel, diag.Diagnostics) {
+	connectionStrings, diags := ConvertConnectionStringsToTF(ctx, apiResp.ConnectionStrings)
+	if diags.HasError() {
+		return nil, diags
+	}
+	backupSettings, diags := ConvertBackupSettingsToTF(ctx, apiResp.BackupSettings)
+	if diags.HasError() {
+		return nil, diags
+	}
+	providerSettings, diags := ConvertProviderSettingsToTF(ctx, apiResp.ProviderSettings)
+	if diags.HasError() {
+		return nil, diags
+	}
+	return &TFModel{
+		ProviderSettings:             *providerSettings,
+		ConnectionStrings:            *connectionStrings,
+		Tags:                         newTFTags(apiResp.Tags),
+		CreateDate:                   types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreateDate)),
+		ProjectId:                    types.StringPointerValue(apiResp.GroupId),
+		Id:                           types.StringPointerValue(apiResp.Id),
+		MongoDbversion:               types.StringPointerValue(apiResp.MongoDBVersion),
+		Name:                         types.StringPointerValue(apiResp.Name),
+		ClusterType:                  types.StringPointerValue(apiResp.ClusterType),
+		StateName:                    types.StringPointerValue(apiResp.StateName),
+		VersionReleaseSystem:         types.StringPointerValue(apiResp.VersionReleaseSystem),
+		BackupSettings:               *backupSettings,
+		TerminationProtectionEnabled: types.BoolPointerValue(apiResp.TerminationProtectionEnabled),
+	}, nil
+}
+
+func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescriptionCreate20250101, diag.Diagnostics) {
+	providerSettings := &TFProviderSettings{}
+	if diags := plan.ProviderSettings.As(ctx, providerSettings, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
+	}
+	return &admin.FlexClusterDescriptionCreate20250101{
+		Name: plan.Name.ValueString(),
+		ProviderSettings: admin.FlexProviderSettingsCreate20250101{
+			BackingProviderName: providerSettings.BackingProviderName.ValueString(),
+			RegionName:          providerSettings.RegionName.ValueString(),
+		},
+		TerminationProtectionEnabled: plan.TerminationProtectionEnabled.ValueBoolPointer(),
+		Tags:                         newResourceTags(ctx, plan.Tags),
+	}, nil
+}
+
+func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescription20250101, diag.Diagnostics) {
+	updateRequest := &admin.FlexClusterDescription20250101{
+		TerminationProtectionEnabled: plan.TerminationProtectionEnabled.ValueBoolPointer(),
+		Tags:                         newResourceTags(ctx, plan.Tags),
+	}
+
+	return updateRequest, nil
+}
+
+func ConvertBackupSettingsToTF(ctx context.Context, backupSettings *admin.FlexBackupSettings20250101) (*types.Object, diag.Diagnostics) {
+	if backupSettings == nil {
+		backupSettingsTF := types.ObjectNull(BackupSettingsType.AttributeTypes())
+		return &backupSettingsTF, nil
+	}
+
+	backupSettingsTF := &TFBackupSettings{
+		Enabled: types.BoolPointerValue(backupSettings.Enabled),
+	}
+	backupSettingsObject, diags := types.ObjectValueFrom(ctx, BackupSettingsType.AttributeTypes(), backupSettingsTF)
+	if diags.HasError() {
+		return nil, diags
+	}
+	return &backupSettingsObject, nil
+}
+
+func ConvertConnectionStringsToTF(ctx context.Context, connectionStrings *admin.FlexConnectionStrings20250101) (*types.Object, diag.Diagnostics) {
+	if connectionStrings == nil {
+		connectionStringsTF := types.ObjectNull(ConnectionStringsType.AttributeTypes())
+		return &connectionStringsTF, nil
+	}
+
+	connectionStringsTF := &TFConnectionStrings{
+		Standard:    types.StringPointerValue(connectionStrings.Standard),
+		StandardSrv: types.StringPointerValue(connectionStrings.StandardSrv),
+	}
+	connectionStringsObject, diags := types.ObjectValueFrom(ctx, ConnectionStringsType.AttributeTypes(), connectionStringsTF)
+	if diags.HasError() {
+		return nil, diags
+	}
+	return &connectionStringsObject, nil
+}
+
+func ConvertProviderSettingsToTF(ctx context.Context, providerSettings admin.FlexProviderSettings20250101) (*types.Object, diag.Diagnostics) {
+	providerSettingsTF := &TFProviderSettings{
+		ProviderName:        types.StringPointerValue(providerSettings.ProviderName),
+		RegionName:          types.StringPointerValue(providerSettings.RegionName),
+		BackingProviderName: types.StringPointerValue(providerSettings.BackingProviderName),
+		DiskSizeGb:          types.Float64PointerValue(providerSettings.DiskSizeGB),
+	}
+	providerSettingsObject, diags := types.ObjectValueFrom(ctx, ProviderSettingsType.AttributeTypes(), providerSettingsTF)
+	if diags.HasError() {
+		return nil, diags
+	}
+	return &providerSettingsObject, nil
+}
+
+func newTFTags(tags *[]admin.ResourceTag) basetypes.MapValue {
+	if len(*tags) == 0 {
+		return types.MapNull(types.StringType)
+	}
+	typesTags := make(map[string]attr.Value, len(*tags))
+	for _, tag := range *tags {
+		typesTags[tag.Key] = types.StringValue(tag.Value)
+	}
+	return types.MapValueMust(types.StringType, typesTags)
+}
+
+func newResourceTags(ctx context.Context, tags types.Map) *[]admin.ResourceTag {
+	if tags.IsNull() || len(tags.Elements()) == 0 {
+		return &[]admin.ResourceTag{}
+	}
+	elements := make(map[string]types.String, len(tags.Elements()))
+	_ = tags.ElementsAs(ctx, &elements, false)
+	var tagsAdmin []admin.ResourceTag
+	for key, tagValue := range elements {
+		tagsAdmin = append(tagsAdmin, admin.ResourceTag{
+			Key:   key,
+			Value: tagValue.ValueString(),
+		})
+	}
+	return &tagsAdmin
+}

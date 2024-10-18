@@ -58,6 +58,7 @@
     {{ else if eq .Name "mongodbatlas_x509_authentication_database_user" }}
     {{ else if eq .Name "mongodbatlas_stream_processor" }}
     {{ else if eq .Name "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" }}
+    {{ else if eq .Name "mongodbatlas_flex_cluster" }}
     {{ else }}
         {{ tffile (printf "examples/%s/main.tf" .Name )}}
     {{ end }}
