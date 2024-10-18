@@ -348,7 +348,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, tc.inputResourceName)
+			result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 		})

@@ -65,7 +65,7 @@ func applyAlias(attr *Attribute, attrPathName *string, schemaOptions config.Sche
 			parts[i] = newName
 
 			if i == len(parts)-1 {
-				attr.Name = AttributeName(newName)
+				attr.Name = SnakeCaseString(newName)
 			}
 		}
 	}
