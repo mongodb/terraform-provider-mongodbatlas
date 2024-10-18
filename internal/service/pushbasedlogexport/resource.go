@@ -7,7 +7,7 @@ import (
 	"slices"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20240805005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -63,8 +63,6 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 			resp.Diagnostics.AddError("Error when unconfiguring push-based log export configuration", err.Error())
 			return
 		}
-
-		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -83,8 +81,6 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 			resp.Diagnostics.AddError("Error when unconfiguring push-based log export configuration", err.Error())
 			return
 		}
-
-		resp.State.RemoveResource(ctx)
 		return
 	}
 

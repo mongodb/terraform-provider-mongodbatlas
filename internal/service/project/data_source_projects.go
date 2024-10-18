@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20240805005/admin"
 )
 
 const projectsDataSourceName = "projects"
@@ -95,6 +95,9 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 							Computed: true,
 						},
 						"is_schema_advisor_enabled": schema.BoolAttribute{
+							Computed: true,
+						},
+						"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
 							Computed: true,
 						},
 						"region_usage_restrictions": schema.StringAttribute{
@@ -210,7 +213,7 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 	results := make([]*TFProjectDSModel, 0, len(input))
 	for i := range input {
 		project := input[i]
-		projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, project.GetId())
+		projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, project.GetId())
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
 			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, *projectProps)
 			diagnostics = append(diagnostics, diags...)

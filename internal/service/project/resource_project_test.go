@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"reflect"
@@ -11,8 +12,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
-	"go.mongodb.org/atlas-sdk/v20240805004/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805005/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -54,6 +55,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 		groupResponse       GroupSettingsResponse
 		ipAddressesResponse IPAddressesResponse
 		name                string
+		getManagedSlowMs    string
 		limitResponse       LimitsResponse
 		expectedError       bool
 	}{
@@ -106,12 +108,21 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			},
 			expectedError: true,
 		},
+		{
+			name:             "Fail to decode getManagedSlowMs response",
+			teamRoleReponse:  successfulTeamRoleResponse,
+			limitResponse:    successfulLimitsResponse,
+			groupResponse:    successfulGroupSettingsResponse,
+			getManagedSlowMs: "not_parsable",
+			expectedError:    true,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			teamsMock := mockadmin.NewTeamsApi(t)
 			projectsMock := mockadmin.NewProjectsApi(t)
+			perfMock := mockadmin.NewPerformanceAdvisorApi(t)
 
 			teamsMock.EXPECT().ListProjectTeams(mock.Anything, mock.Anything).Return(admin.ListProjectTeamsApiRequest{ApiService: teamsMock})
 			teamsMock.EXPECT().ListProjectTeamsExecute(mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
@@ -125,7 +136,15 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			projectsMock.EXPECT().ReturnAllIPAddresses(mock.Anything, mock.Anything).Return(admin.ReturnAllIPAddressesApiRequest{ApiService: projectsMock}).Maybe()
 			projectsMock.EXPECT().ReturnAllIPAddressesExecute(mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
 
-			_, err := project.GetProjectPropsFromAPI(context.Background(), projectsMock, teamsMock, dummyProjectID)
+			perfMock.EXPECT().GetManagedSlowMs(mock.Anything, mock.Anything).Return(admin.GetManagedSlowMsApiRequest{ApiService: perfMock}).Maybe()
+			managedSlowMsJSON := tc.getManagedSlowMs
+			if managedSlowMsJSON == "" {
+				managedSlowMsJSON = "true"
+			}
+			readGetManagedSlowMsResponse := http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(managedSlowMsJSON))}
+			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(&readGetManagedSlowMsResponse, nil).Maybe()
+
+			_, err := project.GetProjectPropsFromAPI(context.Background(), projectsMock, teamsMock, perfMock, dummyProjectID)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -509,10 +528,11 @@ func TestAccProject_basic(t *testing.T) {
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
 	commonChecks := map[string]string{
-		"name":          projectName,
-		"org_id":        orgID,
-		"cluster_count": "0",
-		"teams.#":       "2",
+		"name":                                   projectName,
+		"org_id":                                 orgID,
+		"cluster_count":                          "0",
+		"teams.#":                                "2",
+		"is_slow_operation_thresholding_enabled": "true",
 	}
 	commonSetChecks := []string{
 		"ip_addresses.services.clusters.#",
@@ -530,7 +550,7 @@ func TestAccProject_basic(t *testing.T) {
 	checks = acc.AddAttrSetChecks(dataSourceNameByID, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceNameByName, checks, commonSetChecks...)
 	checks = append(checks, checkExists(resourceName), checkExists(dataSourceNameByID), checkExists(dataSourceNameByName))
-	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#")
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#", "results.0.is_slow_operation_thresholding_enabled")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },
@@ -549,6 +569,7 @@ func TestAccProject_basic(t *testing.T) {
 							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
+					conversion.Pointer(true),
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(checks...),
 			},
@@ -568,6 +589,7 @@ func TestAccProject_basic(t *testing.T) {
 							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
+					conversion.Pointer(false),
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -575,11 +597,11 @@ func TestAccProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", "0"),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "is_slow_operation_thresholding_enabled", "false"),
 				),
 			},
 			{
 				Config: configBasic(orgID, projectName, projectOwnerID, false,
-
 					[]*admin.TeamRole{
 						{
 							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
@@ -590,6 +612,7 @@ func TestAccProject_basic(t *testing.T) {
 							RoleNames: &[]string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
+					nil,
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -597,6 +620,7 @@ func TestAccProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", "0"),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "is_slow_operation_thresholding_enabled", "false"),
 				),
 			},
 			{
@@ -769,6 +793,7 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 							RoleNames: &[]string{"GROUP_OWNER", "GROUP_READ_ONLY"},
 						},
 					},
+					nil,
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -780,7 +805,7 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(orgID, projectName, "", false, nil),
+				Config: configBasic(orgID, projectName, "", false, nil, nil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "teams.#", "0"),
@@ -1098,7 +1123,7 @@ func checkExistsWithConn(resourceName string, conn *admin.APIClient) resource.Te
 	}
 }
 
-func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bool, teams []*admin.TeamRole) string {
+func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bool, teams []*admin.TeamRole, includeIsSlowOperationThresholdingEnabled *bool) string {
 	var dataSourceStr string
 	if includeDataSource {
 		dataSourceStr = `
@@ -1118,6 +1143,9 @@ func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bo
 	var additionalStr string
 	if projectOwnerID != "" {
 		additionalStr = fmt.Sprintf("project_owner_id = %q\n", projectOwnerID)
+	}
+	if includeIsSlowOperationThresholdingEnabled != nil {
+		additionalStr += fmt.Sprintf("is_slow_operation_thresholding_enabled = %t\n", *includeIsSlowOperationThresholdingEnabled)
 	}
 
 	for _, t := range teams {

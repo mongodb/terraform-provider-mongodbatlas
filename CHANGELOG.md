@@ -4,7 +4,15 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
 * data-source/mongodbatlas_advanced_clusters: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
+* data-source/mongodbatlas_project: Adds `is_slow_operation_thresholding_enabled` attribute ([#2698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2698))
+* data-source/mongodbatlas_projects: Adds `is_slow_operation_thresholding_enabled` attribute ([#2698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2698))
 * resource/mongodbatlas_advanced_cluster: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
+* resource/mongodbatlas_project: Adds `is_slow_operation_thresholding_enabled` attribute ([#2698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2698))
+
+BUG FIXES:
+
+* resource/mongodbatlas_event_trigger: Always includes `disabled` in the PUT payload ([#2690](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2690))
+* resource/mongodbatlas_organization: Avoids inconsistent result returned by provider when `USER_NOT_FOUND` ([#2684](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2684))
 
 ## 1.21.1 (October 09, 2024)
 

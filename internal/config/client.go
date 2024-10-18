@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
+	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20240805005/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -32,6 +33,7 @@ type MongoDBClient struct {
 	Atlas           *matlasClient.Client
 	AtlasV2         *admin.APIClient
 	AtlasV220240530 *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes
+	AtlasPreview    *adminpreview.APIClient  // used for preview features, don't use in resources exposed in the provider list
 	Config          *Config
 }
 
@@ -110,13 +112,18 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		return nil, err
 	}
 
+	sdkPreviewClient, err := c.newSDKPreviewClient(client)
+	if err != nil {
+		return nil, err
+	}
+
 	clients := &MongoDBClient{
 		Atlas:           atlasClient,
 		AtlasV2:         sdkV2Client,
 		AtlasV220240530: sdkV220240530Client,
+		AtlasPreview:    sdkPreviewClient,
 		Config:          c,
 	}
-
 	return clients, nil
 }
 
@@ -127,13 +134,11 @@ func (c *Config) newSDKV2Client(client *http.Client) (*admin.APIClient, error) {
 		admin.UseBaseURL(c.BaseURL),
 		admin.UseDebug(false)}
 
-	// Initialize the MongoDB Versioned Atlas Client.
-	sdkv2, err := admin.NewClient(opts...)
+	sdk, err := admin.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}
-
-	return sdkv2, nil
+	return sdk, nil
 }
 
 func (c *Config) newSDKV220240530Client(client *http.Client) (*admin20240530.APIClient, error) {
@@ -143,13 +148,25 @@ func (c *Config) newSDKV220240530Client(client *http.Client) (*admin20240530.API
 		admin20240530.UseBaseURL(c.BaseURL),
 		admin20240530.UseDebug(false)}
 
-	// Initialize the MongoDB Versioned Atlas Client.
-	sdkv2, err := admin20240530.NewClient(opts...)
+	sdk, err := admin20240530.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}
+	return sdk, nil
+}
 
-	return sdkv2, nil
+func (c *Config) newSDKPreviewClient(client *http.Client) (*adminpreview.APIClient, error) {
+	opts := []adminpreview.ClientModifier{
+		adminpreview.UseHTTPClient(client),
+		adminpreview.UseUserAgent(userAgent(c)),
+		adminpreview.UseBaseURL(c.BaseURL),
+		adminpreview.UseDebug(false)}
+
+	sdk, err := adminpreview.NewClient(opts...)
+	if err != nil {
+		return nil, err
+	}
+	return sdk, nil
 }
 
 func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {

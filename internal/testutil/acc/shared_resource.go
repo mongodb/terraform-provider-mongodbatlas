@@ -85,7 +85,7 @@ func ClusterNameExecution(tb testing.TB) (projectID, clusterName string) {
 	return sharedInfo.projectID, sharedInfo.clusterName
 }
 
-// SerialSleep waits a few seconds so clusters are not created concurrently in the execution project, see HELP-65223.
+// SerialSleep waits a few seconds the first time so the first cluster in a project is not created concurrently, see HELP-65223.
 // This must be called once the test is marked as parallel, e.g. in PreCheck inside Terraform tests.
 func SerialSleep(tb testing.TB) {
 	tb.Helper()
@@ -94,7 +94,12 @@ func SerialSleep(tb testing.TB) {
 
 	sharedInfo.muSleep.Lock()
 	defer sharedInfo.muSleep.Unlock()
-	time.Sleep(10 * time.Second)
+
+	sharedInfo.testCount++
+	// SerialSleep is called in tests before they create the cluster, so wait in the second test after the first cluster is being created before creating the second cluster
+	if sharedInfo.testCount == 2 {
+		time.Sleep(5 * time.Second)
+	}
 }
 
 var sharedInfo = struct {
@@ -103,5 +108,6 @@ var sharedInfo = struct {
 	clusterName string
 	mu          sync.Mutex
 	muSleep     sync.Mutex
+	testCount   int
 	init        bool
 }{}
