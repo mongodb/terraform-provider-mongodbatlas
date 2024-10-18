@@ -12,3 +12,5 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
       method: DELETE
+    schema:
+      ignores: ["outer_object"]
