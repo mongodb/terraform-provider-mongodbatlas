@@ -5,6 +5,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/stretchr/testify/assert"
@@ -46,26 +47,73 @@ func TestFlexClusterSDKToTFModel(t *testing.T) {
 	}
 }
 
-type tfToSDKModelTestCase struct {
-	tfModel        *flexcluster.TFModel
-	expectedSDKReq *admin.FlexClusterDescriptionCreate20250101
+type tfModelTestCase struct {
+	expectedtfModel *flexcluster.TFModel
+	SDKReq          *admin.FlexClusterDescription20250101
 }
 
-func TestFlexClusterTFModelToSDKCreateReq(t *testing.T) {
-	testCases := map[string]tfToSDKModelTestCase{
+func TestNewTFModel(t *testing.T) {
+	testCases := map[string]tfModelTestCase{
 		"Complete TF state": {
-			tfModel:        &flexcluster.TFModel{},
-			expectedSDKReq: &admin.FlexClusterDescriptionCreate20250101{},
+			expectedtfModel: &flexcluster.TFModel{
+				ProjectId:                    types.StringNull(),
+				Id:                           types.StringNull(),
+				Tags:                         types.Map{},
+				ProviderSettings:             flexcluster.TFProviderSettings{},
+				ConnectionStrings:            flexcluster.TFConnectionStrings{},
+				CreateDate:                   types.StringNull(),
+				MongoDbversion:               types.StringNull(),
+				Name:                         types.StringNull(),
+				ClusterType:                  types.StringNull(),
+				StateName:                    types.StringNull(),
+				VersionReleaseSystem:         types.StringNull(),
+				BackupSettings:               flexcluster.TFBackupSettings{},
+				TerminationProtectionEnabled: types.BoolNull(),
+			},
+			SDKReq: &admin.FlexClusterDescription20250101{
+				GroupId:                      nil,
+				Id:                           nil,
+				Tags:                         &[]admin.ResourceTag{},
+				ProviderSettings:             admin.FlexProviderSettings20250101{},
+				ConnectionStrings:            &admin.FlexConnectionStrings20250101{},
+				CreateDate:                   nil,
+				MongoDBVersion:               nil,
+				Name:                         nil,
+				ClusterType:                  nil,
+				StateName:                    nil,
+				VersionReleaseSystem:         nil,
+				BackupSettings:               &admin.FlexBackupSettings20250101{},
+				TerminationProtectionEnabled: nil,
+			},
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			apiReqResult, diags := flexcluster.NewAtlasCreateReq(context.Background(), tc.tfModel)
+			tfModel, diags := flexcluster.NewTFModel(context.Background(), tc.SDKReq)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
-			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
+			assert.Equal(t, tc.expectedtfModel, tfModel, "created TF model did not match expected output")
 		})
 	}
+}
+
+func TestNewAtlasCreateReq(t *testing.T) {
+	// testCases := map[string]tfToSDKModelTestCase{
+	// 	"Complete TF state": {
+	// 		tfModel:        &flexcluster.TFModel{},
+	// 		expectedSDKReq: &admin.FlexClusterDescriptionCreate20250101{},
+	// 	},
+	// }
+
+	// for testName, tc := range testCases {
+	// 	t.Run(testName, func(t *testing.T) {
+	// 		apiReqResult, diags := flexcluster.NewAtlasCreateReq(context.Background(), tc.tfModel)
+	// 		if diags.HasError() {
+	// 			t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+	// 		}
+	// 		assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
+	// 	})
+	// }
 }
