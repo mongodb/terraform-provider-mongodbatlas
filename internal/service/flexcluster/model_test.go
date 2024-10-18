@@ -32,6 +32,13 @@ var (
 	standardSrvConnectionString  = "mongodb+srv://localhost:27017"
 	key1                         = "key1"
 	value1                       = "value1"
+	connectionStringsObject, _   = flexcluster.ConvertConnectionStringsToTF(context.Background(), &admin.FlexConnectionStrings20250101{
+		Standard:    &standardConnectionString,
+		StandardSrv: &standardSrvConnectionString,
+	})
+	backupSettingsObject, _ = flexcluster.ConvertBackupSettingsToTF(context.Background(), &admin.FlexBackupSettings20250101{
+		Enabled: conversion.Pointer(true),
+	})
 )
 
 type NewTFModelTestCase struct {
@@ -64,19 +71,14 @@ func TestNewTFModel(t *testing.T) {
 					BackingProviderName: types.StringValue(backingProviderName),
 					DiskSizeGb:          types.Float64Value(diskSizeGb),
 				},
-				ConnectionStrings: flexcluster.TFConnectionStrings{
-					Standard:    types.StringValue(standardConnectionString),
-					StandardSrv: types.StringValue(standardSrvConnectionString),
-				},
-				CreateDate:           types.StringValue(createDate),
-				MongoDbversion:       types.StringValue(mongoDBVersion),
-				Name:                 types.StringValue(name),
-				ClusterType:          types.StringValue(clusterType),
-				StateName:            types.StringValue(stateName),
-				VersionReleaseSystem: types.StringValue(versionReleaseSystem),
-				BackupSettings: flexcluster.TFBackupSettings{
-					Enabled: types.BoolValue(true),
-				},
+				ConnectionStrings:            *connectionStringsObject,
+				CreateDate:                   types.StringValue(createDate),
+				MongoDbversion:               types.StringValue(mongoDBVersion),
+				Name:                         types.StringValue(name),
+				ClusterType:                  types.StringValue(clusterType),
+				StateName:                    types.StringValue(stateName),
+				VersionReleaseSystem:         types.StringValue(versionReleaseSystem),
+				BackupSettings:               *backupSettingsObject,
 				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
 			},
 			input: &admin.FlexClusterDescription20250101{
@@ -116,14 +118,14 @@ func TestNewTFModel(t *testing.T) {
 				Id:                           types.StringNull(),
 				Tags:                         types.Map{},
 				ProviderSettings:             flexcluster.TFProviderSettings{},
-				ConnectionStrings:            flexcluster.TFConnectionStrings{},
+				ConnectionStrings:            types.ObjectNull(flexcluster.ConnectionStringsType.AttrTypes),
 				CreateDate:                   types.StringNull(),
 				MongoDbversion:               types.StringNull(),
 				Name:                         types.StringNull(),
 				ClusterType:                  types.StringNull(),
 				StateName:                    types.StringNull(),
 				VersionReleaseSystem:         types.StringNull(),
-				BackupSettings:               flexcluster.TFBackupSettings{},
+				BackupSettings:               types.ObjectNull(flexcluster.BackupSettingsType.AttrTypes),
 				TerminationProtectionEnabled: types.BoolNull(),
 			},
 			input: &admin.FlexClusterDescription20250101{
@@ -131,14 +133,14 @@ func TestNewTFModel(t *testing.T) {
 				Id:                           nil,
 				Tags:                         &[]admin.ResourceTag{},
 				ProviderSettings:             admin.FlexProviderSettings20250101{},
-				ConnectionStrings:            &admin.FlexConnectionStrings20250101{},
+				ConnectionStrings:            nil,
 				CreateDate:                   nil,
 				MongoDBVersion:               nil,
 				Name:                         nil,
 				ClusterType:                  nil,
 				StateName:                    nil,
 				VersionReleaseSystem:         nil,
-				BackupSettings:               &admin.FlexBackupSettings20250101{},
+				BackupSettings:               nil,
 				TerminationProtectionEnabled: nil,
 			},
 		},
@@ -170,19 +172,14 @@ func TestNewAtlasCreateReq(t *testing.T) {
 					BackingProviderName: types.StringValue(backingProviderName),
 					DiskSizeGb:          types.Float64Value(diskSizeGb),
 				},
-				ConnectionStrings: flexcluster.TFConnectionStrings{
-					Standard:    types.StringValue(standardConnectionString),
-					StandardSrv: types.StringValue(standardSrvConnectionString),
-				},
-				CreateDate:           types.StringValue(createDate),
-				MongoDbversion:       types.StringValue(mongoDBVersion),
-				Name:                 types.StringValue(name),
-				ClusterType:          types.StringValue(clusterType),
-				StateName:            types.StringValue(stateName),
-				VersionReleaseSystem: types.StringValue(versionReleaseSystem),
-				BackupSettings: flexcluster.TFBackupSettings{
-					Enabled: types.BoolValue(true),
-				},
+				ConnectionStrings:            *connectionStringsObject,
+				CreateDate:                   types.StringValue(createDate),
+				MongoDbversion:               types.StringValue(mongoDBVersion),
+				Name:                         types.StringValue(name),
+				ClusterType:                  types.StringValue(clusterType),
+				StateName:                    types.StringValue(stateName),
+				VersionReleaseSystem:         types.StringValue(versionReleaseSystem),
+				BackupSettings:               *backupSettingsObject,
 				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
 			},
 			expectedSDKReq: &admin.FlexClusterDescriptionCreate20250101{
@@ -228,19 +225,14 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 					BackingProviderName: types.StringValue(backingProviderName),
 					DiskSizeGb:          types.Float64Value(diskSizeGb),
 				},
-				ConnectionStrings: flexcluster.TFConnectionStrings{
-					Standard:    types.StringValue(standardConnectionString),
-					StandardSrv: types.StringValue(standardSrvConnectionString),
-				},
-				CreateDate:           types.StringValue(createDate),
-				MongoDbversion:       types.StringValue(mongoDBVersion),
-				Name:                 types.StringValue(name),
-				ClusterType:          types.StringValue(clusterType),
-				StateName:            types.StringValue(stateName),
-				VersionReleaseSystem: types.StringValue(versionReleaseSystem),
-				BackupSettings: flexcluster.TFBackupSettings{
-					Enabled: types.BoolValue(true),
-				},
+				ConnectionStrings:            *connectionStringsObject,
+				CreateDate:                   types.StringValue(createDate),
+				MongoDbversion:               types.StringValue(mongoDBVersion),
+				Name:                         types.StringValue(name),
+				ClusterType:                  types.StringValue(clusterType),
+				StateName:                    types.StringValue(stateName),
+				VersionReleaseSystem:         types.StringValue(versionReleaseSystem),
+				BackupSettings:               *backupSettingsObject,
 				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
 			},
 			expectedSDKReq: &admin.FlexClusterDescription20250101{

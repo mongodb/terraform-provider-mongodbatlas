@@ -13,17 +13,19 @@ import (
 )
 
 func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription20250101) (*TFModel, diag.Diagnostics) {
-	diags := &diag.Diagnostics{}
 	providerSettings := newProviderSettings(apiResp.ProviderSettings)
-	connectionStrings := newConnectionStrings(apiResp.ConnectionStrings)
-	tags := newTags(apiResp.Tags)
-	backupSettings := newBackupSettings(apiResp.BackupSettings)
+	connectionStrings, diags := ConvertConnectionStringsToTF(ctx, apiResp.ConnectionStrings)
 	if diags.HasError() {
-		return nil, *diags
+		return nil, diags
+	}
+	tags := newTags(apiResp.Tags)
+	backupSettings, diags := ConvertBackupSettingsToTF(ctx, apiResp.BackupSettings)
+	if diags.HasError() {
+		return nil, diags
 	}
 	return &TFModel{
 		ProviderSettings:             providerSettings,
-		ConnectionStrings:            connectionStrings,
+		ConnectionStrings:            *connectionStrings,
 		Tags:                         tags,
 		CreateDate:                   types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreateDate)),
 		ProjectId:                    types.StringPointerValue(apiResp.GroupId),
@@ -33,7 +35,7 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202501
 		ClusterType:                  types.StringPointerValue(apiResp.ClusterType),
 		StateName:                    types.StringPointerValue(apiResp.StateName),
 		VersionReleaseSystem:         types.StringPointerValue(apiResp.VersionReleaseSystem),
-		BackupSettings:               backupSettings,
+		BackupSettings:               *backupSettings,
 		TerminationProtectionEnabled: types.BoolPointerValue(apiResp.TerminationProtectionEnabled),
 	}, nil
 }
@@ -52,14 +54,22 @@ func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 
 func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescription20250101, diag.Diagnostics) {
 	createDateAsTime, _ := conversion.StringToTime(plan.CreateDate.ValueString())
+	var backupSettings TFBackupSettings
+	if diags := plan.BackupSettings.As(ctx, backupSettings, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
+	}
+	var connectionStrings TFConnectionStrings
+	if diags := plan.ConnectionStrings.As(ctx, connectionStrings, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
+	}
 	return &admin.FlexClusterDescription20250101{
 		BackupSettings: &admin.FlexBackupSettings20250101{
-			Enabled: plan.BackupSettings.Enabled.ValueBoolPointer(),
+			Enabled: backupSettings.Enabled.ValueBoolPointer(),
 		},
 		ClusterType: plan.ClusterType.ValueStringPointer(),
 		ConnectionStrings: &admin.FlexConnectionStrings20250101{
-			Standard:    plan.ConnectionStrings.Standard.ValueStringPointer(),
-			StandardSrv: plan.ConnectionStrings.StandardSrv.ValueStringPointer(),
+			Standard:    connectionStrings.Standard.ValueStringPointer(),
+			StandardSrv: connectionStrings.StandardSrv.ValueStringPointer(),
 		},
 		CreateDate:     &createDateAsTime,
 		GroupId:        plan.ProjectId.ValueStringPointer(),
@@ -88,14 +98,37 @@ func newProviderSettings(providerSettings admin.FlexProviderSettings20250101) TF
 	}
 }
 
-func newConnectionStrings(connectionStrings *admin.FlexConnectionStrings20250101) TFConnectionStrings {
-	if connectionStrings == nil {
-		return TFConnectionStrings{}
+func ConvertBackupSettingsToTF(ctx context.Context, backupSettings *admin.FlexBackupSettings20250101) (*types.Object, diag.Diagnostics) {
+	if backupSettings == nil {
+		backupSettingsTF := types.ObjectNull(BackupSettingsType.AttributeTypes())
+		return &backupSettingsTF, nil
 	}
-	return TFConnectionStrings{
+
+	backupSettingsTF := &TFBackupSettings{
+		Enabled: types.BoolPointerValue(backupSettings.Enabled),
+	}
+	backupSettingsObject, diags := types.ObjectValueFrom(ctx, BackupSettingsType.AttributeTypes(), backupSettingsTF)
+	if diags.HasError() {
+		return nil, diags
+	}
+	return &backupSettingsObject, nil
+}
+
+func ConvertConnectionStringsToTF(ctx context.Context, connectionStrings *admin.FlexConnectionStrings20250101) (*types.Object, diag.Diagnostics) {
+	if connectionStrings == nil {
+		connectionStringsTF := types.ObjectNull(ConnectionStringsType.AttributeTypes())
+		return &connectionStringsTF, nil
+	}
+
+	connectionStringsTF := &TFConnectionStrings{
 		Standard:    types.StringPointerValue(connectionStrings.Standard),
 		StandardSrv: types.StringPointerValue(connectionStrings.StandardSrv),
 	}
+	connectionStringsObject, diags := types.ObjectValueFrom(ctx, ConnectionStringsType.AttributeTypes(), connectionStringsTF)
+	if diags.HasError() {
+		return nil, diags
+	}
+	return &connectionStringsObject, nil
 }
 
 func newTags(tags *[]admin.ResourceTag) basetypes.MapValue {
@@ -107,15 +140,6 @@ func newTags(tags *[]admin.ResourceTag) basetypes.MapValue {
 		typesTags[tag.Key] = types.StringValue(tag.Value)
 	}
 	return types.MapValueMust(types.StringType, typesTags)
-}
-
-func newBackupSettings(backupSettings *admin.FlexBackupSettings20250101) TFBackupSettings {
-	if backupSettings == nil {
-		return TFBackupSettings{}
-	}
-	return TFBackupSettings{
-		Enabled: types.BoolPointerValue(backupSettings.Enabled),
-	}
 }
 
 func newResourceTags(ctx context.Context, tags types.Map) *[]admin.ResourceTag {
