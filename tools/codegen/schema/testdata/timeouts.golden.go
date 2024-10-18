@@ -1,4 +1,4 @@
-package test_name
+package testname
 
 import (
 	"context"
@@ -10,7 +10,11 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{}),
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Update: true,
+				Read:   true,
+			}),
 		},
 	}
 }

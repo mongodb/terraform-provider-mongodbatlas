@@ -26,38 +26,17 @@ type attributeGenerator interface {
 	AttributeCode() CodeStatement
 }
 
-type TimeoutAttributeGenerator struct {
-	timeouts codespec.TimeoutsAttribute
-}
-
-func (s *TimeoutAttributeGenerator) AttributeCode() CodeStatement {
-	var optionProperties string
-	for op := range s.timeouts.ConfigurableTimeouts {
-		switch op {
-		case int(codespec.Create):
-			optionProperties += "Create: true,"
-		case int(codespec.Update):
-			optionProperties += "Update: true,"
-		case int(codespec.Delete):
-			optionProperties += "Delete: true,"
-		case int(codespec.Read):
-			optionProperties += "Read: true,"
-		}
-	}
-	return CodeStatement{
-		Code: fmt.Sprintf(`"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-			%s
-		})`, optionProperties),
-		Imports: []string{"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"},
-	}
-}
-
-type ConventionalAttributeGenerator struct {
+type conventionalAttributeGenerator struct {
 	typeSpecificCode convetionalTypeSpecificCodeGenerator
 	attribute        codespec.Attribute
 }
 
-func (s *ConventionalAttributeGenerator) AttributeCode() CodeStatement {
+type convetionalTypeSpecificCodeGenerator interface {
+	TypeDefinition() string
+	TypeSpecificProperties() []CodeStatement
+}
+
+func (s *conventionalAttributeGenerator) AttributeCode() CodeStatement {
 	typeDefinition := s.typeSpecificCode.TypeDefinition()
 	additionalPropertyStatements := s.typeSpecificCode.TypeSpecificProperties()
 
@@ -99,86 +78,83 @@ func commonProperties(attr *codespec.Attribute) []string {
 	return result
 }
 
-type convetionalTypeSpecificCodeGenerator interface {
-	TypeDefinition() string
-	TypeSpecificProperties() []CodeStatement
-}
-
 func generator(attr *codespec.Attribute) attributeGenerator {
 	if attr.Int64 != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &Int64AttrGenerator{model: *attr.Int64},
 			attribute:        *attr,
 		}
 	}
 	if attr.Float64 != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &Float64AttrGenerator{model: *attr.Float64},
 			attribute:        *attr,
 		}
 	}
 	if attr.String != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &StringAttrGenerator{model: *attr.String},
 			attribute:        *attr,
 		}
 	}
 	if attr.Bool != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &BoolAttrGenerator{model: *attr.Bool},
 			attribute:        *attr,
 		}
 	}
 	if attr.List != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &ListAttrGenerator{model: *attr.List},
 			attribute:        *attr,
 		}
 	}
 	if attr.ListNested != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &ListNestedAttrGenerator{model: *attr.ListNested},
 			attribute:        *attr,
 		}
 	}
 	if attr.Map != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &MapAttrGenerator{model: *attr.Map},
 			attribute:        *attr,
 		}
 	}
 	if attr.MapNested != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &MapNestedAttrGenerator{model: *attr.MapNested},
 			attribute:        *attr,
 		}
 	}
 	if attr.Number != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &NumberAttrGenerator{model: *attr.Number},
 			attribute:        *attr,
 		}
 	}
 	if attr.Set != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &SetAttrGenerator{model: *attr.Set},
 			attribute:        *attr,
 		}
 	}
 	if attr.SetNested != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &SetNestedGenerator{model: *attr.SetNested},
 			attribute:        *attr,
 		}
 	}
 	if attr.SingleNested != nil {
-		return &ConventionalAttributeGenerator{
+		return &conventionalAttributeGenerator{
 			typeSpecificCode: &SingleNestedAttrGenerator{model: *attr.SingleNested},
 			attribute:        *attr,
 		}
 	}
 	if attr.Timeouts != nil {
-		return &TimeoutAttributeGenerator{}
+		return &timeoutAttributeGenerator{
+			timeouts: *attr.Timeouts,
+		}
 	}
 	panic("Attribute with unknown type defined when generating schema attribute")
 }
