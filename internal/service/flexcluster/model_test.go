@@ -38,6 +38,12 @@ var (
 	backupSettingsObject, _ = flexcluster.ConvertBackupSettingsToTF(context.Background(), &admin.FlexBackupSettings20250101{
 		Enabled: conversion.Pointer(true),
 	})
+	providerSettingsObject, _ = flexcluster.ConvertProviderSettingsToTF(context.Background(), admin.FlexProviderSettings20250101{
+		ProviderName:        &providerName,
+		RegionName:          &regionName,
+		BackingProviderName: &backingProviderName,
+		DiskSizeGB:          &diskSizeGb,
+	})
 )
 
 type NewTFModelTestCase struct {
@@ -56,6 +62,13 @@ type NewAtlasUpdateReqTestCase struct {
 }
 
 func TestNewTFModel(t *testing.T) {
+	providerSettingsTF := &flexcluster.TFProviderSettings{
+		ProviderName:        types.StringNull(),
+		RegionName:          types.StringNull(),
+		BackingProviderName: types.StringNull(),
+		DiskSizeGb:          types.Float64Null(),
+	}
+	nilProviderSettingsObject, _ := types.ObjectValueFrom(context.Background(), flexcluster.ProviderSettingsType.AttributeTypes(), providerSettingsTF)
 	testCases := map[string]NewTFModelTestCase{
 		"Complete TF state": {
 			expectedTFModel: &flexcluster.TFModel{
@@ -64,12 +77,7 @@ func TestNewTFModel(t *testing.T) {
 				Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
 					key1: types.StringValue(value1),
 				}),
-				ProviderSettings: flexcluster.TFProviderSettings{
-					ProviderName:        types.StringValue(providerName),
-					RegionName:          types.StringValue(regionName),
-					BackingProviderName: types.StringValue(backingProviderName),
-					DiskSizeGb:          types.Float64Value(diskSizeGb),
-				},
+				ProviderSettings:             *providerSettingsObject,
 				ConnectionStrings:            *connectionStringsObject,
 				CreateDate:                   types.StringValue(createDate),
 				MongoDbversion:               types.StringValue(mongoDBVersion),
@@ -116,7 +124,7 @@ func TestNewTFModel(t *testing.T) {
 				ProjectId:                    types.StringNull(),
 				Id:                           types.StringNull(),
 				Tags:                         types.Map{},
-				ProviderSettings:             flexcluster.TFProviderSettings{},
+				ProviderSettings:             nilProviderSettingsObject,
 				ConnectionStrings:            types.ObjectNull(flexcluster.ConnectionStringsType.AttrTypes),
 				CreateDate:                   types.StringNull(),
 				MongoDbversion:               types.StringNull(),
@@ -165,12 +173,7 @@ func TestNewAtlasCreateReq(t *testing.T) {
 				Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
 					key1: types.StringValue(value1),
 				}),
-				ProviderSettings: flexcluster.TFProviderSettings{
-					ProviderName:        types.StringValue(providerName),
-					RegionName:          types.StringValue(regionName),
-					BackingProviderName: types.StringValue(backingProviderName),
-					DiskSizeGb:          types.Float64Value(diskSizeGb),
-				},
+				ProviderSettings:             *providerSettingsObject,
 				ConnectionStrings:            *connectionStringsObject,
 				CreateDate:                   types.StringValue(createDate),
 				MongoDbversion:               types.StringValue(mongoDBVersion),
@@ -218,12 +221,7 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 				Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
 					key1: types.StringValue(value1),
 				}),
-				ProviderSettings: flexcluster.TFProviderSettings{
-					ProviderName:        types.StringValue(providerName),
-					RegionName:          types.StringValue(regionName),
-					BackingProviderName: types.StringValue(backingProviderName),
-					DiskSizeGb:          types.Float64Value(diskSizeGb),
-				},
+				ProviderSettings:             *providerSettingsObject,
 				ConnectionStrings:            *connectionStringsObject,
 				CreateDate:                   types.StringValue(createDate),
 				MongoDbversion:               types.StringValue(mongoDBVersion),

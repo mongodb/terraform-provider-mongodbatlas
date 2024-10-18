@@ -105,19 +105,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	ProviderSettings             TFProviderSettings `tfsdk:"provider_settings"`
-	ConnectionStrings            types.Object       `tfsdk:"connection_strings"`
-	Tags                         types.Map          `tfsdk:"tags"`
-	CreateDate                   types.String       `tfsdk:"create_date"`
-	ProjectId                    types.String       `tfsdk:"project_id"`
-	Id                           types.String       `tfsdk:"id"`
-	MongoDbversion               types.String       `tfsdk:"mongo_db_version"`
-	Name                         types.String       `tfsdk:"name"`
-	ClusterType                  types.String       `tfsdk:"cluster_type"`
-	StateName                    types.String       `tfsdk:"state_name"`
-	VersionReleaseSystem         types.String       `tfsdk:"version_release_system"`
-	BackupSettings               types.Object       `tfsdk:"backup_settings"`
-	TerminationProtectionEnabled types.Bool         `tfsdk:"termination_protection_enabled"`
+	ProviderSettings             types.Object `tfsdk:"provider_settings"`
+	ConnectionStrings            types.Object `tfsdk:"connection_strings"`
+	Tags                         types.Map    `tfsdk:"tags"`
+	CreateDate                   types.String `tfsdk:"create_date"`
+	ProjectId                    types.String `tfsdk:"project_id"`
+	Id                           types.String `tfsdk:"id"`
+	MongoDbversion               types.String `tfsdk:"mongo_db_version"`
+	Name                         types.String `tfsdk:"name"`
+	ClusterType                  types.String `tfsdk:"cluster_type"`
+	StateName                    types.String `tfsdk:"state_name"`
+	VersionReleaseSystem         types.String `tfsdk:"version_release_system"`
+	BackupSettings               types.Object `tfsdk:"backup_settings"`
+	TerminationProtectionEnabled types.Bool   `tfsdk:"termination_protection_enabled"`
 }
 
 type TFBackupSettings struct {

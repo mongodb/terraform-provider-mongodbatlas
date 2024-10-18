@@ -20,8 +20,12 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202501
 	if diags.HasError() {
 		return nil, diags
 	}
+	providerSettings, diags := ConvertProviderSettingsToTF(ctx, apiResp.ProviderSettings)
+	if diags.HasError() {
+		return nil, diags
+	}
 	return &TFModel{
-		ProviderSettings:             newProviderSettings(apiResp.ProviderSettings),
+		ProviderSettings:             *providerSettings,
 		ConnectionStrings:            *connectionStrings,
 		Tags:                         newTFTags(apiResp.Tags),
 		CreateDate:                   types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreateDate)),
@@ -38,11 +42,15 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202501
 }
 
 func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescriptionCreate20250101, diag.Diagnostics) {
+	providerSettings := &TFProviderSettings{}
+	if diags := plan.ProviderSettings.As(ctx, providerSettings, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
+	}
 	return &admin.FlexClusterDescriptionCreate20250101{
 		Name: plan.Name.ValueString(),
 		ProviderSettings: admin.FlexProviderSettingsCreate20250101{
-			BackingProviderName: plan.ProviderSettings.BackingProviderName.ValueString(),
-			RegionName:          plan.ProviderSettings.RegionName.ValueString(),
+			BackingProviderName: providerSettings.BackingProviderName.ValueString(),
+			RegionName:          providerSettings.RegionName.ValueString(),
 		},
 		TerminationProtectionEnabled: plan.TerminationProtectionEnabled.ValueBoolPointer(),
 		Tags:                         newResourceTags(ctx, plan.Tags),
@@ -56,15 +64,6 @@ func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 	}
 
 	return updateRequest, nil
-}
-
-func newProviderSettings(providerSettings admin.FlexProviderSettings20250101) TFProviderSettings {
-	return TFProviderSettings{
-		ProviderName:        types.StringPointerValue(providerSettings.ProviderName),
-		RegionName:          types.StringPointerValue(providerSettings.RegionName),
-		BackingProviderName: types.StringPointerValue(providerSettings.BackingProviderName),
-		DiskSizeGb:          types.Float64PointerValue(providerSettings.DiskSizeGB),
-	}
 }
 
 func ConvertBackupSettingsToTF(ctx context.Context, backupSettings *admin.FlexBackupSettings20250101) (*types.Object, diag.Diagnostics) {
@@ -98,6 +97,20 @@ func ConvertConnectionStringsToTF(ctx context.Context, connectionStrings *admin.
 		return nil, diags
 	}
 	return &connectionStringsObject, nil
+}
+
+func ConvertProviderSettingsToTF(ctx context.Context, providerSettings admin.FlexProviderSettings20250101) (*types.Object, diag.Diagnostics) {
+	providerSettingsTF := &TFProviderSettings{
+		ProviderName:        types.StringPointerValue(providerSettings.ProviderName),
+		RegionName:          types.StringPointerValue(providerSettings.RegionName),
+		BackingProviderName: types.StringPointerValue(providerSettings.BackingProviderName),
+		DiskSizeGb:          types.Float64PointerValue(providerSettings.DiskSizeGB),
+	}
+	providerSettingsObject, diags := types.ObjectValueFrom(ctx, ProviderSettingsType.AttributeTypes(), providerSettingsTF)
+	if diags.HasError() {
+		return nil, diags
+	}
+	return &providerSettingsObject, nil
 }
 
 func newTFTags(tags *[]admin.ResourceTag) basetypes.MapValue {
