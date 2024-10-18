@@ -12,14 +12,14 @@ import (
 	"strings"
 	"time"
 
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20240805005/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/spf13/cast"
+	adminpreview "go.mongodb.org/atlas-sdk/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20240805005/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -400,6 +400,11 @@ func schemaSpecs() *schema.Schema {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connPreview := meta.(*config.MongoDBClient).AtlasPreview
+	req := &adminpreview.FlexClusterDescriptionCreate20250101{}
+	resp, _, err := connPreview.FlexClustersApi.CreateFlexcluster(ctx, "1111", req).Execute()
+	_, _ = resp, err
+
 	if v, ok := d.GetOk("accept_data_risks_and_force_replica_set_reconfig"); ok {
 		if v.(string) != "" {
 			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
