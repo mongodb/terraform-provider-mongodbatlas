@@ -13,20 +13,18 @@ import (
 )
 
 func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription20250101) (*TFModel, diag.Diagnostics) {
-	providerSettings := newProviderSettings(apiResp.ProviderSettings)
 	connectionStrings, diags := ConvertConnectionStringsToTF(ctx, apiResp.ConnectionStrings)
 	if diags.HasError() {
 		return nil, diags
 	}
-	tags := newTags(apiResp.Tags)
 	backupSettings, diags := ConvertBackupSettingsToTF(ctx, apiResp.BackupSettings)
 	if diags.HasError() {
 		return nil, diags
 	}
 	return &TFModel{
-		ProviderSettings:             providerSettings,
+		ProviderSettings:             newProviderSettings(apiResp.ProviderSettings),
 		ConnectionStrings:            *connectionStrings,
-		Tags:                         tags,
+		Tags:                         newTFTags(apiResp.Tags),
 		CreateDate:                   types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreateDate)),
 		ProjectId:                    types.StringPointerValue(apiResp.GroupId),
 		Id:                           types.StringPointerValue(apiResp.Id),
@@ -131,9 +129,9 @@ func ConvertConnectionStringsToTF(ctx context.Context, connectionStrings *admin.
 	return &connectionStringsObject, nil
 }
 
-func newTags(tags *[]admin.ResourceTag) basetypes.MapValue {
-	if tags == nil || len(*tags) == 0 {
-		return basetypes.MapValue{}
+func newTFTags(tags *[]admin.ResourceTag) basetypes.MapValue {
+	if len(*tags) == 0 {
+		return types.MapNull(types.StringType)
 	}
 	typesTags := make(map[string]attr.Value, len(*tags))
 	for _, tag := range *tags {
