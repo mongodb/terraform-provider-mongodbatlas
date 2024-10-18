@@ -5,6 +5,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -52,9 +53,89 @@ type tfModelTestCase struct {
 	SDKReq          *admin.FlexClusterDescription20250101
 }
 
+var (
+	projectID                    = "projectId"
+	id                           = "id"
+	createDate                   = "2021-08-17T17:00:00Z"
+	mongoDBVersion               = "8.0"
+	name                         = "myCluster"
+	clusterType                  = "REPLICASET"
+	stateName                    = "IDLE"
+	versionReleaseSystem         = "LTS"
+	terminationProtectionEnabled = true
+	createDateTime, _            = conversion.StringToTime(createDate)
+	providerName                 = "AWS"
+	regionName                   = "us-east-1"
+	backingProviderName          = "AWS"
+	diskSizeGb                   = 100.0
+	standardConnectionString     = "mongodb://localhost:27017"
+	standardSrvConnectionString  = "mongodb+srv://localhost:27017"
+	key1                         = "key1"
+	value1                       = "value1"
+)
+
 func TestNewTFModel(t *testing.T) {
 	testCases := map[string]tfModelTestCase{
 		"Complete TF state": {
+			expectedtfModel: &flexcluster.TFModel{
+				ProjectId: types.StringValue(projectID),
+				Id:        types.StringValue(id),
+				Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
+					key1: types.StringValue(value1),
+				}),
+				ProviderSettings: flexcluster.TFProviderSettings{
+					ProviderName:        types.StringValue(providerName),
+					RegionName:          types.StringValue(regionName),
+					BackingProviderName: types.StringValue(backingProviderName),
+					DiskSizeGb:          types.Float64Value(diskSizeGb),
+				},
+				ConnectionStrings: flexcluster.TFConnectionStrings{
+					Standard:    types.StringValue(standardConnectionString),
+					StandardSrv: types.StringValue(standardSrvConnectionString),
+				},
+				CreateDate:           types.StringValue(createDate),
+				MongoDbversion:       types.StringValue(mongoDBVersion),
+				Name:                 types.StringValue(name),
+				ClusterType:          types.StringValue(clusterType),
+				StateName:            types.StringValue(stateName),
+				VersionReleaseSystem: types.StringValue(versionReleaseSystem),
+				BackupSettings: flexcluster.TFBackupSettings{
+					Enabled: types.BoolValue(true),
+				},
+				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
+			},
+			SDKReq: &admin.FlexClusterDescription20250101{
+				GroupId: &projectID,
+				Id:      &id,
+				Tags: &[]admin.ResourceTag{
+					{
+						Key:   key1,
+						Value: value1,
+					},
+				},
+				ProviderSettings: admin.FlexProviderSettings20250101{
+					ProviderName:        &providerName,
+					RegionName:          &regionName,
+					BackingProviderName: &backingProviderName,
+					DiskSizeGB:          &diskSizeGb,
+				},
+				ConnectionStrings: &admin.FlexConnectionStrings20250101{
+					Standard:    &standardConnectionString,
+					StandardSrv: &standardSrvConnectionString,
+				},
+				CreateDate:           &createDateTime,
+				MongoDBVersion:       &mongoDBVersion,
+				Name:                 &name,
+				ClusterType:          &clusterType,
+				StateName:            &stateName,
+				VersionReleaseSystem: &versionReleaseSystem,
+				BackupSettings: &admin.FlexBackupSettings20250101{
+					Enabled: conversion.Pointer(true),
+				},
+				TerminationProtectionEnabled: &terminationProtectionEnabled,
+			},
+		},
+		"Nil values": {
 			expectedtfModel: &flexcluster.TFModel{
 				ProjectId:                    types.StringNull(),
 				Id:                           types.StringNull(),
