@@ -13,46 +13,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
-type sdkToTFModelTestCase struct {
-	input           *admin.FlexClusterDescription20250101
-	expectedTFModel *flexcluster.TFModel
-}
-
-func TestFlexClusterSDKToTFModel(t *testing.T) {
-	time, _ := admin.StringToTime("2021-08-17T17:00:00Z")
-	testCases := map[string]sdkToTFModelTestCase{ // TODO: consider adding test cases to contemplate all possible API responses
-		"Complete SDK response": {
-			input: &admin.FlexClusterDescription20250101{
-				ClusterType:                  conversion.StringPtr("REPLICASET"),
-				CreateDate:                   conversion.Pointer(time),
-				GroupId:                      conversion.StringPtr("5f3b6d1b0b8e4f0e7b8f6b1b"),
-				Id:                           conversion.StringPtr("5f3b6d1b0b8e4f0e7b8f6b1c"),
-				MongoDBVersion:               conversion.StringPtr("8.0"),
-				Name:                         conversion.StringPtr("myCluster"),
-				StateName:                    conversion.StringPtr("IDLE"),
-				TerminationProtectionEnabled: conversion.Pointer(true),
-				VersionReleaseSystem:         conversion.StringPtr("LTS"),
-			},
-			expectedTFModel: &flexcluster.TFModel{},
-		},
-	}
-
-	for testName, tc := range testCases {
-		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := flexcluster.NewTFModel(context.Background(), tc.input)
-			if diags.HasError() {
-				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
-			}
-			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
-		})
-	}
-}
-
-type tfModelTestCase struct {
-	expectedtfModel *flexcluster.TFModel
-	SDKReq          *admin.FlexClusterDescription20250101
-}
-
 var (
 	projectID                    = "projectId"
 	id                           = "id"
@@ -74,10 +34,25 @@ var (
 	value1                       = "value1"
 )
 
+type NewTFModelTestCase struct {
+	input           *admin.FlexClusterDescription20250101
+	expectedTFModel *flexcluster.TFModel
+}
+
+type NewAtlasCreateReqTestCase struct {
+	input          *flexcluster.TFModel
+	expectedSDKReq *admin.FlexClusterDescriptionCreate20250101
+}
+
+type NewAtlasUpdateReqTestCase struct {
+	input          *flexcluster.TFModel
+	expectedSDKReq *admin.FlexClusterDescription20250101
+}
+
 func TestNewTFModel(t *testing.T) {
-	testCases := map[string]tfModelTestCase{
+	testCases := map[string]NewTFModelTestCase{
 		"Complete TF state": {
-			expectedtfModel: &flexcluster.TFModel{
+			expectedTFModel: &flexcluster.TFModel{
 				ProjectId: types.StringValue(projectID),
 				Id:        types.StringValue(id),
 				Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
@@ -104,7 +79,7 @@ func TestNewTFModel(t *testing.T) {
 				},
 				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
 			},
-			SDKReq: &admin.FlexClusterDescription20250101{
+			input: &admin.FlexClusterDescription20250101{
 				GroupId: &projectID,
 				Id:      &id,
 				Tags: &[]admin.ResourceTag{
@@ -136,7 +111,7 @@ func TestNewTFModel(t *testing.T) {
 			},
 		},
 		"Nil values": {
-			expectedtfModel: &flexcluster.TFModel{
+			expectedTFModel: &flexcluster.TFModel{
 				ProjectId:                    types.StringNull(),
 				Id:                           types.StringNull(),
 				Tags:                         types.Map{},
@@ -151,7 +126,7 @@ func TestNewTFModel(t *testing.T) {
 				BackupSettings:               flexcluster.TFBackupSettings{},
 				TerminationProtectionEnabled: types.BoolNull(),
 			},
-			SDKReq: &admin.FlexClusterDescription20250101{
+			input: &admin.FlexClusterDescription20250101{
 				GroupId:                      nil,
 				Id:                           nil,
 				Tags:                         &[]admin.ResourceTag{},
@@ -171,30 +146,88 @@ func TestNewTFModel(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			tfModel, diags := flexcluster.NewTFModel(context.Background(), tc.SDKReq)
+			tfModel, diags := flexcluster.NewTFModel(context.Background(), tc.input)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
-			assert.Equal(t, tc.expectedtfModel, tfModel, "created TF model did not match expected output")
+			assert.Equal(t, tc.expectedTFModel, tfModel, "created TF model did not match expected output")
 		})
 	}
 }
 
 func TestNewAtlasCreateReq(t *testing.T) {
-	// testCases := map[string]tfToSDKModelTestCase{
-	// 	"Complete TF state": {
-	// 		tfModel:        &flexcluster.TFModel{},
-	// 		expectedSDKReq: &admin.FlexClusterDescriptionCreate20250101{},
-	// 	},
-	// }
+	testCases := map[string]NewAtlasCreateReqTestCase{
+		"Complete TF state": {
+			input: &flexcluster.TFModel{
+				ProjectId: types.StringValue(projectID),
+				Id:        types.StringValue(id),
+				Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
+					key1: types.StringValue(value1),
+				}),
+				ProviderSettings: flexcluster.TFProviderSettings{
+					ProviderName:        types.StringValue(providerName),
+					RegionName:          types.StringValue(regionName),
+					BackingProviderName: types.StringValue(backingProviderName),
+					DiskSizeGb:          types.Float64Value(diskSizeGb),
+				},
+				ConnectionStrings: flexcluster.TFConnectionStrings{
+					Standard:    types.StringValue(standardConnectionString),
+					StandardSrv: types.StringValue(standardSrvConnectionString),
+				},
+				CreateDate:           types.StringValue(createDate),
+				MongoDbversion:       types.StringValue(mongoDBVersion),
+				Name:                 types.StringValue(name),
+				ClusterType:          types.StringValue(clusterType),
+				StateName:            types.StringValue(stateName),
+				VersionReleaseSystem: types.StringValue(versionReleaseSystem),
+				BackupSettings: flexcluster.TFBackupSettings{
+					Enabled: types.BoolValue(true),
+				},
+				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
+			},
+			expectedSDKReq: &admin.FlexClusterDescriptionCreate20250101{
+				Name: name,
+				Tags: &[]admin.ResourceTag{
+					{
+						Key:   key1,
+						Value: value1,
+					},
+				},
+				ProviderSettings: admin.FlexProviderSettingsCreate20250101{
+					RegionName:          regionName,
+					BackingProviderName: backingProviderName,
+				},
+				TerminationProtectionEnabled: &terminationProtectionEnabled,
+			},
+		},
+	}
 
-	// for testName, tc := range testCases {
-	// 	t.Run(testName, func(t *testing.T) {
-	// 		apiReqResult, diags := flexcluster.NewAtlasCreateReq(context.Background(), tc.tfModel)
-	// 		if diags.HasError() {
-	// 			t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
-	// 		}
-	// 		assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
-	// 	})
-	// }
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			apiReqResult, diags := flexcluster.NewAtlasCreateReq(context.Background(), tc.input)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
+		})
+	}
+}
+
+func TestNewAtlasUpdateReq(t *testing.T) {
+	testCases := map[string]NewAtlasUpdateReqTestCase{
+		"Complete TF state": {
+			input:          &flexcluster.TFModel{},
+			expectedSDKReq: &admin.FlexClusterDescription20250101{},
+		},
+	}
+
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			apiReqResult, diags := flexcluster.NewAtlasUpdateReq(context.Background(), tc.input)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
+		})
+	}
 }
