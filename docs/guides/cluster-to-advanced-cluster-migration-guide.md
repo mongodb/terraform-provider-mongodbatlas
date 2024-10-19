@@ -6,6 +6,8 @@ page_title: "Migration Guide: Cluster to Advanced Cluster"
 
 **Objective**: This guide explains how to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource. The data source(s) migration only requires [output changes](#output-changes) as data sources only read clusters.
 
+**Note**: In addition to below options, we are also actively exploring additional migration paths that do not involve Terraform State modifications. If interested to learn more or to test out directly please contact zuhair.ahmed@mongodb.com.
+
 ## Main Changes Between `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`
 
 1. Replication Spec Configuration: Supports different node types (electable, analytics, read_only) where hardware configuration can differ between node types.
