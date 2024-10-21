@@ -3,97 +3,73 @@ package schema
 import "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 
 type Int64AttrGenerator struct {
-	model codespec.Int64Attribute
+	intModel codespec.Int64Attribute
+	attr     codespec.Attribute
 }
 
-func (i *Int64AttrGenerator) TypeDefinition() string {
-	return "schema.Int64Attribute"
-}
-
-func (i *Int64AttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return nil
+func (i *Int64AttrGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&i.attr, "schema.Int64Attribute", []CodeStatement{})
 }
 
 type Float64AttrGenerator struct {
-	model codespec.Float64Attribute
+	floatModel codespec.Float64Attribute
+	attr       codespec.Attribute
 }
 
-func (f *Float64AttrGenerator) TypeDefinition() string {
-	return "schema.Float64Attribute"
-}
-
-func (f *Float64AttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return nil
+func (f *Float64AttrGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&f.attr, "schema.Float64Attribute", []CodeStatement{})
 }
 
 type StringAttrGenerator struct {
-	model codespec.StringAttribute
+	stringModel codespec.StringAttribute
+	attr        codespec.Attribute
 }
 
-func (s *StringAttrGenerator) TypeDefinition() string {
-	return "schema.StringAttribute"
-}
-
-func (s *StringAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return nil
+func (s *StringAttrGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&s.attr, "schema.StringAttribute", []CodeStatement{})
 }
 
 type BoolAttrGenerator struct {
-	model codespec.BoolAttribute
+	boolModel codespec.BoolAttribute
+	attr      codespec.Attribute
 }
 
-func (b *BoolAttrGenerator) TypeDefinition() string {
-	return "schema.BoolAttribute"
-}
-
-func (b *BoolAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return nil
+func (s *BoolAttrGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&s.attr, "schema.BoolAttribute", []CodeStatement{})
 }
 
 type NumberAttrGenerator struct {
-	model codespec.NumberAttribute
+	numberModel codespec.NumberAttribute
+	attr        codespec.Attribute
 }
 
-func (n *NumberAttrGenerator) TypeDefinition() string {
-	return "schema.NumberAttribute"
-}
-
-func (n *NumberAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return nil
+func (s *NumberAttrGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&s.attr, "schema.NumberAttribute", []CodeStatement{})
 }
 
 type ListAttrGenerator struct {
-	model codespec.ListAttribute
+	listModel codespec.ListAttribute
+	attr      codespec.Attribute
 }
 
-func (l *ListAttrGenerator) TypeDefinition() string {
-	return "schema.ListAttribute"
-}
-
-func (l *ListAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return []CodeStatement{ElementTypeProperty(l.model.ElementType)}
+func (l *ListAttrGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&l.attr, "schema.ListAttribute", []CodeStatement{ElementTypeProperty(l.listModel.ElementType)})
 }
 
 type MapAttrGenerator struct {
-	model codespec.MapAttribute
+	mapModel codespec.MapAttribute
+	attr     codespec.Attribute
 }
 
-func (m *MapAttrGenerator) TypeDefinition() string {
-	return "schema.MapAttribute"
-}
-
-func (m *MapAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return []CodeStatement{ElementTypeProperty(m.model.ElementType)}
+func (m *MapAttrGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&m.attr, "schema.MapAttribute", []CodeStatement{ElementTypeProperty(m.mapModel.ElementType)})
 }
 
 type SetAttrGenerator struct {
-	model codespec.SetAttribute
+	setModel codespec.SetAttribute
+	attr     codespec.Attribute
 }
 
-func (s *SetAttrGenerator) TypeDefinition() string {
-	return "schema.SetAttribute"
-}
-
-func (s *SetAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return []CodeStatement{ElementTypeProperty(s.model.ElementType)}
+func (s *SetAttrGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&s.attr, "schema.SetAttribute", []CodeStatement{ElementTypeProperty(s.setModel.ElementType)})
 }

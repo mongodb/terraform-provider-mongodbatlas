@@ -7,51 +7,39 @@ import (
 )
 
 type ListNestedAttrGenerator struct {
-	model codespec.ListNestedAttribute
+	attr            codespec.Attribute
+	listNestedModel codespec.ListNestedAttribute
 }
 
-func (l *ListNestedAttrGenerator) TypeDefinition() string {
-	return "schema.ListNestedAttribute"
-}
-
-func (l *ListNestedAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return []CodeStatement{nestedObjectProperty(l.model.NestedObject)}
+func (l *ListNestedAttrGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&l.attr, "schema.ListNestedAttribute", []CodeStatement{nestedObjectProperty(l.listNestedModel.NestedObject)})
 }
 
 type SetNestedGenerator struct {
-	model codespec.SetNestedAttribute
+	attr           codespec.Attribute
+	setNestedModel codespec.SetNestedAttribute
 }
 
-func (s *SetNestedGenerator) TypeDefinition() string {
-	return "schema.SetNestedAttribute"
-}
-
-func (s *SetNestedGenerator) TypeSpecificProperties() []CodeStatement {
-	return []CodeStatement{nestedObjectProperty(s.model.NestedObject)}
+func (l *SetNestedGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&l.attr, "schema.SetNestedAttribute", []CodeStatement{nestedObjectProperty(l.setNestedModel.NestedObject)})
 }
 
 type MapNestedAttrGenerator struct {
-	model codespec.MapNestedAttribute
+	attr           codespec.Attribute
+	mapNestedModel codespec.MapNestedAttribute
 }
 
-func (m *MapNestedAttrGenerator) TypeDefinition() string {
-	return "schema.MapNestedAttribute"
-}
-
-func (m *MapNestedAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return []CodeStatement{nestedObjectProperty(m.model.NestedObject)}
+func (m *MapNestedAttrGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&m.attr, "schema.MapNestedAttribute", []CodeStatement{nestedObjectProperty(m.mapNestedModel.NestedObject)})
 }
 
 type SingleNestedAttrGenerator struct {
-	model codespec.SingleNestedAttribute
+	attr              codespec.Attribute
+	singleNestedModel codespec.SingleNestedAttribute
 }
 
-func (s *SingleNestedAttrGenerator) TypeDefinition() string {
-	return "schema.SingleNestedAttribute"
-}
-
-func (s *SingleNestedAttrGenerator) TypeSpecificProperties() []CodeStatement {
-	return []CodeStatement{attributesProperty(s.model.NestedObject)}
+func (l *SingleNestedAttrGenerator) AttributeCode() CodeStatement {
+	return commonAttrStructure(&l.attr, "schema.SingleNestedAttribute", []CodeStatement{attributesProperty(l.singleNestedModel.NestedObject)})
 }
 
 func attributesProperty(nested codespec.NestedAttributeObject) CodeStatement {

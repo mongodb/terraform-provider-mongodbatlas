@@ -26,32 +26,98 @@ type attributeGenerator interface {
 	AttributeCode() CodeStatement
 }
 
-type conventionalAttributeGenerator struct {
-	typeSpecificCode convetionalTypeSpecificCodeGenerator
-	attribute        codespec.Attribute
+func generator(attr *codespec.Attribute) attributeGenerator {
+	if attr.Int64 != nil {
+		return &Int64AttrGenerator{intModel: *attr.Int64, attr: *attr}
+	}
+	if attr.Float64 != nil {
+		return &Float64AttrGenerator{
+			floatModel: *attr.Float64,
+			attr:       *attr,
+		}
+	}
+	if attr.String != nil {
+		return &StringAttrGenerator{
+			stringModel: *attr.String,
+			attr:        *attr,
+		}
+	}
+	if attr.Bool != nil {
+		return &BoolAttrGenerator{
+			boolModel: *attr.Bool,
+			attr:      *attr,
+		}
+	}
+	if attr.List != nil {
+		return &ListAttrGenerator{
+			listModel: *attr.List,
+			attr:      *attr,
+		}
+	}
+	if attr.ListNested != nil {
+		return &ListNestedAttrGenerator{
+			listNestedModel: *attr.ListNested,
+			attr:            *attr,
+		}
+	}
+	if attr.Map != nil {
+		return &MapAttrGenerator{
+			mapModel: *attr.Map,
+			attr:     *attr,
+		}
+	}
+	if attr.MapNested != nil {
+		return &MapNestedAttrGenerator{
+			mapNestedModel: *attr.MapNested,
+			attr:           *attr,
+		}
+	}
+	if attr.Number != nil {
+		return &NumberAttrGenerator{
+			numberModel: *attr.Number,
+			attr:        *attr,
+		}
+	}
+	if attr.Set != nil {
+		return &SetAttrGenerator{
+			setModel: *attr.Set,
+			attr:     *attr,
+		}
+	}
+	if attr.SetNested != nil {
+		return &SetNestedGenerator{
+			setNestedModel: *attr.SetNested,
+			attr:           *attr,
+		}
+	}
+	if attr.SingleNested != nil {
+		return &SingleNestedAttrGenerator{
+			singleNestedModel: *attr.SingleNested,
+			attr:              *attr,
+		}
+	}
+	if attr.Timeouts != nil {
+		return &timeoutAttributeGenerator{
+			timeouts: *attr.Timeouts,
+		}
+	}
+	panic("Attribute with unknown type defined when generating schema attribute")
 }
 
-type convetionalTypeSpecificCodeGenerator interface {
-	TypeDefinition() string
-	TypeSpecificProperties() []CodeStatement
-}
-
-func (s *conventionalAttributeGenerator) AttributeCode() CodeStatement {
-	typeDefinition := s.typeSpecificCode.TypeDefinition()
-	additionalPropertyStatements := s.typeSpecificCode.TypeSpecificProperties()
-
-	properties := commonProperties(&s.attribute)
+// generation of conventional attribute types which have common properties like MarkdownDescription, Computed/Optional/Required, Sensitive
+func commonAttrStructure(attr *codespec.Attribute, typeDef string, specificProperties []CodeStatement) CodeStatement {
+	properties := commonProperties(attr)
 	imports := []string{}
-	for i := range additionalPropertyStatements {
-		properties = append(properties, additionalPropertyStatements[i].Code)
-		imports = append(imports, additionalPropertyStatements[i].Imports...)
+	for i := range specificProperties {
+		properties = append(properties, specificProperties[i].Code)
+		imports = append(imports, specificProperties[i].Imports...)
 	}
 
-	name := s.attribute.Name
+	name := attr.Name
 	propsResultString := strings.Join(properties, ",\n") + ","
 	code := fmt.Sprintf(`"%s": %s{
 		%s
-	}`, name, typeDefinition, propsResultString)
+	}`, name, typeDef, propsResultString)
 	return CodeStatement{
 		Code:    code,
 		Imports: imports,
@@ -76,85 +142,4 @@ func commonProperties(attr *codespec.Attribute) []string {
 		result = append(result, "Sensitive: true")
 	}
 	return result
-}
-
-func generator(attr *codespec.Attribute) attributeGenerator {
-	if attr.Int64 != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &Int64AttrGenerator{model: *attr.Int64},
-			attribute:        *attr,
-		}
-	}
-	if attr.Float64 != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &Float64AttrGenerator{model: *attr.Float64},
-			attribute:        *attr,
-		}
-	}
-	if attr.String != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &StringAttrGenerator{model: *attr.String},
-			attribute:        *attr,
-		}
-	}
-	if attr.Bool != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &BoolAttrGenerator{model: *attr.Bool},
-			attribute:        *attr,
-		}
-	}
-	if attr.List != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &ListAttrGenerator{model: *attr.List},
-			attribute:        *attr,
-		}
-	}
-	if attr.ListNested != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &ListNestedAttrGenerator{model: *attr.ListNested},
-			attribute:        *attr,
-		}
-	}
-	if attr.Map != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &MapAttrGenerator{model: *attr.Map},
-			attribute:        *attr,
-		}
-	}
-	if attr.MapNested != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &MapNestedAttrGenerator{model: *attr.MapNested},
-			attribute:        *attr,
-		}
-	}
-	if attr.Number != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &NumberAttrGenerator{model: *attr.Number},
-			attribute:        *attr,
-		}
-	}
-	if attr.Set != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &SetAttrGenerator{model: *attr.Set},
-			attribute:        *attr,
-		}
-	}
-	if attr.SetNested != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &SetNestedGenerator{model: *attr.SetNested},
-			attribute:        *attr,
-		}
-	}
-	if attr.SingleNested != nil {
-		return &conventionalAttributeGenerator{
-			typeSpecificCode: &SingleNestedAttrGenerator{model: *attr.SingleNested},
-			attribute:        *attr,
-		}
-	}
-	if attr.Timeouts != nil {
-		return &timeoutAttributeGenerator{
-			timeouts: *attr.Timeouts,
-		}
-	}
-	panic("Attribute with unknown type defined when generating schema attribute")
 }
