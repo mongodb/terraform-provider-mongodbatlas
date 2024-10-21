@@ -250,7 +250,7 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
-			assert.Equal(t, tc.expectedTFModel, tfModel, "created TF model did not match expected output")
+			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
 		})
 	}
 }
