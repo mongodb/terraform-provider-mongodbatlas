@@ -8,8 +8,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -49,15 +51,27 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 
 	projectID := tfModel.ProjectId.ValueString()
+	clusterName := tfModel.Name.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	apiResp, _, err := connV2.FlexClustersApi.CreateFlexcluster(ctx, projectID, flexClusterReq).Execute()
+	_, _, err := connV2.FlexClustersApi.CreateFlexcluster(ctx, projectID, flexClusterReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
 	}
 
-	newFlexClusterModel, diags := NewTFModel(ctx, apiResp)
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: projectID,
+		Name:    clusterName,
+	}
+
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{CreatingState}, []string{IdleState})
+	if err != nil {
+		resp.Diagnostics.AddError("error waiting for resource to be created", err.Error())
+		return
+	}
+
+	newFlexClusterModel, diags := NewTFModel(ctx, flexClusterResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -104,14 +118,28 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
+	projectID := tfModel.ProjectId.ValueString()
+	clusterName := tfModel.Name.ValueString()
+
 	connV2 := r.Client.AtlasV2
-	flexCluster, _, err := connV2.FlexClustersApi.UpdateFlexCluster(ctx, tfModel.ProjectId.ValueString(), tfModel.Name.ValueString(), flexClusterReq).Execute()
+	_, _, err := connV2.FlexClustersApi.UpdateFlexCluster(ctx, projectID, tfModel.Name.ValueString(), flexClusterReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
 	}
 
-	newFlexClusterModel, diags := NewTFModel(ctx, flexCluster)
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: projectID,
+		Name:    clusterName,
+	}
+
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{UpdatingState}, []string{IdleState})
+	if err != nil {
+		resp.Diagnostics.AddError("error waiting for resource to be updated", err.Error())
+		return
+	}
+
+	newFlexClusterModel, diags := NewTFModel(ctx, flexClusterResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -129,6 +157,21 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	if _, _, err := connV2.FlexClustersApi.DeleteFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString()).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
+		return
+	}
+
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: flexClusterState.ProjectId.ValueString(),
+		Name:    flexClusterState.Name.ValueString(),
+	}
+	_, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{DeletingState}, []string{retrystrategy.RetryStrategyDeletedState})
+	if err != nil {
+		if apiError, ok := admin.AsError(err); ok {
+			if apiError.GetErrorCode() == "CLUSTER_NOT_FOUND" {
+				return
+			}
+		}
+		resp.Diagnostics.AddError("error waiting for resource to be deleted", err.Error())
 		return
 	}
 }

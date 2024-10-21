@@ -63,14 +63,15 @@ func TestFlexClusterStateTransition(t *testing.T) {
 			pendingStates: []string{CreatingState},
 		},
 		{
-			name: "Error when API returns 404",
+			name: "Deleted state when API returns 404",
 			mockResponses: []response{
+				{state: &DeletingState, statusCode: sc200},
 				{statusCode: sc404, err: errors.New("Not found")},
 			},
 			expectedState: nil,
 			expectedError: true,
 			desiredStates: []string{IdleState},
-			pendingStates: []string{UpdatingState},
+			pendingStates: []string{UpdatingState, DeletingState},
 		},
 	}
 
