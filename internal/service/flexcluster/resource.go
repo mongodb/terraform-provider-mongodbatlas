@@ -93,6 +93,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var tfModel TFModel
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
