@@ -1,3 +1,0 @@
-```release-note:
-resource/mongodbatlas_flex_cluster: Enable test in CI
-```
