@@ -471,10 +471,10 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		streamprocessor.Resource,
 		encryptionatrestprivateendpoint.Resource,
 		mongodbemployeeaccessgrant.Resource,
-		flexcluster.Resource,
 	}
 	previewResources := []func() resource.Resource{
 		resourcepolicy.Resource,
+		flexcluster.Resource,
 	} // Resources not yet in GA
 	if providerEnablePreview {
 		resources = append(resources, previewResources...)
