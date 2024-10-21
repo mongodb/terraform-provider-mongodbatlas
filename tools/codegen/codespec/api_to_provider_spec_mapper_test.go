@@ -337,6 +337,12 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 									},
 								},
 							},
+							{
+								Name: "timeouts",
+								Timeouts: &codespec.TimeoutsAttribute{
+									ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Read, codespec.Update, codespec.Delete},
+								},
+							},
 						},
 					},
 					Name: "test_resource_with_nested_attr_overrides",
