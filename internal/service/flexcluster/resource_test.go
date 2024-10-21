@@ -25,7 +25,7 @@ func TestAccFlexClusterRS_basic(t *testing.T) {
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
-		projectID   = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID   = os.Getenv("MONGODB_ATLAS_FLEX_PROJECT_ID")
 		clusterName = acc.RandomName()
 	)
 	return &resource.TestCase{

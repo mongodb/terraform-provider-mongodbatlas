@@ -95,6 +95,9 @@ on:
       azure_private_endpoint_region:
         type: string
         required: true
+      mongodb_atlas_flex_project_id:
+        type: string
+        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -672,7 +675,8 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          MONGODB_ATLAS_PROJECT_ID: ${{ vars.mongodb_atlas_project_id }}
+          MONGODB_ATLAS_PROJECT_ID: ${{ inputs.mongodb_atlas_flex_project_id }}
+          MONGODB_ATLAS_ENABLE_PREVIEW: "true"
           ACCTEST_PACKAGES: ./internal/service/flexcluster
         run: make testacc
 
