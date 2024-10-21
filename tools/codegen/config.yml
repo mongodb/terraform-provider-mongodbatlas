@@ -9,30 +9,27 @@ resources:
     schema:
       aliases:
         group_id: project_id
-      
       ignores: ["links"]
-      
-      overrides:
-        project_id:
-          description: "Unique 24-hexadecimal digit string that identifies your project."
-          plan_modifiers: [{
-              imports: [ "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier" ],
-              definition: "stringplanmodifier.RequiresReplace()"
-          }]
-          validators: [{
-            imports: [
-            "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator",
-            "github.com/hashicorp/terraform-plugin-framework/path"
-            ],
-            definition: "stringvalidator.ConflictsWith(path.MatchRoot(\"name\"))"
-          }]
-      
-        prefix_path:
-          computability:
-            optional: true
-            computed: true
-      
       timeouts: ["create", "update", "delete"]
+      
+      # overrides:
+      #   project_id:
+      #     plan_modifiers: [{
+      #         imports: [ "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier" ],
+      #         definition: "stringplanmodifier.RequiresReplace()"
+      #     }]
+      #     validators: [{
+      #       imports: [
+      #       "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator",
+      #       "github.com/hashicorp/terraform-plugin-framework/path"
+      #       ],
+      #       definition: "stringvalidator.ConflictsWith(path.MatchRoot(\"name\"))"
+      #     }]
+      
+      #   prefix_path:
+      #     computability:
+      #       optional: true
+      #       computed: true
   
   search_deployment:
     read:

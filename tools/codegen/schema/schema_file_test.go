@@ -150,6 +150,12 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{
+							Name:                     "string_attr",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("string description"),
+							ComputedOptionalRequired: codespec.Required,
+						},
+						{
 							Name: "timeouts",
 							Timeouts: &codespec.TimeoutsAttribute{
 								ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Update, codespec.Delete},
