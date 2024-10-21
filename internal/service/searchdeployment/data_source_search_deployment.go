@@ -44,7 +44,7 @@ func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	newSearchDeploymentModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, nil)
+	newSearchDeploymentModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, nil, true)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
