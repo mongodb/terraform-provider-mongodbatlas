@@ -1,3 +1,3 @@
 ```release-note:bug
-resource/mongodbatlas_search_deployment: Fixes inconsistent result when using a multi-region cluster by always using a single spec
+resource/mongodbatlas_search_deployment: Fixes inconsistent result for a multi-region cluster that always uses a single spec.
 ```
