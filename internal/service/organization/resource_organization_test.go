@@ -44,6 +44,7 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
 					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "gen_ai_features_enabled", "true"),
 				),
 			},
 			{
@@ -55,6 +56,7 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
 					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "gen_ai_features_enabled", "true"),
 				),
 			},
 		},
@@ -96,11 +98,13 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 
 		settingsConfig = `
 		api_access_list_required = false
-		multi_factor_auth_required = true`
+		multi_factor_auth_required = true
+		gen_ai_features_enabled = false`
 		settingsConfigUpdated = `
 		api_access_list_required = false
 		multi_factor_auth_required = true
-		restrict_employee_access = true`
+		restrict_employee_access = true
+		gen_ai_features_enabled = true`
 	)
 
 	resource.Test(t, resource.TestCase{
