@@ -142,7 +142,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
-type TFFlexClusterRSModel struct {
+type TFModel struct {
 	ProviderSettings             types.Object `tfsdk:"provider_settings"`
 	ConnectionStrings            types.Object `tfsdk:"connection_strings"`
 	Tags                         types.Map    `tfsdk:"tags"`

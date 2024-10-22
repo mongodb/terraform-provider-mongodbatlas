@@ -39,7 +39,7 @@ func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resou
 }
 
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var tfModel TFFlexClusterRSModel
+	var tfModel TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -81,7 +81,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var flexClusterState TFFlexClusterRSModel
+	var flexClusterState TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &flexClusterState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -107,8 +107,8 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan TFFlexClusterRSModel
-	var state TFFlexClusterRSModel
+	var plan TFModel
+	var state TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -156,7 +156,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var flexClusterState *TFFlexClusterRSModel
+	var flexClusterState *TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &flexClusterState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -205,6 +205,6 @@ func splitFlexClusterImportID(id string) (projectID, clusterName *string, err er
 	return
 }
 
-func isUpdateAllowed(plan, state *TFFlexClusterRSModel) (bool, error) {
+func isUpdateAllowed(plan, state *TFModel) (bool, error) {
 	return true, nil
 }
