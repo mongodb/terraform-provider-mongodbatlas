@@ -319,13 +319,13 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 										Attributes: codespec.Attributes{
 											{
 												Name:                     "nested_level1",
-												ComputedOptionalRequired: codespec.Optional,
+												ComputedOptionalRequired: codespec.Computed,
 												SingleNested: &codespec.SingleNestedAttribute{
 													NestedObject: codespec.NestedAttributeObject{
 														Attributes: codespec.Attributes{
 															{
 																Name:                     "level_field1_alias",
-																ComputedOptionalRequired: codespec.Optional,
+																ComputedOptionalRequired: codespec.Computed,
 																String:                   &codespec.StringAttribute{},
 																Description:              conversion.StringPtr("Overridden level_field1_alias description"),
 															},
