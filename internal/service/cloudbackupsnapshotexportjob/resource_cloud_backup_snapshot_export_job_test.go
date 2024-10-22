@@ -63,10 +63,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"state"}, // state can change from Queued to InProgress
 			},
 		},
 	}
