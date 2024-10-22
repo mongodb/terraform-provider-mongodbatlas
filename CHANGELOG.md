@@ -13,6 +13,7 @@ BUG FIXES:
 
 * resource/mongodbatlas_event_trigger: Always includes `disabled` in the PUT payload ([#2690](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2690))
 * resource/mongodbatlas_organization: Avoids inconsistent result returned by provider when `USER_NOT_FOUND` ([#2684](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2684))
+* resource/mongodbatlas_search_deployment: Fixes inconsistent result for a multi-region cluster that always uses a single spec. ([#2685](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2685))
 
 ## 1.21.1 (October 09, 2024)
 
