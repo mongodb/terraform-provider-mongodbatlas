@@ -25,7 +25,7 @@ func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchD
 	}
 }
 
-func NewTFSearchDeployment(ctx context.Context, clusterName string, deployResp *admin.ApiSearchDeploymentResponse, timeout *timeouts.Value) (*TFSearchDeploymentRSModel, diag.Diagnostics) {
+func NewTFSearchDeployment(ctx context.Context, clusterName string, deployResp *admin.ApiSearchDeploymentResponse, timeout *timeouts.Value, allowMultipleSpecs bool) (*TFSearchDeploymentRSModel, diag.Diagnostics) {
 	result := TFSearchDeploymentRSModel{
 		ID:          types.StringPointerValue(deployResp.Id),
 		ClusterName: types.StringValue(clusterName),
@@ -37,13 +37,16 @@ func NewTFSearchDeployment(ctx context.Context, clusterName string, deployResp *
 		result.Timeouts = *timeout
 	}
 
-	specsList, diagnostics := types.ListValueFrom(ctx, SpecObjectType, newTFSpecsModel(deployResp.GetSpecs()))
+	specs := deployResp.GetSpecs()
+	if !allowMultipleSpecs && len(specs) > 1 {
+		specs = specs[:1]
+	}
+	specsList, diagnostics := types.ListValueFrom(ctx, SpecObjectType, newTFSpecsModel(specs))
 	if diagnostics.HasError() {
 		return nil, diagnostics
 	}
-
 	result.Specs = specsList
-	return &result, nil
+	return &result, diagnostics
 }
 
 func newTFSpecsModel(specs []admin.ApiSearchDeploymentSpec) []TFSearchNodeSpecModel {
