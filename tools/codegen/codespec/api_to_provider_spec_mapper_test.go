@@ -157,6 +157,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 												},
 												Description: conversion.StringPtr(testFieldDesc),
 											},
+											{
+												Name:                     "list_primitive_string_computed_attr",
+												ComputedOptionalRequired: codespec.Computed,
+												List: &codespec.ListAttribute{
+													ElementType: codespec.String,
+												},
+												Description: conversion.StringPtr(testFieldDesc),
+											},
 										},
 									},
 								},
@@ -305,6 +313,14 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 												ComputedOptionalRequired: codespec.Required,
 												Int64:                    &codespec.Int64Attribute{},
 												Description:              conversion.StringPtr("Overridden inner_num_attr_alias description"),
+											},
+											{
+												Name:                     "list_primitive_string_computed_attr",
+												ComputedOptionalRequired: codespec.Computed,
+												List: &codespec.ListAttribute{
+													ElementType: codespec.String,
+												},
+												Description: conversion.StringPtr(testFieldDesc),
 											},
 										},
 									},
