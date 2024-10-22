@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func DataSourceSchema(ctx context.Context) schema.Schema {
@@ -45,6 +46,11 @@ func dataSourceSchema(isPlural bool) map[string]schema.Attribute {
 			},
 			Computed:            true,
 			MarkdownDescription: "Group of cloud provider settings that configure the provisioned MongoDB flex cluster.",
+		},
+		"tags": schema.MapAttribute{
+			ElementType:         types.StringType,
+			Computed:            true,
+			MarkdownDescription: "Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.",
 		},
 		"backup_settings": schema.SingleNestedAttribute{
 			Attributes: map[string]schema.Attribute{
@@ -89,22 +95,6 @@ func dataSourceSchema(isPlural bool) map[string]schema.Attribute {
 		"state_name": schema.StringAttribute{
 			Computed:            true,
 			MarkdownDescription: "Human-readable label that indicates the current operating condition of this instance.",
-		},
-		"tags": schema.ListNestedAttribute{
-			NestedObject: schema.NestedAttributeObject{
-				Attributes: map[string]schema.Attribute{
-					"key": schema.StringAttribute{
-						Computed:            true,
-						MarkdownDescription: "Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.",
-					},
-					"value": schema.StringAttribute{
-						Computed:            true,
-						MarkdownDescription: "Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.",
-					},
-				},
-			},
-			Computed:            true,
-			MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.",
 		},
 		"termination_protection_enabled": schema.BoolAttribute{
 			Computed:            true,
