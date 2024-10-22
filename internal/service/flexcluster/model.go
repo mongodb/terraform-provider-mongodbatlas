@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
-func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription20250101) (*TFModel, diag.Diagnostics) {
+func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription20250101) (*TFFlexClusterRSModel, diag.Diagnostics) {
 	connectionStrings, diags := ConvertConnectionStringsToTF(ctx, apiResp.ConnectionStrings)
 	if diags.HasError() {
 		return nil, diags
@@ -24,7 +24,7 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202501
 	if diags.HasError() {
 		return nil, diags
 	}
-	return &TFModel{
+	return &TFFlexClusterRSModel{
 		ProviderSettings:             *providerSettings,
 		ConnectionStrings:            *connectionStrings,
 		Tags:                         newTFTags(apiResp.Tags),
@@ -41,7 +41,7 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202501
 	}, nil
 }
 
-func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescriptionCreate20250101, diag.Diagnostics) {
+func NewAtlasCreateReq(ctx context.Context, plan *TFFlexClusterRSModel) (*admin.FlexClusterDescriptionCreate20250101, diag.Diagnostics) {
 	providerSettings := &TFProviderSettings{}
 	if diags := plan.ProviderSettings.As(ctx, providerSettings, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
@@ -57,7 +57,7 @@ func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 	}, nil
 }
 
-func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescription20250101, diag.Diagnostics) {
+func NewAtlasUpdateReq(ctx context.Context, plan *TFFlexClusterRSModel) (*admin.FlexClusterDescription20250101, diag.Diagnostics) {
 	updateRequest := &admin.FlexClusterDescription20250101{
 		TerminationProtectionEnabled: plan.TerminationProtectionEnabled.ValueBoolPointer(),
 		Tags:                         newResourceTags(ctx, plan.Tags),

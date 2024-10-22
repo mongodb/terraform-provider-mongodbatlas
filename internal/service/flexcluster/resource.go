@@ -16,6 +16,7 @@ import (
 )
 
 const resourceName = "flex_cluster"
+const ErrorUpdateNotAllowed = "update not allowed"
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
@@ -38,7 +39,7 @@ func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resou
 }
 
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var tfModel TFModel
+	var tfModel TFFlexClusterRSModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -80,7 +81,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var flexClusterState TFModel
+	var flexClusterState TFFlexClusterRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &flexClusterState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -106,23 +107,30 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var tfModel TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
+	var plan TFFlexClusterRSModel
+	var state TFFlexClusterRSModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	flexClusterReq, diags := NewAtlasUpdateReq(ctx, &tfModel)
+	if v, err := isUpdateAllowed(&plan, &state); !v {
+		resp.Diagnostics.AddError(ErrorUpdateNotAllowed, err.Error())
+		return
+	}
+
+	flexClusterReq, diags := NewAtlasUpdateReq(ctx, &plan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
-	projectID := tfModel.ProjectId.ValueString()
-	clusterName := tfModel.Name.ValueString()
+	projectID := plan.ProjectId.ValueString()
+	clusterName := plan.Name.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.FlexClustersApi.UpdateFlexCluster(ctx, projectID, tfModel.Name.ValueString(), flexClusterReq).Execute()
+	_, _, err := connV2.FlexClustersApi.UpdateFlexCluster(ctx, projectID, plan.Name.ValueString(), flexClusterReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
@@ -148,7 +156,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var flexClusterState *TFModel
+	var flexClusterState *TFFlexClusterRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &flexClusterState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -195,4 +203,8 @@ func splitFlexClusterImportID(id string) (projectID, clusterName *string, err er
 	clusterName = &parts[2]
 
 	return
+}
+
+func isUpdateAllowed(plan, state *TFFlexClusterRSModel) (bool, error) {
+	return true, nil
 }

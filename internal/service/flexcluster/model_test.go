@@ -48,16 +48,16 @@ var (
 
 type NewTFModelTestCase struct {
 	input           *admin.FlexClusterDescription20250101
-	expectedTFModel *flexcluster.TFModel
+	expectedTFModel *flexcluster.TFFlexClusterRSModel
 }
 
 type NewAtlasCreateReqTestCase struct {
-	input          *flexcluster.TFModel
+	input          *flexcluster.TFFlexClusterRSModel
 	expectedSDKReq *admin.FlexClusterDescriptionCreate20250101
 }
 
 type NewAtlasUpdateReqTestCase struct {
-	input          *flexcluster.TFModel
+	input          *flexcluster.TFFlexClusterRSModel
 	expectedSDKReq *admin.FlexClusterDescription20250101
 }
 
@@ -71,7 +71,7 @@ func TestNewTFModel(t *testing.T) {
 	nilProviderSettingsObject, _ := types.ObjectValueFrom(context.Background(), flexcluster.ProviderSettingsType.AttributeTypes(), providerSettingsTF)
 	testCases := map[string]NewTFModelTestCase{
 		"Complete TF state": {
-			expectedTFModel: &flexcluster.TFModel{
+			expectedTFModel: &flexcluster.TFFlexClusterRSModel{
 				ProjectId: types.StringValue(projectID),
 				Id:        types.StringValue(id),
 				Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
@@ -120,7 +120,7 @@ func TestNewTFModel(t *testing.T) {
 			},
 		},
 		"Nil values": {
-			expectedTFModel: &flexcluster.TFModel{
+			expectedTFModel: &flexcluster.TFFlexClusterRSModel{
 				ProjectId:                    types.StringNull(),
 				Id:                           types.StringNull(),
 				Tags:                         types.MapNull(types.StringType),
@@ -167,7 +167,7 @@ func TestNewTFModel(t *testing.T) {
 func TestNewAtlasCreateReq(t *testing.T) {
 	testCases := map[string]NewAtlasCreateReqTestCase{
 		"Complete TF state": {
-			input: &flexcluster.TFModel{
+			input: &flexcluster.TFFlexClusterRSModel{
 				ProjectId: types.StringValue(projectID),
 				Id:        types.StringValue(id),
 				Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
@@ -215,7 +215,7 @@ func TestNewAtlasCreateReq(t *testing.T) {
 func TestNewAtlasUpdateReq(t *testing.T) {
 	testCases := map[string]NewAtlasUpdateReqTestCase{
 		"Complete TF state": {
-			input: &flexcluster.TFModel{
+			input: &flexcluster.TFFlexClusterRSModel{
 				ProjectId: types.StringValue(projectID),
 				Id:        types.StringValue(id),
 				Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
