@@ -1,0 +1,11 @@
+```release-note:note
+resource/mongodbatlas_organization: Adds support for GenAI Control Switch (genAIFeaturesEnabled) in Organizations settings
+```
+
+```release-note:note
+data-source/mongodbatlas_organization: Adds support for GenAI Control Switch (genAIFeaturesEnabled) in Organizations settings
+```
+
+```release-note:note
+data-source/mongodbatlas_organizations: Adds support for GenAI Control Switch (genAIFeaturesEnabled) in Organizations settings
+```
