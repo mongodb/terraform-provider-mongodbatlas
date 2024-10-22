@@ -1,7 +1,6 @@
 package codespec
 
 import (
-	"log"
 	"sort"
 )
 
@@ -106,9 +105,7 @@ func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, compu
 		*existingAttrs = append(*existingAttrs, *attr)
 	}
 
-	sort.Slice(*existingAttrs, func(i, j int) bool {
-		return (*existingAttrs)[i].Name.SnakeCase() < (*existingAttrs)[j].Name.SnakeCase()
-	})
+	sortAttributes(*existingAttrs)
 }
 
 func addOrUpdate(attr *Attribute, computability ComputedOptionalRequired, merged map[string]*Attribute, isFromResponse bool) {
@@ -154,32 +151,30 @@ func addOrUpdate(attr *Attribute, computability ComputedOptionalRequired, merged
 func mergeAttributes(pathParams, createRequest, createResponse, readResponse Attributes) Attributes {
 	merged := make(map[string]*Attribute)
 
-	// path parameters: all attributes are required
+	// Path parameters: all attributes will be "required"
 	for i := range pathParams {
 		addOrUpdate(&pathParams[i], Required, merged, false)
 	}
 
 	// POST request body: optional/required is as defined
 	for i := range createRequest {
-		addOrUpdate(&createRequest[i], createRequest[i].ComputedOptionalRequired, merged, false) // Retain original computability from the request
+		addOrUpdate(&createRequest[i], createRequest[i].ComputedOptionalRequired, merged, false)
 	}
 
-	// POST response body: attributes may update computability or add missing ones
+	// POST/GET response body: properties not in the request body are "computed" or "computed_optional" (if a default is present)
 	for i := range createResponse {
-		log.Printf("createResponse: " + createResponse[i].Name.SnakeCase())
 		if isOptional(&createResponse[i]) {
-			addOrUpdate(&createResponse[i], ComputedOptional, merged, true) // Mark as computed_optional if it's optional in the response
+			addOrUpdate(&createResponse[i], ComputedOptional, merged, true)
 		} else {
-			addOrUpdate(&createResponse[i], Computed, merged, true) // Mark as computed if it doesn't have a default
+			addOrUpdate(&createResponse[i], Computed, merged, true)
 		}
 	}
 
-	// GET response body: attributes may update computability or add missing ones
 	for i := range readResponse {
 		if isOptional(&readResponse[i]) {
-			addOrUpdate(&readResponse[i], ComputedOptional, merged, true) // Mark as computed_optional if it's optional in the response
+			addOrUpdate(&readResponse[i], ComputedOptional, merged, true)
 		} else {
-			addOrUpdate(&readResponse[i], Computed, merged, true) // Mark as computed if it doesn't have a default
+			addOrUpdate(&readResponse[i], Computed, merged, true)
 		}
 	}
 
@@ -188,9 +183,7 @@ func mergeAttributes(pathParams, createRequest, createResponse, readResponse Att
 		resourceAttributes = append(resourceAttributes, *attr)
 	}
 
-	sort.Slice(resourceAttributes, func(i, j int) bool {
-		return resourceAttributes[i].Name.SnakeCase() < resourceAttributes[j].Name.SnakeCase()
-	})
+	sortAttributes(resourceAttributes)
 
 	updateNestedComputability(&resourceAttributes, Optional)
 
