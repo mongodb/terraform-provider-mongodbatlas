@@ -1,7 +1,5 @@
 package codespec
 
-import "strings"
-
 type ElemType int
 
 const (
@@ -19,7 +17,7 @@ type Model struct {
 
 type Resource struct {
 	Schema *Schema
-	Name   string
+	Name   SnakeCaseString
 }
 
 type Schema struct {
@@ -46,29 +44,13 @@ type Attribute struct {
 	Set          *SetAttribute
 	Int64        *Int64Attribute
 	SingleNested *SingleNestedAttribute
+	Timeouts     *TimeoutsAttribute
 
 	Description              *string
-	Name                     AttributeName
+	Name                     SnakeCaseString
 	DeprecationMessage       *string
 	Sensitive                *bool
 	ComputedOptionalRequired ComputedOptionalRequired
-}
-
-type AttributeName string // stored in snake case
-
-func (snake AttributeName) SnakeCase() string {
-	return string(snake)
-}
-
-func (snake AttributeName) PascalCase() string {
-	words := strings.Split(string(snake), "_")
-	var pascalCase string
-	for i := range words {
-		if words[i] != "" {
-			pascalCase += strings.ToUpper(string(words[i][0])) + strings.ToLower(words[i][1:])
-		}
-	}
-	return pascalCase
 }
 
 type BoolAttribute struct {
@@ -117,6 +99,19 @@ type ListNestedAttribute struct {
 type NestedAttributeObject struct {
 	Attributes Attributes
 }
+
+type TimeoutsAttribute struct {
+	ConfigurableTimeouts []Operation
+}
+
+type Operation int
+
+const (
+	Create Operation = iota
+	Update
+	Read
+	Delete
+)
 
 type CustomDefault struct {
 	Definition string

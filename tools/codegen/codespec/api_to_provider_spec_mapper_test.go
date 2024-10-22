@@ -98,7 +98,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, tc.inputResourceName)
+			result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 		})
@@ -269,7 +269,92 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, tc.inputResourceName)
+			result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+		})
+	}
+}
+
+func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
+	testCases := map[string]convertToSpecTestCase{
+		"Valid input": {
+			inputOpenAPISpecPath: "testdata/api-spec.yml",
+			inputConfigPath:      "testdata/config-nested-schema-overrides.yml",
+			inputResourceName:    "test_resource_with_nested_attr_overrides",
+
+			expectedResult: &codespec.Model{
+				Resources: []codespec.Resource{{
+					Schema: &codespec.Schema{
+						Description: conversion.StringPtr(testResourceDesc),
+						Attributes: codespec.Attributes{
+							{
+								Name:                     "project_id",
+								ComputedOptionalRequired: codespec.Required,
+								String:                   &codespec.StringAttribute{},
+								Description:              conversion.StringPtr(testPathParamDesc),
+							},
+							{
+								Name:                     "nested_list_array_attr",
+								ComputedOptionalRequired: codespec.Required,
+								ListNested: &codespec.ListNestedAttribute{
+									NestedObject: codespec.NestedAttributeObject{
+										Attributes: codespec.Attributes{
+											{
+												Name:                     "inner_num_attr_alias",
+												ComputedOptionalRequired: codespec.Required,
+												Int64:                    &codespec.Int64Attribute{},
+												Description:              conversion.StringPtr("Overridden inner_num_attr_alias description"),
+											},
+										},
+									},
+								},
+								Description: conversion.StringPtr(testFieldDesc),
+							},
+							{
+								Name:                     "outer_object",
+								ComputedOptionalRequired: codespec.Computed,
+								SingleNested: &codespec.SingleNestedAttribute{
+									NestedObject: codespec.NestedAttributeObject{
+										Attributes: codespec.Attributes{
+											{
+												Name:                     "nested_level1",
+												ComputedOptionalRequired: codespec.Optional,
+												SingleNested: &codespec.SingleNestedAttribute{
+													NestedObject: codespec.NestedAttributeObject{
+														Attributes: codespec.Attributes{
+															{
+																Name:                     "level_field1_alias",
+																ComputedOptionalRequired: codespec.Optional,
+																String:                   &codespec.StringAttribute{},
+																Description:              conversion.StringPtr("Overridden level_field1_alias description"),
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+							{
+								Name: "timeouts",
+								Timeouts: &codespec.TimeoutsAttribute{
+									ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Read, codespec.Update, codespec.Delete},
+								},
+							},
+						},
+					},
+					Name: "test_resource_with_nested_attr_overrides",
+				},
+				},
+			},
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 		})

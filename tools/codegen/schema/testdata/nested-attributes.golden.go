@@ -1,4 +1,4 @@
-package test_name
+package testname
 
 import (
 	"context"
@@ -28,14 +28,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"nested_list_attr": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "nested list attribute",
-				Attributes: map[string]schema.Attribute{
-					"string_attr": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "string attribute",
-					},
-					"int_attr": schema.Int64Attribute{
-						Required:            true,
-						MarkdownDescription: "int attribute",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"string_attr": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "string attribute",
+						},
+						"int_attr": schema.Int64Attribute{
+							Required:            true,
+							MarkdownDescription: "int attribute",
+						},
 					},
 				},
 			},
@@ -43,14 +45,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "set nested attribute",
-				Attributes: map[string]schema.Attribute{
-					"string_attr": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "string attribute",
-					},
-					"int_attr": schema.Int64Attribute{
-						Required:            true,
-						MarkdownDescription: "int attribute",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"string_attr": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "string attribute",
+						},
+						"int_attr": schema.Int64Attribute{
+							Required:            true,
+							MarkdownDescription: "int attribute",
+						},
 					},
 				},
 			},
@@ -58,14 +62,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "map nested attribute",
-				Attributes: map[string]schema.Attribute{
-					"string_attr": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "string attribute",
-					},
-					"int_attr": schema.Int64Attribute{
-						Required:            true,
-						MarkdownDescription: "int attribute",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"string_attr": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "string attribute",
+						},
+						"int_attr": schema.Int64Attribute{
+							Required:            true,
+							MarkdownDescription: "int attribute",
+						},
 					},
 				},
 			},
