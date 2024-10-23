@@ -662,7 +662,7 @@ func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, 
 }
 
 func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI admin.PerformanceAdvisorApi, projectID string, enabledPlan types.Bool) error {
-	if enabledPlan.IsNull() {
+	if enabledPlan.IsNull() || enabledPlan.IsUnknown() {
 		return nil
 	}
 	enabled := enabledPlan.ValueBool()
@@ -678,6 +678,9 @@ func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI adm
 func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorApi, projectID string) (bool, error) {
 	response, err := api.GetManagedSlowMs(ctx, projectID).Execute()
 	if err != nil {
+		if apiError, ok := admin.AsError(err); ok && *apiError.ErrorCode == "USER_UNAUTHORIZED" {
+			return false, nil
+		}
 		return false, err
 	}
 	var isEnabled bool
