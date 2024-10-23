@@ -245,13 +245,13 @@ func configWithPagination(pageNum, itemPage int) string {
 }
 
 func configWithDS(orgID string) string {
-	config := fmt.Sprintf(`
+	cfg := fmt.Sprintf(`
 		
 		data "mongodbatlas_organization" "test" {
 			org_id = %[1]q
 		}
 	`, orgID)
-	return config
+	return cfg
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
