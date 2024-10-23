@@ -157,6 +157,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 												},
 												Description: conversion.StringPtr(testFieldDesc),
 											},
+											{
+												Name:                     "list_primitive_string_computed_attr",
+												ComputedOptionalRequired: codespec.Computed,
+												List: &codespec.ListAttribute{
+													ElementType: codespec.String,
+												},
+												Description: conversion.StringPtr(testFieldDesc),
+											},
 										},
 									},
 								},
@@ -170,7 +178,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 										Attributes: codespec.Attributes{
 											{
 												Name:                     "attr",
-												ComputedOptionalRequired: codespec.Optional,
+												ComputedOptionalRequired: codespec.Computed,
 												String:                   &codespec.StringAttribute{},
 											},
 										},
@@ -185,13 +193,13 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 										Attributes: codespec.Attributes{
 											{
 												Name:                     "inner_num_attr",
-												ComputedOptionalRequired: codespec.Required,
+												ComputedOptionalRequired: codespec.Computed,
 												Int64:                    &codespec.Int64Attribute{},
 												Description:              conversion.StringPtr(testFieldDesc),
 											},
 											{
 												Name:                     "list_primitive_string_attr",
-												ComputedOptionalRequired: codespec.Optional,
+												ComputedOptionalRequired: codespec.Computed,
 												List: &codespec.ListAttribute{
 													ElementType: codespec.String,
 												},
@@ -218,13 +226,13 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 										Attributes: codespec.Attributes{
 											{
 												Name:                     "inner_int_attr",
-												ComputedOptionalRequired: codespec.Required,
+												ComputedOptionalRequired: codespec.Computed,
 												Int64:                    &codespec.Int64Attribute{},
 												Description:              conversion.StringPtr(testFieldDesc),
 											},
 											{
 												Name:                     "inner_str_attr",
-												ComputedOptionalRequired: codespec.Required,
+												ComputedOptionalRequired: codespec.Computed,
 												String:                   &codespec.StringAttribute{},
 												Description:              conversion.StringPtr(testFieldDesc),
 											},
@@ -241,14 +249,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 										Attributes: codespec.Attributes{
 											{
 												Name:                     "map_attr1",
-												ComputedOptionalRequired: codespec.Optional,
+												ComputedOptionalRequired: codespec.Computed,
 												Map: &codespec.MapAttribute{
 													ElementType: codespec.String,
 												},
 											},
 											{
 												Name:                     "map_attr2",
-												ComputedOptionalRequired: codespec.Optional,
+												ComputedOptionalRequired: codespec.Computed,
 												Map: &codespec.MapAttribute{
 													ElementType: codespec.String,
 												},
@@ -306,6 +314,14 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 												Int64:                    &codespec.Int64Attribute{},
 												Description:              conversion.StringPtr("Overridden inner_num_attr_alias description"),
 											},
+											{
+												Name:                     "list_primitive_string_computed_attr",
+												ComputedOptionalRequired: codespec.Computed,
+												List: &codespec.ListAttribute{
+													ElementType: codespec.String,
+												},
+												Description: conversion.StringPtr(testFieldDesc),
+											},
 										},
 									},
 								},
@@ -319,13 +335,13 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 										Attributes: codespec.Attributes{
 											{
 												Name:                     "nested_level1",
-												ComputedOptionalRequired: codespec.Optional,
+												ComputedOptionalRequired: codespec.Computed,
 												SingleNested: &codespec.SingleNestedAttribute{
 													NestedObject: codespec.NestedAttributeObject{
 														Attributes: codespec.Attributes{
 															{
 																Name:                     "level_field1_alias",
-																ComputedOptionalRequired: codespec.Optional,
+																ComputedOptionalRequired: codespec.Computed,
 																String:                   &codespec.StringAttribute{},
 																Description:              conversion.StringPtr("Overridden level_field1_alias description"),
 															},

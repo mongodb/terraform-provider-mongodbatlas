@@ -332,7 +332,27 @@ components:
           type: array
           description: Test field description
           items:
-            $ref: "#/components/schemas/NestedObjectAttr"
+            type: object
+            properties:
+              innerNumAttr:
+                type: integer
+                format: int32
+                description: Test field description
+                example: 2
+                maximum: 32
+                minimum: 2
+              listPrimitiveStringAttr:
+                type: array
+                description: Test field description
+                items:
+                  type: string
+              listPrimitiveStringComputedAttr:
+                type: array
+                description: Test field description
+                items:
+                  type: string
+            required:
+              - innerNumAttr
           readOnly: true
         nestedSetArrayAttr:
           type: array
