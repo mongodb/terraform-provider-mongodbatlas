@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -18,6 +19,11 @@ var (
 
 func TestAccFlexClusterRS_basic(t *testing.T) {
 	tc := basicTestCase(t)
+	resource.ParallelTest(t, *tc)
+}
+
+func TestAccFlexClusterRS_failedUpdate(t *testing.T) {
+	tc := failedUpdateTestCase(t)
 	resource.ParallelTest(t, *tc)
 }
 
@@ -46,6 +52,30 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func failedUpdateTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+	var (
+		projectID          = os.Getenv("MONGODB_ATLAS_FLEX_PROJECT_ID")
+		clusterName        = acc.RandomName()
+		clusterNameUpdated = clusterName + "-updated"
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, clusterName, false),
+				Check:  checksFlexCluster(projectID, clusterName, false),
+			},
+			{
+				Config:      configBasic(projectID, clusterNameUpdated, false),
+				ExpectError: regexp.MustCompile("name cannot be updated"),
 			},
 		},
 	}
