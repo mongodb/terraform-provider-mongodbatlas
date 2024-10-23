@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -34,12 +33,12 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, false),
-				Check:  checksFlexCluster(projectID, clusterName, false),
-			},
-			{
 				Config: configBasic(projectID, clusterName, true),
 				Check:  checksFlexCluster(projectID, clusterName, true),
+			},
+			{
+				Config: configBasic(projectID, clusterName, false),
+				Check:  checksFlexCluster(projectID, clusterName, false),
 			},
 			{
 				Config:            configBasic(projectID, clusterName, true),
@@ -93,7 +92,6 @@ func checkExists() resource.TestCheckFunc {
 }
 
 func checkDestroy(state *terraform.State) error {
-	time.Sleep(1 * time.Minute) //TODO: To be removed once CLOUDP-279544 is implemented
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == resourceType {
 			projectID := rs.Primary.Attributes["project_id"]
