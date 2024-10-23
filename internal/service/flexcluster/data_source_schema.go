@@ -88,7 +88,7 @@ func dataSourceSchema(isPlural bool) map[string]schema.Attribute {
 			Computed:            true,
 			MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the instance.",
 		},
-		"mongo_dbversion": schema.StringAttribute{
+		"mongo_db_version": schema.StringAttribute{
 			Computed:            true,
 			MarkdownDescription: "Version of MongoDB that the instance runs.",
 		},
