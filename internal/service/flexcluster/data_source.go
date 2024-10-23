@@ -1,12 +1,11 @@
-//nolint:gocritic
 package flexcluster
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	// "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	// "github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -26,30 +25,32 @@ type ds struct {
 }
 
 func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	// TODO: Schema and model must be defined in data_source_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = DataSourceSchema(ctx)
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	// var tfModel TFModel
-	// resp.Diagnostics.Append(req.Config.Get(ctx, &tfModel)...)
-	// if resp.Diagnostics.HasError() {
-	// 	return
-	// }
+	var tfModel TFModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &tfModel)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// TODO: make get request to resource
+	connV2 := d.Client.AtlasV2
+	flexCluster, apiResp, err := connV2.FlexClustersApi.GetFlexCluster(ctx, tfModel.ProjectId.ValueString(), tfModel.Name.ValueString()).Execute()
+	if err != nil {
+		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		return
+	}
 
-	// connV2 := d.Client.AtlasV2
-	//if err != nil {
-	//	resp.Diagnostics.AddError("error fetching resource", err.Error())
-	//	return
-	//}
-
-	// TODO: process response into new terraform state
-	// newFlexClusterModel, diags := NewTFModel(ctx, apiResp)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
-	// resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+	newFlexClusterModel, diags := NewTFModel(ctx, flexCluster)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 }
