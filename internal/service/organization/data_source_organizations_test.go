@@ -25,6 +25,7 @@ func TestAccConfigDSOrganizations_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.restrict_employee_access"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.multi_factor_auth_required"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.api_access_list_required"),
+					resource.TestCheckResourceAttr(datasourceName, "results.0.gen_ai_features_enabled", "true"),
 				),
 			},
 		},
