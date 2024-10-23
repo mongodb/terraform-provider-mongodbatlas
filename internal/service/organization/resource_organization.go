@@ -80,8 +80,7 @@ func Resource() *schema.Resource {
 			"gen_ai_features_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				// Computed: true,
-				Default: true,
+				Default:  true,
 			},
 		},
 	}

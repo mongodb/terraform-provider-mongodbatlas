@@ -147,7 +147,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 	})
 }
 
-func TestAccOrganizationCreate_Errors(t *testing.T) {
+func TestAccConfigRSOrganizationCreate_Errors(t *testing.T) {
 	var (
 		roleName    = "ORG_OWNER"
 		unknownUser = "65def6160f722a1507105aaa"
@@ -163,6 +163,95 @@ func TestAccOrganizationCreate_Errors(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccConfigDSOrganization_basic(t *testing.T) {
+	var (
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		datasourceName = "data.mongodbatlas_organization.test"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithDS(orgID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(datasourceName, "name"),
+					resource.TestCheckResourceAttrSet(datasourceName, "id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "restrict_employee_access"),
+					resource.TestCheckResourceAttrSet(datasourceName, "multi_factor_auth_required"),
+					resource.TestCheckResourceAttrSet(datasourceName, "api_access_list_required"),
+					resource.TestCheckResourceAttr(datasourceName, "gen_ai_features_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConfigDSOrganizations_basic(t *testing.T) {
+	var (
+		datasourceName = "data.mongodbatlas_organizations.test"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPluralDS(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.0.name"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.0.id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.0.restrict_employee_access"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.0.multi_factor_auth_required"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.0.api_access_list_required"),
+					resource.TestCheckResourceAttr(datasourceName, "results.0.gen_ai_features_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
+	var (
+		datasourceName = "data.mongodbatlas_organizations.test"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPagination(2, 5),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
+				),
+			},
+		},
+	})
+}
+
+func configWithPluralDS() string {
+	return `	
+		data "mongodbatlas_organizations" "test" {
+		}
+	`
+}
+
+func configWithPagination(pageNum, itemPage int) string {
+	return fmt.Sprintf(`
+		data "mongodbatlas_organizations" "test" {
+			page_num = %d
+			items_per_page = %d
+		}
+	`, pageNum, itemPage)
+}
+
+func configWithDS(orgID string) string {
+	config := fmt.Sprintf(`
+		
+		data "mongodbatlas_organization" "test" {
+			org_id = %[1]q
+		}
+	`, orgID)
+	return config
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
