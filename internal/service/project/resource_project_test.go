@@ -1084,6 +1084,7 @@ func TestAccProject_slowOperationNotOwner(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
+		config      = configBasic(orgID, projectName, "", false, nil, nil)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -1091,18 +1092,51 @@ func TestAccProject_slowOperationNotOwner(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, "", true, nil, nil),
+				Config: config,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "is_slow_operation_thresholding_enabled", "false"),
 				),
 			},
 			{
-				PreConfig:          func() {},
-				RefreshState:       true,
-				ExpectNonEmptyPlan: true,
+				PreConfig: func() { changeRoles(t, projectName, "GROUP_READ_ONLY") },
+				Config:    config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "is_slow_operation_thresholding_enabled", "false"),
+				),
+			},
+			{
+				PreConfig: func() { changeRoles(t, projectName, "GROUP_OWNER") },
+				Config:    config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "is_slow_operation_thresholding_enabled", "false"),
+				),
 			},
 		},
 	})
+}
+
+func changeRoles(t *testing.T, projectName, roleName string) {
+	t.Helper()
+	ctx := context.Background()
+	respProject, _, _ := acc.ConnV2().ProjectsApi.GetProjectByName(ctx, projectName).Execute()
+	projectID := respProject.GetId()
+	if projectID == "" {
+		t.Errorf("PreConfig: error finding project %s", projectName)
+	}
+	respList, _, _ := acc.ConnV2().ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, projectID).Execute()
+	publicKey := os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
+	for _, result := range respList.GetResults() {
+		if result.GetPublicKey() == publicKey {
+			apiKeyID := result.GetId()
+			assignment := admin.UpdateAtlasProjectApiKey{Roles: &[]string{roleName}}
+			_, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, &assignment).Execute()
+			if err != nil {
+				t.Error("PreConfig: error updating key")
+			}
+			return
+		}
+		t.Error("PreConfig: key not found")
+	}
 }
 
 func createDataFederationLimit(limitName string) admin.DataFederationLimit {
