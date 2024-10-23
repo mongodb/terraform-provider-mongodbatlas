@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -115,7 +116,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	if v, err := isUpdateAllowed(&plan, &state); !v {
+	if v, err := isUpdateAllowed(ctx, &plan, &state); !v {
 		resp.Diagnostics.AddError(ErrorUpdateNotAllowed, err.Error())
 		return
 	}
@@ -205,6 +206,26 @@ func splitFlexClusterImportID(id string) (projectID, clusterName *string, err er
 	return
 }
 
-func isUpdateAllowed(plan, state *TFModel) (bool, error) {
+func isUpdateAllowed(ctx context.Context, plan, state *TFModel) (bool, error) {
+	if plan.ProjectId.ValueString() != state.ProjectId.ValueString() {
+		return false, errors.New("project_id is cannot be updated")
+	}
+	if plan.Name.ValueString() != state.Name.ValueString() {
+		return false, errors.New("name cannot be updated")
+	}
+	planProviderSettings := &TFProviderSettings{}
+	if diags := plan.ProviderSettings.As(context.Background(), planProviderSettings, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return false, errors.New("provider_settings cannot be updated")
+	}
+	stateProviderSettings := &TFProviderSettings{}
+	if diags := state.ProviderSettings.As(ctx, stateProviderSettings, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return false, errors.New("provider_settings cannot be updated")
+	}
+	if planProviderSettings.BackingProviderName != stateProviderSettings.BackingProviderName {
+		return false, errors.New("backing_provider_name cannot be updated")
+	}
+	if planProviderSettings.RegionName != stateProviderSettings.RegionName {
+		return false, errors.New("region_name cannot be updated")
+	}
 	return true, nil
 }
