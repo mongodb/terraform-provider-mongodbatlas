@@ -208,7 +208,7 @@ func splitFlexClusterImportID(id string) (projectID, clusterName *string, err er
 
 func isUpdateAllowed(ctx context.Context, plan, state *TFModel) (bool, error) {
 	if !plan.ProjectId.Equal(state.ProjectId) {
-		return false, errors.New("project_id is cannot be updated")
+		return false, errors.New("project_id cannot be updated")
 	}
 	if !plan.Name.Equal(state.Name) {
 		return false, errors.New("name cannot be updated")

@@ -32,6 +32,8 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	var (
 		projectID   = os.Getenv("MONGODB_ATLAS_FLEX_PROJECT_ID")
 		clusterName = acc.RandomName()
+		provider    = "AWS"
+		region      = "US_EAST_1"
 	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -39,15 +41,15 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, true),
+				Config: configBasic(projectID, clusterName, provider, region, true),
 				Check:  checksFlexCluster(projectID, clusterName, true),
 			},
 			{
-				Config: configBasic(projectID, clusterName, false),
+				Config: configBasic(projectID, clusterName, provider, region, false),
 				Check:  checksFlexCluster(projectID, clusterName, false),
 			},
 			{
-				Config:            configBasic(projectID, clusterName, true),
+				Config:            configBasic(projectID, clusterName, provider, region, true),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -61,8 +63,13 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID          = os.Getenv("MONGODB_ATLAS_FLEX_PROJECT_ID")
+		projectIDUpdated   = os.Getenv("MONGODB_ATLAS_FLEX_PROJECT_ID") + "-updated"
 		clusterName        = acc.RandomName()
 		clusterNameUpdated = clusterName + "-updated"
+		provider           = "AWS"
+		providerUpdated    = "GCP"
+		region             = "US_EAST_1"
+		regionUpdated      = "US_EAST_2"
 	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -70,28 +77,40 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, false),
+				Config: configBasic(projectID, clusterName, provider, region, false),
 				Check:  checksFlexCluster(projectID, clusterName, false),
 			},
 			{
-				Config:      configBasic(projectID, clusterNameUpdated, false),
+				Config:      configBasic(projectID, clusterNameUpdated, provider, region, false),
 				ExpectError: regexp.MustCompile("name cannot be updated"),
+			},
+			{
+				Config:      configBasic(projectIDUpdated, clusterName, provider, region, false),
+				ExpectError: regexp.MustCompile("project_id cannot be updated"),
+			},
+			{
+				Config:      configBasic(projectID, clusterName, providerUpdated, region, false),
+				ExpectError: regexp.MustCompile("backing_provider_name cannot be updated"),
+			},
+			{
+				Config:      configBasic(projectID, clusterName, provider, regionUpdated, false),
+				ExpectError: regexp.MustCompile("region_name cannot be updated"),
 			},
 		},
 	}
 }
 
-func configBasic(projectID, clusterName string, terminationProtectionEnabled bool) string {
+func configBasic(projectID, clusterName, provider, region string, terminationProtectionEnabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_flex_cluster" "flex_cluster" {
 			project_id = %[1]q
 			name       = %[2]q
 			provider_settings = {
-				backing_provider_name = "AWS"
-				region_name           = "US_EAST_1"
+				backing_provider_name = %[3]q
+				region_name           = %[4]q
 			}
-			termination_protection_enabled = %[3]t
-		}`, projectID, clusterName, terminationProtectionEnabled)
+			termination_protection_enabled = %[5]t
+		}`, projectID, clusterName, provider, region, terminationProtectionEnabled)
 }
 
 func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabled bool) resource.TestCheckFunc {
