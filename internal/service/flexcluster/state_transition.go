@@ -6,15 +6,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"go.mongodb.org/atlas-sdk/v20240805004/admin"
-)
-
-const (
-	IdleState      = "IDLE"
-	CreatingState  = "CREATING"
-	UpdatingState  = "UPDATING"
-	DeletingState  = "DELETING"
-	RepairingState = "REPAIRING"
 )
 
 func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string) (*admin.FlexClusterDescription20250101, error) {
@@ -39,10 +32,26 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexCluste
 	return nil, errors.New("did not obtain valid result when waiting for flex cluster state transition")
 }
 
+func WaitStateTransitionDelete(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi) error {
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{retrystrategy.RetryStrategyDeletingState},
+		Target:     []string{retrystrategy.RetryStrategyDeletedState},
+		Refresh:    refreshFunc(ctx, requestParams, client),
+		Timeout:    5 * time.Minute,
+		MinTimeout: 3 * time.Second,
+		Delay:      0,
+	}
+	_, err := stateConf.WaitForStateContext(ctx)
+	return err
+}
+
 func refreshFunc(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		flexCluster, _, err := client.GetFlexClusterWithParams(ctx, requestParams).Execute()
+		flexCluster, resp, err := client.GetFlexClusterWithParams(ctx, requestParams).Execute()
 		if err != nil {
+			if resp.StatusCode == 404 {
+				return "", retrystrategy.RetryStrategyDeletedState, nil
+			}
 			return nil, "", err
 		}
 		state := flexCluster.GetStateName()

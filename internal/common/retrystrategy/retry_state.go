@@ -12,6 +12,7 @@ const (
 	RetryStrategyFailedState     = "FAILED"
 	RetryStrategyActiveState     = "ACTIVE"
 	RetryStrategyDeletedState    = "DELETED"
+	RetryStrategyCreatingState   = "CREATING"
 
 	RetryStrategyPendingAcceptanceState = "PENDING_ACCEPTANCE"
 	RetryStrategyPendingRecreationState = "PENDING_RECREATION"

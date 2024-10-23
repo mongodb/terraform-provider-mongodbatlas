@@ -15,16 +15,17 @@ import (
 )
 
 var (
-	IdleState      = "IDLE"
-	CreatingState  = "CREATING"
-	UpdatingState  = "UPDATING"
-	DeletingState  = "DELETING"
-	RepairingState = "REPAIRING"
-	sc500          = conversion.IntPtr(500)
-	sc200          = conversion.IntPtr(200)
-	sc404          = conversion.IntPtr(404)
-	clusterName    = "clusterName"
-	requestParams  = &admin.GetFlexClusterApiParams{
+	IdleState     = "IDLE"
+	CreatingState = "CREATING"
+	UpdatingState = "UPDATING"
+	DeletingState = "DELETING"
+	DeletedState  = "DELETED"
+	UnknownState  = ""
+	sc500         = conversion.IntPtr(500)
+	sc200         = conversion.IntPtr(200)
+	sc404         = conversion.IntPtr(404)
+	clusterName   = "clusterName"
+	requestParams = &admin.GetFlexClusterApiParams{
 		GroupId: "groupId",
 		Name:    clusterName,
 	}
@@ -71,7 +72,7 @@ func TestFlexClusterStateTransition(t *testing.T) {
 			expectedState: nil,
 			expectedError: true,
 			desiredStates: []string{IdleState},
-			pendingStates: []string{UpdatingState, DeletingState},
+			pendingStates: []string{DeletingState},
 		},
 	}
 
@@ -89,6 +90,48 @@ func TestFlexClusterStateTransition(t *testing.T) {
 			if resp != nil {
 				assert.Equal(t, *tc.expectedState, *resp.StateName)
 			}
+		})
+	}
+}
+
+func TestFlexClusterStateTransitionForDelete(t *testing.T) {
+	testCases := []testCase{
+		{
+			name: "Successful transition to DELETED",
+			mockResponses: []response{
+				{state: &DeletingState, statusCode: sc200},
+				{statusCode: sc404, err: errors.New("Not found")},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Error when API responds with error",
+			mockResponses: []response{
+				{statusCode: sc500, err: errors.New("Internal server error")},
+			},
+			expectedError: true,
+		},
+		{
+			name: "Failed delete when responding with unknown state",
+			mockResponses: []response{
+				{state: &DeletingState},
+				{state: &UnknownState},
+			},
+			expectedError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			m := mockadmin.NewFlexClustersApi(t)
+			m.EXPECT().GetFlexClusterWithParams(mock.Anything, mock.Anything).Return(admin.GetFlexClusterApiRequest{ApiService: m})
+
+			for _, resp := range tc.mockResponses {
+				modelResp, httpResp, err := resp.get()
+				m.EXPECT().GetFlexClusterExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
+			}
+			err := flexcluster.WaitStateTransitionDelete(context.Background(), requestParams, m)
+			assert.Equal(t, tc.expectedError, err != nil)
 		})
 	}
 }

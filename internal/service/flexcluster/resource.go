@@ -65,7 +65,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Name:    clusterName,
 	}
 
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{CreatingState}, []string{IdleState})
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{retrystrategy.RetryStrategyCreatingState}, []string{retrystrategy.RetryStrategyIdleState})
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for resource to be created", err.Error())
 		return
@@ -133,7 +133,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Name:    clusterName,
 	}
 
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{UpdatingState}, []string{IdleState})
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState})
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for resource to be updated", err.Error())
 		return
@@ -164,13 +164,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		GroupId: flexClusterState.ProjectId.ValueString(),
 		Name:    flexClusterState.Name.ValueString(),
 	}
-	_, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{DeletingState}, []string{retrystrategy.RetryStrategyDeletedState})
-	if err != nil {
-		if apiError, ok := admin.AsError(err); ok {
-			if apiError.GetErrorCode() == "CLUSTER_NOT_FOUND" {
-				return
-			}
-		}
+
+	if err := WaitStateTransitionDelete(ctx, flexClusterParams, connV2.FlexClustersApi); err != nil {
 		resp.Diagnostics.AddError("error waiting for resource to be deleted", err.Error())
 		return
 	}
