@@ -1,4 +1,3 @@
-//nolint:gocritic
 package codespec
 
 import (
@@ -37,18 +36,18 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	for name, resourceConfig := range resourceConfigsToIterate {
 		log.Printf("Generating resource: %s", name)
 		// find resource operations, schemas, etc from OAS
-		oasResource, err := getAPISpecResource(apiSpec.Model, resourceConfig, SnakeCaseString(name))
+		oasResource, err := getAPISpecResource(apiSpec.Model, &resourceConfig, SnakeCaseString(name))
 		if err != nil {
 			return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
 		}
 		// map OAS resource model to CodeSpecModel
-		results = append(results, *apiSpecResourceToCodeSpecModel(oasResource, resourceConfig, SnakeCaseString(name)))
+		results = append(results, *apiSpecResourceToCodeSpecModel(oasResource, &resourceConfig, SnakeCaseString(name)))
 	}
 
 	return &Model{Resources: results}, nil
 }
 
-func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig config.Resource, name SnakeCaseString) *Resource {
+func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name SnakeCaseString) *Resource {
 	createOp := oasResource.CreateOp
 	readOp := oasResource.ReadOp
 
@@ -70,7 +69,7 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		Schema: schema,
 	}
 
-	applyConfigSchemaOptions(&resourceConfig, resource)
+	applyConfigSchemaOptions(resourceConfig, resource)
 
 	return resource
 }
@@ -136,7 +135,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 	return responseAttributes
 }
 
-func getAPISpecResource(spec high.Document, resourceConfig config.Resource, name SnakeCaseString) (APISpecResource, error) {
+func getAPISpecResource(spec high.Document, resourceConfig *config.Resource, name SnakeCaseString) (APISpecResource, error) {
 	var errResult error
 	var resourceDeprecationMsg *string
 

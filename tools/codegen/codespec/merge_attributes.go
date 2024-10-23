@@ -4,6 +4,7 @@ import (
 	"sort"
 )
 
+// mergeNestedAttributes recursively merges nested attributes
 func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, computability ComputedOptionalRequired, isFromResponse bool) {
 	mergedMap := make(map[string]*Attribute)
 	if existingAttrs != nil {
@@ -12,6 +13,7 @@ func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, compu
 		}
 	}
 
+	// add new attributes and merge when necessary
 	for i := range newAttrs {
 		newAttr := &newAttrs[i]
 
@@ -23,6 +25,7 @@ func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, compu
 		}
 	}
 
+	// update original existingAttrs with the merged result
 	*existingAttrs = make(Attributes, 0, len(mergedMap))
 	for _, attr := range mergedMap {
 		*existingAttrs = append(*existingAttrs, *attr)
@@ -31,16 +34,19 @@ func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, compu
 	sortAttributes(*existingAttrs)
 }
 
+// addOrUpdate adds or updates an attribute in the merged map, including nested attributes
 func addOrUpdate(attr *Attribute, computability ComputedOptionalRequired, merged map[string]*Attribute, isFromResponse bool) {
 	if existingAttr, exists := merged[attr.Name.SnakeCase()]; exists {
 		if existingAttr.Description == nil || *existingAttr.Description == "" {
 			existingAttr.Description = attr.Description
 		}
 
+		// retain computability if already set from request
 		if !isFromResponse && existingAttr.ComputedOptionalRequired != Required {
 			existingAttr.ComputedOptionalRequired = computability
 		}
 
+		// handle nested attributes
 		if existingAttr.ListNested != nil && attr.ListNested != nil {
 			mergeNestedAttributes(&existingAttr.ListNested.NestedObject.Attributes, attr.ListNested.NestedObject.Attributes, computability, isFromResponse)
 		} else if attr.ListNested != nil {
@@ -65,6 +71,7 @@ func addOrUpdate(attr *Attribute, computability ComputedOptionalRequired, merged
 			existingAttr.MapNested = attr.MapNested
 		}
 	} else {
+		// add new attribute with the given computability
 		newAttr := *attr
 		newAttr.ComputedOptionalRequired = computability
 		merged[attr.Name.SnakeCase()] = &newAttr
@@ -86,7 +93,7 @@ func mergeAttributes(pathParams, createRequest, createResponse, readResponse Att
 
 	// POST/GET response body: properties not in the request body are "computed" or "computed_optional" (if a default is present)
 	for i := range createResponse {
-		if isOptional(&createResponse[i]) {
+		if hasDefault(&createResponse[i]) {
 			addOrUpdate(&createResponse[i], ComputedOptional, merged, true)
 		} else {
 			addOrUpdate(&createResponse[i], Computed, merged, true)
@@ -94,7 +101,7 @@ func mergeAttributes(pathParams, createRequest, createResponse, readResponse Att
 	}
 
 	for i := range readResponse {
-		if isOptional(&readResponse[i]) {
+		if hasDefault(&readResponse[i]) {
 			addOrUpdate(&readResponse[i], ComputedOptional, merged, true)
 		} else {
 			addOrUpdate(&readResponse[i], Computed, merged, true)
@@ -136,7 +143,7 @@ func updateNestedComputability(attrs *Attributes, parentComputability ComputedOp
 	}
 }
 
-func isOptional(attr *Attribute) bool {
+func hasDefault(attr *Attribute) bool {
 	return (attr.Bool != nil && attr.Bool.Default != nil) ||
 		(attr.Int64 != nil && attr.Int64.Default != nil) ||
 		(attr.String != nil && attr.String.Default != nil) ||
