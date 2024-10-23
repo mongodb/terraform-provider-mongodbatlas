@@ -220,8 +220,9 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 				},
 			},
 			"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:           true,
+				Optional:           true,
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersion, "1.23.0"),
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 				},
