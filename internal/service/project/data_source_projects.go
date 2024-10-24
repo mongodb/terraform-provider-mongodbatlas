@@ -98,7 +98,8 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 							Computed: true,
 						},
 						"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
-							Computed: true,
+							Computed:           true,
+							DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersion, "1.24.0"),
 						},
 						"region_usage_restrictions": schema.StringAttribute{
 							Computed: true,
@@ -208,12 +209,12 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 }
 
 func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *admin.PaginatedAtlasGroup) diag.Diagnostics {
-	diagnostics := []diag.Diagnostic{}
+	diagnostics := diag.Diagnostics{}
 	input := projectsRes.GetResults()
 	results := make([]*TFProjectDSModel, 0, len(input))
 	for i := range input {
 		project := input[i]
-		projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, project.GetId())
+		projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, project.GetId(), &diagnostics)
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
 			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, *projectProps)
 			diagnostics = append(diagnostics, diags...)

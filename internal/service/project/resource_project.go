@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20240805005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -220,8 +221,9 @@ func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 				},
 			},
 			"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:           true,
+				Optional:           true,
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersion, "1.24.0"),
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 				},
@@ -423,7 +425,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -475,7 +477,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -546,7 +548,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -626,7 +628,7 @@ type AdditionalProperties struct {
 }
 
 // GetProjectPropsFromAPI fetches properties obtained from complementary endpoints associated with a project.
-func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, teamsAPI admin.TeamsApi, performanceAdvisorAPI admin.PerformanceAdvisorApi, projectID string) (*AdditionalProperties, error) {
+func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, teamsAPI admin.TeamsApi, performanceAdvisorAPI admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (*AdditionalProperties, error) {
 	teams, _, err := teamsAPI.ListProjectTeams(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
@@ -646,7 +648,7 @@ func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, 
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", projectID, err.Error())
 	}
-	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, performanceAdvisorAPI, projectID)
+	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, performanceAdvisorAPI, projectID, warnings)
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", projectID, err.Error())
 	}
@@ -661,7 +663,7 @@ func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, 
 }
 
 func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI admin.PerformanceAdvisorApi, projectID string, enabledPlan types.Bool) error {
-	if enabledPlan.IsNull() {
+	if enabledPlan.IsNull() || enabledPlan.IsUnknown() {
 		return nil
 	}
 	enabled := enabledPlan.ValueBool()
@@ -674,9 +676,15 @@ func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI adm
 	return err
 }
 
-func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorApi, projectID string) (bool, error) {
+func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (bool, error) {
 	response, err := api.GetManagedSlowMs(ctx, projectID).Execute()
 	if err != nil {
+		if apiError, ok := admin.AsError(err); ok && *apiError.ErrorCode == "USER_UNAUTHORIZED" {
+			if warnings != nil {
+				warnings.AddWarning("user does not have permission to read is_slow_operation_thresholding_enabled. Please read our documentation for more information.", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
+			}
+			return false, nil
+		}
 		return false, err
 	}
 	var isEnabled bool
