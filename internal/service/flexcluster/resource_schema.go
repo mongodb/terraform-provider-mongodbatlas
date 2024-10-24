@@ -117,10 +117,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Version of MongoDB that the instance runs.",
 			},
 			"state_name": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				Computed:            true,
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this instance.",
 			},
 			"termination_protection_enabled": schema.BoolAttribute{
