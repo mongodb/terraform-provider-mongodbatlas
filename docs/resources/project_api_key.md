@@ -38,7 +38,6 @@ resource "mongodbatlas_project_api_key" "test" {
 ## Argument Reference
 
 * `description` - (Required) Description of this Project API key.
-* `project_id` - Unique 24-hexadecimal digit string that identifies your project. **WARNING:** this parameter is deprecated as it no longer needs to be defined. It will be removed in version 1.16.0.
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 
