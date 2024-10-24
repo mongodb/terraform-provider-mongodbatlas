@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -75,6 +76,10 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"gen_ai_features_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -137,6 +142,7 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			"api_access_list_required":   settings.ApiAccessListRequired,
 			"multi_factor_auth_required": settings.MultiFactorAuthRequired,
 			"restrict_employee_access":   settings.RestrictEmployeeAccess,
+			"gen_ai_features_enabled":    settings.GenAIFeaturesEnabled,
 		}
 	}
 
