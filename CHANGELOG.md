@@ -1,5 +1,17 @@
 ## (Unreleased)
 
+NOTES:
+
+* data-source/mongodbatlas_project: Deprecates `is_slow_operation_thresholding_enabled`. Attribute will be supported in a separate data source as it requires different set of permissions ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* data-source/mongodbatlas_projects: Deprecates `is_slow_operation_thresholding_enabled`. Attribute will be supported in a separate data source as it requires different set of permissions ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* resource/mongodbatlas_project: Deprecates `is_slow_operation_thresholding_enabled`. Attribute will be supported in a separate resource as it requires different set of permissions ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_project: Avoids error when user doesn't have project owner permission ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* data-source/mongodbatlas_projects: Avoids error when user doesn't have project owner permission ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* resource/mongodbatlas_project: Avoids error when user doesn't have project owner permission ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+
 ## 1.21.2 (October 22, 2024)
 
 ENHANCEMENTS:
