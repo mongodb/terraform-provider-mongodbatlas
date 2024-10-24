@@ -117,11 +117,17 @@ scaffold:
 	@echo "Reminder: configure the new $(type) in provider.go"
 
 # e.g. run: make scaffold-schemas resource_name=streamInstance
-# details on usage can be found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
+# details on usage can be found in contributing/development-best-practices.md under "Generating Schema and Model Definitions - Using schema generation HashiCorp tooling"
 .PHONY: scaffold-schemas
 scaffold-schemas:
 	@scripts/schema-scaffold.sh $(resource_name)
 
+# e.g. run: make generate-schema resource_name=search_deployment
+# resource_name is optional, if not provided all configured resources will be generated
+# details on usage can be found in contributing/development-best-practices.md under "Generating Schema and Model Definitions - Using internal tool"
+.PHONY: generate-schema
+generate-schema: 
+	@go run ./tools/codegen/main.go $(resource_name)
 
 .PHONY: generate-doc
 # e.g. run: make generate-doc resource_name=search_deployment
@@ -153,7 +159,3 @@ check-changelog-entry-file:
 .PHONY: jira-release-version
 jira-release-version:
 	go run ./tools/jira-release-version/*.go
-
-.PHONY: generate-schema
-generate-schema: # resource_name is optional, if not provided all configured resources will be generated
-	@go run ./tools/codegen/main.go $(resource_name)
