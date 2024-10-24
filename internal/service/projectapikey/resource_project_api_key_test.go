@@ -149,6 +149,42 @@ func TestAccProjectAPIKey_updateDescription(t *testing.T) {
 	})
 }
 
+func TestAccProjectAPIKey_updateRole(t *testing.T) {
+	var (
+		projectID       = acc.ProjectIDExecution(t)
+		description     = acc.RandomName()
+		updatedRoleName = "GROUP_READ_ONLY"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(projectID),
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, description, roleName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment[0].roles_names.#", "1"),
+					// resource.TestCheckResourceAttr(resourceName, "project_assignment[0].roles_names.0", roleName),
+				),
+			},
+			{
+				Config: configBasic(projectID, description, updatedRoleName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment[0].roles_names.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment[0].roles_names.0", updatedRoleName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 	var (
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
