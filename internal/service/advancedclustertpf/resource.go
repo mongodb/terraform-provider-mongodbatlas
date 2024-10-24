@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -24,16 +24,20 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{} // TEMPORARY: empty schema, change later to ResourceSchema(ctx)
+	resp.Schema = ResourceSchema(ctx)
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var tfModel struct{} // TEMPORARY: empty model
+	var tfModel TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	var tfNewModel struct{} // TEMPORARY: empty model
+	tfNewModel := NewTFModel(ctx, nil, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, tfNewModel)...)
 }
 
