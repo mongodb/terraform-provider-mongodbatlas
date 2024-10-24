@@ -217,8 +217,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		for _, apiKey := range changedAssignments {
 			projectID := apiKey.(map[string]any)["project_id"].(string)
 			roles := conversion.ExpandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
-			assignment := []admin.UserAccessRoleAssignment{{Roles: &roles}}
-			_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, &assignment).Execute()
+			assignment := admin.UpdateAtlasProjectApiKey{Roles: &roles}
+			_, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, &assignment).Execute()
 			if err != nil {
 				return diag.Errorf("error updating role names for the api_key(%s): %s", apiKey, err)
 			}
