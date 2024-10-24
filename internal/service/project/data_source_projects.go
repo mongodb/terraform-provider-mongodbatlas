@@ -209,12 +209,12 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 }
 
 func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *admin.PaginatedAtlasGroup) diag.Diagnostics {
-	diagnostics := []diag.Diagnostic{}
+	diagnostics := diag.Diagnostics{}
 	input := projectsRes.GetResults()
 	results := make([]*TFProjectDSModel, 0, len(input))
 	for i := range input {
 		project := input[i]
-		projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, project.GetId())
+		projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, project.GetId(), &diagnostics)
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
 			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, *projectProps)
 			diagnostics = append(diagnostics, diags...)
