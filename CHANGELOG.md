@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.21.3 (October 25, 2024)
+
 NOTES:
 
 * data-source/mongodbatlas_project: Deprecates `is_slow_operation_thresholding_enabled`. Attribute will be supported in a separate data source as it requires different set of permissions ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
