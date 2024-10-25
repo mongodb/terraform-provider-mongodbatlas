@@ -2,6 +2,8 @@ package customplanmodifier
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	planmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -28,14 +30,24 @@ func (d *nonUpdatableAttributePlanModifier) MarkdownDescription(ctx context.Cont
 
 func (d *nonUpdatableAttributePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	var planAttributeValue types.String
-	diags := req.Plan.GetAttribute(ctx, path.Root(d.Attribute), &planAttributeValue)
+	planFullPath, diag := req.Plan.PathMatches(ctx, GetFullPathExpression(ctx, d.Attribute))
+	resp.Diagnostics.Append(diag...)
+	if diag.HasError() {
+		return
+	}
+	diags := req.Plan.GetAttribute(ctx, planFullPath[0], &planAttributeValue)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	var stateAttributeValue types.String
-	req.State.GetAttribute(ctx, path.Root(d.Attribute), &stateAttributeValue)
+	stateFullPath, diag := req.Plan.PathMatches(ctx, GetFullPathExpression(ctx, d.Attribute))
+	resp.Diagnostics.Append(diag...)
+	if diag.HasError() {
+		return
+	}
+	req.State.GetAttribute(ctx, stateFullPath[0], &stateAttributeValue)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -43,9 +55,18 @@ func (d *nonUpdatableAttributePlanModifier) PlanModifyString(ctx context.Context
 
 	if !stateAttributeValue.IsNull() && stateAttributeValue.ValueString() != planAttributeValue.ValueString() {
 		resp.Diagnostics.AddError(
-			"attribute is not updatable",
-			"attribute is not updatable",
+			fmt.Sprintf("%s cannot be updated", d.Attribute),
+			fmt.Sprintf("%s cannot be updated", d.Attribute),
 		)
 		return
 	}
+}
+
+func GetFullPathExpression(ctx context.Context, attribute string) path.Expression {
+	parts := strings.Split(attribute, ".")
+	pathExpression := path.MatchRelative()
+	for _, part := range parts {
+		pathExpression = pathExpression.AtName(part)
+	}
+	return pathExpression
 }

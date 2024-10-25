@@ -90,11 +90,11 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 			},
 			{
 				Config:      configBasic(projectID, clusterName, providerUpdated, region, false),
-				ExpectError: regexp.MustCompile("backing_provider_name cannot be updated"),
+				ExpectError: regexp.MustCompile("provider_settings.backing_provider_name cannot be updated"),
 			},
 			{
 				Config:      configBasic(projectID, clusterName, provider, regionUpdated, false),
-				ExpectError: regexp.MustCompile("region_name cannot be updated"),
+				ExpectError: regexp.MustCompile("provider_settings.region_name cannot be updated"),
 			},
 		},
 	}
