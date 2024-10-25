@@ -119,7 +119,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	ids := conversion.DecodeStateID(d.Id())
 	apiKeyID := ids["api_key_id"]
 
-	details, err := getKeyDetails(ctx, connV2, apiKeyID)
+	details, _, err := getKeyDetails(ctx, connV2, apiKeyID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -152,7 +152,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	ids := conversion.DecodeStateID(d.Id())
 	apiKeyID := ids["api_key_id"]
 
@@ -218,46 +217,16 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	apiKeyID := ids["api_key_id"]
-	var orgID string
-
-	firstProjectID, err := getFirstProjectIDFromAssignments(d)
+	_, orgID, err := getKeyDetails(ctx, connV2, apiKeyID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("could not obtain a project id from state: %s", err))
+		return diag.FromErr(err)
 	}
-
-	projectAPIKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, *firstProjectID).Execute()
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
+	if orgID == "" {
+		return diag.FromErr(fmt.Errorf("error deleting project key (%s): orgID not found", apiKeyID))
 	}
-
-	for _, val := range projectAPIKeys.GetResults() {
-		if val.GetId() == apiKeyID {
-			for i, role := range val.GetRoles() {
-				if strings.HasPrefix(role.GetRoleName(), "ORG_") {
-					orgID = val.GetRoles()[i].GetOrgId()
-				}
-			}
-		}
+	if _, _, err = connV2.ProgrammaticAPIKeysApi.DeleteApiKey(ctx, orgID, apiKeyID).Execute(); err != nil {
+		return diag.FromErr(fmt.Errorf("error deleting project key (%s): %s", apiKeyID, err))
 	}
-
-	apiAssigments, err := getAPIProjectAssignments(ctx, connV2, apiKeyID)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
-	}
-
-	for _, apiKey := range apiAssigments {
-		_, _, err = connV2.ProgrammaticAPIKeysApi.RemoveProjectApiKey(ctx, apiKey.ProjectID, apiKeyID).Execute()
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("error deleting project api key: %s", err))
-		}
-	}
-
-	if orgID != "" {
-		if _, _, err = connV2.ProgrammaticAPIKeysApi.DeleteApiKey(ctx, orgID, apiKeyID).Execute(); err != nil {
-			return diag.FromErr(fmt.Errorf("error unable to delete Key (%s): %s", apiKeyID, err))
-		}
-	}
-
 	d.SetId("")
 	return nil
 }
@@ -409,25 +378,25 @@ func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAssignments, c
 	return
 }
 
-// getKeyDetails returns nil, nil if not found as it's not considered an error
-func getKeyDetails(ctx context.Context, connV2 *admin.APIClient, apiKeyID string) (*admin.ApiKeyUserDetails, error) {
+// getKeyDetails returns nil error and nil details if not found as it's not considered an error
+func getKeyDetails(ctx context.Context, connV2 *admin.APIClient, apiKeyID string) (*admin.ApiKeyUserDetails, string, error) {
 	root, _, err := connV2.RootApi.GetSystemStatus(ctx).Execute()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	for _, role := range root.ApiKey.GetRoles() {
 		if orgID := role.GetOrgId(); orgID != "" {
 			key, resp, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
 			if err != nil {
 				if resp != nil && resp.StatusCode == 404 {
-					return nil, nil
+					return nil, orgID, nil
 				}
-				return nil, fmt.Errorf("error getting api key information: %s", err)
+				return nil, orgID, fmt.Errorf("error getting api key information: %s", err)
 			}
-			return key, nil
+			return key, orgID, nil
 		}
 	}
-	return nil, nil
+	return nil, "", nil
 }
 
 func getAPIProjectAssignments(ctx context.Context, connV2 *admin.APIClient, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {

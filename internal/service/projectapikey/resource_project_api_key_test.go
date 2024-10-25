@@ -315,7 +315,7 @@ func checkDestroy(projectID string) resource.TestCheckFunc {
 			ids := conversion.DecodeStateID(rs.Primary.ID)
 			for _, val := range projectAPIKeys.GetResults() {
 				if val.GetId() == ids["api_key_id"] {
-					return fmt.Errorf("Project API Key (%s) still exists", ids["role_name"])
+					return fmt.Errorf("Project API Key (%s) still exists", ids["api_key_id"])
 				}
 			}
 		}
