@@ -7,14 +7,11 @@ import (
 	planmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
-func NonUpdatableStringAttributePlanModifier(attribute string) planmodifier.String {
-	return &nonUpdatableStringAttributePlanModifier{
-		Attribute: attribute,
-	}
+func NonUpdatableStringAttributePlanModifier() planmodifier.String {
+	return &nonUpdatableStringAttributePlanModifier{}
 }
 
 type nonUpdatableStringAttributePlanModifier struct {
-	Attribute string
 }
 
 func (d *nonUpdatableStringAttributePlanModifier) Description(ctx context.Context) string {
@@ -31,8 +28,8 @@ func (d *nonUpdatableStringAttributePlanModifier) PlanModifyString(ctx context.C
 
 	if !stateAttributeValue.IsNull() && stateAttributeValue.ValueString() != planAttributeValue.ValueString() {
 		resp.Diagnostics.AddError(
-			fmt.Sprintf("%s cannot be updated", d.Attribute),
-			fmt.Sprintf("%s cannot be updated", d.Attribute),
+			fmt.Sprintf("%s cannot be updated", req.Path),
+			fmt.Sprintf("%s cannot be updated", req.Path),
 		)
 		return
 	}
