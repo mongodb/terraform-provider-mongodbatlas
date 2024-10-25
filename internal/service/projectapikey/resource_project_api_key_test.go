@@ -15,8 +15,9 @@ import (
 )
 
 const (
-	resourceName = "mongodbatlas_project_api_key.test"
-	roleName     = "GROUP_OWNER"
+	resourceName    = "mongodbatlas_project_api_key.test"
+	roleName        = "GROUP_OWNER"
+	updatedRoleName = "GROUP_READ_ONLY"
 )
 
 func TestAccProjectAPIKey_basic(t *testing.T) {
@@ -151,9 +152,8 @@ func TestAccProjectAPIKey_updateDescription(t *testing.T) {
 
 func TestAccProjectAPIKey_updateRole(t *testing.T) {
 	var (
-		projectID       = acc.ProjectIDExecution(t)
-		description     = acc.RandomName()
-		updatedRoleName = "GROUP_READ_ONLY"
+		projectID   = acc.ProjectIDExecution(t)
+		description = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -178,6 +178,25 @@ func TestAccProjectAPIKey_updateRole(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.0.role_names.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.0.role_names.0", updatedRoleName),
 				),
+			},
+		},
+	})
+}
+
+func TestAccProjectAPIKey_duplicateProject(t *testing.T) {
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		description = acc.RandomName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(projectID),
+		Steps: []resource.TestStep{
+			{
+				Config:      configTwoAssignments(description, projectID, roleName, projectID, updatedRoleName),
+				ExpectError: regexp.MustCompile("duplicated projectID in assignments: " + projectID),
 			},
 		},
 	})
@@ -341,6 +360,22 @@ func configBasic(projectID, description, roleNames string, includeDataSources bo
 		}
 		%[4]s
 	`, projectID, description, roleNames, dataSourcesStr)
+}
+
+func configTwoAssignments(description, projectID1, roleNames1, projectID2, roleName2 string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project_api_key" "test" {
+			description  = %[1]q
+			project_assignment  {
+				project_id = %[2]q
+				role_names = [%[3]q]
+			}
+			project_assignment  {
+				project_id = %[4]q
+				role_names = [%[5]q]
+			}
+		}
+	`, description, projectID1, roleNames1, projectID2, roleName2)
 }
 
 func configChangingProject(orgID, projectName2, description, assignedProject string) string {

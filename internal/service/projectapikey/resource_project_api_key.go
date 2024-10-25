@@ -77,6 +77,10 @@ type APIProjectAssignmentKeyInput struct {
 const errorNoProjectAssignmentDefined = "could not obtain a project id as no assignments are defined"
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	if err := validateUniqueProjectIDs(d); err != nil {
+		return diag.FromErr(err)
+	}
+
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	var apiKey *admin.ApiKeyUserDetails
@@ -179,6 +183,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	if err := validateUniqueProjectIDs(d); err != nil {
+		return diag.FromErr(err)
+	}
+
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -337,10 +345,9 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 func getFirstProjectIDFromAssignments(d *schema.ResourceData) (*string, error) {
 	if projectAssignments, ok := d.GetOk("project_assignment"); ok {
 		projectAssignmentList := ExpandProjectAssignmentSet(projectAssignments.(*schema.Set))
-		if len(projectAssignmentList) < 1 {
-			return nil, errors.New(errorNoProjectAssignmentDefined)
+		if len(projectAssignmentList) > 0 {
+			return admin.PtrString(projectAssignmentList[0].ProjectID), nil
 		}
-		return admin.PtrString(projectAssignmentList[0].ProjectID), nil // can safely assume at least one assigment is defined because of schema definition
 	}
 	return nil, errors.New(errorNoProjectAssignmentDefined)
 }
@@ -465,4 +472,18 @@ func getAPIProjectAssignments(ctx context.Context, connV2 *admin.APIClient, apiK
 		}
 	}
 	return projectAssignments, nil
+}
+
+func validateUniqueProjectIDs(d *schema.ResourceData) error {
+	if projectAssignments, ok := d.GetOk("project_assignment"); ok {
+		uniqueIDs := make(map[string]bool)
+		for _, val := range projectAssignments.(*schema.Set).List() {
+			projectID := val.(map[string]any)["project_id"].(string)
+			if uniqueIDs[projectID] {
+				return fmt.Errorf("duplicated projectID in assignments: %s", projectID)
+			}
+			uniqueIDs[projectID] = true
+		}
+	}
+	return nil
 }
