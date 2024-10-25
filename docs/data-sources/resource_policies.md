@@ -84,7 +84,7 @@ data "mongodbatlas_resource_policies" "this" {
 
 
 output "policy_ids" {
-  value = { for policy in data.mongodbatlas_resource_policies.this.resource_policies : policy.name => policy.id }
+  value = { for policy in data.mongodbatlas_resource_policies.this.results : policy.name => policy.id }
 }
 ```
 
@@ -97,7 +97,8 @@ output "policy_ids" {
 
 ### Read-Only
 
-- `resource_policies` (Attributes List) (see [below for nested schema](#nestedatt--resource_policies))
+- `resource_policies` (Attributes List, Deprecated) (see [below for nested schema](#nestedatt--resource_policies))
+- `results` (Attributes List) (see [below for nested schema](#nestedatt--results))
 
 <a id="nestedatt--resource_policies"></a>
 ### Nested Schema for `resource_policies`
@@ -134,6 +135,49 @@ Read-Only:
 
 <a id="nestedatt--resource_policies--policies"></a>
 ### Nested Schema for `resource_policies.policies`
+
+Read-Only:
+
+- `body` (String) A string that defines the permissions for the policy. The syntax used is the Cedar Policy language.
+- `id` (String) Unique 24-hexadecimal character string that identifies the policy.
+
+
+
+<a id="nestedatt--results"></a>
+### Nested Schema for `results`
+
+Read-Only:
+
+- `created_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--results--created_by_user))
+- `created_date` (String) Date and time in UTC when the Atlas resource policy was created.
+- `id` (String) Unique 24-hexadecimal digit string that identifies an Atlas resource policy.
+- `last_updated_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--results--last_updated_by_user))
+- `last_updated_date` (String) Date and time in UTC when the Atlas resource policy was last updated.
+- `name` (String) Human-readable label that describes the Atlas resource policy.
+- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
+- `policies` (Attributes List) List of policies that make up the Atlas resource policy. (see [below for nested schema](#nestedatt--results--policies))
+- `version` (String) A string that identifies the version of the Atlas resource policy.
+
+<a id="nestedatt--results--created_by_user"></a>
+### Nested Schema for `results.created_by_user`
+
+Read-Only:
+
+- `id` (String) Unique 24-hexadecimal character string that identifies a user.
+- `name` (String) Human-readable label that describes a user.
+
+
+<a id="nestedatt--results--last_updated_by_user"></a>
+### Nested Schema for `results.last_updated_by_user`
+
+Read-Only:
+
+- `id` (String) Unique 24-hexadecimal character string that identifies a user.
+- `name` (String) Human-readable label that describes a user.
+
+
+<a id="nestedatt--results--policies"></a>
+### Nested Schema for `results.policies`
 
 Read-Only:
 

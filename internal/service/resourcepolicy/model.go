@@ -82,6 +82,7 @@ func NewTFModelDSP(ctx context.Context, orgID string, input []admin.ApiAtlasReso
 	}
 	return &TFModelDSP{
 		ResourcePolicies: tfModels,
+		Results:          tfModels,
 		OrgID:            types.StringValue(orgID),
 	}, *diags
 }
