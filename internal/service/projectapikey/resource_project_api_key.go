@@ -119,48 +119,30 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	ids := conversion.DecodeStateID(d.Id())
 	apiKeyID := ids["api_key_id"]
 
-	firstProjectID, err := getFirstProjectIDFromAssignments(d)
+	details, err := getKeyDetails(ctx, connV2, apiKeyID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("could not obtain a project id from state: %s", err))
+		return diag.FromErr(err)
 	}
-
-	projectAPIKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, *firstProjectID).Execute()
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
-	}
-	apiKeyIsPresent := false
-	for _, val := range projectAPIKeys.GetResults() {
-		if val.GetId() != apiKeyID {
-			continue
-		}
-
-		apiKeyIsPresent = true
-		if err := d.Set("api_key_id", val.GetId()); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting `api_key_id`: %s", err))
-		}
-
-		if err := d.Set("description", val.GetDesc()); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting `description`: %s", err))
-		}
-
-		if err := d.Set("public_key", val.GetPublicKey()); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
-		}
-
-		apiAssigments, err := getAPIProjectAssignments(ctx, connV2, apiKeyID)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
-		}
-		if err := d.Set("project_assignment", flattenProjectAssignments(apiAssigments)); err != nil {
-			return diag.Errorf("error setting `project_assignment` : %s", err)
-		}
-	}
-	if !apiKeyIsPresent {
-		// api key has been deleted, marking resource as destroyed
+	if details == nil {
 		d.SetId("")
 		return nil
 	}
 
+	if err := d.Set("api_key_id", details.GetId()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `api_key_id`: %s", err))
+	}
+
+	if err := d.Set("description", details.GetDesc()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `description`: %s", err))
+	}
+
+	if err := d.Set("public_key", details.GetPublicKey()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
+	}
+
+	if err := d.Set("project_assignment", flattenProjectAssignmentsFromRoles(details.GetRoles())); err != nil {
+		return diag.Errorf("error setting `project_assignment` : %s", err)
+	}
 	return nil
 }
 
@@ -382,6 +364,23 @@ func flattenProjectAssignments(assignments []APIProjectAssignmentKeyInput) []map
 	return results
 }
 
+func flattenProjectAssignmentsFromRoles(roles []admin.CloudAccessRoleAssignment) []map[string]any {
+	assignments := make(map[string][]string)
+	for _, role := range roles {
+		if groupID := role.GetGroupId(); groupID != "" {
+			assignments[groupID] = append(assignments[groupID], role.GetRoleName())
+		}
+	}
+	var results []map[string]any
+	for projectID, roles := range assignments {
+		results = append(results, map[string]any{
+			"project_id": projectID,
+			"role_names": roles,
+		})
+	}
+	return results
+}
+
 func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAssignments, changedAssignments, removedAssignments []any) {
 	prevAssignments, currAssignments := d.GetChange("project_assignment")
 
@@ -408,6 +407,27 @@ func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAssignments, c
 	removedAssignments = rAssignments.List()
 
 	return
+}
+
+// getKeyDetails returns nil, nil if not found as it's not considered an error
+func getKeyDetails(ctx context.Context, connV2 *admin.APIClient, apiKeyID string) (*admin.ApiKeyUserDetails, error) {
+	root, _, err := connV2.RootApi.GetSystemStatus(ctx).Execute()
+	if err != nil {
+		return nil, err
+	}
+	for _, role := range root.ApiKey.GetRoles() {
+		if orgID := role.GetOrgId(); orgID != "" {
+			key, resp, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
+			if err != nil {
+				if resp != nil && resp.StatusCode == 404 {
+					return nil, nil
+				}
+				return nil, fmt.Errorf("error getting api key information: %s", err)
+			}
+			return key, nil
+		}
+	}
+	return nil, nil
 }
 
 func getAPIProjectAssignments(ctx context.Context, connV2 *admin.APIClient, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
