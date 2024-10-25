@@ -231,44 +231,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a api key use the format {project_id}-{api_key_id}")
-	}
-
-	projectID := parts[0]
-	apiKeyID := parts[1]
-
-	projectAPIKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, projectID).Execute()
-	if err != nil {
-		return nil, fmt.Errorf("couldn't import api key %s in project %s, error: %s", projectID, apiKeyID, err)
-	}
-	for _, val := range projectAPIKeys.GetResults() {
-		if val.GetId() != apiKeyID {
-			continue
-		}
-		if err := d.Set("description", val.GetDesc()); err != nil {
-			return nil, fmt.Errorf("error setting `description`: %s", err)
-		}
-
-		if err := d.Set("public_key", val.GetPublicKey()); err != nil {
-			return nil, fmt.Errorf("error setting `public_key`: %s", err)
-		}
-
-		apiAssigments, err := getAPIProjectAssignments(ctx, connV2, apiKeyID)
-		if err != nil {
-			return nil, fmt.Errorf("error getting api key information: %s", err)
-		}
-		if err := d.Set("project_assignment", flattenProjectAssignments(apiAssigments)); err != nil {
-			return nil, fmt.Errorf("error setting  `project_assignment`: %s", err)
-		}
-
-		d.SetId(conversion.EncodeStateID(map[string]string{
-			"api_key_id": val.GetId(),
-		}))
-	}
+	d.SetId(conversion.EncodeStateID(map[string]string{
+		"api_key_id": d.Id(),
+	}))
 	return []*schema.ResourceData{d}, nil
 }
 
