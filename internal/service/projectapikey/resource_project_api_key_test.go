@@ -208,9 +208,8 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 		projectID         = acc.ProjectIDExecution(t)
 		descriptionPrefix = acc.RandomName()
 		description       = descriptionPrefix + "-" + acc.RandomName()
+		config            = configBasic(projectID, description, roleName, false)
 	)
-
-	projectAPIKeyConfig := configBasic(projectID, description, roleName, false)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -218,7 +217,7 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
-				Config: projectAPIKeyConfig,
+				Config: config,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				),
@@ -229,7 +228,7 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 						t.Fatalf("failed to manually delete API key resource: %s", err)
 					}
 				},
-				Config:             projectAPIKeyConfig,
+				Config:             config,
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true, // should detect that api key has to be recreated
 			},
@@ -297,6 +296,7 @@ func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
 			if _, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteApiKey(context.Background(), orgID, key.GetId()).Execute(); err != nil {
 				return err
 			}
+			return nil
 		}
 	}
 	return nil
