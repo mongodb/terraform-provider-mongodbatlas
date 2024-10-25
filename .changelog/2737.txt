@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_project_api_key: Fixes some issues when updating the resource
+```
