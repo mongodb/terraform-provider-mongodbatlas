@@ -116,13 +116,26 @@ func configBasic(projectID, clusterName, provider, region string, terminationPro
 
 func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabled bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists()}
-	attributes := map[string]string{
+	attrMap := map[string]string{
 		"project_id":                     projectID,
 		"name":                           clusterName,
 		"termination_protection_enabled": fmt.Sprintf("%v", terminationProtectionEnabled),
 	}
-	checks = acc.AddAttrChecks(resourceName, checks, attributes)
-	checks = acc.AddAttrChecks(dataSourceName, checks, attributes)
+	attrSet := []string{
+		"backup_settings.enabled",
+		"cluster_type",
+		"connection_strings.standard",
+		"create_date",
+		"id",
+		"mongo_db_version",
+		"state_name",
+		"version_release_system",
+		"provider_settings.provider_name",
+	}
+	checks = acc.AddAttrChecks(resourceName, checks, attrMap)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrMap)
+	checks = acc.AddAttrSetChecks(resourceName, checks, attrSet...)
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrSet...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 

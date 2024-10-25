@@ -2,7 +2,6 @@ package flexcluster
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -37,17 +36,13 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	}
 
 	connV2 := d.Client.AtlasV2
-	flexCluster, apiResp, err := connV2.FlexClustersApi.GetFlexCluster(ctx, tfModel.ProjectId.ValueString(), tfModel.Name.ValueString()).Execute()
+	apiResp, _, err := connV2.FlexClustersApi.GetFlexCluster(ctx, tfModel.ProjectId.ValueString(), tfModel.Name.ValueString()).Execute()
 	if err != nil {
-		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		resp.Diagnostics.AddError("error reading data source", err.Error())
 		return
 	}
 
-	newFlexClusterModel, diags := NewTFModel(ctx, flexCluster)
+	newFlexClusterModel, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
