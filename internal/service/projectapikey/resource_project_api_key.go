@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -80,57 +79,38 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err := validateUniqueProjectIDs(d); err != nil {
 		return diag.FromErr(err)
 	}
-
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
-	var apiKey *admin.ApiKeyUserDetails
-	var resp *http.Response
-	var err error
-
-	createRequest := &admin.CreateAtlasProjectApiKey{
-		Desc: d.Get("description").(string),
+	val, ok := d.GetOk("project_assignment")
+	if !ok {
+		return diag.FromErr(errors.New("project_assignments not found"))
 	}
+	assignments := expandProjectAssignmentSet(val.(*schema.Set))
 
-	if projectAssignments, ok := d.GetOk("project_assignment"); ok {
-		projectAssignmentList := ExpandProjectAssignmentSet(projectAssignments.(*schema.Set))
-
-		// creates api key using project id of first defined project assignment
-		firstAssignment := projectAssignmentList[0]
-		createRequest.Roles = firstAssignment.RoleNames
-		apiKey, resp, err = connV2.ProgrammaticAPIKeysApi.CreateProjectApiKey(ctx, firstAssignment.ProjectID, createRequest).Execute()
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				d.SetId("")
-				return nil
-			}
-			return diag.FromErr(err)
-		}
-
-		// assign created api key to remaining project assignments
-		for _, apiKeyList := range projectAssignmentList[1:] {
-			assignment := []admin.UserAccessRoleAssignment{{Roles: &apiKeyList.RoleNames}}
-			_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, apiKeyList.ProjectID, apiKey.GetId(), &assignment).Execute()
-			if err != nil {
-				if resp != nil && resp.StatusCode == http.StatusNotFound {
-					d.SetId("")
-					return nil
-				}
-			}
-		}
+	req := &admin.CreateAtlasProjectApiKey{
+		Desc:  d.Get("description").(string),
+		Roles: assignments[0].RoleNames,
 	}
-
-	if err := d.Set("public_key", apiKey.GetPublicKey()); err != nil {
+	ret, _, err := connV2.ProgrammaticAPIKeysApi.CreateProjectApiKey(ctx, assignments[0].ProjectID, req).Execute()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	apiKeyID := ret.GetId()
+	d.SetId(conversion.EncodeStateID(map[string]string{
+		"api_key_id": apiKeyID,
+	}))
+	if err := d.Set("public_key", ret.GetPublicKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
-
-	if err := d.Set("private_key", apiKey.GetPrivateKey()); err != nil {
+	if err := d.Set("private_key", ret.GetPrivateKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"api_key_id": apiKey.GetId(),
-	}))
-
+	for _, assignment := range assignments[1:] {
+		req := &[]admin.UserAccessRoleAssignment{{Roles: &assignment.RoleNames}}
+		if _, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, assignment.ProjectID, apiKeyID, req).Execute(); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	return resourceRead(ctx, d, meta)
 }
 
@@ -344,7 +324,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 
 func getFirstProjectIDFromAssignments(d *schema.ResourceData) (*string, error) {
 	if projectAssignments, ok := d.GetOk("project_assignment"); ok {
-		projectAssignmentList := ExpandProjectAssignmentSet(projectAssignments.(*schema.Set))
+		projectAssignmentList := expandProjectAssignmentSet(projectAssignments.(*schema.Set))
 		if len(projectAssignmentList) > 0 {
 			return admin.PtrString(projectAssignmentList[0].ProjectID), nil
 		}
@@ -368,9 +348,8 @@ func flattenProjectAPIKeyRoles(projectID string, apiKeyRoles []admin.CloudAccess
 	return flattenedOrgRoles
 }
 
-func ExpandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAssignmentKeyInput {
+func expandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAssignmentKeyInput {
 	res := make([]*APIProjectAssignmentKeyInput, projectAssignments.Len())
-
 	for i, value := range projectAssignments.List() {
 		v := value.(map[string]any)
 		res[i] = &APIProjectAssignmentKeyInput{
@@ -378,7 +357,6 @@ func ExpandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAss
 			RoleNames: conversion.ExpandStringList(v["role_names"].(*schema.Set).List()),
 		}
 	}
-
 	return res
 }
 
