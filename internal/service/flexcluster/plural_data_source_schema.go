@@ -26,6 +26,6 @@ func PluralDataSourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModelDSP struct {
-	ProjectId    types.String `tfsdk:"project_id"`
-	FlexClusters []TFModel    `tfsdk:"flex_clusters"`
+	ProjectId types.String `tfsdk:"project_id"`
+	Results   []TFModel    `tfsdk:"results"`
 }
