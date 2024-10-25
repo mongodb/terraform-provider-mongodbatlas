@@ -339,16 +339,17 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 func configBasic(projectID, description, roleNames string, includeDataSources bool) string {
 	var dataSourcesStr string
 	if includeDataSources {
-		dataSourcesStr = `
+		dataSourcesStr = fmt.Sprintf(`
 			data "mongodbatlas_project_api_key" "test" {
-				project_id      = mongodbatlas_project_api_key.test.project_assignment.0.project_id
+				project_id      = %[1]q
 				api_key_id  = mongodbatlas_project_api_key.test.api_key_id
 			}
 			
 			data "mongodbatlas_project_api_keys" "test" {
-				project_id      = mongodbatlas_project_api_key.test.project_assignment.0.project_id
+				project_id      = %[1]q
+				depends_on = [mongodbatlas_project_api_key.test]
 			}
-		`
+		`, projectID)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_api_key" "test" {
