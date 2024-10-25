@@ -164,21 +164,19 @@ func TestAccProjectAPIKey_updateRole(t *testing.T) {
 			{
 				Config: configBasic(projectID, description, roleName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment[0].roles_names.#", "1"),
-					// resource.TestCheckResourceAttr(resourceName, "project_assignment[0].roles_names.0", roleName),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.0.role_names.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.0.role_names.0", roleName),
 				),
 			},
 			{
 				Config: configBasic(projectID, description, updatedRoleName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment[0].roles_names.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment[0].roles_names.0", updatedRoleName),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.0.role_names.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "project_assignment.0.role_names.0", updatedRoleName),
 				),
 			},
 		},
