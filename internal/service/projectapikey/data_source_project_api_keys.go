@@ -116,11 +116,11 @@ func flattenProjectAPIKeys(ctx context.Context, connV2 *admin.APIClient, apiKeys
 			"private_key": apiKey.GetPrivateKey(),
 		}
 
-		apiAssigments, err := getAPIProjectAssignments(ctx, connV2, apiKey.GetId())
+		details, _, err := getKeyDetails(ctx, connV2, apiKey.GetId())
 		if err != nil {
 			return nil, err
 		}
-		results[k]["project_assignment"] = flattenProjectAssignments(apiAssigments)
+		results[k]["project_assignment"] = flattenProjectAssignmentsFromRoles(details.GetRoles())
 	}
 	return results, nil
 }

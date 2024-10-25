@@ -296,7 +296,6 @@ func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
 			if _, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteApiKey(context.Background(), orgID, key.GetId()).Execute(); err != nil {
 				return err
 			}
-			return nil
 		}
 	}
 	return nil

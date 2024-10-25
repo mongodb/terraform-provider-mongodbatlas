@@ -247,22 +247,6 @@ func getFirstProjectIDFromAssignments(d *schema.ResourceData) (*string, error) {
 	return nil, errors.New(errorNoProjectAssignmentDefined)
 }
 
-func flattenProjectAPIKeyRoles(projectID string, apiKeyRoles []admin.CloudAccessRoleAssignment) []string {
-	if len(apiKeyRoles) == 0 {
-		return nil
-	}
-
-	flattenedOrgRoles := []string{}
-
-	for _, role := range apiKeyRoles {
-		if strings.HasPrefix(role.GetRoleName(), "GROUP_") && role.GetGroupId() == projectID {
-			flattenedOrgRoles = append(flattenedOrgRoles, role.GetRoleName())
-		}
-	}
-
-	return flattenedOrgRoles
-}
-
 func expandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAssignmentKeyInput {
 	res := make([]*APIProjectAssignmentKeyInput, projectAssignments.Len())
 	for i, value := range projectAssignments.List() {
@@ -273,28 +257,6 @@ func expandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAss
 		}
 	}
 	return res
-}
-
-func flattenProjectAssignments(assignments []APIProjectAssignmentKeyInput) []map[string]any {
-	var results []map[string]any
-	var atlasRoles []admin.CloudAccessRoleAssignment
-	if len(assignments) > 0 {
-		results = make([]map[string]any, len(assignments))
-		for k, apiKey := range assignments {
-			for _, roleName := range apiKey.RoleNames {
-				atlasRole := admin.CloudAccessRoleAssignment{
-					GroupId:  &apiKey.ProjectID,
-					RoleName: &roleName,
-				}
-				atlasRoles = append(atlasRoles, atlasRole)
-			}
-			results[k] = map[string]any{
-				"project_id": apiKey.ProjectID,
-				"role_names": flattenProjectAPIKeyRoles(apiKey.ProjectID, atlasRoles),
-			}
-		}
-	}
-	return results
 }
 
 func flattenProjectAssignmentsFromRoles(roles []admin.CloudAccessRoleAssignment) []map[string]any {
@@ -361,42 +323,6 @@ func getKeyDetails(ctx context.Context, connV2 *admin.APIClient, apiKeyID string
 		}
 	}
 	return nil, "", nil
-}
-
-func getAPIProjectAssignments(ctx context.Context, connV2 *admin.APIClient, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
-	apiKeyOrgList, _, err := connV2.RootApi.GetSystemStatus(ctx).Execute()
-	if err != nil {
-		return nil, err
-	}
-
-	projectAssignments := []APIProjectAssignmentKeyInput{}
-	for idx, role := range apiKeyOrgList.ApiKey.GetRoles() {
-		if !strings.HasPrefix(*role.RoleName, "ORG_") {
-			continue
-		}
-		roles := apiKeyOrgList.ApiKey.GetRoles()
-		orgKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListApiKeys(ctx, *roles[idx].OrgId).Execute()
-		if err != nil {
-			return nil, fmt.Errorf("error getting api key information: %s", err)
-		}
-		for _, val := range orgKeys.GetResults() {
-			if val.GetId() == apiKeyID {
-				for _, r := range val.GetRoles() {
-					temp := new(APIProjectAssignmentKeyInput)
-					if strings.HasPrefix(r.GetRoleName(), "GROUP_") {
-						temp.ProjectID = r.GetGroupId()
-						for _, l := range val.GetRoles() {
-							if l.GetGroupId() == temp.ProjectID {
-								temp.RoleNames = append(temp.RoleNames, l.GetRoleName())
-							}
-						}
-						projectAssignments = append(projectAssignments, *temp)
-					}
-				}
-			}
-		}
-	}
-	return projectAssignments, nil
 }
 
 func validateUniqueProjectIDs(d *schema.ResourceData) error {

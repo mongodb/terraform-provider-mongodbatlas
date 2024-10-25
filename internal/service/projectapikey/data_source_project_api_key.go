@@ -84,11 +84,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 		}
 
-		apiAssigments, err := getAPIProjectAssignments(ctx, connV2, apiKeyID)
+		details, _, err := getKeyDetails(ctx, connV2, apiKeyID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 		}
-		if err := d.Set("project_assignment", flattenProjectAssignments(apiAssigments)); err != nil {
+		if err := d.Set("project_assignment", flattenProjectAssignmentsFromRoles(details.GetRoles())); err != nil {
 			return diag.Errorf(ErrorProjectSetting, `project_assignment`, projectID, err)
 		}
 	}
