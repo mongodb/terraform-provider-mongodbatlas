@@ -10,25 +10,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func NonUpdatableAttributePlanModifier(attribute string) planmodifier.String {
-	return &nonUpdatableAttributePlanModifier{
+func NonUpdatableStringAttributePlanModifier(attribute string) planmodifier.String {
+	return &nonUpdatableStringAttributePlanModifier{
 		Attribute: attribute,
 	}
 }
 
-type nonUpdatableAttributePlanModifier struct {
+type nonUpdatableStringAttributePlanModifier struct {
 	Attribute string
 }
 
-func (d *nonUpdatableAttributePlanModifier) Description(ctx context.Context) string {
+func (d *nonUpdatableStringAttributePlanModifier) Description(ctx context.Context) string {
 	return "Ensures that update operations fails when updating an attribute."
 }
 
-func (d *nonUpdatableAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
+func (d *nonUpdatableStringAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
 	return d.Description(ctx)
 }
 
-func (d *nonUpdatableAttributePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+func (d *nonUpdatableStringAttributePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	var planAttributeValue types.String
 	planFullPath, diag := req.Plan.PathMatches(ctx, GetFullPathExpression(ctx, d.Attribute))
 	resp.Diagnostics.Append(diag...)
