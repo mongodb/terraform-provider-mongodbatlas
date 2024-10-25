@@ -3,9 +3,7 @@ package customplanmodifier
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	planmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
@@ -38,13 +36,4 @@ func (d *nonUpdatableStringAttributePlanModifier) PlanModifyString(ctx context.C
 		)
 		return
 	}
-}
-
-func GetFullPathExpression(ctx context.Context, attribute string) path.Expression {
-	parts := strings.Split(attribute, ".")
-	pathExpression := path.MatchRelative()
-	for _, part := range parts {
-		pathExpression = pathExpression.AtName(part)
-	}
-	return pathExpression
 }
