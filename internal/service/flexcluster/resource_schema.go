@@ -19,7 +19,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{
-				Required:            true,
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					customplanmodifier.NonUpdatableAttributePlanModifier("project_id"),
+				},
 				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the project.",
 			},
 			"name": schema.StringAttribute{
@@ -32,7 +35,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"provider_settings": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"backing_provider_name": schema.StringAttribute{
-						Required:            true,
+						Required: true,
+						PlanModifiers: []planmodifier.String{
+							customplanmodifier.NonUpdatableAttributePlanModifier("provider_settings.backing_provider_name"),
+						},
 						MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the flex cluster.",
 					},
 					"disk_size_gb": schema.Float64Attribute{
@@ -50,7 +56,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						MarkdownDescription: "Human-readable label that identifies the cloud service provider.",
 					},
 					"region_name": schema.StringAttribute{
-						Required:            true,
+						Required: true,
+						PlanModifiers: []planmodifier.String{
+							customplanmodifier.NonUpdatableAttributePlanModifier("provider_settings.region_name"),
+						},
 						MarkdownDescription: "Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), and [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).",
 					},
 				},
@@ -114,10 +123,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the instance.",
 			},
 			"mongo_db_version": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				Computed:            true,
 				MarkdownDescription: "Version of MongoDB that the instance runs.",
 			},
 			"state_name": schema.StringAttribute{
