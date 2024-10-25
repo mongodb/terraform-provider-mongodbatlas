@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	resourceType = "mongodbatlas_flex_cluster"
-	resourceName = "mongodbatlas_flex_cluster.flex_cluster"
+	resourceType   = "mongodbatlas_flex_cluster"
+	resourceName   = "mongodbatlas_flex_cluster.test"
+	dataSourceName = "data.mongodbatlas_flex_cluster.test"
 )
 
 func TestAccFlexClusterRS_basic(t *testing.T) {
@@ -102,7 +103,7 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 
 func configBasic(projectID, clusterName, provider, region string, terminationProtectionEnabled bool) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_flex_cluster" "flex_cluster" {
+		resource "mongodbatlas_flex_cluster" "test" {
 			project_id = %[1]q
 			name       = %[2]q
 			provider_settings = {
@@ -121,6 +122,7 @@ func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabl
 		"termination_protection_enabled": fmt.Sprintf("%v", terminationProtectionEnabled),
 	}
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attributes)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
