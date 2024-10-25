@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	planmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func NonUpdatableStringAttributePlanModifier(attribute string) planmodifier.String {
@@ -29,29 +28,8 @@ func (d *nonUpdatableStringAttributePlanModifier) MarkdownDescription(ctx contex
 }
 
 func (d *nonUpdatableStringAttributePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	var planAttributeValue types.String
-	planFullPath, diag := req.Plan.PathMatches(ctx, GetFullPathExpression(ctx, d.Attribute))
-	resp.Diagnostics.Append(diag...)
-	if diag.HasError() {
-		return
-	}
-	diags := req.Plan.GetAttribute(ctx, planFullPath[0], &planAttributeValue)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	var stateAttributeValue types.String
-	stateFullPath, diag := req.Plan.PathMatches(ctx, GetFullPathExpression(ctx, d.Attribute))
-	resp.Diagnostics.Append(diag...)
-	if diag.HasError() {
-		return
-	}
-	req.State.GetAttribute(ctx, stateFullPath[0], &stateAttributeValue)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	planAttributeValue := req.PlanValue
+	stateAttributeValue := req.StateValue
 
 	if !stateAttributeValue.IsNull() && stateAttributeValue.ValueString() != planAttributeValue.ValueString() {
 		resp.Diagnostics.AddError(
