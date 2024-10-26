@@ -73,8 +73,6 @@ type APIProjectAssignmentKeyInput struct {
 	RoleNames []string `json:"roles,omitempty"`
 }
 
-const errorNoProjectAssignmentDefined = "could not obtain a project id as no assignments are defined"
-
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if err := validateUniqueProjectIDs(d); err != nil {
 		return diag.FromErr(err)
@@ -155,6 +153,14 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	apiKeyID := ids["api_key_id"]
 
+	details, orgID, err := getKeyDetails(ctx, connV2, apiKeyID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if details == nil {
+		return diag.Errorf("error updating project api_key (%s): not found", apiKeyID)
+	}
+
 	if d.HasChange("project_assignment") {
 		// Getting the changes to api key project assignments
 		newAssignments, changedAssignments, removedAssignments := getStateProjectAssignmentAPIKeys(d)
@@ -196,16 +202,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	firstProjectID, err := getFirstProjectIDFromAssignments(d)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("could not obtain a project id from state: %s", err))
-	}
-
 	if d.HasChange("description") {
-		newDescription := d.Get("description").(string)
-		if _, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, *firstProjectID, apiKeyID, &admin.UpdateAtlasProjectApiKey{
-			Desc: &newDescription,
-		}).Execute(); err != nil {
+		req := &admin.UpdateAtlasOrganizationApiKey{Desc: conversion.StringPtr(d.Get("description").(string))}
+		if _, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKey(ctx, orgID, apiKeyID, req).Execute(); err != nil {
 			return diag.Errorf("error updating description in api key(%s): %s", apiKeyID, err)
 		}
 	}
@@ -235,16 +234,6 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 		"api_key_id": d.Id(),
 	}))
 	return []*schema.ResourceData{d}, nil
-}
-
-func getFirstProjectIDFromAssignments(d *schema.ResourceData) (*string, error) {
-	if projectAssignments, ok := d.GetOk("project_assignment"); ok {
-		projectAssignmentList := expandProjectAssignmentSet(projectAssignments.(*schema.Set))
-		if len(projectAssignmentList) > 0 {
-			return admin.PtrString(projectAssignmentList[0].ProjectID), nil
-		}
-	}
-	return nil, errors.New(errorNoProjectAssignmentDefined)
 }
 
 func expandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAssignmentKeyInput {
