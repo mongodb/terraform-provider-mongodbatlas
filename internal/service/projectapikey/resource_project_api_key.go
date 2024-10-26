@@ -68,11 +68,6 @@ func Resource() *schema.Resource {
 	}
 }
 
-type APIProjectAssignmentKeyInput struct {
-	ProjectID string   `json:"desc,omitempty"`
-	RoleNames []string `json:"roles,omitempty"`
-}
-
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if err := validateUniqueProjectIDs(d); err != nil {
 		return diag.FromErr(err)
@@ -82,13 +77,17 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if !ok {
 		return diag.FromErr(errors.New("project_assignment not found"))
 	}
-	assignments := expandProjectAssignmentSet(val.(*schema.Set))
+	assignments := expandProjectAssignments(val.(*schema.Set))
+	projectIDs := make([]string, 0, len(assignments))
+	for projectID := range assignments {
+		projectIDs = append(projectIDs, projectID)
+	}
 
 	req := &admin.CreateAtlasProjectApiKey{
 		Desc:  d.Get("description").(string),
-		Roles: assignments[0].RoleNames,
+		Roles: assignments[projectIDs[0]],
 	}
-	ret, _, err := connV2.ProgrammaticAPIKeysApi.CreateProjectApiKey(ctx, assignments[0].ProjectID, req).Execute()
+	ret, _, err := connV2.ProgrammaticAPIKeysApi.CreateProjectApiKey(ctx, projectIDs[0], req).Execute()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -103,9 +102,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
-	for _, assignment := range assignments[1:] {
-		req := &[]admin.UserAccessRoleAssignment{{Roles: &assignment.RoleNames}}
-		if _, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, assignment.ProjectID, apiKeyID, req).Execute(); err != nil {
+	for _, projectID := range projectIDs[1:] {
+		roles := assignments[projectID]
+		req := &[]admin.UserAccessRoleAssignment{{Roles: &roles}}
+		if _, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, req).Execute(); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -138,7 +138,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
-	if err := d.Set("project_assignment", flattenProjectAssignmentsFromRoles(details.GetRoles())); err != nil {
+	if err := d.Set("project_assignment", flattenProjectAssignments(details.GetRoles())); err != nil {
 		return diag.Errorf("error setting `project_assignment` : %s", err)
 	}
 	return nil
@@ -225,19 +225,15 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	return []*schema.ResourceData{d}, nil
 }
 
-func expandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAssignmentKeyInput {
-	res := make([]*APIProjectAssignmentKeyInput, projectAssignments.Len())
-	for i, value := range projectAssignments.List() {
-		v := value.(map[string]any)
-		res[i] = &APIProjectAssignmentKeyInput{
-			ProjectID: v["project_id"].(string),
-			RoleNames: conversion.ExpandStringList(v["role_names"].(*schema.Set).List()),
-		}
+func expandProjectAssignments(projectAssignments *schema.Set) map[string][]string {
+	results := make(map[string][]string)
+	for _, val := range projectAssignments.List() {
+		results[val.(map[string]any)["project_id"].(string)] = conversion.ExpandStringList(val.(map[string]any)["role_names"].(*schema.Set).List())
 	}
-	return res
+	return results
 }
 
-func flattenProjectAssignmentsFromRoles(roles []admin.CloudAccessRoleAssignment) []map[string]any {
+func flattenProjectAssignments(roles []admin.CloudAccessRoleAssignment) []map[string]any {
 	assignments := make(map[string][]string)
 	for _, role := range roles {
 		if groupID := role.GetGroupId(); groupID != "" {
@@ -255,16 +251,10 @@ func flattenProjectAssignmentsFromRoles(roles []admin.CloudAccessRoleAssignment)
 }
 
 func getAssignmentChanges(d *schema.ResourceData) (add, remove, update map[string][]string) {
-	add = make(map[string][]string)
-	remove = make(map[string][]string)
-	update = make(map[string][]string)
 	before, after := d.GetChange("project_assignment")
-	for _, val := range after.(*schema.Set).List() {
-		add[val.(map[string]any)["project_id"].(string)] = conversion.ExpandStringList(val.(map[string]any)["role_names"].(*schema.Set).List())
-	}
-	for _, val := range before.(*schema.Set).List() {
-		remove[val.(map[string]any)["project_id"].(string)] = conversion.ExpandStringList(val.(map[string]any)["role_names"].(*schema.Set).List())
-	}
+	add = expandProjectAssignments(after.(*schema.Set))
+	remove = expandProjectAssignments(before.(*schema.Set))
+	update = make(map[string][]string)
 
 	for projectID, rolesAfter := range add {
 		if rolesBefore, ok := remove[projectID]; ok {

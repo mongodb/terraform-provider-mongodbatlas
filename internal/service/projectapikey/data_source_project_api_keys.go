@@ -121,7 +121,7 @@ func flattenProjectAPIKeys(ctx context.Context, connV2 *admin.APIClient, apiKeys
 		if err != nil {
 			return nil, err
 		}
-		results[k]["project_assignment"] = flattenProjectAssignmentsFromRoles(details.GetRoles())
+		results[k]["project_assignment"] = flattenProjectAssignments(details.GetRoles())
 	}
 	return results, nil
 }
