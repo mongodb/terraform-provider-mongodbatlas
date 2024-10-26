@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
+	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -162,42 +162,31 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("project_assignment") {
-		// Getting the changes to api key project assignments
-		newAssignments, changedAssignments, removedAssignments := getStateProjectAssignmentAPIKeys(d)
+		add, remove, update := getAssignmentChanges(d)
 
-		// Adding new projects assignments
-		if len(newAssignments) > 0 {
-			for _, apiKey := range newAssignments {
-				projectID := apiKey.(map[string]any)["project_id"].(string)
-				roles := conversion.ExpandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
-				assignment := []admin.UserAccessRoleAssignment{{Roles: &roles}}
-				_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, &assignment).Execute()
-				if err != nil {
-					return diag.Errorf("error assigning api_keys into the project(%s): %s", projectID, err)
-				}
-			}
-		}
-
-		// Removing projects assignments
-		for _, apiKey := range removedAssignments {
-			projectID := apiKey.(map[string]any)["project_id"].(string)
+		for projectID := range remove {
 			_, _, err := connV2.ProgrammaticAPIKeysApi.RemoveProjectApiKey(ctx, projectID, apiKeyID).Execute()
-			if err != nil && strings.Contains(err.Error(), "GROUP_NOT_FOUND") {
-				continue // allows removing assignment for a project that has been deleted
-			}
 			if err != nil {
-				return diag.Errorf("error removing api_key(%s) from the project(%s): %s", apiKeyID, projectID, err)
+				if admin.IsErrorCode(err, "GROUP_NOT_FOUND") {
+					continue // allows removing assignment for a project that has been deleted
+				}
+				return diag.Errorf("error removing project_api_key(%s) from project(%s): %s", apiKeyID, projectID, err)
 			}
 		}
 
-		// Updating the role names for the project assignments
-		for _, apiKey := range changedAssignments {
-			projectID := apiKey.(map[string]any)["project_id"].(string)
-			roles := conversion.ExpandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
-			assignment := admin.UpdateAtlasProjectApiKey{Roles: &roles}
-			_, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, &assignment).Execute()
+		for projectID, roles := range add {
+			req := &[]admin.UserAccessRoleAssignment{{Roles: &roles}}
+			_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, req).Execute()
 			if err != nil {
-				return diag.Errorf("error updating role names for the api_key(%s): %s", apiKey, err)
+				return diag.Errorf("error adding project_api_key(%s) to project(%s): %s", apiKeyID, projectID, err)
+			}
+		}
+
+		for projectID, roles := range update {
+			req := &admin.UpdateAtlasProjectApiKey{Roles: &roles}
+			_, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, req).Execute()
+			if err != nil {
+				return diag.Errorf("error changing project_api_key(%s) in project(%s): %s", apiKeyID, projectID, err)
 			}
 		}
 	}
@@ -265,32 +254,40 @@ func flattenProjectAssignmentsFromRoles(roles []admin.CloudAccessRoleAssignment)
 	return results
 }
 
-func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAssignments, changedAssignments, removedAssignments []any) {
-	prevAssignments, currAssignments := d.GetChange("project_assignment")
-
-	rAssignments := prevAssignments.(*schema.Set).Difference(currAssignments.(*schema.Set))
-	nAssignments := currAssignments.(*schema.Set).Difference(prevAssignments.(*schema.Set))
-	changedAssignments = make([]any, 0)
-
-	for _, changed := range nAssignments.List() {
-		for _, removed := range rAssignments.List() {
-			if changed.(map[string]any)["project_id"] == removed.(map[string]any)["project_id"] {
-				rAssignments.Remove(removed)
-			}
-		}
-
-		for _, current := range prevAssignments.(*schema.Set).List() {
-			if changed.(map[string]any)["project_id"] == current.(map[string]any)["project_id"] {
-				changedAssignments = append(changedAssignments, changed.(map[string]any))
-				nAssignments.Remove(changed)
-			}
-		}
+func getAssignmentChanges(d *schema.ResourceData) (add, remove, update map[string][]string) {
+	add = make(map[string][]string)
+	remove = make(map[string][]string)
+	update = make(map[string][]string)
+	before, after := d.GetChange("project_assignment")
+	for _, val := range after.(*schema.Set).List() {
+		add[val.(map[string]any)["project_id"].(string)] = conversion.ExpandStringList(val.(map[string]any)["role_names"].(*schema.Set).List())
+	}
+	for _, val := range before.(*schema.Set).List() {
+		remove[val.(map[string]any)["project_id"].(string)] = conversion.ExpandStringList(val.(map[string]any)["role_names"].(*schema.Set).List())
 	}
 
-	newAssignments = nAssignments.List()
-	removedAssignments = rAssignments.List()
-
+	for projectID, rolesAfter := range add {
+		if rolesBefore, ok := remove[projectID]; ok {
+			if !sameRoles(rolesBefore, rolesAfter) {
+				update[projectID] = rolesAfter
+			}
+			delete(remove, projectID)
+			delete(add, projectID)
+		}
+	}
 	return
+}
+
+func sameRoles(roles1, roles2 []string) bool {
+	set1 := make(map[string]struct{})
+	for _, role := range roles1 {
+		set1[role] = struct{}{}
+	}
+	set2 := make(map[string]struct{})
+	for _, role := range roles2 {
+		set2[role] = struct{}{}
+	}
+	return reflect.DeepEqual(set1, set2)
 }
 
 // getKeyDetails returns nil error and nil details if not found as it's not considered an error
