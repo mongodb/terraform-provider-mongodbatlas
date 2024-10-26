@@ -26,12 +26,10 @@ func TestAccProjectAPIKey_basic(t *testing.T) {
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-
 	var (
 		projectID   = acc.ProjectIDExecution(tb)
 		description = acc.RandomName()
 	)
-
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -46,10 +44,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: false,
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_key"},
 			},
 		},
 	}
@@ -328,10 +327,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-
-		projectID := rs.Primary.Attributes["project_assignment.0.project_id"]
-
-		return fmt.Sprintf("%s-%s", projectID, rs.Primary.Attributes["api_key_id"]), nil
+		return rs.Primary.Attributes["api_key_id"], nil
 	}
 }
 
