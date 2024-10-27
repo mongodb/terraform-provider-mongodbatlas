@@ -144,7 +144,7 @@ func TestAccProjectAPIKey_duplicateProject(t *testing.T) {
 		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
-				Config:      configTwoAssignments(description, projectID, roleName, projectID, updatedRoleName),
+				Config:      configDuplicatedProject(description, projectID, roleName, updatedRoleName),
 				ExpectError: regexp.MustCompile("duplicated projectID in assignments: " + projectID),
 			},
 		},
@@ -217,7 +217,6 @@ func TestAccProjectAPIKey_invalidRole(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		description = fmt.Sprintf("desc-%s", projectID)
-		roleName    = "INVALID_ROLE"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -226,7 +225,7 @@ func TestAccProjectAPIKey_invalidRole(t *testing.T) {
 		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic(description, projectID, roleName),
+				Config:      configBasic(description, projectID, "INVALID_ROLE"),
 				ExpectError: regexp.MustCompile("INVALID_ENUM_VALUE"),
 			},
 		},
@@ -313,7 +312,7 @@ func configBasic(description, projectID, roleNames string) string {
 	`, description, projectID, roleNames, configDataSources(projectID))
 }
 
-func configTwoAssignments(description, projectID1, roleNames1, projectID2, roleName2 string) string {
+func configDuplicatedProject(description, projectID, roleNames1, roleName2 string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_api_key" "test" {
 			description  = %[1]q
@@ -322,11 +321,11 @@ func configTwoAssignments(description, projectID1, roleNames1, projectID2, roleN
 				role_names = [%[3]q]
 			}
 			project_assignment  {
-				project_id = %[4]q
-				role_names = [%[5]q]
+				project_id = %[2]q
+				role_names = [%[4]q]
 			}
 		}
-	`, description, projectID1, roleNames1, projectID2, roleName2)
+	`, description, projectID, roleNames1, roleName2)
 }
 
 func configChangingProject(orgID, projectName2, description, assignedProject string) string {
