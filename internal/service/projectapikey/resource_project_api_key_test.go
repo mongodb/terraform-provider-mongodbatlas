@@ -288,26 +288,24 @@ func checkDestroy(projectID string) resource.TestCheckFunc {
 	}
 }
 
-// TODO: IMPLEMENTATION
-func checkExists(resourceName string) resource.TestCheckFunc {
+func checkExists(resourceName, projectID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		projectID := ""
-		for _, rs := range s.RootModule().Resources {
-			if rs.Type != "mongodbatlas_project_api_key" {
-				continue
-			}
-			projectAPIKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListProjectApiKeys(context.Background(), projectID).Execute()
-			if err != nil {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		apiKeyID := ids["api_key_id"]
+		list, _, _ := acc.ConnV2().ProgrammaticAPIKeysApi.ListProjectApiKeys(context.Background(), projectID).Execute()
+		for _, val := range list.GetResults() {
+			if val.GetId() == apiKeyID {
 				return nil
 			}
-			ids := conversion.DecodeStateID(rs.Primary.ID)
-			for _, val := range projectAPIKeys.GetResults() {
-				if val.GetId() == ids["api_key_id"] {
-					return fmt.Errorf("Project API Key (%s) still exists", ids["api_key_id"])
-				}
-			}
 		}
-		return nil
+		return fmt.Errorf("API Key (%s) does not exist", apiKeyID)
 	}
 }
 
@@ -419,7 +417,7 @@ func checkAggr(description, projectID, roleName string, extra ...resource.TestCh
 		"project_assignment.0.role_names.0": roleName,
 	}
 	checks := []resource.TestCheckFunc{
-		// checkExists(resourceName),
+		checkExists(resourceName, projectID),
 		resource.TestCheckResourceAttrSet(pluralDataSourcesName, "results.0.project_assignment.0.project_id"),
 		resource.TestCheckResourceAttrSet(pluralDataSourcesName, "results.0.project_assignment.0.role_names.0"),
 	}
