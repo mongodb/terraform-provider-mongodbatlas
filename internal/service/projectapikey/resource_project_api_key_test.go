@@ -15,9 +15,11 @@ import (
 )
 
 const (
-	resourceName    = "mongodbatlas_project_api_key.test"
-	roleName        = "GROUP_OWNER"
-	updatedRoleName = "GROUP_READ_ONLY"
+	resourceName          = "mongodbatlas_project_api_key.test"
+	dataSourceName        = "data.mongodbatlas_project_api_key.test"
+	pluralDataSourcesName = "data.mongodbatlas_project_api_keys.test"
+	roleName              = "GROUP_OWNER"
+	updatedRoleName       = "GROUP_READ_ONLY"
 )
 
 func TestAccProjectAPIKey_basic(t *testing.T) {
@@ -36,12 +38,8 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, description, roleName, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttrSet(resourceName, "public_key"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
-				),
+				Config: configBasic(description, projectID, roleName),
+				Check:  checkAggr(description, projectID, roleName),
 			},
 			{
 				ResourceName:            resourceName,
@@ -89,10 +87,8 @@ func TestAccProjectAPIKey_changingSingleProject(t *testing.T) {
 
 func TestAccProjectAPIKey_dataSources(t *testing.T) {
 	var (
-		dataSourceName  = "data.mongodbatlas_project_api_key.test"
-		dataSourcesName = "data.mongodbatlas_project_api_keys.test"
-		projectID       = acc.ProjectIDExecution(t)
-		description     = acc.RandomName()
+		projectID   = acc.ProjectIDExecution(t)
+		description = acc.RandomName()
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -101,19 +97,8 @@ func TestAccProjectAPIKey_dataSources(t *testing.T) {
 		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, description, roleName, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.0.project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.0.role_names.0"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_assignment.0.project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_assignment.0.role_names.0"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
-					resource.TestCheckResourceAttrSet(dataSourcesName, "results.0.project_assignment.0.project_id"),
-					resource.TestCheckResourceAttrSet(dataSourcesName, "results.0.project_assignment.0.role_names.0"),
-				),
+				Config: configBasic(description, projectID, roleName),
+				Check:  checkAggr(description, projectID, roleName),
 			},
 		},
 	})
@@ -132,18 +117,12 @@ func TestAccProjectAPIKey_updateDescription(t *testing.T) {
 		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, description, roleName, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-				),
+				Config: configBasic(description, projectID, roleName),
+				Check:  checkAggr(description, projectID, roleName),
 			},
 			{
-				Config: configBasic(projectID, updatedDescription, roleName, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
-					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
-				),
+				Config: configBasic(updatedDescription, projectID, roleName),
+				Check:  checkAggr(updatedDescription, projectID, roleName),
 			},
 		},
 	})
@@ -161,22 +140,12 @@ func TestAccProjectAPIKey_updateRole(t *testing.T) {
 		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, description, roleName, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment.0.role_names.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment.0.role_names.0", roleName),
-				),
+				Config: configBasic(description, projectID, roleName),
+				Check:  checkAggr(description, projectID, roleName),
 			},
 			{
-				Config: configBasic(projectID, description, updatedRoleName, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment.0.role_names.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "project_assignment.0.role_names.0", updatedRoleName),
-				),
+				Config: configBasic(description, projectID, updatedRoleName),
+				Check:  checkAggr(description, projectID, updatedRoleName),
 			},
 		},
 	})
@@ -207,7 +176,7 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 		projectID         = acc.ProjectIDExecution(t)
 		descriptionPrefix = acc.RandomName()
 		description       = descriptionPrefix + "-" + acc.RandomName()
-		config            = configBasic(projectID, description, roleName, false)
+		config            = configBasic(description, projectID, roleName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -217,9 +186,7 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
-				),
+				Check:  checkAggr(description, projectID, roleName),
 			},
 			{
 				PreConfig: func() {
@@ -278,7 +245,7 @@ func TestAccProjectAPIKey_invalidRole(t *testing.T) {
 		CheckDestroy:             checkDestroy(projectID),
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic(projectID, description, roleName, false),
+				Config:      configBasic(description, projectID, roleName),
 				ExpectError: regexp.MustCompile("INVALID_ENUM_VALUE"),
 			},
 		},
@@ -321,6 +288,29 @@ func checkDestroy(projectID string) resource.TestCheckFunc {
 	}
 }
 
+// TODO: IMPLEMENTATION
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		projectID := ""
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != "mongodbatlas_project_api_key" {
+				continue
+			}
+			projectAPIKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListProjectApiKeys(context.Background(), projectID).Execute()
+			if err != nil {
+				return nil
+			}
+			ids := conversion.DecodeStateID(rs.Primary.ID)
+			for _, val := range projectAPIKeys.GetResults() {
+				if val.GetId() == ids["api_key_id"] {
+					return fmt.Errorf("Project API Key (%s) still exists", ids["api_key_id"])
+				}
+			}
+		}
+		return nil
+	}
+}
+
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -331,31 +321,17 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(projectID, description, roleNames string, includeDataSources bool) string {
-	var dataSourcesStr string
-	if includeDataSources {
-		dataSourcesStr = fmt.Sprintf(`
-			data "mongodbatlas_project_api_key" "test" {
-				project_id      = %[1]q
-				api_key_id  = mongodbatlas_project_api_key.test.api_key_id
-			}
-			
-			data "mongodbatlas_project_api_keys" "test" {
-				project_id      = %[1]q
-				depends_on = [mongodbatlas_project_api_key.test]
-			}
-		`, projectID)
-	}
+func configBasic(description, projectID, roleNames string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_api_key" "test" {
-			description  = %[2]q
+			description  = %[1]q
 			project_assignment  {
-				project_id = %[1]q
+				project_id = %[2]q
 				role_names = [%[3]q]
 			}
 		}
 		%[4]s
-	`, projectID, description, roleNames, dataSourcesStr)
+	`, description, projectID, roleNames, configDataSources(projectID))
 }
 
 func configTwoAssignments(description, projectID1, roleNames1, projectID2, roleName2 string) string {
@@ -418,4 +394,39 @@ func configDeletedProjectAndAssignment(orgID, projectID1, projectName2, descript
 			%[4]s
 		}
 	`, projectID1, description, secondProject, secondProjectAssignment)
+}
+
+func configDataSources(projectID string) string {
+	return fmt.Sprintf(`
+			data "mongodbatlas_project_api_key" "test" {
+				project_id      = %[1]q
+				api_key_id  = mongodbatlas_project_api_key.test.api_key_id
+			}
+			
+			data "mongodbatlas_project_api_keys" "test" {
+				project_id      = %[1]q
+				depends_on = [mongodbatlas_project_api_key.test]
+			}
+		`, projectID)
+}
+
+func checkAggr(description, projectID, roleName string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	attributes := map[string]string{
+		"description":                       description,
+		"project_assignment.#":              "1",
+		"project_assignment.0.project_id":   projectID,
+		"project_assignment.0.role_names.#": "1",
+		"project_assignment.0.role_names.0": roleName,
+	}
+	checks := []resource.TestCheckFunc{
+		// checkExists(resourceName),
+		resource.TestCheckResourceAttrSet(pluralDataSourcesName, "results.0.project_assignment.0.project_id"),
+		resource.TestCheckResourceAttrSet(pluralDataSourcesName, "results.0.project_assignment.0.role_names.0"),
+	}
+	checks = acc.AddAttrChecks(resourceName, checks, attributes)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attributes)
+	checks = acc.AddAttrSetChecks(resourceName, checks, "public_key", "private_key")
+	checks = acc.AddAttrSetChecks(dataSourceName, checks, "public_key", "private_key")
+	checks = append(checks, extra...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
