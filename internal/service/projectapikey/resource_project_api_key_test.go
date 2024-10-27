@@ -85,25 +85,6 @@ func TestAccProjectAPIKey_changingSingleProject(t *testing.T) {
 	})
 }
 
-func TestAccProjectAPIKey_dataSources(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		description = acc.RandomName()
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy(projectID),
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(description, projectID, roleName),
-				Check:  checkAggr(description, projectID, roleName),
-			},
-		},
-	})
-}
-
 func TestAccProjectAPIKey_updateDescription(t *testing.T) {
 	var (
 		projectID          = acc.ProjectIDExecution(t)
