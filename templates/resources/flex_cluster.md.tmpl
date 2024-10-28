@@ -1,0 +1,21 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a Flex Cluster resource. The resource lets you create, update, delete and import a flex cluster.
+
+-> **NOTE**: Flex Clusters are currently in Preview. To use this feature, you must take the following actions:
+1. Enable the `Atlas Uss Enabled` Preview Feature in your project (contact [MongoDB Support](https://www.mongodb.com/services/support)).
+2. Enable the [Preview Features](https://github.com/mongodb/terraform-provider-mongodbatlas?tab=readme-ov-file#preview-features) when running `terraform` commands.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+# Import 
+Flex Cluster resource can be imported using the Project ID and Flex Cluster name, in the format `PROJECT_ID-FLEX_CLUSTER_NAME`, e.g.
+```
+$ terraform import mongodbatlas_flex_cluster.test 6117ac2fe2a3d04ed27a987v-yourFlexClsuterName
+```
+
+For more information see: [MongoDB Atlas API - Flex Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Flex-Clusters/operation/createFlexcluster) Documentation.
