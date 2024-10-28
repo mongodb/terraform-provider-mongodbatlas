@@ -81,6 +81,7 @@ func applyAlias(attr *Attribute, attrPathName *string, schemaOptions config.Sche
 func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) {
 	if override, ok := schemaOptions.Overrides[attrPathName]; ok {
 		attr.Description = &override.Description
+		// attr.ComputedOptionalRequired
 	}
 }
 

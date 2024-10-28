@@ -211,6 +211,12 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 								Description: conversion.StringPtr(testFieldDesc),
 							},
 							{
+								Name:                     "optional_string_attr",
+								ComputedOptionalRequired: codespec.Optional,
+								String:                   &codespec.StringAttribute{},
+								Description:              conversion.StringPtr("Optional string that has config override to optional/computed"),
+							},
+							{
 								Name:                     "set_primitive_string_attr",
 								ComputedOptionalRequired: codespec.Computed,
 								Set: &codespec.SetAttribute{
@@ -326,6 +332,12 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 									},
 								},
 								Description: conversion.StringPtr(testFieldDesc),
+							},
+							{
+								Name:                     "optional_string_attr",
+								ComputedOptionalRequired: codespec.Optional,
+								String:                   &codespec.StringAttribute{},
+								Description:              conversion.StringPtr("Optional string that has config override to optional/computed"),
 							},
 							{
 								Name:                     "outer_object",
