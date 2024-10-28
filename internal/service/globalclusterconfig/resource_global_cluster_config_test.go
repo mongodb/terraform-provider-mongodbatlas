@@ -41,7 +41,7 @@ func basicTestCase(tb testing.TB, checkZoneID, withBackup bool) *resource.TestCa
 	}
 
 	return &resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(tb),
+		PreCheck:                 acc.PreCheckBasicSleep(tb, &clusterInfo, "", ""),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -113,7 +113,7 @@ func TestAccGlobalClusterConfig_database(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t),
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{

@@ -123,7 +123,7 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     acc.PreCheckBasicSleep(t),
+		PreCheck:     acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
