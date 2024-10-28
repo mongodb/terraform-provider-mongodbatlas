@@ -29,4 +29,5 @@ resources:
           computability:
             optional: true
             computed: true
+          description: "Optional string that has config override to optional/computed"
       timeouts: ["create", "read", "update", "delete"]

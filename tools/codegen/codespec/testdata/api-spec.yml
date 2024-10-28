@@ -382,7 +382,7 @@ components:
           $ref: "#/components/schemas/NestedMapObjectAttr"
         optional_string_attr:
           type: string
-          description: Optional string that has config override to optional/computed
+          description: Optional string
     SingleNestedAttrWithNestedMaps:
       type: object
       description: Test field description
@@ -442,7 +442,7 @@ components:
           minItems: 1
         optional_string_attr:
           type: string
-          description: Optional string that has config override to optional/computed
+          description: Optional string
       required:
         - nestedListArrayAttr
     SimpleStringRefObject:
