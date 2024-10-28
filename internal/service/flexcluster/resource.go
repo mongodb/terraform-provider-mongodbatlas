@@ -16,6 +16,7 @@ import (
 )
 
 const resourceName = "flex_cluster"
+const ErrorUpdateNotAllowed = "update not allowed"
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
@@ -106,23 +107,23 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var tfModel TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
+	var plan TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	flexClusterReq, diags := NewAtlasUpdateReq(ctx, &tfModel)
+	flexClusterReq, diags := NewAtlasUpdateReq(ctx, &plan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
-	projectID := tfModel.ProjectId.ValueString()
-	clusterName := tfModel.Name.ValueString()
+	projectID := plan.ProjectId.ValueString()
+	clusterName := plan.Name.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.FlexClustersApi.UpdateFlexCluster(ctx, projectID, tfModel.Name.ValueString(), flexClusterReq).Execute()
+	_, _, err := connV2.FlexClustersApi.UpdateFlexCluster(ctx, projectID, plan.Name.ValueString(), flexClusterReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
