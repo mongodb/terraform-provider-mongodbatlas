@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
@@ -34,6 +35,7 @@ func Resource() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationResourceByDateWithExternalLink, "March 2025", "url"),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

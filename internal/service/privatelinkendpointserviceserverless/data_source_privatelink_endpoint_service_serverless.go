@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservice"
@@ -13,7 +14,8 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceRead,
+		ReadContext:        dataSourceRead,
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationDataSourceByDateWithExternalLink, "March 2025", "placeholder-serverless-deprecation-url"),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

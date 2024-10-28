@@ -2,17 +2,20 @@ package privatelinkendpointserviceserverless
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 )
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourcePluralRead,
+		ReadContext:        dataSourcePluralRead,
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationDataSourceByDateWithExternalLink, "March 2025", "placeholder-serverless-deprecation-url"),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
