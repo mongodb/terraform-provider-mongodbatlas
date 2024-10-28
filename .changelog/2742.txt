@@ -11,10 +11,6 @@ resource/mongodbatlas_privatelink_endpoint_serverless: Deprecates resource
 ```
 
 ```release-note:note
-resource/mongodbatlas_privatelink_endpoint_serverless: Deprecates resource
-```
-
-```release-note:note
 resource/mongodbatlas_privatelink_endpoint_service_serverless: Deprecates resource
 ```
 

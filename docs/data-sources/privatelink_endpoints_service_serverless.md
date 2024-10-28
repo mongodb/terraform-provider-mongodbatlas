@@ -1,3 +1,9 @@
+---
+subcategory: "Deprecated"    
+---
+
+**WARNING:** This data source is deprecated and will be removed in March 2025. For more datails see placeholder-serverless-deprecation-url
+
 # Data Source: privatelink_endpoints_service_serverless
 
 `privatelink_endpoints_service_serverless` describes the list of all Serverless PrivateLink Endpoint Service resource.

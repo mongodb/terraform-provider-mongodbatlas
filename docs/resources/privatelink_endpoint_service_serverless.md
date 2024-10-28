@@ -1,3 +1,9 @@
+---
+subcategory: "Deprecated"    
+---
+
+**WARNING:** This resource is deprecated and will be removed in March 2025. For more datails see placeholder-serverless-deprecation-url
+
 # Resource: privatelink_endpoint_service_serverless
 
 `privatelink_endpoint_service_serverless` Provides a Serverless PrivateLink Endpoint Service resource.
