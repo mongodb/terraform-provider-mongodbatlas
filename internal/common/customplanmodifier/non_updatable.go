@@ -15,11 +15,11 @@ type nonUpdatableStringAttributePlanModifier struct {
 }
 
 func (d *nonUpdatableStringAttributePlanModifier) Description(ctx context.Context) string {
-	return "Ensures that update operations fails when updating an attribute."
+	return d.MarkdownDescription(ctx)
 }
 
 func (d *nonUpdatableStringAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
-	return d.Description(ctx)
+	return "Ensures that update operations fails when updating an attribute."
 }
 
 func (d *nonUpdatableStringAttributePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
