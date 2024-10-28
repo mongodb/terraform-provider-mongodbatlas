@@ -25,4 +25,8 @@ resources:
           description: "Overridden inner_num_attr_alias description"
         outer_object.nested_level1.level_field1_alias:
           description: "Overridden level_field1_alias description"
+        optional_string_attr:
+          computability:
+            optional: true
+            computed: true
       timeouts: ["create", "read", "update", "delete"]

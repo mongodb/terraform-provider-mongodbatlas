@@ -335,7 +335,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							},
 							{
 								Name:                     "optional_string_attr",
-								ComputedOptionalRequired: codespec.Optional,
+								ComputedOptionalRequired: codespec.ComputedOptional,
 								String:                   &codespec.StringAttribute{},
 								Description:              conversion.StringPtr("Optional string that has config override to optional/computed"),
 							},

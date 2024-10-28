@@ -25,10 +25,10 @@ type SchemaOptions struct {
 }
 
 type Override struct {
+	Computability *Computability `yaml:"computability,omitempty"`
 	Description   string         `yaml:"description"`
 	PlanModifiers []PlanModifier `yaml:"plan_modifiers"`
 	Validators    []Validator    `yaml:"validators"`
-	Computability Computability  `yaml:"computability"`
 }
 
 type PlanModifier struct {

@@ -80,9 +80,23 @@ func applyAlias(attr *Attribute, attrPathName *string, schemaOptions config.Sche
 
 func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) {
 	if override, ok := schemaOptions.Overrides[attrPathName]; ok {
-		attr.Description = &override.Description
-		// attr.ComputedOptionalRequired
+		if override.Description != "" {
+			attr.Description = &override.Description
+		}
+		if override.Computability != nil {
+			attr.ComputedOptionalRequired = getComputabilityFromConfig(*override.Computability)
+		}
 	}
+}
+
+func getComputabilityFromConfig(computability config.Computability) ComputedOptionalRequired {
+	if computability.Computed && computability.Optional {
+		return ComputedOptional
+	}
+	if computability.Optional {
+		return Optional
+	}
+	return Required
 }
 
 func processNestedAttributes(attr *Attribute, schemaOptions config.SchemaOptions, attrPathName string) {
