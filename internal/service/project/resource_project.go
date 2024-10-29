@@ -679,7 +679,7 @@ func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI adm
 func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (bool, error) {
 	response, err := api.GetManagedSlowMs(ctx, projectID).Execute()
 	if err != nil {
-		if apiError, ok := admin.AsError(err); ok && *apiError.ErrorCode == "USER_UNAUTHORIZED" {
+		if apiError, ok := admin.AsError(err); ok && apiError.ErrorCode == "USER_UNAUTHORIZED" {
 			if warnings != nil {
 				warnings.AddWarning("user does not have permission to read is_slow_operation_thresholding_enabled. Please read our documentation for more information.", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 			}
@@ -793,7 +793,7 @@ func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsApi, projectSta
 		_, err := teamsAPI.RemoveProjectTeam(ctx, projectID, teamID).Execute()
 		if err != nil {
 			apiError, ok := admin.AsError(err)
-			if ok && *apiError.ErrorCode != "USER_UNAUTHORIZED" {
+			if ok && apiError.ErrorCode != "USER_UNAUTHORIZED" {
 				return fmt.Errorf("error removing team(%s) from the project(%s): %s", teamID, projectID, err)
 			}
 			log.Printf("[WARN] error removing team(%s) from the project(%s): %s", teamID, projectID, err)

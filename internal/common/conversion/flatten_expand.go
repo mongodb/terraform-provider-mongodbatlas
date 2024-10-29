@@ -3,6 +3,7 @@ package conversion
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 )
 
@@ -26,6 +27,19 @@ func FlattenTags(tags []admin.ResourceTag) []map[string]string {
 		}
 	}
 	return ret
+}
+
+func ExpandTagsFromSetSchemaV220240805(d *schema.ResourceData) *[]admin20240805.ResourceTag {
+	list := d.Get("tags").(*schema.Set)
+	ret := make([]admin20240805.ResourceTag, list.Len())
+	for i, item := range list.List() {
+		tag := item.(map[string]any)
+		ret[i] = admin20240805.ResourceTag{
+			Key:   tag["key"].(string),
+			Value: tag["value"].(string),
+		}
+	}
+	return &ret
 }
 
 func ExpandTagsFromSetSchema(d *schema.ResourceData) *[]admin.ResourceTag {

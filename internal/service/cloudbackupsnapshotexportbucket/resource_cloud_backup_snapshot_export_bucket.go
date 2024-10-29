@@ -84,7 +84,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	cloudProvider := d.Get("cloud_provider").(string)
 
-	request := &admin.DiskBackupSnapshotExportBucket{
+	request := &admin.DiskBackupSnapshotExportBucketRequest{
 		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
 		BucketName:    d.Get("bucket_name").(string),
 		RoleId:        conversion.StringPtr(d.Get("role_id").(string)),

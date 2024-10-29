@@ -6,10 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 )
 
-func noIDsPopulatedInReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec20240805) bool {
+func noIDsPopulatedInReplicationSpecs(replicationSpecs *[]admin20240805.ReplicationSpec20240805) bool {
 	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
 		return false
 	}
@@ -21,7 +22,7 @@ func noIDsPopulatedInReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec2
 	return true
 }
 
-func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2ClusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20240805) (*[]admin.ReplicationSpec20240805, diag.Diagnostics) {
+func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2ClusterAPI admin.ClustersApi, replicationSpecs *[]admin20240805.ReplicationSpec20240805) (*[]admin20240805.ReplicationSpec20240805, diag.Diagnostics) {
 	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
 		return replicationSpecs, nil
 	}
@@ -35,7 +36,7 @@ func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName str
 	return &result, nil
 }
 
-func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, zoneToReplicationSpecsIDs map[string][]string) []admin.ReplicationSpec20240805 {
+func AddIDsToReplicationSpecs(replicationSpecs []admin20240805.ReplicationSpec20240805, zoneToReplicationSpecsIDs map[string][]string) []admin20240805.ReplicationSpec20240805 {
 	for zoneName, availableIDs := range zoneToReplicationSpecsIDs {
 		var indexOfIDToUse = 0
 		for i := range replicationSpecs {
@@ -64,12 +65,12 @@ func groupIDsByZone(specs []admin.ReplicationSpec20240805) map[string][]string {
 // - Existing replication specs can have the autoscaling values present in the state with default values even if not defined in the config (case when cluster is imported)
 // - API expects autoScaling and analyticsAutoScaling aligned cross all region configs in the PATCH request
 // This function is needed to avoid errors if a new replication spec is added, ensuring the PATCH request will have the auto scaling aligned with other replication specs when not present in config.
-func SyncAutoScalingConfigs(replicationSpecs *[]admin.ReplicationSpec20240805) {
+func SyncAutoScalingConfigs(replicationSpecs *[]admin20240805.ReplicationSpec20240805) {
 	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
 		return
 	}
 
-	var defaultAnalyticsAutoScaling, defaultAutoScaling *admin.AdvancedAutoScalingSettings
+	var defaultAnalyticsAutoScaling, defaultAutoScaling *admin20240805.AdvancedAutoScalingSettings
 
 	for _, spec := range *replicationSpecs {
 		for i := range *spec.RegionConfigs {
@@ -85,7 +86,7 @@ func SyncAutoScalingConfigs(replicationSpecs *[]admin.ReplicationSpec20240805) {
 	applyDefaultAutoScaling(replicationSpecs, defaultAutoScaling, defaultAnalyticsAutoScaling)
 }
 
-func applyDefaultAutoScaling(replicationSpecs *[]admin.ReplicationSpec20240805, defaultAutoScaling, defaultAnalyticsAutoScaling *admin.AdvancedAutoScalingSettings) {
+func applyDefaultAutoScaling(replicationSpecs *[]admin20240805.ReplicationSpec20240805, defaultAutoScaling, defaultAnalyticsAutoScaling *admin20240805.AdvancedAutoScalingSettings) {
 	for _, spec := range *replicationSpecs {
 		for i := range *spec.RegionConfigs {
 			regionConfig := &(*spec.RegionConfigs)[i]
