@@ -111,6 +111,10 @@ func configBasic(projectID, clusterName, provider, region string, terminationPro
 				region_name           = %[4]q
 			}
 			termination_protection_enabled = %[5]t
+		}
+		data "mongodbatlas_flex_cluster" "test" {
+			project_id = mongodbatlas_flex_cluster.test.project_id
+			name       = mongodbatlas_flex_cluster.test.name
 		}`, projectID, clusterName, provider, region, terminationProtectionEnabled)
 }
 
