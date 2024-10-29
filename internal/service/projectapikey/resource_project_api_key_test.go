@@ -408,13 +408,14 @@ func configDataSources(projectIDStr string) string {
 		`, projectIDStr)
 }
 
-func check(description, projectNameOrID, roleNames string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+func check(description, projectNameOrID, roleNames string) resource.TestCheckFunc {
 	roles := getRoleNames(roleNames)
-	attributes := map[string]string{
+	attrsMap := map[string]string{
 		"description":                       description,
 		"project_assignment.#":              "1",
 		"project_assignment.0.role_names.#": strconv.Itoa(len(roles)),
 	}
+	attrs := []string{"public_key", "private_key"}
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
 		resource.TestCheckResourceAttrWith(resourceName, "project_assignment.0.project_id", acc.IsProjectNameOrID(projectNameOrID)),
@@ -425,10 +426,5 @@ func check(description, projectNameOrID, roleNames string, extra ...resource.Tes
 			resource.TestCheckTypeSetElemAttr(resourceName, "project_assignment.0.role_names.*", role),
 			resource.TestCheckTypeSetElemAttr(dataSourceName, "project_assignment.0.role_names.*", role))
 	}
-	checks = acc.AddAttrChecks(resourceName, checks, attributes)
-	checks = acc.AddAttrChecks(dataSourceName, checks, attributes)
-	checks = acc.AddAttrSetChecks(resourceName, checks, "public_key", "private_key")
-	checks = acc.AddAttrSetChecks(dataSourceName, checks, "public_key", "private_key")
-	checks = append(checks, extra...)
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	return acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil, attrs, attrsMap, checks...)
 }
