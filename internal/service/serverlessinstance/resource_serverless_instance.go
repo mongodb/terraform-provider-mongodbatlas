@@ -111,13 +111,13 @@ func resourceSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"continuous_backup_enabled": {
-			Deprecated: fmt.Sprintf(constant.DeprecatioParamByDateWithExternalLink, "March 2025", "placeholder-serverless-deprecation-url"),
+			Deprecated: fmt.Sprintf(constant.DeprecatioParamByDateWithExternalLink, "March 2025", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
 			Type:       schema.TypeBool,
 			Optional:   true,
 			Computed:   true,
 		},
 		"auto_indexing": {
-			Deprecated: fmt.Sprintf(constant.DeprecatioParamByDateWithExternalLink, "March 2025", "placeholder-serverless-deprecation-url"),
+			Deprecated: fmt.Sprintf(constant.DeprecatioParamByDateWithExternalLink, "March 2025", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
 			Type:       schema.TypeBool,
 			Optional:   true,
 			Computed:   true,

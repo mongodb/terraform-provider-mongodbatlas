@@ -15,7 +15,7 @@ import (
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
 		ReadContext:        dataSourcePluralRead,
-		DeprecationMessage: fmt.Sprintf(constant.DeprecationDataSourceByDateWithExternalLink, "March 2025", "placeholder-serverless-deprecation-url"),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationDataSourceByDateWithExternalLink, "March 2025", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

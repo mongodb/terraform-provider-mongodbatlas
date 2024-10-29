@@ -35,7 +35,7 @@ func Resource() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
-		DeprecationMessage: fmt.Sprintf(constant.DeprecationResourceByDateWithExternalLink, "March 2025", "placeholder-serverless-deprecation-url"),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationResourceByDateWithExternalLink, "March 2025", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

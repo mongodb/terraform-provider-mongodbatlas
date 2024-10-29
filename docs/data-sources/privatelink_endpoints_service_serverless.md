@@ -2,7 +2,7 @@
 subcategory: "Deprecated"    
 ---
 
-**WARNING:** This data source is deprecated and will be removed in March 2025. For more datails see placeholder-serverless-deprecation-url
+**WARNING:** This data source is deprecated and will be removed in March 2025. For more datails see [Migration Guide: Transition out of Serverless Instances and Shared-tier clusters](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide)
 
 # Data Source: privatelink_endpoints_service_serverless
 
