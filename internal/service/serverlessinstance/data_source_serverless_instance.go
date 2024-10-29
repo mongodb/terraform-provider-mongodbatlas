@@ -2,9 +2,11 @@ package serverlessinstance
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -88,14 +90,16 @@ func dataSourceSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"continuous_backup_enabled": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Computed: true,
+			Deprecated: fmt.Sprintf(constant.DeprecatioParamByDateWithExternalLink, "March 2025", "placeholder-serverless-deprecation-url"),
+			Type:       schema.TypeBool,
+			Optional:   true,
+			Computed:   true,
 		},
 		"auto_indexing": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Computed: true,
+			Deprecated: fmt.Sprintf(constant.DeprecatioParamByDateWithExternalLink, "March 2025", "placeholder-serverless-deprecation-url"),
+			Type:       schema.TypeBool,
+			Optional:   true,
+			Computed:   true,
 		},
 		"tags": &advancedcluster.DSTagsSchema,
 	}

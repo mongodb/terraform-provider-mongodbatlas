@@ -7,6 +7,22 @@ resource/mongodbatlas_serverless_instance: Deprecates `auto_indexing` attribute
 ```
 
 ```release-note:note
+data-source/mongodbatlas_serverless_instance: Deprecates `continuous_backup_enabled` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_serverless_instance: Deprecates `auto_indexing` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_serverless_instances: Deprecates `continuous_backup_enabled` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_serverless_instances: Deprecates `auto_indexing` attribute
+```
+
+```release-note:note
 resource/mongodbatlas_privatelink_endpoint_serverless: Deprecates resource
 ```
 
