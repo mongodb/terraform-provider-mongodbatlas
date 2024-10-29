@@ -15,7 +15,7 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexCluste
 		Pending:    pendingStates,
 		Target:     desiredStates,
 		Refresh:    refreshFunc(ctx, requestParams, client),
-		Timeout:    5 * time.Minute,
+		Timeout:    3 * time.Hour,
 		MinTimeout: 3 * time.Second,
 		Delay:      0,
 	}
@@ -37,7 +37,7 @@ func WaitStateTransitionDelete(ctx context.Context, requestParams *admin.GetFlex
 		Pending:    []string{retrystrategy.RetryStrategyDeletingState},
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
 		Refresh:    refreshFunc(ctx, requestParams, client),
-		Timeout:    5 * time.Minute,
+		Timeout:    3 * time.Hour,
 		MinTimeout: 3 * time.Second,
 		Delay:      0,
 	}
