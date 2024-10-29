@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
 )
 
 var _ datasource.DataSource = &pluralDS{}
@@ -36,35 +35,17 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	}
 
 	connV2 := d.Client.AtlasV2
-	apiResp, err := getFlexClusterList(ctx, connV2, tfModel.ProjectId.ValueString())
+	apiResp, _, err := connV2.FlexClustersApi.ListFlexClusters(ctx, tfModel.ProjectId.ValueString()).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError("error reading plural data source", err.Error())
 		return
 	}
 
-	newFlexClustersModel, diags := NewTFModelDSP(ctx, tfModel.ProjectId.ValueString(), apiResp)
+	newFlexClustersModel, diags := NewTFModelDSP(ctx, tfModel.ProjectId.ValueString(), apiResp) //apiResp will
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClustersModel)...)
-}
-
-func getFlexClusterList(ctx context.Context, connV2 *admin.APIClient, projectId string) ([]admin.FlexClusterDescription20250101, error) {
-	var list []admin.FlexClusterDescription20250101
-	apiResp, _, err := connV2.FlexClustersApi.ListFlexClusters(ctx, projectId).Execute()
-	if err != nil {
-		return nil, fmt.Errorf("error reading plural data source: %s", err)
-	}
-
-	for _, result := range apiResp.GetResults() {
-		if cluster, ok := result.(admin.FlexClusterDescription20250101); ok {
-			list = append(list, cluster)
-		} else {
-			return nil, fmt.Errorf("error reading plural data source: %s", err)
-		}
-	}
-
-	return list, nil
 }

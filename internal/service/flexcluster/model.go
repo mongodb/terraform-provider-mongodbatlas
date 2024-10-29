@@ -41,11 +41,11 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202411
 	}, nil
 }
 
-func NewTFModelDSP(ctx context.Context, projectID string, input []admin.FlexClusterDescription20250101) (*TFModelDSP, diag.Diagnostics) {
+func NewTFModelDSP(ctx context.Context, projectID string, input *admin.PaginatedFlexClusters20250101) (*TFModelDSP, diag.Diagnostics) {
 	diags := &diag.Diagnostics{}
-	tfModels := make([]TFModel, len(input))
-	for i, item := range input {
-		tfModel, diagsLocal := NewTFModel(ctx, &item)
+	tfModels := make([]TFModel, len(input.GetResults()))
+	for i, item := range input.GetResults() {
+		tfModel, diagsLocal := NewTFModel(ctx, &item) // currently complains that item is of type *any
 		diags.Append(diagsLocal...)
 		tfModels[i] = *tfModel
 	}
