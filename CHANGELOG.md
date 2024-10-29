@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.21.4 (October 29, 2024)
+
 NOTES:
 
 * data-source/mongodbatlas_resource_policies: Deprecates `resource_policies` attribute ([#2740](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2740))
