@@ -18,9 +18,10 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.34.0
 	github.com/hashicorp/terraform-plugin-testing v1.9.0
+	github.com/huandu/xstrings v1.3.3
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/pb33f/libopenapi v0.18.1
+	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.6.0
 	github.com/stretchr/testify v1.9.0
 	github.com/zclconf/go-cty v1.15.0
@@ -89,7 +90,6 @@ require (
 	github.com/hashicorp/terraform-registry-address v0.2.3 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
-	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
