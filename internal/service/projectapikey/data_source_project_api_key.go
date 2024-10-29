@@ -89,7 +89,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 		}
 		if err := d.Set("project_assignment", flattenProjectAssignments(details.GetRoles())); err != nil {
-			return diag.Errorf(ErrorProjectSetting, `project_assignment`, projectID, err)
+			return diag.FromErr(fmt.Errorf("error setting `project_assignment`: %s", err))
 		}
 	}
 
