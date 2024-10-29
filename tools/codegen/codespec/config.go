@@ -93,6 +93,9 @@ func getComputabilityFromConfig(computability config.Computability) ComputedOpti
 	if computability.Computed && computability.Optional {
 		return ComputedOptional
 	}
+	if computability.Computed {
+		return Computed
+	}
 	if computability.Optional {
 		return Optional
 	}

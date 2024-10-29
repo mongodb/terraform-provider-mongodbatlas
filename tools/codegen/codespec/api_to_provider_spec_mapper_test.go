@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	testFieldDesc     = "Test field description"
-	testResourceDesc  = "POST API description"
-	testPathParamDesc = "Path param test description"
+	testFieldDesc       = "Test field description"
+	testResourceDesc    = "POST API description"
+	testPathParamDesc   = "Path param test description"
+	testDataAPISpecPath = "testdata/api-spec.yml"
 )
 
 type convertToSpecTestCase struct {
@@ -25,7 +26,7 @@ type convertToSpecTestCase struct {
 
 func TestConvertToProviderSpec(t *testing.T) {
 	tc := convertToSpecTestCase{
-		inputOpenAPISpecPath: "testdata/api-spec.yml",
+		inputOpenAPISpecPath: testDataAPISpecPath,
 		inputConfigPath:      "testdata/config-no-schema-opts.yml",
 		inputResourceName:    "test_resource",
 
@@ -97,7 +98,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 
 func TestConvertToProviderSpec_nested(t *testing.T) {
 	tc := convertToSpecTestCase{
-		inputOpenAPISpecPath: "testdata/api-spec.yml",
+		inputOpenAPISpecPath: testDataAPISpecPath,
 		inputConfigPath:      "testdata/config-nested-schema.yml",
 		inputResourceName:    "test_resource_with_nested_attr",
 
@@ -273,7 +274,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 
 func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 	tc := convertToSpecTestCase{
-		inputOpenAPISpecPath: "testdata/api-spec.yml",
+		inputOpenAPISpecPath: testDataAPISpecPath,
 		inputConfigPath:      "testdata/config-nested-schema-overrides.yml",
 		inputResourceName:    "test_resource_with_nested_attr_overrides",
 
