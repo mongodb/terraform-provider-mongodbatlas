@@ -43,7 +43,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName, projectID),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"private_key"},
@@ -287,13 +287,13 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName, projectID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return rs.Primary.Attributes["api_key_id"], nil
+		return fmt.Sprintf("%s-%s", projectID, rs.Primary.Attributes["api_key_id"]), nil
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -214,8 +215,16 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	parts := strings.SplitN(d.Id(), "-", 2)
+	if len(parts) != 2 {
+		return nil, errors.New("import format error: to import a api key use the format {project_id}-{api_key_id}")
+	}
+
+	// projectID is not needed for import any more, but kept to maintain import format and avoid breaking changes
+	apiKeyID := parts[1]
+
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"api_key_id": d.Id(),
+		"api_key_id": apiKeyID,
 	}))
 	return []*schema.ResourceData{d}, nil
 }

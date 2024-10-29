@@ -56,9 +56,9 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-API Keys must be imported using API Key ID e.g.
+API Keys must be imported using project ID, API Key ID e.g.
 
 ```
-$ terraform import mongodbatlas_project_api_key.test 671c13c6ccbe4c3ac90e6184
+$ terraform import mongodbatlas_project_api_key.test 5d09d6a59ccf6445652a444a-6576974933969669
 ```
 See [MongoDB Atlas API - API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/createProjectApiKey) - Documentation for more information.
