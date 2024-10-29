@@ -8,6 +8,10 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_resource_policies: Adds `results` attribute ([#2740](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2740))
 
+BUG FIXES:
+
+* resource/mongodbatlas_project_api_key: Validates `project_id` are unique across `project_assignment` blocks and fixes update issues with error `API_KEY_ALREADY_IN_GROUP` ([#2737](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2737))
+
 ## 1.21.3 (October 25, 2024)
 
 NOTES:
