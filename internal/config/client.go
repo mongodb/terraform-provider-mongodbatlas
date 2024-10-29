@@ -31,6 +31,7 @@ const (
 type MongoDBClient struct {
 	Atlas           *matlasClient.Client
 	AtlasV2         *admin.APIClient
+	AtlasV220240805 *admin.APIClient         // used in advanced_cluster to avoid adopting 2024-10-23 release with ISS autoscaling
 	AtlasV220240530 *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes
 	Config          *Config
 }

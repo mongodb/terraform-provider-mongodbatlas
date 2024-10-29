@@ -406,6 +406,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
+	connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
@@ -480,7 +481,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err := CheckRegionConfigsPriorityOrder(params.GetReplicationSpecs()); err != nil {
 		return diag.FromErr(err)
 	}
-	cluster, _, err := connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
+	// cannot call 2024-10-23 as it can enable ISS autoscaling when using old sharding configuration
+	cluster, _, err := connV220240805.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
@@ -510,6 +512,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		request := &admin.ClusterDescription20240805{
 			Paused: conversion.Pointer(v),
 		}
+		// can call latest API as autoscaling property is not specified
 		if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, d.Get("name").(string), request).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
@@ -817,6 +820,7 @@ func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenan
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
+	connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -855,6 +859,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if d.HasChange("config_server_management_mode") {
 				request.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
 			}
+			// can call latest API as autoscaling property is not specified
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
@@ -875,7 +880,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if err := CheckRegionConfigsPriorityOrder(req.GetReplicationSpecs()); err != nil {
 				return diag.FromErr(err)
 			}
-			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
+			// cannot call 2024-10-23 as it can enable ISS autoscaling
+			if _, _, err := connV220240805.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
@@ -912,6 +918,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterRequest := &admin.ClusterDescription20240805{
 			Paused: conversion.Pointer(true),
 		}
+		// can call latest API as autoscaling property is not specified
 		if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, clusterRequest).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
