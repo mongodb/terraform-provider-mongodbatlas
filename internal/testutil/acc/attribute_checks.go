@@ -66,6 +66,7 @@ func JSONEquals(expected string) resource.CheckResourceAttrWithFunc {
 	}
 }
 
+// IsProjectNameOrID accepts a project id or name and checks if the input project id matches the expected project
 func IsProjectNameOrID(expected string) resource.CheckResourceAttrWithFunc {
 	return func(input string) error {
 		projectID := expected
