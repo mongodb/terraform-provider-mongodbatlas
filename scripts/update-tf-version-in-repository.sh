@@ -30,7 +30,7 @@ sed -i.bak -E "/^ *terraform_matrix:/,/^ *provider_matrix:/ s|(default: ')[^']*(
 
 sed -i.bak -E "s|schedule_terraform_matrix: '.*'|schedule_terraform_matrix: '[\"$LATEST_TF_VERSION\"]'|" "$TEST_SUITE_YAML_FILE"
 
-# Update patch version occurences
+# Update patch version occurrences
 LATEST_TF_PATCH_VERSION=$(./scripts/get-terraform-supported-versions.sh "latest")
 
 # Update Terraform versions in .tool-versions
