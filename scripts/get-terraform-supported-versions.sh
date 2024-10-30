@@ -22,6 +22,16 @@ usage() {
 	exit 1
 }
 
+fetch_terraform_releases_page() {
+	local page="$1"
+	local api_version="2022-11-28"
+	curl -s \
+		--request GET \
+		--url "https://api.github.com/repos/hashicorp/terraform/releases?per_page=100&page=$page" \
+		--header "Authorization: Bearer $GITHUB_TOKEN" \
+		--header "X-GitHub-Api-Version: $api_version"
+}
+
 get_last_day_of_month() {
 	last_day_of_month=0
 	case $1 in
@@ -66,14 +76,9 @@ add_end_support_date() {
 
 get_terraform_supported_versions_details() {
 	page=1
-	api_version="2022-11-28"
 
 	while true; do
-		response=$(curl -s \
-			--request GET \
-			--url "https://api.github.com/repos/hashicorp/terraform/releases?per_page=100&page=$page" \
-			--header "Authorization: Bearer $GITHUB_TOKEN" \
-			--header "X-GitHub-Api-Version: $api_version")
+		response=$(fetch_terraform_releases_page "$page")
 		if [[ "$(printf '%s\n' "$response" | jq -e 'length == 0')" == "true" ]]; then
 			break
 		else
@@ -81,6 +86,7 @@ get_terraform_supported_versions_details() {
 			filtered_versions_json=$(printf '%s\n' "${versions}" | jq -s '.')
 			updated_date_versions=$(add_end_support_date "$filtered_versions_json")
 			filtered_out_deprecated_versions=$(echo "$updated_date_versions" | jq 'map(select((.version | test("alpha|beta|rc"; "i") | not) and ((.end_support_date | fromdate) >= now))) | map(select(.version | endswith(".0")))')
+			# echo "filtered_out_deprecated_versions: ${filtered_out_deprecated_versions}"
 			if [ -z ${json_array+x} ]; then
 				# If json_array is empty, assign filtered_versions directly
 				json_array=$(jq -n --argjson filtered_versions "${filtered_out_deprecated_versions}" '$filtered_versions')
@@ -106,6 +112,30 @@ get_terraform_supported_versions() {
 	echo "[$formatted_output]" | jq -c .
 }
 
+get_latest_terraform_version() {
+	api_version="2022-11-28"
+	latest_version=""
+
+	for page in 1 2; do
+		response=$(fetch_terraform_releases_page "$page")
+
+		if [[ "$(printf '%s\n' "$response" | jq -e 'length == 0')" == "true" ]]; then
+			break
+		fi
+
+		versions=$(echo "$response" | jq -r '.[] | select(.tag_name | test("alpha|beta|rc"; "i") | not) | .tag_name')
+
+		for version in $versions; do
+			version_cleaned="${version#v}"
+			if [[ -z "$latest_version" || "$(echo -e "$latest_version\n$version_cleaned" | sort -V | tail -n 1)" == "$version_cleaned" ]]; then
+				latest_version="$version_cleaned"
+			fi
+		done
+	done
+
+	echo "$latest_version"
+}
+
 if [ $# -ne 1 ]; then
 	usage
 fi
@@ -115,6 +145,8 @@ if [ "$get_details" = "true" ]; then
 	get_terraform_supported_versions_details
 elif [ "$get_details" = "false" ]; then
 	get_terraform_supported_versions
+elif [ "$get_details" = "latest" ]; then
+	get_latest_terraform_version
 else
 	echo "Invalid parameter."
 	usage
