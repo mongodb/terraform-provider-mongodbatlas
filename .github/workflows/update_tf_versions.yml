@@ -1,4 +1,4 @@
-name: Update Terraform Compatibility Matrix documentation
+name: Update Terraform Versions
 
 # Checks if any changes are required to be made to our documentation for supported Terraform versions. Runs daily and can be triggered manually.
 on:
