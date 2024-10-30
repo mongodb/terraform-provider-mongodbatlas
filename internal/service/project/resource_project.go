@@ -792,7 +792,7 @@ func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsApi, projectSta
 		teamID := team.TeamID.ValueString()
 		_, err := teamsAPI.RemoveProjectTeam(ctx, projectID, teamID).Execute()
 		if err != nil {
-			if admin.IsErrorCode(err, "USER_UNAUTHORIZED") {
+			if !admin.IsErrorCode(err, "USER_UNAUTHORIZED") {
 				return fmt.Errorf("error removing team(%s) from the project(%s): %s", teamID, projectID, err)
 			}
 			log.Printf("[WARN] error removing team(%s) from the project(%s): %s", teamID, projectID, err)
