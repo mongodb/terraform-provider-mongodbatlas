@@ -283,6 +283,8 @@ jobs:
             - 'internal/service/federatedsettingsorgrolemapping/*.go'
           flex_cluster:
             - 'internal/service/flexcluster/*.go'
+          flex_cluster:
+            - 'internal/service/flexcluster/*.go'
           generic:
             - 'internal/service/auditing/*.go'
             - 'internal/service/backupcompliancepolicy/*.go'
