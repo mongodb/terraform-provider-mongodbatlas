@@ -20,7 +20,7 @@ func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.AP
 	req := &admin20240805.ClusterDescription20240805{
 		RedactClientLogData: &redactClientLogData,
 	}
-	// can call latest API as autoscaling property is not specified, using older version just for caution until iss autoscaling epic is done
+	// can call latest API (2024-10-23 or newer) as autoscaling property is not specified, using older version just for caution until iss autoscaling epic is done
 	if _, _, err = connV220240805.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 		return err
 	}
