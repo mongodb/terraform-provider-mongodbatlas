@@ -4,6 +4,9 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func PreCheckBasic(tb testing.TB) {
@@ -17,11 +20,16 @@ func PreCheckBasic(tb testing.TB) {
 
 // PreCheckBasicSleep is a helper function to call SerialSleep, see its help for more info.
 // Some examples of use are when the test is calling ProjectIDExecution or GetClusterInfo to create clusters.
-func PreCheckBasicSleep(tb testing.TB) func() {
+func PreCheckBasicSleep(tb testing.TB, clusterInfo *ClusterInfo, projectID, clusterName string) func() {
 	tb.Helper()
 	return func() {
 		PreCheckBasic(tb)
 		SerialSleep(tb)
+		if clusterInfo != nil {
+			projectID = clusterInfo.ProjectID
+			clusterName = clusterInfo.Name
+		}
+		tb.Logf("Time before creating cluster: %s, ProjectID: %s, Cluster name: %s", conversion.TimeToString(time.Now()), projectID, clusterName)
 	}
 }
 

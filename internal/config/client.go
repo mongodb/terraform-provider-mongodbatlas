@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20240805005/admin"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -32,8 +32,8 @@ const (
 type MongoDBClient struct {
 	Atlas           *matlasClient.Client
 	AtlasV2         *admin.APIClient
-	AtlasV220240530 *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes
-	AtlasPreview    *adminpreview.APIClient  // used for preview features, don't use in resources exposed in the provider list
+	AtlasV220240805 *admin20240805.APIClient // used in advanced_cluster to avoid adopting 2024-10-23 release with ISS autoscaling
+	AtlasV220240530 *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes (supporting deprecated replication_specs.id)
 	Config          *Config
 }
 
@@ -112,7 +112,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		return nil, err
 	}
 
-	sdkPreviewClient, err := c.newSDKPreviewClient(client)
+	sdkV220240805Client, err := c.newSDKV220240805Client(client)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		Atlas:           atlasClient,
 		AtlasV2:         sdkV2Client,
 		AtlasV220240530: sdkV220240530Client,
-		AtlasPreview:    sdkPreviewClient,
+		AtlasV220240805: sdkV220240805Client,
 		Config:          c,
 	}
 	return clients, nil
@@ -155,14 +155,14 @@ func (c *Config) newSDKV220240530Client(client *http.Client) (*admin20240530.API
 	return sdk, nil
 }
 
-func (c *Config) newSDKPreviewClient(client *http.Client) (*adminpreview.APIClient, error) {
-	opts := []adminpreview.ClientModifier{
-		adminpreview.UseHTTPClient(client),
-		adminpreview.UseUserAgent(userAgent(c)),
-		adminpreview.UseBaseURL(c.BaseURL),
-		adminpreview.UseDebug(false)}
+func (c *Config) newSDKV220240805Client(client *http.Client) (*admin20240805.APIClient, error) {
+	opts := []admin20240805.ClientModifier{
+		admin20240805.UseHTTPClient(client),
+		admin20240805.UseUserAgent(userAgent(c)),
+		admin20240805.UseBaseURL(c.BaseURL),
+		admin20240805.UseDebug(false)}
 
-	sdk, err := adminpreview.NewClient(opts...)
+	sdk, err := admin20240805.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}

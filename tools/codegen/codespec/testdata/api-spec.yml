@@ -1,0 +1,471 @@
+openapi: 3.0.1
+info:
+  description: >-
+    The MongoDB Atlas Administration API allows developers to manage all
+    components in MongoDB Atlas.
+
+
+    The Atlas Administration API uses HTTP Digest Authentication to authenticate requests. Provide a programmatic API public key and corresponding private key as the username and password when constructing the HTTP request. For example, to [return database access history](#tag/Access-Tracking/operation/listAccessLogsByClusterName) with [cURL](https://en.wikipedia.org/wiki/CURL), run the following command in the terminal:
+
+
+    ```
+
+    curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" \
+      --digest \
+      --header "Accept: application/vnd.atlas.2024-08-05+json" \
+      -X GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/dbAccessHistory/clusters/{clusterName}?pretty=true"
+    ```
+
+
+    To learn more, see [Get Started with the Atlas Administration API](https://www.mongodb.com/docs/atlas/configure-api-access/). For support, see [MongoDB Support](https://www.mongodb.com/support/get-started).
+
+
+    You can also explore the various endpoints available through the Atlas Administration API in MongoDB's [Postman workspace](https://www.postman.com/mongodb-devrel/workspace/mongodb-atlas-administration-apis/).
+  license:
+    name: CC BY-NC-SA 3.0 US
+    url: https://creativecommons.org/licenses/by-nc-sa/3.0/us/
+  termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
+  title: MongoDB Atlas Administration API
+  version: "2.0"
+  x-xgen-sha: 991036ecf95ec6855a39cd80bd2a15a90e012e7d
+servers:
+  - url: https://cloud.mongodb.com
+tags:
+  - description: Test Resource root description.
+    name: Test Resource
+paths:
+  "/api/atlas/v2/groups/{groupId}/testResource":
+    delete:
+      description: DELETE API description
+      operationId: deleteTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Disable the Test Resource feature for a project.
+      tags:
+        - Test Resource
+    get:
+      description: GET API description
+      operationId: getTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/TestResource"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the Test Resource configuration for a project
+      tags:
+        - Test Resource
+    patch:
+      description: PATCH API description
+      operationId: updateTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResource"
+            x-xgen-version: 2023-01-01
+        description: Patch request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update the Test Resource feature for a project
+      tags:
+        - Test Resource
+    post:
+      description: POST API description
+      operationId: createTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/CreateTestResourceRequest"
+            x-xgen-version: 2023-01-01
+        description: Create request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Enable the Test Resource feature for a project
+      tags:
+        - Test Resource
+  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource":
+    delete:
+      description: DELETE API description
+      operationId: deleteNestedTestResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Path param test description
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+            minLength: 1
+            pattern: ^([a-zA-Z0-9][a-zA-Z0-9-]*)?[a-zA-Z0-9]+$
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/NoBody"
+              x-xgen-version: 2024-05-30
+          description: This endpoint does not return a response body.
+      security:
+        - DigestAuth: []
+      summary: Delete Search Nodes
+      tags:
+        - Atlas Search
+    get:
+      description: GET API description
+      operationId: getNestedTestResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Path param test description
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+            minLength: 1
+            pattern: ^([a-zA-Z0-9][a-zA-Z0-9-]*)?[a-zA-Z0-9]+$
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/NestedTestResourceResponse"
+              x-xgen-version: 2024-05-30
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Return Search Nodes
+      tags:
+        - Atlas Search
+    patch:
+      description: PATCH API description
+      operationId: updateNestedTestResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Path param test description
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+            minLength: 1
+            pattern: ^([a-zA-Z0-9][a-zA-Z0-9-]*)?[a-zA-Z0-9]+$
+      requestBody:
+        content:
+          application/vnd.atlas.2024-05-30+json:
+            schema:
+              $ref: "#/components/schemas/NestedTestResourceRequest"
+        description: Updates the Search Nodes for the specified cluster.
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/NestedTestResourceResponse"
+              x-xgen-version: 2024-05-30
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update Search Nodes
+      tags:
+        - Atlas Search
+    post:
+      description: POST API description      
+      operationId: createNestedTestResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Path param test description
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+            minLength: 1
+            pattern: ^([a-zA-Z0-9][a-zA-Z0-9-]*)?[a-zA-Z0-9]+$
+      requestBody:
+        content:
+          application/vnd.atlas.2024-05-30+json:
+            schema:
+              $ref: "#/components/schemas/NestedTestResourceRequest"
+        description: Creates Search Nodes for the specified cluster.
+        required: true
+      responses:
+        "201":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/NestedTestResourceResponse"
+              x-xgen-version: 2024-05-30
+          description: Created
+      security:
+        - DigestAuth: []
+      summary: Create Nested Test Resource
+      tags:
+        - Atlas Search 
+components:
+  parameters:
+    groupId:
+      description: >-
+        Path param test description
+      in: path
+      name: groupId
+      required: true
+      schema:
+        type: string
+        example: 32b6e34b3d91647abb20e7b8
+        maxLength: 24
+        minLength: 24
+        pattern: ^([a-f0-9]{24})$
+  responses:
+    accepted:
+      description: Accepted.
+  schemas:
+    CreateTestResourceRequest:
+      type: object
+      properties:
+        strReqAttr1:
+          type: string
+          description: Test field description
+        strReqAttr2:
+          type: string
+          description: Test field description
+        strReqAttr3:
+          type: string
+          description: Test field description
+        boolDefaultAttr:
+          type: boolean
+          default: false
+        count:
+          type: integer
+          format: int32
+          description: Test field description
+        numDoubleDefaultAttr:
+          type: number
+          format: double
+          default: 2.0
+      required:
+        - strReqAttr1
+        - strReqAttr2
+        - strReqAttr3
+    TestResource:
+      type: object
+      properties:
+        strReqAttr1:
+          type: string
+          description: Test field description
+        createDate:
+          type: string
+          format: date-time
+          description: Test field description
+          readOnly: true
+        strReqAttr2:
+          type: string
+          description: Test field description
+        strReqAttr3:
+          type: string
+          description: Test field description
+        strComputedAttr:
+          type: string
+          description: Test field description
+          readOnly: true
+        boolDefaultAttr:
+          type: boolean
+          default: false
+        count:
+          type: integer
+          format: int32
+          description: Test field description
+        numDoubleDefaultAttr:
+          type: number
+          format: double
+          default: 2.0
+    NestedTestResourceResponse:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: Path param test description
+          example: 32b6e34b3d91647abb20e7b8
+          maxLength: 24
+          minLength: 24
+          pattern: ^([a-f0-9]{24})$
+          readOnly: true
+        nestedListArrayAttr:
+          type: array
+          description: Test field description
+          items:
+            type: object
+            properties:
+              innerNumAttr:
+                type: integer
+                format: int32
+                description: Test field description
+                example: 2
+                maximum: 32
+                minimum: 2
+              listPrimitiveStringAttr:
+                type: array
+                description: Test field description
+                items:
+                  type: string
+              listPrimitiveStringComputedAttr:
+                type: array
+                description: Test field description
+                items:
+                  type: string
+            required:
+              - innerNumAttr
+          readOnly: true
+        nestedSetArrayAttr:
+          type: array
+          description: Test field description
+          items:
+            $ref: "#/components/schemas/NestedObjectAttr"
+          readOnly: true
+          uniqueItems: true
+        outerObject:
+          $ref: "#/components/schemas/OuterObject"
+        setPrimitiveStringAttr:
+          type: array
+          description: Test field description
+          items:
+            type: string
+          uniqueItems: true
+        listPrimitiveStringAttr:
+          type: array
+          description: Test field description
+          items:
+            type: string
+        singleNestedAttrWithNestedMaps:
+          $ref: "#/components/schemas/SingleNestedAttrWithNestedMaps"
+        singleNestedAttr:
+          $ref: "#/components/schemas/SingleNestedAttr"
+        nestedMapObjectAttr:
+          $ref: "#/components/schemas/NestedMapObjectAttr"
+        optional_string_attr:
+          type: string
+          description: Optional string
+    SingleNestedAttrWithNestedMaps:
+      type: object
+      description: Test field description
+      properties:
+        mapAttr1:
+          type: object
+          additionalProperties:
+            type: string
+            readOnly: true
+          readOnly: true
+        mapAttr2:
+          type: object
+          additionalProperties:
+            type: string
+            readOnly: true
+          readOnly: true
+      readOnly: true
+      title: Outbound Control Plane IP Addresses By Cloud Provider
+    SingleNestedAttr:
+      type: object
+      description: Test field description
+      properties:
+        innerIntAttr:
+          type: integer
+          description: Test field description
+        innerStrAttr:
+          $ref: "#/components/schemas/SimpleStringRefObject"
+      required:
+        - innerIntAttr
+        - innerStrAttr
+    NestedObjectAttr:
+      type: object
+      properties:
+        innerNumAttr:
+          type: integer
+          format: int32
+          description: Test field description
+          example: 2
+          maximum: 32
+          minimum: 2
+        listPrimitiveStringAttr:
+          type: array
+          description: Test field description
+          items:
+            type: string
+      required:
+        - innerNumAttr
+    NestedTestResourceRequest:
+      type: object
+      properties:
+        nestedListArrayAttr:
+          type: array
+          description: Test field description
+          items:
+            $ref: "#/components/schemas/NestedObjectAttr"
+          maxItems: 1
+          minItems: 1
+        optional_string_attr:
+          type: string
+          description: Optional string
+      required:
+        - nestedListArrayAttr
+    SimpleStringRefObject:
+      type: string
+      description: Test field description
+    NoBody:
+      type: object
+      description: Endpoint does not return a response body.
+    NestedMapObjectAttr:
+      type: object
+      additionalProperties:
+        type: object
+        properties:
+          attr:
+            type: string
+    OuterObject:
+      type: object
+      properties:
+        nestedLevel1:
+          $ref: '#/components/schemas/NestedLevel1Object'
+    NestedLevel1Object:
+      type: object
+      properties:
+        levelField1:
+          type: string
+

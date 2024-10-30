@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 )
 
 func NewTFModel(ctx context.Context, apiResp *admin.ClusterDescription20240805, diags *diag.Diagnostics) *TFModel {

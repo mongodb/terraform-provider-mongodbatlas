@@ -7,8 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -76,12 +77,12 @@ func PluralDataSource() *schema.Resource {
 
 func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	pageNum := d.Get("page_num").(int)
-	itemsPerPage := d.Get("items_per_page").(int)
-
-	projectID := d.Get("project_id").(string)
-
-	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, projectID).PageNum(pageNum).ItemsPerPage(itemsPerPage).Execute()
+	params := &admin.ListProjectApiKeysApiParams{
+		GroupId:      d.Get("project_id").(string),
+		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
+		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
+	}
+	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeysWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api keys information: %s", err))
 	}
@@ -116,12 +117,11 @@ func flattenProjectAPIKeys(ctx context.Context, connV2 *admin.APIClient, apiKeys
 			"private_key": apiKey.GetPrivateKey(),
 		}
 
-		projectAssignment, err := newProjectAssignment(ctx, connV2, apiKey.GetId())
+		details, _, err := getKeyDetails(ctx, connV2, apiKey.GetId())
 		if err != nil {
 			return nil, err
 		}
-
-		results[k]["project_assignment"] = projectAssignment
+		results[k]["project_assignment"] = flattenProjectAssignments(details.GetRoles())
 	}
 	return results, nil
 }

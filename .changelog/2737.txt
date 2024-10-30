@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_project_api_key: Validates `project_id` are unique across `project_assignment` blocks and fixes update issues with error `API_KEY_ALREADY_IN_GROUP`
+```

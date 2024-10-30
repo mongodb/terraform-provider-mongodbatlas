@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
-	"go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 )
 
 type sdkToTFModelTestCase struct {
@@ -55,7 +55,7 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := searchdeployment.NewTFSearchDeployment(context.Background(), tc.clusterName, tc.SDKResp, nil)
+			resultModel, diags := searchdeployment.NewTFSearchDeployment(context.Background(), tc.clusterName, tc.SDKResp, nil, false)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

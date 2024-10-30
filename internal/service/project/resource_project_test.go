@@ -12,8 +12,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20240805005/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20241023001/admin"
+	"go.mongodb.org/atlas-sdk/v20241023001/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -144,7 +144,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			readGetManagedSlowMsResponse := http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(managedSlowMsJSON))}
 			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(&readGetManagedSlowMsResponse, nil).Maybe()
 
-			_, err := project.GetProjectPropsFromAPI(context.Background(), projectsMock, teamsMock, perfMock, dummyProjectID)
+			_, err := project.GetProjectPropsFromAPI(context.Background(), projectsMock, teamsMock, perfMock, dummyProjectID, nil)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
