@@ -55,4 +55,4 @@ jobs:
           commit-message: "chore: Updates repository to use supported Terraform versions"
           delete-branch: true
           branch: terraform-versions-update
-          body: "Automatic updates for our Github Test suite .tool-versions to use supported Terraform versions."
+          body: "Automatic updates for our repository to use supported Terraform versions."
