@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-func ResourceSchema(ctx context.Context) schema.Schema {
+func ResourceSchemaDelete(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"accept_data_risks_and_force_replica_set_reconfig": schema.StringAttribute{
@@ -744,7 +744,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
-type TFModel struct {
+type TFModelDelete struct {
 	Labels                                    types.List                      `tfsdk:"labels"`
 	Tags                                      types.List                      `tfsdk:"tags"`
 	ReplicationSpecs                          types.List                      `tfsdk:"replication_specs"`
