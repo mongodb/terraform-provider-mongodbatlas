@@ -18,7 +18,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.34.0
 	github.com/hashicorp/terraform-plugin-testing v1.9.0
-	github.com/huandu/xstrings v1.3.3
+	github.com/huandu/xstrings v1.5.0
 	github.com/mongodb-forks/digest v1.1.0
 	github.com/pb33f/libopenapi v0.18.6
 	github.com/sebdah/goldie/v2 v2.5.5
