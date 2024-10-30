@@ -3,6 +3,7 @@ package advancedclustertpf
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -58,7 +59,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"aws_private_link_srv": schema.MapAttribute{
 						Optional:            true,
-						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names.",
+						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.",
 						ElementType:         types.StringType,
 					},
 					"private": schema.StringAttribute{
@@ -148,7 +149,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Set this field to configure the Sharding Management Mode when creating a new Global Cluster.\n\nWhen set to false, the management mode is set to Atlas-Managed Sharding. This mode fully manages the sharding of your Global Cluster and is built to provide a seamless deployment experience.\n\nWhen set to true, the management mode is set to Self-Managed Sharding. This mode leaves the management of shards in your hands and is built to provide an advanced and flexible deployment experience.\n\nThis setting cannot be changed once the cluster is deployed.",
 			},
-			"group_id": schema.StringAttribute{
+			"project_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 			},
@@ -168,22 +169,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"value": schema.StringAttribute{
 							Optional:            true,
 							MarkdownDescription: "Value set to the Key applied to tag and categorize this component.",
-						},
-					},
-				},
-			},
-			"links": schema.ListNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"href": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-						"rel": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
 						},
 					},
 				},
@@ -483,42 +468,47 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify **mongoDBMajorVersion**.",
 			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 	}
 }
 
 type TFModel struct {
-	AcceptDataRisksAndForceReplicaSetReconfig types.String `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
-	BackupEnabled                             types.Bool   `tfsdk:"backup_enabled"`
-	BiConnector                               types.Object `tfsdk:"bi_connector"`
-	ClusterType                               types.String `tfsdk:"cluster_type"`
-	ConfigServerManagementMode                types.String `tfsdk:"config_server_management_mode"`
-	ConfigServerType                          types.String `tfsdk:"config_server_type"`
-	ConnectionStrings                         types.Object `tfsdk:"connection_strings"`
-	CreateDate                                types.String `tfsdk:"create_date"`
-	DiskWarmingMode                           types.String `tfsdk:"disk_warming_mode"`
-	EncryptionAtRestProvider                  types.String `tfsdk:"encryption_at_rest_provider"`
-	FeatureCompatibilityVersion               types.String `tfsdk:"feature_compatibility_version"`
-	FeatureCompatibilityVersionExpirationDate types.String `tfsdk:"feature_compatibility_version_expiration_date"`
-	GlobalClusterSelfManagedSharding          types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
-	GroupId                                   types.String `tfsdk:"group_id"`
-	Id                                        types.String `tfsdk:"id"`
-	Labels                                    types.List   `tfsdk:"labels"`
-	Links                                     types.List   `tfsdk:"links"`
-	MongoDbemployeeAccessGrant                types.Object `tfsdk:"mongo_dbemployee_access_grant"`
-	MongoDbmajorVersion                       types.String `tfsdk:"mongo_dbmajor_version"`
-	MongoDbversion                            types.String `tfsdk:"mongo_dbversion"`
-	Name                                      types.String `tfsdk:"name"`
-	Paused                                    types.Bool   `tfsdk:"paused"`
-	PitEnabled                                types.Bool   `tfsdk:"pit_enabled"`
-	RedactClientLogData                       types.Bool   `tfsdk:"redact_client_log_data"`
-	ReplicaSetScalingStrategy                 types.String `tfsdk:"replica_set_scaling_strategy"`
-	ReplicationSpecs                          types.List   `tfsdk:"replication_specs"`
-	RootCertType                              types.String `tfsdk:"root_cert_type"`
-	StateName                                 types.String `tfsdk:"state_name"`
-	Tags                                      types.List   `tfsdk:"tags"`
-	TerminationProtectionEnabled              types.Bool   `tfsdk:"termination_protection_enabled"`
-	VersionReleaseSystem                      types.String `tfsdk:"version_release_system"`
+	AcceptDataRisksAndForceReplicaSetReconfig types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
+	BackupEnabled                             types.Bool     `tfsdk:"backup_enabled"`
+	BiConnector                               types.Object   `tfsdk:"bi_connector"`
+	ClusterType                               types.String   `tfsdk:"cluster_type"`
+	ConfigServerManagementMode                types.String   `tfsdk:"config_server_management_mode"`
+	ConfigServerType                          types.String   `tfsdk:"config_server_type"`
+	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
+	CreateDate                                types.String   `tfsdk:"create_date"`
+	DiskWarmingMode                           types.String   `tfsdk:"disk_warming_mode"`
+	EncryptionAtRestProvider                  types.String   `tfsdk:"encryption_at_rest_provider"`
+	FeatureCompatibilityVersion               types.String   `tfsdk:"feature_compatibility_version"`
+	FeatureCompatibilityVersionExpirationDate types.String   `tfsdk:"feature_compatibility_version_expiration_date"`
+	GlobalClusterSelfManagedSharding          types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
+	ProjectId                                 types.String   `tfsdk:"project_id"`
+	Id                                        types.String   `tfsdk:"id"`
+	Labels                                    types.List     `tfsdk:"labels"`
+	MongoDbemployeeAccessGrant                types.Object   `tfsdk:"mongo_dbemployee_access_grant"`
+	MongoDbmajorVersion                       types.String   `tfsdk:"mongo_dbmajor_version"`
+	MongoDbversion                            types.String   `tfsdk:"mongo_dbversion"`
+	Name                                      types.String   `tfsdk:"name"`
+	Paused                                    types.Bool     `tfsdk:"paused"`
+	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
+	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
+	ReplicaSetScalingStrategy                 types.String   `tfsdk:"replica_set_scaling_strategy"`
+	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
+	RootCertType                              types.String   `tfsdk:"root_cert_type"`
+	StateName                                 types.String   `tfsdk:"state_name"`
+	Tags                                      types.List     `tfsdk:"tags"`
+	TerminationProtectionEnabled              types.Bool     `tfsdk:"termination_protection_enabled"`
+	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
+	Timeouts                                  timeouts.Value `tfsdk:"timeouts"`
 }
 type TFBiConnectorModel struct {
 	Enabled        types.Bool   `tfsdk:"enabled"`
@@ -586,16 +576,6 @@ type TFLabelsModel struct {
 var LabelsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"key":   types.StringType,
 	"value": types.StringType,
-}}
-
-type TFLinksModel struct {
-	Href types.String `tfsdk:"href"`
-	Rel  types.String `tfsdk:"rel"`
-}
-
-var LinksObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"href": types.StringType,
-	"rel":  types.StringType,
 }}
 
 type TFMongoDbemployeeAccessGrantModel struct {
