@@ -146,7 +146,7 @@ update-tf-compatibility-matrix: ## Update Terraform Compatibility Matrix documen
 	./scripts/update-tf-compatibility-matrix.sh
 
 .PHONY: update-tf-version-in-repository
-update-tf-version-in-repository: ## Update Terraform versions in test-suite and .tool-versions
+update-tf-version-in-repository: ## Update Terraform versions
 	./scripts/update-tf-version-in-repository.sh
 
 .PHONY: update-changelog-unreleased-section

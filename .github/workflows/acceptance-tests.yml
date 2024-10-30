@@ -87,7 +87,7 @@ jobs:
       azure_app_secret: ${{ secrets.AZURE_APP_SECRET }}
 
     with:
-      terraform_version: ${{ inputs.terraform_version || 1.8.x }}
+      terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
       provider_version: ${{ inputs.provider_version }}
       ref: ${{ inputs.ref }}
       test_group: ${{ inputs.test_group }}
