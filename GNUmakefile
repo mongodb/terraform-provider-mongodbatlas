@@ -145,6 +145,10 @@ generate-docs-all:
 update-tf-compatibility-matrix: ## Update Terraform Compatibility Matrix documentation
 	./scripts/update-tf-compatibility-matrix.sh
 
+.PHONY: update-tf-version-in-repository
+update-tf-version-in-repository: ## Update Terraform versions in test-suite and .tool-versions
+	./scripts/update-tf-version-in-repository.sh
+
 .PHONY: update-changelog-unreleased-section
 update-changelog-unreleased-section:
 	./scripts/update-changelog-unreleased-section.sh
