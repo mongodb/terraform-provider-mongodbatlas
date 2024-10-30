@@ -19,8 +19,6 @@ set -euo pipefail
 TF_VERSIONS_ARR=$(./scripts/get-terraform-supported-versions.sh "false")
 
 TEST_SUITE_YAML_FILE=".github/workflows/test-suite.yml"
-# ACC_TESTS_YAML_FILE=".github/workflows/acceptance-tests.yml"
-# EXAMPLES_YAML_FILE=".github/workflows/examples.yml"
 TOOL_VERSIONS_FILE=".tool-versions"
 DOC_SCRIPT="scripts/generate-doc.sh"
 DOC_ALL_SCRIPT="scripts/generate-docs-all.sh"
@@ -31,10 +29,6 @@ LATEST_TF_VERSION=$(echo "$TF_VERSIONS_ARR" | sed -E 's/^\["([^"]+).*/\1/')
 sed -i.bak -E "/^ *terraform_matrix:/,/^ *provider_matrix:/ s|(default: ')[^']*(')|\1$TF_VERSIONS_ARR\2|" "$TEST_SUITE_YAML_FILE"
 
 sed -i.bak -E "s|schedule_terraform_matrix: '.*'|schedule_terraform_matrix: '[\"$LATEST_TF_VERSION\"]'|" "$TEST_SUITE_YAML_FILE"
-
-# sed -i.bak -E "/terraform_version: *\${{\ *inputs\.terraform_version \|\|/ s/[0-9]+\.[0-9]+\.x/$LATEST_TF_VERSION/" "$ACC_TESTS_YAML_FILE"
-
-# sed -i.bak -E "s|schedule_terraform_matrix: '.*'|schedule_terraform_matrix: '[\"$LATEST_TF_VERSION\"]'|" "$EXAMPLES_YAML_FILE"
 
 # Update patch version occurences
 LATEST_TF_PATCH_VERSION=$(./scripts/get-terraform-supported-versions.sh "latest")
