@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20240805005/admin"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 )
 
-func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.APIClient, projectID, clusterName string, redactClientLogData bool) error {
+func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.APIClient, connV220240805 *admin20240805.APIClient, projectID, clusterName string, redactClientLogData bool) error {
 	current, err := newAtlasGet(ctx, connV2, projectID, clusterName)
 	if err != nil {
 		return err
@@ -16,10 +17,11 @@ func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.AP
 	if current == redactClientLogData {
 		return nil
 	}
-	req := &admin.ClusterDescription20240805{
+	req := &admin20240805.ClusterDescription20240805{
 		RedactClientLogData: &redactClientLogData,
 	}
-	if _, _, err = connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
+	// can call latest API (2024-10-23 or newer) as autoscaling property is not specified, using older version just for caution until iss autoscaling epic is done
+	if _, _, err = connV220240805.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 		return err
 	}
 	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)

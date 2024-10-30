@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
