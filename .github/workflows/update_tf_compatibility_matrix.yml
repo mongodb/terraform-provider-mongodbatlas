@@ -51,8 +51,8 @@ jobs:
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
-          title: "chore: Updates Test suite and .tool-versions to use supported Terraform versions"
-          commit-message: "chore: Updates Test suite and .tool-versions to use supported Terraform versions"
+          title: "chore: Updates repository to use supported Terraform versions"
+          commit-message: "chore: Updates repository to use supported Terraform versions"
           delete-branch: true
           branch: terraform-versions-update
           body: "Automatic updates for our Github Test suite .tool-versions to use supported Terraform versions."
