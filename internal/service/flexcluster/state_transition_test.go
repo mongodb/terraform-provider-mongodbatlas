@@ -142,7 +142,7 @@ type response struct {
 	err        error
 }
 
-func (r *response) get() (*admin.FlexClusterDescription20250101, *http.Response, error) {
+func (r *response) get() (*admin.FlexClusterDescription20241113, *http.Response, error) {
 	var httpResp *http.Response
 	if r.statusCode != nil {
 		httpResp = &http.Response{
@@ -152,11 +152,11 @@ func (r *response) get() (*admin.FlexClusterDescription20250101, *http.Response,
 	return responseWithState(r.state), httpResp, r.err
 }
 
-func responseWithState(state *string) *admin.FlexClusterDescription20250101 {
+func responseWithState(state *string) *admin.FlexClusterDescription20241113 {
 	if state == nil {
 		return nil
 	}
-	return &admin.FlexClusterDescription20250101{
+	return &admin.FlexClusterDescription20241113{
 		Name:      &clusterName,
 		StateName: state,
 	}

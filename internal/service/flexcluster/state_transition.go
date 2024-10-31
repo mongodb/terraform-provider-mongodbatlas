@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 )
 
-func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string) (*admin.FlexClusterDescription20250101, error) {
+func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string) (*admin.FlexClusterDescription20241113, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    pendingStates,
 		Target:     desiredStates,
@@ -25,7 +25,7 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexCluste
 		return nil, err
 	}
 
-	if flexCluster, ok := flexClusterResp.(*admin.FlexClusterDescription20250101); ok && flexCluster != nil {
+	if flexCluster, ok := flexClusterResp.(*admin.FlexClusterDescription20241113); ok && flexCluster != nil {
 		return flexCluster, nil
 	}
 

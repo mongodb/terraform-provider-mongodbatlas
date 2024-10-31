@@ -31,14 +31,14 @@ var (
 	standardSrvConnectionString  = "mongodb+srv://localhost:27017"
 	key1                         = "key1"
 	value1                       = "value1"
-	connectionStringsObject, _   = flexcluster.ConvertConnectionStringsToTF(context.Background(), &admin.FlexConnectionStrings20250101{
+	connectionStringsObject, _   = flexcluster.ConvertConnectionStringsToTF(context.Background(), &admin.FlexConnectionStrings20241113{
 		Standard:    &standardConnectionString,
 		StandardSrv: &standardSrvConnectionString,
 	})
-	backupSettingsObject, _ = flexcluster.ConvertBackupSettingsToTF(context.Background(), &admin.FlexBackupSettings20250101{
+	backupSettingsObject, _ = flexcluster.ConvertBackupSettingsToTF(context.Background(), &admin.FlexBackupSettings20241113{
 		Enabled: conversion.Pointer(true),
 	})
-	providerSettingsObject, _ = flexcluster.ConvertProviderSettingsToTF(context.Background(), admin.FlexProviderSettings20250101{
+	providerSettingsObject, _ = flexcluster.ConvertProviderSettingsToTF(context.Background(), admin.FlexProviderSettings20241113{
 		ProviderName:        &providerName,
 		RegionName:          &regionName,
 		BackingProviderName: &backingProviderName,
@@ -47,18 +47,18 @@ var (
 )
 
 type NewTFModelTestCase struct {
-	input           *admin.FlexClusterDescription20250101
+	input           *admin.FlexClusterDescription20241113
 	expectedTFModel *flexcluster.TFModel
 }
 
 type NewAtlasCreateReqTestCase struct {
 	input          *flexcluster.TFModel
-	expectedSDKReq *admin.FlexClusterDescriptionCreate20250101
+	expectedSDKReq *admin.FlexClusterDescriptionCreate20241113
 }
 
 type NewAtlasUpdateReqTestCase struct {
 	input          *flexcluster.TFModel
-	expectedSDKReq *admin.FlexClusterDescription20250101
+	expectedSDKReq *admin.FlexClusterDescription20241113
 }
 
 func TestNewTFModel(t *testing.T) {
@@ -88,7 +88,7 @@ func TestNewTFModel(t *testing.T) {
 				BackupSettings:               *backupSettingsObject,
 				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
 			},
-			input: &admin.FlexClusterDescription20250101{
+			input: &admin.FlexClusterDescription20241113{
 				GroupId: &projectID,
 				Id:      &id,
 				Tags: &[]admin.ResourceTag{
@@ -97,13 +97,13 @@ func TestNewTFModel(t *testing.T) {
 						Value: value1,
 					},
 				},
-				ProviderSettings: admin.FlexProviderSettings20250101{
+				ProviderSettings: admin.FlexProviderSettings20241113{
 					ProviderName:        &providerName,
 					RegionName:          &regionName,
 					BackingProviderName: &backingProviderName,
 					DiskSizeGB:          &diskSizeGb,
 				},
-				ConnectionStrings: &admin.FlexConnectionStrings20250101{
+				ConnectionStrings: &admin.FlexConnectionStrings20241113{
 					Standard:    &standardConnectionString,
 					StandardSrv: &standardSrvConnectionString,
 				},
@@ -113,7 +113,7 @@ func TestNewTFModel(t *testing.T) {
 				ClusterType:          &clusterType,
 				StateName:            &stateName,
 				VersionReleaseSystem: &versionReleaseSystem,
-				BackupSettings: &admin.FlexBackupSettings20250101{
+				BackupSettings: &admin.FlexBackupSettings20241113{
 					Enabled: conversion.Pointer(true),
 				},
 				TerminationProtectionEnabled: &terminationProtectionEnabled,
@@ -135,11 +135,11 @@ func TestNewTFModel(t *testing.T) {
 				BackupSettings:               types.ObjectNull(flexcluster.BackupSettingsType.AttrTypes),
 				TerminationProtectionEnabled: types.BoolNull(),
 			},
-			input: &admin.FlexClusterDescription20250101{
+			input: &admin.FlexClusterDescription20241113{
 				GroupId:                      nil,
 				Id:                           nil,
 				Tags:                         &[]admin.ResourceTag{},
-				ProviderSettings:             admin.FlexProviderSettings20250101{},
+				ProviderSettings:             admin.FlexProviderSettings20241113{},
 				ConnectionStrings:            nil,
 				CreateDate:                   nil,
 				MongoDBVersion:               nil,
@@ -184,7 +184,7 @@ func TestNewAtlasCreateReq(t *testing.T) {
 				BackupSettings:               *backupSettingsObject,
 				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
 			},
-			expectedSDKReq: &admin.FlexClusterDescriptionCreate20250101{
+			expectedSDKReq: &admin.FlexClusterDescriptionCreate20241113{
 				Name: name,
 				Tags: &[]admin.ResourceTag{
 					{
@@ -192,7 +192,7 @@ func TestNewAtlasCreateReq(t *testing.T) {
 						Value: value1,
 					},
 				},
-				ProviderSettings: admin.FlexProviderSettingsCreate20250101{
+				ProviderSettings: admin.FlexProviderSettingsCreate20241113{
 					RegionName:          regionName,
 					BackingProviderName: backingProviderName,
 				},
@@ -232,7 +232,7 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 				BackupSettings:               *backupSettingsObject,
 				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
 			},
-			expectedSDKReq: &admin.FlexClusterDescription20250101{
+			expectedSDKReq: &admin.FlexClusterDescription20241113{
 				Tags: &[]admin.ResourceTag{
 					{
 						Key:   key1,
