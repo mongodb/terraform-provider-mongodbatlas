@@ -256,6 +256,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"num_shards": schema.Int64Attribute{ // TODO: added as in current resource
 							// TODO: Deprecated: DeprecationMsgOldSchema,
 							// TODO: not sure if add valitadation here: ValidateFunc: validation.IntBetween(1, 50),
+							Computed:            true,
 							Optional:            true,
 							Default:             int64default.StaticInt64(1),
 							MarkdownDescription: "num_shards", // TODO: add description
@@ -297,6 +298,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. This value can be used to configure Global Cluster backup policies.",
 						},
 						"zone_name": schema.StringAttribute{
+							Computed:            true,
 							Optional:            true,
 							Default:             stringdefault.StaticString("ZoneName managed by Terraform"), // TODO: as in current resource
 							MarkdownDescription: "Human-readable label that describes the zone this shard belongs to in a Global Cluster. Provide this value only if \"clusterType\" : \"GEOSHARDED\" but not \"selfManagedSharding\" : true.",
@@ -436,7 +438,7 @@ type TFModel struct {
 	FeatureCompatibilityVersionExpirationDate types.String   `tfsdk:"feature_compatibility_version_expiration_date"`
 	Timeouts                                  timeouts.Value `tfsdk:"timeouts"`
 	ProjectID                                 types.String   `tfsdk:"project_id"`
-	ClusterID                                 types.String   `tfsdk:"id"`
+	ClusterID                                 types.String   `tfsdk:"cluster_id"`
 	ConfigServerManagementMode                types.String   `tfsdk:"config_server_management_mode"`
 	MongoDBEmployeeAccessGrant                types.Object   `tfsdk:"mongo_db_employee_access_grant"`
 	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
@@ -528,7 +530,6 @@ var LabelsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 type TFMongoDbemployeeAccessGrantModel struct {
 	ExpirationTime types.String `tfsdk:"expiration_time"`
 	GrantType      types.String `tfsdk:"grant_type"`
-	Links          types.List   `tfsdk:"links"`
 }
 
 var MongoDbemployeeAccessGrantObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
