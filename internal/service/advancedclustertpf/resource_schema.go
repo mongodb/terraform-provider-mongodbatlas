@@ -292,13 +292,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"analytics_auto_scaling": autoScalingAttribute(),
-									"analytics_specs":        specsAttribute("Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region."),
+									"analytics_specs":        specsAttribute(ctx, "Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region."),
 									"auto_scaling":           autoScalingAttribute(),
 									"backing_provider_name": schema.StringAttribute{
 										Optional:            true,
 										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when **providerName** is `TENANT` and **electableSpecs.instanceSize** is `M0`, `M2` or `M5`.",
 									},
-									"electable_specs": specsAttribute("Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region."),
+									"electable_specs": specsAttribute(ctx, "Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region."),
 									"priority": schema.Int64Attribute{
 										Required:            true,
 										MarkdownDescription: "Precedence is given to this region when a primary election occurs. If your **regionConfigs** has only **readOnlySpecs**, **analyticsSpecs**, or both, set this value to `0`. If you have multiple **regionConfigs** objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is `7`.\n\n**Example:** If you have three regions, their priorities would be `7`, `6`, and `5` respectively. If you added two more regions for supporting electable nodes, the priorities of those regions would be `4` and `3` respectively.",
@@ -308,7 +308,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Required:            true,
 										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisions the hosts. Set dedicated clusters to `AWS`, `GCP`, `AZURE` or `TENANT`.",
 									},
-									"read_only_specs": specsAttribute("Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region."),
+									"read_only_specs": specsAttribute(ctx, "Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region."),
 									"region_name": schema.StringAttribute{
 										// TODO: probably leave validation just in the server, ValidateDiagFunc: validate.StringIsUppercase(),
 										Required:            true,
@@ -420,7 +420,7 @@ func autoScalingAttribute() schema.SingleNestedAttribute {
 	}
 }
 
-func specsAttribute(markdownDescription string) schema.SingleNestedAttribute {
+func specsAttribute(ctx context.Context, markdownDescription string) schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		// TODO: MaxItems: 1
 		Computed:            true,
@@ -462,44 +462,44 @@ func specsAttribute(markdownDescription string) schema.SingleNestedAttribute {
 }
 
 type TFModel struct {
-	AcceptDataRisksAndForceReplicaSetReconfig types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
-	BackupEnabled                             types.Bool     `tfsdk:"backup_enabled"`
-	BiConnector                               types.Object   `tfsdk:"bi_connector"`
-	ClusterType                               types.String   `tfsdk:"cluster_type"`
-	ConfigServerManagementMode                types.String   `tfsdk:"config_server_management_mode"`
-	ConfigServerType                          types.String   `tfsdk:"config_server_type"`
+	DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`
+	Labels                                    types.List     `tfsdk:"labels"`
+	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
+	Tags                                      types.Map      `tfsdk:"tags"`
+	DiskWarmingMode                           types.String   `tfsdk:"disk_warming_mode"`
+	StateName                                 types.String   `tfsdk:"state_name"`
 	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
 	CreateDate                                types.String   `tfsdk:"create_date"`
-	DiskWarmingMode                           types.String   `tfsdk:"disk_warming_mode"`
+	AcceptDataRisksAndForceReplicaSetReconfig types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	EncryptionAtRestProvider                  types.String   `tfsdk:"encryption_at_rest_provider"`
 	FeatureCompatibilityVersion               types.String   `tfsdk:"feature_compatibility_version"`
 	FeatureCompatibilityVersionExpirationDate types.String   `tfsdk:"feature_compatibility_version_expiration_date"`
-	GlobalClusterSelfManagedSharding          types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
-	ProjectID                                 types.String   `tfsdk:"project_id"`
-	ClusterID                                 types.String   `tfsdk:"id"` // TODO: was Id
-	Labels                                    types.List     `tfsdk:"labels"`
-	MongoDBEmployeeAccessGrant                types.Object   `tfsdk:"mongo_db_employee_access_grant"` // TODO: was mongo_dbemployee_access_grant
-	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`         // TODO: was mongo_dbmajor_version
-	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`               // TODO: was mongo_dbversion
-	Name                                      types.String   `tfsdk:"name"`
-	Paused                                    types.Bool     `tfsdk:"paused"`
-	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
-	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
-	ReplicaSetScalingStrategy                 types.String   `tfsdk:"replica_set_scaling_strategy"`
-	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
-	RootCertType                              types.String   `tfsdk:"root_cert_type"`
-	StateName                                 types.String   `tfsdk:"state_name"`
-	Tags                                      types.Map      `tfsdk:"tags"` // TODO: was types.List, changed to align with flex cluster
-	TerminationProtectionEnabled              types.Bool     `tfsdk:"termination_protection_enabled"`
-	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
-	RetainBackupsEnabled                      types.Bool     `tfsdk:"retain_backups_enabled"` // TODO: not exposed in API, used in Delete operation
-	DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`           // TODO: not exposed in latest API, deprecated in root
 	Timeouts                                  timeouts.Value `tfsdk:"timeouts"`
+	ProjectID                                 types.String   `tfsdk:"project_id"`
+	ClusterID                                 types.String   `tfsdk:"id"`
+	ConfigServerManagementMode                types.String   `tfsdk:"config_server_management_mode"`
+	MongoDBEmployeeAccessGrant                types.Object   `tfsdk:"mongo_db_employee_access_grant"`
+	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
+	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
+	Name                                      types.String   `tfsdk:"name"`
+	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
+	BiConnector                               types.Object   `tfsdk:"bi_connector"`
+	ConfigServerType                          types.String   `tfsdk:"config_server_type"`
+	ReplicaSetScalingStrategy                 types.String   `tfsdk:"replica_set_scaling_strategy"`
+	ClusterType                               types.String   `tfsdk:"cluster_type"`
+	RootCertType                              types.String   `tfsdk:"root_cert_type"`
+	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
+	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
+	TerminationProtectionEnabled              types.Bool     `tfsdk:"termination_protection_enabled"`
+	Paused                                    types.Bool     `tfsdk:"paused"`
+	RetainBackupsEnabled                      types.Bool     `tfsdk:"retain_backups_enabled"`
+	BackupEnabled                             types.Bool     `tfsdk:"backup_enabled"`
+	GlobalClusterSelfManagedSharding          types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
 }
 
 type TFBiConnectorModel struct {
-	Enabled        types.Bool   `tfsdk:"enabled"`
 	ReadPreference types.String `tfsdk:"read_preference"`
+	Enabled        types.Bool   `tfsdk:"enabled"`
 }
 
 var BiConnectorObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -518,10 +518,10 @@ type TFConnectionStringsModel struct {
 }
 
 var ConnectionStringsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"aws_private_link":     types.MapType,
-	"aws_private_link_srv": types.MapType,
+	"aws_private_link":     types.MapType{ElemType: types.StringType},
+	"aws_private_link_srv": types.MapType{ElemType: types.StringType},
 	"private":              types.StringType,
-	"private_endpoint":     types.ListType,
+	"private_endpoint":     types.ListType{ElemType: types.StringType},
 	"private_srv":          types.StringType,
 	"standard":             types.StringType,
 	"standard_srv":         types.StringType,
@@ -537,7 +537,7 @@ type TFPrivateEndpointModel struct {
 
 var PrivateEndpointObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"connection_string":                     types.StringType,
-	"endpoints":                             types.ListType,
+	"endpoints":                             types.ListType{ElemType: types.StringType},
 	"srv_connection_string":                 types.StringType,
 	"srv_shard_optimized_connection_string": types.StringType,
 	"type":                                  types.StringType,
@@ -574,17 +574,6 @@ type TFMongoDbemployeeAccessGrantModel struct {
 var MongoDbemployeeAccessGrantObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"expiration_time": types.StringType,
 	"grant_type":      types.StringType,
-	"links":           types.ListType,
-}}
-
-type TFLinksModel struct {
-	Href types.String `tfsdk:"href"`
-	Rel  types.String `tfsdk:"rel"`
-}
-
-var LinksObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"href": types.StringType,
-	"rel":  types.StringType,
 }}
 
 type TFReplicationSpecsModel struct {
@@ -596,7 +585,7 @@ type TFReplicationSpecsModel struct {
 
 var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"id":             types.StringType,
-	"region_configs": types.ListType,
+	"region_configs": types.ListType{ElemType: types.StringType},
 	"zone_id":        types.StringType,
 	"zone_name":      types.StringType,
 }}
@@ -607,129 +596,49 @@ type TFRegionConfigsModel struct {
 	AutoScaling          types.Object `tfsdk:"auto_scaling"`
 	BackingProviderName  types.String `tfsdk:"backing_provider_name"`
 	ElectableSpecs       types.Object `tfsdk:"electable_specs"`
-	Priority             types.Int64  `tfsdk:"priority"`
 	ProviderName         types.String `tfsdk:"provider_name"`
 	ReadOnlySpecs        types.Object `tfsdk:"read_only_specs"`
 	RegionName           types.String `tfsdk:"region_name"`
+	Priority             types.Int64  `tfsdk:"priority"`
 }
 
 var RegionConfigsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"analytics_auto_scaling": types.ObjectType,
-	"analytics_specs":        types.ObjectType,
-	"auto_scaling":           types.ObjectType,
+	"analytics_auto_scaling": AutoScalingObjType,
+	"analytics_specs":        SpecsObjType,
+	"auto_scaling":           AutoScalingObjType,
 	"backing_provider_name":  types.StringType,
-	"electable_specs":        types.ObjectType,
+	"electable_specs":        SpecsObjType,
 	"priority":               types.Int64Type,
 	"provider_name":          types.StringType,
-	"read_only_specs":        types.ObjectType,
+	"read_only_specs":        SpecsObjType,
 	"region_name":            types.StringType,
 }}
 
-type TFAnalyticsAutoScalingModel struct {
-	Compute types.Object `tfsdk:"compute"`
-	DiskGb  types.Object `tfsdk:"disk_gb"`
-}
-
-var AnalyticsAutoScalingObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"compute": types.ObjectType,
-	"disk_gb": types.ObjectType,
-}}
-
-type TFComputeModel struct {
-	Enabled          types.Bool   `tfsdk:"enabled"`
-	MaxInstanceSize  types.String `tfsdk:"max_instance_size"`
-	MinInstanceSize  types.String `tfsdk:"min_instance_size"`
-	ScaleDownEnabled types.Bool   `tfsdk:"scale_down_enabled"`
-}
-
-var ComputeObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"enabled":            types.BoolType,
-	"max_instance_size":  types.StringType,
-	"min_instance_size":  types.StringType,
-	"scale_down_enabled": types.BoolType,
-}}
-
-type TFDiskGbModel struct {
-	Enabled types.Bool `tfsdk:"enabled"`
-}
-
-var DiskGbObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"enabled": types.BoolType,
-}}
-
-type TFAnalyticsSpecsModel struct {
-	DiskIops      types.Int64   `tfsdk:"disk_iops"`
-	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type"`
-	InstanceSize  types.String  `tfsdk:"instance_size"`
-	NodeCount     types.Int64   `tfsdk:"node_count"`
-}
-
-var AnalyticsSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"disk_iops":       types.Int64Type,
-	"disk_size_gb":    types.Float64Type,
-	"ebs_volume_type": types.StringType,
-	"instance_size":   types.StringType,
-	"node_count":      types.Int64Type,
-}}
-
 type TFAutoScalingModel struct {
-	Compute types.Object `tfsdk:"compute"`
-	DiskGb  types.Object `tfsdk:"disk_gb"`
+	ComputeMaxInstanceSize  types.String `tfsdk:"max_instance_size"`
+	ComputeMinInstanceSize  types.String `tfsdk:"min_instance_size"`
+	ComputeEnabled          types.Bool   `tfsdk:"enabled"`
+	ComputeScaleDownEnabled types.Bool   `tfsdk:"scale_down_enabled"`
+	DiskGBEnabled           types.Bool   `tfsdk:"disk_gb_enabled"`
 }
 
 var AutoScalingObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"compute": types.ObjectType,
-	"disk_gb": types.ObjectType,
+	"compute_enabled":            types.BoolType,
+	"compute_max_instance_size":  types.StringType,
+	"compute_min_instance_size":  types.StringType,
+	"compute_scale_down_enabled": types.BoolType,
+	"disk_gb_enabled":            types.BoolType,
 }}
 
-type TFComputeModel struct {
-	Enabled          types.Bool   `tfsdk:"enabled"`
-	MaxInstanceSize  types.String `tfsdk:"max_instance_size"`
-	MinInstanceSize  types.String `tfsdk:"min_instance_size"`
-	ScaleDownEnabled types.Bool   `tfsdk:"scale_down_enabled"`
-}
-
-var ComputeObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"enabled":            types.BoolType,
-	"max_instance_size":  types.StringType,
-	"min_instance_size":  types.StringType,
-	"scale_down_enabled": types.BoolType,
-}}
-
-type TFDiskGbModel struct {
-	Enabled types.Bool `tfsdk:"enabled"`
-}
-
-var DiskGbObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"enabled": types.BoolType,
-}}
-
-type TFElectableSpecsModel struct {
-	DiskIops      types.Int64   `tfsdk:"disk_iops"`
+type TFSpecsModel struct {
 	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb"`
 	EbsVolumeType types.String  `tfsdk:"ebs_volume_type"`
 	InstanceSize  types.String  `tfsdk:"instance_size"`
-	NodeCount     types.Int64   `tfsdk:"node_count"`
-}
-
-var ElectableSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"disk_iops":       types.Int64Type,
-	"disk_size_gb":    types.Float64Type,
-	"ebs_volume_type": types.StringType,
-	"instance_size":   types.StringType,
-	"node_count":      types.Int64Type,
-}}
-
-type TFReadOnlySpecsModel struct {
 	DiskIops      types.Int64   `tfsdk:"disk_iops"`
-	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type"`
-	InstanceSize  types.String  `tfsdk:"instance_size"`
 	NodeCount     types.Int64   `tfsdk:"node_count"`
 }
 
-var ReadOnlySpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var SpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"disk_iops":       types.Int64Type,
 	"disk_size_gb":    types.Float64Type,
 	"ebs_volume_type": types.StringType,

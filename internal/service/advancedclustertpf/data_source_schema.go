@@ -3,9 +3,8 @@ package advancedclustertpf
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // TODO: see if we can leverage on resource schema, e.g. have a func to add computed
