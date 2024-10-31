@@ -543,6 +543,7 @@ type TFModel struct {
 	RetainBackupsEnabled                      types.Bool     `tfsdk:"retain_backups_enabled"`
 	BackupEnabled                             types.Bool     `tfsdk:"backup_enabled"`
 	GlobalClusterSelfManagedSharding          types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
+	AdvancedConfiguration                     types.Object   `tfsdk:"advanced_configuration"`
 }
 
 type TFBiConnectorModel struct {
@@ -720,3 +721,7 @@ type TFAdvancedConfigurationModel struct {
 	JavascriptEnabled                                     types.Bool    `tfsdk:"javascript_enabled"`
 	NoTableScan                                           types.Bool    `tfsdk:"no_table_scan"`
 }
+
+var TFAdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	// TODO: to be implemented
+}}
