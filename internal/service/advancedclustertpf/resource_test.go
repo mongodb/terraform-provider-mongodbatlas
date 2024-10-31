@@ -25,12 +25,12 @@ func configBasic() string {
 		}
 
 		data "mongodbatlas_advanced_cluster" "test" {
-			group_id = "111111111111111111111111"  # Auto-generated schema hasn't been changed yet, that's why it's group_id not project_id
+			project_id = "111111111111111111111111"
 			cluster_name = "test"
 		}
 
 		data "mongodbatlas_advanced_clusters" "tests" {
-				group_id = "111111111111111111111111"  # Auto-generated schema hasn't been changed yet, that's why it's group_id not project_id
+				project_id = "111111111111111111111111"
 		}
 	`
 }
