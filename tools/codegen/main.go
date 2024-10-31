@@ -37,56 +37,16 @@ func main() {
 	for i := range model.Resources {
 		resourceModel := model.Resources[i]
 		if specDirPath != "" {
-			dumpYaml(resourceModel, path.Join(specDirPath, resourceModel.Name.LowerCaseNoUnderscore()+".yaml"))
-		}
-		if err != nil {
-			log.Fatalf("an error occurred when dumping yaml: %v", err)
+			err = dumpYaml(resourceModel, path.Join(specDirPath, resourceModel.Name.LowerCaseNoUnderscore()+".yaml"))
+			if err != nil {
+				log.Fatalf("an error occurred when dumping yaml: %v", err)
+			}
 		}
 		schemaCode := schema.GenerateGoCode(resourceModel)
 		if err := writeToFile(fmt.Sprintf("internal/service/%s/resource_schema.go", resourceModel.Name.LowerCaseNoUnderscore()), schemaCode); err != nil {
 			log.Fatalf("an error occurred when writing content to file: %v", err)
 		}
 	}
-}
-
-func dumpYaml(resource any, filePath string) error {
-	initialYaml := strings.Builder{}
-	// file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600)
-	// if err != nil {
-	// 	log.Fatalf("error opening/creating file: %v", err)
-	// }
-	// defer file.Close()
-	enc := yaml.NewEncoder(&initialYaml)
-	err := enc.Encode(resource)
-	if err != nil {
-		return err
-	}
-	// yamlBytes, err := os.ReadFile(filePath)
-	// if err != nil {
-	// 	return err
-	// }
-	// yamlString := string(yamlBytes)
-	yamlString := initialYaml.String()
-	yamlStringCleaned := strings.Builder{}
-	for _, line := range strings.Split(yamlString, "\n") {
-		if strings.HasSuffix(line, ": null") {
-			continue
-		}
-		yamlStringCleaned.WriteString(line + "\n")
-	}
-	stemName := path.Base(filePath)
-	yamlFinal := yamlStringCleaned.String()
-	if err != nil {
-		return err
-	}
-	err = writeToFile(filePath, yamlFinal)
-	// err = os.WriteFile(filePath, []byte(yamlFinal), 0o600)
-	// _, err = file.WriteString(yamlFinal)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("dumped resource %s to %s:\n%s", stemName, filePath, yamlFinal)
-	return err
 }
 
 func getOsArg() *string {
@@ -103,4 +63,42 @@ func writeToFile(fileName, content string) error {
 		return err
 	}
 	return nil
+}
+
+func dumpYaml(resource any, filePath string) error {
+	initialYaml := strings.Builder{}
+	enc := yaml.NewEncoder(&initialYaml)
+	enc.SetIndent(2)
+	err := enc.Encode(resource)
+	if err != nil {
+		return err
+	}
+	yamlFinal := removeNulls(initialYaml.String())
+	stemName := path.Base(filePath)
+	err = writeToFile(filePath, yamlFinal)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("dumped resource %s to %s:\n%s", stemName, filePath, yamlFinal)
+	return err
+}
+
+func removeNulls(yamlString string) string {
+	yamlStringCleaned := strings.Builder{}
+	inList := false
+	for _, line := range strings.Split(yamlString, "\n") {
+		if strings.HasSuffix(line, ": null") {
+			if strings.HasPrefix(strings.TrimLeft(line, " "), "-") {
+				inList = true
+			}
+			continue
+		}
+		if inList {
+			inList = false
+			indent := len(line) - len(strings.TrimLeft(line, " "))
+			line = strings.Repeat(" ", indent-2) + "- " + line[indent:]
+		}
+		yamlStringCleaned.WriteString(line + "\n")
+	}
+	return yamlStringCleaned.String()
 }
