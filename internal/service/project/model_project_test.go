@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -231,6 +231,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
 				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
+				IsSlowOperationThresholdingEnabled:          types.BoolValue(false),
 				Teams:                                       teamsDSTF,
 				Limits:                                      limitsTF,
 				IPAddresses:                                 ipAddressesTF,
@@ -246,9 +247,10 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 					Results:    &teamRolesSDK,
 					TotalCount: conversion.IntPtr(1),
 				},
-				Settings:    &projectSettingsSDK,
-				IPAddresses: &IPAddressesSDK,
-				Limits:      limitsSDK,
+				Settings:                           &projectSettingsSDK,
+				IPAddresses:                        &IPAddressesSDK,
+				Limits:                             limitsSDK,
+				IsSlowOperationThresholdingEnabled: true,
 			},
 			expectedTFModel: project.TFProjectDSModel{
 
@@ -264,6 +266,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
 				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
+				IsSlowOperationThresholdingEnabled:          types.BoolValue(true),
 				Teams:                                       teamsDSTF,
 				Limits:                                      limitsTF,
 				IPAddresses:                                 ipAddressesTF,
@@ -315,6 +318,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
 				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
+				IsSlowOperationThresholdingEnabled:          types.BoolValue(false),
 				Teams:                                       teamsTFSet,
 				Limits:                                      limitsTFSet,
 				IPAddresses:                                 ipAddressesTF,
@@ -347,6 +351,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
 				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
+				IsSlowOperationThresholdingEnabled:          types.BoolValue(false),
 				Teams:                                       teamsTFSet,
 				Limits:                                      limitsTFSet,
 				IPAddresses:                                 ipAddressesTF,

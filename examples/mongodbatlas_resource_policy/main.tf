@@ -74,5 +74,5 @@ data "mongodbatlas_resource_policies" "this" {
 
 
 output "policy_ids" {
-  value = { for policy in data.mongodbatlas_resource_policies.this.resource_policies : policy.name => policy.id }
+  value = { for policy in data.mongodbatlas_resource_policies.this.results : policy.name => policy.id }
 }

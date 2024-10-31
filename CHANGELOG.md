@@ -1,10 +1,49 @@
 ## (Unreleased)
 
+## 1.21.4 (October 29, 2024)
+
+NOTES:
+
+* data-source/mongodbatlas_resource_policies: Deprecates `resource_policies` attribute ([#2740](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2740))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_resource_policies: Adds `results` attribute ([#2740](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2740))
+
+BUG FIXES:
+
+* resource/mongodbatlas_project_api_key: Validates `project_id` are unique across `project_assignment` blocks and fixes update issues with error `API_KEY_ALREADY_IN_GROUP` ([#2737](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2737))
+
+## 1.21.3 (October 25, 2024)
+
+NOTES:
+
+* data-source/mongodbatlas_project: Deprecates `is_slow_operation_thresholding_enabled`. Attribute will be supported in a separate data source as it requires different set of permissions ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* data-source/mongodbatlas_projects: Deprecates `is_slow_operation_thresholding_enabled`. Attribute will be supported in a separate data source as it requires different set of permissions ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* resource/mongodbatlas_project: Deprecates `is_slow_operation_thresholding_enabled`. Attribute will be supported in a separate resource as it requires different set of permissions ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_project: Avoids error when user doesn't have project owner permission ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* data-source/mongodbatlas_projects: Avoids error when user doesn't have project owner permission ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* resource/mongodbatlas_project: Avoids error when user doesn't have project owner permission ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+
+## 1.21.2 (October 22, 2024)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
 * data-source/mongodbatlas_advanced_clusters: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
+* data-source/mongodbatlas_project: Adds `is_slow_operation_thresholding_enabled` attribute ([#2698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2698))
+* data-source/mongodbatlas_projects: Adds `is_slow_operation_thresholding_enabled` attribute ([#2698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2698))
 * resource/mongodbatlas_advanced_cluster: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
+* resource/mongodbatlas_project: Adds `is_slow_operation_thresholding_enabled` attribute ([#2698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2698))
+
+BUG FIXES:
+
+* resource/mongodbatlas_event_trigger: Always includes `disabled` in the PUT payload ([#2690](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2690))
+* resource/mongodbatlas_organization: Avoids inconsistent result returned by provider when `USER_NOT_FOUND` ([#2684](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2684))
+* resource/mongodbatlas_search_deployment: Fixes inconsistent result for a multi-region cluster that always uses a single spec. ([#2685](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2685))
 
 ## 1.21.1 (October 09, 2024)
 

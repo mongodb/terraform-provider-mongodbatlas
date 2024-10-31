@@ -1,6 +1,7 @@
 package acc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -60,6 +61,24 @@ func JSONEquals(expected string) resource.CheckResourceAttrWithFunc {
 
 		if !reflect.DeepEqual(expectedAny, inputAny) {
 			return fmt.Errorf("expected `%v`, got `%v`", expected, input)
+		}
+		return nil
+	}
+}
+
+// IsProjectNameOrID accepts a project id or name and checks if the input project id matches the expected project
+func IsProjectNameOrID(expected string) resource.CheckResourceAttrWithFunc {
+	return func(input string) error {
+		projectID := expected
+		if startNumber, _ := regexp.MatchString(`^\d`, expected); !startNumber {
+			resp, _, _ := ConnV2().ProjectsApi.GetProjectByName(context.Background(), expected).Execute()
+			projectID = resp.GetId()
+			if projectID == "" {
+				return fmt.Errorf("project not found %q", expected)
+			}
+		}
+		if projectID != input {
+			return fmt.Errorf("project expected %q but got %q", projectID, input)
 		}
 		return nil
 	}

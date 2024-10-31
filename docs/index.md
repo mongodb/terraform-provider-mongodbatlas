@@ -8,6 +8,8 @@ Use the navigation to the left to read about the available provider resources an
 You may want to consider pinning the [provider version](https://www.terraform.io/docs/configuration/providers.html#provider-versions) to ensure you have a chance to review and prepare for changes.
 Speaking of changes, see [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for current version information.  
 
+For the best experience, we recommend using the latest [HashiCorp Terraform Core Version](https://github.com/hashicorp/terraform). For more details see [HashiCorp Terraform Version Compatibility Matrix](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-versionhttpswwwterraformiodownloadshtml-compatibility-matrix).
+
 ## Example Usage
 
 ```terraform
@@ -218,7 +220,7 @@ We ship binaries but do not prioritize fixes for the following operating system 
 ## Examples from MongoDB and the Community
 
 <!-- NOTE: the below examples link is updated during the release process, when doing changes in the following sentence verify scripts/update-examples-reference-in-docs.sh is not impacted-->
-We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.21.1/examples)
+We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.21.4/examples)
 in our GitHub repo that will help both beginner and more advanced users.
 
 Have a good example you've created and want to share?

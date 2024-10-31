@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 )
 
 const (
@@ -140,7 +140,7 @@ func (d *atlasUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, 
 }
 
 func (d *atlasUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	connV2 := d.Client.AtlasV2
+	connV220240805 := d.Client.AtlasV220240805
 
 	var atlasUserConfig tfAtlasUserDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &atlasUserConfig)...)
@@ -155,18 +155,18 @@ func (d *atlasUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp
 
 	var (
 		err  error
-		user *admin.CloudAppUser
+		user *admin20240805.CloudAppUser
 	)
 	if !atlasUserConfig.UserID.IsNull() {
 		userID := atlasUserConfig.UserID.ValueString()
-		user, _, err = connV2.MongoDBCloudUsersApi.GetUser(ctx, userID).Execute()
+		user, _, err = connV220240805.MongoDBCloudUsersApi.GetUser(ctx, userID).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting User from Atlas", fmt.Sprintf(errorUserRead, userID, err.Error()))
 			return
 		}
 	} else {
 		username := atlasUserConfig.Username.ValueString()
-		user, _, err = connV2.MongoDBCloudUsersApi.GetUserByUsername(ctx, username).Execute()
+		user, _, err = connV220240805.MongoDBCloudUsersApi.GetUserByUsername(ctx, username).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting User from Atlas", fmt.Sprintf(errorUserRead, username, err.Error()))
 			return
@@ -177,7 +177,7 @@ func (d *atlasUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp
 	resp.Diagnostics.Append(resp.State.Set(ctx, &userResultState)...)
 }
 
-func newTFAtlasUserDSModel(user *admin.CloudAppUser) tfAtlasUserDSModel {
+func newTFAtlasUserDSModel(user *admin20240805.CloudAppUser) tfAtlasUserDSModel {
 	return tfAtlasUserDSModel{
 		ID:           types.StringPointerValue(user.Id),
 		UserID:       types.StringPointerValue(user.Id),
@@ -195,7 +195,7 @@ func newTFAtlasUserDSModel(user *admin.CloudAppUser) tfAtlasUserDSModel {
 	}
 }
 
-func newTFLinksList(links []admin.Link) []tfLinkModel {
+func newTFLinksList(links []admin20240805.Link) []tfLinkModel {
 	if links == nil {
 		return nil
 	}
@@ -210,7 +210,7 @@ func newTFLinksList(links []admin.Link) []tfLinkModel {
 	return resLinks
 }
 
-func newTFRolesList(roles []admin.CloudAccessRoleAssignment) []tfAtlasUserRoleModel {
+func newTFRolesList(roles []admin20240805.CloudAccessRoleAssignment) []tfAtlasUserRoleModel {
 	if roles == nil {
 		return nil
 	}

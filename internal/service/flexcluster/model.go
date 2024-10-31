@@ -8,10 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 )
 
-func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription20250101) (*TFModel, diag.Diagnostics) {
+func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription20241113) (*TFModel, diag.Diagnostics) {
 	connectionStrings, diags := ConvertConnectionStringsToTF(ctx, apiResp.ConnectionStrings)
 	if diags.HasError() {
 		return nil, diags
@@ -41,14 +41,14 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202501
 	}, nil
 }
 
-func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescriptionCreate20250101, diag.Diagnostics) {
+func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescriptionCreate20241113, diag.Diagnostics) {
 	providerSettings := &TFProviderSettings{}
 	if diags := plan.ProviderSettings.As(ctx, providerSettings, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
 	}
-	return &admin.FlexClusterDescriptionCreate20250101{
+	return &admin.FlexClusterDescriptionCreate20241113{
 		Name: plan.Name.ValueString(),
-		ProviderSettings: admin.FlexProviderSettingsCreate20250101{
+		ProviderSettings: admin.FlexProviderSettingsCreate20241113{
 			BackingProviderName: providerSettings.BackingProviderName.ValueString(),
 			RegionName:          providerSettings.RegionName.ValueString(),
 		},
@@ -57,8 +57,8 @@ func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 	}, nil
 }
 
-func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescription20250101, diag.Diagnostics) {
-	updateRequest := &admin.FlexClusterDescription20250101{
+func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescriptionUpdate20241113, diag.Diagnostics) {
+	updateRequest := &admin.FlexClusterDescriptionUpdate20241113{
 		TerminationProtectionEnabled: plan.TerminationProtectionEnabled.ValueBoolPointer(),
 		Tags:                         newResourceTags(ctx, plan.Tags),
 	}
@@ -66,7 +66,7 @@ func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 	return updateRequest, nil
 }
 
-func ConvertBackupSettingsToTF(ctx context.Context, backupSettings *admin.FlexBackupSettings20250101) (*types.Object, diag.Diagnostics) {
+func ConvertBackupSettingsToTF(ctx context.Context, backupSettings *admin.FlexBackupSettings20241113) (*types.Object, diag.Diagnostics) {
 	if backupSettings == nil {
 		backupSettingsTF := types.ObjectNull(BackupSettingsType.AttributeTypes())
 		return &backupSettingsTF, nil
@@ -82,7 +82,7 @@ func ConvertBackupSettingsToTF(ctx context.Context, backupSettings *admin.FlexBa
 	return &backupSettingsObject, nil
 }
 
-func ConvertConnectionStringsToTF(ctx context.Context, connectionStrings *admin.FlexConnectionStrings20250101) (*types.Object, diag.Diagnostics) {
+func ConvertConnectionStringsToTF(ctx context.Context, connectionStrings *admin.FlexConnectionStrings20241113) (*types.Object, diag.Diagnostics) {
 	if connectionStrings == nil {
 		connectionStringsTF := types.ObjectNull(ConnectionStringsType.AttributeTypes())
 		return &connectionStringsTF, nil
@@ -99,7 +99,7 @@ func ConvertConnectionStringsToTF(ctx context.Context, connectionStrings *admin.
 	return &connectionStringsObject, nil
 }
 
-func ConvertProviderSettingsToTF(ctx context.Context, providerSettings admin.FlexProviderSettings20250101) (*types.Object, diag.Diagnostics) {
+func ConvertProviderSettingsToTF(ctx context.Context, providerSettings admin.FlexProviderSettings20241113) (*types.Object, diag.Diagnostics) {
 	providerSettingsTF := &TFProviderSettings{
 		ProviderName:        types.StringPointerValue(providerSettings.ProviderName),
 		RegionName:          types.StringPointerValue(providerSettings.RegionName),

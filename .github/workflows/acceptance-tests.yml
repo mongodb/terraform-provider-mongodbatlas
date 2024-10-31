@@ -98,8 +98,8 @@ jobs:
       mongodb_atlas_project_owner_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_OWNER_ID_QA || vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
       mongodb_atlas_teams_ids: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_TEAMS_IDS_QA || vars.MONGODB_ATLAS_TEAMS_IDS }}
       azure_atlas_app_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_ATLAS_APP_ID_QA || vars.AZURE_ATLAS_APP_ID }}
-      azure_service_principal_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_SERVICE_PRINCIPAL_ID_QA || vars.AZURE_SERVICE_PRINCIPAL_ID }}
-      azure_tenant_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_TENANT_ID_QA || vars.AZURE_TENANT_ID }}
+      azure_service_principal_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_SERVICE_PRINCIPAL_ID_APP_QA || vars.AZURE_SERVICE_PRINCIPAL_ID }}
+      azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
       aws_secret_name: ${{ inputs.atlas_cloud_env == 'qa' && vars.AWS_SECRET_NAME_QA || vars.AWS_SECRET_NAME }}
       mongodb_atlas_federation_settings_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATION_SETTINGS_ID_QA || vars.MONGODB_ATLAS_FEDERATION_SETTINGS_ID }}
       mongodb_atlas_federated_okta_idp_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID_QA || vars.MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID }}

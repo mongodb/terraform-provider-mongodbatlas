@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -49,6 +49,7 @@ type TFProjectDSModel struct {
 	IsPerformanceAdvisorEnabled                 types.Bool       `tfsdk:"is_performance_advisor_enabled"`
 	IsExtendedStorageSizesEnabled               types.Bool       `tfsdk:"is_extended_storage_sizes_enabled"`
 	IsDataExplorerEnabled                       types.Bool       `tfsdk:"is_data_explorer_enabled"`
+	IsSlowOperationThresholdingEnabled          types.Bool       `tfsdk:"is_slow_operation_thresholding_enabled"`
 }
 
 type TFTeamDSModel struct {
@@ -100,6 +101,10 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 			},
 			"is_schema_advisor_enabled": schema.BoolAttribute{
 				Computed: true,
+			},
+			"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
+				Computed:           true,
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersion, "1.24.0"),
 			},
 			"region_usage_restrictions": schema.StringAttribute{
 				Computed: true,
@@ -209,7 +214,7 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		}
 	}
 
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, project.GetId())
+	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, project.GetId(), &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
 		return

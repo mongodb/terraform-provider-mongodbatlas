@@ -132,7 +132,7 @@ Indicates BI Connector for Atlas configuration.
 
 Configuration for cluster regions.
 
-* `id` - Unique identifer of the replication document for a zone in a Global Cluster.
+* `id` - Unique identifer of the replication document for a zone in a Global Cluster. This value corresponds to the legacy sharding schema (no independent shard scaling) and is different from the Shard ID you may see in the Atlas UI.
 * `num_shards` - Number of shards to deploy in the specified zone.
 * `regions_config` - Describes the physical location of the region. Each regionsConfig document describes the region’s priority in elections and the number and type of MongoDB nodes Atlas deploys to the region. You must order each regionsConfigs document by regionsConfig.priority, descending. See [Region Config](#region-config) below for more details.
 * `zone_name` - Indicates the n ame for the zone in a Global Cluster.

@@ -158,15 +158,15 @@ func checksResourcePolicy(orgID, name string, policyCount int) resource.TestChec
 		"version",
 	}
 	pluralMap := map[string]string{
-		"org_id":              orgID,
-		"resource_policies.#": "1",
+		"org_id":    orgID,
+		"results.#": "1",
 	}
 	checks := []resource.TestCheckFunc{checkExists()}
 	checks = acc.AddAttrChecks(dataSourcePluralID, checks, pluralMap)
 	for i := 0; i < policyCount; i++ {
 		checks = acc.AddAttrSetChecks(resourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
 		checks = acc.AddAttrSetChecks(dataSourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
-		checks = acc.AddAttrSetChecks(dataSourcePluralID, checks, fmt.Sprintf("resource_policies.0.policies.%d.body", i), fmt.Sprintf("resource_policies.0.policies.%d.id", i))
+		checks = acc.AddAttrSetChecks(dataSourcePluralID, checks, fmt.Sprintf("results.0.policies.%d.body", i), fmt.Sprintf("results.0.policies.%d.id", i))
 	}
 	// cannot use dataSourcePluralID as it doesn't have the `results` attribute
 	return acc.CheckRSAndDS(resourceID, &dataSourceID, nil, attrSet, attrMap, resource.ComposeAggregateTestCheckFunc(checks...))

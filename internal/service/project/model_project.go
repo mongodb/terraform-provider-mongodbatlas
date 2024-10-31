@@ -3,7 +3,7 @@ package project
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -36,6 +36,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		Limits:                                      NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
 		IPAddresses:                                 ipAddressesModel,
 		Tags:                                        NewTFTags(project.GetTags()),
+		IsSlowOperationThresholdingEnabled:          types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
 	}, nil
 }
 
@@ -100,17 +101,18 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		return nil, diags
 	}
 	projectPlan := TFProjectRSModel{
-		ID:                        types.StringValue(projectRes.GetId()),
-		Name:                      types.StringValue(projectRes.Name),
-		OrgID:                     types.StringValue(projectRes.OrgId),
-		ClusterCount:              types.Int64Value(projectRes.ClusterCount),
-		RegionUsageRestrictions:   types.StringPointerValue(projectRes.RegionUsageRestrictions),
-		Created:                   types.StringValue(conversion.TimeToString(projectRes.Created)),
-		WithDefaultAlertsSettings: types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
-		Teams:                     newTFTeamsResourceModel(ctx, projectProps.Teams),
-		Limits:                    newTFLimitsResourceModel(ctx, projectProps.Limits),
-		IPAddresses:               ipAddressesModel,
-		Tags:                      NewTFTags(projectRes.GetTags()),
+		ID:                                 types.StringValue(projectRes.GetId()),
+		Name:                               types.StringValue(projectRes.Name),
+		OrgID:                              types.StringValue(projectRes.OrgId),
+		ClusterCount:                       types.Int64Value(projectRes.ClusterCount),
+		RegionUsageRestrictions:            types.StringPointerValue(projectRes.RegionUsageRestrictions),
+		Created:                            types.StringValue(conversion.TimeToString(projectRes.Created)),
+		WithDefaultAlertsSettings:          types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
+		Teams:                              newTFTeamsResourceModel(ctx, projectProps.Teams),
+		Limits:                             newTFLimitsResourceModel(ctx, projectProps.Limits),
+		IPAddresses:                        ipAddressesModel,
+		Tags:                               NewTFTags(projectRes.GetTags()),
+		IsSlowOperationThresholdingEnabled: types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
 	}
 
 	projectSettings := projectProps.Settings
