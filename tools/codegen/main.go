@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
+	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
@@ -31,9 +33,12 @@ func main() {
 		log.Fatalf("an error occurred while generating codespec.Model: %v", err)
 	}
 
+	specDirPath := os.Getenv("SPEC_RESOURCE_OUTPUT_DIR")
 	for i := range model.Resources {
 		resourceModel := model.Resources[i]
-		err := dumpYaml(resourceModel, resourceModel.Name.LowerCaseNoUnderscore()+".yml")
+		if specDirPath != "" {
+			dumpYaml(resourceModel, path.Join(specDirPath, resourceModel.Name.LowerCaseNoUnderscore()+".yaml"))
+		}
 		if err != nil {
 			log.Fatalf("an error occurred when dumping yaml: %v", err)
 		}
@@ -44,24 +49,43 @@ func main() {
 	}
 }
 
-func dumpYaml(myStruct any, filename string) error {
-	dirPath := os.Getenv("SPEC_OUTPUT_DIR")
-	filePath := dirPath + filename
-	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600)
-	if err != nil {
-		log.Fatalf("error opening/creating file: %v", err)
-	}
-	defer file.Close()
-	enc := yaml.NewEncoder(file)
-	err = enc.Encode(myStruct)
-	if err != nil {
-		return err
-	}
-	yamlBytes, err := os.ReadFile(filePath)
+func dumpYaml(resource any, filePath string) error {
+	initialYaml := strings.Builder{}
+	// file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600)
+	// if err != nil {
+	// 	log.Fatalf("error opening/creating file: %v", err)
+	// }
+	// defer file.Close()
+	enc := yaml.NewEncoder(&initialYaml)
+	err := enc.Encode(resource)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("marshaled struct %s", string(yamlBytes))
+	// yamlBytes, err := os.ReadFile(filePath)
+	// if err != nil {
+	// 	return err
+	// }
+	// yamlString := string(yamlBytes)
+	yamlString := initialYaml.String()
+	yamlStringCleaned := strings.Builder{}
+	for _, line := range strings.Split(yamlString, "\n") {
+		if strings.HasSuffix(line, ": null") {
+			continue
+		}
+		yamlStringCleaned.WriteString(line + "\n")
+	}
+	stemName := path.Base(filePath)
+	yamlFinal := yamlStringCleaned.String()
+	if err != nil {
+		return err
+	}
+	err = writeToFile(filePath, yamlFinal)
+	// err = os.WriteFile(filePath, []byte(yamlFinal), 0o600)
+	// _, err = file.WriteString(yamlFinal)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("dumped resource %s to %s:\n%s", stemName, filePath, yamlFinal)
 	return err
 }
 
