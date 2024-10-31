@@ -224,6 +224,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"mongo_db_major_version": schema.StringAttribute{ // TODO: was generated as mongo_dbmajor_version
+				// TODO: watch out new error, Error code: "ATLAS_CLUSTER_VERSION_DEPRECATED") Detail: MongoDB version is deprecated in Atlas. Reason: Bad Request. Params: [], BadRequestDetail:
 				Computed: true,
 				Optional: true,
 				// TODO: StateFunc: FormatMongoDBMajorVersion,

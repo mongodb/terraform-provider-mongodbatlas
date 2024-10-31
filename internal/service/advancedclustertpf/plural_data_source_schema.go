@@ -31,7 +31,7 @@ func PluralDataSourceSchema(ctx context.Context) schema.Schema {
 			"use_replication_spec_per_shard": schema.BoolAttribute{ // TODO: added as in current resource
 				Optional:            true,
 				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
-			},			
+			},
 			"include_deleted_with_retained_backups": schema.BoolAttribute{ // TODO: not in current resource, decide if keep
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to return Clusters with retain backups.",
@@ -48,7 +48,7 @@ func PluralDataSourceSchema(ctx context.Context) schema.Schema {
 						"name": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Human-readable label that identifies this cluster.",
-						},			
+						},
 					},
 				},
 			},
@@ -61,7 +61,7 @@ func PluralDataSourceSchema(ctx context.Context) schema.Schema {
 }
 
 type AdvancedClustersModel struct {
-	ProjectID                           types.String `tfsdk:"project_id"`
+	ProjectID                         types.String `tfsdk:"project_id"`
 	ItemsPerPage                      types.Int64  `tfsdk:"items_per_page"`
 	PageNum                           types.Int64  `tfsdk:"page_num"`
 	TotalCount                        types.Int64  `tfsdk:"total_count"`
