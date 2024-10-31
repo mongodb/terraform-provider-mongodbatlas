@@ -1,0 +1,165 @@
+schema:
+    description: Creates Search Nodes for the specified cluster.
+    deprecationmessage: null
+    attributes:
+        - list: null
+          setnested: null
+          float64: null
+          string:
+            default: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts: null
+          description: Label that identifies the cluster to create Search Nodes for.
+          name: cluster_name
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: required
+        - list: null
+          setnested: null
+          float64: null
+          string:
+            default: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts: null
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          name: project_id
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: required
+        - list: null
+          setnested: null
+          float64: null
+          string:
+            default: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts: null
+          description: Unique 24-hexadecimal digit string that identifies the search deployment.
+          name: id
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: computed
+        - list: null
+          setnested: null
+          float64: null
+          string: null
+          bool: null
+          listnested:
+            default: null
+            nestedobject:
+                attributes:
+                    - list: null
+                      setnested: null
+                      float64: null
+                      string:
+                        default: null
+                      bool: null
+                      listnested: null
+                      map: null
+                      mapnested: null
+                      number: null
+                      set: null
+                      int64: null
+                      singlenested: null
+                      timeouts: null
+                      description: Hardware specification for the Search Node instance sizes.
+                      name: instance_size
+                      deprecationmessage: null
+                      sensitive: null
+                      computedoptionalrequired: required
+                    - list: null
+                      setnested: null
+                      float64: null
+                      string: null
+                      bool: null
+                      listnested: null
+                      map: null
+                      mapnested: null
+                      number: null
+                      set: null
+                      int64:
+                        default: null
+                      singlenested: null
+                      timeouts: null
+                      description: Number of Search Nodes in the cluster.
+                      name: node_count
+                      deprecationmessage: null
+                      sensitive: null
+                      computedoptionalrequired: required
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts: null
+          description: List of settings that configure the Search Nodes for your cluster.
+          name: specs
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: required
+        - list: null
+          setnested: null
+          float64: null
+          string:
+            default: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts: null
+          description: Human-readable label that indicates the current operating condition of this search deployment.
+          name: state_name
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: computed
+        - list: null
+          setnested: null
+          float64: null
+          string: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts:
+            configurabletimeouts:
+                - 0
+                - 1
+                - 3
+          description: null
+          name: timeouts
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: ""
+name: search_deployment

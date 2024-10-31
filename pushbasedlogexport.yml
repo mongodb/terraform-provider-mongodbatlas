@@ -1,0 +1,144 @@
+schema:
+    description: Configures the project level settings for the push-based log export feature.
+    deprecationmessage: null
+    attributes:
+        - list: null
+          setnested: null
+          float64: null
+          string:
+            default: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts: null
+          description: The name of the bucket to which the agent will send the logs to.
+          name: bucket_name
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: required
+        - list: null
+          setnested: null
+          float64: null
+          string:
+            default: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts: null
+          description: Date and time that this feature was enabled on.
+          name: create_date
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: computed
+        - list: null
+          setnested: null
+          float64: null
+          string:
+            default: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts: null
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          name: project_id
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: required
+        - list: null
+          setnested: null
+          float64: null
+          string:
+            default: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts: null
+          description: ID of the AWS IAM role that will be used to write to the S3 bucket.
+          name: iam_role_id
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: required
+        - list: null
+          setnested: null
+          float64: null
+          string:
+            default: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts: null
+          description: S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.
+          name: prefix_path
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: required
+        - list: null
+          setnested: null
+          float64: null
+          string:
+            default: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts: null
+          description: Describes whether or not the feature is enabled and what status it is in.
+          name: state
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: computed
+        - list: null
+          setnested: null
+          float64: null
+          string: null
+          bool: null
+          listnested: null
+          map: null
+          mapnested: null
+          number: null
+          set: null
+          int64: null
+          singlenested: null
+          timeouts:
+            configurabletimeouts:
+                - 0
+                - 1
+                - 3
+          description: null
+          name: timeouts
+          deprecationmessage: null
+          sensitive: null
+          computedoptionalrequired: ""
+name: push_based_log_export

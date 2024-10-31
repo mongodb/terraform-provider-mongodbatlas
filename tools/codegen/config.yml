@@ -43,3 +43,10 @@ resources:
         group_id: project_id
       ignores: ["links"]
       timeouts: ["create", "update", "delete"]
+  resource_policy:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+      method: POST
