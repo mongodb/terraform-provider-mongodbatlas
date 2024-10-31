@@ -56,3 +56,15 @@ resources:
         group_id: project_id
       ignores: ["links"]
       timeouts: ["create", "update", "delete"]
+
+  # advanced_configuration attribute in advanced_cluster
+  advanced_cluster_process_args:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
+      method: PATCH
+    schema:
+      aliases:
+        group_id: project_id

@@ -267,14 +267,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Hardware specifications for nodes set for a given region. Each **regionConfigs** object describes the region's priority in elections and the number and type of MongoDB nodes that MongoDB Cloud deploys to the region. Each **regionConfigs** object must have either an **analyticsSpecs** object, **electableSpecs** object, or **readOnlySpecs** object. Tenant clusters only require **electableSpecs. Dedicated** clusters can specify any of these specifications, but must have at least one **electableSpecs** object within a **replicationSpec**.\n\n**Example:**\n\nIf you set `\"replicationSpecs[n].regionConfigs[m].analyticsSpecs.instanceSize\" : \"M30\"`, set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : `\"M30\"` if you have electable nodes and `\"replicationSpecs[n].regionConfigs[m].readOnlySpecs.instanceSize\" : `\"M30\"` if you have read-only nodes.",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
-									"analytics_auto_scaling": autoScalingAttribute(),
-									"analytics_specs":        specsAttribute(ctx, "Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region."),
-									"auto_scaling":           autoScalingAttribute(),
+									"analytics_auto_scaling": AutoScalingSchema(),
+									"analytics_specs":        SpecsSchema("Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region."),
+									"auto_scaling":           AutoScalingSchema(),
 									"backing_provider_name": schema.StringAttribute{
 										Optional:            true,
 										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when **providerName** is `TENANT` and **electableSpecs.instanceSize** is `M0`, `M2` or `M5`.",
 									},
-									"electable_specs": specsAttribute(ctx, "Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region."),
+									"electable_specs": SpecsSchema("Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region."),
 									"priority": schema.Int64Attribute{
 										Required:            true,
 										MarkdownDescription: "Precedence is given to this region when a primary election occurs. If your **regionConfigs** has only **readOnlySpecs**, **analyticsSpecs**, or both, set this value to `0`. If you have multiple **regionConfigs** objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is `7`.\n\n**Example:** If you have three regions, their priorities would be `7`, `6`, and `5` respectively. If you added two more regions for supporting electable nodes, the priorities of those regions would be `4` and `3` respectively.",
@@ -284,7 +284,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Required:            true,
 										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisions the hosts. Set dedicated clusters to `AWS`, `GCP`, `AZURE` or `TENANT`.",
 									},
-									"read_only_specs": specsAttribute(ctx, "Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region."),
+									"read_only_specs": SpecsSchema("Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region."),
 									"region_name": schema.StringAttribute{
 										// TODO: probably leave validation just in the server, ValidateDiagFunc: validate.StringIsUppercase(),
 										Required:            true,
@@ -335,13 +335,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster.",
 			},
-			"disk_size_gb": schema.Float64Attribute{ // TODO: not exposed in latest API, deprecated in root
+			"disk_size_gb": schema.Float64Attribute{ // TODO: not exposed in latest API, deprecated in root in current resource
 				// Deprecated: DeprecationMsgOldSchema,
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 			},
-			// TODO: add as it's in a different endpoint: "advanced_configuration": SchemaAdvancedConfig(),
+			"advanced_configuration": AdvancedConfigurationSchema(ctx),
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Update: true,
@@ -351,7 +351,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
-func autoScalingAttribute() schema.SingleNestedAttribute {
+func AutoScalingSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		// TODO: MaxItems: 1
 		Computed:            true,
@@ -387,7 +387,7 @@ func autoScalingAttribute() schema.SingleNestedAttribute {
 	}
 }
 
-func specsAttribute(ctx context.Context, markdownDescription string) schema.SingleNestedAttribute {
+func SpecsSchema(markdownDescription string) schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		// TODO: MaxItems: 1
 		Computed:            true,
@@ -418,6 +418,92 @@ func specsAttribute(ctx context.Context, markdownDescription string) schema.Sing
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Number of nodes of the given type for MongoDB Cloud to deploy to the region.",
+			},
+		},
+	}
+}
+
+// TODO: generated from processArgs API endpoint
+func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Computed: true,
+		Optional: true,
+		// TODO: MaxItems: 1,
+		MarkdownDescription: "advanced_configuration", // TODO: add description
+		Attributes: map[string]schema.Attribute{
+			"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
+				Computed:            true,
+				Optional:            true,
+				Default:             int64default.StaticInt64(-1), // TODO: think if default in the server only
+				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
+			},
+			"chunk_migration_concurrency": schema.Int64Attribute{ // TODO: not in current resource, decide if keep
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Number of threads on the source shard and the receiving shard for chunk migration. The number of threads should not exceed the half the total number of CPU cores in the sharded cluster.",
+			},
+			"default_max_time_ms": schema.Int64Attribute{ // TODO: not in current resource, decide if keep
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Default time limit in milliseconds for individual read operations to complete.",
+			},
+			"default_write_concern": schema.StringAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Default level of acknowledgment requested from MongoDB for write operations when none is specified by the driver.",
+			},
+			"javascript_enabled": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether the cluster allows execution of operations that perform server-side executions of JavaScript. When using 8.0+, we recommend disabling server-side JavaScript and using operators of aggregation pipeline as more performant alternative.",
+			},
+			"minimum_enabled_tls_protocol": schema.StringAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.",
+			},
+			"no_table_scan": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether the cluster disables executing any query that requires a collection scan to return results.",
+			},
+			"oplog_min_retention_hours": schema.Float64Attribute{
+				Optional:            true,
+				MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.",
+			},
+			"oplog_size_mb": schema.Int64Attribute{
+				Optional:            true,
+				MarkdownDescription: "Storage limit of cluster's oplog expressed in megabytes. A value of null indicates that the cluster uses the default oplog size that MongoDB Cloud calculates.",
+			},
+			"query_stats_log_verbosity": schema.Int64Attribute{ // TODO: not in current resource, decide if keep
+				Optional:            true,
+				MarkdownDescription: "May be set to 1 (disabled) or 3 (enabled). When set to 3, Atlas will include redacted and anonymized $queryStats output in MongoDB logs. $queryStats output does not contain literals or field values. Enabling this setting might impact the performance of your cluster.",
+			},
+			"sample_refresh_interval_bi_connector": schema.Int64Attribute{ // TODO was sample_refresh_interval_biconnector
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Interval in seconds at which the mongosqld process re-samples data to create its relational schema.",
+			},
+			"sample_size_bi_connector": schema.Int64Attribute{ // TODO was sample_size_biconnector
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Number of documents per database to sample when gathering schema information.",
+			},
+			"transaction_lifetime_limit_seconds": schema.Int64Attribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
+			},
+			"default_read_concern": schema.StringAttribute{ // TODO: not exposed in latest API, deprecated in current resource
+				// TODO: Deprecated: DeprecationMsgOldSchema,
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "default_read_concern", // TODO: add description
+			},
+			"fail_index_key_too_long": schema.BoolAttribute{ // TODO: not exposed in latest API, deprecated in current resource
+				// TODO: Deprecated: DeprecationMsgOldSchema,
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 			},
 		},
 	}
@@ -616,3 +702,21 @@ var TagsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"key":   types.StringType,
 	"value": types.StringType,
 }}
+
+type TFAdvancedConfigurationModel struct {
+	OplogMinRetentionHours                                types.Float64 `tfsdk:"oplog_min_retention_hours"`
+	ProjectId                                             types.String  `tfsdk:"project_id"`
+	ClusterName                                           types.String  `tfsdk:"cluster_name"`
+	MinimumEnabledTlsProtocol                             types.String  `tfsdk:"minimum_enabled_tls_protocol"`
+	DefaultWriteConcern                                   types.String  `tfsdk:"default_write_concern"`
+	DefaultMaxTimeMs                                      types.Int64   `tfsdk:"default_max_time_ms"`
+	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64   `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
+	ChunkMigrationConcurrency                             types.Int64   `tfsdk:"chunk_migration_concurrency"`
+	OplogSizeMb                                           types.Int64   `tfsdk:"oplog_size_mb"`
+	QueryStatsLogVerbosity                                types.Int64   `tfsdk:"query_stats_log_verbosity"`
+	SampleRefreshIntervalBiconnector                      types.Int64   `tfsdk:"sample_refresh_interval_biconnector"`
+	SampleSizeBiconnector                                 types.Int64   `tfsdk:"sample_size_biconnector"`
+	TransactionLifetimeLimitSeconds                       types.Int64   `tfsdk:"transaction_lifetime_limit_seconds"`
+	JavascriptEnabled                                     types.Bool    `tfsdk:"javascript_enabled"`
+	NoTableScan                                           types.Bool    `tfsdk:"no_table_scan"`
+}
