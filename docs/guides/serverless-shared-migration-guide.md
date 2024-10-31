@@ -20,7 +20,7 @@ Migration from Serverless instances and Shared-tier clusters to Flex/Dedicated c
     ```terraform
     resource "mongodbatlas_flex_cluster" "flex_cluster" {
         project_id = var.project_id
-        name       = "clusterName"
+        name       = "flexClusterName"
         provider_settings = {
             backing_provider_name = "AWS"
             region_name           = "US_EAST_1"
@@ -28,7 +28,7 @@ Migration from Serverless instances and Shared-tier clusters to Flex/Dedicated c
         termination_protection_enabled = true
     }
     ```
-2.  Run `terraform apply` to create the new resource.
+2. Run `terraform apply` to create the new resource.
 3. Migrate data from your Shared-tier cluster to the Flex cluster using `mongodump` and `mongostore`.
 
     Please see the following guide on how to retrieve data from one cluster and store it in another cluster: [Convert a Serverless Instance to a Dedicated Cluster](https://www.mongodb.com/docs/atlas/tutorial/convert-serverless-to-dedicated/)
@@ -71,7 +71,7 @@ Given your Shared-tier cluster fits the constraints of a Flex cluster, it alongi
     ```terraform
     resource "mongodbatlas_flex_cluster" "flex_cluster" {
         project_id = var.project_id
-        name       = "clusterName"
+        name       = "flexClusterName"
         provider_settings = {
             backing_provider_name = "AWS"
             region_name           = "US_EAST_1"
@@ -85,7 +85,7 @@ Given your Shared-tier cluster fits the constraints of a Flex cluster, it alongi
     Please see the following guide on how to retrieve data from one cluster and store it in another cluster: [Convert a Serverless Instance to a Dedicated Cluster](https://www.mongodb.com/docs/atlas/tutorial/convert-serverless-to-dedicated/)
 
     Verify that your data is present within the Flex cluster before proceeding.
-4. Delete the Shared-tier cluster by running a destory command targetting the Shared-tier cluster:
+4. Delete the Serverless Instance by running a destory command targetting the Serverless Instance:
 
     `terraform destroy -target=mongodbatlas_serverless_instance.<serverless-instance-cluster-name>`
 
@@ -145,3 +145,59 @@ Given your Serverless Instance did not fit the constraints of a Flex cluster, it
 
 
 ## From Serverless to Free 
+
+### Pre-Autoconversion Migration Procedure
+
+1. Create a new Free Cluster directly from your `.tf` file, e.g.:
+
+    ```terraform
+    resource "mongodbatlas_advanced_cluster" "free-cluster" {
+        project_id   = var.atlas_project_id
+        name         = "freeClusterName"
+        cluster_type = "REPLICASET"
+
+        replication_specs {
+            region_configs {
+            electable_specs {
+                instance_size = "M0"
+            }
+            provider_name         = "TENANT"
+            backing_provider_name = "AWS"
+            region_name           = "US_EAST_1"
+            priority              = 7
+            }
+        }
+    }
+    ```
+2.  Run `terraform apply` to create the new resource.
+3. Migrate data from your Serverless Instance to the Free cluster using `mongodump` and `mongostore`.
+
+    Please see the following guide on how to retrieve data from one cluster and store it in another cluster: [Convert a Serverless Instance to a Dedicated Cluster](https://www.mongodb.com/docs/atlas/tutorial/convert-serverless-to-dedicated/)
+
+    Verify that your data is present within the Free cluster before proceeding.
+4. Delete the Serverless Instance by running a destory command targetting the Serverless Instance:
+
+    `terraform destroy -target=mongodbatlas_serverless_instance.<serverless-instance-cluster-name>`
+
+ 5. You may now safely remove the resource block for the Serverless Instance from your `.tf` file.
+
+### Post-Autoconversion Migration Procedure
+
+Given your Serverless Instance has $0 MRR, it alongisde all its data will have been automatically converted into a Free cluster in Atlas. The following will resolve the configuration drift in Terraform.
+
+1. Find the import IDs of the Free clusters: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6-freeClusterName`
+2. Add an import block per cluster to one of your `.tf` files:
+    ```terraform
+    import {
+    to = mongodbatlas_advanced_cluster.free_cluster
+    id = "664619d870c247237f4b86a6-freeClusterName" # from step 1
+    }
+    ```
+3. Run `terraform plan -generate-config-out=free_cluster.tf`. This should generate a `free_cluster.tf` file with your Free cluster in it.
+4. Run `terraform apply`. You should see the resource(s) imported: `Apply complete! Resources: 1 imported, 0 added, 0 changed, 0 destroyed.`
+5. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration will have static values. Look in your previous configuration for:
+   - variables, for example: `var.project_id`
+   - Terraform keywords, for example: `for_each`, `count`, and `depends_on`
+6. Replace your existing clusters with the ones from `free_cluster.tf` and run `terraform state rm mongodbatlas_serverless_instance.serverlessInstanceName`. Without this step, Terraform will create a plan to delete your existing cluster.
+7.  Remove the import block created in step 2.
+8.  Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
