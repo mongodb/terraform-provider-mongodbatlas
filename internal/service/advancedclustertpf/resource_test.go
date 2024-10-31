@@ -20,17 +20,26 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 }
 
 func configBasic() string {
-	return `	
+	return `
+	 /*	
+	 // TODO: resource not used yet until we have a fake model so test can run
 		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = "111111111111111111111111"
+			name = "test"
+			cluster_type = "TYPE"
 		}
-
+	*/
 		data "mongodbatlas_advanced_cluster" "test" {
 			project_id = "111111111111111111111111"
-			cluster_name = "test"
+			name = "test"
+
+			// depends_on = [mongodbatlas_advanced_cluster.test]	
 		}
 
 		data "mongodbatlas_advanced_clusters" "tests" {
 				project_id = "111111111111111111111111"
+
+				// depends_on = [mongodbatlas_advanced_cluster.test]	
 		}
 	`
 }
