@@ -58,7 +58,7 @@ type NewAtlasCreateReqTestCase struct {
 
 type NewAtlasUpdateReqTestCase struct {
 	input          *flexcluster.TFModel
-	expectedSDKReq *admin.FlexClusterDescription20241113
+	expectedSDKReq *admin.FlexClusterDescriptionUpdate20241113
 }
 
 func TestNewTFModel(t *testing.T) {
@@ -232,7 +232,7 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 				BackupSettings:               *backupSettingsObject,
 				TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
 			},
-			expectedSDKReq: &admin.FlexClusterDescription20241113{
+			expectedSDKReq: &admin.FlexClusterDescriptionUpdate20241113{
 				Tags: &[]admin.ResourceTag{
 					{
 						Key:   key1,
