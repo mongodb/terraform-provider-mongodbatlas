@@ -9,9 +9,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 )
 
 func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
@@ -200,16 +201,16 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 	}
 }
 
-func fetchOrgUsers(t *testing.T, orgID string) *admin.PaginatedAppUser {
+func fetchOrgUsers(t *testing.T, orgID string) *admin20240805.PaginatedAppUser {
 	t.Helper()
-	users, _, err := acc.ConnV2().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
+	users, _, err := connV220240805().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas Users for Org(%s) could not be fetched: %v", orgID, err)
 	}
 	return users
 }
 
-func dataSourceChecksForUsers(dataSourceName, orgID string, users *admin.PaginatedAppUser) []resource.TestCheckFunc {
+func dataSourceChecksForUsers(dataSourceName, orgID string, users *admin20240805.PaginatedAppUser) []resource.TestCheckFunc {
 	var totalCountValue int
 	if users.TotalCount != nil {
 		totalCountValue = *users.TotalCount
