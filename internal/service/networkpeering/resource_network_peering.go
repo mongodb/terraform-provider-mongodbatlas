@@ -324,11 +324,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 func errorIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
 	// for azure/gcp "status" and "errorState" is returned, for aws "statusName" and "errorStateName" :-/
 	if peer.GetStatus() == "FAILED" || peer.GetStatusName() == "FAILED" {
-		statusName := peer.GetStatus()
-		if peer.GetStatusName() != "" {
-			statusName = peer.GetStatusName()
+		errorState := peer.GetErrorState()
+		if peer.GetErrorStateName() != "" {
+			errorState = peer.GetErrorStateName()
 		}
-		return diag.FromErr(fmt.Errorf("peer networking is in a failed state: %s", statusName))
+		return diag.FromErr(fmt.Errorf("peer networking is in a failed state: %s", errorState))
 	}
 	return nil
 }
