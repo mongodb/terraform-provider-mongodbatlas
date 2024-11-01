@@ -51,6 +51,11 @@ type NewTFModelTestCase struct {
 	expectedTFModel *flexcluster.TFModel
 }
 
+type NewTFModelDSPTestCase struct {
+	input              *admin.PaginatedFlexClusters20241113
+	expectedTFModelDSP *flexcluster.TFModelDSP
+}
+
 type NewAtlasCreateReqTestCase struct {
 	input          *flexcluster.TFModel
 	expectedSDKReq *admin.FlexClusterDescriptionCreate20241113
@@ -160,6 +165,135 @@ func TestNewTFModel(t *testing.T) {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
 			assert.Equal(t, tc.expectedTFModel, tfModel, "created TF model did not match expected output")
+		})
+	}
+}
+
+func TestNewTFModelDSP(t *testing.T) {
+	// projectID :=
+	testCases := map[string]NewTFModelDSPTestCase{
+		"Complete TF state": {
+			expectedTFModelDSP: &flexcluster.TFModelDSP{
+				ProjectId: types.StringValue(projectID),
+				Results: []flexcluster.TFModel{
+					{
+						ProjectId: types.StringValue(projectID),
+						Id:        types.StringValue(id),
+						Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
+							key1: types.StringValue(value1),
+						}),
+						ProviderSettings:             *providerSettingsObject,
+						ConnectionStrings:            *connectionStringsObject,
+						CreateDate:                   types.StringValue(createDate),
+						MongoDbversion:               types.StringValue(mongoDBVersion),
+						Name:                         types.StringValue(name),
+						ClusterType:                  types.StringValue(clusterType),
+						StateName:                    types.StringValue(stateName),
+						VersionReleaseSystem:         types.StringValue(versionReleaseSystem),
+						BackupSettings:               *backupSettingsObject,
+						TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
+					},
+					{
+						ProjectId: types.StringValue(projectID),
+						Id:        types.StringValue("id-2"),
+						Tags: types.MapValueMust(types.StringType, map[string]attr.Value{
+							key1: types.StringValue(value1),
+						}),
+						ProviderSettings:             *providerSettingsObject,
+						ConnectionStrings:            *connectionStringsObject,
+						CreateDate:                   types.StringValue(createDate),
+						MongoDbversion:               types.StringValue(mongoDBVersion),
+						Name:                         types.StringValue(name),
+						ClusterType:                  types.StringValue(clusterType),
+						StateName:                    types.StringValue(stateName),
+						VersionReleaseSystem:         types.StringValue(versionReleaseSystem),
+						BackupSettings:               *backupSettingsObject,
+						TerminationProtectionEnabled: types.BoolValue(terminationProtectionEnabled),
+					},
+				},
+			},
+			input: &admin.PaginatedFlexClusters20241113{
+				Results: &[]admin.FlexClusterDescription20241113{
+					{
+						GroupId: &projectID,
+						Id:      &id,
+						Tags: &[]admin.ResourceTag{
+							{
+								Key:   key1,
+								Value: value1,
+							},
+						},
+						ProviderSettings: admin.FlexProviderSettings20241113{
+							ProviderName:        &providerName,
+							RegionName:          &regionName,
+							BackingProviderName: &backingProviderName,
+							DiskSizeGB:          &diskSizeGb,
+						},
+						ConnectionStrings: &admin.FlexConnectionStrings20241113{
+							Standard:    &standardConnectionString,
+							StandardSrv: &standardSrvConnectionString,
+						},
+						CreateDate:           &createDateTime,
+						MongoDBVersion:       &mongoDBVersion,
+						Name:                 &name,
+						ClusterType:          &clusterType,
+						StateName:            &stateName,
+						VersionReleaseSystem: &versionReleaseSystem,
+						BackupSettings: &admin.FlexBackupSettings20241113{
+							Enabled: conversion.Pointer(true),
+						},
+						TerminationProtectionEnabled: &terminationProtectionEnabled,
+					},
+					{
+						GroupId: &projectID,
+						Id:      conversion.StringPtr("id-2"),
+						Tags: &[]admin.ResourceTag{
+							{
+								Key:   key1,
+								Value: value1,
+							},
+						},
+						ProviderSettings: admin.FlexProviderSettings20241113{
+							ProviderName:        &providerName,
+							RegionName:          &regionName,
+							BackingProviderName: &backingProviderName,
+							DiskSizeGB:          &diskSizeGb,
+						},
+						ConnectionStrings: &admin.FlexConnectionStrings20241113{
+							Standard:    &standardConnectionString,
+							StandardSrv: &standardSrvConnectionString,
+						},
+						CreateDate:           &createDateTime,
+						MongoDBVersion:       &mongoDBVersion,
+						Name:                 &name,
+						ClusterType:          &clusterType,
+						StateName:            &stateName,
+						VersionReleaseSystem: &versionReleaseSystem,
+						BackupSettings: &admin.FlexBackupSettings20241113{
+							Enabled: conversion.Pointer(true),
+						},
+						TerminationProtectionEnabled: &terminationProtectionEnabled,
+					},
+				},
+			},
+		},
+		"No Flex Clusters": {
+			expectedTFModelDSP: &flexcluster.TFModelDSP{
+				ProjectId: types.StringValue(projectID),
+				Results:   []flexcluster.TFModel{},
+			},
+			input: &admin.PaginatedFlexClusters20241113{
+				Results: &[]admin.FlexClusterDescription20241113{},
+			},
+		},
+	}
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			tfModelDSP, diags := flexcluster.NewTFModelDSP(context.Background(), projectID, tc.input)
+			if diags.HasError() {
+				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
+			}
+			assert.Equal(t, tc.expectedTFModelDSP, tfModelDSP, "created TF model DSP did not match expected output")
 		})
 	}
 }
