@@ -119,7 +119,7 @@ func configBasic(projectID, clusterName, provider, region string, terminationPro
 		}
 		data "mongodbatlas_flex_clusters" "test" {
 			project_id = mongodbatlas_flex_cluster.test.project_id
-		}`, projectID, clusterName, terminationProtectionEnabled)
+		}`, projectID, clusterName, provider, region, terminationProtectionEnabled)
 }
 
 func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabled bool) resource.TestCheckFunc {
