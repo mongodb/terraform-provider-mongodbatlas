@@ -43,9 +43,11 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202411
 
 func NewTFModelDSP(ctx context.Context, projectID string, input *admin.PaginatedFlexClusters20241113) (*TFModelDSP, diag.Diagnostics) {
 	diags := &diag.Diagnostics{}
-	tfModels := make([]TFModel, len(input.GetResults()))
-	for i, item := range input.GetResults() {
-		tfModel, diagsLocal := NewTFModel(ctx, &item)
+	results := input.GetResults()
+	tfModels := make([]TFModel, len(results))
+	for i := range results {
+		item := &results[i]
+		tfModel, diagsLocal := NewTFModel(ctx, item)
 		diags.Append(diagsLocal...)
 		tfModels[i] = *tfModel
 	}
