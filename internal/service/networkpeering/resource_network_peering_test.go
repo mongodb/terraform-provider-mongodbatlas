@@ -339,7 +339,7 @@ func configAzureTwoPeeringSameCIDR(providerName, directoryID, subscriptionID, re
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	firstProjName := acc.RandomProjectName()
 	secondProjName := acc.RandomProjectName()
-	cidrBlock := "192.164.0.0/21" // failure expected as 2 peering connections use same cidr block range in same azure account
+	cidrBlock := "172.16.0.0/21" // failure expected as 2 peering connections use same cidr block range in same azure account
 	firstAzureConfig := configAzureWithProject("first", orgID, firstProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
 	secondAzureConfig := configAzureWithProject("second", orgID, secondProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
 	return fmt.Sprintf(`
