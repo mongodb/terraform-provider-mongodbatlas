@@ -170,7 +170,6 @@ func TestNewTFModel(t *testing.T) {
 }
 
 func TestNewTFModelDSP(t *testing.T) {
-	// projectID :=
 	testCases := map[string]NewTFModelDSPTestCase{
 		"Complete TF state": {
 			expectedTFModelDSP: &flexcluster.TFModelDSP{
