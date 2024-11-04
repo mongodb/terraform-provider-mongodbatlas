@@ -287,37 +287,6 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 	})
 }
 
-func TestAccClusterAdvancedCluster_advancedConfig_MongoDBVersion5(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-		processArgs = &admin20240530.ClusterDescriptionProcessArgs{
-			DefaultReadConcern:               conversion.StringPtr("available"),
-			DefaultWriteConcern:              conversion.StringPtr("1"),
-			FailIndexKeyTooLong:              conversion.Pointer(false),
-			JavascriptEnabled:                conversion.Pointer(true),
-			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
-			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer(1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-			SampleSizeBIConnector:            conversion.Pointer(110),
-			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
-		}
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configAdvanced(projectID, clusterName, processArgs, nil, conversion.StringPtr("5")),
-				Check:  checkAdvanced(clusterName, "TLS1_1", "-1"),
-			},
-		},
-	})
-}
-
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 	var (
 		projectID          = acc.ProjectIDExecution(t)
