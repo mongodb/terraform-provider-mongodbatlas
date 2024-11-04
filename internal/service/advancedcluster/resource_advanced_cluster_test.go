@@ -276,11 +276,11 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvanced(projectID, clusterName, processArgs, nil, nil),
+				Config: configAdvanced(projectID, clusterName, processArgs, nil),
 				Check:  checkAdvanced(clusterName, "TLS1_1", "-1"),
 			},
 			{
-				Config: configAdvanced(projectID, clusterNameUpdated, processArgsUpdated, conversion.IntPtr(100), nil),
+				Config: configAdvanced(projectID, clusterNameUpdated, processArgsUpdated, conversion.IntPtr(100)),
 				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", "100"),
 			},
 		},
@@ -1294,21 +1294,16 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 			"paused": strconv.FormatBool(paused)})
 }
 
-func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs, changeStreamOptions *int, mongodbMajorVersion *string) string {
+func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs, changeStreamOptions *int) string {
 	changeStreamOptionsString := ""
-	mongodbMajorVersionString := ""
 	if changeStreamOptions != nil {
 		changeStreamOptionsString = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *changeStreamOptions)
-	}
-	if mongodbMajorVersion != nil {
-		mongodbMajorVersionString = fmt.Sprintf(`mongo_db_major_version = %[1]q`, *mongodbMajorVersion)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
 			cluster_type           = "REPLICASET"
-			%[12]s
 
 			replication_specs {
 				region_configs {
@@ -1349,7 +1344,7 @@ func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescr
 		}
 	`, projectID, clusterName,
 		p.GetFailIndexKeyTooLong(), p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
-		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds(), changeStreamOptionsString, mongodbMajorVersionString)
+		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds(), changeStreamOptionsString)
 }
 
 func checkAdvanced(name, tls, changeStreamOptions string) resource.TestCheckFunc {
