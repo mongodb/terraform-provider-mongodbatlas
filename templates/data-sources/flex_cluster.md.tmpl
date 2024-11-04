@@ -1,0 +1,14 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes a flex cluster.
+
+-> **NOTE**: Flex Clusters are currently in Preview. To use this feature, you must take the following actions:
+1. Enable the `Atlas Uss Enabled` Preview Feature in your project (contact [MongoDB Support](https://www.mongodb.com/services/support)).
+2. Enable the [Preview Features](https://github.com/mongodb/terraform-provider-mongodbatlas?tab=readme-ov-file#preview-features) when running `terraform` commands.
+
+## Example Usages
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Flex Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Flex-Clusters/operation/getFlexCluster) Documentation.
