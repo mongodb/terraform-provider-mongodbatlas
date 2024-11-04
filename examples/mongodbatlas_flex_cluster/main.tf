@@ -6,4 +6,14 @@ resource "mongodbatlas_flex_cluster" "flex_cluster" {
     region_name           = "US_EAST_1"
   }
   termination_protection_enabled = true
-} # TODO: add plural and singular data source example
+} 
+
+data "mongodbatlas_flex_cluster" "flex_cluster" {
+  project_id = var.project_id
+  name       = mongodbatlas_flex_cluster.flex_cluster.name
+} 
+
+data "mongodbatlas_flex_clusters" "flex_cluster" {
+  project_id = var.project_id
+  name       = mongodbatlas_flex_cluster.flex_cluster.name
+}
