@@ -203,8 +203,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 
 func fetchOrgUsers(t *testing.T, orgID string) *admin20240805.PaginatedAppUser {
 	t.Helper()
-	connV220240805 := acc.MongoDBClient.AtlasV220240805
-	users, _, err := connV220240805.OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
+	users, _, err := acc.ConnV220240805().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas Users for Org(%s) could not be fetched: %v", orgID, err)
 	}
@@ -295,8 +294,7 @@ func testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName string) resource.
 			return fmt.Errorf("org_id not defined in data source: %s", dataSourceName)
 		}
 
-		connV220240805 := acc.MongoDBClient.AtlasV220240805
-		apiResp, _, err := connV220240805.OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
+		apiResp, _, err := acc.ConnV220240805().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 
 		if err != nil {
 			return fmt.Errorf("unable to determine if users exist in org: %s", orgID)
