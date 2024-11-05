@@ -47,13 +47,13 @@ var (
 )
 
 type NewTFModelTestCase struct {
-	input           *admin.FlexClusterDescription20241113
 	expectedTFModel *flexcluster.TFModel
+	input           *admin.FlexClusterDescription20241113
 }
 
 type NewTFModelDSPTestCase struct {
-	input              []admin.FlexClusterDescription20241113
 	expectedTFModelDSP *flexcluster.TFModelDSP
+	input              []admin.FlexClusterDescription20241113
 }
 
 type NewAtlasCreateReqTestCase struct {
