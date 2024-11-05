@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_network_peering: Improve error message when networking peering reaches a failed status ([#2766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2766))
+
 ## 1.21.4 (October 29, 2024)
 
 NOTES:
