@@ -13,7 +13,7 @@ func (snake SnakeCaseString) SnakeCase() string {
 }
 
 func (snake SnakeCaseString) PascalCase() string {
-	return xstrings.ToCamelCase(string(snake)) // in xstrings v1.15.0 we can switch to using ToPascalCase for same functionality
+	return xstrings.ToPascalCase(string(snake))
 }
 
 func (snake SnakeCaseString) LowerCaseNoUnderscore() string {
