@@ -1,13 +1,12 @@
-# Resource: mongodbatlas_flex_cluster
+# Data Source: mongodbatlas_flex_cluster
 
-`mongodbatlas_flex_cluster` provides a Flex Cluster resource. The resource lets you create, update, delete and import a flex cluster.
+`mongodbatlas_flex_cluster` describes a flex cluster.
 
 -> **NOTE**: Flex Clusters are currently in Preview. To use this feature, you must take the following actions:
 1. Enable the `Atlas Uss Enabled` Preview Feature in your project (contact [MongoDB Support](https://www.mongodb.com/services/support)).
 2. Enable the [Preview Features](https://github.com/mongodb/terraform-provider-mongodbatlas?tab=readme-ov-file#preview-features) when running `terraform` commands.
 
 ## Example Usages
-
 ```terraform
 resource "mongodbatlas_flex_cluster" "flex_cluster" {
   project_id = var.project_id
@@ -35,14 +34,10 @@ data "mongodbatlas_flex_clusters" "flex_cluster" {
 
 ### Required
 
-- `name` (String) Human-readable label that identifies the instance.
-- `project_id` (String) Unique 24-hexadecimal character string that identifies the project.
-- `provider_settings` (Attributes) Group of cloud provider settings that configure the provisioned MongoDB flex cluster. (see [below for nested schema](#nestedatt--provider_settings))
+- `name` (String) Human-readable label that identifies the flex cluster.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
 
-### Optional
-
-- `tags` (Map of String) Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.
-- `termination_protection_enabled` (Boolean) Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.
+**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
 
 ### Read-Only
 
@@ -52,22 +47,11 @@ data "mongodbatlas_flex_clusters" "flex_cluster" {
 - `create_date` (String) Date and time when MongoDB Cloud created this instance. This parameter expresses its value in ISO 8601 format in UTC.
 - `id` (String) Unique 24-hexadecimal digit string that identifies the instance.
 - `mongo_db_version` (String) Version of MongoDB that the instance runs.
+- `provider_settings` (Attributes) Group of cloud provider settings that configure the provisioned MongoDB flex cluster. (see [below for nested schema](#nestedatt--provider_settings))
 - `state_name` (String) Human-readable label that indicates the current operating condition of this instance.
+- `tags` (Map of String) Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.
+- `termination_protection_enabled` (Boolean) Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.
 - `version_release_system` (String) Method by which the cluster maintains the MongoDB versions.
-
-<a id="nestedatt--provider_settings"></a>
-### Nested Schema for `provider_settings`
-
-Required:
-
-- `backing_provider_name` (String) Cloud service provider on which MongoDB Cloud provisioned the flex cluster.
-- `region_name` (String) Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), and [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
-
-Read-Only:
-
-- `disk_size_gb` (Number) Storage capacity available to the flex cluster expressed in gigabytes.
-- `provider_name` (String) Human-readable label that identifies the cloud service provider.
-
 
 <a id="nestedatt--backup_settings"></a>
 ### Nested Schema for `backup_settings`
@@ -85,10 +69,15 @@ Read-Only:
 - `standard` (String) Public connection string that you can use to connect to this cluster. This connection string uses the mongodb:// protocol.
 - `standard_srv` (String) Public connection string that you can use to connect to this flex cluster. This connection string uses the `mongodb+srv://` protocol.
 
-# Import 
-Flex Cluster resource can be imported using the Project ID and Flex Cluster name, in the format `PROJECT_ID-FLEX_CLUSTER_NAME`, e.g.
-```
-$ terraform import mongodbatlas_flex_cluster.test 6117ac2fe2a3d04ed27a987v-yourFlexClusterName
-```
 
-For more information see: [MongoDB Atlas API - Flex Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Flex-Clusters/operation/createFlexcluster) Documentation.
+<a id="nestedatt--provider_settings"></a>
+### Nested Schema for `provider_settings`
+
+Read-Only:
+
+- `backing_provider_name` (String) Cloud service provider on which MongoDB Cloud provisioned the flex cluster.
+- `disk_size_gb` (Number) Storage capacity available to the flex cluster expressed in gigabytes.
+- `provider_name` (String) Human-readable label that identifies the cloud service provider.
+- `region_name` (String) Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), and [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
+
+For more information see: [MongoDB Atlas API - Flex Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Flex-Clusters/operation/getFlexCluster) Documentation.

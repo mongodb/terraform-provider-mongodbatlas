@@ -1,7 +1,7 @@
 # MongoDB Atlas Provider -- Atlas Flex Cluster
 This example creates one flex cluster in a project.
 
-**NOTE**: Flex Clusters are currently in Private Preview. To use this feature, you must take the following actions:
+**NOTE**: Flex Clusters are currently in Preview. To use this feature, you must take the following actions:
 1. Enable the `Atlas USS` Preview Feature in your organization (contact [MongoDB Support](https://www.mongodb.com/services/support)).
 2. Enable the [Preview Features](../../README.md#preview-features) when running `terraform` commands.
 
