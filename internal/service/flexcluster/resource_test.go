@@ -21,6 +21,7 @@ var (
 
 func TestAccFlexClusterRS_basic(t *testing.T) {
 	tc := basicTestCase(t)
+	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
 }
 
@@ -44,11 +45,11 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, clusterName, provider, region, true),
-				Check:  checksFlexCluster(projectID, clusterName, true, 1),
+				Check:  checksFlexCluster(projectID, clusterName, true),
 			},
 			{
 				Config: configBasic(projectID, clusterName, provider, region, false),
-				Check:  checksFlexCluster(projectID, clusterName, false, 1),
+				Check:  checksFlexCluster(projectID, clusterName, false),
 			},
 			{
 				Config:            configBasic(projectID, clusterName, provider, region, true),
@@ -80,7 +81,7 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, clusterName, provider, region, false),
-				Check:  checksFlexCluster(projectID, clusterName, false, 1),
+				Check:  checksFlexCluster(projectID, clusterName, false),
 			},
 			{
 				Config:      configBasic(projectID, clusterNameUpdated, provider, region, false),
@@ -122,7 +123,7 @@ func configBasic(projectID, clusterName, provider, region string, terminationPro
 		}`, projectID, clusterName, provider, region, terminationProtectionEnabled)
 }
 
-func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabled bool, flexClusterCount int) resource.TestCheckFunc {
+func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabled bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists()}
 	attrMap := map[string]string{
 		"project_id":                     projectID,
@@ -145,12 +146,7 @@ func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabl
 		"provider_settings.provider_name",
 	}
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
-	for i := 0; i < flexClusterCount; i++ {
-		checks = acc.AddAttrSetChecks(resourceName, checks, "name", "termination_protection_enabled")
-		checks = acc.AddAttrSetChecks(dataSourceName, checks, "id")
-		checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "results.0.id")
-	}
-	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, resource.ComposeAggregateTestCheckFunc(checks...))
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
 }
 
 func checkExists() resource.TestCheckFunc {

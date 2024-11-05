@@ -52,7 +52,7 @@ type NewTFModelTestCase struct {
 }
 
 type NewTFModelDSPTestCase struct {
-	input              *admin.PaginatedFlexClusters20241113
+	input              []admin.FlexClusterDescription20241113
 	expectedTFModelDSP *flexcluster.TFModelDSP
 }
 
@@ -211,68 +211,66 @@ func TestNewTFModelDSP(t *testing.T) {
 					},
 				},
 			},
-			input: &admin.PaginatedFlexClusters20241113{
-				Results: &[]admin.FlexClusterDescription20241113{
-					{
-						GroupId: &projectID,
-						Id:      &id,
-						Tags: &[]admin.ResourceTag{
-							{
-								Key:   key1,
-								Value: value1,
-							},
+			input: []admin.FlexClusterDescription20241113{
+				{
+					GroupId: &projectID,
+					Id:      &id,
+					Tags: &[]admin.ResourceTag{
+						{
+							Key:   key1,
+							Value: value1,
 						},
-						ProviderSettings: admin.FlexProviderSettings20241113{
-							ProviderName:        &providerName,
-							RegionName:          &regionName,
-							BackingProviderName: &backingProviderName,
-							DiskSizeGB:          &diskSizeGb,
-						},
-						ConnectionStrings: &admin.FlexConnectionStrings20241113{
-							Standard:    &standardConnectionString,
-							StandardSrv: &standardSrvConnectionString,
-						},
-						CreateDate:           &createDateTime,
-						MongoDBVersion:       &mongoDBVersion,
-						Name:                 &name,
-						ClusterType:          &clusterType,
-						StateName:            &stateName,
-						VersionReleaseSystem: &versionReleaseSystem,
-						BackupSettings: &admin.FlexBackupSettings20241113{
-							Enabled: conversion.Pointer(true),
-						},
-						TerminationProtectionEnabled: &terminationProtectionEnabled,
 					},
-					{
-						GroupId: &projectID,
-						Id:      conversion.StringPtr("id-2"),
-						Tags: &[]admin.ResourceTag{
-							{
-								Key:   key1,
-								Value: value1,
-							},
-						},
-						ProviderSettings: admin.FlexProviderSettings20241113{
-							ProviderName:        &providerName,
-							RegionName:          &regionName,
-							BackingProviderName: &backingProviderName,
-							DiskSizeGB:          &diskSizeGb,
-						},
-						ConnectionStrings: &admin.FlexConnectionStrings20241113{
-							Standard:    &standardConnectionString,
-							StandardSrv: &standardSrvConnectionString,
-						},
-						CreateDate:           &createDateTime,
-						MongoDBVersion:       &mongoDBVersion,
-						Name:                 &name,
-						ClusterType:          &clusterType,
-						StateName:            &stateName,
-						VersionReleaseSystem: &versionReleaseSystem,
-						BackupSettings: &admin.FlexBackupSettings20241113{
-							Enabled: conversion.Pointer(true),
-						},
-						TerminationProtectionEnabled: &terminationProtectionEnabled,
+					ProviderSettings: admin.FlexProviderSettings20241113{
+						ProviderName:        &providerName,
+						RegionName:          &regionName,
+						BackingProviderName: &backingProviderName,
+						DiskSizeGB:          &diskSizeGb,
 					},
+					ConnectionStrings: &admin.FlexConnectionStrings20241113{
+						Standard:    &standardConnectionString,
+						StandardSrv: &standardSrvConnectionString,
+					},
+					CreateDate:           &createDateTime,
+					MongoDBVersion:       &mongoDBVersion,
+					Name:                 &name,
+					ClusterType:          &clusterType,
+					StateName:            &stateName,
+					VersionReleaseSystem: &versionReleaseSystem,
+					BackupSettings: &admin.FlexBackupSettings20241113{
+						Enabled: conversion.Pointer(true),
+					},
+					TerminationProtectionEnabled: &terminationProtectionEnabled,
+				},
+				{
+					GroupId: &projectID,
+					Id:      conversion.StringPtr("id-2"),
+					Tags: &[]admin.ResourceTag{
+						{
+							Key:   key1,
+							Value: value1,
+						},
+					},
+					ProviderSettings: admin.FlexProviderSettings20241113{
+						ProviderName:        &providerName,
+						RegionName:          &regionName,
+						BackingProviderName: &backingProviderName,
+						DiskSizeGB:          &diskSizeGb,
+					},
+					ConnectionStrings: &admin.FlexConnectionStrings20241113{
+						Standard:    &standardConnectionString,
+						StandardSrv: &standardSrvConnectionString,
+					},
+					CreateDate:           &createDateTime,
+					MongoDBVersion:       &mongoDBVersion,
+					Name:                 &name,
+					ClusterType:          &clusterType,
+					StateName:            &stateName,
+					VersionReleaseSystem: &versionReleaseSystem,
+					BackupSettings: &admin.FlexBackupSettings20241113{
+						Enabled: conversion.Pointer(true),
+					},
+					TerminationProtectionEnabled: &terminationProtectionEnabled,
 				},
 			},
 		},
@@ -281,9 +279,7 @@ func TestNewTFModelDSP(t *testing.T) {
 				ProjectId: types.StringValue(projectID),
 				Results:   []flexcluster.TFModel{},
 			},
-			input: &admin.PaginatedFlexClusters20241113{
-				Results: &[]admin.FlexClusterDescription20241113{},
-			},
+			input: []admin.FlexClusterDescription20241113{},
 		},
 	}
 	for testName, tc := range testCases {
