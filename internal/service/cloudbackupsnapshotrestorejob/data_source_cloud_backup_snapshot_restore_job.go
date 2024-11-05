@@ -50,6 +50,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"failed": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"finished_at": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -100,6 +104,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err = d.Set("delivery_type", snapshotRes.GetDeliveryType()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `delivery_type` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err))
+	}
+
+	if err = d.Set("failed", snapshotRes.GetFailed()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `failed` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("snapshot_id", snapshotRes.GetSnapshotId()); err != nil {

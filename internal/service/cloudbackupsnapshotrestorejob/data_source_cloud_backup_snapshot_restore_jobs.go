@@ -64,6 +64,10 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"failed": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 						"finished_at": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -148,6 +152,7 @@ func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []
 				"delivery_url":              cloudProviderSnapshotRestoreJob.GetDeliveryUrl(),
 				"expired":                   cloudProviderSnapshotRestoreJob.GetExpired(),
 				"expires_at":                conversion.TimePtrToStringPtr(cloudProviderSnapshotRestoreJob.ExpiresAt),
+				"failed":                    cloudProviderSnapshotRestoreJob.GetFailed(),
 				"finished_at":               conversion.TimePtrToStringPtr(cloudProviderSnapshotRestoreJob.FinishedAt),
 				"snapshot_id":               cloudProviderSnapshotRestoreJob.GetSnapshotId(),
 				"target_project_id":         cloudProviderSnapshotRestoreJob.GetTargetGroupId(),

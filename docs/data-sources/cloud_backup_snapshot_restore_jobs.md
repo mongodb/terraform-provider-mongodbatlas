@@ -56,6 +56,7 @@ In addition to all arguments above, the following attributes are exported:
 * `delivery_url` -	One or more URLs for the compressed snapshot files for manual download. Only visible if deliveryType is download.
 * `expired` -	Indicates whether the restore job expired.
 * `expires_at` -	UTC ISO 8601 formatted point in time when the restore job expires.
+* `failed` -     Indicates whether the restore job failed.
 * `finished_at` -	UTC ISO 8601 formatted point in time when the restore job completed.
 * `id` -	The unique identifier of the restore job.
 * `snapshot_id` -	Unique identifier of the source snapshot ID of the restore job.
@@ -63,7 +64,7 @@ In addition to all arguments above, the following attributes are exported:
 * `target_cluster_name` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
 * `timestamp` - Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
 * `oplogTs` - Timestamp in the number of seconds that have elapsed since the UNIX epoch.
-* `oplogInc` - Oplog operation number from which to you want to restore this snapshot. 
+* `oplogInc` - Oplog operation number from which to you want to restore this snapshot.
 * `pointInTimeUTCSeconds` - Timestamp in the number of seconds that have elapsed since the UNIX epoch.
 
 
