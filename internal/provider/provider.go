@@ -451,6 +451,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
 		flexcluster.DataSource,
+		flexcluster.PluralDataSource,
 	} // Data sources not yet in GA
 	if providerEnablePreview {
 		dataSources = append(dataSources, previewDataSources...)

@@ -13,19 +13,21 @@ import (
 )
 
 var (
-	resourceType   = "mongodbatlas_flex_cluster"
-	resourceName   = "mongodbatlas_flex_cluster.test"
-	dataSourceName = "data.mongodbatlas_flex_cluster.test"
+	resourceType         = "mongodbatlas_flex_cluster"
+	resourceName         = "mongodbatlas_flex_cluster.test"
+	dataSourceName       = "data.mongodbatlas_flex_cluster.test"
+	dataSourcePluralName = "data.mongodbatlas_flex_clusters.test"
 )
 
 func TestAccFlexClusterRS_basic(t *testing.T) {
 	tc := basicTestCase(t)
-	resource.ParallelTest(t, *tc)
+	// Tests include testing of plural data source and so cannot be run in parallel
+	resource.Test(t, *tc)
 }
 
 func TestAccFlexClusterRS_failedUpdate(t *testing.T) {
 	tc := failedUpdateTestCase(t)
-	resource.ParallelTest(t, *tc)
+	resource.Test(t, *tc)
 }
 
 func basicTestCase(t *testing.T) *resource.TestCase {
@@ -115,6 +117,9 @@ func configBasic(projectID, clusterName, provider, region string, terminationPro
 		data "mongodbatlas_flex_cluster" "test" {
 			project_id = mongodbatlas_flex_cluster.test.project_id
 			name       = mongodbatlas_flex_cluster.test.name
+		}
+		data "mongodbatlas_flex_clusters" "test" {
+			project_id = mongodbatlas_flex_cluster.test.project_id
 		}`, projectID, clusterName, provider, region, terminationProtectionEnabled)
 }
 
@@ -124,6 +129,10 @@ func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabl
 		"project_id":                     projectID,
 		"name":                           clusterName,
 		"termination_protection_enabled": fmt.Sprintf("%v", terminationProtectionEnabled),
+	}
+	pluralMap := map[string]string{
+		"project_id": projectID,
+		"results.#":  "1",
 	}
 	attrSet := []string{
 		"backup_settings.enabled",
@@ -136,11 +145,8 @@ func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabl
 		"version_release_system",
 		"provider_settings.provider_name",
 	}
-	checks = acc.AddAttrChecks(resourceName, checks, attrMap)
-	checks = acc.AddAttrChecks(dataSourceName, checks, attrMap)
-	checks = acc.AddAttrSetChecks(resourceName, checks, attrSet...)
-	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrSet...)
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
 }
 
 func checkExists() resource.TestCheckFunc {

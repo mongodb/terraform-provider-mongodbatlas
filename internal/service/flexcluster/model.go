@@ -41,6 +41,26 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202411
 	}, nil
 }
 
+func NewTFModelDSP(ctx context.Context, projectID string, input []admin.FlexClusterDescription20241113) (*TFModelDSP, diag.Diagnostics) {
+	diags := &diag.Diagnostics{}
+	tfModels := make([]TFModel, len(input))
+	for i := range input {
+		item := &input[i]
+		tfModel, diagsLocal := NewTFModel(ctx, item)
+		diags.Append(diagsLocal...)
+		if tfModel != nil {
+			tfModels[i] = *tfModel
+		}
+	}
+	if diags.HasError() {
+		return nil, *diags
+	}
+	return &TFModelDSP{
+		ProjectId: types.StringValue(projectID),
+		Results:   tfModels,
+	}, *diags
+}
+
 func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescriptionCreate20241113, diag.Diagnostics) {
 	providerSettings := &TFProviderSettings{}
 	if diags := plan.ProviderSettings.As(ctx, providerSettings, basetypes.ObjectAsOptions{}); diags.HasError() {
