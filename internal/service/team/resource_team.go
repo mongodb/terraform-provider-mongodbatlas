@@ -199,7 +199,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a team, use the format {group_id}-{team_id}")
+		return nil, errors.New("import format error: to import a team, use the format {org_id}-{team_id}")
 	}
 
 	orgID := parts[0]
