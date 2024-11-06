@@ -73,7 +73,8 @@ func dumpYaml(resource any, filePath string) error {
 	if err != nil {
 		return err
 	}
-	yamlFinal := removeNulls(initialYaml.String())
+	// yamlFinal := removeNulls(initialYaml.String())
+	yamlFinal := initialYaml.String()
 	stemName := path.Base(filePath)
 	err = writeToFile(filePath, yamlFinal)
 	if err != nil {
