@@ -129,7 +129,7 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 		tfModels[i] = TFReplicationSpecsModel{
 			Id:            types.StringPointerValue(item.Id),
 			ExternalId:    types.StringValue("TODO_STATIC"),
-			NumShards:     types.Int64Value(1),
+			NumShards:     types.Int64Value(1), //TODO: Static
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &todoContainerID),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringPointerValue(item.ZoneId),

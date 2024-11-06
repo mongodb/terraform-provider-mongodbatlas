@@ -51,13 +51,18 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	sdkResp, err := ReadResponse(1)
+	sdkResp, err := ReadClusterResponse(1)
 	if err != nil {
 		resp.Diagnostics.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
 		return
 	}
-
 	tfNewModel := NewTFModel(ctx, sdkResp, tfModel.Timeouts, &resp.Diagnostics)
+	sdkAdvConfig, err := ReadClusterProcessArgsResponse(1)
+	if err != nil {
+		resp.Diagnostics.AddError("errorCreateAdvConfig", fmt.Sprintf(errorCreate, err.Error()))
+	}
+
+	AddAdvancedConfig(ctx, tfNewModel, sdkAdvConfig, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}

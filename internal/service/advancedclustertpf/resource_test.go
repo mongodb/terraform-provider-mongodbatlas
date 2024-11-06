@@ -24,19 +24,7 @@ func configBasic() string {
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = "111111111111111111111111"
 			name = "test"
-			cluster_type = "TYPE"
-		}
-		data "mongodbatlas_advanced_cluster" "test" {
-			project_id = "111111111111111111111111"
-			name = "test"
-
-			depends_on = [mongodbatlas_advanced_cluster.test]	
-		}
-
-		data "mongodbatlas_advanced_clusters" "tests" {
-				project_id = "111111111111111111111111"
-
-				depends_on = [mongodbatlas_advanced_cluster.test]	
+			cluster_type = "REPLICASET"
 		}
 	`
 }

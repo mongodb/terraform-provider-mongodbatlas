@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -315,6 +317,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this cluster.",
 			},
+			// TODO: We want to avoid breaking changes even though it is incompatible with flex cluster and project resource
 			"tags": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.",
@@ -439,6 +442,9 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 	return schema.SingleNestedAttribute{
 		Computed: true,
 		Optional: true,
+		PlanModifiers: []planmodifier.Object{
+			objectplanmodifier.UseStateForUnknown(),
+		},
 		// TODO: MaxItems: 1,
 		MarkdownDescription: "advanced_configuration", // TODO: add description
 		Attributes: map[string]schema.Attribute{
@@ -723,22 +729,36 @@ var TagsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 
 type TFAdvancedConfigurationModel struct {
 	OplogMinRetentionHours                                types.Float64 `tfsdk:"oplog_min_retention_hours"`
-	ProjectId                                             types.String  `tfsdk:"project_id"`
-	ClusterName                                           types.String  `tfsdk:"cluster_name"`
 	MinimumEnabledTlsProtocol                             types.String  `tfsdk:"minimum_enabled_tls_protocol"`
 	DefaultWriteConcern                                   types.String  `tfsdk:"default_write_concern"`
+	DefaultReadConcern                                    types.String  `tfsdk:"default_read_concern"`
 	DefaultMaxTimeMs                                      types.Int64   `tfsdk:"default_max_time_ms"`
 	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64   `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
 	ChunkMigrationConcurrency                             types.Int64   `tfsdk:"chunk_migration_concurrency"`
 	OplogSizeMb                                           types.Int64   `tfsdk:"oplog_size_mb"`
 	QueryStatsLogVerbosity                                types.Int64   `tfsdk:"query_stats_log_verbosity"`
-	SampleRefreshIntervalBiconnector                      types.Int64   `tfsdk:"sample_refresh_interval_biconnector"`
-	SampleSizeBiconnector                                 types.Int64   `tfsdk:"sample_size_biconnector"`
+	SampleRefreshIntervalBiconnector                      types.Int64   `tfsdk:"sample_refresh_interval_bi_connector"`
+	SampleSizeBiconnector                                 types.Int64   `tfsdk:"sample_size_bi_connector"`
 	TransactionLifetimeLimitSeconds                       types.Int64   `tfsdk:"transaction_lifetime_limit_seconds"`
 	JavascriptEnabled                                     types.Bool    `tfsdk:"javascript_enabled"`
 	NoTableScan                                           types.Bool    `tfsdk:"no_table_scan"`
+	FailIndexKeyTooLong                                   types.Bool    `tfsdk:"fail_index_key_too_long"`
 }
 
-var TFAdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	// TODO: to be implemented
+var AdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"change_stream_options_pre_and_post_images_expire_after_seconds": types.Int64Type,
+	"chunk_migration_concurrency":                                    types.Int64Type,
+	"default_max_time_ms":                                            types.Int64Type,
+	"default_read_concern":                                           types.StringType,
+	"default_write_concern":                                          types.StringType,
+	"fail_index_key_too_long":                                        types.BoolType,
+	"javascript_enabled":                                             types.BoolType,
+	"minimum_enabled_tls_protocol":                                   types.StringType,
+	"no_table_scan":                                                  types.BoolType,
+	"oplog_min_retention_hours":                                      types.Float64Type,
+	"oplog_size_mb":                                                  types.Int64Type,
+	"query_stats_log_verbosity":                                      types.Int64Type,
+	"sample_refresh_interval_bi_connector":                           types.Int64Type,
+	"sample_size_bi_connector":                                       types.Int64Type,
+	"transaction_lifetime_limit_seconds":                             types.Int64Type,
 }}
