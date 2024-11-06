@@ -23,9 +23,16 @@ data "mongodbatlas_flex_cluster" "flex_cluster" {
   name       = mongodbatlas_flex_cluster.flex_cluster.name
 } 
 
-data "mongodbatlas_flex_clusters" "flex_cluster" {
+data "mongodbatlas_flex_clusters" "flex_clusters" {
   project_id = var.project_id
-  name       = mongodbatlas_flex_cluster.flex_cluster.name
+}
+
+output "mongodbatlas_flex_cluster" {
+  value = data.mongodbatlas_flex_cluster.flex_cluster.name
+}
+
+output "mongodbatlas_flex_clusters_names" {
+  value = [for cluster in data.mongodbatlas_flex_clusters.flex_clusters.results : cluster.name]
 }
 ```
 
