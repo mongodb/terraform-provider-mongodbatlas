@@ -205,7 +205,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the cluster.",
 			},
 			"labels": schema.ListNestedAttribute{ // TODO: database_user is using SetNestedBlock, probably better to align
-				Computed:            true, // TODO: not sure if it should be computed
+				Computed:            true, // TODO: must be computed since backend returns "[]" when it is not specified using "Default" to avoid plan changes
 				Optional:            true,
 				Default:             listdefault.StaticValue(types.ListValueMust(LabelsObjType, nil)),
 				MarkdownDescription: "Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.",
