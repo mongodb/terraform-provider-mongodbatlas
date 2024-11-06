@@ -581,7 +581,7 @@ var ConnectionStringsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"aws_private_link":     types.MapType{ElemType: types.StringType},
 	"aws_private_link_srv": types.MapType{ElemType: types.StringType},
 	"private":              types.StringType,
-	"private_endpoint":     types.ListType{ElemType: types.StringType},
+	"private_endpoint":     types.ListType{ElemType: PrivateEndpointObjType},
 	"private_srv":          types.StringType,
 	"standard":             types.StringType,
 	"standard_srv":         types.StringType,
@@ -597,7 +597,7 @@ type TFPrivateEndpointModel struct {
 
 var PrivateEndpointObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"connection_string":                     types.StringType,
-	"endpoints":                             types.ListType{ElemType: types.StringType},
+	"endpoints":                             types.ListType{ElemType: EndpointsObjType},
 	"srv_connection_string":                 types.StringType,
 	"srv_shard_optimized_connection_string": types.StringType,
 	"type":                                  types.StringType,
@@ -637,6 +637,9 @@ var MongoDbEmployeeAccessGrantObjType = types.ObjectType{AttrTypes: map[string]a
 
 type TFReplicationSpecsModel struct {
 	Id            types.String `tfsdk:"id"`
+	ContainerId   types.Map    `tfsdk:"container_id"`
+	ExternalId    types.String `tfsdk:"external_id"`
+	NumShards     types.Int64  `tfsdk:"num_shards"`
 	RegionConfigs types.List   `tfsdk:"region_configs"`
 	ZoneId        types.String `tfsdk:"zone_id"`
 	ZoneName      types.String `tfsdk:"zone_name"`
@@ -644,7 +647,10 @@ type TFReplicationSpecsModel struct {
 
 var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"id":             types.StringType,
-	"region_configs": types.ListType{ElemType: types.StringType},
+	"container_id":   types.MapType{ElemType: types.StringType},
+	"external_id":    types.StringType,
+	"num_shards":     types.Int64Type,
+	"region_configs": types.ListType{ElemType: RegionConfigsObjType},
 	"zone_id":        types.StringType,
 	"zone_name":      types.StringType,
 }}
