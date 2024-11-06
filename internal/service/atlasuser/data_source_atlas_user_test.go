@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin" // Using older version of API as lastest version with preview enabled includes breaking changes in AtlasUser. To be changed to lastest version when flexCluster is in prod and preview is no longer used.
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -89,8 +89,7 @@ func TestAccConfigDSAtlasUser_InvalidAttrCombination(t *testing.T) {
 
 func fetchUser(t *testing.T, userID string) *admin20240805.CloudAppUser {
 	t.Helper()
-	connV220240805 := acc.MongoDBClient.AtlasV220240805
-	userResp, _, err := connV220240805.MongoDBCloudUsersApi.GetUser(context.Background(), userID).Execute()
+	userResp, _, err := acc.ConnV220240805().MongoDBCloudUsersApi.GetUser(context.Background(), userID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas User (%s) could not be fetched: %v", userID, err)
 	}
@@ -99,8 +98,7 @@ func fetchUser(t *testing.T, userID string) *admin20240805.CloudAppUser {
 
 func fetchUserByUsername(t *testing.T, username string) *admin20240805.CloudAppUser {
 	t.Helper()
-	connV220240805 := acc.MongoDBClient.AtlasV220240805
-	userResp, _, err := connV220240805.MongoDBCloudUsersApi.GetUserByUsername(context.Background(), username).Execute()
+	userResp, _, err := acc.ConnV220240805().MongoDBCloudUsersApi.GetUserByUsername(context.Background(), username).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas User (%s) could not be fetched: %v", username, err)
 	}

@@ -10,9 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin" // Using older version of API as lastest version with preview enabled includes breaking changes in AtlasUser. To be changed to lastest version when flexCluster is in prod and preview is no longer used.
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 )
 
 const (
