@@ -195,7 +195,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the cluster.",
 			},
-			"labels": schema.SetNestedAttribute{ // TODO: database_user is using SetNestedBlock, probably better to align
+			"labels": schema.SetNestedAttribute{
 				Computed:            true, // TODO: must be computed since backend returns "[]" when it is not specified using "Default" to avoid plan changes
 				Optional:            true,
 				Default:             setdefault.StaticValue(types.SetValueMust(LabelsObjType, nil)),
