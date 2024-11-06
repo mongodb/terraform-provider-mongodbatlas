@@ -315,10 +315,21 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this cluster.",
 			},
-			"tags": schema.MapAttribute{ // TODO: was ListNestedAttribute, changed to align with flex cluster, might be breaking change
-				ElementType:         types.StringType,
+			"tags": schema.ListNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.",
+				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"key": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.",
+						},
+						"value": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.",
+						},
+					},
+				},
 			},
 			"termination_protection_enabled": schema.BoolAttribute{
 				Computed:            true,
@@ -513,7 +524,7 @@ type TFModel struct {
 	DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`
 	Labels                                    types.List     `tfsdk:"labels"`
 	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
-	Tags                                      types.Map      `tfsdk:"tags"`
+	Tags                                      types.List     `tfsdk:"tags"`
 	DiskWarmingMode                           types.String   `tfsdk:"disk_warming_mode"`
 	StateName                                 types.String   `tfsdk:"state_name"`
 	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
@@ -614,12 +625,12 @@ var LabelsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"value": types.StringType,
 }}
 
-type TFMongoDbemployeeAccessGrantModel struct {
+type TFMongoDbEmployeeAccessGrantModel struct {
 	ExpirationTime types.String `tfsdk:"expiration_time"`
 	GrantType      types.String `tfsdk:"grant_type"`
 }
 
-var MongoDbemployeeAccessGrantObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var MongoDbEmployeeAccessGrantObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"expiration_time": types.StringType,
 	"grant_type":      types.StringType,
 }}
@@ -663,10 +674,10 @@ var RegionConfigsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFAutoScalingModel struct {
-	ComputeMaxInstanceSize  types.String `tfsdk:"max_instance_size"`
-	ComputeMinInstanceSize  types.String `tfsdk:"min_instance_size"`
-	ComputeEnabled          types.Bool   `tfsdk:"enabled"`
-	ComputeScaleDownEnabled types.Bool   `tfsdk:"scale_down_enabled"`
+	ComputeMaxInstanceSize  types.String `tfsdk:"compute_max_instance_size"`
+	ComputeMinInstanceSize  types.String `tfsdk:"compute_min_instance_size"`
+	ComputeEnabled          types.Bool   `tfsdk:"compute_enabled"`
+	ComputeScaleDownEnabled types.Bool   `tfsdk:"compute_scale_down_enabled"`
 	DiskGBEnabled           types.Bool   `tfsdk:"disk_gb_enabled"`
 }
 
