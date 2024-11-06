@@ -857,7 +857,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
-	_ = handlePinnedFCV(ctx, connV2, projectID, clusterName, d)
+	_ = handlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d)
 
 	if isUsingOldAPISchemaStructure(d) {
 		req, diags := updateRequestOldAPI(d, clusterName)
@@ -957,7 +957,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
-func handlePinnedFCV(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData) diag.Diagnostics {
+func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData) diag.Diagnostics {
 	if d.HasChange("pinned_fcv") {
 		ac := d.Get("pinned_fcv")
 		if pinnedFCVBlock, ok := ac.([]any); ok && len(pinnedFCVBlock) > 0 {
@@ -971,6 +971,11 @@ func handlePinnedFCV(ctx context.Context, connV2 *admin.APIClient, projectID, cl
 				req.ExpirationDate = expirationTime
 			}
 			if _, _, err := connV2.ClustersApi.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			}
+		} else {
+			// pinned_fcv has been removed from the config so unpin method is called
+			if _, _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 		}
