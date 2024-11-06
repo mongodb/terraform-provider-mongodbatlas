@@ -24,6 +24,15 @@ func ToTFMapOfSlices(ctx context.Context, values map[string][]string) (basetypes
 	return types.MapValueFrom(ctx, types.ListType{ElemType: types.StringType}, values)
 }
 
+func ToTFMapOfString(ctx context.Context, diags *diag.Diagnostics, values *map[string]string) basetypes.MapValue{
+	if values == nil {
+		return basetypes.NewMapNull(types.StringType)
+	}
+	mapValue, localDiags := types.MapValueFrom(context.Background(), types.StringType, values)
+	diags.Append(localDiags...)
+	return mapValue
+}
+
 // StringNullIfEmpty converts a string value to a Framework String value.
 // An empty string is converted to a null String. Useful for optional attributes.
 func StringNullIfEmpty(v string) types.String {
