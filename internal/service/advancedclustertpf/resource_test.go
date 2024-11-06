@@ -25,6 +25,18 @@ func configBasic() string {
 			project_id = "111111111111111111111111"
 			name = "test"
 			cluster_type = "REPLICASET"
+			replication_specs = [{
+				region_configs = [{
+					priority        = 7
+					provider_name = "AWS"
+					region_name     = "US_EAST_1"
+					electable_specs = {
+						node_count = 3
+						instance_size = "M10"
+						disk_size_gb = 10
+					}
+				}]
+			}]
 		}
 	`
 }
