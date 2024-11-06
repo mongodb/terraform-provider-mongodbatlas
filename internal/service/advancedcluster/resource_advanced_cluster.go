@@ -161,6 +161,24 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"pinned_fcv": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"expiration_date": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"pit_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -414,6 +432,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var rootDiskSizeGB *float64
 	if v, ok := d.GetOk("disk_size_gb"); ok {
 		rootDiskSizeGB = conversion.Pointer(v.(float64))
+	}
+
+	if _, ok := d.GetOk("pinned_fcv"); ok {
+		println("")
 	}
 
 	params := &admin20240805.ClusterDescription20240805{
