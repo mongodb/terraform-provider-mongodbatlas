@@ -9,4 +9,9 @@ variable "private_key" {
 variable "project_id" {
   description = "Atlas Project ID"
   type        = string
-} 
+}
+variable "cluster_name" {
+  description = "Atlas cluster name"
+  type        = string
+  default     = "string"
+}
