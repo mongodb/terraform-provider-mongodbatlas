@@ -236,8 +236,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Set this field to configure the replica set scaling mode for your cluster.\n\nBy default, Atlas scales under WORKLOAD_TYPE. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes.\n\nWhen configured as SEQUENTIAL, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads.\n\nWhen configured as NODE_TYPE, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads.",
 			},
 			"replication_specs": schema.ListNestedAttribute{
-				Computed:            true,
-				Optional:            true,
+				Required:            true, // TODO: wrong computability
 				MarkdownDescription: "List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -249,6 +248,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"container_id": schema.MapAttribute{ // TODO: added as in current resource
 							ElementType:         types.StringType,
 							Optional:            true,
+							Computed:            true,
 							MarkdownDescription: "container_id", // TODO: add description
 						},
 						"external_id": schema.StringAttribute{ // TODO: added as in current resource
@@ -264,8 +264,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "num_shards", // TODO: add description
 						},
 						"region_configs": schema.ListNestedAttribute{
-							Computed:            true,
-							Optional:            true,
+							Required:            true, // TODO: wrong computability
 							MarkdownDescription: "Hardware specifications for nodes set for a given region. Each **regionConfigs** object describes the region's priority in elections and the number and type of MongoDB nodes that MongoDB Cloud deploys to the region. Each **regionConfigs** object must have either an **analyticsSpecs** object, **electableSpecs** object, or **readOnlySpecs** object. Tenant clusters only require **electableSpecs. Dedicated** clusters can specify any of these specifications, but must have at least one **electableSpecs** object within a **replicationSpec**.\n\n**Example:**\n\nIf you set `\"replicationSpecs[n].regionConfigs[m].analyticsSpecs.instanceSize\" : \"M30\"`, set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : `\"M30\"` if you have electable nodes and `\"replicationSpecs[n].regionConfigs[m].readOnlySpecs.instanceSize\" : `\"M30\"` if you have read-only nodes.",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
