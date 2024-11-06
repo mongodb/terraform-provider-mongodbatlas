@@ -35,6 +35,14 @@ func StringToTime(str string) (time.Time, bool) {
 	return ret, err == nil
 }
 
+func StringPtrToTimePtr(str *string) (*time.Time, bool) {
+	if str == nil {
+		return nil, true
+	}
+	res, ok := StringToTime(*str)
+	return &res, ok
+}
+
 func Int64PtrToIntPtr(i64 *int64) *int {
 	if i64 == nil {
 		return nil

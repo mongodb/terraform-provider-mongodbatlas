@@ -595,12 +595,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			}
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
-		if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
-		}
-		if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
-		}
+
 		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(cluster)
 		if err != nil {
 			return diag.FromErr(err)
@@ -611,9 +606,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		clusterResp = convertClusterDescToLatestExcludeRepSpecs(clusterOldSDK)
-		clusterResp.ConfigServerManagementMode = cluster.ConfigServerManagementMode
-		clusterResp.ConfigServerType = cluster.ConfigServerType
+		clusterResp = cluster
 	} else {
 		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 		if err != nil {
@@ -627,12 +620,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		// root disk_size_gb defined for backwards compatibility avoiding breaking changes
 		if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(cluster)); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
-		}
-		if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
-		}
-		if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
 		}
 
 		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
@@ -787,6 +774,16 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "global_cluster_self_managed_sharding", clusterName, err))
 	}
 
+	// fields not supported in connV220240530 SDK (mapping to 2023-02-01 API)
+
+	if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
+	}
+
+	if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
+	}
+
 	if err := d.Set("config_server_type", cluster.GetConfigServerType()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "config_server_type", clusterName, err))
 	}
@@ -794,6 +791,11 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 	if err := d.Set("config_server_management_mode", cluster.GetConfigServerManagementMode()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "config_server_management_mode", clusterName, err))
 	}
+
+	if err := d.Set("pinned_fcv", flattenPinnedFCV(cluster)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pinned_fcv", clusterName, err))
+	}
+
 	return nil
 }
 
@@ -854,6 +856,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
+
+	_ = handlePinnedFCV(ctx, connV2, projectID, clusterName, d)
 
 	if isUsingOldAPISchemaStructure(d) {
 		req, diags := updateRequestOldAPI(d, clusterName)
@@ -951,6 +955,27 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	return resourceRead(ctx, d, meta)
+}
+
+func handlePinnedFCV(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData) diag.Diagnostics {
+	if d.HasChange("pinned_fcv") {
+		ac := d.Get("pinned_fcv")
+		if pinnedFCVBlock, ok := ac.([]any); ok && len(pinnedFCVBlock) > 0 {
+			req := admin.PinFCV{}
+			if nestedObj, ok := pinnedFCVBlock[0].(map[string]any); ok {
+				expDateStrPtr := conversion.StringPtr(cast.ToString(nestedObj["expiration_date"]))
+				expirationTime, ok := conversion.StringPtrToTimePtr(expDateStrPtr)
+				if !ok {
+					return diag.FromErr(fmt.Errorf("expiration_date format is incorrect: %s", expirationTime))
+				}
+				req.ExpirationDate = expirationTime
+			}
+			if _, _, err := connV2.ClustersApi.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			}
+		}
+	}
+	return nil
 }
 
 func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clusterName string, connV2 *admin.APIClient) (*admin20240805.ClusterDescription20240805, diag.Diagnostics) {
