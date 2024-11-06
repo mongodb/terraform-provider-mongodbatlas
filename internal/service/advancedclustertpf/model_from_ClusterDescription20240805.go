@@ -121,10 +121,16 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 		return types.ListNull(ReplicationSpecsObjType)
 	}
 	tfModels := make([]TFReplicationSpecsModel, len(*input))
+	todoContainerID := map[string]string{
+		"AWS:US_EAST_1": "6728c725e12c976e3a21e204",
+	}
 	for i, item := range *input {
 		regionConfigs := NewRegionConfigsObjType(ctx, item.RegionConfigs, diags)
 		tfModels[i] = TFReplicationSpecsModel{
 			Id:            types.StringPointerValue(item.Id),
+			ExternalId:    types.StringValue("TODO_STATIC"),
+			NumShards:     types.Int64Value(1),
+			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &todoContainerID),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringPointerValue(item.ZoneId),
 			ZoneName:      types.StringPointerValue(item.ZoneName),
