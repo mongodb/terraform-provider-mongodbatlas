@@ -87,9 +87,9 @@ func NewConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnec
 	return objType
 }
 
-func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags *diag.Diagnostics) types.List {
+func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags *diag.Diagnostics) types.Set {
 	if input == nil {
-		return types.ListNull(LabelsObjType)
+		return types.SetNull(LabelsObjType)
 	}
 	tfModels := make([]TFLabelsModel, len(*input))
 	for i, item := range *input {
@@ -98,9 +98,9 @@ func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags 
 			Value: types.StringPointerValue(item.Value),
 		}
 	}
-	listType, diagsLocal := types.ListValueFrom(ctx, LabelsObjType, tfModels)
+	setType, diagsLocal := types.SetValueFrom(ctx, LabelsObjType, tfModels)
 	diags.Append(diagsLocal...)
-	return listType
+	return setType
 }
 
 func NewMongoDBEmployeeAccessGrantObjType(ctx context.Context, input *admin.EmployeeAccessGrant, diags *diag.Diagnostics) types.Object {
@@ -141,9 +141,9 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 	return listType
 }
 
-func NewTagsObjType(ctx context.Context, input *[]admin.ResourceTag, diags *diag.Diagnostics) types.List {
+func NewTagsObjType(ctx context.Context, input *[]admin.ResourceTag, diags *diag.Diagnostics) types.Set {
 	if input == nil {
-		return types.ListNull(TagsObjType)
+		return types.SetNull(TagsObjType)
 	}
 	tfModels := make([]TFTagsModel, len(*input))
 	for i, item := range *input {
@@ -152,9 +152,9 @@ func NewTagsObjType(ctx context.Context, input *[]admin.ResourceTag, diags *diag
 			Value: types.StringValue(item.Value),
 		}
 	}
-	listType, diagsLocal := types.ListValueFrom(ctx, TagsObjType, tfModels)
+	setType, diagsLocal := types.SetValueFrom(ctx, TagsObjType, tfModels)
 	diags.Append(diagsLocal...)
-	return listType
+	return setType
 }
 
 func NewPrivateEndpointObjType(ctx context.Context, input *[]admin.ClusterDescriptionConnectionStringsPrivateEndpoint, diags *diag.Diagnostics) types.List {

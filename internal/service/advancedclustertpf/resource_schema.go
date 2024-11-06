@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -204,10 +204,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the cluster.",
 			},
-			"labels": schema.ListNestedAttribute{ // TODO: database_user is using SetNestedBlock, probably better to align
+			"labels": schema.SetNestedAttribute{ // TODO: database_user is using SetNestedBlock, probably better to align
 				Computed:            true, // TODO: must be computed since backend returns "[]" when it is not specified using "Default" to avoid plan changes
 				Optional:            true,
-				Default:             listdefault.StaticValue(types.ListValueMust(LabelsObjType, nil)),
+				Default:             setdefault.StaticValue(types.SetValueMust(LabelsObjType, nil)),
 				MarkdownDescription: "Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -390,7 +390,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this cluster.",
 			},
 			// TODO: We want to avoid breaking changes even though it is incompatible with flex cluster and project resource
-			"tags": schema.ListNestedAttribute{
+			"tags": schema.SetNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.",
 				NestedObject: schema.NestedAttributeObject{
@@ -619,9 +619,9 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 
 type TFModel struct {
 	DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`
-	Labels                                    types.List     `tfsdk:"labels"`
+	Labels                                    types.Set      `tfsdk:"labels"`
 	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
-	Tags                                      types.List     `tfsdk:"tags"`
+	Tags                                      types.Set      `tfsdk:"tags"`
 	DiskWarmingMode                           types.String   `tfsdk:"disk_warming_mode"`
 	StateName                                 types.String   `tfsdk:"state_name"`
 	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
