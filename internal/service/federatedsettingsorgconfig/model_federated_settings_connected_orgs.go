@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20241023001/admin"
+	"go.mongodb.org/atlas-sdk/v20241023002/admin"
 )
 
 type roleMappingsByGroupName []admin.AuthFederationRoleMapping

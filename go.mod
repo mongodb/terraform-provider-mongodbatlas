@@ -28,7 +28,7 @@ require (
 	go.mongodb.org/atlas v0.37.0
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
 	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.0
-	go.mongodb.org/atlas-sdk/v20241023001 v20241023001.1.0
+	go.mongodb.org/atlas-sdk/v20241023002 v20241023002.0.0
 	go.mongodb.org/realm v0.1.0
 	gopkg.in/yaml.v3 v3.0.1
 )
