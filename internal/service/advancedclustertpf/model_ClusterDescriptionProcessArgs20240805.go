@@ -33,5 +33,4 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)
 	diags.Append(diagsLocal...)
 	tfModel.AdvancedConfiguration = objType
-
 }
