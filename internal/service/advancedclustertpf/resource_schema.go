@@ -60,7 +60,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Configuration of nodes that comprise the cluster.",
 			},
 			"config_server_management_mode": schema.StringAttribute{
-				// Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Config Server Management Mode for creating or updating a sharded cluster.\n\nWhen configured as ATLAS_MANAGED, atlas may automatically switch the cluster's config server type for optimal performance and savings.\n\nWhen configured as FIXED_TO_DEDICATED, the cluster will always use a dedicated config server.",
 			},
@@ -170,19 +169,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Cloud service provider that manages your customer keys to provide an additional layer of encryption at rest for the cluster. To enable customer key management for encryption at rest, the cluster **replicationSpecs[n].regionConfigs[m].{type}Specs.instanceSize** setting must be `M10` or higher and `\"backupEnabled\" : false` or omitted entirely.",
 			},
 			"feature_compatibility_version": schema.StringAttribute{ // TODO: not in current resource, decide if keep
-				Optional: true,
-				// Computed:            true,
-				// PlanModifiers: []planmodifier.String{
-				// 	stringplanmodifier.UseStateForUnknown(),
-				// },
+				Optional:            true,
 				MarkdownDescription: "Feature compatibility version of the cluster.",
 			},
 			"feature_compatibility_version_expiration_date": schema.StringAttribute{ // TODO: not in current resource, decide if keep
-				// Computed:            true,
-				Optional: true,
-				// PlanModifiers: []planmodifier.String{
-				// 	stringplanmodifier.UseStateForUnknown(),
-				// },
+				Optional:            true,
 				MarkdownDescription: "Feature compatibility version expiration date.",
 			},
 			"global_cluster_self_managed_sharding": schema.BoolAttribute{
@@ -221,24 +212,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Optional:            true,
 							MarkdownDescription: "Value set to the Key applied to tag and categorize this component.",
 						},
-					},
-				},
-			},
-			"mongo_db_employee_access_grant": schema.SingleNestedAttribute{ // TODO: not in current resource, already in mongodbemployeeaccessgrant, will probably delete, was generated as mongo_dbemployee_access_grant
-				Optional: true,
-				// Computed: true,
-				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.UseStateForUnknown(),
-				},
-				MarkdownDescription: "MongoDB employee granted access level and expiration for a cluster.",
-				Attributes: map[string]schema.Attribute{
-					"expiration_time": schema.StringAttribute{
-						Computed:            true,
-						MarkdownDescription: "Expiration date for the employee access grant.",
-					},
-					"grant_type": schema.StringAttribute{
-						Computed:            true,
-						MarkdownDescription: "Level of access to grant to MongoDB Employees.",
 					},
 				},
 			},
@@ -634,7 +607,6 @@ type TFModel struct {
 	ProjectID                                 types.String   `tfsdk:"project_id"`
 	ClusterID                                 types.String   `tfsdk:"cluster_id"`
 	ConfigServerManagementMode                types.String   `tfsdk:"config_server_management_mode"`
-	MongoDBEmployeeAccessGrant                types.Object   `tfsdk:"mongo_db_employee_access_grant"`
 	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
 	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
 	Name                                      types.String   `tfsdk:"name"`
@@ -720,16 +692,6 @@ type TFLabelsModel struct {
 var LabelsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"key":   types.StringType,
 	"value": types.StringType,
-}}
-
-type TFMongoDbEmployeeAccessGrantModel struct {
-	ExpirationTime types.String `tfsdk:"expiration_time"`
-	GrantType      types.String `tfsdk:"grant_type"`
-}
-
-var MongoDbEmployeeAccessGrantObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"expiration_time": types.StringType,
-	"grant_type":      types.StringType,
 }}
 
 type TFReplicationSpecsModel struct {

@@ -14,7 +14,6 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 	biConnector := NewBiConnectorObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, input.Labels, diags)
-	mongoDBEmployeeAccessGrant := NewMongoDBEmployeeAccessGrantObjType(ctx, input.MongoDBEmployeeAccessGrant, diags)
 	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags)
 	tags := NewTagsObjType(ctx, input.Tags, diags)
 	if diags.HasError() {
@@ -37,7 +36,6 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 		ProjectID:                                 types.StringPointerValue(input.GroupId),
 		ClusterID:                                 types.StringPointerValue(input.Id),
 		Labels:                                    labels,
-		MongoDBEmployeeAccessGrant:                mongoDBEmployeeAccessGrant,
 		MongoDBMajorVersion:                       types.StringPointerValue(input.MongoDBMajorVersion),
 		MongoDBVersion:                            types.StringPointerValue(input.MongoDBVersion),
 		Name:                                      types.StringPointerValue(input.Name),
@@ -101,19 +99,6 @@ func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags 
 	setType, diagsLocal := types.SetValueFrom(ctx, LabelsObjType, tfModels)
 	diags.Append(diagsLocal...)
 	return setType
-}
-
-func NewMongoDBEmployeeAccessGrantObjType(ctx context.Context, input *admin.EmployeeAccessGrant, diags *diag.Diagnostics) types.Object {
-	if input == nil {
-		return types.ObjectNull(MongoDbEmployeeAccessGrantObjType.AttrTypes)
-	}
-	tfModel := TFMongoDbEmployeeAccessGrantModel{
-		ExpirationTime: types.StringValue(conversion.TimeToString(input.ExpirationTime)),
-		GrantType:      types.StringValue(input.GrantType),
-	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, MongoDbEmployeeAccessGrantObjType.AttrTypes, tfModel)
-	diags.Append(diagsLocal...)
-	return objType
 }
 
 func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics) types.List {
