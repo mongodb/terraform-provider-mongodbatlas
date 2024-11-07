@@ -20,6 +20,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.9.0
 	github.com/huandu/xstrings v1.5.0
 	github.com/mongodb-forks/digest v1.1.0
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20241107132712-0a5b4ac7c9c8
 	github.com/pb33f/libopenapi v0.18.6
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.6.0
