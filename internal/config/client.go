@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241023002/admin"
@@ -32,6 +33,7 @@ const (
 type MongoDBClient struct {
 	Atlas           *matlasClient.Client
 	AtlasV2         *admin.APIClient
+	AtlasPreview    *adminpreview.APIClient
 	AtlasV220240805 *admin20240805.APIClient // used in advanced_cluster to avoid adopting 2024-10-23 release with ISS autoscaling
 	AtlasV220240530 *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes (supporting deprecated replication_specs.id)
 	Config          *Config
@@ -107,6 +109,11 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		return nil, err
 	}
 
+	sdkPreviewClient, err := c.newSDKPreviewClient(client)
+	if err != nil {
+		return nil, err
+	}
+
 	sdkV220240530Client, err := c.newSDKV220240530Client(client)
 	if err != nil {
 		return nil, err
@@ -120,6 +127,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	clients := &MongoDBClient{
 		Atlas:           atlasClient,
 		AtlasV2:         sdkV2Client,
+		AtlasPreview:    sdkPreviewClient,
 		AtlasV220240530: sdkV220240530Client,
 		AtlasV220240805: sdkV220240805Client,
 		Config:          c,
@@ -135,6 +143,20 @@ func (c *Config) newSDKV2Client(client *http.Client) (*admin.APIClient, error) {
 		admin.UseDebug(false)}
 
 	sdk, err := admin.NewClient(opts...)
+	if err != nil {
+		return nil, err
+	}
+	return sdk, nil
+}
+
+func (c *Config) newSDKPreviewClient(client *http.Client) (*adminpreview.APIClient, error) {
+	opts := []adminpreview.ClientModifier{
+		adminpreview.UseHTTPClient(client),
+		adminpreview.UseUserAgent(userAgent(c)),
+		adminpreview.UseBaseURL(c.BaseURL),
+		adminpreview.UseDebug(false)}
+
+	sdk, err := adminpreview.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}
