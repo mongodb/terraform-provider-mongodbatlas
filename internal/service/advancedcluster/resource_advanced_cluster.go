@@ -856,7 +856,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
-	_ = handlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d)
+	_ = handlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout)
 
 	if isUsingOldAPISchemaStructure(d) {
 		req, diags := updateRequestOldAPI(d, clusterName)
@@ -956,7 +956,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
-func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData) diag.Diagnostics {
+func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData, timeout time.Duration) diag.Diagnostics {
 	if d.HasChange("pinned_fcv") {
 		ac := d.Get("pinned_fcv")
 		if pinnedFCVBlock, ok := ac.([]any); ok && len(pinnedFCVBlock) > 0 {
@@ -977,6 +977,10 @@ func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 			if _, _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
+		}
+		// ensures cluster is in IDLE state before continuing with other changes
+		if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
 	}
 	return nil
