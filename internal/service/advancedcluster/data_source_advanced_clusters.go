@@ -273,6 +273,22 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"pinned_fcv": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"expiration_date": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -375,6 +391,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"redact_client_log_data":               cluster.GetRedactClientLogData(),
 			"config_server_management_mode":        cluster.GetConfigServerManagementMode(),
 			"config_server_type":                   cluster.GetConfigServerType(),
+			"pinned_fcv":                           flattenPinnedFCV(cluster),
 		}
 		results = append(results, result)
 	}
@@ -434,6 +451,7 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"redact_client_log_data":               clusterDescNew.GetRedactClientLogData(),
 			"config_server_management_mode":        clusterDescNew.GetConfigServerManagementMode(),
 			"config_server_type":                   clusterDescNew.GetConfigServerType(),
+			"pinned_fcv":                           flattenPinnedFCV(clusterDescNew),
 		}
 		results = append(results, result)
 	}
