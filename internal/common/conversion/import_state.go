@@ -10,7 +10,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func ImportStateProjectIDClusterName(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+type ClusterImportAttrNames struct {
+	ProjectID   string
+	ClusterName string
+}
+
+func (c *ClusterImportAttrNames) GetProjectID() string {
+	if c != nil && c.ProjectID != "" {
+		return c.ProjectID
+	}
+	return "project_id"
+}
+
+func (c *ClusterImportAttrNames) GetClusterName() string {
+	if c != nil && c.ClusterName != "" {
+		return c.ClusterName
+	}
+	return "cluster_name"
+}
+
+func ImportStateProjectIDClusterName(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse, names *ClusterImportAttrNames) {
 	parts := strings.SplitN(req.ID, "-", 2)
 	if len(parts) != 2 {
 		resp.Diagnostics.AddError("invalid import ID", "expected 2 parts with project_id and cluster_name: "+req.ID)
@@ -26,8 +45,8 @@ func ImportStateProjectIDClusterName(ctx context.Context, req resource.ImportSta
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cluster_name"), clusterName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(names.GetProjectID()), projectID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(names.GetClusterName()), clusterName)...)
 }
 
 func ValidateProjectID(projectID string) error {
