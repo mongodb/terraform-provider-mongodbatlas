@@ -173,8 +173,7 @@ func Resource() *schema.Resource {
 						},
 						"expiration_date": {
 							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Required: true,
 						},
 					},
 				},
@@ -792,9 +791,6 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "config_server_management_mode", clusterName, err))
 	}
 
-	// if diags := errorIfFCVExpiredOrUnpinnedExternally(d, cluster); diags != nil {
-	// 	return diags
-	// }
 	if err := d.Set("pinned_fcv", flattenPinnedFCV(cluster)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pinned_fcv", clusterName, err))
 	}
@@ -959,17 +955,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	return resourceRead(ctx, d, meta)
 }
-
-// func errorIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
-// 	pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any)
-// 	presentInState := ok && len(pinnedFCVBlock) > 0
-// 	presentInAPIResp := cluster.GetFeatureCompatibilityVersion() != ""
-// 	if(presentInState && !presentInAPIResp){
-// 		// used to raise awareness and ensure customers dont unitentionally re-pin FCV
-// 		return diag.FromErr(fmt.Errorf("FCV is no longer active, please remove `pinned_fcv` from the configuration and apply changes"))
-// 	}
-// 	return nil
-// }
 
 func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData) diag.Diagnostics {
 	if d.HasChange("pinned_fcv") {
