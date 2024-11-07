@@ -101,9 +101,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	conversion.ImportStateProjectIDClusterName(ctx, req, resp, &conversion.ClusterImportAttrNames{
-		ClusterName: "name",
-	})
+	conversion.ImportStateProjectIDClusterName(ctx, req, resp, "project_id", "name")
 }
 
 func mockedSDK(ctx context.Context, diags *diag.Diagnostics, timeout timeouts.Value) (*TFModel, bool) {

@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -38,7 +37,7 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 			{
 				Config:                               configBasic("accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
 				ResourceName:                         resourceName,
-				ImportStateIdFunc:                    acc.ImportStateIDFuncProjectIDClusterName(resourceName, &conversion.ClusterImportAttrNames{ClusterName: "name"}),
+				ImportStateIdFunc:                    acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "name",

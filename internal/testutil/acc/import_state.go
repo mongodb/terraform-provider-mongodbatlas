@@ -8,13 +8,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func ImportStateIDFuncProjectIDClusterName(resourceName string, nameOverrides *conversion.ClusterImportAttrNames) resource.ImportStateIdFunc {
+func ImportStateIDFuncProjectIDClusterName(resourceName, attrNameProjectID, attrNameClusterName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return IDWithProjectIDClusterName(rs.Primary.Attributes[nameOverrides.GetProjectID()], rs.Primary.Attributes[nameOverrides.GetClusterName()])
+		return IDWithProjectIDClusterName(rs.Primary.Attributes[attrNameProjectID], rs.Primary.Attributes[attrNameClusterName])
 	}
 }
 

@@ -23,21 +23,3 @@ func TestValidateClusterName(t *testing.T) {
 	assert.Contains(t, err.Error(), "_invalidClusterName")
 	assert.Contains(t, err.Error(), "cluster_name must be a string with length between 1 and 64, starting and ending with an alphanumeric character, and containing only alphanumeric characters and hyphens")
 }
-
-func TestGetProjectID(t *testing.T) {
-	c := &conversion.ClusterImportAttrNames{
-		ProjectID:   "test_project_id",
-		ClusterName: "test_cluster_name",
-	}
-	assert.Equal(t, "test_project_id", c.GetProjectID())
-	assert.Equal(t, "test_cluster_name", c.GetClusterName())
-
-	getProjectID := func(names *conversion.ClusterImportAttrNames) string {
-		return names.GetProjectID()
-	}
-	assert.Equal(t, "project_id", getProjectID(nil))
-	getClusterName := func(names *conversion.ClusterImportAttrNames) string {
-		return names.GetClusterName()
-	}
-	assert.Equal(t, "cluster_name", getClusterName(nil))
-}
