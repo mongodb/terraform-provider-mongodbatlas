@@ -25,22 +25,28 @@ var (
 	responsesProcessArgs = map[int]string{
 		1: processArgs1,
 	}
+	currentClusterResponse     = 1
+	currentProcessArgsResponse = 1
 )
 
-func ReadClusterResponse(number int) (*admin.ClusterDescription20240805, error) {
-	responseJSON, ok := responsesCreate[number]
+func SetCurrentClusterResponse(responseNumber int) {
+	currentClusterResponse = responseNumber
+}
+
+func ReadClusterResponse() (*admin.ClusterDescription20240805, error) {
+	responseJSON, ok := responsesCreate[currentClusterResponse]
 	if !ok {
-		return nil, fmt.Errorf("unknown response number %d", number)
+		return nil, fmt.Errorf("unknown cluster response number %d", currentClusterResponse)
 	}
 	var SDKModel admin.ClusterDescription20240805
 	err := json.Unmarshal([]byte(responseJSON), &SDKModel)
 	return &SDKModel, err
 }
 
-func ReadClusterProcessArgsResponse(number int) (*admin.ClusterDescriptionProcessArgs20240805, error) {
-	responseJSON, ok := responsesProcessArgs[number]
+func ReadClusterProcessArgsResponse() (*admin.ClusterDescriptionProcessArgs20240805, error) {
+	responseJSON, ok := responsesProcessArgs[currentProcessArgsResponse]
 	if !ok {
-		return nil, fmt.Errorf("unknown response number %d", number)
+		return nil, fmt.Errorf("unknown process args response number %d", currentProcessArgsResponse)
 	}
 	var SDKModel admin.ClusterDescriptionProcessArgs20240805
 	err := json.Unmarshal([]byte(responseJSON), &SDKModel)
