@@ -433,10 +433,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		rootDiskSizeGB = conversion.Pointer(v.(float64))
 	}
 
-	if _, ok := d.GetOk("pinned_fcv"); ok {
-		println("")
-	}
-
 	params := &admin20240805.ClusterDescription20240805{
 		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
 		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
@@ -530,6 +526,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
+	var waitForChanges bool
 	if v := d.Get("paused").(bool); v {
 		request := &admin20240805.ClusterDescription20240805{
 			Paused: conversion.Pointer(v),
@@ -538,6 +535,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if _, _, err := connV220240805.ClustersApi.UpdateCluster(ctx, projectID, d.Get("name").(string), request).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
+		waitForChanges = true
+	}
+
+	if pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any); ok && len(pinnedFCVBlock) > 0 {
+		pinFCV(ctx, connV2, projectID, cluster.GetName(), pinnedFCVBlock[0])
+		waitForChanges = true
+	}
+
+	if waitForChanges {
 		if err = waitForUpdateToFinish(ctx, connV2, projectID, d.Get("name").(string), timeout); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
@@ -856,7 +862,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
-	_ = handlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout)
+	// FCV update is intentionally handled before other cluster updates, and will wait for cluster to reach IDLE state before continuing
+	if diags := handlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout); diags != nil {
+		return diags
+	}
 
 	if isUsingOldAPISchemaStructure(d) {
 		req, diags := updateRequestOldAPI(d, clusterName)
@@ -958,20 +967,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData, timeout time.Duration) diag.Diagnostics {
 	if d.HasChange("pinned_fcv") {
-		ac := d.Get("pinned_fcv")
-		if pinnedFCVBlock, ok := ac.([]any); ok && len(pinnedFCVBlock) > 0 {
-			req := admin.PinFCV{}
-			if nestedObj, ok := pinnedFCVBlock[0].(map[string]any); ok {
-				expDateStrPtr := conversion.StringPtr(cast.ToString(nestedObj["expiration_date"]))
-				expirationTime, ok := conversion.StringPtrToTimePtr(expDateStrPtr)
-				if !ok {
-					return diag.FromErr(fmt.Errorf("expiration_date format is incorrect: %s", expirationTime))
-				}
-				req.ExpirationDate = expirationTime
-			}
-			if _, _, err := connV2.ClustersApi.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
-				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
-			}
+		if pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any); ok && len(pinnedFCVBlock) > 0 {
+			pinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0])
 		} else {
 			// pinned_fcv has been removed from the config so unpin method is called
 			if _, _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
@@ -982,6 +979,22 @@ func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 		if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
+	}
+	return nil
+}
+
+func pinFCV(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, fcvBlock any) diag.Diagnostics {
+	req := admin.PinFCV{}
+	if nestedObj, ok := fcvBlock.(map[string]any); ok {
+		expDateStrPtr := conversion.StringPtr(cast.ToString(nestedObj["expiration_date"]))
+		expirationTime, ok := conversion.StringPtrToTimePtr(expDateStrPtr)
+		if !ok {
+			return diag.FromErr(fmt.Errorf("expiration_date format is incorrect: %s", expirationTime))
+		}
+		req.ExpirationDate = expirationTime
+	}
+	if _, _, err := connV2.ClustersApi.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
+		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 	}
 	return nil
 }
