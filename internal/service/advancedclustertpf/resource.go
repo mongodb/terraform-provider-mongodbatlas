@@ -2,6 +2,7 @@ package advancedclustertpf
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -10,6 +11,22 @@ import (
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
+
+const (
+	errorCreate                    = "error creating advanced cluster: %s"
+	errorRead                      = "error reading  advanced cluster (%s): %s"
+	errorDelete                    = "error deleting advanced cluster (%s): %s"
+	errorUpdate                    = "error updating advanced cluster (%s): %s"
+	errorConfigUpdate              = "error updating advanced cluster configuration options (%s): %s"
+	errorConfigRead                = "error reading advanced cluster configuration options (%s): %s"
+	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"
+	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
+	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
+	ErrorOperationNotPermitted     = "error operation not permitted"
+	ignoreLabel                    = "Infrastructure Tool"
+	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
+)
 
 func Resource() resource.Resource {
 	return &rs{
@@ -34,7 +51,18 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	tfNewModel := NewTFModel(ctx, nil, &resp.Diagnostics)
+	sdkResp, err := ReadClusterResponse(1)
+	if err != nil {
+		resp.Diagnostics.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
+		return
+	}
+	tfNewModel := NewTFModel(ctx, sdkResp, tfModel.Timeouts, &resp.Diagnostics)
+	sdkAdvConfig, err := ReadClusterProcessArgsResponse(1)
+	if err != nil {
+		resp.Diagnostics.AddError("errorCreateAdvConfig", fmt.Sprintf(errorCreate, err.Error()))
+	}
+
+	AddAdvancedConfig(ctx, tfNewModel, sdkAdvConfig, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -42,6 +70,12 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state TFModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
