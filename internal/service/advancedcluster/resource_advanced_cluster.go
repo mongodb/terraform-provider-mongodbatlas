@@ -161,23 +161,6 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"pinned_fcv": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"version": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"expiration_date": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
 			"pit_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -371,6 +354,23 @@ func Resource() *schema.Resource {
 			"config_server_type": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"pinned_fcv": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"expiration_date": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
