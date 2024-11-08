@@ -35,7 +35,6 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 				Check:  resource.ComposeTestCheckFunc(ChangeReponseNumber(2)),
 			},
 			{
-				Config:                               configBasic(""),
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
 				ImportState:                          true,
