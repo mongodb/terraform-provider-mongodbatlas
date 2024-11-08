@@ -233,7 +233,8 @@ jobs:
       with:
         filters: |
           advanced_cluster:
-            - 'internal/service/advancedcluster/!(*_test).go'
+            - 'internal/service/advancedcluster/!(*_test).go' # matches any adv_cluster file change except test files  
+
           advanced_cluster_tpf:
             - 'internal/service/advancedclustertpf/*.go'
             - 'internal/service/advancedcluster/*_test.go'
@@ -362,10 +363,10 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS: "true"
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
-          MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS: "true"
         run: make testacc
 
   assume_role:

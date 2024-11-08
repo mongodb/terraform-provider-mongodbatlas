@@ -18,13 +18,10 @@ func PreCheckBasic(tb testing.TB) {
 	}
 }
 
-func SkipIfTPFAdvancedCluster(tb testing.TB, existingPreCheck func()) func() {
+func SkipIfTPFAdvancedCluster(tb testing.TB) {
 	tb.Helper()
-	return func() {
-		if os.Getenv("MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS") == "true" {
-			tb.Skip("Skipping TPF Advanced Cluster tests")
-		}
-		existingPreCheck()
+	if os.Getenv("MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS") == "true" {
+		tb.Skip("Skipping tests as resource is TPF Advanced Cluster and implementation is pending")
 	}
 }
 
