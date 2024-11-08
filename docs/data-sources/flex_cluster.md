@@ -2,13 +2,9 @@
 
 `mongodbatlas_flex_cluster` describes a flex cluster.
 
--> **NOTE**: Flex Clusters are currently in Preview. To use this feature, you must take the following actions:
-1. Enable the `Atlas Uss Enabled` Preview Feature in your project (contact [MongoDB Support](https://www.mongodb.com/services/support)).
-2. Enable the [Preview Features](https://github.com/mongodb/terraform-provider-mongodbatlas?tab=readme-ov-file#preview-features) when running `terraform` commands.
-
 ## Example Usages
 ```terraform
-resource "mongodbatlas_flex_cluster" "flex_cluster" {
+resource "mongodbatlas_flex_cluster" "example-cluster" {
   project_id = var.project_id
   name       = var.cluster_name
   provider_settings = {
@@ -18,21 +14,21 @@ resource "mongodbatlas_flex_cluster" "flex_cluster" {
   termination_protection_enabled = true
 }
 
-data "mongodbatlas_flex_cluster" "flex_cluster" {
+data "mongodbatlas_flex_cluster" "example-cluster" {
   project_id = var.project_id
   name       = mongodbatlas_flex_cluster.flex_cluster.name
 }
 
-data "mongodbatlas_flex_clusters" "flex_clusters" {
+data "mongodbatlas_flex_clusters" "example-clusters" {
   project_id = var.project_id
 }
 
 output "mongodbatlas_flex_cluster" {
-  value = data.mongodbatlas_flex_cluster.flex_cluster.name
+  value = data.mongodbatlas_flex_cluster.example-cluster.name
 }
 
 output "mongodbatlas_flex_clusters_names" {
-  value = [for cluster in data.mongodbatlas_flex_clusters.flex_clusters.results : cluster.name]
+  value = [for cluster in data.mongodbatlas_flex_clusters.example-clusters.results : cluster.name]
 }
 ```
 

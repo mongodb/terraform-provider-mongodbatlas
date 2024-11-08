@@ -2,14 +2,10 @@
 
 `mongodbatlas_flex_cluster` provides a Flex Cluster resource. The resource lets you create, update, delete and import a flex cluster.
 
--> **NOTE**: Flex Clusters are currently in Preview. To use this feature, you must take the following actions:
-1. Enable the `Atlas Uss Enabled` Preview Feature in your project (contact [MongoDB Support](https://www.mongodb.com/services/support)).
-2. Enable the [Preview Features](https://github.com/mongodb/terraform-provider-mongodbatlas?tab=readme-ov-file#preview-features) when running `terraform` commands.
-
 ## Example Usages
 
 ```terraform
-resource "mongodbatlas_flex_cluster" "flex_cluster" {
+resource "mongodbatlas_flex_cluster" "example-cluster" {
   project_id = var.project_id
   name       = var.cluster_name
   provider_settings = {
@@ -19,21 +15,21 @@ resource "mongodbatlas_flex_cluster" "flex_cluster" {
   termination_protection_enabled = true
 }
 
-data "mongodbatlas_flex_cluster" "flex_cluster" {
+data "mongodbatlas_flex_cluster" "example-cluster" {
   project_id = var.project_id
   name       = mongodbatlas_flex_cluster.flex_cluster.name
 }
 
-data "mongodbatlas_flex_clusters" "flex_clusters" {
+data "mongodbatlas_flex_clusters" "example-clusters" {
   project_id = var.project_id
 }
 
 output "mongodbatlas_flex_cluster" {
-  value = data.mongodbatlas_flex_cluster.flex_cluster.name
+  value = data.mongodbatlas_flex_cluster.example-cluster.name
 }
 
 output "mongodbatlas_flex_clusters_names" {
-  value = [for cluster in data.mongodbatlas_flex_clusters.flex_clusters.results : cluster.name]
+  value = [for cluster in data.mongodbatlas_flex_clusters.example-clusters.results : cluster.name]
 }
 ```
 
@@ -93,7 +89,7 @@ Read-Only:
 - `standard_srv` (String) Public connection string that you can use to connect to this flex cluster. This connection string uses the `mongodb+srv://` protocol.
 
 # Import 
-Flex Cluster resource can be imported using the Project ID and Flex Cluster name, in the format `PROJECT_ID-FLEX_CLUSTER_NAME`, e.g.
+You can import the Flex Cluster resource by using the Project ID and Flex Cluster name, in the format `PROJECT_ID-FLEX_CLUSTER_NAME`. For example:
 ```
 $ terraform import mongodbatlas_flex_cluster.test 6117ac2fe2a3d04ed27a987v-yourFlexClusterName
 ```
