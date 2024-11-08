@@ -383,7 +383,8 @@ This parameter defaults to false.
 * `tags` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 * `labels` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
 * `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports all the MongoDB versions that have **not** reached [End of Live](https://www.mongodb.com/legal/support-policy/lifecycles) for M10+ clusters. If omitted, Atlas deploys the cluster with the default version. For more details, see [documentation](https://www.mongodb.com/docs/atlas/reference/faq/database/#which-versions-of-mongodb-do-service-clusters-use-). Atlas always deploys the cluster with the latest stable release of the specified version.  If you set a value to this parameter and set `version_release_system` `CONTINUOUS`, the resource returns an error. Either clear this parameter or set `version_release_system`: `LTS`.
-* `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Continuous Cloud Backup.
+* `pinned_fcv` - (Optional) Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed. Once FCV has expired `pinned_fcv` attribute must be removed. See [below](#pinned_fcv).
+* `pit_enabled` - (Optional) Flag that indicates if the cluster uses Continuous Cloud Backup.
 * `replication_specs` - List of settings that configure your cluster regions. This attribute has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. If for each replication_spec `num_shards` is configured with a value greater than 1 (using deprecated sharding configurations), then each object represents a zone with one or more shards. See [below](#replication_specs)
 * `root_cert_type` - (Optional) - Certificate Authority that MongoDB Atlas clusters use. You can specify ISRGROOTX1 (for ISRG Root X1).
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
@@ -649,6 +650,11 @@ After adding the `lifecycle` block to explicitly change `instance_size` comment 
 * `compute_scale_down_enabled` - (Optional) Flag that indicates whether the instance size may scale down. Atlas requires this parameter if `replication_specs.#.region_configs.#.analytics_auto_scaling.0.compute_enabled` : true. If you enable this option, specify a value for `replication_specs.#.region_configs.#.analytics_auto_scaling.0.compute_min_instance_size`.
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs.#.region_configs.#.analytics_auto_scaling.0.compute_scale_down_enabled` is true.
 * `compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (such as M40). Atlas requires this parameter if `replication_specs.#.region_configs.#.analytics_auto_scaling.0.compute_enabled` is true.
+
+### pinned_fcv
+
+* `expiration_date` - (Required) Expiration date of the fixed FCV. Note that this field cannot exceed 4 weeks from the pinned date.
+* `version` - Feature compatibility version of the cluster.
 
 ## Attributes Reference
 
