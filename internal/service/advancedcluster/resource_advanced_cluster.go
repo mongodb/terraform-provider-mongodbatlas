@@ -640,6 +640,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		clusterResp = cluster
 	}
 
+	warning := warningIfFCVExpiredOrUnpinnedExternally(d, clusterResp) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
 	diags := setRootFields(d, clusterResp, true)
 	if diags.HasError() {
 		return diags
@@ -662,7 +663,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 
-	return nil
+	return warning
 }
 
 // getReplicationSpecIDsFromOldAPI returns the id values of replication specs coming from old API. This is used to populate old replication_specs.*.id attribute avoiding breaking changes.
@@ -801,6 +802,22 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pinned_fcv", clusterName, err))
 	}
 
+	return nil
+}
+
+func warningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
+	pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any)
+	presentInState := ok && len(pinnedFCVBlock) > 0
+	presentInAPIResp := cluster.GetFeatureCompatibilityVersion() != ""
+	if presentInState && !presentInAPIResp {
+		// used to raise awareness of not unitentionally re-pinning FCV
+		return diag.Diagnostics{
+			diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "FCV pin is no longer active, please remove `pinned_fcv` from the configuration and apply changes to avoid re-pinning the FCV",
+			},
+		}
+	}
 	return nil
 }
 
