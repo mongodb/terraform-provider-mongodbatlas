@@ -233,8 +233,7 @@ jobs:
       with:
         filters: |
           advanced_cluster:
-            - 'internal/service/advancedcluster/!(*_test).go' # matches any adv_cluster file change except test files  
-
+            - 'internal/service/advancedcluster/!(*_test).go' # matches any adv_cluster file change except test files
           advanced_cluster_tpf:
             - 'internal/service/advancedclustertpf/*.go'
             - 'internal/service/advancedcluster/*_test.go'
