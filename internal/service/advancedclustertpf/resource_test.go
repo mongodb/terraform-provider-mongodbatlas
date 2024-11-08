@@ -35,7 +35,7 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 				Check:  resource.ComposeTestCheckFunc(ChangeReponseNumber(2)),
 			},
 			{
-				Config:                               configBasic("accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
+				Config:                               configBasic(""),
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
 				ImportState:                          true,
