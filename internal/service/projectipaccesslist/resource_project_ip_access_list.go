@@ -103,7 +103,6 @@ func (r *projectIPAccessListRS) Schema(ctx context.Context, req resource.SchemaR
 			},
 			"aws_security_group": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -115,7 +114,6 @@ func (r *projectIPAccessListRS) Schema(ctx context.Context, req resource.SchemaR
 				},
 			},
 			"comment": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
