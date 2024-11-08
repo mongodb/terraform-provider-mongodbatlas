@@ -1,0 +1,10 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` returns all flex clusters in a project.
+
+## Example Usages
+{{ tffile (printf "examples/mongodbatlas_flex_cluster/main.tf" )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Flex Clusters](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/listFlexClusters) Documentation.
