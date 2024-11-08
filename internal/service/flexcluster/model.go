@@ -3,7 +3,6 @@ package flexcluster
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -27,7 +26,7 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202411
 	return &TFModel{
 		ProviderSettings:             *providerSettings,
 		ConnectionStrings:            *connectionStrings,
-		Tags:                         newTFTags(apiResp.Tags),
+		Tags:                         conversion.NewTFTags(apiResp.GetTags()),
 		CreateDate:                   types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreateDate)),
 		ProjectId:                    types.StringPointerValue(apiResp.GroupId),
 		Id:                           types.StringPointerValue(apiResp.Id),
@@ -73,14 +72,14 @@ func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 			RegionName:          providerSettings.RegionName.ValueString(),
 		},
 		TerminationProtectionEnabled: plan.TerminationProtectionEnabled.ValueBoolPointer(),
-		Tags:                         newResourceTags(ctx, plan.Tags),
+		Tags:                         conversion.NewResourceTags(ctx, plan.Tags),
 	}, nil
 }
 
 func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDescriptionUpdate20241113, diag.Diagnostics) {
 	updateRequest := &admin.FlexClusterDescriptionUpdate20241113{
 		TerminationProtectionEnabled: plan.TerminationProtectionEnabled.ValueBoolPointer(),
-		Tags:                         newResourceTags(ctx, plan.Tags),
+		Tags:                         conversion.NewResourceTags(ctx, plan.Tags),
 	}
 
 	return updateRequest, nil
@@ -131,31 +130,4 @@ func ConvertProviderSettingsToTF(ctx context.Context, providerSettings admin.Fle
 		return nil, diags
 	}
 	return &providerSettingsObject, nil
-}
-
-func newTFTags(tags *[]admin.ResourceTag) basetypes.MapValue {
-	if len(*tags) == 0 {
-		return types.MapNull(types.StringType)
-	}
-	typesTags := make(map[string]attr.Value, len(*tags))
-	for _, tag := range *tags {
-		typesTags[tag.Key] = types.StringValue(tag.Value)
-	}
-	return types.MapValueMust(types.StringType, typesTags)
-}
-
-func newResourceTags(ctx context.Context, tags types.Map) *[]admin.ResourceTag {
-	if tags.IsNull() || len(tags.Elements()) == 0 {
-		return &[]admin.ResourceTag{}
-	}
-	elements := make(map[string]types.String, len(tags.Elements()))
-	_ = tags.ElementsAs(ctx, &elements, false)
-	var tagsAdmin []admin.ResourceTag
-	for key, tagValue := range elements {
-		tagsAdmin = append(tagsAdmin, admin.ResourceTag{
-			Key:   key,
-			Value: tagValue.ValueString(),
-		})
-	}
-	return &tagsAdmin
 }
