@@ -7,3 +7,4 @@ This package contains the WIP for `mongodbatlas_advanced_cluster` in TPF. Curren
 ## Changes in advancedcluster that needs to be added here
 (list changes done in advancedcluster which couldn't also be done here at that moment)
 
+- `pinned_fcv` attribute was a recently added attribute in `advanced_cluster`. It has been defined in new tpf schema but we need to make sure implementation is also present.

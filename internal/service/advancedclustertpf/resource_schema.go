@@ -342,6 +342,20 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 			},
 			"advanced_configuration": AdvancedConfigurationSchema(ctx),
+			"pinned_fcv": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed. Once FCV has expired `pinned_fcv` attribute must be removed.",
+				Attributes: map[string]schema.Attribute{
+					"version": schema.BoolAttribute{
+						Computed:            true,
+						MarkdownDescription: "Feature compatibility version of the cluster.",
+					},
+					"expiration_date": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "Expiration date of the fixed FCV. Note that this field cannot exceed 4 weeks from the pinned date.",
+					},
+				},
+			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Update: true,
