@@ -16,7 +16,7 @@ resource "mongodbatlas_flex_cluster" "example-cluster" {
 
 data "mongodbatlas_flex_cluster" "example-cluster" {
   project_id = var.project_id
-  name       = mongodbatlas_flex_cluster.flex_cluster.name
+  name       = mongodbatlas_flex_cluster.example-cluster.name
 }
 
 data "mongodbatlas_flex_clusters" "example-clusters" {
