@@ -6,17 +6,17 @@ page_title: "Migration Guide: Transition out of Serverless Instances and Shared-
 
 The goal of this guide is to help users transition from Serverless Instances and Shared-tier clusters (M2/M5) to Free, Flex or Dedicated Clusters. 
 
-After March 2025, all Shared-tier clusters (`mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`) will automatically convert to Flex clusters and all Serverless instances (`mongodb_serverless_instance`) will be converted into Free/Flex/Dedicated clusters, resulting in configuration drift in Terraform. 
+Starting in March 2025, all Shared-tier clusters (in both `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`) will automatically convert to Flex clusters. Similarly, all Serverless instances (`mongodb_serverless_instance`) will be converted into Free/Flex/Dedicated clusters, [depending on your existing configuration](PLACEHOLDER). <!-- To replace url with correct link to customer-facing docs on how conversion will happen -->
+These conversions will result in configuration drift in Terraform. 
 
 
 You can migrate from Serverless instances and Shared-tier clusters manually before March 2025. 
 
-**NOTE:** We recommend waiting until March 2025 for Serverless instances and Shared-tier clusters to autoconvert.
+**--> NOTE:** We recommend waiting until March 2025 or later for Serverless instances and Shared-tier clusters to autoconvert.
 
 If a Serverless instance has $0 MRR, it automatically converts into a Free cluster. Else, if it does not fit the constraints of a Flex cluster, it will convert into a Dedicated cluster, resulting in downtime and workload disruption. Otherwise, it will convert to a Flex cluster.
 
-
-We are working on enhancing the User Experience such that, in future, Terraform Atlas Providers users can make even fewer required changes to their scripts from what is shown below. More updates to come over the next few months. For more details reach out to: zuhair.ahmed@mongodb.com
+For Shared-tier clusters, we are working on enhancing the User Experience such that Terraform Atlas Providers users can make even fewer required changes to their scripts from what is shown below. More updates to come over the next few months. For more details reach out to: zuhair.ahmed@mongodb.com
 
 ### Jump to:
 - [Shared-tier to Flex](#from-shared-tier-clusters-to-flex)
@@ -26,6 +26,8 @@ We are working on enhancing the User Experience such that, in future, Terraform 
 
 ## From Shared-tier clusters to Flex 
 ### Pre-Autoconversion Migration Procedure
+
+**NOTE:** We recommend waiting until March 2025 or later for Shared-tier clusters to autoconvert.
 
 1. Create a new Flex Cluster directly from your `.tf` file, e.g.:
 
@@ -60,7 +62,7 @@ We are working on enhancing the User Experience such that, in future, Terraform 
 
 ### Post-Autoconversion Migration Procedure
 
-Shared-tier clusters will automatically convert in March 2025 to Flex clusters in Atlas, retaining all data. 
+Shared-tier clusters will automatically convert in March 2025 or later to Flex clusters in Atlas, retaining all data. 
 
 The following steps resolve the configuration drift in Terraform and does not affect the underlying cluster infrastructure:
 
@@ -74,12 +76,13 @@ The following steps resolve the configuration drift in Terraform and does not af
     ```
 3. Run `terraform plan -generate-config-out=flex_cluster.tf`. This should generate a `flex_cluster.tf` file with your Flex cluster in it.
 4. Run `terraform apply`. You should see the resource(s) imported: `Apply complete! Resources: 1 imported, 0 added, 0 changed, 0 destroyed.`
-5. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
+5. Remove the "default" fields. Many fields of this resource are optional. Look for fields with a `null` or `0` value.
+6. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
    - variables, for example: `var.project_id`
    - Terraform keywords, for example: `for_each`, `count`, and `depends_on`
-6. Update the references from your previous cluster resource: `mongodbatlas_advanced_cluster.this.X` or `mongodbatlas_cluster.this.X` to the new `mongodbatlas_flex_cluster.this.X`.
-7. Update any shared-tier data source blocks to refer to `mongodbatlas_flex_cluster`.
-8. Replace your existing clusters with the ones from `flex_cluster.tf` and run 
+7. Update the references from your previous cluster resource: `mongodbatlas_advanced_cluster.this.X` or `mongodbatlas_cluster.this.X` to the new `mongodbatlas_flex_cluster.this.X`.
+8. Update any shared-tier data source blocks to refer to `mongodbatlas_flex_cluster`.
+9. Replace your existing clusters with the ones from `flex_cluster.tf` and run 
 
     `terraform state rm mongodbatlas_advanced_cluster.this`
 
@@ -87,12 +90,17 @@ The following steps resolve the configuration drift in Terraform and does not af
 
     Without this step, Terraform creates a plan to delete your existing cluster.
 
-9.  Remove the import block created in step 2.
-10.  Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
+10.  Remove the import block created in step 2.
+11.  Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
 
 ## From Serverless to Free 
 
+**Please ensure your Serverless instance meets the following requirements to migrate to Free:**
+- $0 MRR
+
 ### Pre-Autoconversion Migration Procedure
+
+**NOTE:** We recommend waiting until March 2025 or later for Serverless instances to autoconvert.
 
 1. Create a new Free Cluster directly from your `.tf` file, e.g.:
 
@@ -143,18 +151,26 @@ The following steps resolve the configuration drift in Terraform and does not af
     ```
 3. Run `terraform plan -generate-config-out=free_cluster.tf`. This should generate a `free_cluster.tf` file with your Free cluster in it.
 4. Run `terraform apply`. You should see the resource(s) imported: `Apply complete! Resources: 1 imported, 0 added, 0 changed, 0 destroyed.`
-5. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
+5. Remove the "default" fields. Many fields of this resource are optional. Look for fields with a `null` or `0` value.
+6. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
    - variables, for example: `var.project_id`
    - Terraform keywords, for example: `for_each`, `count`, and `depends_on`
-6. Update the references from your previous cluster resource: `mongodbatlas_serverless_instance.this.X` to the new `mongodbatlas_advanced_cluster.this.X`.
-7. Update any shared-tier data source blocks to refer to `mongodbatlas_advanced_cluster`.
-8. Replace your existing clusters with the ones from `free_cluster.tf` and run `terraform state rm mongodbatlas_serverless_instance.this`. Without this step, Terraform creates a plan to delete your existing cluster.
-9.  Remove the import block created in step 2.
-10.  Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
+7. Update the references from your previous cluster resource: `mongodbatlas_serverless_instance.this.X` to the new `mongodbatlas_advanced_cluster.this.X`.
+8. Update any shared-tier data source blocks to refer to `mongodbatlas_advanced_cluster`.
+9. Replace your existing clusters with the ones from `free_cluster.tf` and run `terraform state rm mongodbatlas_serverless_instance.this`. Without this step, Terraform creates a plan to delete your existing cluster.
+10.  Remove the import block created in step 2.
+11.  Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
 
 ## From Serverless to Flex
 
+**Please ensure your Serverless instance meets the following requirements to migrate to Flex:**
+- <= 5GB of data
+- no privatelink or continuous backup
+- < 500 ops/sec consistently.
+
 ### Pre-Autoconversion Migration Procedure
+
+**NOTE:** We recommend waiting until March 2025 or later for Serverless instances to autoconvert.
 
 1. Create a new Flex Cluster directly from your `.tf` file, e.g.:
 
@@ -197,25 +213,32 @@ The following steps resolve the configuration drift in Terraform and does not af
     ```
 3. Run `terraform plan -generate-config-out=flex_cluster.tf`. This should generate a `flex_cluster.tf` file with your Flex cluster in it.
 4. Run `terraform apply`. You should see the resource(s) imported: `Apply complete! Resources: 1 imported, 0 added, 0 changed, 0 destroyed.`
-5. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
+5. Remove the "default" fields. Many fields of this resource are optional. Look for fields with a `null` or `0` value.
+6. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
    - variables, for example: `var.project_id`
    - Terraform keywords, for example: `for_each`, `count`, and `depends_on`
-6. Update the references from your previous cluster resource: `mongodbatlas_serverless_instance.this.X` to the new `mongodbatlas_flex_cluster.this.X`.
-7. Update any shared-tier data source blocks to refer to `mongodbatlas_flex_cluster`.
-8. Replace your existing clusters with the ones from `flex_cluster.tf` and run `terraform state rm mongodbatlas_serverless_instance.this`. Without this step, Terraform creates a plan to delete your existing cluster.
-9.  Remove the import block created in step 2.
-10.  Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
+7. Update the references from your previous cluster resource: `mongodbatlas_serverless_instance.this.X` to the new `mongodbatlas_flex_cluster.this.X`.
+8. Update any shared-tier data source blocks to refer to `mongodbatlas_flex_cluster`.
+9. Replace your existing clusters with the ones from `flex_cluster.tf` and run `terraform state rm mongodbatlas_serverless_instance.this`. Without this step, Terraform creates a plan to delete your existing cluster.
+10.  Remove the import block created in step 2.
+11.  Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
 
 
 ## From Serverless to Dedicated 
+**Please note your Serverless instance will need to migrate to Decidated if it meets the following requirements:**
+- \>= 5GB of data
+- needs privatelink or continuous backup
+- \> 500 ops/sec consistently.
 
 You cannot migrate from Serverless to Dedicated using the Terraform provider.
 
-**Note:** We recommend waiting until January 2025 for a UI-based migration tool.
-
 ### Pre-Autoconversion Migration Procedure
 
-To migrate from Serverless to Dedicated prior to January 2025, please see the following guide: [Convert a Serverless Instance to a Dedicated Cluster](https://www.mongodb.com/docs/atlas/tutorial/convert-serverless-to-dedicated/)
+**NOTE:** We recommend waiting until March 2025 or later for Serverless instances to autoconvert.
+
+In early 2025, a UI-based migration tool will be released to assist you in migrating your workload prior to the autoconversion.
+
+To migrate from Serverless to Dedicated prior to early 2025, please see the following guide: [Convert a Serverless Instance to a Dedicated Cluster](https://www.mongodb.com/docs/atlas/tutorial/convert-serverless-to-dedicated/)
 
 ### Post-Autoconversion Migration Procedure
 Given your Serverless Instance doesn't fit the constraints of a Flex cluster, it will automatically convert in March 2025 into a Dedicated cluster in Atlas, retaining all data.
@@ -232,11 +255,12 @@ The following steps resolve the configuration drift in Terraform and does not af
     ```
 3. Run `terraform plan -generate-config-out=dedicated_cluster.tf`. This should generate a `dedicated_cluster.tf` file with your Dedicated cluster in it.
 4. Run `terraform apply`. You should see the resource(s) imported: `Apply complete! Resources: 1 imported, 0 added, 0 changed, 0 destroyed.`
-5. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
+5. Remove the "default" fields. Many fields of this resource are optional. Look for fields with a `null` or `0` value.
+6. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
    - variables, for example: `var.project_id`
    - Terraform keywords, for example: `for_each`, `count`, and `depends_on`
-6. Update the references from your previous cluster resource: `mongodbatlas_serverless_instance.this.X` to the new `mongodbatlas_advanced_cluster.this.X`.
-7. Update any shared-tier data source blocks to refer to `mongodbatlas_advanced_cluster`.
-8. Replace your existing clusters with the ones from `dedicated_cluster.tf` and run `terraform state rm mongodbatlas_serverless_instance.this`. Without this step, Terraform creates a plan to delete your existing cluster.
-9.  Remove the import block created in step 2.
-10.  Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
+7. Update the references from your previous cluster resource: `mongodbatlas_serverless_instance.this.X` to the new `mongodbatlas_advanced_cluster.this.X`.
+8. Update any shared-tier data source blocks to refer to `mongodbatlas_advanced_cluster`.
+9. Replace your existing clusters with the ones from `dedicated_cluster.tf` and run `terraform state rm mongodbatlas_serverless_instance.this`. Without this step, Terraform creates a plan to delete your existing cluster.
+10.  Remove the import block created in step 2.
+11.  Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
