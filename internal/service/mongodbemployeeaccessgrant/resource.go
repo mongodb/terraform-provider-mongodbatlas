@@ -91,7 +91,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	conversion.ImportStateProjectIDClusterName(ctx, req, resp)
+	conversion.ImportStateProjectIDClusterName(ctx, req, resp, "project_id", "cluster_name")
 }
 
 func (r *rs) createOrUpdate(ctx context.Context, tfModelFunc func(context.Context, any) diag.Diagnostics, diagnostics *diag.Diagnostics, state *tfsdk.State) {

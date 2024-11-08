@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -46,24 +48,13 @@ func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resou
 }
 
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var tfModel TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
+	var plan TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	sdkResp, err := ReadClusterResponse(1)
-	if err != nil {
-		resp.Diagnostics.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
-		return
-	}
-	tfNewModel := NewTFModel(ctx, sdkResp, tfModel.Timeouts, &resp.Diagnostics)
-	sdkAdvConfig, err := ReadClusterProcessArgsResponse(1)
-	if err != nil {
-		resp.Diagnostics.AddError("errorCreateAdvConfig", fmt.Sprintf(errorCreate, err.Error()))
-	}
-
-	AddAdvancedConfig(ctx, tfNewModel, sdkAdvConfig, &resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
+	tfNewModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, plan.Timeouts)
+	if shouldReturn {
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, tfNewModel)...)
@@ -75,14 +66,59 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	if state.ClusterID.IsNull() {
+		tfModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, state.Timeouts)
+		if shouldReturn {
+			return
+		}
+		resp.Diagnostics.Append(resp.State.Set(ctx, tfModel)...)
+	} else {
+		resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	}
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state TFModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	name := state.Name.ValueString()
+	clusterID := state.ClusterID.ValueString()
+	if clusterID == "" {
+		resp.Diagnostics.AddError("errorDelete", fmt.Sprintf(errorDelete, name, "clusterID is empty"))
+		return
+	}
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	conversion.ImportStateProjectIDClusterName(ctx, req, resp, "project_id", "name")
+}
+
+func mockedSDK(ctx context.Context, diags *diag.Diagnostics, timeout timeouts.Value) (*TFModel, bool) {
+	sdkResp, err := ReadClusterResponse()
+	if err != nil {
+		diags.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
+		return nil, true
+	}
+	tfNewModel := NewTFModel(ctx, sdkResp, timeout, diags)
+	sdkAdvConfig, err := ReadClusterProcessArgsResponse()
+	if err != nil {
+		diags.AddError("errorCreateAdvConfig", fmt.Sprintf(errorCreate, err.Error()))
+		return nil, true
+	}
+	AddAdvancedConfig(ctx, tfNewModel, sdkAdvConfig, diags)
+	if diags.HasError() {
+		return nil, true
+	}
+	return tfNewModel, false
 }
