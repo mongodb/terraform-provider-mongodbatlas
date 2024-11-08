@@ -36,7 +36,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		clusterNameUpdated = acc.RandomClusterName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, acc.PreCheckBasicSleep(t, nil, projectID, clusterName)),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -69,7 +69,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) resource.TestCase {
 	)
 
 	return resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, acc.PreCheckBasicSleep(t, nil, projectID, clusterName)),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -105,7 +105,7 @@ func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
 	)
 
 	return resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -142,7 +142,7 @@ func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
 	)
 
 	return resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -174,7 +174,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, acc.PreCheckBasicSleep(t, nil, projectID, clusterName)),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -209,7 +209,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, acc.PreCheckBasicSleep(t, nil, projectID, clusterName)),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -271,7 +271,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, acc.PreCheckBasicSleep(t, nil, projectID, clusterName)),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -316,7 +316,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, acc.PreCheckBasicSleep(t, nil, projectID, clusterName)),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -348,7 +348,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, acc.PreCheckBasicSleep(t, nil, projectID, clusterName)),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -391,7 +391,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, acc.PreCheckBasicSleep(t, nil, projectID, clusterName)),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -425,7 +425,7 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -449,7 +449,7 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -477,7 +477,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -504,7 +504,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, acc.PreCheckBasicSleep(t, nil, projectID, clusterName)),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -524,7 +524,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -553,7 +553,7 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T) resource.TestCase {
 	)
 
 	return resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -577,7 +577,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -601,7 +601,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -634,7 +634,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
 	)
 
 	return resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -654,7 +654,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -682,7 +682,7 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -706,7 +706,7 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -730,7 +730,7 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *t
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -762,7 +762,7 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -791,7 +791,7 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -820,7 +820,7 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 acc.SkipIfTPFAdvancedCluster(t, func() { acc.PreCheckBasic(t) }),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{

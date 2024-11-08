@@ -10,6 +10,7 @@ import (
 )
 
 func TestMigAdvancedCluster_empty_advancedConfig(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t, func() {})()
 	acc.SkipInUnitTest(t) // needed because TF test infra is not used
 	v0State := map[string]any{
 		"project_id":   "test-id",
@@ -63,6 +64,7 @@ func TestMigAdvancedCluster_empty_advancedConfig(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_v0StateUpgrade_ReplicationSpecs(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t, func() {})()
 	acc.SkipInUnitTest(t) // needed because TF test infra is not used
 	v0State := map[string]any{
 		"project_id":     "test-id",

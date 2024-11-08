@@ -47,7 +47,7 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     mig.PreCheckBasicSleep(t),
+		PreCheck:     acc.SkipIfTPFAdvancedCluster(t, mig.PreCheckBasicSleep(t)),
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -72,7 +72,7 @@ func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     acc.SkipIfTPFAdvancedCluster(t, func() {mig.PreCheckBasic(t)} ),
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -97,7 +97,7 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     acc.SkipIfTPFAdvancedCluster(t, func() {mig.PreCheckBasic(t)} ),
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -127,7 +127,7 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     acc.SkipIfTPFAdvancedCluster(t, func() {mig.PreCheckBasic(t)} ),
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -192,7 +192,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     mig.PreCheckBasicSleep(t),
+		PreCheck:     acc.SkipIfTPFAdvancedCluster(t, mig.PreCheckBasicSleep(t)),
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
