@@ -1,4 +1,4 @@
-package conversion
+package conversion_test
 
 import (
 	"context"
@@ -6,26 +6,27 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 )
 
 func TestNewResourceTags(t *testing.T) {
 	testCases := map[string]struct {
-		plan     types.Map
 		expected *[]admin.ResourceTag
+		plan     types.Map
 	}{
-		"tags null":    {types.MapNull(types.StringType), &[]admin.ResourceTag{}},
-		"tags unknown": {types.MapUnknown(types.StringType), &[]admin.ResourceTag{}},
-		"tags convert normally": {types.MapValueMust(types.StringType, map[string]attr.Value{
-			"key1": types.StringValue("value1"),
-		}), &[]admin.ResourceTag{
+		"tags null":    {&[]admin.ResourceTag{}, types.MapNull(types.StringType)},
+		"tags unknown": {&[]admin.ResourceTag{}, types.MapUnknown(types.StringType)},
+		"tags convert normally": {&[]admin.ResourceTag{
 			*admin.NewResourceTag("key1", "value1"),
-		}},
+		}, types.MapValueMust(types.StringType, map[string]attr.Value{
+			"key1": types.StringValue("value1"),
+		})},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, NewResourceTags(context.Background(), tc.plan))
+			assert.Equal(t, tc.expected, conversion.NewResourceTags(context.Background(), tc.plan))
 		})
 	}
 }
@@ -46,7 +47,7 @@ func TestNewTFTags(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, NewTFTags(tc.adminTags))
+			assert.Equal(t, tc.expected, conversion.NewTFTags(tc.adminTags))
 		})
 	}
 }
