@@ -653,7 +653,7 @@ After adding the `lifecycle` block to explicitly change `instance_size` comment 
 
 ### pinned_fcv
 
-* `expiration_date` - (Required) Expiration date of the fixed FCV. Note that this field cannot exceed 4 weeks from the pinned date.
+* `expiration_date` - (Required) Expiration date of the fixed FCV. This value is in the ISO 8601 timestamp format (e.g. "2024-12-04T16:25:00Z"). Note that this field cannot exceed 4 weeks from the pinned date.
 * `version` - Feature compatibility version of the cluster.
 
 ## Attributes Reference

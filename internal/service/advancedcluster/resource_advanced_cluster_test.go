@@ -849,11 +849,11 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 	)
 
 	now := time.Now()
-	// Time 7 days from now
-	sevenDaysFromNow := now.AddDate(0, 0, 7)
+	// Time 7 days from now, truncated to the beginning of the day
+	sevenDaysFromNow := now.AddDate(0, 0, 7).Truncate(24 * time.Hour)
 	firstExpirationDate := conversion.TimeToString(sevenDaysFromNow)
 	// Time 8 days from now
-	eightDaysFromNow := now.AddDate(0, 0, 8)
+	eightDaysFromNow := sevenDaysFromNow.AddDate(0, 0, 1)
 	updatedExpirationDate := conversion.TimeToString(eightDaysFromNow)
 
 	resource.ParallelTest(t, resource.TestCase{

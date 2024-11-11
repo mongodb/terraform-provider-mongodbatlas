@@ -205,7 +205,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ### pinned_fcv
 
-* `expiration_date` - Expiration date of the fixed FCV.
+* `expiration_date` - Expiration date of the fixed FCV. This value is in the ISO 8601 timestamp format (e.g. "2024-12-04T16:25:00Z").
 * `version` - Feature compatibility version of the cluster.
 
 ## Attributes Reference
