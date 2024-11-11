@@ -411,7 +411,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed. Once FCV has expired `pinned_fcv` attribute must be removed.",
 				Attributes: map[string]schema.Attribute{
-					"version": schema.BoolAttribute{
+					"version": schema.StringAttribute{
 						Computed:            true,
 						MarkdownDescription: "Feature compatibility version of the cluster.",
 					},
@@ -609,8 +609,8 @@ type TFModel struct {
 	Labels                                    types.Set      `tfsdk:"labels"`
 	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
 	Tags                                      types.Set      `tfsdk:"tags"`
-	DiskWarmingMode                           types.String   `tfsdk:"disk_warming_mode"`
-	StateName                                 types.String   `tfsdk:"state_name"`
+	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
+	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
 	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
 	CreateDate                                types.String   `tfsdk:"create_date"`
 	AcceptDataRisksAndForceReplicaSetReconfig types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
@@ -621,23 +621,24 @@ type TFModel struct {
 	ProjectID                                 types.String   `tfsdk:"project_id"`
 	ClusterID                                 types.String   `tfsdk:"cluster_id"`
 	ConfigServerManagementMode                types.String   `tfsdk:"config_server_management_mode"`
-	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
+	DiskWarmingMode                           types.String   `tfsdk:"disk_warming_mode"`
 	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
 	Name                                      types.String   `tfsdk:"name"`
-	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
+	StateName                                 types.String   `tfsdk:"state_name"`
 	BiConnector                               types.Object   `tfsdk:"bi_connector"`
 	ConfigServerType                          types.String   `tfsdk:"config_server_type"`
 	ReplicaSetScalingStrategy                 types.String   `tfsdk:"replica_set_scaling_strategy"`
 	ClusterType                               types.String   `tfsdk:"cluster_type"`
 	RootCertType                              types.String   `tfsdk:"root_cert_type"`
-	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
-	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
+	PinnedFCV                                 types.Object   `tfsdk:"pinned_fcv"`
+	AdvancedConfiguration                     types.Object   `tfsdk:"advanced_configuration"`
 	TerminationProtectionEnabled              types.Bool     `tfsdk:"termination_protection_enabled"`
 	Paused                                    types.Bool     `tfsdk:"paused"`
 	RetainBackupsEnabled                      types.Bool     `tfsdk:"retain_backups_enabled"`
 	BackupEnabled                             types.Bool     `tfsdk:"backup_enabled"`
 	GlobalClusterSelfManagedSharding          types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
-	AdvancedConfiguration                     types.Object   `tfsdk:"advanced_configuration"`
+	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
+	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
 }
 
 type TFBiConnectorModel struct {
@@ -709,13 +710,13 @@ var LabelsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFReplicationSpecsModel struct {
-	Id            types.String `tfsdk:"id"`
-	ContainerId   types.Map    `tfsdk:"container_id"`
-	ExternalId    types.String `tfsdk:"external_id"`
-	NumShards     types.Int64  `tfsdk:"num_shards"`
 	RegionConfigs types.List   `tfsdk:"region_configs"`
+	ContainerId   types.Map    `tfsdk:"container_id"`
+	Id            types.String `tfsdk:"id"`
+	ExternalId    types.String `tfsdk:"external_id"`
 	ZoneId        types.String `tfsdk:"zone_id"`
 	ZoneName      types.String `tfsdk:"zone_name"`
+	NumShards     types.Int64  `tfsdk:"num_shards"`
 }
 
 var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -828,4 +829,14 @@ var AdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.T
 	"sample_refresh_interval_bi_connector":                           types.Int64Type,
 	"sample_size_bi_connector":                                       types.Int64Type,
 	"transaction_lifetime_limit_seconds":                             types.Int64Type,
+}}
+
+type TFPinnedFCVModel struct {
+	Version        types.String `tfsdk:"version"`
+	ExpirationDate types.String `tfsdk:"expiration_date"`
+}
+
+var PinnedFCVObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"version":         types.StringType,
+	"expiration_date": types.StringType,
 }}
