@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -231,7 +232,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"num_shards": schema.Int64Attribute{ // TODO: added as in current resource
 							DeprecationMessage: DeprecationMsgOldSchema,
 							// TODO: not sure if add valitadation here: ValidateFunc: validation.IntBetween(1, 50),
-							// Default:             int64default.StaticInt64(1),
+							Default:             int64default.StaticInt64(1),
 							Computed:            true, // must be computed to allow default 1
 							Optional:            true,
 							MarkdownDescription: "num_shards", // TODO: add description
