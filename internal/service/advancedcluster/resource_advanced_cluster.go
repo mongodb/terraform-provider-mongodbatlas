@@ -539,7 +539,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any); ok && len(pinnedFCVBlock) > 0 {
-		pinFCV(ctx, connV2, projectID, cluster.GetName(), pinnedFCVBlock[0])
+		if diags := pinFCV(ctx, connV2, projectID, cluster.GetName(), pinnedFCVBlock[0]); diags.HasError() {
+			return diags
+		}
 		waitForChanges = true
 	}
 
@@ -985,7 +987,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData, timeout time.Duration) diag.Diagnostics {
 	if d.HasChange("pinned_fcv") {
 		if pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any); ok && len(pinnedFCVBlock) > 0 {
-			pinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0])
+			if diags := pinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
+				return diags
+			}
 		} else {
 			// pinned_fcv has been removed from the config so unpin method is called
 			if _, _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
@@ -1006,7 +1010,7 @@ func pinFCV(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName
 		expDateStrPtr := conversion.StringPtr(cast.ToString(nestedObj["expiration_date"]))
 		expirationTime, ok := conversion.StringPtrToTimePtr(expDateStrPtr)
 		if !ok {
-			return diag.FromErr(fmt.Errorf("expiration_date format is incorrect: %s", expirationTime))
+			return diag.FromErr(fmt.Errorf("expiration_date format is incorrect: %s", *expDateStrPtr))
 		}
 		req.ExpirationDate = expirationTime
 	}
