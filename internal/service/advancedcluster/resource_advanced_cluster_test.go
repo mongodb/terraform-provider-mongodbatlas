@@ -868,6 +868,7 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // Using single project to assert plural data source
