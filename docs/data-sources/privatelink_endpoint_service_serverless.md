@@ -1,3 +1,9 @@
+---
+subcategory: "Deprecated"    
+---
+
+**WARNING:** This data source is deprecated and will be removed in March 2025. For more datails see [Migration Guide: Transition out of Serverless Instances and Shared-tier clusters](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide)
+
 # Data Source: privatelink_endpoint_service_serverless
 
 `privatelink_endpoint_service_serverless` provides a Serverless PrivateLink Endpoint Service resource.
