@@ -55,6 +55,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"gen_ai_features_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -93,6 +97,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	if err := d.Set("restrict_employee_access", settings.RestrictEmployeeAccess); err != nil {
 		return diag.Errorf("error setting `restrict_employee_access` for organization (%s): %s", orgID, err)
+	}
+	if err := d.Set("gen_ai_features_enabled", settings.GenAIFeaturesEnabled); err != nil {
+		return diag.Errorf("error setting `gen_ai_features_enabled` for organization (%s): %s", orgID, err)
 	}
 
 	d.SetId(organization.GetId())
