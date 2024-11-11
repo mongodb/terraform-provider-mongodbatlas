@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"testing"
+	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241023001/admin"
@@ -835,6 +836,60 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 			{
 				Config:      configPriority(orgID, projectName, clusterName, false, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // Using single project to assert plural data source
+		clusterName = acc.RandomClusterName()
+	)
+
+	now := time.Now()
+	// Time 7 days from now
+	sevenDaysFromNow := now.AddDate(0, 0, 7)
+	firstExpirationDate := conversion.TimeToString(sevenDaysFromNow)
+	// Time 8 days from now
+	eightDaysFromNow := now.AddDate(0, 0, 8)
+	updatedExpirationDate := conversion.TimeToString(eightDaysFromNow)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check: acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.#":           "0",
+					"mongo_db_major_version": "7.0",
+				}),
+			},
+			{ // pins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
+				Check: acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.0.version":         "7.0",
+					"pinned_fcv.0.expiration_date": firstExpirationDate,
+					"mongo_db_major_version":       "7.0",
+				}),
+			},
+			{ // updates expiration date of fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check: acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.0.version":         "7.0",
+					"pinned_fcv.0.expiration_date": updatedExpirationDate,
+					"mongo_db_major_version":       "7.0",
+				}),
+			},
+			{ // unpins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check: acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.#":           "0",
+					"mongo_db_major_version": "7.0",
+				}),
 			},
 		},
 	})
@@ -2239,4 +2294,54 @@ func configPriority(orgID, projectName, clusterName string, oldSchema, swapPrior
 			}
 		}
 	`, orgID, projectName, clusterName, strType, strNumShards, strConfigs)
+}
+
+func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationDate *string, mongoDBMajorVersion string) string {
+	var pinnedFCVAttr string
+	if pinningExpirationDate != nil {
+		pinnedFCVAttr = fmt.Sprintf(`
+		pinned_fcv {
+    		expiration_date = %q
+  		}
+		`, *pinningExpirationDate)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+		
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = mongodbatlas_project.test.id
+			name         = %[3]q
+
+			cluster_type = "REPLICASET"
+
+			mongo_db_major_version = %[4]q
+
+			%[5]s
+
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+				}
+			}
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
+	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)
 }
