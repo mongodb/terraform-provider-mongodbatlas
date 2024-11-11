@@ -13,6 +13,7 @@ import (
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
+var _ resource.ResourceWithMoveState = &rs{}
 
 const (
 	errorCreate                    = "error creating advanced cluster: %s"
