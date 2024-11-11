@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+NOTES:
+
+* data-source/mongodbatlas_organization: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+* data-source/mongodbatlas_organizations: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+* resource/mongodbatlas_organization: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Adds `failed` attribute ([#2781](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2781))
