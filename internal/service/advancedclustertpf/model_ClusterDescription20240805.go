@@ -11,7 +11,7 @@ import (
 )
 
 func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics) *TFModel {
-	biConnector := NewBiConnectorObjType(ctx, input.BiConnector, diags)
+	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, input.Labels, diags)
 	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags)
@@ -22,7 +22,7 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 	return &TFModel{
 		AcceptDataRisksAndForceReplicaSetReconfig: types.StringPointerValue(conversion.TimePtrToStringPtr(input.AcceptDataRisksAndForceReplicaSetReconfig)),
 		BackupEnabled:                    types.BoolPointerValue(input.BackupEnabled),
-		BiConnector:                      biConnector,
+		BiConnectorConfig:                biConnector,
 		ClusterType:                      types.StringPointerValue(input.ClusterType),
 		ConfigServerManagementMode:       types.StringPointerValue(input.ConfigServerManagementMode),
 		ConfigServerType:                 types.StringPointerValue(input.ConfigServerType),
@@ -50,15 +50,15 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 	}
 }
 
-func NewBiConnectorObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.Object {
+func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.Object {
 	if input == nil {
-		return types.ObjectNull(BiConnectorObjType.AttrTypes)
+		return types.ObjectNull(BiConnectorConfigObjType.AttrTypes)
 	}
 	tfModel := TFBiConnectorModel{
 		Enabled:        types.BoolPointerValue(input.Enabled),
 		ReadPreference: types.StringPointerValue(input.ReadPreference),
 	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, BiConnectorObjType.AttrTypes, tfModel)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, BiConnectorConfigObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
 }

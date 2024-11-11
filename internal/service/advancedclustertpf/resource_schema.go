@@ -27,7 +27,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/) for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.",
 			},
-			"bi_connector": schema.SingleNestedAttribute{
+			"bi_connector_config": schema.SingleNestedAttribute{
 				// TODO: MaxItems: 1
 				Computed:            true,
 				Optional:            true,
@@ -507,7 +507,7 @@ type TFModel struct {
 	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
 	Name                                      types.String   `tfsdk:"name"`
 	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
-	BiConnector                               types.Object   `tfsdk:"bi_connector"`
+	BiConnectorConfig                         types.Object   `tfsdk:"bi_connector_config"`
 	ConfigServerType                          types.String   `tfsdk:"config_server_type"`
 	ReplicaSetScalingStrategy                 types.String   `tfsdk:"replica_set_scaling_strategy"`
 	ClusterType                               types.String   `tfsdk:"cluster_type"`
@@ -527,7 +527,7 @@ type TFBiConnectorModel struct {
 	Enabled        types.Bool   `tfsdk:"enabled"`
 }
 
-var BiConnectorObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var BiConnectorConfigObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"enabled":         types.BoolType,
 	"read_preference": types.StringType,
 }}
