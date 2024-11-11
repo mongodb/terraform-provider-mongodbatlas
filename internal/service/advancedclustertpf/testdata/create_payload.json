@@ -1,0 +1,22 @@
+{
+    "backupEnabled": true,
+    "clusterType": "REPLICASET",
+    "name": "test",
+    "replicationSpecs": [
+        {
+            "regionConfigs": [
+                {
+                    "electableSpecs": {
+                        "diskSizeGB": 10,
+                        "instanceSize": "M10",
+                        "nodeCount": 3
+                    },
+                    "priority": 7,
+                    "providerName": "AWS",
+                    "regionName": "US_EAST_1"
+                }
+            ],
+            "zoneName": "ZoneName managed by Terraform"
+        }
+    ]
+}

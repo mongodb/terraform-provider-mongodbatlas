@@ -2,6 +2,9 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Adds `failed` attribute ([#2781](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2781))
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Adds `failed` attribute ([#2781](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2781))
+* resource/mongodbatlas_cloud_backup_snapshot_restore_job: Adds `failed` attribute ([#2781](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2781))
 * resource/mongodbatlas_network_peering: Improve error message when networking peering reaches a failed status ([#2766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2766))
 
 ## 1.21.4 (October 29, 2024)
