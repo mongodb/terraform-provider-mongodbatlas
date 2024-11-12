@@ -18,25 +18,25 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 	}
 	return &admin.ClusterDescription20240805{
 		AcceptDataRisksAndForceReplicaSetReconfig: acceptDataRisksAndForceReplicaSetReconfig,
-		BackupEnabled:                    conversion.NilForUnknown(input.BackupEnabled.IsUnknown(), input.BackupEnabled.ValueBoolPointer()),
+		BackupEnabled:                    conversion.NilForUnknown(input.BackupEnabled, input.BackupEnabled.ValueBoolPointer()),
 		BiConnector:                      newBiConnector(ctx, input.BiConnectorConfig, diags),
 		ClusterType:                      input.ClusterType.ValueStringPointer(),
-		ConfigServerManagementMode:       conversion.NilForUnknown(input.ConfigServerManagementMode.IsUnknown(), input.ConfigServerManagementMode.ValueStringPointer()),
-		EncryptionAtRestProvider:         conversion.NilForUnknown(input.EncryptionAtRestProvider.IsUnknown(), input.EncryptionAtRestProvider.ValueStringPointer()),
-		GlobalClusterSelfManagedSharding: conversion.NilForUnknown(input.GlobalClusterSelfManagedSharding.IsUnknown(), input.GlobalClusterSelfManagedSharding.ValueBoolPointer()),
+		ConfigServerManagementMode:       conversion.NilForUnknown(input.ConfigServerManagementMode, input.ConfigServerManagementMode.ValueStringPointer()),
+		EncryptionAtRestProvider:         conversion.NilForUnknown(input.EncryptionAtRestProvider, input.EncryptionAtRestProvider.ValueStringPointer()),
+		GlobalClusterSelfManagedSharding: conversion.NilForUnknown(input.GlobalClusterSelfManagedSharding, input.GlobalClusterSelfManagedSharding.ValueBoolPointer()),
 		GroupId:                          input.ProjectID.ValueStringPointer(),
 		Labels:                           newComponentLabel(ctx, input.Labels, diags),
-		MongoDBMajorVersion:              conversion.NilForUnknown(input.MongoDBMajorVersion.IsUnknown(), input.MongoDBMajorVersion.ValueStringPointer()),
+		MongoDBMajorVersion:              conversion.NilForUnknown(input.MongoDBMajorVersion, input.MongoDBMajorVersion.ValueStringPointer()),
 		Name:                             input.Name.ValueStringPointer(),
-		Paused:                           conversion.NilForUnknown(input.Paused.IsUnknown(), input.Paused.ValueBoolPointer()),
-		PitEnabled:                       conversion.NilForUnknown(input.PitEnabled.IsUnknown(), input.PitEnabled.ValueBoolPointer()),
-		RedactClientLogData:              conversion.NilForUnknown(input.RedactClientLogData.IsUnknown(), input.RedactClientLogData.ValueBoolPointer()),
-		ReplicaSetScalingStrategy:        conversion.NilForUnknown(input.ReplicaSetScalingStrategy.IsUnknown(), input.ReplicaSetScalingStrategy.ValueStringPointer()),
+		Paused:                           conversion.NilForUnknown(input.Paused, input.Paused.ValueBoolPointer()),
+		PitEnabled:                       conversion.NilForUnknown(input.PitEnabled, input.PitEnabled.ValueBoolPointer()),
+		RedactClientLogData:              conversion.NilForUnknown(input.RedactClientLogData, input.RedactClientLogData.ValueBoolPointer()),
+		ReplicaSetScalingStrategy:        conversion.NilForUnknown(input.ReplicaSetScalingStrategy, input.ReplicaSetScalingStrategy.ValueStringPointer()),
 		ReplicationSpecs:                 newReplicationSpec20240805(ctx, input.ReplicationSpecs, diags),
-		RootCertType:                     conversion.NilForUnknown(input.RootCertType.IsUnknown(), input.RootCertType.ValueStringPointer()),
+		RootCertType:                     conversion.NilForUnknown(input.RootCertType, input.RootCertType.ValueStringPointer()),
 		Tags:                             newResourceTag(ctx, input.Tags, diags),
-		TerminationProtectionEnabled:     conversion.NilForUnknown(input.TerminationProtectionEnabled.IsUnknown(), input.TerminationProtectionEnabled.ValueBoolPointer()),
-		VersionReleaseSystem:             conversion.NilForUnknown(input.VersionReleaseSystem.IsUnknown(), input.VersionReleaseSystem.ValueStringPointer()),
+		TerminationProtectionEnabled:     conversion.NilForUnknown(input.TerminationProtectionEnabled, input.TerminationProtectionEnabled.ValueBoolPointer()),
+		VersionReleaseSystem:             conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
 	}
 }
 func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.BiConnector {
@@ -50,8 +50,8 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 		return resp
 	}
 	return &admin.BiConnector{
-		Enabled:        conversion.NilForUnknown(item.Enabled.IsUnknown(), item.Enabled.ValueBoolPointer()),
-		ReadPreference: conversion.NilForUnknown(item.ReadPreference.IsUnknown(), item.ReadPreference.ValueStringPointer()),
+		Enabled:        conversion.NilForUnknown(item.Enabled, item.Enabled.ValueBoolPointer()),
+		ReadPreference: conversion.NilForUnknown(item.ReadPreference, item.ReadPreference.ValueStringPointer()),
 	}
 }
 func newComponentLabel(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ComponentLabel {
@@ -127,7 +127,7 @@ func newCloudRegionConfig20240805(ctx context.Context, input types.List, diags *
 			AnalyticsAutoScaling: newAdvancedAutoScalingSettings(ctx, item.AnalyticsAutoScaling, diags),
 			AnalyticsSpecs:       newDedicatedHardwareSpec20240805(ctx, item.AnalyticsSpecs, diags),
 			AutoScaling:          newAdvancedAutoScalingSettings(ctx, item.AutoScaling, diags),
-			BackingProviderName:  conversion.NilForUnknown(item.BackingProviderName.IsUnknown(), item.BackingProviderName.ValueStringPointer()),
+			BackingProviderName:  conversion.NilForUnknown(item.BackingProviderName, item.BackingProviderName.ValueStringPointer()),
 			ElectableSpecs:       newHardwareSpec20240805(ctx, item.ElectableSpecs, diags),
 			Priority:             conversion.Int64PtrToIntPtr(item.Priority.ValueInt64Pointer()),
 			ProviderName:         item.ProviderName.ValueStringPointer(),
@@ -164,11 +164,11 @@ func newHardwareSpec20240805(ctx context.Context, input types.Object, diags *dia
 		return resp
 	}
 	return &admin.HardwareSpec20240805{
-		DiskIOPS:      conversion.NilForUnknown(item.DiskIops.IsUnknown(), conversion.Int64PtrToIntPtr(item.DiskIops.ValueInt64Pointer())),
-		DiskSizeGB:    conversion.NilForUnknown(item.DiskSizeGb.IsUnknown(), item.DiskSizeGb.ValueFloat64Pointer()),
-		EbsVolumeType: conversion.NilForUnknown(item.EbsVolumeType.IsUnknown(), item.EbsVolumeType.ValueStringPointer()),
-		InstanceSize:  conversion.NilForUnknown(item.InstanceSize.IsUnknown(), item.InstanceSize.ValueStringPointer()),
-		NodeCount:     conversion.NilForUnknown(item.NodeCount.IsUnknown(), conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
+		DiskIOPS:      conversion.NilForUnknown(item.DiskIops, conversion.Int64PtrToIntPtr(item.DiskIops.ValueInt64Pointer())),
+		DiskSizeGB:    conversion.NilForUnknown(item.DiskSizeGb, item.DiskSizeGb.ValueFloat64Pointer()),
+		EbsVolumeType: conversion.NilForUnknown(item.EbsVolumeType, item.EbsVolumeType.ValueStringPointer()),
+		InstanceSize:  conversion.NilForUnknown(item.InstanceSize, item.InstanceSize.ValueStringPointer()),
+		NodeCount:     conversion.NilForUnknown(item.NodeCount, conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
 	}
 }
 func newDedicatedHardwareSpec20240805(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.DedicatedHardwareSpec20240805 {
@@ -182,11 +182,11 @@ func newDedicatedHardwareSpec20240805(ctx context.Context, input types.Object, d
 		return resp
 	}
 	return &admin.DedicatedHardwareSpec20240805{
-		DiskIOPS:      conversion.NilForUnknown(item.DiskIops.IsUnknown(), conversion.Int64PtrToIntPtr(item.DiskIops.ValueInt64Pointer())),
-		DiskSizeGB:    conversion.NilForUnknown(item.DiskSizeGb.IsUnknown(), item.DiskSizeGb.ValueFloat64Pointer()),
-		EbsVolumeType: conversion.NilForUnknown(item.EbsVolumeType.IsUnknown(), item.EbsVolumeType.ValueStringPointer()),
-		InstanceSize:  conversion.NilForUnknown(item.InstanceSize.IsUnknown(), item.InstanceSize.ValueStringPointer()),
-		NodeCount:     conversion.NilForUnknown(item.NodeCount.IsUnknown(), conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
+		DiskIOPS:      conversion.NilForUnknown(item.DiskIops, conversion.Int64PtrToIntPtr(item.DiskIops.ValueInt64Pointer())),
+		DiskSizeGB:    conversion.NilForUnknown(item.DiskSizeGb, item.DiskSizeGb.ValueFloat64Pointer()),
+		EbsVolumeType: conversion.NilForUnknown(item.EbsVolumeType, item.EbsVolumeType.ValueStringPointer()),
+		InstanceSize:  conversion.NilForUnknown(item.InstanceSize, item.InstanceSize.ValueStringPointer()),
+		NodeCount:     conversion.NilForUnknown(item.NodeCount, conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
 	}
 }
 
@@ -201,10 +201,10 @@ func newAdvancedComputeAutoScaling(ctx context.Context, input types.Object, diag
 		return resp
 	}
 	return &admin.AdvancedComputeAutoScaling{
-		Enabled:          conversion.NilForUnknown(item.ComputeEnabled.IsUnknown(), item.ComputeEnabled.ValueBoolPointer()),
-		ScaleDownEnabled: conversion.NilForUnknown(item.ComputeScaleDownEnabled.IsUnknown(), item.ComputeScaleDownEnabled.ValueBoolPointer()),
-		MaxInstanceSize:  conversion.NilForUnknown(item.ComputeMaxInstanceSize.IsUnknown(), item.ComputeMaxInstanceSize.ValueStringPointer()),
-		MinInstanceSize:  conversion.NilForUnknown(item.ComputeMinInstanceSize.IsUnknown(), item.ComputeMinInstanceSize.ValueStringPointer()),
+		Enabled:          conversion.NilForUnknown(item.ComputeEnabled, item.ComputeEnabled.ValueBoolPointer()),
+		ScaleDownEnabled: conversion.NilForUnknown(item.ComputeScaleDownEnabled, item.ComputeScaleDownEnabled.ValueBoolPointer()),
+		MaxInstanceSize:  conversion.NilForUnknown(item.ComputeMaxInstanceSize, item.ComputeMaxInstanceSize.ValueStringPointer()),
+		MinInstanceSize:  conversion.NilForUnknown(item.ComputeMinInstanceSize, item.ComputeMinInstanceSize.ValueStringPointer()),
 	}
 }
 func newDiskGBAutoScaling(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.DiskGBAutoScaling {
@@ -218,6 +218,6 @@ func newDiskGBAutoScaling(ctx context.Context, input types.Object, diags *diag.D
 		return resp
 	}
 	return &admin.DiskGBAutoScaling{
-		Enabled: conversion.NilForUnknown(item.DiskGBEnabled.IsUnknown(), item.DiskGBEnabled.ValueBoolPointer()),
+		Enabled: conversion.NilForUnknown(item.DiskGBEnabled, item.DiskGBEnabled.ValueBoolPointer()),
 	}
 }
