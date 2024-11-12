@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/sebdah/goldie/v2"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -23,6 +24,19 @@ func ChangeReponseNumber(responseNumber int) resource.TestCheckFunc {
 	return changer
 }
 
+func CheckRequestPayload(t *testing.T, requestName string) resource.TestCheckFunc {
+	t.Helper()
+	return func(state *terraform.State) error {
+		g := goldie.New(t, goldie.WithNameSuffix(".json"))
+		lastPayload, err := advancedclustertpf.ReadLastCreatePayload()
+		if err != nil {
+			return err
+		}
+		g.Assert(t, requestName, []byte(lastPayload))
+		return nil
+	}
+}
+
 func TestAccAdvancedCluster_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -32,6 +46,7 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "CREATING"),
 					ChangeReponseNumber(2),
+					CheckRequestPayload(t, "create_payload_check1"),
 				),
 			},
 			{

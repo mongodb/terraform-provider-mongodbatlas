@@ -75,3 +75,10 @@ func MongoDBRegionToAWSRegion(region string) string {
 func AWSRegionToMongoDBRegion(region string) string {
 	return strings.ReplaceAll(strings.ToUpper(region), "-", "_")
 }
+
+func NilForUnknown[T any](isUnknown bool, value *T) *T {
+	if isUnknown {
+		return nil
+	}
+	return value
+}
