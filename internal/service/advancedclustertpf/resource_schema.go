@@ -161,13 +161,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
-							Computed:            true,
-							Optional:            true,
+							Required:            true,
 							MarkdownDescription: "Key applied to tag and categorize this component.",
 						},
 						"value": schema.StringAttribute{
-							Computed:            true,
-							Optional:            true,
+							Required:            true,
 							MarkdownDescription: "Value set to the Key applied to tag and categorize this component.",
 						},
 					},
