@@ -29,10 +29,16 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(""),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "state_name", "CREATING"),
+					ChangeReponseNumber(2),
+				),
 			},
 			{
 				Config: configBasic("accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
-				Check:  resource.ComposeTestCheckFunc(ChangeReponseNumber(2)),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", "2006-01-02T15:04:05Z"),
+				),
 			},
 			{
 				ResourceName:                         resourceName,

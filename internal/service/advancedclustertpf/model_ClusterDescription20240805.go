@@ -11,7 +11,7 @@ import (
 )
 
 func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics) *TFModel {
-	biConnector := NewBiConnectorObjType(ctx, input.BiConnector, diags)
+	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, input.Labels, diags)
 	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags)
@@ -21,47 +21,44 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 	}
 	return &TFModel{
 		AcceptDataRisksAndForceReplicaSetReconfig: types.StringPointerValue(conversion.TimePtrToStringPtr(input.AcceptDataRisksAndForceReplicaSetReconfig)),
-		BackupEnabled:               types.BoolPointerValue(input.BackupEnabled),
-		BiConnector:                 biConnector,
-		ClusterType:                 types.StringPointerValue(input.ClusterType),
-		ConfigServerManagementMode:  types.StringPointerValue(input.ConfigServerManagementMode),
-		ConfigServerType:            types.StringPointerValue(input.ConfigServerType),
-		ConnectionStrings:           connectionStrings,
-		CreateDate:                  types.StringPointerValue(conversion.TimePtrToStringPtr(input.CreateDate)),
-		DiskWarmingMode:             types.StringPointerValue(input.DiskWarmingMode),
-		EncryptionAtRestProvider:    types.StringPointerValue(input.EncryptionAtRestProvider),
-		FeatureCompatibilityVersion: types.StringPointerValue(input.FeatureCompatibilityVersion),
-		FeatureCompatibilityVersionExpirationDate: types.StringPointerValue(conversion.TimePtrToStringPtr(input.FeatureCompatibilityVersionExpirationDate)),
-		GlobalClusterSelfManagedSharding:          types.BoolPointerValue(input.GlobalClusterSelfManagedSharding),
-		ProjectID:                                 types.StringPointerValue(input.GroupId),
-		ClusterID:                                 types.StringPointerValue(input.Id),
-		Labels:                                    labels,
-		MongoDBMajorVersion:                       types.StringPointerValue(input.MongoDBMajorVersion),
-		MongoDBVersion:                            types.StringPointerValue(input.MongoDBVersion),
-		Name:                                      types.StringPointerValue(input.Name),
-		Paused:                                    types.BoolPointerValue(input.Paused),
-		PitEnabled:                                types.BoolPointerValue(input.PitEnabled),
-		RedactClientLogData:                       types.BoolPointerValue(input.RedactClientLogData),
-		ReplicaSetScalingStrategy:                 types.StringPointerValue(input.ReplicaSetScalingStrategy),
-		ReplicationSpecs:                          replicationSpecs,
-		RootCertType:                              types.StringPointerValue(input.RootCertType),
-		StateName:                                 types.StringPointerValue(input.StateName),
-		Tags:                                      tags,
-		TerminationProtectionEnabled:              types.BoolPointerValue(input.TerminationProtectionEnabled),
-		VersionReleaseSystem:                      types.StringPointerValue(input.VersionReleaseSystem),
-		Timeouts:                                  timeout,
+		BackupEnabled:                    types.BoolPointerValue(input.BackupEnabled),
+		BiConnectorConfig:                biConnector,
+		ClusterType:                      types.StringPointerValue(input.ClusterType),
+		ConfigServerManagementMode:       types.StringPointerValue(input.ConfigServerManagementMode),
+		ConfigServerType:                 types.StringPointerValue(input.ConfigServerType),
+		ConnectionStrings:                connectionStrings,
+		CreateDate:                       types.StringPointerValue(conversion.TimePtrToStringPtr(input.CreateDate)),
+		EncryptionAtRestProvider:         types.StringPointerValue(input.EncryptionAtRestProvider),
+		GlobalClusterSelfManagedSharding: types.BoolPointerValue(input.GlobalClusterSelfManagedSharding),
+		ProjectID:                        types.StringPointerValue(input.GroupId),
+		ClusterID:                        types.StringPointerValue(input.Id),
+		Labels:                           labels,
+		MongoDBMajorVersion:              types.StringPointerValue(input.MongoDBMajorVersion),
+		MongoDBVersion:                   types.StringPointerValue(input.MongoDBVersion),
+		Name:                             types.StringPointerValue(input.Name),
+		Paused:                           types.BoolPointerValue(input.Paused),
+		PitEnabled:                       types.BoolPointerValue(input.PitEnabled),
+		RedactClientLogData:              types.BoolPointerValue(input.RedactClientLogData),
+		ReplicaSetScalingStrategy:        types.StringPointerValue(input.ReplicaSetScalingStrategy),
+		ReplicationSpecs:                 replicationSpecs,
+		RootCertType:                     types.StringPointerValue(input.RootCertType),
+		StateName:                        types.StringPointerValue(input.StateName),
+		Tags:                             tags,
+		TerminationProtectionEnabled:     types.BoolPointerValue(input.TerminationProtectionEnabled),
+		VersionReleaseSystem:             types.StringPointerValue(input.VersionReleaseSystem),
+		Timeouts:                         timeout,
 	}
 }
 
-func NewBiConnectorObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.Object {
+func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.Object {
 	if input == nil {
-		return types.ObjectNull(BiConnectorObjType.AttrTypes)
+		return types.ObjectNull(BiConnectorConfigObjType.AttrTypes)
 	}
 	tfModel := TFBiConnectorModel{
 		Enabled:        types.BoolPointerValue(input.Enabled),
 		ReadPreference: types.StringPointerValue(input.ReadPreference),
 	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, BiConnectorObjType.AttrTypes, tfModel)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, BiConnectorConfigObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
 }
@@ -72,13 +69,11 @@ func NewConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnec
 	}
 	privateEndpoint := NewPrivateEndpointObjType(ctx, input.PrivateEndpoint, diags)
 	tfModel := TFConnectionStringsModel{
-		AwsPrivateLink:    conversion.ToTFMapOfString(ctx, diags, input.AwsPrivateLink),
-		AwsPrivateLinkSrv: conversion.ToTFMapOfString(ctx, diags, input.AwsPrivateLinkSrv),
-		Private:           types.StringPointerValue(input.Private),
-		PrivateEndpoint:   privateEndpoint,
-		PrivateSrv:        types.StringPointerValue(input.PrivateSrv),
-		Standard:          types.StringPointerValue(input.Standard),
-		StandardSrv:       types.StringPointerValue(input.StandardSrv),
+		Private:         types.StringPointerValue(input.Private),
+		PrivateEndpoint: privateEndpoint,
+		PrivateSrv:      types.StringPointerValue(input.PrivateSrv),
+		Standard:        types.StringPointerValue(input.Standard),
+		StandardSrv:     types.StringPointerValue(input.StandardSrv),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, ConnectionStringsObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
@@ -106,16 +101,13 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 		return types.ListNull(ReplicationSpecsObjType)
 	}
 	tfModels := make([]TFReplicationSpecsModel, len(*input))
-	todoContainerID := map[string]string{
-		"AWS:US_EAST_1": "6728c725e12c976e3a21e204",
-	}
 	for i, item := range *input {
 		regionConfigs := NewRegionConfigsObjType(ctx, item.RegionConfigs, diags)
 		tfModels[i] = TFReplicationSpecsModel{
 			Id:            types.StringPointerValue(item.Id),
-			ExternalId:    types.StringValue("TODO_STATIC"),
-			NumShards:     types.Int64Value(1), //TODO: Static
-			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &todoContainerID),
+			ExternalId:    types.StringNull(),                          // TODO: Static
+			NumShards:     types.Int64Value(1),                         // TODO: Static
+			ContainerId:   conversion.ToTFMapOfString(ctx, diags, nil), // TODO: Static
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringPointerValue(item.ZoneId),
 			ZoneName:      types.StringPointerValue(item.ZoneName),
