@@ -391,7 +391,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"redact_client_log_data":               cluster.GetRedactClientLogData(),
 			"config_server_management_mode":        cluster.GetConfigServerManagementMode(),
 			"config_server_type":                   cluster.GetConfigServerType(),
-			"pinned_fcv":                           flattenPinnedFCV(cluster),
+			"pinned_fcv":                           FlattenPinnedFCV(cluster),
 		}
 		results = append(results, result)
 	}
@@ -451,7 +451,7 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"redact_client_log_data":               clusterDescNew.GetRedactClientLogData(),
 			"config_server_management_mode":        clusterDescNew.GetConfigServerManagementMode(),
 			"config_server_type":                   clusterDescNew.GetConfigServerType(),
-			"pinned_fcv":                           flattenPinnedFCV(clusterDescNew),
+			"pinned_fcv":                           FlattenPinnedFCV(clusterDescNew),
 		}
 		results = append(results, result)
 	}

@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_cluster: Adds `pinned_fcv` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_cluster: Adds `pinned_fcv` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_clusters: Adds `pinned_fcv` attribute
+```

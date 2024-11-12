@@ -94,6 +94,7 @@ In addition to all arguments above, the following attributes are exported:
 * `tags` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 * `labels` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
 * `mongo_db_major_version` - Indicates the version of the cluster to deploy.
+* `pinned_fcv` - The pinned Feature Compatibility Version (FCV) with its associated expiration date. See [below](#pinned-fcv).
 * `num_shards` - Indicates whether the cluster is a replica set or a sharded cluster.
 * `provider_backup_enabled` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups. **DEPRECATED** Use `cloud_backup` instead.
 * `cloud_backup` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups.
@@ -220,5 +221,9 @@ Contains a key-value pair that tags that the cluster was created by a Terraform 
 * `sample_refresh_interval_bi_connector` - Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `change_stream_options_pre_and_post_images_expire_after_seconds` - (Optional) The minimum pre- and post-image retention time in seconds. This parameter is only supported for MongoDB version 6.0 and above. Defaults to `-1`(off).
 
+### Pinned FCV
+
+* `expiration_date` - Expiration date of the fixed FCV. This value is in the ISO 8601 timestamp format (e.g. "2024-12-04T16:25:00Z").
+* `version` - Feature compatibility version of the cluster.
 
 See detailed information for arguments and attributes: [MongoDB API Clusters](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/)

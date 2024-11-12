@@ -319,6 +319,22 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"pinned_fcv": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"expiration_date": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -491,12 +507,16 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
-	redactClientLogData, err := newAtlasGet(ctx, connV2, projectID, clusterName)
+	latestClusterModel, err := newAtlasGet(ctx, connV2, projectID, clusterName)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
 	}
-	if err := d.Set("redact_client_log_data", redactClientLogData); err != nil {
+	if err := d.Set("redact_client_log_data", latestClusterModel.GetRedactClientLogData()); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "redact_client_log_data", clusterName, err))
+	}
+
+	if err := d.Set("pinned_fcv", advancedcluster.FlattenPinnedFCV(latestClusterModel)); err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "pinned_fcv", clusterName, err))
 	}
 
 	d.SetId(cluster.ID)
