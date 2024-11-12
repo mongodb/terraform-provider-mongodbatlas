@@ -25,7 +25,6 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		EncryptionAtRestProvider:         input.EncryptionAtRestProvider.ValueStringPointer(),
 		GlobalClusterSelfManagedSharding: input.GlobalClusterSelfManagedSharding.ValueBoolPointer(),
 		GroupId:                          input.ProjectID.ValueStringPointer(),
-		Id:                               input.ClusterID.ValueStringPointer(),
 		Labels:                           newComponentLabel(ctx, input.Labels, diags),
 		MongoDBMajorVersion:              input.MongoDBMajorVersion.ValueStringPointer(),
 		Name:                             input.Name.ValueStringPointer(),
@@ -41,7 +40,7 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 	}
 }
 func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.BiConnector {
-	resp := &admin.BiConnector{}
+	var resp *admin.BiConnector
 	if input.IsUnknown() || input.IsNull() {
 		return resp
 	}
@@ -56,7 +55,6 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 	}
 }
 func newComponentLabel(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ComponentLabel {
-	resp := []admin.ComponentLabel{}
 	if input.IsUnknown() || input.IsNull() {
 		return nil
 	}
@@ -65,17 +63,17 @@ func newComponentLabel(ctx context.Context, input types.Set, diags *diag.Diagnos
 		diags.Append(localDiags...)
 		return nil
 	}
+	resp := make([]admin.ComponentLabel, 0, len(input.Elements()))
 	for i := range elements {
 		item := &elements[i]
-		resp = append(resp, admin.ComponentLabel{
+		resp[i] = admin.ComponentLabel{
 			Key:   item.Key.ValueStringPointer(),
 			Value: item.Value.ValueStringPointer(),
-		})
+		}
 	}
 	return &resp
 }
 func newReplicationSpec20240805(ctx context.Context, input types.List, diags *diag.Diagnostics) *[]admin.ReplicationSpec20240805 {
-	resp := []admin.ReplicationSpec20240805{}
 	if input.IsUnknown() || input.IsNull() {
 		return nil
 	}
@@ -84,17 +82,17 @@ func newReplicationSpec20240805(ctx context.Context, input types.List, diags *di
 		diags.Append(localDiags...)
 		return nil
 	}
+	resp := make([]admin.ReplicationSpec20240805, 0, len(input.Elements()))
 	for i := range elements {
 		item := &elements[i]
-		resp = append(resp, admin.ReplicationSpec20240805{
+		resp[i] = admin.ReplicationSpec20240805{
 			RegionConfigs: newCloudRegionConfig20240805(ctx, item.RegionConfigs, diags),
 			ZoneName:      item.ZoneName.ValueStringPointer(),
-		})
+		}
 	}
 	return &resp
 }
 func newResourceTag(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ResourceTag {
-	resp := []admin.ResourceTag{}
 	if input.IsUnknown() || input.IsNull() {
 		return nil
 	}
@@ -103,16 +101,17 @@ func newResourceTag(ctx context.Context, input types.Set, diags *diag.Diagnostic
 		diags.Append(localDiags...)
 		return nil
 	}
-	for _, item := range elements {
-		resp = append(resp, admin.ResourceTag{
+	resp := make([]admin.ResourceTag, 0, len(input.Elements()))
+	for i := range elements {
+		item := &elements[i]
+		resp[i] = admin.ResourceTag{
 			Key:   item.Key.ValueString(),
 			Value: item.Value.ValueString(),
-		})
+		}
 	}
 	return &resp
 }
 func newCloudRegionConfig20240805(ctx context.Context, input types.List, diags *diag.Diagnostics) *[]admin.CloudRegionConfig20240805 {
-	resp := []admin.CloudRegionConfig20240805{}
 	if input.IsUnknown() || input.IsNull() {
 		return nil
 	}
@@ -121,9 +120,10 @@ func newCloudRegionConfig20240805(ctx context.Context, input types.List, diags *
 		diags.Append(localDiags...)
 		return nil
 	}
+	resp := make([]admin.CloudRegionConfig20240805, 0, len(input.Elements()))
 	for i := range elements {
 		item := &elements[i]
-		resp = append(resp, admin.CloudRegionConfig20240805{
+		resp[i] = admin.CloudRegionConfig20240805{
 			AnalyticsAutoScaling: newAdvancedAutoScalingSettings(ctx, item.AnalyticsAutoScaling, diags),
 			AnalyticsSpecs:       newDedicatedHardwareSpec20240805(ctx, item.AnalyticsSpecs, diags),
 			AutoScaling:          newAdvancedAutoScalingSettings(ctx, item.AutoScaling, diags),
@@ -133,13 +133,13 @@ func newCloudRegionConfig20240805(ctx context.Context, input types.List, diags *
 			ProviderName:         item.ProviderName.ValueStringPointer(),
 			ReadOnlySpecs:        newDedicatedHardwareSpec20240805(ctx, item.ReadOnlySpecs, diags),
 			RegionName:           item.RegionName.ValueStringPointer(),
-		})
+		}
 	}
 	return &resp
 }
 
 func newAdvancedAutoScalingSettings(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.AdvancedAutoScalingSettings {
-	resp := &admin.AdvancedAutoScalingSettings{}
+	var resp *admin.AdvancedAutoScalingSettings
 	if input.IsUnknown() || input.IsNull() {
 		return resp
 	}
@@ -154,7 +154,7 @@ func newAdvancedAutoScalingSettings(ctx context.Context, input types.Object, dia
 	}
 }
 func newHardwareSpec20240805(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.HardwareSpec20240805 {
-	resp := &admin.HardwareSpec20240805{}
+	var resp *admin.HardwareSpec20240805
 	if input.IsUnknown() || input.IsNull() {
 		return resp
 	}
@@ -172,7 +172,7 @@ func newHardwareSpec20240805(ctx context.Context, input types.Object, diags *dia
 	}
 }
 func newDedicatedHardwareSpec20240805(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.DedicatedHardwareSpec20240805 {
-	resp := &admin.DedicatedHardwareSpec20240805{}
+	var resp *admin.DedicatedHardwareSpec20240805
 	if input.IsUnknown() || input.IsNull() {
 		return resp
 	}
@@ -191,7 +191,7 @@ func newDedicatedHardwareSpec20240805(ctx context.Context, input types.Object, d
 }
 
 func newAdvancedComputeAutoScaling(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.AdvancedComputeAutoScaling {
-	resp := &admin.AdvancedComputeAutoScaling{}
+	var resp *admin.AdvancedComputeAutoScaling
 	if input.IsUnknown() || input.IsNull() {
 		return resp
 	}
@@ -208,7 +208,7 @@ func newAdvancedComputeAutoScaling(ctx context.Context, input types.Object, diag
 	}
 }
 func newDiskGBAutoScaling(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.DiskGBAutoScaling {
-	resp := &admin.DiskGBAutoScaling{}
+	var resp *admin.DiskGBAutoScaling
 	if input.IsUnknown() || input.IsNull() {
 		return resp
 	}
