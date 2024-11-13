@@ -10,6 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20241023002/admin"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -91,11 +92,29 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan TFModel
+	var state, plan TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	stateReq := NewAtlasReq(ctx, &state, &resp.Diagnostics)
+	planReq := NewAtlasReq(ctx, &plan, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	patchReq := admin.ClusterDescription20240805{}
+	err := conversion.PatchPayload(stateReq, planReq, &patchReq)
+	if err != nil {
+		resp.Diagnostics.AddError("errorUpdate", fmt.Sprintf(errorUpdate, plan.Name.ValueString(), err.Error()))
+		return
+	}
+	err = StoreUpdatePayload(&patchReq)
+	if err != nil {
+		resp.Diagnostics.AddError("error storing update payload", fmt.Sprintf("error storing update payload: %s", err.Error()))
+		return
+	}
+
 	tfNewModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, plan.Timeouts)
 	// TODO: keep project_id and name from plan to avoid overwriting for move_state tests. We should probably do the same with the rest of attributes
 	tfNewModel.Name = plan.Name
