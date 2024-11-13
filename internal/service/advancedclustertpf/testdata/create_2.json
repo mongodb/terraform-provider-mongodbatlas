@@ -80,7 +80,6 @@
     ],
     "rootCertType": "ISRGROOTX1",
     "stateName": "CREATING",
-    "tags": [],
     "terminationProtectionEnabled": false,
     "versionReleaseSystem": "LTS"
 }

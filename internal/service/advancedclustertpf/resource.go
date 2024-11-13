@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -30,6 +31,8 @@ const (
 	ignoreLabel                    = "Infrastructure Tool"
 	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 )
+
+var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
 
 func Resource() resource.Resource {
 	return &rs{
@@ -84,7 +87,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	tfNewModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, plan.Timeouts)
+	if shouldReturn {
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, tfNewModel)...)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
