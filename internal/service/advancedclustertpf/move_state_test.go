@@ -10,6 +10,29 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+func TestAccAdvancedCluster_move_preferred(t *testing.T) {
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
+	t.Setenv(advancedclustertpf.MoveModeEnvVarName, advancedclustertpf.MoveModeValPreferred)
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configMoveFirst(projectID, clusterName),
+			},
+			{
+				Config: configMoveSecond(projectID, clusterName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAdvancedCluster_move_rawstate(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
