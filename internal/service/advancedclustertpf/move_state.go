@@ -18,7 +18,7 @@ import (
 const (
 	MoveModeEnvVarName   = "MONGODB_ATLAS_TEST_MOVE_MODE"
 	MoveModeValPreferred = "preferred"
-	MoveModeValLowlevel  = "lowlevel"
+	MoveModeValRawState  = "rawstate"
 	MoveModeValJSON      = "json"
 )
 
@@ -108,7 +108,7 @@ func (r *rs) MoveState(context.Context) []resource.StateMover {
 			StateMover: stateMoverTemporaryPreferred,
 		},
 		{
-			StateMover: stateMoverTemporaryLowLevel,
+			StateMover: stateMoverTemporaryRawState,
 		},
 		{
 			StateMover: stateMoverTemporaryJSON,
@@ -142,8 +142,8 @@ func stateMoverTemporaryPreferred(ctx context.Context, req resource.MoveStateReq
 	setMoveState(ctx, state.ProjectID.String(), state.Username.String(), resp)
 }
 
-func stateMoverTemporaryLowLevel(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
-	if !isSource(req, "database_user", MoveModeValLowlevel) {
+func stateMoverTemporaryRawState(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+	if !isSource(req, "database_user", MoveModeValRawState) {
 		return
 	}
 	rawStateValue, err := req.SourceRawState.Unmarshal(tftypes.Object{

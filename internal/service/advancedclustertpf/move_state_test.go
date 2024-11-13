@@ -10,12 +10,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccAdvancedCluster_move_lowelevel(t *testing.T) {
+func TestAccAdvancedCluster_move_rawstate(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
-	t.Setenv(advancedclustertpf.MoveModeEnvVarName, advancedclustertpf.MoveModeValLowlevel)
+	t.Setenv(advancedclustertpf.MoveModeEnvVarName, advancedclustertpf.MoveModeValRawState)
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
