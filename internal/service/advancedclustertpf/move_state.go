@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -17,6 +18,7 @@ import (
 const (
 	MoveModeEnvVarName   = "MONGODB_ATLAS_TEST_MOVE_MODE"
 	MoveModeValPreferred = "preferred"
+	MoveModeValLowlevel  = "lowlevel"
 	MoveModeValJSON      = "json"
 )
 
@@ -24,7 +26,89 @@ const (
 func (r *rs) MoveState(context.Context) []resource.StateMover {
 	return []resource.StateMover{
 		{
+			SourceSchema: &schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"id": schema.StringAttribute{
+						Computed: true,
+					},
+					"project_id": schema.StringAttribute{
+						Required: true,
+					},
+					"auth_database_name": schema.StringAttribute{
+						Required: true,
+					},
+					"username": schema.StringAttribute{
+						Required: true,
+					},
+					"password": schema.StringAttribute{
+						Optional:  true,
+						Sensitive: true,
+					},
+					"x509_type": schema.StringAttribute{
+						Optional: true,
+						Computed: true,
+					},
+					"oidc_auth_type": schema.StringAttribute{
+						Optional: true,
+						Computed: true,
+					},
+					"ldap_auth_type": schema.StringAttribute{
+						Optional: true,
+						Computed: true,
+					},
+					"aws_iam_type": schema.StringAttribute{
+						Optional: true,
+						Computed: true,
+					},
+				},
+				Blocks: map[string]schema.Block{
+					"roles": schema.SetNestedBlock{
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"collection_name": schema.StringAttribute{
+									Optional: true,
+								},
+								"database_name": schema.StringAttribute{
+									Required: true,
+								},
+								"role_name": schema.StringAttribute{
+									Required: true,
+								},
+							},
+						},
+					},
+					"labels": schema.SetNestedBlock{
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"key": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
+								},
+								"value": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"scopes": schema.SetNestedBlock{
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"name": schema.StringAttribute{
+									Optional: true,
+								},
+								"type": schema.StringAttribute{
+									Optional: true,
+								},
+							},
+						},
+					},
+				},
+			},
 			StateMover: stateMoverTemporaryPreferred,
+		},
+		{
+			StateMover: stateMoverTemporaryLowLevel,
 		},
 		{
 			StateMover: stateMoverTemporaryJSON,
@@ -34,6 +118,32 @@ func (r *rs) MoveState(context.Context) []resource.StateMover {
 
 func stateMoverTemporaryPreferred(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
 	if !isSource(req, "database_user", MoveModeValPreferred) {
+		return
+	}
+	type model struct {
+		ID               types.String `tfsdk:"id"`
+		ProjectID        types.String `tfsdk:"project_id"`
+		AuthDatabaseName types.String `tfsdk:"auth_database_name"`
+		Username         types.String `tfsdk:"username"`
+		Password         types.String `tfsdk:"password"`
+		X509Type         types.String `tfsdk:"x509_type"`
+		OIDCAuthType     types.String `tfsdk:"oidc_auth_type"`
+		LDAPAuthType     types.String `tfsdk:"ldap_auth_type"`
+		AWSIAMType       types.String `tfsdk:"aws_iam_type"`
+		Roles            types.Set    `tfsdk:"roles"`
+		Labels           types.Set    `tfsdk:"labels"`
+		Scopes           types.Set    `tfsdk:"scopes"`
+	}
+	var state model
+	resp.Diagnostics.Append(req.SourceState.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	setMoveState(ctx, state.ProjectID.String(), state.Username.String(), resp)
+}
+
+func stateMoverTemporaryLowLevel(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+	if !isSource(req, "database_user", MoveModeValLowlevel) {
 		return
 	}
 	rawStateValue, err := req.SourceRawState.Unmarshal(tftypes.Object{
@@ -91,12 +201,12 @@ func stateMoverTemporaryPreferred(ctx context.Context, req resource.MoveStateReq
 }
 
 func stateMoverTemporaryJSON(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+	if !isSource(req, "database_user", MoveModeValJSON) {
+		return
+	}
 	type model struct {
 		ProjectID   string `json:"project_id"`
 		ClusterName string `json:"username"` // TODO: take username as the cluster name
-	}
-	if !isSource(req, "database_user", MoveModeValJSON) {
-		return
 	}
 	var state model
 	if err := json.Unmarshal(req.SourceRawState.JSON, &state); err != nil {

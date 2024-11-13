@@ -10,13 +10,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccAdvancedCluster_move_basic(t *testing.T) {
+func TestAccAdvancedCluster_move_lowelevel(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
-	t.Setenv(advancedclustertpf.MoveModeEnvVarName, advancedclustertpf.MoveModeValPreferred)
-	// TODO: temporarily not parallel tests so t.Setenv can be called
+	t.Setenv(advancedclustertpf.MoveModeEnvVarName, advancedclustertpf.MoveModeValLowlevel)
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -40,7 +39,6 @@ func TestAccAdvancedCluster_move_json(t *testing.T) {
 		clusterName = acc.RandomClusterName()
 	)
 	t.Setenv(advancedclustertpf.MoveModeEnvVarName, advancedclustertpf.MoveModeValJSON)
-	// TODO: temporarily not parallel tests so t.Setenv can be called
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
