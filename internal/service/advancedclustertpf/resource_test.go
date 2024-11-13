@@ -39,15 +39,19 @@ func CheckRequestPayload(t *testing.T, requestName string) resource.TestCheckFun
 }
 
 func TestAccAdvancedCluster_basic(t *testing.T) {
+	var (
+		projectID   = "111111111111111111111111"
+		clusterName = "test"
+	)
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic("accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
+				Config:      configBasic(projectID, clusterName, "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
 				ExpectError: regexp.MustCompile("Update only attribute set on create: accept_data_risks_and_force_replica_set_reconfig"),
 			},
 			{
-				Config: configBasic(""),
+				Config: configBasic(projectID, clusterName, ""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "CREATING"),
 					ChangeReponseNumber(2),
@@ -55,7 +59,7 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic("accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
+				Config: configBasic(projectID, clusterName, "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", "2006-01-02T15:04:05Z"),
 				),
@@ -71,12 +75,11 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 	})
 }
 
-func configBasic(extra string) string {
+func configBasic(projectID, clusterName, extra string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id = "111111111111111111111111"
-			%[1]s
-			name = "test"
+			project_id = %[1]q
+			name = %[2]q
 			cluster_type = "REPLICASET"
 			replication_specs = [{
 				region_configs = [{
@@ -90,6 +93,7 @@ func configBasic(extra string) string {
 					}
 				}]
 			}]
+			%[3]s
 		}
-	`, extra)
+	`, projectID, clusterName, extra)
 }

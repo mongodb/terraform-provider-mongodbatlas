@@ -14,6 +14,7 @@ import (
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
+var _ resource.ResourceWithMoveState = &rs{}
 
 const (
 	errorCreate                    = "error creating advanced cluster: %s"
@@ -96,6 +97,9 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	tfNewModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, plan.Timeouts)
+	// TODO: keep project_id and name from plan to avoid overwriting for move_state tests. We should probably do the same with the rest of attributes
+	tfNewModel.Name = plan.Name
+	tfNewModel.ProjectID = plan.ProjectID
 	if shouldReturn {
 		return
 	}
