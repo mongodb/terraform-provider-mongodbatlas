@@ -16,6 +16,7 @@ func TestAccAdvancedCluster_move_preferred(t *testing.T) {
 		clusterName = acc.RandomClusterName()
 	)
 	t.Setenv(advancedclustertpf.MoveModeEnvVarName, advancedclustertpf.MoveModeValPreferred)
+	// TODO: temporary no parallel tests so t.Setenv can be used
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
