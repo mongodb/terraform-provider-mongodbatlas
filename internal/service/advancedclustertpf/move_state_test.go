@@ -20,8 +20,7 @@ func TestAccAdvancedCluster_move_basic(t *testing.T) {
 				Config: configMoveFirst(projectID, clusterName),
 			},
 			{
-				Config:   configMoveSecond(projectID, clusterName),
-				PlanOnly: true,
+				Config: configMoveSecond(projectID, clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
