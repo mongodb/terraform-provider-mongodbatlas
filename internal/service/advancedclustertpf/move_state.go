@@ -2,6 +2,8 @@ package advancedclustertpf
 
 import (
 	"context"
+	"encoding/json"
+	"os"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -12,23 +14,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+const (
+	MoveModeEnvVarName   = "MONGODB_ATLAS_TEST_MOVE_MODE"
+	MoveModeValPreferred = "preferred"
+	MoveModeValJSON      = "json"
+)
+
 // TODO: We temporarily use mongodbatlas_database_user instead of mongodbatlas_cluster to set up the initial environment
 func (r *rs) MoveState(context.Context) []resource.StateMover {
 	return []resource.StateMover{
 		{
-			StateMover: stateMoverTemporaryTPFDatabaseUser,
+			StateMover: stateMoverTemporaryPreferred,
 		},
 		{
-			StateMover: stateMoverTemporaryV2,
-		},
-		{
-			StateMover: stateMoverCluster,
+			StateMover: stateMoverTemporaryJSON,
 		},
 	}
 }
 
-func stateMoverTemporaryTPFDatabaseUser(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
-	if !isSource(req, "database_user") {
+func stateMoverTemporaryPreferred(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+	if !isSource(req, "database_user", MoveModeValPreferred) {
 		return
 	}
 	rawStateValue, err := req.SourceRawState.Unmarshal(tftypes.Object{
@@ -85,14 +90,25 @@ func stateMoverTemporaryTPFDatabaseUser(ctx context.Context, req resource.MoveSt
 	setMoveState(ctx, *projectID, *clusterName, resp)
 }
 
-func stateMoverTemporaryV2(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+func stateMoverTemporaryJSON(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+	type model struct {
+		ProjectID   string `json:"project_id"`
+		ClusterName string `json:"username"` // TODO: take username as the cluster name
+	}
+	if !isSource(req, "database_user", MoveModeValJSON) {
+		return
+	}
+	var state model
+	if err := json.Unmarshal(req.SourceRawState.JSON, &state); err != nil {
+		resp.Diagnostics.AddError("Unable to Unmarshal Source State", err.Error())
+		return
+	}
+	setMoveState(ctx, state.ProjectID, state.ClusterName, resp)
 }
 
-func stateMoverCluster(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
-}
-
-func isSource(req resource.MoveStateRequest, resourceName string) bool {
-	return req.SourceTypeName == "mongodbatlas_"+resourceName &&
+func isSource(req resource.MoveStateRequest, resourceName, moveMode string) bool {
+	return os.Getenv(MoveModeEnvVarName) == moveMode &&
+		req.SourceTypeName == "mongodbatlas_"+resourceName &&
 		req.SourceSchemaVersion == 0 &&
 		strings.HasSuffix(req.SourceProviderAddress, "/mongodbatlas")
 }
@@ -112,7 +128,7 @@ func setMoveState(ctx context.Context, projectID, clusterName string, resp *reso
 				"delete": types.StringValue("30m"),
 			}),
 	}
-	// TODO: we need to have a good state (all attributes known or null) but not need to be the final ones as Reas is called after
+	// TODO: we need to have a good state (all attributes known or null) but not need to be the final ones as Read is called after
 	tfNewModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, timeout)
 	if shouldReturn {
 		return
