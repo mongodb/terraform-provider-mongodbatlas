@@ -29,6 +29,7 @@ var (
 	currentClusterResponse     = 1
 	currentProcessArgsResponse = 1
 	actualCreate               string
+	actualUpdate               string
 )
 
 func SetCurrentClusterResponse(responseNumber int) {
@@ -56,14 +57,31 @@ func ReadClusterProcessArgsResponse() (*admin.ClusterDescriptionProcessArgs20240
 }
 
 func StoreCreatePayload(payload *admin.ClusterDescription20240805) error {
+	localPayload, err := dumpJSON(payload)
+	if err != nil {
+		return err
+	}
+	actualCreate = localPayload
+	return nil
+}
+
+func dumpJSON(payload any) (string, error) {
 	jsonPayload := strings.Builder{}
 	encoder := json.NewEncoder(&jsonPayload)
 	encoder.SetIndent("", "    ")
 	err := encoder.Encode(payload)
 	if err != nil {
+		return "", err
+	}
+	return jsonPayload.String(), nil
+}
+
+func StoreUpdatePayload(payload *admin.ClusterDescription20240805) error {
+	localPayload, err := dumpJSON(payload)
+	if err != nil {
 		return err
 	}
-	actualCreate = jsonPayload.String()
+	actualUpdate = localPayload
 	return nil
 }
 
@@ -72,4 +90,11 @@ func ReadLastCreatePayload() (string, error) {
 		return "", fmt.Errorf("no create payload has been stored")
 	}
 	return actualCreate, nil
+}
+
+func ReadLastUpdatePayload() (string, error) {
+	if actualUpdate == "" {
+		return "", fmt.Errorf("no update payload has been stored")
+	}
+	return actualUpdate, nil
 }

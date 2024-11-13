@@ -37,6 +37,19 @@ func CheckRequestPayload(t *testing.T, requestName string) resource.TestCheckFun
 	}
 }
 
+func CheckUpdatePayload(t *testing.T, requestName string) resource.TestCheckFunc {
+	t.Helper()
+	return func(state *terraform.State) error {
+		g := goldie.New(t, goldie.WithNameSuffix(".json"))
+		lastPayload, err := advancedclustertpf.ReadLastUpdatePayload()
+		if err != nil {
+			return err
+		}
+		g.Assert(t, requestName, []byte(lastPayload))
+		return nil
+	}
+}
+
 func TestAccAdvancedCluster_basic(t *testing.T) {
 	var (
 		projectID   = "111111111111111111111111"
@@ -49,7 +62,7 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 				Config: configBasic(projectID, clusterName, ""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "CREATING"),
-					ChangeReponseNumber(2),
+					ChangeReponseNumber(2), // For the next test step
 					CheckRequestPayload(t, "create_payload_check1"),
 				),
 			},
@@ -57,6 +70,7 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 				Config: configBasic(projectID, clusterName, "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", "2006-01-02T15:04:05Z"),
+					CheckUpdatePayload(t, "update_1"),
 				),
 			},
 			{
