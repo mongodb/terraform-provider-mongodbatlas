@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -146,7 +147,8 @@ func stateMoverTemporaryRawState(ctx context.Context, req resource.MoveStateRequ
 	if !isSource(req, "database_user", MoveModeValRawState) {
 		return
 	}
-	rawStateValue, err := req.SourceRawState.Unmarshal(tftypes.Object{
+	// TODO: not need to define the full model if using IgnoreUndefinedAttributes, as in JSON case
+	rawStateValue, err := req.SourceRawState.UnmarshalWithOpts(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"id":                 tftypes.String,
 			"project_id":         tftypes.String,
@@ -177,7 +179,7 @@ func stateMoverTemporaryRawState(ctx context.Context, req resource.MoveStateRequ
 				},
 			}},
 		},
-	})
+	}, tfprotov6.UnmarshalOpts{ValueFromJSONOpts: tftypes.ValueFromJSONOpts{IgnoreUndefinedAttributes: true}})
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to Unmarshal Source State", err.Error())
 		return
