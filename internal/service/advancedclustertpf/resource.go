@@ -57,6 +57,15 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	sdkReq := NewAtlasReq(ctx, &plan, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	err := StoreCreatePayload(sdkReq)
+	if err != nil {
+		resp.Diagnostics.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
+		return
+	}
 	tfNewModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, plan.Timeouts)
 	if shouldReturn {
 		return

@@ -2,10 +2,12 @@ package advancedclustertpf_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/sebdah/goldie/v2"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -23,6 +25,19 @@ func ChangeReponseNumber(responseNumber int) resource.TestCheckFunc {
 	return changer
 }
 
+func CheckRequestPayload(t *testing.T, requestName string) resource.TestCheckFunc {
+	t.Helper()
+	return func(state *terraform.State) error {
+		g := goldie.New(t, goldie.WithNameSuffix(".json"))
+		lastPayload, err := advancedclustertpf.ReadLastCreatePayload()
+		if err != nil {
+			return err
+		}
+		g.Assert(t, requestName, []byte(lastPayload))
+		return nil
+	}
+}
+
 func TestAccAdvancedCluster_basic(t *testing.T) {
 	var (
 		projectID   = "111111111111111111111111"
@@ -32,10 +47,15 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
+				Config:      configBasic(projectID, clusterName, "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
+				ExpectError: regexp.MustCompile("Update only attribute set on create: accept_data_risks_and_force_replica_set_reconfig"),
+			},
+			{
 				Config: configBasic(projectID, clusterName, ""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "CREATING"),
 					ChangeReponseNumber(2),
+					CheckRequestPayload(t, "create_payload_check1"),
 				),
 			},
 			{

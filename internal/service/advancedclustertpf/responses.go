@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20241023002/admin"
 )
@@ -27,6 +28,7 @@ var (
 	}
 	currentClusterResponse     = 1
 	currentProcessArgsResponse = 1
+	actualCreate               string
 )
 
 func SetCurrentClusterResponse(responseNumber int) {
@@ -51,4 +53,23 @@ func ReadClusterProcessArgsResponse() (*admin.ClusterDescriptionProcessArgs20240
 	var SDKModel admin.ClusterDescriptionProcessArgs20240805
 	err := json.Unmarshal([]byte(responseJSON), &SDKModel)
 	return &SDKModel, err
+}
+
+func StoreCreatePayload(payload *admin.ClusterDescription20240805) error {
+	jsonPayload := strings.Builder{}
+	encoder := json.NewEncoder(&jsonPayload)
+	encoder.SetIndent("", "    ")
+	err := encoder.Encode(payload)
+	if err != nil {
+		return err
+	}
+	actualCreate = jsonPayload.String()
+	return nil
+}
+
+func ReadLastCreatePayload() (string, error) {
+	if actualCreate == "" {
+		return "", fmt.Errorf("no create payload has been stored")
+	}
+	return actualCreate, nil
 }
