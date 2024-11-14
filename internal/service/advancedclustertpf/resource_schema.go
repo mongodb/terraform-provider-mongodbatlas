@@ -292,7 +292,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			// TODO: We want to avoid breaking changes even though it is incompatible with flex cluster and project resource
 			"tags": schema.SetNestedAttribute{
+				Computed:            true,
 				Optional:            true,
+				Default:             setdefault.StaticValue(types.SetValueMust(TagsObjType, nil)),
 				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
