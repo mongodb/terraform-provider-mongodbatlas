@@ -2,7 +2,6 @@ package conversion
 
 import (
 	"encoding/json"
-	"errors"
 	"slices"
 	"strings"
 
@@ -94,10 +93,10 @@ func convertJSONDiffToJSONPatch(patch jsondiff.Patch) (jsonpatch.Patch, error) {
 	return decodedPatch, nil
 }
 
-func PatchPayload[T any](state, plan, reqPatch *T) error {
+func PatchPayloadNoChanges[T any](state, plan, reqPatch *T) (bool, error) {
 	statePlanPatch, err := jsondiff.Compare(state, plan, jsondiff.Invertible())
 	if err != nil {
-		return err
+		return false, err
 	}
 	attrOperations := newAttrPatchOperations(statePlanPatch)
 	reqJSON := []byte(`{}`)
@@ -119,22 +118,22 @@ func PatchPayload[T any](state, plan, reqPatch *T) error {
 
 	patchFromPlanDiff, err := jsondiff.Compare(reqPatch, plan)
 	if err != nil {
-		return err
+		return false, err
 	}
 	for _, attr := range attrOperations.ChangedAttributes() {
 		patchFromPlan := filterPatches(attr, patchFromPlanDiff)
 		err = addPatchToRequest(patchFromPlan)
 		if err != nil {
-			return err
+			return false, err
 		}
 		patchFromState := attrOperations.StatePatch(attr)
 		err = addPatchToRequest(patchFromState)
 		if err != nil {
-			return err
+			return false, err
 		}
 	}
 	if string(reqJSON) == "{}" {
-		return errors.New("no patch to apply")
+		return true, nil
 	}
-	return json.Unmarshal(reqJSON, reqPatch)
+	return false, json.Unmarshal(reqJSON, reqPatch)
 }

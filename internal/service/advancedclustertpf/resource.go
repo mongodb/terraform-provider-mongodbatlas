@@ -104,7 +104,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	patchReq := admin.ClusterDescription20240805{}
-	err := conversion.PatchPayload(stateReq, planReq, &patchReq)
+	noChanges, err := conversion.PatchPayloadNoChanges(stateReq, planReq, &patchReq)
 	if err != nil {
 		resp.Diagnostics.AddError("errorUpdate", fmt.Sprintf(errorUpdate, plan.Name.ValueString(), err.Error()))
 		return
@@ -114,7 +114,9 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		resp.Diagnostics.AddError("error storing update payload", fmt.Sprintf("error storing update payload: %s", err.Error()))
 		return
 	}
-
+	if noChanges {
+		resp.Diagnostics.AddWarning("noChanges", fmt.Sprintf("no changes detected for %s", plan.Name.ValueString()))
+	}
 	tfNewModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, plan.Timeouts)
 	// TODO: keep project_id and name from plan to avoid overwriting for move_state tests. We should probably do the same with the rest of attributes
 	tfNewModel.Name = plan.Name
