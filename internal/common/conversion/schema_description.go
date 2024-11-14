@@ -2,10 +2,33 @@ package conversion
 
 import (
 	"reflect"
+	"slices"
 
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
+
+func DataSourceSchemaFromResource(rs schema.Schema, requiredFields ...string) dsschema.Schema {
+	attrs := make(map[string]dsschema.Attribute, len(rs.Attributes))
+	for k, v := range rs.Attributes {
+		computed := true
+		required := false
+		if slices.Contains(requiredFields, k) {
+			computed = false
+			required = true
+		}
+		attrs[k] = dsschema.StringAttribute{
+			MarkdownDescription: v.GetMarkdownDescription(),
+			Computed:            computed,
+			Required:            required,
+		}
+	}
+	ds := dsschema.Schema{
+		Attributes: attrs,
+	}
+	UpdateSchemaDescription(&ds)
+	return ds
+}
 
 func UpdateSchemaDescription[T schema.Schema | dsschema.Schema](s *T) {
 	UpdateAttr(s)

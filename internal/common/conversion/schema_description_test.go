@@ -1,12 +1,21 @@
 package conversion_test
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestDataSourceSchemaFromResource(t *testing.T) {
+	s := mongodbemployeeaccessgrant.ResourceSchema(context.Background())
+	ds := conversion.DataSourceSchemaFromResource(s)
+	fmt.Println(ds)
+}
 
 func TestUpdateSchemaDescription(t *testing.T) {
 	s := schema.Schema{
