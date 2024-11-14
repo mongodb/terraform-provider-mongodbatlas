@@ -106,3 +106,45 @@ func configBasic(projectID, clusterName, extra string) string {
 		}
 	`, projectID, clusterName, extra)
 }
+func configSharded(projectID, clusterName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = %[1]q
+			name = %[2]q
+			cluster_type = "SHARDED"
+			replication_specs = [{
+				zone_name = "original_updated"
+				region_configs = [{
+					priority        = 7
+					provider_name = "AWS"
+					region_name     = "US_EAST_1"
+					electable_specs = {
+						node_count = 3
+						instance_size = "M10"
+						disk_size_gb = 10
+					}
+					analytics_specs = {
+						node_count = 1
+						instance_size = "M30"
+						disk_size_gb = 20
+					}
+				}]
+			},
+			{
+				zone_name = "new_us_east_2
+				region_configs = [{
+					priority        = 7
+					provider_name = "AWS"
+					region_name     = "US_EAST_2"
+					electable_specs = {
+						node_count = 3
+						instance_size = "M10"
+						disk_size_gb = 10
+					}
+				}]
+			},
+			
+			]
+		}
+	`, projectID, clusterName)
+}
