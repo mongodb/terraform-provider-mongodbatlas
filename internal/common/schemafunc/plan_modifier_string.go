@@ -20,10 +20,10 @@ func (u UpdateOnlyString) PlanModifyString(ctx context.Context, req planmodifier
 	}
 }
 
-func (u UpdateOnlyString) Description(context.Context) string {
-	return "Checks the attribute is never set on create"
+func (u UpdateOnlyString) Description(ctx context.Context) string {
+	return u.MarkdownDescription(ctx)
 }
 
-func (UpdateOnlyString) MarkdownDescription(context.Context) string {
+func (u UpdateOnlyString) MarkdownDescription(ctx context.Context) string {
 	return "Checks the attribute is never set on create"
 }
