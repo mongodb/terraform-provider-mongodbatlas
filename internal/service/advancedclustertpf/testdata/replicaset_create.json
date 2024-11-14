@@ -19,5 +19,6 @@
             ],
             "zoneName": "ZoneName managed by Terraform"
         }
-    ]
+    ],
+    "tags": []
 }
