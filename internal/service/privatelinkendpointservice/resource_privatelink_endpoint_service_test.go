@@ -19,13 +19,9 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 }
 
 func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Failed(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
 	var (
 		resourceSuffix = "test"
 		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)
-
-		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
-		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 
 		providerName = "AWS"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -40,7 +36,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Failed(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configFailAWS(
-					awsAccessKey, awsSecretKey, projectID, providerName, region, resourceSuffix,
+					projectID, providerName, region, resourceSuffix,
 				),
 				Check:       resource.TestCheckResourceAttr(resourceName, "error_message", "privatelink endpoint is in a failed state: Interface endpoint vpce-11111111111111111 was not found."),
 				ExpectError: regexp.MustCompile("privatelink endpoint service is in a failed state: Interface endpoint vpce-11111111111111111 was not found."),
@@ -180,25 +176,19 @@ func configCompleteAWS(awsAccessKey, awsSecretKey, projectID, providerName, regi
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix)
 }
 
-func configFailAWS(awsAccessKey, awsSecretKey, projectID, providerName, region, resourceSuffix string) string {
+func configFailAWS(projectID, providerName, region, resourceSuffix string) string {
 	return fmt.Sprintf(`
-		provider "aws" {
-			region        = "%[5]s"
-			access_key = "%[1]s"
-			secret_key = "%[2]s"
-		}
-
 		resource "mongodbatlas_privatelink_endpoint" "test" {
-			project_id    = "%[3]s"
-			provider_name = "%[4]s"
-			region        = "%[5]s"
+			project_id    = "%[1]s"
+			provider_name = "%[2]s"
+			region        = "%[3]s"
 		}
 
-		resource "mongodbatlas_privatelink_endpoint_service" %[6]q {
+		resource "mongodbatlas_privatelink_endpoint_service" %[4]q {
 			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
 			endpoint_service_id   = "vpce-11111111111111111"
 			private_link_id       = mongodbatlas_privatelink_endpoint.test.id
-			provider_name         = "%[4]s"
+			provider_name         = "%[2]s"
 		}
-	`, awsAccessKey, awsSecretKey, projectID, providerName, region, resourceSuffix)
+	`, projectID, providerName, region, resourceSuffix)
 }
