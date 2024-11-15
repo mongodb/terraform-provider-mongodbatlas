@@ -120,3 +120,63 @@ func TestJsonPatchReplicationSpecs(t *testing.T) {
 		})
 	}
 }
+
+func TestJsonPatchAdvancedConfig(t *testing.T) {
+	var (
+		state = admin.ClusterDescriptionProcessArgs20240805{
+			JavascriptEnabled: conversion.Pointer(true),
+		}
+		testCases = map[string]struct {
+			state         *admin.ClusterDescriptionProcessArgs20240805
+			plan          *admin.ClusterDescriptionProcessArgs20240805
+			patchExpected *admin.ClusterDescriptionProcessArgs20240805
+			noChanges     bool
+		}{
+			"JavascriptEnabled is set to false": {
+				state: &state,
+				plan: &admin.ClusterDescriptionProcessArgs20240805{
+					JavascriptEnabled: conversion.Pointer(false),
+				},
+				patchExpected: &admin.ClusterDescriptionProcessArgs20240805{
+					JavascriptEnabled: conversion.Pointer(false),
+				},
+			},
+			"JavascriptEnabled is set to null leads to no changes": {
+				state:         &state,
+				plan:          &admin.ClusterDescriptionProcessArgs20240805{},
+				patchExpected: &admin.ClusterDescriptionProcessArgs20240805{},
+				noChanges:     true,
+			},
+			"JavascriptEnabled state equals plan leads to no changes": {
+				state:         &state,
+				plan:          &state,
+				patchExpected: &admin.ClusterDescriptionProcessArgs20240805{},
+				noChanges:     true,
+			},
+			"Adding NoTableScan changes the plan payload and but doesn't include old value of JavascriptEnabled": {
+				state: &state,
+				plan: &admin.ClusterDescriptionProcessArgs20240805{
+					NoTableScan: conversion.Pointer(true),
+				},
+				patchExpected: &admin.ClusterDescriptionProcessArgs20240805{
+					NoTableScan: conversion.Pointer(true),
+				},
+			},
+			"Nil plan should return no changes": {
+				state:         &state,
+				plan:          nil,
+				patchExpected: &admin.ClusterDescriptionProcessArgs20240805{},
+				noChanges:     true,
+			},
+		}
+	)
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			patchReq := &admin.ClusterDescriptionProcessArgs20240805{}
+			noChanges, err := conversion.PatchPayloadNoChanges(tc.state, tc.plan, patchReq)
+			require.NoError(t, err)
+			assert.Equal(t, tc.noChanges, noChanges)
+			assert.Equal(t, tc.patchExpected, patchReq)
+		})
+	}
+}

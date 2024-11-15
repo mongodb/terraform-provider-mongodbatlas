@@ -13,13 +13,19 @@ type attrPatchOperations struct {
 	data map[string][]jsondiff.Operation
 }
 
+const rootAttributeName = "not|valid|identifier"
+
 func newAttrPatchOperations(patch jsondiff.Patch) *attrPatchOperations {
 	self := &attrPatchOperations{
 		data: map[string][]jsondiff.Operation{},
 	}
 	for _, op := range patch {
-		rootPath := strings.Split(op.Path, "/")[1]
-		self.set(rootPath, &op)
+		if op.Path == "" {
+			self.set(rootAttributeName, &op)
+		} else {
+			rootPath := strings.Split(op.Path, "/")[1]
+			self.set(rootPath, &op)
+		}
 	}
 	return self
 }
@@ -74,7 +80,9 @@ func (m *attrPatchOperations) StatePatch(attr string) jsondiff.Patch {
 func filterPatches(attr string, patches []jsondiff.Operation) jsondiff.Patch {
 	newPatch := jsondiff.Patch{}
 	for _, op := range patches {
-		if strings.HasPrefix(op.Path, "/"+attr) {
+		if attr == rootAttributeName && op.Path == "" {
+			newPatch = append(newPatch, op)
+		} else if strings.HasPrefix(op.Path, "/"+attr) {
 			newPatch = append(newPatch, op)
 		}
 	}
@@ -94,6 +102,9 @@ func convertJSONDiffToJSONPatch(patch jsondiff.Patch) (jsonpatch.Patch, error) {
 }
 
 func PatchPayloadNoChanges[T any](state, plan, reqPatch *T) (bool, error) {
+	if plan == nil {
+		return true, nil
+	}
 	statePlanPatch, err := jsondiff.Compare(state, plan, jsondiff.Invertible())
 	if err != nil {
 		return false, err
