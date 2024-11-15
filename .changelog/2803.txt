@@ -1,0 +1,7 @@
+```release-note:enhancement
+Improve error message when privatelink endpoint returns error after POST
+```
+
+```release-note:enhancement
+Improve error message when privatelink endpoint service returns error after POST
+```
