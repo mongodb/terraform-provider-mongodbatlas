@@ -94,57 +94,49 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var state, plan TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
+	diags := &resp.Diagnostics
+	diags.Append(req.Plan.Get(ctx, &plan)...)
+	diags.Append(req.State.Get(ctx, &state)...)
+	if diags.HasError() {
 		return
 	}
 	patchReq := &admin.ClusterDescription20240805{}
-	clusterChanges := conversion.PatchPayloadHasChangesTpf(ctx, &resp.Diagnostics, &state, &plan, NewAtlasReq, patchReq)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	clusterChanges := conversion.PatchPayloadHasChangesTpf(ctx, diags, &state, &plan, NewAtlasReq, patchReq)
 	if clusterChanges {
 		err := StoreUpdatePayload(patchReq)
 		if err != nil {
-			resp.Diagnostics.AddError("error storing update payload", fmt.Sprintf("error storing update payload: %s", err.Error()))
-			return
+			diags.AddError("error storing update payload", fmt.Sprintf("error storing update payload: %s", err.Error()))
 		}
 	}
 	patchReqProcessArgs := &admin.ClusterDescriptionProcessArgs20240805{}
-	advancedConfigChanges := conversion.PatchPayloadHasChangesTpf(ctx, &resp.Diagnostics, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration, patchReqProcessArgs)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	advancedConfigChanges := conversion.PatchPayloadHasChangesTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration, patchReqProcessArgs)
 	if advancedConfigChanges {
 		err := StoreUpdatePayloadProcessArgs(patchReqProcessArgs)
 		if err != nil {
-			resp.Diagnostics.AddError("error storing update payload advanced config", fmt.Sprintf("error storing update payload: %s", err.Error()))
-			return
+			diags.AddError("error storing update payload advanced config", fmt.Sprintf("error storing update payload: %s", err.Error()))
 		}
 	}
-
 	patchReqProcessArgsLegacy := &admin20240530.ClusterDescriptionProcessArgs{}
-	advancedConfigChangesLegacy := conversion.PatchPayloadHasChangesTpf(ctx, &resp.Diagnostics, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy, patchReqProcessArgsLegacy)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	advancedConfigChangesLegacy := conversion.PatchPayloadHasChangesTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy, patchReqProcessArgsLegacy)
 	if advancedConfigChangesLegacy {
 		err := StoreUpdatePayloadProcessArgsLegacy(patchReqProcessArgsLegacy)
 		if err != nil {
-			resp.Diagnostics.AddError("error storing update payload advanced config legacy", fmt.Sprintf("error storing update payload: %s", err.Error()))
-			return
+			diags.AddError("error storing update payload advanced config legacy", fmt.Sprintf("error storing update payload: %s", err.Error()))
 		}
 	}
+	if diags.HasError() {
+		return
+	}
 
-	tfNewModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, plan.Timeouts)
+	// TODO: Use requests to do actual updates with Admin API
+	tfNewModel, shouldReturn := mockedSDK(ctx, diags, plan.Timeouts)
 	// TODO: keep project_id and name from plan to avoid overwriting for move_state tests. We should probably do the same with the rest of attributes
 	tfNewModel.Name = plan.Name
 	tfNewModel.ProjectID = plan.ProjectID
 	if shouldReturn {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, tfNewModel)...)
+	diags.Append(resp.State.Set(ctx, tfNewModel)...)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
