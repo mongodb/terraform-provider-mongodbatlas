@@ -20,8 +20,7 @@ const (
 
 func ChangeMockData(data *advancedclustertpf.MockData) resource.TestCheckFunc {
 	changer := func(*terraform.State) error {
-		data.NextResponse(true)
-		return nil
+		return data.NextResponse(true)
 	}
 	return changer
 }
@@ -59,8 +58,33 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 		mockData    = &advancedclustertpf.MockData{
 			ClusterResponse: "replicaset",
 		}
+		oneNewVariable = "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""
+		fullUpdate     = `
+		backup_enabled = false
+		bi_connector_config = {
+			enabled = true
+		}
+		config_server_management_mode = "ATLAS_MANAGED"
+		labels = [{
+			key   = "env"
+			value = "test"
+		}]
+		tags = [{
+			key   = "env"
+			value = "test"
+		}]
+		mongo_db_major_version = "8.0"
+		paused = true
+		pit_enabled = true
+		redact_client_log_data = true
+		replica_set_scaling_strategy = "NODE_TYPE"
+		# retain_backups_enabled = true # only set on delete
+		root_cert_type = "ISRGROOTX1"
+		termination_protection_enabled = true
+		version_release_system = "CONTINUOUS"
+		`
 	)
-	err := advancedclustertpf.SetMockData(mockData)
+	err := advancedclustertpf.SetMockDataResetResponses(mockData)
 	require.NoError(t, err)
 	resource.Test(t, resource.TestCase{ // Sequential as it is using global variables
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -74,10 +98,18 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(projectID, clusterName, "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
+				Config: configBasic(projectID, clusterName, oneNewVariable),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", "2006-01-02T15:04:05Z"),
 					CheckUpdatePayload(t, "replicaset_update1"),
+					ChangeMockData(mockData), // For the next test step
+				),
+			},
+			{
+				Config: configBasic(projectID, clusterName, fullUpdate),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
+					CheckUpdatePayload(t, "replicaset_update2"),
 				),
 			},
 			{
@@ -99,7 +131,7 @@ func TestAccAdvancedCluster_configSharded(t *testing.T) {
 			ClusterResponse: "sharded",
 		}
 	)
-	err := advancedclustertpf.SetMockData(mockData)
+	err := advancedclustertpf.SetMockDataResetResponses(mockData)
 	require.NoError(t, err)
 	resource.Test(t, resource.TestCase{ // Sequential as it is using global variables
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,

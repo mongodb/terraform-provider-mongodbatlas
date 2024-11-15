@@ -17,6 +17,9 @@ var (
 	//go:embed testdata/replicaset_update1_resp.json
 	updateReplicasetResp1 string
 
+	//go:embed testdata/replicaset_update2_resp.json
+	updateReplicasetResp2 string
+
 	//go:embed testdata/sharded_create_resp1.json
 	createSharded1 string
 
@@ -37,7 +40,7 @@ var (
 		"sharded":    {createSharded1, createSharded2},
 	}
 	responsesUpdate = map[string][]string{
-		"replicaset": {updateReplicasetResp1},
+		"replicaset": {updateReplicasetResp1, updateReplicasetResp2},
 		"sharded":    {updateSharded1, updateSharded2},
 	}
 
@@ -53,7 +56,7 @@ type MockData struct {
 	ProcessArgsIndex int
 }
 
-func (m *MockData) NextResponse(isUpdate bool) {
+func (m *MockData) NextResponse(isUpdate bool) error {
 	if isUpdate && !m.IsUpdate {
 		m.IsUpdate = true
 		m.ResponseIndex = 0
@@ -61,6 +64,7 @@ func (m *MockData) NextResponse(isUpdate bool) {
 		m.ResponseIndex++
 	}
 	mockCallData = MockCallData{} // reset call data
+	return validateResponsesResetRequests()
 }
 
 func (m *MockData) GetResponse() string {
@@ -96,14 +100,22 @@ type MockCallData struct {
 
 var mockCallData = MockCallData{}
 
-func SetMockData(data *MockData) error {
+func SetMockDataResetResponses(data *MockData) error {
 	mockData = data
-	_, err := ReadClusterResponse() // Ensure the response exist
+	err := validateResponsesResetRequests()
 	if err != nil {
 		return err
 	}
-	_, err = ReadClusterProcessArgsResponse() // Ensure the response exist
-	mockCallData = MockCallData{}             // Reset the call data
+	return err
+}
+
+func validateResponsesResetRequests() error {
+	_, err := ReadClusterResponse()
+	if err != nil {
+		return err
+	}
+	_, err = ReadClusterProcessArgsResponse()
+	mockCallData = MockCallData{} // Reset the call data
 	return err
 }
 
