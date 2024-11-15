@@ -43,7 +43,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Failed(t *testing.T) {
 					awsAccessKey, awsSecretKey, projectID, providerName, region, resourceSuffix,
 				),
 				Check:       resource.TestCheckResourceAttr(resourceName, "error_message", "privatelink endpoint is in a failed state: Interface endpoint vpce-11111111111111111 was not found."),
-				ExpectError: regexp.MustCompile("privatelink endpoint is in a failed state: Interface endpoint vpce-11111111111111111 was not found."),
+				ExpectError: regexp.MustCompile("privatelink endpoint service is in a failed state: Interface endpoint vpce-11111111111111111 was not found."),
 			},
 		},
 	})
