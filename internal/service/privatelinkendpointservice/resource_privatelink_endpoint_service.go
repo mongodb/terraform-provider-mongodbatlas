@@ -222,7 +222,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err))
 	}
 
@@ -274,6 +273,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 	}
 
+	if privateEndpoint.GetErrorMessage() != "" {
+		return diag.FromErr(fmt.Errorf("privatelink endpoint is in a failed state: %s", privateEndpoint.GetErrorMessage()))
+	}
 	return nil
 }
 
