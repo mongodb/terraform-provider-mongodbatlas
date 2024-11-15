@@ -93,9 +93,10 @@ var mockData = &MockData{
 }
 
 type MockCallData struct {
-	ReqCreate      string
-	ReqUpdate      string
-	ReqProcessArgs string
+	ReqCreate            string
+	ReqUpdate            string
+	ReqProcessArgs       string
+	ReqProcessArgsUpdate string
 }
 
 var mockCallData = MockCallData{}
@@ -154,6 +155,15 @@ func StoreUpdatePayload(payload *admin.ClusterDescription20240805) error {
 		return err
 	}
 	mockCallData.ReqUpdate = localPayload
+	return nil
+}
+
+func StoreUpdatePayloadAdvancedConfiguration(payload *admin.ClusterDescriptionProcessArgs20240805) error {
+	localPayload, err := dumpJSON(payload)
+	if err != nil {
+		return err
+	}
+	mockCallData.ReqProcessArgsUpdate = localPayload
 	return nil
 }
 

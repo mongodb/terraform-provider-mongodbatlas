@@ -98,25 +98,31 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	stateReq := NewAtlasReq(ctx, &state, &resp.Diagnostics)
-	planReq := NewAtlasReq(ctx, &plan, &resp.Diagnostics)
+	patchReq := &admin.ClusterDescription20240805{}
+	clusterChanges := conversion.PatchPayloadHasChangesTpf(ctx, &resp.Diagnostics, &state, &plan, NewAtlasReq, patchReq)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	patchReq := admin.ClusterDescription20240805{}
-	noChanges, err := conversion.PatchPayloadNoChanges(stateReq, planReq, &patchReq)
-	if err != nil {
-		resp.Diagnostics.AddError("errorUpdate", fmt.Sprintf(errorUpdate, plan.Name.ValueString(), err.Error()))
+	if clusterChanges {
+		err := StoreUpdatePayload(patchReq)
+		if err != nil {
+			resp.Diagnostics.AddError("error storing update payload", fmt.Sprintf("error storing update payload: %s", err.Error()))
+			return
+		}
+	}
+	patchReqAdvancedConfig := &admin.ClusterDescriptionProcessArgs20240805{}
+	advancedConfigChanges := conversion.PatchPayloadHasChangesTpf(ctx, &resp.Diagnostics, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration, patchReqAdvancedConfig)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-	err = StoreUpdatePayload(&patchReq)
-	if err != nil {
-		resp.Diagnostics.AddError("error storing update payload", fmt.Sprintf("error storing update payload: %s", err.Error()))
-		return
+	if advancedConfigChanges {
+		err := StoreUpdatePayloadAdvancedConfiguration(patchReqAdvancedConfig)
+		if err != nil {
+			resp.Diagnostics.AddError("error storing update payload advanced config", fmt.Sprintf("error storing update payload: %s", err.Error()))
+			return
+		}
 	}
-	if noChanges {
-		resp.Diagnostics.AddWarning("noChanges", fmt.Sprintf("no changes detected for %s", plan.Name.ValueString()))
-	}
+
 	tfNewModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, plan.Timeouts)
 	// TODO: keep project_id and name from plan to avoid overwriting for move_state tests. We should probably do the same with the rest of attributes
 	tfNewModel.Name = plan.Name
