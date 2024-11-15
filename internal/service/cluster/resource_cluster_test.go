@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"regexp"
 	"testing"
@@ -1033,15 +1032,13 @@ func TestAccCluster_tenant(t *testing.T) {
 		clusterName  = acc.RandomClusterName()
 	)
 
-	dbMajorVersion := testAccGetMongoDBAtlasMajorVersion()
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(orgID, projectName, clusterName, "M2", "2", dbMajorVersion),
+				Config: configTenant(orgID, projectName, clusterName, "M2", "2"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -1066,11 +1063,10 @@ func TestAccCluster_tenant(t *testing.T) {
 
 func TestAccCluster_tenant_m5(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_cluster.tenant"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because tenant
-		clusterName    = acc.RandomClusterName()
-		dbMajorVersion = testAccGetMongoDBAtlasMajorVersion()
+		resourceName = "mongodbatlas_cluster.tenant"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because tenant
+		clusterName  = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1079,7 +1075,7 @@ func TestAccCluster_tenant_m5(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(orgID, projectName, clusterName, "M5", "5", dbMajorVersion),
+				Config: configTenant(orgID, projectName, clusterName, "M5", "5"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -1404,13 +1400,6 @@ func TestAccCluster_create_RedactClientLogData(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccGetMongoDBAtlasMajorVersion() string {
-	conn, _ := matlas.New(http.DefaultClient, matlas.SetBaseURL(matlas.CloudURL))
-	majorVersion, _, _ := conn.DefaultMongoDBMajorVersion.Get(context.Background())
-
-	return majorVersion
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -1802,7 +1791,7 @@ func configSingleRegionWithProviderRegionName(orgID, projectName, name, backupEn
 	`, orgID, projectName, name, backupEnabled)
 }
 
-func configTenant(orgID, projectName, name, instanceSize, diskSize, majorDBVersion string) string {
+func configTenant(orgID, projectName, name, instanceSize, diskSize string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "cluster_project" {
 		name   = %[2]q
@@ -1819,10 +1808,8 @@ func configTenant(orgID, projectName, name, instanceSize, diskSize, majorDBVersi
 	  	disk_size_gb            = %[4]q
 
 		provider_instance_size_name  = %[5]q
-		//These must be the following values
- 	 	mongo_db_major_version = %[6]q
 	  }
-	`, orgID, projectName, name, diskSize, instanceSize, majorDBVersion)
+	`, orgID, projectName, name, diskSize, instanceSize)
 }
 
 func configTenantUpdated(orgID, projectName, name string) string {
