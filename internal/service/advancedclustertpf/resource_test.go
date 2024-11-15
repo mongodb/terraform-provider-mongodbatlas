@@ -246,6 +246,11 @@ func configSharded(projectID, clusterName string, withUpdate bool) string {
 				disk_iops       = 2000
 			}`
 	}
+	// SDK v2 Implementation receives many warnings, one of them: `.replication_specs[1].region_configs[0].analytics_specs[0].disk_iops: was cty.NumberIntVal(2000), but now cty.NumberIntVal(1000)`
+	// Therefore, in TPF we are forced to set the value that will be returned by the API (1000)
+	// The rule is: For any replication spec, the `(analytics|electable|read_only)_spec.disk_iops` must be the same across all region_configs
+	// The API raises no errors, but the response reflects this rule
+	analyticsSpecsForSpec2 := strings.ReplaceAll(analyticsSpecs, "2000", "1000")
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
@@ -285,5 +290,5 @@ func configSharded(projectID, clusterName string, withUpdate bool) string {
 			}
 		
 
-	`, projectID, clusterName, autoScaling, analyticsSpecs, strings.ReplaceAll(analyticsSpecs, "2000", "1000"))
+	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)
 }

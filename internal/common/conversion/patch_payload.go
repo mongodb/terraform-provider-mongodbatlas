@@ -101,6 +101,22 @@ func convertJSONDiffToJSONPatch(patch jsondiff.Patch) (jsonpatch.Patch, error) {
 	return decodedPatch, nil
 }
 
+// PatchPayloadNoChanges uses the state and plan to changes to find the patch request, including changes only when:
+// - The plan has replaced or added values from the state
+// Note that we intentionally do NOT include removed state values:
+// - The state value is probably computed and not needed in the request
+// However, for nested attributes, we MUST include some of the removed state values (e.g., `replication_spec[*].(id|zone_id)`)
+// Assumptions:
+// - Only Optional|Required attributes are set in the state|plan. `connection_strings` are not needed
+// - --> Except specific computed attributes in nested_attributes (e.g., `replication_spec[*].(id|zone_id`)
+// - The state and plan can be dumped to json
+// How it works:
+// 1. Use `jsondiff` to find the patch, aka. operations to go from state to plan
+// 2. Groups the operations by attribute name
+// 3. Filters the operations to only include replaced or added values
+// 4. Adds nested "removed" values from the state to the request
+// 5. Use `jsonpatch` to apply each attribute plan & state patch to an empty JSON object
+// 6. Update `reqPatch` pointer with the final JSON object marshaled to `T` or return true if no changes (`{}`)
 func PatchPayloadNoChanges[T any](state, plan, reqPatch *T) (bool, error) {
 	if plan == nil {
 		return true, nil

@@ -18,8 +18,5 @@ func PatchPayloadHasChangesTpf[T any, R any](ctx context.Context, diags *diag.Di
 		diags.AddError(fmt.Sprintf("error creating patch payload %T", reqPatch), err.Error())
 		return false
 	}
-	if noChanges {
-		return false
-	}
-	return true
+	return !noChanges
 }
