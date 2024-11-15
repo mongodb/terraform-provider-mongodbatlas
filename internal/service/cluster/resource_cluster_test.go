@@ -1026,11 +1026,10 @@ func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 
 func TestAccCluster_tenant(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_cluster.tenant"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because tenant
-		clusterName    = acc.RandomClusterName()
-		dbMajorVersion = "8.0"
+		resourceName = "mongodbatlas_cluster.tenant"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because tenant
+		clusterName  = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1049,7 +1048,7 @@ func TestAccCluster_tenant(t *testing.T) {
 				),
 			},
 			{
-				Config: configTenantUpdated(orgID, projectName, clusterName, dbMajorVersion),
+				Config: configTenantUpdated(orgID, projectName, clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -1813,7 +1812,7 @@ func configTenant(orgID, projectName, name, instanceSize, diskSize string) strin
 	`, orgID, projectName, name, diskSize, instanceSize)
 }
 
-func configTenantUpdated(orgID, projectName, name, dbMajorVersion string) string {
+func configTenantUpdated(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "cluster_project" {
 		name   = %[2]q
@@ -1829,9 +1828,8 @@ func configTenantUpdated(orgID, projectName, name, dbMajorVersion string) string
 		provider_instance_size_name  = "M10"
 		disk_size_gb                 = 10
 		auto_scaling_disk_gb_enabled = true
-		mongo_db_major_version       = %[4]q
 	  }
-	`, orgID, projectName, name, dbMajorVersion)
+	`, orgID, projectName, name)
 }
 
 func configRedactClientLogData(orgID, projectName, clusterName string, redactClientLogData *bool) string {
