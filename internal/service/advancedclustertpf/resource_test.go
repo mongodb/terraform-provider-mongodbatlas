@@ -15,12 +15,16 @@ import (
 )
 
 const (
-	resourceName = "mongodbatlas_advanced_cluster.test"
+	resourceName        = "mongodbatlas_advanced_cluster.test"
+	processResponseOnly = "processResponseOnly"
 )
 
-func ChangeMockData(data *advancedclustertpf.MockData) resource.TestCheckFunc {
+func ChangeMockData(data *advancedclustertpf.MockData, extraFlags ...string) resource.TestCheckFunc {
 	changer := func(*terraform.State) error {
-		return data.NextResponse(true)
+		if len(extraFlags) > 0 && extraFlags[0] == processResponseOnly {
+			return data.NextResponse(false, true)
+		}
+		return data.NextResponse(true, false)
 	}
 	return changer
 }
@@ -47,6 +51,25 @@ func CheckUpdatePayload(t *testing.T, requestName string) resource.TestCheckFunc
 			return err
 		}
 		g.Assert(t, requestName, []byte(lastPayload))
+		return nil
+	}
+}
+
+func CheckUpdatePayloadProcessArgs(t *testing.T, requestName string) resource.TestCheckFunc {
+	t.Helper()
+	return func(state *terraform.State) error {
+		g := goldie.New(t, goldie.WithNameSuffix(".json"))
+		lastPayload, err := advancedclustertpf.ReadLastUpdatePayloadProcessArgs()
+		if err != nil {
+			return err
+		}
+		g.Assert(t, requestName, []byte(lastPayload))
+		requestNameLegacy := requestName + "_legacy"
+		lastPayload, err = advancedclustertpf.ReadLastUpdatePayloadProcessArgsLegacy()
+		if err != nil {
+			return err
+		}
+		g.Assert(t, requestNameLegacy, []byte(lastPayload))
 		return nil
 	}
 }
@@ -83,6 +106,22 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 		termination_protection_enabled = true
 		version_release_system = "CONTINUOUS"
 		`
+		advClusterConfig = `
+		advanced_configuration = {
+			change_stream_options_pre_and_post_images_expire_after_seconds = 100
+			default_read_concern                                           = "available"
+			default_write_concern                                          = "majority"
+			fail_index_key_too_long                                        = true
+			javascript_enabled                                             = false
+			minimum_enabled_tls_protocol                                   = "TLS1_0"
+			no_table_scan                                                  = true
+			oplog_min_retention_hours                                      = 5.5
+			oplog_size_mb                                                  = 1000
+			sample_refresh_interval_bi_connector                           = 310
+			sample_size_bi_connector                                       = 110
+			transaction_lifetime_limit_seconds                             = 300
+		}
+		`
 	)
 	err := advancedclustertpf.SetMockDataResetResponses(mockData)
 	require.NoError(t, err)
@@ -110,6 +149,15 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
 					CheckUpdatePayload(t, "replicaset_update2"),
+					ChangeMockData(mockData, processResponseOnly), // For the next test step
+				),
+			},
+			{
+				Config: configBasic(projectID, clusterName, fullUpdate+advClusterConfig),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
+					CheckUpdatePayloadProcessArgs(t, "process_args_2_request"),
 				),
 			},
 			{

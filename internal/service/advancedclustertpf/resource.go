@@ -10,6 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241023002/admin"
 )
 
@@ -110,15 +111,28 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			return
 		}
 	}
-	patchReqAdvancedConfig := &admin.ClusterDescriptionProcessArgs20240805{}
-	advancedConfigChanges := conversion.PatchPayloadHasChangesTpf(ctx, &resp.Diagnostics, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration, patchReqAdvancedConfig)
+	patchReqProcessArgs := &admin.ClusterDescriptionProcessArgs20240805{}
+	advancedConfigChanges := conversion.PatchPayloadHasChangesTpf(ctx, &resp.Diagnostics, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration, patchReqProcessArgs)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	if advancedConfigChanges {
-		err := StoreUpdatePayloadAdvancedConfiguration(patchReqAdvancedConfig)
+		err := StoreUpdatePayloadProcessArgs(patchReqProcessArgs)
 		if err != nil {
 			resp.Diagnostics.AddError("error storing update payload advanced config", fmt.Sprintf("error storing update payload: %s", err.Error()))
+			return
+		}
+	}
+
+	patchReqProcessArgsLegacy := &admin20240530.ClusterDescriptionProcessArgs{}
+	advancedConfigChangesLegacy := conversion.PatchPayloadHasChangesTpf(ctx, &resp.Diagnostics, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy, patchReqProcessArgsLegacy)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if advancedConfigChangesLegacy {
+		err := StoreUpdatePayloadProcessArgsLegacy(patchReqProcessArgsLegacy)
+		if err != nil {
+			resp.Diagnostics.AddError("error storing update payload advanced config legacy", fmt.Sprintf("error storing update payload: %s", err.Error()))
 			return
 		}
 	}
@@ -163,7 +177,12 @@ func mockedSDK(ctx context.Context, diags *diag.Diagnostics, timeout timeouts.Va
 		diags.AddError("errorCreateAdvConfig", fmt.Sprintf(errorCreate, err.Error()))
 		return nil, true
 	}
-	AddAdvancedConfig(ctx, tfNewModel, sdkAdvConfig, diags)
+	sdkAdvConfigLegacy, err := ReadClusterProcessArgsResponseLegacy()
+	if err != nil {
+		diags.AddError("errorCreateAdvConfigLegacy", fmt.Sprintf(errorCreate, err.Error()))
+		return nil, true
+	}
+	AddAdvancedConfig(ctx, tfNewModel, sdkAdvConfig, sdkAdvConfigLegacy, diags)
 	if diags.HasError() {
 		return nil, true
 	}

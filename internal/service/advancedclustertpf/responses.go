@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241023002/admin"
 )
 
@@ -35,6 +36,15 @@ var (
 	//go:embed testdata/process_args_1.json
 	processArgs1 string
 
+	//go:embed testdata/process_args_2.json
+	processArgs2 string
+
+	//go:embed testdata/process_args_1_legacy.json
+	processArgsLegacy1 string
+
+	//go:embed testdata/process_args_2_legacy.json
+	processArgsLegacy2 string
+
 	responsesCreate = map[string][]string{
 		"replicaset": {createReplicasetResp1, createReplicasetResp1Final},
 		"sharded":    {createSharded1, createSharded2},
@@ -46,21 +56,32 @@ var (
 
 	responsesProcessArgs = map[int]string{
 		0: processArgs1,
+		1: processArgs2,
+	}
+
+	responsesProcessArgsLegacy = map[int]string{
+		0: processArgsLegacy1,
+		1: processArgsLegacy2,
 	}
 )
 
 type MockData struct {
-	ClusterResponse  string
-	ResponseIndex    int
-	IsUpdate         bool
-	ProcessArgsIndex int
+	ClusterResponse        string
+	ResponseIndex          int
+	IsUpdate               bool
+	ProcessArgsIndex       int
+	ProcessArgsIndexLegacy int
 }
 
-func (m *MockData) NextResponse(isUpdate bool) error {
-	if isUpdate && !m.IsUpdate {
+func (m *MockData) NextResponse(isUpdate, isProcessResponse bool) error {
+	switch {
+	case isProcessResponse:
+		m.ProcessArgsIndex++
+		m.ProcessArgsIndexLegacy++
+	case isUpdate && !m.IsUpdate:
 		m.IsUpdate = true
 		m.ResponseIndex = 0
-	} else {
+	default:
 		m.ResponseIndex++
 	}
 	mockCallData = MockCallData{} // reset call data
@@ -88,15 +109,24 @@ func (m *MockData) GetProcessArgsResponse() string {
 	return responseJSON
 }
 
+func (m *MockData) GetProcessArgsResponseLegacy() string {
+	responseJSON, ok := responsesProcessArgsLegacy[m.ProcessArgsIndexLegacy]
+	if !ok {
+		return ""
+	}
+	return responseJSON
+}
+
 var mockData = &MockData{
 	ClusterResponse: "replicaset",
 }
 
 type MockCallData struct {
-	ReqCreate            string
-	ReqUpdate            string
-	ReqProcessArgs       string
-	ReqProcessArgsUpdate string
+	ReqCreate                  string
+	ReqUpdate                  string
+	ReqProcessArgs             string
+	ReqProcessArgsUpdate       string
+	ReqProcessArgsUpdateLegacy string
 }
 
 var mockCallData = MockCallData{}
@@ -140,6 +170,16 @@ func ReadClusterProcessArgsResponse() (*admin.ClusterDescriptionProcessArgs20240
 	return &SDKModel, err
 }
 
+func ReadClusterProcessArgsResponseLegacy() (*admin20240530.ClusterDescriptionProcessArgs, error) {
+	response := mockData.GetProcessArgsResponseLegacy()
+	if response == "" {
+		return nil, fmt.Errorf("unknown process args response number %d", mockData.ProcessArgsIndex)
+	}
+	var SDKModel admin20240530.ClusterDescriptionProcessArgs
+	err := json.Unmarshal([]byte(response), &SDKModel)
+	return &SDKModel, err
+}
+
 func StoreCreatePayload(payload *admin.ClusterDescription20240805) error {
 	localPayload, err := dumpJSON(payload)
 	if err != nil {
@@ -158,12 +198,21 @@ func StoreUpdatePayload(payload *admin.ClusterDescription20240805) error {
 	return nil
 }
 
-func StoreUpdatePayloadAdvancedConfiguration(payload *admin.ClusterDescriptionProcessArgs20240805) error {
+func StoreUpdatePayloadProcessArgs(payload *admin.ClusterDescriptionProcessArgs20240805) error {
 	localPayload, err := dumpJSON(payload)
 	if err != nil {
 		return err
 	}
 	mockCallData.ReqProcessArgsUpdate = localPayload
+	return nil
+}
+
+func StoreUpdatePayloadProcessArgsLegacy(payload *admin20240530.ClusterDescriptionProcessArgs) error {
+	localPayload, err := dumpJSON(payload)
+	if err != nil {
+		return err
+	}
+	mockCallData.ReqProcessArgsUpdateLegacy = localPayload
 	return nil
 }
 
@@ -179,6 +228,20 @@ func ReadLastUpdatePayload() (string, error) {
 		return "", fmt.Errorf("no update payload has been stored")
 	}
 	return mockCallData.ReqUpdate, nil
+}
+
+func ReadLastUpdatePayloadProcessArgs() (string, error) {
+	if mockCallData.ReqProcessArgsUpdate == "" {
+		return "", fmt.Errorf("no update payload has been stored")
+	}
+	return mockCallData.ReqProcessArgsUpdate, nil
+}
+
+func ReadLastUpdatePayloadProcessArgsLegacy() (string, error) {
+	if mockCallData.ReqProcessArgsUpdate == "" {
+		return "", fmt.Errorf("no update payload has been stored")
+	}
+	return mockCallData.ReqProcessArgsUpdateLegacy, nil
 }
 
 func dumpJSON(payload any) (string, error) {

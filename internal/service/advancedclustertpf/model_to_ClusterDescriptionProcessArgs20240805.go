@@ -22,12 +22,14 @@ func NewAtlasReqAdvancedConfiguration(ctx context.Context, objInput *types.Objec
 	}
 	return &admin.ClusterDescriptionProcessArgs20240805{
 		ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.NilForUnknown(input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds, conversion.Int64PtrToIntPtr(input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds.ValueInt64Pointer())),
-		DefaultWriteConcern:             conversion.NilForUnknown(input.DefaultWriteConcern, input.DefaultWriteConcern.ValueStringPointer()),
-		JavascriptEnabled:               conversion.NilForUnknown(input.JavascriptEnabled, input.JavascriptEnabled.ValueBoolPointer()),
-		MinimumEnabledTlsProtocol:       conversion.NilForUnknown(input.MinimumEnabledTlsProtocol, input.MinimumEnabledTlsProtocol.ValueStringPointer()),
-		NoTableScan:                     conversion.NilForUnknown(input.NoTableScan, input.NoTableScan.ValueBoolPointer()),
-		OplogMinRetentionHours:          conversion.NilForUnknown(input.OplogMinRetentionHours, input.OplogMinRetentionHours.ValueFloat64Pointer()),
-		OplogSizeMB:                     conversion.NilForUnknown(input.OplogSizeMb, conversion.Int64PtrToIntPtr(input.OplogSizeMb.ValueInt64Pointer())),
-		TransactionLifetimeLimitSeconds: conversion.NilForUnknown(input.TransactionLifetimeLimitSeconds, input.TransactionLifetimeLimitSeconds.ValueInt64Pointer()),
+		DefaultWriteConcern:              conversion.NilForUnknown(input.DefaultWriteConcern, input.DefaultWriteConcern.ValueStringPointer()),
+		JavascriptEnabled:                conversion.NilForUnknown(input.JavascriptEnabled, input.JavascriptEnabled.ValueBoolPointer()),
+		MinimumEnabledTlsProtocol:        conversion.NilForUnknown(input.MinimumEnabledTlsProtocol, input.MinimumEnabledTlsProtocol.ValueStringPointer()),
+		NoTableScan:                      conversion.NilForUnknown(input.NoTableScan, input.NoTableScan.ValueBoolPointer()),
+		OplogMinRetentionHours:           conversion.NilForUnknown(input.OplogMinRetentionHours, input.OplogMinRetentionHours.ValueFloat64Pointer()),
+		OplogSizeMB:                      conversion.NilForUnknown(input.OplogSizeMb, conversion.Int64PtrToIntPtr(input.OplogSizeMb.ValueInt64Pointer())),
+		SampleRefreshIntervalBIConnector: conversion.NilForUnknown(input.SampleRefreshIntervalBiconnector, conversion.Int64PtrToIntPtr(input.SampleRefreshIntervalBiconnector.ValueInt64Pointer())),
+		SampleSizeBIConnector:            conversion.NilForUnknown(input.SampleSizeBiconnector, conversion.Int64PtrToIntPtr(input.SampleSizeBiconnector.ValueInt64Pointer())),
+		TransactionLifetimeLimitSeconds:  conversion.NilForUnknown(input.TransactionLifetimeLimitSeconds, input.TransactionLifetimeLimitSeconds.ValueInt64Pointer()),
 	}
 }
