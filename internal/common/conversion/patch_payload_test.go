@@ -13,9 +13,11 @@ func TestJsonPatchReplicationSpecs(t *testing.T) {
 	var (
 		idGlobal                    = "id_root"
 		idReplicationSpec1          = "id_replicationSpec1"
+		idReplicationSpec2          = "id_replicationSpec2"
 		replicationSpec1ZoneNameOld = "replicationSpec1_zoneName_old"
 		replicationSpec1ZoneNameNew = "replicationSpec1_zoneName_new"
 		replicationSpec1ZoneID      = "replicationSpec1_zoneId"
+		replicationSpec2ZoneID      = "replicationSpec2_zoneId"
 		replicationSpec2ZoneName    = "replicationSpec2_zoneName"
 		rootName                    = "my-cluster"
 		rootNameUpdated             = "my-cluster-updated"
@@ -90,6 +92,40 @@ func TestJsonPatchReplicationSpecs(t *testing.T) {
 						},
 						{
 							ZoneName: &replicationSpec2ZoneName,
+						},
+					},
+				},
+			},
+			"Removed list entry should be included": {
+				state: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							Id:       &idReplicationSpec1,
+							ZoneId:   &replicationSpec1ZoneID,
+							ZoneName: &replicationSpec1ZoneNameOld,
+						},
+						{
+							Id:       &idReplicationSpec2,
+							ZoneName: &replicationSpec2ZoneName,
+							ZoneId:   &replicationSpec2ZoneID,
+						},
+					},
+				},
+				plan: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							Id:       &idReplicationSpec1,
+							ZoneId:   &replicationSpec1ZoneID,
+							ZoneName: &replicationSpec1ZoneNameOld,
+						},
+					},
+				},
+				patchExpected: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							Id:       &idReplicationSpec1,
+							ZoneId:   &replicationSpec1ZoneID,
+							ZoneName: &replicationSpec1ZoneNameOld,
 						},
 					},
 				},
