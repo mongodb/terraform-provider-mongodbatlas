@@ -10,8 +10,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -100,25 +98,22 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	patchReq := &admin.ClusterDescription20240805{}
-	clusterChanges := conversion.PatchPayloadHasChangesTpf(ctx, diags, &state, &plan, NewAtlasReq, patchReq)
-	if clusterChanges {
+	patchReq := conversion.PatchPayloadTpf(ctx, diags, &state, &plan, NewAtlasReq)
+	if patchReq != nil {
 		err := StoreUpdatePayload(patchReq)
 		if err != nil {
 			diags.AddError("error storing update payload", fmt.Sprintf("error storing update payload: %s", err.Error()))
 		}
 	}
-	patchReqProcessArgs := &admin.ClusterDescriptionProcessArgs20240805{}
-	advancedConfigChanges := conversion.PatchPayloadHasChangesTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration, patchReqProcessArgs)
-	if advancedConfigChanges {
+	patchReqProcessArgs := conversion.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	if patchReqProcessArgs != nil {
 		err := StoreUpdatePayloadProcessArgs(patchReqProcessArgs)
 		if err != nil {
 			diags.AddError("error storing update payload advanced config", fmt.Sprintf("error storing update payload: %s", err.Error()))
 		}
 	}
-	patchReqProcessArgsLegacy := &admin20240530.ClusterDescriptionProcessArgs{}
-	advancedConfigChangesLegacy := conversion.PatchPayloadHasChangesTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy, patchReqProcessArgsLegacy)
-	if advancedConfigChangesLegacy {
+	patchReqProcessArgsLegacy := conversion.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	if patchReqProcessArgsLegacy != nil {
 		err := StoreUpdatePayloadProcessArgsLegacy(patchReqProcessArgsLegacy)
 		if err != nil {
 			diags.AddError("error storing update payload advanced config legacy", fmt.Sprintf("error storing update payload: %s", err.Error()))
