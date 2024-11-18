@@ -178,16 +178,16 @@ func configCompleteAWS(awsAccessKey, awsSecretKey, projectID, providerName, regi
 func configFailAWS(projectID, providerName, region, resourceSuffix string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint" "test" {
-			project_id    = "%[1]s"
-			provider_name = "%[2]s"
-			region        = "%[3]s"
+			project_id    = %[1]q
+			provider_name = %[2]q
+			region        = %[3]q
 		}
 
 		resource "mongodbatlas_privatelink_endpoint_service" %[4]q {
 			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
 			endpoint_service_id   = "vpce-11111111111111111"
 			private_link_id       = mongodbatlas_privatelink_endpoint.test.id
-			provider_name         = "%[2]s"
+			provider_name         = %[2]q
 		}
 	`, projectID, providerName, region, resourceSuffix)
 }
