@@ -6,7 +6,7 @@ page_title: "Migration Guide: Transition out of Serverless Instances and Shared-
 
 The goal of this guide is to help users transition from Serverless Instances and Shared-tier clusters (M2/M5) to Free, Flex or Dedicated Clusters. 
 
-Starting in March 2025, all Shared-tier clusters (in both `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`) will automatically convert to Flex clusters. Similarly, all Serverless instances (`mongodb_serverless_instance`) will be converted into Free/Flex/Dedicated clusters, [depending on your existing configuration](PLACEHOLDER). <!-- To replace url with correct link to customer-facing docs on how conversion will happen -->
+Starting in March 2025, all Shared-tier clusters (in both `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`) will automatically convert to Flex clusters. Similarly, all Serverless instances (`mongodb_serverless_instance`) will be converted into Free/Flex/Dedicated clusters, [depending on your existing configuration](https://www.mongodb.com/docs/atlas/flex-migration/). 
 These conversions will result in configuration drift in Terraform. 
 
 
