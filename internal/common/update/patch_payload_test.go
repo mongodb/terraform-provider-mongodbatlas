@@ -1,9 +1,10 @@
-package conversion_test
+package update_test
 
 import (
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20241023002/admin"
@@ -196,7 +197,7 @@ func TestJsonPatchReplicationSpecs(t *testing.T) {
 				t.Log("This test case is expected to fail due to the current implementation")
 			}
 			patchReq := &admin.ClusterDescription20240805{}
-			noChanges, err := conversion.PatchPayloadNoChanges(tc.state, tc.plan, patchReq)
+			noChanges, err := update.PatchPayloadNoChanges(tc.state, tc.plan, patchReq)
 			require.NoError(t, err)
 			assert.Equal(t, tc.noChanges, noChanges)
 			assert.Equal(t, tc.patchExpected, patchReq)
@@ -256,7 +257,7 @@ func TestJsonPatchAdvancedConfig(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			patchReq := &admin.ClusterDescriptionProcessArgs20240805{}
-			noChanges, err := conversion.PatchPayloadNoChanges(tc.state, tc.plan, patchReq)
+			noChanges, err := update.PatchPayloadNoChanges(tc.state, tc.plan, patchReq)
 			require.NoError(t, err)
 			assert.Equal(t, tc.noChanges, noChanges)
 			assert.Equal(t, tc.patchExpected, patchReq)

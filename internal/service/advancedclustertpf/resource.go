@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -98,21 +99,21 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	patchReq := conversion.PatchPayloadTpf(ctx, diags, &state, &plan, NewAtlasReq)
+	patchReq := update.PatchPayloadTpf(ctx, diags, &state, &plan, NewAtlasReq)
 	if patchReq != nil {
 		err := StoreUpdatePayload(patchReq)
 		if err != nil {
 			diags.AddError("error storing update payload", fmt.Sprintf("error storing update payload: %s", err.Error()))
 		}
 	}
-	patchReqProcessArgs := conversion.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	if patchReqProcessArgs != nil {
 		err := StoreUpdatePayloadProcessArgs(patchReqProcessArgs)
 		if err != nil {
 			diags.AddError("error storing update payload advanced config", fmt.Sprintf("error storing update payload: %s", err.Error()))
 		}
 	}
-	patchReqProcessArgsLegacy := conversion.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if patchReqProcessArgsLegacy != nil {
 		err := StoreUpdatePayloadProcessArgsLegacy(patchReqProcessArgsLegacy)
 		if err != nil {
