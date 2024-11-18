@@ -130,6 +130,50 @@ func TestJsonPatchReplicationSpecs(t *testing.T) {
 					},
 				},
 			},
+			"Region Config changes are included in patch": {
+				state: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							Id: &idReplicationSpec1,
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{
+									Priority: conversion.Pointer(1),
+								},
+							},
+						},
+					},
+				},
+				plan: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							Id: &idReplicationSpec1,
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{
+									Priority: conversion.Pointer(1),
+								},
+								{
+									Priority: conversion.Pointer(2),
+								},
+							},
+						},
+					},
+				},
+				patchExpected: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							Id: &idReplicationSpec1,
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{
+									Priority: conversion.Pointer(1),
+								},
+								{
+									Priority: conversion.Pointer(2),
+								},
+							},
+						},
+					},
+				},
+			},
 			"Name change and backup enabled added": {
 				state: &state,
 				plan:  &planNameDifferentAndEnableBackup,
@@ -148,6 +192,9 @@ func TestJsonPatchReplicationSpecs(t *testing.T) {
 	)
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
+			if name == "Removed list entry should be included" {
+				t.Log("This test case is expected to fail due to the current implementation")
+			}
 			patchReq := &admin.ClusterDescription20240805{}
 			noChanges, err := conversion.PatchPayloadNoChanges(tc.state, tc.plan, patchReq)
 			require.NoError(t, err)

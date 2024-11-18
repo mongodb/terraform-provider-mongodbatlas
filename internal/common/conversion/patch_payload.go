@@ -2,6 +2,7 @@ package conversion
 
 import (
 	"encoding/json"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -39,10 +40,23 @@ func (m *attrPatchOperations) get(attr string) []jsondiff.Operation {
 }
 
 var changeOps = []string{jsondiff.OperationReplace, jsondiff.OperationAdd}
+var digitRegex = regexp.MustCompile(`^\d+$`)
+
+func indexRemoval(path string) bool {
+	if strings.Count(path, "/") == 0 {
+		return false
+	}
+	pathParts := strings.Split(path, "/")
+	lastPart := pathParts[len(pathParts)-1]
+	return digitRegex.MatchString(lastPart)
+}
 
 func (m *attrPatchOperations) hasChanged(attr string) bool {
 	for _, op := range m.get(attr) {
 		if slices.Contains(changeOps, op.Type) {
+			return true
+		}
+		if op.Type == jsondiff.OperationRemove && indexRemoval(op.Path) {
 			return true
 		}
 	}
@@ -66,7 +80,7 @@ func (m *attrPatchOperations) StatePatch(attr string) jsondiff.Patch {
 		if op.Type == jsondiff.OperationTest {
 			lastValue = op.Value
 		}
-		if op.Type == jsondiff.OperationRemove {
+		if op.Type == jsondiff.OperationRemove && !indexRemoval(op.Path) {
 			patch = append(patch, jsondiff.Operation{
 				Type:  jsondiff.OperationAdd,
 				Value: lastValue,
