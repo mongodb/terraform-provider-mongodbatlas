@@ -13,14 +13,10 @@ func PatchPayloadTpf[TFModel any, SDKRequest any](ctx context.Context, diags *di
 	if diags.HasError() {
 		return nil
 	}
-	reqPatch := new(SDKRequest)
-	noChanges, err := PatchPayloadNoChanges(stateReq, planReq, reqPatch)
+	req, err := PatchPayload(stateReq, planReq)
 	if err != nil {
-		diags.AddError(fmt.Sprintf("error creating patch payload %T", reqPatch), err.Error())
+		diags.AddError(fmt.Sprintf("error creating patch payload %T", req), err.Error())
 		return nil
 	}
-	if noChanges {
-		return nil
-	}
-	return reqPatch
+	return req
 }

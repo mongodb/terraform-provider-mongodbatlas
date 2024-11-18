@@ -115,8 +115,8 @@ func convertJSONDiffToJSONPatch(patch jsondiff.Patch) (jsonpatch.Patch, error) {
 	return decodedPatch, nil
 }
 
-// PatchPayloadNoChanges uses the state and plan to changes to find the patch request, including changes only when:
-// - The plan has replaced or added values from the state
+// PatchPayload uses the state and plan to changes to find the patch request, including changes only when:
+// - The plan has replaced, added, or removed list values from the state
 // Note that we intentionally do NOT include removed state values:
 // - The state value is probably computed and not needed in the request
 // However, for nested attributes, we MUST include some of the removed state values (e.g., `replication_spec[*].(id|zone_id)`)
@@ -127,17 +127,17 @@ func convertJSONDiffToJSONPatch(patch jsondiff.Patch) (jsonpatch.Patch, error) {
 // How it works:
 // 1. Use `jsondiff` to find the patch, aka. operations to go from state to plan
 // 2. Groups the operations by attribute name
-// 3. Filters the operations to only include replaced or added values
+// 3. Filters the operations to only include replaced, added or removed list values
 // 4. Adds nested "removed" values from the state to the request
 // 5. Use `jsonpatch` to apply each attribute plan & state patch to an empty JSON object
-// 6. Update `reqPatch` pointer with the final JSON object marshaled to `T` or return true if no changes (`{}`)
-func PatchPayloadNoChanges[T any](state, plan, reqPatch *T) (bool, error) {
+// 6. Create a `patchReq` pointer with the final JSON object marshaled to `T` or return nil if there are no changes (`{}`)
+func PatchPayload[T any](state, plan *T) (*T, error) {
 	if plan == nil {
-		return true, nil
+		return nil, nil
 	}
 	statePlanPatch, err := jsondiff.Compare(state, plan, jsondiff.Invertible())
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	attrOperations := newAttrPatchOperations(statePlanPatch)
 	reqJSON := []byte(`{}`)
@@ -157,24 +157,25 @@ func PatchPayloadNoChanges[T any](state, plan, reqPatch *T) (bool, error) {
 		return nil
 	}
 
-	patchFromPlanDiff, err := jsondiff.Compare(reqPatch, plan)
+	patchReq := new(T)
+	patchFromPlanDiff, err := jsondiff.Compare(patchReq, plan)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	for _, attr := range attrOperations.ChangedAttributes() {
 		patchFromPlan := filterPatches(attr, patchFromPlanDiff)
 		err = addPatchToRequest(patchFromPlan)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 		patchFromState := attrOperations.StatePatch(attr)
 		err = addPatchToRequest(patchFromState)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 	}
 	if string(reqJSON) == "{}" {
-		return true, nil
+		return nil, nil
 	}
-	return false, json.Unmarshal(reqJSON, reqPatch)
+	return patchReq, json.Unmarshal(reqJSON, patchReq)
 }

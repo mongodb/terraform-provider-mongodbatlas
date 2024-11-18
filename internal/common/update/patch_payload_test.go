@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241023002/admin"
 )
 
-func TestJsonPatchReplicationSpecs(t *testing.T) {
+func TestPatchReplicationSpecs(t *testing.T) {
 	var (
 		idGlobal                    = "id_root"
 		idReplicationSpec1          = "id_replicationSpec1"
@@ -66,7 +66,6 @@ func TestJsonPatchReplicationSpecs(t *testing.T) {
 			state         *admin.ClusterDescription20240805
 			plan          *admin.ClusterDescription20240805
 			patchExpected *admin.ClusterDescription20240805
-			noChanges     bool
 		}{
 			"ComputedValues from the state are added to plan and unchanged attributes are not included": {
 				state: &state,
@@ -186,8 +185,7 @@ func TestJsonPatchReplicationSpecs(t *testing.T) {
 			"No Changes when only computed attributes are not in plan": {
 				state:         &state,
 				plan:          &planNoChanges,
-				noChanges:     true,
-				patchExpected: &admin.ClusterDescription20240805{},
+				patchExpected: nil,
 			},
 		}
 	)
@@ -196,16 +194,14 @@ func TestJsonPatchReplicationSpecs(t *testing.T) {
 			if name == "Removed list entry should be included" {
 				t.Log("This test case is expected to fail due to the current implementation")
 			}
-			patchReq := &admin.ClusterDescription20240805{}
-			noChanges, err := update.PatchPayloadNoChanges(tc.state, tc.plan, patchReq)
+			patchReq, err := update.PatchPayload(tc.state, tc.plan)
 			require.NoError(t, err)
-			assert.Equal(t, tc.noChanges, noChanges)
 			assert.Equal(t, tc.patchExpected, patchReq)
 		})
 	}
 }
 
-func TestJsonPatchAdvancedConfig(t *testing.T) {
+func TestPatchAdvancedConfig(t *testing.T) {
 	var (
 		state = admin.ClusterDescriptionProcessArgs20240805{
 			JavascriptEnabled: conversion.Pointer(true),
@@ -214,7 +210,6 @@ func TestJsonPatchAdvancedConfig(t *testing.T) {
 			state         *admin.ClusterDescriptionProcessArgs20240805
 			plan          *admin.ClusterDescriptionProcessArgs20240805
 			patchExpected *admin.ClusterDescriptionProcessArgs20240805
-			noChanges     bool
 		}{
 			"JavascriptEnabled is set to false": {
 				state: &state,
@@ -228,14 +223,12 @@ func TestJsonPatchAdvancedConfig(t *testing.T) {
 			"JavascriptEnabled is set to null leads to no changes": {
 				state:         &state,
 				plan:          &admin.ClusterDescriptionProcessArgs20240805{},
-				patchExpected: &admin.ClusterDescriptionProcessArgs20240805{},
-				noChanges:     true,
+				patchExpected: nil,
 			},
 			"JavascriptEnabled state equals plan leads to no changes": {
 				state:         &state,
 				plan:          &state,
-				patchExpected: &admin.ClusterDescriptionProcessArgs20240805{},
-				noChanges:     true,
+				patchExpected: nil,
 			},
 			"Adding NoTableScan changes the plan payload and but doesn't include old value of JavascriptEnabled": {
 				state: &state,
@@ -249,17 +242,14 @@ func TestJsonPatchAdvancedConfig(t *testing.T) {
 			"Nil plan should return no changes": {
 				state:         &state,
 				plan:          nil,
-				patchExpected: &admin.ClusterDescriptionProcessArgs20240805{},
-				noChanges:     true,
+				patchExpected: nil,
 			},
 		}
 	)
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			patchReq := &admin.ClusterDescriptionProcessArgs20240805{}
-			noChanges, err := update.PatchPayloadNoChanges(tc.state, tc.plan, patchReq)
+			patchReq, err := update.PatchPayload(tc.state, tc.plan)
 			require.NoError(t, err)
-			assert.Equal(t, tc.noChanges, noChanges)
 			assert.Equal(t, tc.patchExpected, patchReq)
 		})
 	}
