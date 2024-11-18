@@ -24,15 +24,14 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Failed(t *testing.T) {
 		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)
 
 		providerName = "AWS"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID    = acc.ProjectIDExecution(t)
 		region       = os.Getenv("AWS_REGION")
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnvPrivateLinkEndpointService(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		CheckDestroy:             checkDestroy,
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		Steps: []resource.TestStep{
 			{
 				Config: configFailAWS(
