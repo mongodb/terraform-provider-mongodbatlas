@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-func PatchPayloadHasChangesTpf[T any, R any](ctx context.Context, diags *diag.Diagnostics, state, plan *T, converter func(ctx context.Context, input *T, diags *diag.Diagnostics) *R, reqPatch *R) bool {
+func PatchPayloadHasChangesTpf[TFModel any, SDKRequest any](ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, converter func(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *SDKRequest, reqPatch *SDKRequest) bool {
 	stateReq := converter(ctx, state, diags)
 	planReq := converter(ctx, plan, diags)
 	if diags.HasError() {
