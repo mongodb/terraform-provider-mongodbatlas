@@ -14,15 +14,13 @@ type attrPatchOperations struct {
 	data map[string][]jsondiff.Operation
 }
 
-const rootAttributeName = "not|valid|identifier"
-
 func newAttrPatchOperations(patch jsondiff.Patch) *attrPatchOperations {
 	self := &attrPatchOperations{
 		data: map[string][]jsondiff.Operation{},
 	}
 	for _, op := range patch {
 		if op.Path == "" {
-			self.set(rootAttributeName, &op)
+			self.set("", &op)
 		} else {
 			rootPath := strings.Split(op.Path, "/")[1]
 			self.set(rootPath, &op)
@@ -94,7 +92,7 @@ func (m *attrPatchOperations) StatePatch(attr string) jsondiff.Patch {
 func filterPatches(attr string, patches []jsondiff.Operation) jsondiff.Patch {
 	newPatch := jsondiff.Patch{}
 	for _, op := range patches {
-		if attr == rootAttributeName && op.Path == "" {
+		if attr == "" && op.Path == "" {
 			newPatch = append(newPatch, op)
 		} else if strings.HasPrefix(op.Path, "/"+attr) {
 			newPatch = append(newPatch, op)
