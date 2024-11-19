@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,13 +22,13 @@ func TestDataSourceSchemaFromResourceTemporary(t *testing.T) {
 }
 
 func TestDataSourceSchemasTemporary(t *testing.T) {
-	ds := pushbasedlogexport.DataSource()
+	ds := searchdeployment.DataSource()
 	schemaRequest := datasource.SchemaRequest{}
 	schemaResponse := &datasource.SchemaResponse{}
 	ds.Schema(context.Background(), schemaRequest, schemaResponse)
 }
 
-func TestDataSourceSchemaFromResource(t *testing.T) {
+func TestDataSourceSchemaFromResource_basic(t *testing.T) {
 	s := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"requiredAttr": schema.StringAttribute{
@@ -79,7 +79,7 @@ func TestDataSourceSchemaFromResource_unusedRequiredAttribute(t *testing.T) {
 			},
 		},
 	}
-	assert.PanicsWithValue(t, "some required fields not used: unknownAttr", func() {
+	assert.PanicsWithValue(t, "some required fields not used, fix caller: unknownAttr", func() {
 		conversion.DataSourceSchemaFromResource(s, "requiredAttr", "unknownAttr")
 	})
 }

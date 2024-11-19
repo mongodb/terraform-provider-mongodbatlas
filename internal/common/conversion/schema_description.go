@@ -9,6 +9,41 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
+func convertAttrs(rsAttrs map[string]schema.Attribute) map[string]dsschema.Attribute {
+	dsAttrs := make(map[string]dsschema.Attribute, len(rsAttrs))
+	for name, attr := range rsAttrs {
+		computed := true
+		required := false
+		switch attr.(type) {
+		case schema.StringAttribute:
+			dsAttrs[name] = dsschema.StringAttribute{
+				MarkdownDescription: attr.GetMarkdownDescription(),
+				Computed:            computed,
+				Required:            required,
+			}
+		case schema.Int64Attribute:
+			dsAttrs[name] = dsschema.Int64Attribute{
+				MarkdownDescription: attr.GetMarkdownDescription(),
+				Computed:            computed,
+				Required:            required,
+			}
+		case schema.ListNestedAttribute:
+			dsAttrs[name] = dsschema.ListNestedAttribute{
+				MarkdownDescription: attr.GetMarkdownDescription(),
+				Computed:            computed,
+				Required:            required,
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: map[string]dsschema.Attribute{},
+				},
+			}
+
+		default:
+			panic("attribute type not support yet 2: " + reflect.TypeOf(attr).String())
+		}
+	}
+	return dsAttrs
+}
+
 func DataSourceSchemaFromResource(rs schema.Schema, requiredFields ...string) dsschema.Schema {
 	usedRequiredFields := make(map[string]struct{}, len(requiredFields))
 	for _, field := range requiredFields {
@@ -27,18 +62,35 @@ func DataSourceSchemaFromResource(rs schema.Schema, requiredFields ...string) ds
 			computed = false
 			required = true
 		}
-		attrs[name] = dsschema.StringAttribute{
-			MarkdownDescription: attr.GetMarkdownDescription(),
-			Computed:            computed,
-			Required:            required,
+		switch attrTyped := attr.(type) {
+		case schema.StringAttribute:
+			attrs[name] = dsschema.StringAttribute{
+				MarkdownDescription: attr.GetMarkdownDescription(),
+				Computed:            computed,
+				Required:            required,
+			}
+		case schema.ListNestedAttribute:
+			attrs[name] = dsschema.ListNestedAttribute{
+				MarkdownDescription: attr.GetMarkdownDescription(),
+				Computed:            computed,
+				Required:            required,
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: convertAttrs(attrTyped.NestedObject.Attributes),
+				},
+			}
+		default:
+			panic("attribute type not support yet: " + reflect.TypeOf(attr).String())
 		}
+	}
+	if len(rs.Blocks) > 0 {
+		panic("blocks not supported yet")
 	}
 	if len(usedRequiredFields) > 0 {
 		keys := make([]string, 0, len(usedRequiredFields))
 		for k := range usedRequiredFields {
 			keys = append(keys, k)
 		}
-		panic("some required fields not used: " + strings.Join(keys, ", "))
+		panic("some required fields not used, fix caller: " + strings.Join(keys, ", "))
 	}
 	ds := dsschema.Schema{
 		Attributes: attrs,
