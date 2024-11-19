@@ -32,7 +32,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
 			},
 			"specs": schema.ListNestedAttribute{
 				Validators: []validator.List{
