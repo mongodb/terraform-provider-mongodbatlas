@@ -1,0 +1,90 @@
+{
+    "backupEnabled": true,
+    "biConnector": {
+        "enabled": false,
+        "readPreference": "secondary"
+    },
+    "clusterType": "SHARDED",
+    "configServerManagementMode": "ATLAS_MANAGED",
+    "configServerType": "DEDICATED",
+    "connectionStrings": {
+        "awsPrivateLinkSrv": {},
+        "privateEndpoint": [],
+        "standard": "mongodb://sharded-multi-replicati-shard-00-00.jciib.mongodb-dev.net:27016,sharded-multi-replicati-shard-00-01.jciib.mongodb-dev.net:27016,sharded-multi-replicati-shard-00-02.jciib.mongodb-dev.net:27016,sharded-multi-replicati-shard-00-03.jciib.mongodb-dev.net:27016,sharded-multi-replicati-shard-01-00.jciib.mongodb-dev.net:27016,sharded-multi-replicati-shard-01-01.jciib.mongodb-dev.net:27016,sharded-multi-replicati-shard-01-02.jciib.mongodb-dev.net:27016,sharded-multi-replicati-shard-01-03.jciib.mongodb-dev.net:27016/?ssl=true&authSource=admin",
+        "standardSrv": "mongodb+srv://sharded-multi-replicati.jciib.mongodb-dev.net"
+    },
+    "createDate": "2024-11-14T08:17:47Z",
+    "diskSizeGB": 40.0,
+    "diskWarmingMode": "FULLY_WARMED",
+    "encryptionAtRestProvider": "NONE",
+    "globalClusterSelfManagedSharding": false,
+    "groupId": "111111111111111111111111",
+    "id": "6735b22b3549b05320e92662",
+    "labels": [],
+    "links": [
+        {
+            "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/111111111111111111111111/clusters/sharded-multi-replication",
+            "rel": "self"
+        },
+        {
+            "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/111111111111111111111111/clusters/sharded-multi-replication/backup/restoreJobs",
+            "rel": "https://cloud.mongodb.com/restoreJobs"
+        },
+        {
+            "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/111111111111111111111111/clusters/sharded-multi-replication/backup/snapshots",
+            "rel": "https://cloud.mongodb.com/snapshots"
+        }
+    ],
+    "mongoDBMajorVersion": "7.0",
+    "mongoDBVersion": "7.0.15",
+    "name": "sharded-multi-replication",
+    "paused": false,
+    "pitEnabled": false,
+    "replicationSpecs": [
+        {
+            "id": "6735b22a3549b05320e9264d",
+            "numShards": 2,
+            "regionConfigs": [
+                {
+                    "analyticsSpecs": {
+                        "instanceSize": "M30",
+                        "diskIOPS": 2000,
+                        "ebsVolumeType": "PROVISIONED",
+                        "nodeCount": 1
+                    },
+                    "autoScaling": {
+                        "compute": {
+                            "enabled": false,
+                            "scaleDownEnabled": false
+                        },
+                        "diskGB": {
+                            "enabled": true
+                        }
+                    },
+                    "electableSpecs": {
+                        "instanceSize": "M30",
+                        "diskIOPS": 2000,
+                        "ebsVolumeType": "PROVISIONED",
+                        "nodeCount": 3
+                    },
+                    "priority": 7,
+                    "providerName": "AWS",
+                    "readOnlySpecs": {
+                        "instanceSize": "M30",
+                        "diskIOPS": 2000,
+                        "ebsVolumeType": "PROVISIONED",
+                        "nodeCount": 0
+                    },
+                    "regionName": "EU_WEST_1"
+                }
+            ],
+            "zoneId": "6735b22a3549b05320e9264c",
+            "zoneName": "ZoneName managed by Terraform"
+        }
+    ],
+    "rootCertType": "ISRGROOTX1",
+    "stateName": "IDLE",
+    "tags": [],
+    "terminationProtectionEnabled": false,
+    "versionReleaseSystem": "LTS"
+}

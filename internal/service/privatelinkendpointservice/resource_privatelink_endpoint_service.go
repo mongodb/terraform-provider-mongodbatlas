@@ -175,7 +175,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
-		Delay:      5 * time.Minute,
+		Delay:      1 * time.Minute,
 	}
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
@@ -189,7 +189,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
-		Delay:      5 * time.Minute,
+		Delay:      1 * time.Minute,
 	}
 
 	if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
@@ -313,7 +313,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: 5 * time.Second,
-			Delay:      5 * time.Minute,
+			Delay:      1 * time.Minute,
 		}
 
 		if _, err = clusterConf.WaitForStateContext(ctx); err != nil {

@@ -35,6 +35,14 @@ func StringToTime(str string) (time.Time, bool) {
 	return ret, err == nil
 }
 
+func StringPtrToTimePtr(str *string) (*time.Time, bool) {
+	if str == nil {
+		return nil, true
+	}
+	res, ok := StringToTime(*str)
+	return &res, ok
+}
+
 func Int64PtrToIntPtr(i64 *int64) *int {
 	if i64 == nil {
 		return nil
@@ -66,4 +74,15 @@ func MongoDBRegionToAWSRegion(region string) string {
 // AWSRegionToMongoDBRegion converts region in us-east-1-like format to US_EAST_1-like
 func AWSRegionToMongoDBRegion(region string) string {
 	return strings.ReplaceAll(strings.ToUpper(region), "-", "_")
+}
+
+type TFPrimitiveType interface {
+	IsUnknown() bool
+}
+
+func NilForUnknown[T any](primitiveAttr TFPrimitiveType, value *T) *T {
+	if primitiveAttr.IsUnknown() {
+		return nil
+	}
+	return value
 }
