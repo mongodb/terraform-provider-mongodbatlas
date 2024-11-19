@@ -5,16 +5,50 @@ import (
 	"fmt"
 	"testing"
 
+	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDataSourceSchemaFromResource(t *testing.T) {
+func TestDataSourceSchemaFromResourceTemporary(t *testing.T) {
 	s := mongodbemployeeaccessgrant.ResourceSchema(context.Background())
 	ds := conversion.DataSourceSchemaFromResource(s)
 	fmt.Println(ds)
+}
+
+func TestDataSourceSchemaFromResource(t *testing.T) {
+	s := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"requiredAttr": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttr",
+			},
+			"computedAttr": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc computedAttr",
+			},
+		},
+	}
+
+	expected := dsschema.Schema{
+		Attributes: map[string]dsschema.Attribute{
+			"requiredAttr": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttr",
+				Description:         "desc requiredAttr",
+			},
+			"computedAttr": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc computedAttr",
+				Description:         "desc computedAttr",
+			},
+		},
+	}
+
+	ds := conversion.DataSourceSchemaFromResource(s, "requiredAttr")
+	assert.Equal(t, expected, ds)
 }
 
 func TestUpdateSchemaDescription(t *testing.T) {
