@@ -43,22 +43,56 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFie
 				Computed:            computed,
 				Required:            required,
 			}
+		case schema.Float64Attribute:
+			dsAttrs[name] = dsschema.Float64Attribute{
+				MarkdownDescription: attrTyped.MarkdownDescription,
+				Computed:            computed,
+				Required:            required,
+			}
 		case schema.Int64Attribute:
 			dsAttrs[name] = dsschema.Int64Attribute{
 				MarkdownDescription: attrTyped.MarkdownDescription,
 				Computed:            computed,
 				Required:            required,
 			}
-		case schema.ListNestedAttribute:
-			dsAttrs[name] = dsschema.ListNestedAttribute{
+		case schema.BoolAttribute:
+			dsAttrs[name] = dsschema.BoolAttribute{
 				MarkdownDescription: attrTyped.MarkdownDescription,
 				Computed:            computed,
 				Required:            required,
+			}
+		case schema.MapAttribute:
+			dsAttrs[name] = dsschema.MapAttribute{
+				ElementType:         attrTyped.ElementType,
+				MarkdownDescription: attrTyped.MarkdownDescription,
+				Computed:            computed,
+				Required:            required,
+			}
+		case schema.SingleNestedAttribute:
+			dsAttrs[name] = dsschema.SingleNestedAttribute{
+				Attributes:          convertAttrs(attrTyped.Attributes, requiredFields, ignoreFields),
+				MarkdownDescription: attrTyped.MarkdownDescription,
+				Computed:            computed,
+				Required:            required,
+			}
+		case schema.ListNestedAttribute:
+			dsAttrs[name] = dsschema.ListNestedAttribute{
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: convertAttrs(attrTyped.NestedObject.Attributes, requiredFields, ignoreFields),
 				},
+				MarkdownDescription: attrTyped.MarkdownDescription,
+				Computed:            computed,
+				Required:            required,
 			}
-
+		case schema.SetNestedAttribute:
+			dsAttrs[name] = dsschema.ListNestedAttribute{
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: convertAttrs(attrTyped.NestedObject.Attributes, requiredFields, ignoreFields),
+				},
+				MarkdownDescription: attrTyped.MarkdownDescription,
+				Computed:            computed,
+				Required:            required,
+			}
 		default:
 			panic("attribute type not support yet: " + reflect.TypeOf(attr).String())
 		}
