@@ -7,15 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/fwerror"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241023002/admin"
-	// admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	// "go.mongodb.org/atlas-sdk/v20241023002/admin"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -52,7 +50,6 @@ type rs struct {
 	config.RSCommon
 }
 
-
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
@@ -71,7 +68,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 }
 
-func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagnostics, resp *resource.CreateResponse) (string, string) {
+func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagnostics, resp *resource.CreateResponse) (summary, detail string) {
 	sdkReq := NewAtlasReq(ctx, plan, diags)
 	if diags.HasError() {
 		return "", ""
@@ -80,85 +77,87 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	apiLegacy := r.Client.AtlasV220240530.ClustersApi
 	projectID := plan.ProjectID.ValueString()
 	clusterName := plan.Name.ValueString()
-	createResp, _, err := api.CreateCluster(ctx, projectID, sdkReq).Execute()
+	cluster, _, err := api.CreateCluster(ctx, projectID, sdkReq).Execute()
 	if err != nil {
 		return "errorCreate", fmt.Sprintf(errorCreate, err.Error())
 	}
-	var legacyAdvConfigSdk *admin20240530.ClusterDescriptionProcessArgs
+	var legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
 	legacyAdvConfigUpdate := NewAtlasReqAdvancedConfigurationLegacy(ctx, &plan.AdvancedConfiguration, diags)
 	if legacyAdvConfigUpdate != nil {
-		legacyAdvConfigSdk, _, err = apiLegacy.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, legacyAdvConfigUpdate).Execute()
+		legacyAdvConfig, _, err = apiLegacy.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, legacyAdvConfigUpdate).Execute()
 		if err != nil {
+			// Maybe should be warning instead of error to avoid having to re-create the cluster
 			return "errorCreateAdvConfigLegacy", fmt.Sprintf(errorCreate, err.Error())
 		}
 	}
-	
+
 	advConfigUpdate := NewAtlasReqAdvancedConfiguration(ctx, &plan.AdvancedConfiguration, diags)
 	var advConfig *admin.ClusterDescriptionProcessArgs20240805
 	if advConfigUpdate != nil {
 		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, advConfigUpdate).Execute()
 		if err != nil {
+			// Maybe should be warning instead of error to avoid having to re-create the cluster
 			return "errorCreateAdvConfig", fmt.Sprintf(errorCreate, err.Error())
 		}
 	}
-	timeouts := plan.Timeouts
-	if legacyAdvConfigSdk == nil {
-		legacyAdvConfigSdk, _, err = apiLegacy.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	return r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan.Timeouts, diags, &resp.State)
+}
+
+func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, resourceTimeouts timeouts.Value, diags *diag.Diagnostics, state *tfsdk.State) (summary, detail string) {
+	api := r.Client.AtlasV2.ClustersApi
+	apiLegacy := r.Client.AtlasV220240530.ClustersApi
+	projectID := cluster.GetGroupId()
+	clusterName := cluster.GetName()
+	var err error
+	if legacyAdvConfig == nil {
+		legacyAdvConfig, _, err = apiLegacy.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 		if err != nil {
-			return "errorReadAdvConfigLegacy", fmt.Sprintf(errorCreate, err.Error())
+			return "errorReadAdvConfigLegacy", fmt.Sprintf(errorRead, clusterName, err.Error())
 		}
 	}
 	if advConfig == nil {
 		advConfig, _, err = api.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 		if err != nil {
-			return "errorReadAdvConfig", fmt.Sprintf(errorCreate, err.Error())
+			return "errorReadAdvConfig", fmt.Sprintf(errorRead, clusterName, err.Error())
 		}
 	}
-	model := NewTFModel(ctx, createResp, timeouts, diags)
+	model := NewTFModel(ctx, cluster, resourceTimeouts, diags)
 	if diags.HasError() {
 		return "", ""
 	}
-	AddAdvancedConfig(ctx, model, advConfig, legacyAdvConfigSdk, diags)
+	AddAdvancedConfig(ctx, model, advConfig, legacyAdvConfig, diags)
 	if !diags.HasError() {
-		diags.Append(resp.State.Set(ctx, model)...)
+		diags.Append(state.Set(ctx, model)...)
 	}
 	return "", ""
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
+	diags := &resp.Diagnostics
+	diags.Append(req.State.Get(ctx, &state)...)
+	if diags.HasError() {
 		return
 	}
+	r.readCluster(ctx, &state, &resp.State, diags)
+}
+
+func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State, diags *diag.Diagnostics) {
+	clusterName := model.Name.ValueString()
+	projectID := model.ProjectID.ValueString()
 	api := r.Client.AtlasV2.ClustersApi
-	clusterName := state.Name.ValueString()
-	projectID := state.ProjectID.ValueString()
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if admin.IsErrorCode(err, "CLUSTER_NOT_FOUND"){
-			resp.State.RemoveResource(ctx)
+		if admin.IsErrorCode(err, "CLUSTER_NOT_FOUND") {
+			state.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
+		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
 		return
 	}
-	
-	readAdvConfig, _, err := api.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError("errorReadAdvConfig", fmt.Sprintf(ErrorAdvancedConfRead, clusterName, err.Error()))
-	}
-	apiLegacy := r.Client.AtlasV220240530.ClustersApi
-	readAdvConfigLegacy, _, err := apiLegacy.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError("errorReadAdvConfigLegacy", fmt.Sprintf(ErrorAdvancedConfRead, clusterName, err.Error()))
-	}
-	AddAdvancedConfig(ctx, &state, readAdvConfig, readAdvConfigLegacy, diags)
-
-	
-	model := NewTFModel(ctx, readResp, state.Timeouts, &resp.Diagnostics)
-	if model != nil {
-		resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+	summary, detail := r.convertClusterAddAdvConfig(ctx, nil, nil, readResp, model.Timeouts, diags, state)
+	if summary != "" || detail != "" {
+		diags.AddError(summary, detail)
 	}
 }
 
@@ -172,84 +171,52 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	api := r.Client.AtlasV2.ClustersApi
 	patchReq := update.PatchPayloadTpf(ctx, diags, &state, &plan, NewAtlasReq)
-	var outModel *TFModel
+	projectID := plan.ProjectID.ValueString()
+	clusterName := plan.Name.ValueString()
 	if patchReq != nil {
-		updateResp, _, err := api.UpdateCluster(ctx, state.ProjectID.ValueString(), state.ClusterID.ValueString(), patchReq).Execute()
+		_, _, err := api.UpdateCluster(ctx, projectID, clusterName, patchReq).Execute()
 		if err != nil {
-			diags.AddError("errorUpdate", fmt.Sprintf(errorUpdate, state.Name.ValueString(), err.Error()))
+			diags.AddError("errorUpdate", fmt.Sprintf(errorUpdate, clusterName, err.Error()))
 			return
 		}
-		outModel = NewTFModel(ctx, updateResp, plan.Timeouts, diags)
-	} else {
-		outModel = &state
 	}
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	if patchReqProcessArgs != nil {
-		err := StoreUpdatePayloadProcessArgs(patchReqProcessArgs)
+		_, _, err := api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgs).Execute()
 		if err != nil {
-			diags.AddError("error storing update payload advanced config", fmt.Sprintf("error storing update payload: %s", err.Error()))
+			diags.AddError("errorUpdateAdvancedConfig", fmt.Sprintf(errorConfigUpdate, clusterName, err.Error()))
 		}
 	}
 	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if patchReqProcessArgsLegacy != nil {
-		err := StoreUpdatePayloadProcessArgsLegacy(patchReqProcessArgsLegacy)
+		_, _, err := r.Client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgsLegacy).Execute()
 		if err != nil {
-			diags.AddError("error storing update payload advanced config legacy", fmt.Sprintf("error storing update payload: %s", err.Error()))
+			diags.AddError("errorUpdateAdvancedConfigLegacy", fmt.Sprintf(errorConfigUpdate, clusterName, err.Error()))
 		}
 	}
-	if diags.HasError() {
-		return
-	}
-
-	// TODO: Use requests to do actual updates with Admin API
-	tfNewModel, shouldReturn := mockedSDK(ctx, diags, plan.Timeouts)
-	// TODO: keep project_id and name from plan to avoid overwriting for move_state tests. We should probably do the same with the rest of attributes
-	tfNewModel.Name = plan.Name
-	tfNewModel.ProjectID = plan.ProjectID
-	if shouldReturn {
-		return
-	}
-	diags.Append(resp.State.Set(ctx, tfNewModel)...)
+	r.readCluster(ctx, &plan, &resp.State, diags)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
+	diags := &resp.Diagnostics
+	diags.Append(req.State.Get(ctx, &state)...)
+	if diags.HasError() {
 		return
 	}
 	name := state.Name.ValueString()
-	clusterID := state.ClusterID.ValueString()
-	if clusterID == "" {
-		resp.Diagnostics.AddError("errorDelete", fmt.Sprintf(errorDelete, name, "clusterID is empty"))
+	clusterName := state.Name.ValueString()
+	if clusterName == "" {
+		resp.Diagnostics.AddError("errorDelete", fmt.Sprintf(errorDelete, name, "clusterName is empty"))
 		return
+	}
+	api := r.Client.AtlasV2.ClustersApi
+	_, err := api.DeleteCluster(ctx, state.ProjectID.ValueString(), name).Execute()
+	if err != nil {
+		diags.AddError("errorDelete", fmt.Sprintf(errorDelete, name, err.Error()))
 	}
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	conversion.ImportStateProjectIDClusterName(ctx, req, resp, "project_id", "name")
-}
-
-func mockedSDK(ctx context.Context, diags *diag.Diagnostics, timeout timeouts.Value) (*TFModel, bool) {
-	sdkResp, err := ReadClusterResponse()
-	if err != nil {
-		diags.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
-		return nil, true
-	}
-	tfNewModel := NewTFModel(ctx, sdkResp, timeout, diags)
-	sdkAdvConfig, err := ReadClusterProcessArgsResponse()
-	if err != nil {
-		diags.AddError("errorCreateAdvConfig", fmt.Sprintf(errorCreate, err.Error()))
-		return nil, true
-	}
-	sdkAdvConfigLegacy, err := ReadClusterProcessArgsResponseLegacy()
-	if err != nil {
-		diags.AddError("errorCreateAdvConfigLegacy", fmt.Sprintf(errorCreate, err.Error()))
-		return nil, true
-	}
-	AddAdvancedConfig(ctx, tfNewModel, sdkAdvConfig, sdkAdvConfigLegacy, diags)
-	if diags.HasError() {
-		return nil, true
-	}
-	return tfNewModel, false
 }
