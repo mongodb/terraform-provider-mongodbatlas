@@ -3,18 +3,40 @@ package conversion
 import (
 	"reflect"
 	"slices"
-	"strings"
 
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-func convertAttrs(rsAttrs map[string]schema.Attribute) map[string]dsschema.Attribute {
+func DataSourceSchemaFromResource(rs schema.Schema, requiredFields ...string) dsschema.Schema {
+	ignoreFields := []string{"timeouts"}
+	if len(rs.Blocks) > 0 {
+		panic("blocks not supported yet")
+	}
+	ds := dsschema.Schema{
+		Attributes: convertAttrs(rs.Attributes, requiredFields, ignoreFields),
+	}
+	UpdateSchemaDescription(&ds)
+	return ds
+}
+
+func UpdateSchemaDescription[T schema.Schema | dsschema.Schema](s *T) {
+	UpdateAttr(s)
+}
+
+func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFields []string) map[string]dsschema.Attribute {
 	dsAttrs := make(map[string]dsschema.Attribute, len(rsAttrs))
 	for name, attr := range rsAttrs {
+		if slices.Contains(ignoreFields, name) {
+			continue
+		}
 		computed := true
 		required := false
-		switch attr.(type) {
+		if slices.Contains(requiredFields, name) {
+			computed = false
+			required = true
+		}
+		switch attrTyped := attr.(type) {
 		case schema.StringAttribute:
 			dsAttrs[name] = dsschema.StringAttribute{
 				MarkdownDescription: attr.GetMarkdownDescription(),
@@ -33,7 +55,7 @@ func convertAttrs(rsAttrs map[string]schema.Attribute) map[string]dsschema.Attri
 				Computed:            computed,
 				Required:            required,
 				NestedObject: dsschema.NestedAttributeObject{
-					Attributes: map[string]dsschema.Attribute{},
+					Attributes: convertAttrs(attrTyped.NestedObject.Attributes, requiredFields, ignoreFields),
 				},
 			}
 
@@ -42,71 +64,6 @@ func convertAttrs(rsAttrs map[string]schema.Attribute) map[string]dsschema.Attri
 		}
 	}
 	return dsAttrs
-}
-
-func DataSourceSchemaFromResource(rs schema.Schema, requiredFields ...string) dsschema.Schema {
-	usedRequiredFields := make(map[string]struct{}, len(requiredFields))
-	for _, field := range requiredFields {
-		usedRequiredFields[field] = struct{}{}
-	}
-	ignoreFields := []string{"timeouts"}
-	attrs := make(map[string]dsschema.Attribute, len(rs.Attributes))
-	for name, attr := range rs.Attributes {
-		if slices.Contains(ignoreFields, name) {
-			continue
-		}
-		computed := true
-		required := false
-		if slices.Contains(requiredFields, name) {
-			delete(usedRequiredFields, name)
-			computed = false
-			required = true
-		}
-		switch attrTyped := attr.(type) {
-		case schema.Int64Attribute:
-			attrs[name] = dsschema.Int64Attribute{
-				MarkdownDescription: attr.GetMarkdownDescription(),
-				Computed:            computed,
-				Required:            required,
-			}
-		case schema.StringAttribute:
-			attrs[name] = dsschema.StringAttribute{
-				MarkdownDescription: attr.GetMarkdownDescription(),
-				Computed:            computed,
-				Required:            required,
-			}
-		case schema.ListNestedAttribute:
-			attrs[name] = dsschema.ListNestedAttribute{
-				MarkdownDescription: attr.GetMarkdownDescription(),
-				Computed:            computed,
-				Required:            required,
-				NestedObject: dsschema.NestedAttributeObject{
-					Attributes: convertAttrs(attrTyped.NestedObject.Attributes),
-				},
-			}
-		default:
-			panic("attribute type not support yet: " + reflect.TypeOf(attr).String())
-		}
-	}
-	if len(rs.Blocks) > 0 {
-		panic("blocks not supported yet")
-	}
-	if len(usedRequiredFields) > 0 {
-		keys := make([]string, 0, len(usedRequiredFields))
-		for k := range usedRequiredFields {
-			keys = append(keys, k)
-		}
-		panic("some required fields not used, fix caller: " + strings.Join(keys, ", "))
-	}
-	ds := dsschema.Schema{
-		Attributes: attrs,
-	}
-	UpdateSchemaDescription(&ds)
-	return ds
-}
-
-func UpdateSchemaDescription[T schema.Schema | dsschema.Schema](s *T) {
-	UpdateAttr(s)
 }
 
 // UpdateAttr is exported for testing purposes only and should not be used directly.
