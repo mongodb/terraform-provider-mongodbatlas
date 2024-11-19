@@ -1,0 +1,27 @@
+{
+    "backupEnabled": false,
+    "biConnector": {
+        "enabled": true,
+        "readPreference": "secondary"
+    },
+    "configServerManagementMode": "ATLAS_MANAGED",
+    "labels": [
+        {
+            "key": "env",
+            "value": "test"
+        }
+    ],
+    "mongoDBMajorVersion": "8.0",
+    "paused": true,
+    "pitEnabled": true,
+    "redactClientLogData": true,
+    "replicaSetScalingStrategy": "NODE_TYPE",
+    "tags": [
+        {
+            "key": "env",
+            "value": "test"
+        }
+    ],
+    "terminationProtectionEnabled": true,
+    "versionReleaseSystem": "CONTINUOUS"
+}
