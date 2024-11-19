@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -91,19 +92,47 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
+	var state, plan TFModel
+	diags := &resp.Diagnostics
+	diags.Append(req.Plan.Get(ctx, &plan)...)
+	diags.Append(req.State.Get(ctx, &state)...)
+	if diags.HasError() {
 		return
 	}
-	tfNewModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, plan.Timeouts)
+	patchReq := update.PatchPayloadTpf(ctx, diags, &state, &plan, NewAtlasReq)
+	if patchReq != nil {
+		err := StoreUpdatePayload(patchReq)
+		if err != nil {
+			diags.AddError("error storing update payload", fmt.Sprintf("error storing update payload: %s", err.Error()))
+		}
+	}
+	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	if patchReqProcessArgs != nil {
+		err := StoreUpdatePayloadProcessArgs(patchReqProcessArgs)
+		if err != nil {
+			diags.AddError("error storing update payload advanced config", fmt.Sprintf("error storing update payload: %s", err.Error()))
+		}
+	}
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	if patchReqProcessArgsLegacy != nil {
+		err := StoreUpdatePayloadProcessArgsLegacy(patchReqProcessArgsLegacy)
+		if err != nil {
+			diags.AddError("error storing update payload advanced config legacy", fmt.Sprintf("error storing update payload: %s", err.Error()))
+		}
+	}
+	if diags.HasError() {
+		return
+	}
+
+	// TODO: Use requests to do actual updates with Admin API
+	tfNewModel, shouldReturn := mockedSDK(ctx, diags, plan.Timeouts)
 	// TODO: keep project_id and name from plan to avoid overwriting for move_state tests. We should probably do the same with the rest of attributes
 	tfNewModel.Name = plan.Name
 	tfNewModel.ProjectID = plan.ProjectID
 	if shouldReturn {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, tfNewModel)...)
+	diags.Append(resp.State.Set(ctx, tfNewModel)...)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -136,7 +165,12 @@ func mockedSDK(ctx context.Context, diags *diag.Diagnostics, timeout timeouts.Va
 		diags.AddError("errorCreateAdvConfig", fmt.Sprintf(errorCreate, err.Error()))
 		return nil, true
 	}
-	AddAdvancedConfig(ctx, tfNewModel, sdkAdvConfig, diags)
+	sdkAdvConfigLegacy, err := ReadClusterProcessArgsResponseLegacy()
+	if err != nil {
+		diags.AddError("errorCreateAdvConfigLegacy", fmt.Sprintf(errorCreate, err.Error()))
+		return nil, true
+	}
+	AddAdvancedConfig(ctx, tfNewModel, sdkAdvConfig, sdkAdvConfigLegacy, diags)
 	if diags.HasError() {
 		return nil, true
 	}
