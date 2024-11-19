@@ -39,19 +39,19 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFie
 		switch attrTyped := attr.(type) {
 		case schema.StringAttribute:
 			dsAttrs[name] = dsschema.StringAttribute{
-				MarkdownDescription: attr.GetMarkdownDescription(),
+				MarkdownDescription: attrTyped.MarkdownDescription,
 				Computed:            computed,
 				Required:            required,
 			}
 		case schema.Int64Attribute:
 			dsAttrs[name] = dsschema.Int64Attribute{
-				MarkdownDescription: attr.GetMarkdownDescription(),
+				MarkdownDescription: attrTyped.MarkdownDescription,
 				Computed:            computed,
 				Required:            required,
 			}
 		case schema.ListNestedAttribute:
 			dsAttrs[name] = dsschema.ListNestedAttribute{
-				MarkdownDescription: attr.GetMarkdownDescription(),
+				MarkdownDescription: attrTyped.MarkdownDescription,
 				Computed:            computed,
 				Required:            required,
 				NestedObject: dsschema.NestedAttributeObject{
