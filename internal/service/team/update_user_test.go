@@ -73,7 +73,7 @@ func TestUpdateTeamUsers(t *testing.T) {
 
 	testCases := map[string]struct {
 		mockFuncExpectations func(*mockadmin.TeamsApi, *mockadmin.MongoDBCloudUsersApi)
-		existingTeamUsers    *admin.PaginatedApiAppUser
+		existingTeamUsers    *admin.PaginatedAppUser
 		expectError          require.ErrorAssertionFunc
 		testName             string
 		usernames            []string
@@ -87,7 +87,7 @@ func TestUpdateTeamUsers(t *testing.T) {
 				mockValidUser1.EXPECT().GetUserByUsernameExecute(mock.Anything).Return(&admin.CloudAppUser{Id: &validuser1}, nil, nil)
 				mockValidUser2.EXPECT().GetUserByUsernameExecute(mock.Anything).Return(&admin.CloudAppUser{Id: &validuser2}, nil, nil)
 			},
-			existingTeamUsers: &admin.PaginatedApiAppUser{Results: &[]admin.CloudAppUser{{Id: &validuser1}, {Id: &validuser2}}},
+			existingTeamUsers: &admin.PaginatedAppUser{Results: &[]admin.CloudAppUser{{Id: &validuser1}, {Id: &validuser2}}},
 			usernames:         []string{validuser1, validuser2},
 			expectError:       require.NoError,
 		},
@@ -112,7 +112,7 @@ func TestUpdateTeamUsers(t *testing.T) {
 				mockTeamsApi.EXPECT().AddTeamUser(mock.Anything, mock.Anything, mock.Anything, &[]admin.AddUserToTeam{{Id: validuser2}}).Return(admin.AddTeamUserApiRequest{ApiService: mockTeamsApi})
 				mockTeamsApi.EXPECT().AddTeamUserExecute(mock.Anything).Return(nil, nil, nil)
 			},
-			existingTeamUsers: &admin.PaginatedApiAppUser{Results: &[]admin.CloudAppUser{{Id: &validuser1}}},
+			existingTeamUsers: &admin.PaginatedAppUser{Results: &[]admin.CloudAppUser{{Id: &validuser1}}},
 			usernames:         []string{validuser1, validuser2},
 			expectError:       require.NoError,
 		},
@@ -125,7 +125,7 @@ func TestUpdateTeamUsers(t *testing.T) {
 				mockTeamsApi.EXPECT().RemoveTeamUser(mock.Anything, mock.Anything, mock.Anything, validuser1).Return(admin.RemoveTeamUserApiRequest{ApiService: mockTeamsApi})
 				mockTeamsApi.EXPECT().RemoveTeamUserExecute(mock.Anything).Return(nil, nil)
 			},
-			existingTeamUsers: &admin.PaginatedApiAppUser{Results: &[]admin.CloudAppUser{{Id: &validuser1}, {Id: &validuser2}}},
+			existingTeamUsers: &admin.PaginatedAppUser{Results: &[]admin.CloudAppUser{{Id: &validuser1}, {Id: &validuser2}}},
 			usernames:         []string{validuser2},
 			expectError:       require.NoError,
 		},
@@ -142,7 +142,7 @@ func TestUpdateTeamUsers(t *testing.T) {
 				removeCall.NotBefore(addCall.Call) // Ensures new additions are made before removing
 				mockTeamsApi.EXPECT().RemoveTeamUserExecute(mock.Anything).Return(nil, nil)
 			},
-			existingTeamUsers: &admin.PaginatedApiAppUser{Results: &[]admin.CloudAppUser{{Id: &validuser2}}},
+			existingTeamUsers: &admin.PaginatedAppUser{Results: &[]admin.CloudAppUser{{Id: &validuser2}}},
 			usernames:         []string{validuser1},
 			expectError:       require.NoError,
 		},

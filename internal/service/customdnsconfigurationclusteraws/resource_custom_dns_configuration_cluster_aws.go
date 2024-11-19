@@ -49,7 +49,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	params := &admin.AWSCustomDNSEnabled{
 		Enabled: d.Get("enabled").(bool),
 	}
-	_, _, err := connV2.AWSClustersDNSApi.ToggleAWSCustomDNS(ctx, projectID, params).Execute()
+	_, _, err := connV2.AWSClustersDNSApi.ToggleAwsCustomDns(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
@@ -60,7 +60,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
-	dnsResp, resp, err := connV2.AWSClustersDNSApi.GetAWSCustomDNS(context.Background(), projectID).Execute()
+	dnsResp, resp, err := connV2.AWSClustersDNSApi.GetAwsCustomDns(context.Background(), projectID).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -85,7 +85,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params := &admin.AWSCustomDNSEnabled{
 			Enabled: d.Get("enabled").(bool),
 		}
-		_, _, err := connV2.AWSClustersDNSApi.ToggleAWSCustomDNS(ctx, projectID, params).Execute()
+		_, _, err := connV2.AWSClustersDNSApi.ToggleAwsCustomDns(ctx, projectID, params).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, err))
 		}
@@ -100,7 +100,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	params := &admin.AWSCustomDNSEnabled{
 		Enabled: false,
 	}
-	_, _, err := connV2.AWSClustersDNSApi.ToggleAWSCustomDNS(ctx, projectID, params).Execute()
+	_, _, err := connV2.AWSClustersDNSApi.ToggleAwsCustomDns(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDelete, projectID, err))
 	}

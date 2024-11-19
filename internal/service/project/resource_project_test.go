@@ -133,8 +133,8 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			projectsMock.EXPECT().GetProjectSettings(mock.Anything, mock.Anything).Return(admin.GetProjectSettingsApiRequest{ApiService: projectsMock}).Maybe()
 			projectsMock.EXPECT().GetProjectSettingsExecute(mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
 
-			projectsMock.EXPECT().ReturnAllIPAddresses(mock.Anything, mock.Anything).Return(admin.ReturnAllIPAddressesApiRequest{ApiService: projectsMock}).Maybe()
-			projectsMock.EXPECT().ReturnAllIPAddressesExecute(mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
+			projectsMock.EXPECT().ReturnAllIpAddresses(mock.Anything, mock.Anything).Return(admin.ReturnAllIpAddressesApiRequest{ApiService: projectsMock}).Maybe()
+			projectsMock.EXPECT().ReturnAllIpAddressesExecute(mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
 
 			perfMock.EXPECT().GetManagedSlowMs(mock.Anything, mock.Anything).Return(admin.GetManagedSlowMsApiRequest{ApiService: perfMock}).Maybe()
 			managedSlowMsJSON := tc.getManagedSlowMs
