@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
@@ -39,13 +40,26 @@ func TestDataSourceSchemaFromResource_basic(t *testing.T) {
 				Required:            true,
 				MarkdownDescription: "desc requiredAttrInt64",
 			},
-			"computedAttrString": schema.StringAttribute{
+			"attrString": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "desc computedAttrString",
+				MarkdownDescription: "desc attrString",
 			},
-			"computedAttrInt64": schema.StringAttribute{
+			"attrInt64": schema.Int64Attribute{
 				Computed:            true,
-				MarkdownDescription: "desc computedAttrInt64",
+				MarkdownDescription: "desc attrInt64",
+			},
+			"attrFloat64": schema.Float64Attribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrFloat64",
+			},
+			"attrBool": schema.BoolAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrBool",
+			},
+			"mapAttr": schema.MapAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "desc mapAttr",
 			},
 			"nestList": schema.ListNestedAttribute{
 				Computed:            true,
@@ -54,7 +68,19 @@ func TestDataSourceSchemaFromResource_basic(t *testing.T) {
 					Attributes: map[string]schema.Attribute{
 						"nestedAttr": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "desc nestedAttr",
+							MarkdownDescription: "desc nested nestList",
+						},
+					},
+				},
+			},
+			"nestSet": schema.SetNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc nestSet",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"nestedAttr": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc nested nestSet",
 						},
 					},
 				},
@@ -79,15 +105,31 @@ func TestDataSourceSchemaFromResource_basic(t *testing.T) {
 				MarkdownDescription: "desc requiredAttrInt64",
 				Description:         "desc requiredAttrInt64",
 			},
-			"computedAttrString": dsschema.StringAttribute{
+			"attrString": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "desc computedAttrString",
-				Description:         "desc computedAttrString",
+				MarkdownDescription: "desc attrString",
+				Description:         "desc attrString",
 			},
-			"computedAttrInt64": dsschema.StringAttribute{
+			"attrInt64": dsschema.Int64Attribute{
 				Computed:            true,
-				MarkdownDescription: "desc computedAttrInt64",
-				Description:         "desc computedAttrInt64",
+				MarkdownDescription: "desc attrInt64",
+				Description:         "desc attrInt64",
+			},
+			"attrFloat64": dsschema.Float64Attribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrFloat64",
+				Description:         "desc attrFloat64",
+			},
+			"attrBool": dsschema.BoolAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrBool",
+				Description:         "desc attrBool",
+			},
+			"mapAttr": dsschema.MapAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "desc mapAttr",
+				Description:         "desc mapAttr",
 			},
 			"nestList": dsschema.ListNestedAttribute{
 				Computed:            true,
@@ -97,8 +139,22 @@ func TestDataSourceSchemaFromResource_basic(t *testing.T) {
 					Attributes: map[string]dsschema.Attribute{
 						"nestedAttr": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "desc nestedAttr",
-							Description:         "desc nestedAttr",
+							MarkdownDescription: "desc nested nestList",
+							Description:         "desc nested nestList",
+						},
+					},
+				},
+			},
+			"nestSet": dsschema.SetNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc nestSet",
+				Description:         "desc nestSet",
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: map[string]dsschema.Attribute{
+						"nestedAttr": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc nested nestSet",
+							Description:         "desc nested nestSet",
 						},
 					},
 				},

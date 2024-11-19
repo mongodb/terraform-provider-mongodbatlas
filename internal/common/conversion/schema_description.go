@@ -43,14 +43,14 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFie
 				Computed:            computed,
 				Required:            required,
 			}
-		case schema.Float64Attribute:
-			dsAttrs[name] = dsschema.Float64Attribute{
+		case schema.Int64Attribute:
+			dsAttrs[name] = dsschema.Int64Attribute{
 				MarkdownDescription: attrTyped.MarkdownDescription,
 				Computed:            computed,
 				Required:            required,
 			}
-		case schema.Int64Attribute:
-			dsAttrs[name] = dsschema.Int64Attribute{
+		case schema.Float64Attribute:
+			dsAttrs[name] = dsschema.Float64Attribute{
 				MarkdownDescription: attrTyped.MarkdownDescription,
 				Computed:            computed,
 				Required:            required,
@@ -85,7 +85,7 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFie
 				Required:            required,
 			}
 		case schema.SetNestedAttribute:
-			dsAttrs[name] = dsschema.ListNestedAttribute{
+			dsAttrs[name] = dsschema.SetNestedAttribute{
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: convertAttrs(attrTyped.NestedObject.Attributes, requiredFields, ignoreFields),
 				},
