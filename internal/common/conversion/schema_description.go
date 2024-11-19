@@ -3,12 +3,17 @@ package conversion
 import (
 	"reflect"
 	"slices"
+	"strings"
 
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
 func DataSourceSchemaFromResource(rs schema.Schema, requiredFields ...string) dsschema.Schema {
+	usedRequiredFields := make(map[string]struct{}, len(requiredFields))
+	for _, field := range requiredFields {
+		usedRequiredFields[field] = struct{}{}
+	}
 	ignoreFields := []string{"timeouts"}
 	attrs := make(map[string]dsschema.Attribute, len(rs.Attributes))
 	for name, attr := range rs.Attributes {
@@ -18,6 +23,7 @@ func DataSourceSchemaFromResource(rs schema.Schema, requiredFields ...string) ds
 		computed := true
 		required := false
 		if slices.Contains(requiredFields, name) {
+			delete(usedRequiredFields, name)
 			computed = false
 			required = true
 		}
@@ -26,6 +32,13 @@ func DataSourceSchemaFromResource(rs schema.Schema, requiredFields ...string) ds
 			Computed:            computed,
 			Required:            required,
 		}
+	}
+	if len(usedRequiredFields) > 0 {
+		keys := make([]string, 0, len(usedRequiredFields))
+		for k := range usedRequiredFields {
+			keys = append(keys, k)
+		}
+		panic("some required fields not used: " + strings.Join(keys, ", "))
 	}
 	ds := dsschema.Schema{
 		Attributes: attrs,

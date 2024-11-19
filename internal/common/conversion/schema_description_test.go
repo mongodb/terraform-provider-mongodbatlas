@@ -66,6 +66,24 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 	assert.Equal(t, expected, ds)
 }
 
+func TestDataSourceSchemaFromResource_unusedRequiredAttribute(t *testing.T) {
+	s := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"requiredAttr": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttr",
+			},
+			"computedAttr": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc computedAttr",
+			},
+		},
+	}
+	assert.PanicsWithValue(t, "some required fields not used: unknownAttr", func() {
+		conversion.DataSourceSchemaFromResource(s, "requiredAttr", "unknownAttr")
+	})
+}
+
 func TestUpdateSchemaDescription(t *testing.T) {
 	s := schema.Schema{
 		Attributes: map[string]schema.Attribute{
