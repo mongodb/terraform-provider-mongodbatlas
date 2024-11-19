@@ -63,6 +63,12 @@ func DataSourceSchemaFromResource(rs schema.Schema, requiredFields ...string) ds
 			required = true
 		}
 		switch attrTyped := attr.(type) {
+		case schema.Int64Attribute:
+			attrs[name] = dsschema.Int64Attribute{
+				MarkdownDescription: attr.GetMarkdownDescription(),
+				Computed:            computed,
+				Required:            required,
+			}
 		case schema.StringAttribute:
 			attrs[name] = dsschema.StringAttribute{
 				MarkdownDescription: attr.GetMarkdownDescription(),

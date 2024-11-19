@@ -31,13 +31,33 @@ func TestDataSourceSchemasTemporary(t *testing.T) {
 func TestDataSourceSchemaFromResource_basic(t *testing.T) {
 	s := schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"requiredAttr": schema.StringAttribute{
+			"requiredAttrString": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "desc requiredAttr",
+				MarkdownDescription: "desc requiredAttrString",
 			},
-			"computedAttr": schema.StringAttribute{
+			"requiredAttrInt64": schema.Int64Attribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttrInt64",
+			},
+			"computedAttrString": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "desc computedAttr",
+				MarkdownDescription: "desc computedAttrString",
+			},
+			"computedAttrInt64": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc computedAttrInt64",
+			},
+			"nestList": schema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc nestList",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"nestedAttr": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc nestedAttr",
+						},
+					},
+				},
 			},
 			"timeouts": timeouts.Attributes(context.Background(), timeouts.Opts{
 				Create: true,
@@ -49,20 +69,43 @@ func TestDataSourceSchemaFromResource_basic(t *testing.T) {
 
 	expected := dsschema.Schema{
 		Attributes: map[string]dsschema.Attribute{
-			"requiredAttr": dsschema.StringAttribute{
+			"requiredAttrString": dsschema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "desc requiredAttr",
-				Description:         "desc requiredAttr",
+				MarkdownDescription: "desc requiredAttrString",
+				Description:         "desc requiredAttrString",
 			},
-			"computedAttr": dsschema.StringAttribute{
+			"requiredAttrInt64": dsschema.Int64Attribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttrInt64",
+				Description:         "desc requiredAttrInt64",
+			},
+			"computedAttrString": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "desc computedAttr",
-				Description:         "desc computedAttr",
+				MarkdownDescription: "desc computedAttrString",
+				Description:         "desc computedAttrString",
+			},
+			"computedAttrInt64": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc computedAttrInt64",
+				Description:         "desc computedAttrInt64",
+			},
+			"nestList": dsschema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc nestList",
+				Description:         "desc nestList",
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: map[string]dsschema.Attribute{
+						"nestedAttr": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc nestedAttr",
+							Description:         "desc nestedAttr",
+						},
+					},
+				},
 			},
 		},
 	}
-
-	ds := conversion.DataSourceSchemaFromResource(s, "requiredAttr")
+	ds := conversion.DataSourceSchemaFromResource(s, "requiredAttrString", "requiredAttrInt64")
 	assert.Equal(t, expected, ds)
 }
 
