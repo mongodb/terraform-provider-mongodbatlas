@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +22,7 @@ func TestDataSourceSchemaFromResourceTemporary(t *testing.T) {
 }
 
 func TestDataSourceSchemasTemporary(t *testing.T) {
-	ds := resourcepolicy.DataSource()
+	ds := pushbasedlogexport.DataSource()
 	schemaRequest := datasource.SchemaRequest{}
 	schemaResponse := &datasource.SchemaResponse{}
 	ds.Schema(context.Background(), schemaRequest, schemaResponse)
@@ -38,6 +39,11 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				Computed:            true,
 				MarkdownDescription: "desc computedAttr",
 			},
+			"timeouts": timeouts.Attributes(context.Background(), timeouts.Opts{
+				Create: true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 	}
 

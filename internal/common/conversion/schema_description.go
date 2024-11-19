@@ -9,16 +9,20 @@ import (
 )
 
 func DataSourceSchemaFromResource(rs schema.Schema, requiredFields ...string) dsschema.Schema {
+	ignoreFields := []string{"timeouts"}
 	attrs := make(map[string]dsschema.Attribute, len(rs.Attributes))
-	for k, v := range rs.Attributes {
+	for name, attr := range rs.Attributes {
+		if slices.Contains(ignoreFields, name) {
+			continue
+		}
 		computed := true
 		required := false
-		if slices.Contains(requiredFields, k) {
+		if slices.Contains(requiredFields, name) {
 			computed = false
 			required = true
 		}
-		attrs[k] = dsschema.StringAttribute{
-			MarkdownDescription: v.GetMarkdownDescription(),
+		attrs[name] = dsschema.StringAttribute{
+			MarkdownDescription: attr.GetMarkdownDescription(),
 			Computed:            computed,
 			Required:            required,
 		}
