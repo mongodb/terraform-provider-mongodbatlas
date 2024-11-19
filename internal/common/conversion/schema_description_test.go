@@ -70,6 +70,10 @@ func TestDataSourceSchemaFromResource_basic(t *testing.T) {
 							Computed:            true,
 							MarkdownDescription: "desc nested nestList",
 						},
+						"requiredAttrString": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "desc required not matched nested",
+						},
 					},
 				},
 			},
@@ -141,6 +145,11 @@ func TestDataSourceSchemaFromResource_basic(t *testing.T) {
 							Computed:            true,
 							MarkdownDescription: "desc nested nestList",
 							Description:         "desc nested nestList",
+						},
+						"requiredAttrString": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc required not matched nested",
+							Description:         "desc required not matched nested",
 						},
 					},
 				},

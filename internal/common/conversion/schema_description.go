@@ -70,7 +70,7 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFie
 			}
 		case schema.SingleNestedAttribute:
 			dsAttrs[name] = dsschema.SingleNestedAttribute{
-				Attributes:          convertAttrs(attrTyped.Attributes, requiredFields, ignoreFields),
+				Attributes:          convertAttrs(attrTyped.Attributes, nil, nil),
 				MarkdownDescription: attrTyped.MarkdownDescription,
 				Computed:            computed,
 				Required:            required,
@@ -78,7 +78,7 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFie
 		case schema.ListNestedAttribute:
 			dsAttrs[name] = dsschema.ListNestedAttribute{
 				NestedObject: dsschema.NestedAttributeObject{
-					Attributes: convertAttrs(attrTyped.NestedObject.Attributes, requiredFields, ignoreFields),
+					Attributes: convertAttrs(attrTyped.NestedObject.Attributes, nil, nil),
 				},
 				MarkdownDescription: attrTyped.MarkdownDescription,
 				Computed:            computed,
@@ -87,7 +87,7 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFie
 		case schema.SetNestedAttribute:
 			dsAttrs[name] = dsschema.SetNestedAttribute{
 				NestedObject: dsschema.NestedAttributeObject{
-					Attributes: convertAttrs(attrTyped.NestedObject.Attributes, requiredFields, ignoreFields),
+					Attributes: convertAttrs(attrTyped.NestedObject.Attributes, nil, nil),
 				},
 				MarkdownDescription: attrTyped.MarkdownDescription,
 				Computed:            computed,
