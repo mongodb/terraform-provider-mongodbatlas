@@ -60,7 +60,7 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFie
 			}
 
 		default:
-			panic("attribute type not support yet 2: " + reflect.TypeOf(attr).String())
+			panic("attribute type not support yet: " + reflect.TypeOf(attr).String())
 		}
 	}
 	return dsAttrs
