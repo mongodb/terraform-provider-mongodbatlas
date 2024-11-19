@@ -6,7 +6,7 @@ page_title: "Migration Guide: Advanced Cluster New Sharding Configurations"
 
 **Objective**: Use this guide to migrate your existing `advanced_cluster` resources to support new sharding configurations introduced in version 1.18.0. The new sharding configurations allow you to scale shards independently. Existing sharding configurations continue to work, but you will receive deprecation messages if you continue to use them.
 
-Note: Once applied, `advanced_cluster` resource making use of the new sharding configuration will not be able to transition back to the old sharding configuration.
+Note: Once applied, the `advanced_cluster` resource making use of the new sharding configuration will not be able to transition back to the old sharding configuration.
 
 - [Migration Guide: Advanced Cluster New Sharding Configurations](#migration-guide-advanced-cluster-new-sharding-schema)
   - [Changes Overview](#changes-overview)
