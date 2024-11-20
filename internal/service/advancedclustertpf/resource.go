@@ -87,7 +87,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		legacyAdvConfig, _, err = apiLegacy.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, legacyAdvConfigUpdate).Execute()
 		if err != nil {
 			// Maybe should be warning instead of error to avoid having to re-create the cluster
-			return "errorCreateAdvConfigLegacy", fmt.Sprintf(errorCreate, err.Error())
+			return "errorUpdateeAdvConfigLegacy", fmt.Sprintf(errorCreate, err.Error())
 		}
 	}
 
@@ -97,7 +97,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, advConfigUpdate).Execute()
 		if err != nil {
 			// Maybe should be warning instead of error to avoid having to re-create the cluster
-			return "errorCreateAdvConfig", fmt.Sprintf(errorCreate, err.Error())
+			return "errorUpdateAdvConfig", fmt.Sprintf(errorCreate, err.Error())
 		}
 	}
 	return r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan.Timeouts, diags, &resp.State)
