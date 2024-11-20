@@ -130,8 +130,8 @@ type requestTracker struct {
 	allowReReadGet       bool
 }
 
-func (r *requestTracker) requestFilename(requestID string) string {
-	return strings.ReplaceAll(fmt.Sprintf("%02d_%s", r.currentStepIndex+1, requestID), "/", "_")
+func (r *requestTracker) requestFilename(requestID string, index int) string {
+	return strings.ReplaceAll(fmt.Sprintf("%02d_%02d_%s", r.currentStepIndex+1, index+1, requestID), "/", "_")
 }
 
 func (r *requestTracker) initStep() error {
@@ -144,8 +144,8 @@ func (r *requestTracker) initStep() error {
 	if step == nil {
 		return nil
 	}
-	for _, req := range step.DiffRequests {
-		err := r.g.Update(r.t, r.requestFilename(req.idShort()), []byte(req.Text))
+	for index, req := range step.DiffRequests {
+		err := r.g.Update(r.t, r.requestFilename(req.idShort(), index), []byte(replaceVars(req.Text, r.vars)))
 		if err != nil {
 			return err
 		}
@@ -171,7 +171,7 @@ func (r *requestTracker) checkStepRequests(_ *terraform.State) error {
 	}
 	if r.allowMissingRequests {
 		if len(missingRequests) > 0 {
-			r.t.Logf("missing requests: %s", strings.Join(missingRequests, ", "))
+			r.t.Logf("missing requests:\n%s", strings.Join(missingRequests, "\n"))
 		}
 	} else {
 		assert.Empty(r.t, missingRequests)
@@ -185,7 +185,7 @@ func (r *requestTracker) checkStepRequests(_ *terraform.State) error {
 	assert.Empty(r.t, missingDiffs)
 	for index, payload := range r.foundsDiffs {
 		diff := step.DiffRequests[index]
-		r.g.Assert(r.t, r.requestFilename(diff.idShort()), []byte(payload))
+		r.g.Assert(r.t, r.requestFilename(diff.idShort(), index), []byte(payload))
 	}
 	r.currentStepIndex++
 	return r.initStep()
@@ -246,6 +246,7 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 			return "", 0, err
 		}
 		r.foundsDiffs[index] = normalizedPayload
+		break
 	}
 
 	for _, request := range step.RequestResponses {
