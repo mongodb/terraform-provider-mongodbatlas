@@ -7,14 +7,13 @@ page_title: "Migration Guide: Transition out of Serverless Instances and Shared-
 The goal of this guide is to help users transition from Serverless Instances and Shared-tier clusters (M2/M5) to Free, Flex or Dedicated Clusters. 
 
 Starting in January 2025, all Shared-tier clusters (in both `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`) will automatically convert to Flex clusters. Similarly, in March 2025 all Serverless instances (`mongodb_serverless_instance`) will be converted into Free/Flex/Dedicated clusters, [depending on your existing configuration](https://www.mongodb.com/docs/atlas/flex-migration/).
+If a Serverless instance has $0 MRR, it automatically converts into a Free cluster. Else, if it does not fit the constraints of a Flex cluster, it will convert into a Dedicated cluster, resulting in downtime and workload disruption. Otherwise, it will convert to a Flex cluster.
 Some of these conversions will result in configuration drift in Terraform. 
 
 
 You can migrate from Serverless instances and Shared-tier clusters manually before March 2025. 
 
 **--> NOTE:** We recommend waiting until March 2025 or later for Serverless instances and Shared-tier clusters to autoconvert.
-
-If a Serverless instance has $0 MRR, it automatically converts into a Free cluster. Else, if it does not fit the constraints of a Flex cluster, it will convert into a Dedicated cluster, resulting in downtime and workload disruption. Otherwise, it will convert to a Flex cluster.
 
 For Shared-tier clusters, we are working on enhancing the User Experience such that Terraform Atlas Providers users can make even fewer required changes to their scripts from what is shown below. More updates to come over the next few months. For more details reach out to: zuhair.ahmed@mongodb.com
 
@@ -61,7 +60,7 @@ The following steps explain how to move your exising Shared-tier cluster resourc
 
 ### Pre-Autoconversion Migration Procedure
 
-**NOTE:** We recommend waiting until March 2025 or later for Shared-tier clusters to autoconvert.
+**NOTE:** We recommend waiting until March 2025 or later for Shared-tier clusters to autoconvert. Manually doing the migration can cause downtime and workload disruption.
 
 1. Create a new Flex Cluster directly from your `.tf` file, e.g.:
 
@@ -127,7 +126,7 @@ The following steps resolve the configuration drift in Terraform and does not af
 
 ### Pre-Autoconversion Migration Procedure
 
-**NOTE:** We recommend waiting until March 2025 or later for Serverless instances to autoconvert.
+**NOTE:** We recommend waiting until March 2025 or later for Serverless instances to autoconvert. Manually doing the migration can cause downtime and workload disruption.
 
 1. Create a new Free Cluster directly from your `.tf` file, e.g.:
 
@@ -197,7 +196,7 @@ The following steps explain how to move your exising Serverless instance resourc
 
 ### Pre-Autoconversion Migration Procedure
 
-**NOTE:** We recommend waiting until March 2025 or later for Serverless instances to autoconvert.
+**NOTE:** We recommend waiting until March 2025 or later for Serverless instances to autoconvert. Manually doing the migration can cause downtime and workload disruption.
 
 1. Create a new Flex Cluster directly from your `.tf` file, e.g.:
 
@@ -237,7 +236,7 @@ You cannot migrate from Serverless to Dedicated using the Terraform provider.
 
 **NOTE:** In early 2025, a UI-based tool will be released to assist you in migrating your workloads from Serverless instances to Dedicated clusters. This tool will ensure correct migration and you will not need to change connection strings. There will be some downtime while using this tool.
 
-To migrate from Serverless to Dedicated prior to early 2025, please see the following guide: [Convert a Serverless Instance to a Dedicated Cluster](https://www.mongodb.com/docs/atlas/tutorial/convert-serverless-to-dedicated/)
+To migrate from Serverless to Dedicated prior to early 2025, please see the following guide: [Convert a Serverless Instance to a Dedicated Cluster](https://www.mongodb.com/docs/atlas/tutorial/convert-serverless-to-dedicated/). **NOTE:** Manually doing the migration can cause downtime and workload disruption.
 
 ### Post-Autoconversion Migration Procedure
 
