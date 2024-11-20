@@ -2,6 +2,7 @@ package advancedclustertpf
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -20,7 +21,7 @@ func NewAtlasReqAdvancedConfiguration(ctx context.Context, objInput *types.Objec
 		diags.Append(localDiags...)
 		return resp
 	}
-	return &admin.ClusterDescriptionProcessArgs20240805{
+	resp = &admin.ClusterDescriptionProcessArgs20240805{
 		ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.NilForUnknown(input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds, conversion.Int64PtrToIntPtr(input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds.ValueInt64Pointer())),
 		DefaultWriteConcern:              conversion.NilForUnknown(input.DefaultWriteConcern, input.DefaultWriteConcern.ValueStringPointer()),
 		JavascriptEnabled:                conversion.NilForUnknown(input.JavascriptEnabled, input.JavascriptEnabled.ValueBoolPointer()),
@@ -32,4 +33,8 @@ func NewAtlasReqAdvancedConfiguration(ctx context.Context, objInput *types.Objec
 		SampleSizeBIConnector:            conversion.NilForUnknown(input.SampleSizeBiconnector, conversion.Int64PtrToIntPtr(input.SampleSizeBiconnector.ValueInt64Pointer())),
 		TransactionLifetimeLimitSeconds:  conversion.NilForUnknown(input.TransactionLifetimeLimitSeconds, input.TransactionLifetimeLimitSeconds.ValueInt64Pointer()),
 	}
+	if reflect.DeepEqual(*resp, admin.ClusterDescriptionProcessArgs20240805{}) {
+		return nil
+	}
+	return resp
 }
