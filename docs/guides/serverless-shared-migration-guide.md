@@ -6,8 +6,8 @@ page_title: "Migration Guide: Transition out of Serverless Instances and Shared-
 
 The goal of this guide is to help users transition from Serverless Instances and Shared-tier clusters (M2/M5) to Free, Flex or Dedicated Clusters. 
 
-Starting in March 2025, all Shared-tier clusters (in both `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`) will automatically convert to Flex clusters. Similarly, all Serverless instances (`mongodb_serverless_instance`) will be converted into Free/Flex/Dedicated clusters, [depending on your existing configuration](https://www.mongodb.com/docs/atlas/flex-migration/). 
-These conversions will result in configuration drift in Terraform. 
+Starting in January 2025, all Shared-tier clusters (in both `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`) will automatically convert to Flex clusters. Similarly, in March 2025 all Serverless instances (`mongodb_serverless_instance`) will be converted into Free/Flex/Dedicated clusters, [depending on your existing configuration](https://www.mongodb.com/docs/atlas/flex-migration/).
+Some of these conversions will result in configuration drift in Terraform. 
 
 
 You can migrate from Serverless instances and Shared-tier clusters manually before March 2025. 
@@ -28,9 +28,9 @@ For Shared-tier clusters, we are working on enhancing the User Experience such t
 
 ### Post-Autoconversion Migration Procedure
 
-Shared-tier clusters will automatically convert in March 2025 or later to Flex clusters in Atlas, retaining all data. 
+Shared-tier clusters will automatically convert in January 2025 to Flex clusters in Atlas, retaining all data. We recommend to migrate to `mongodbatlas_flex_cluster` resource once the autoconversion is done.
 
-The following steps resolve the configuration drift in Terraform and does not affect the underlying cluster infrastructure:
+The following steps explain how to move your exising Shared-tier cluster resource to the new `mongodbatlas_flex_cluster` resource and does not affect the underlying cluster infrastructure:
 
 1. Find the import IDs of the Flex clusters: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6-flexClusterName`
 2. Add an import block per cluster to one of your `.tf` files:
@@ -171,9 +171,9 @@ The following steps resolve the configuration drift in Terraform and does not af
 
 ### Post-Autoconversion Migration Procedure
 
-Given your Serverless Instance fits the constraints of a Flex cluster, it will automatically convert in March 2025 into a Flex cluster in Atlas, retaining all data.
+Given your Serverless Instance fits the constraints of a Flex cluster, it will automatically convert in March 2025 into a Flex cluster in Atlas, retaining all data. We recommend to migrate to `mongodbatlas_flex_cluster` resource once the autoconversion is done.
 
-The following steps resolve the configuration drift in Terraform and does not affect the underlying cluster infrastructure:
+The following steps explain how to move your exising Serverless instance resource to the new `mongodbatlas_flex_cluster` resource and does not affect the underlying cluster infrastructure:
 
 1. Find the import IDs of the Flex clusters: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6-flexClusterName`
 2. Add an import block per cluster to one of your `.tf` files:
