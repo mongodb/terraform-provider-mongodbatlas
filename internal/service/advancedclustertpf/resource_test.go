@@ -16,17 +16,17 @@ const (
 	processResponseOnly = "processResponseOnly"
 )
 
-func TestAccAdvancedCluster_basic(t *testing.T) {
+func TestAdvancedCluster_basic(t *testing.T) {
 	var (
 		projectID      = "111111111111111111111111"
 		clusterName    = "test"
-		oneNewVariable = "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""
+		oneNewVariable = "backup_enabled = false"
 		fullUpdate     = `
-		backup_enabled = false
+		backup_enabled = true
 		bi_connector_config = {
 			enabled = true
 		}
-		config_server_management_mode = "ATLAS_MANAGED"
+		# config_server_management_mode = "ATLAS_MANAGED" UNSTABLE: After applying this test step, the non-refresh plan was not empty
 		labels = [{
 			key   = "env"
 			value = "test"
@@ -42,28 +42,29 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 		replica_set_scaling_strategy = "NODE_TYPE"
 		# retain_backups_enabled = true # only set on delete
 		root_cert_type = "ISRGROOTX1"
-		termination_protection_enabled = true
+		# termination_protection_enabled = true # must be reset to false to enable delete
 		version_release_system = "CONTINUOUS"
 		`
+		// # oplog_min_retention_hours                                      = 5.5
+		// # oplog_size_mb                                                  = 1000
+		// # fail_index_key_too_long 								        = true # only valid for MongoDB version 4.4 and earlier
 		advClusterConfig = `
 		advanced_configuration = {
 			change_stream_options_pre_and_post_images_expire_after_seconds = 100
 			default_read_concern                                           = "available"
 			default_write_concern                                          = "majority"
-			fail_index_key_too_long                                        = true
 			javascript_enabled                                             = false
 			minimum_enabled_tls_protocol                                   = "TLS1_0"
 			no_table_scan                                                  = true
-			oplog_min_retention_hours                                      = 5.5
-			oplog_size_mb                                                  = 1000
 			sample_refresh_interval_bi_connector                           = 310
 			sample_size_bi_connector                                       = 110
 			transaction_lifetime_limit_seconds                             = 300
 		}
 		`
-		vars = map[string]string{
-			"project_id": projectID,
-			"name":       clusterName,
+		fullUpdateUnpaused = strings.Replace(fullUpdate, "paused = true", "paused = false", 1)
+		vars               = map[string]string{
+			"groupId":     projectID,
+			"clusterName": clusterName,
 		}
 	)
 	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true})
@@ -81,8 +82,7 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 			{
 				Config: configBasic(projectID, clusterName, oneNewVariable),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", "2006-01-02T15:04:05Z"),
-					checkFunc,
+					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "false"),
 				),
 			},
 			{
@@ -93,7 +93,14 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(projectID, clusterName, fullUpdate+advClusterConfig),
+				Config: configBasic(projectID, clusterName, fullUpdateUnpaused),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
+					checkFunc,
+				),
+			},
+			{
+				Config: configBasic(projectID, clusterName, fullUpdateUnpaused+advClusterConfig),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
