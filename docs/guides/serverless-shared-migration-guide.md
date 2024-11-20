@@ -236,7 +236,7 @@ You cannot migrate from Serverless to Dedicated using the Terraform provider.
 
 **NOTE:** In early 2025, we will release a UI-based tool for migrating your workloads from Serverless instances to Dedicated clusters. This tool will ensure correct migration with little downtime. You won't need to change connection strings.
 
-To migrate from Serverless to Dedicated prior to early 2025, please see the following guide: [Convert a Serverless Instance to a Dedicated Cluster](https://www.mongodb.com/docs/atlas/tutorial/convert-serverless-to-dedicated/). **NOTE:** Manually doing the migration can cause downtime and workload disruption.
+To migrate from Serverless to Dedicated prior to early 2025, please see the following guide: [Convert a Serverless Instance to a Dedicated Cluster](https://www.mongodb.com/docs/atlas/tutorial/convert-serverless-to-dedicated/). **NOTE:** Manual migration can cause downtime and workload disruption.
 
 ### Post-Autoconversion Migration Procedure
 
