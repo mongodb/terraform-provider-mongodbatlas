@@ -102,7 +102,7 @@ The following steps explain how to move your exising Shared-tier cluster resourc
 
 Given your Serverless Instance has $0 MRR, it will automatically convert in March 2025 into a Free cluster in Atlas, retaining all data.
 
-The following steps resolve the configuration drift in Terraform and does not affect the underlying cluster infrastructure:
+The following steps resolve the configuration drift in Terraform without affecting the underlying cluster infrastructure:
 
 1. Find the import IDs of the Free clusters: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6-freeClusterName`
 2. Add an import block per cluster to one of your `.tf` files:
