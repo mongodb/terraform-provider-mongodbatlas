@@ -19,9 +19,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
-	"github.com/spf13/cast"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
+	"github.com/spf13/cast"
 )
 
 const (
@@ -43,6 +42,7 @@ type MongoDBClient struct {
 type Config struct {
 	AssumeRole       *AssumeRole
 	ProxyPort        *int
+	HTTPRoundTripper *http.RoundTripper
 	PublicKey        string
 	PrivateKey       string
 	BaseURL          string
@@ -76,7 +76,10 @@ type PlatformVersion struct {
 func (c *Config) NewClient(ctx context.Context) (any, error) {
 	// setup a transport to handle digest
 	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
-
+	// custom http.RoundTripper is so far only used for testing purposes
+	if c.HTTPRoundTripper != nil && *c.HTTPRoundTripper != nil {
+		transport.Transport = *c.HTTPRoundTripper
+	}
 	// proxy is only used for testing purposes to connect with hoverfly for capturing/replaying requests
 	if c.ProxyPort != nil {
 		proxyURL, _ := url.Parse(fmt.Sprintf("http://localhost:%d", *c.ProxyPort))

@@ -1,0 +1,126 @@
+step_count: 3
+steps:
+- diff_requests:
+  - version: '2024-08-05'
+    method: POST
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+    text: "{\n \"name\": \"test-policy\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\"\n  }\n ]\n}"
+    responses:
+    - status: 201
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:01Z\",\n \"id\": \"673c5fc1779e38359495f179\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:01Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc1779e38359495f178\"\n  }\n ],\n \"version\": \"v1\"\n}"
+  request_responses:
+  - version: '2024-08-05'
+    method: POST
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies:validate
+    text: "{\n \"name\": \"test-policy\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\"\n  }\n ]\n}"
+    responses:
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:51:59Z\",\n \"id\": \"673c5fbf11ac0c143dd3ca80\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:51:59Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fbf11ac0c143dd3ca7f\"\n  }\n ],\n \"version\": \"v1\"\n}"
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:00Z\",\n \"id\": \"673c5fc011ac0c143dd3ca85\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:00Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc011ac0c143dd3ca84\"\n  }\n ],\n \"version\": \"v1\"\n}"
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:03Z\",\n \"id\": \"673c5fc311ac0c143dd3ca88\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:03Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc311ac0c143dd3ca87\"\n  }\n ],\n \"version\": \"v1\"\n}"
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:06Z\",\n \"id\": \"673c5fc611ac0c143dd3ca8a\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:06Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc611ac0c143dd3ca89\"\n  }\n ],\n \"version\": \"v1\"\n}"
+  - version: '2024-08-05'
+    method: POST
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+    text: "{\n \"name\": \"test-policy\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\"\n  }\n ]\n}"
+    responses:
+    - status: 201
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:01Z\",\n \"id\": \"673c5fc1779e38359495f179\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:01Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc1779e38359495f178\"\n  }\n ],\n \"version\": \"v1\"\n}"
+  - version: '2024-08-05'
+    method: GET
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+    text: ''
+    responses:
+    - status: 200
+      text: "[\n {\n  \"createdByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"createdDate\": \"2024-11-19T09:52:01Z\",\n  \"id\": \"673c5fc1779e38359495f179\",\n  \"lastUpdatedByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"lastUpdatedDate\": \"2024-11-19T09:52:01Z\",\n  \"name\": \"test-policy\",\n  \"orgId\": \"{orgId}\",\n  \"policies\": [\n   {\n    \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n    \"id\": \"673c5fc1779e38359495f178\"\n   }\n  ],\n  \"version\": \"v1\"\n }\n]"
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:01Z\",\n \"id\": \"673c5fc1779e38359495f179\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:01Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc1779e38359495f178\"\n  }\n ],\n \"version\": \"v1\"\n}"
+  - version: '2024-08-05'
+    method: GET
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+    text: ''
+    responses:
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:01Z\",\n \"id\": \"{resourcePolicyId}\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:01Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc1779e38359495f178\"\n  }\n ],\n \"version\": \"v1\"\n}"
+    - status: 200
+      text: "[\n {\n  \"createdByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"createdDate\": \"2024-11-19T09:52:01Z\",\n  \"id\": \"{resourcePolicyId}\",\n  \"lastUpdatedByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"lastUpdatedDate\": \"2024-11-19T09:52:01Z\",\n  \"name\": \"test-policy\",\n  \"orgId\": \"{orgId}\",\n  \"policies\": [\n   {\n    \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n    \"id\": \"673c5fc1779e38359495f178\"\n   }\n  ],\n  \"version\": \"v1\"\n }\n]"
+- diff_requests:
+  - version: '2024-08-05'
+    method: PATCH
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+    text: "{\n \"name\": \"updated-policy\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\"\n  }\n ]\n}"
+    responses:
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:01Z\",\n \"id\": \"{resourcePolicyId}\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:10Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fca779e38359495f181\"\n  }\n ],\n \"version\": \"v1\"\n}"
+  request_responses:
+  - version: '2024-08-05'
+    method: GET
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+    text: ''
+    responses:
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:01Z\",\n \"id\": \"{resourcePolicyId}\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:01Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc1779e38359495f178\"\n  }\n ],\n \"version\": \"v1\"\n}"
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:01Z\",\n \"id\": \"{resourcePolicyId}\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:10Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fca779e38359495f181\"\n  }\n ],\n \"version\": \"v1\"\n}"
+    - status: 200
+      text: "[\n {\n  \"createdByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"createdDate\": \"2024-11-19T09:52:01Z\",\n  \"id\": \"{resourcePolicyId}\",\n  \"lastUpdatedByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"lastUpdatedDate\": \"2024-11-19T09:52:10Z\",\n  \"name\": \"updated-policy\",\n  \"orgId\": \"{orgId}\",\n  \"policies\": [\n   {\n    \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n    \"id\": \"673c5fca779e38359495f181\"\n   }\n  ],\n  \"version\": \"v1\"\n }\n]"
+  - version: '2024-08-05'
+    method: POST
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies:validate
+    text: "{\n \"name\": \"updated-policy\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\"\n  }\n ]\n}"
+    responses:
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:08Z\",\n \"id\": \"673c5fc811ac0c143dd3ca8c\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:08Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc811ac0c143dd3ca8b\"\n  }\n ],\n \"version\": \"v1\"\n}"
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:09Z\",\n \"id\": \"673c5fc911ac0c143dd3ca8f\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:09Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc911ac0c143dd3ca8e\"\n  }\n ],\n \"version\": \"v1\"\n}"
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:12Z\",\n \"id\": \"673c5fcc11ac0c143dd3ca93\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:12Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fcc11ac0c143dd3ca92\"\n  }\n ],\n \"version\": \"v1\"\n}"
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:15Z\",\n \"id\": \"673c5fcf11ac0c143dd3ca95\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:15Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fcf11ac0c143dd3ca94\"\n  }\n ],\n \"version\": \"v1\"\n}"
+  - version: '2024-08-05'
+    method: PATCH
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+    text: "{\n \"name\": \"updated-policy\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\"\n  }\n ]\n}"
+    responses:
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:01Z\",\n \"id\": \"{resourcePolicyId}\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:10Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fca779e38359495f181\"\n  }\n ],\n \"version\": \"v1\"\n}"
+  - version: '2024-08-05'
+    method: GET
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+    text: ''
+    responses:
+    - status: 200
+      text: "[\n {\n  \"createdByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"createdDate\": \"2024-11-19T09:52:01Z\",\n  \"id\": \"673c5fc1779e38359495f179\",\n  \"lastUpdatedByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"lastUpdatedDate\": \"2024-11-19T09:52:10Z\",\n  \"name\": \"updated-policy\",\n  \"orgId\": \"{orgId}\",\n  \"policies\": [\n   {\n    \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n    \"id\": \"673c5fca779e38359495f181\"\n   }\n  ],\n  \"version\": \"v1\"\n }\n]"
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:01Z\",\n \"id\": \"673c5fc1779e38359495f179\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:10Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fca779e38359495f181\"\n  }\n ],\n \"version\": \"v1\"\n}"
+- diff_requests: []
+  request_responses:
+  - version: '2024-08-05'
+    method: GET
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+    text: ''
+    responses:
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:01Z\",\n \"id\": \"{resourcePolicyId}\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:10Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fca779e38359495f181\"\n  }\n ],\n \"version\": \"v1\"\n}"
+    - status: 404
+      text: "{\n \"errorCode\": \"RESOURCE_POLICY_NOT_FOUND\",\n \"message\": \"Resource Policy with id \\\"{resourcePolicyId}\\\" not found\",\n \"version\": \"1\",\n \"status\": \"ERROR\"\n}"
+  - version: '2024-08-05'
+    method: GET
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+    text: ''
+    responses:
+    - status: 200
+      text: "[\n {\n  \"createdByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"createdDate\": \"2024-11-19T09:52:01Z\",\n  \"id\": \"673c5fc1779e38359495f179\",\n  \"lastUpdatedByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"lastUpdatedDate\": \"2024-11-19T09:52:10Z\",\n  \"name\": \"updated-policy\",\n  \"orgId\": \"{orgId}\",\n  \"policies\": [\n   {\n    \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n    \"id\": \"673c5fca779e38359495f181\"\n   }\n  ],\n  \"version\": \"v1\"\n }\n]"
+  - version: '2024-08-05'
+    method: DELETE
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+    text: ''
+    responses:
+    - status: 200
+      text: '{}'
+variables:
+  orgId: 65def6ce0f722a1507105aa5
+  resourcePolicyId: 673c5fc1779e38359495f179
