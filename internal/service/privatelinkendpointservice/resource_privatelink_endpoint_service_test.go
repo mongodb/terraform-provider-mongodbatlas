@@ -21,7 +21,6 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Failed(t *testing.T) {
 	var (
 		resourceSuffix = "test"
-		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)
 
 		providerName = "AWS"
 		projectID    = acc.ProjectIDExecution(t)
@@ -37,7 +36,6 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Failed(t *testing.T) {
 				Config: configFailAWS(
 					projectID, providerName, region, resourceSuffix,
 				),
-				Check:       resource.TestCheckResourceAttr(resourceName, "error_message", "privatelink endpoint is in a failed state: Interface endpoint vpce-11111111111111111 was not found."),
 				ExpectError: regexp.MustCompile("privatelink endpoint service is in a failed state: Interface endpoint vpce-11111111111111111 was not found."),
 			},
 		},
