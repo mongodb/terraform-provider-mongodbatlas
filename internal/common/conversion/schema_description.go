@@ -54,7 +54,7 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFie
 			panic("attribute type not support yet, add it to convertMappings: " + tSrc.Name())
 		}
 		vDest := reflect.New(tDst).Elem()
-		vDest.FieldByName("MarkdownDescription").SetString(vSrc.FieldByName("MarkdownDescription").String())
+		vDest.FieldByName("MarkdownDescription").Set(vSrc.FieldByName("MarkdownDescription"))
 		vDest.FieldByName("Computed").SetBool(computed)
 		vDest.FieldByName("Required").SetBool(required)
 		// ElementType is in schema.MapAttribute
