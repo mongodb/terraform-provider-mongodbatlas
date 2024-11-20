@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/sebdah/goldie/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -130,6 +131,9 @@ func (r *requestTracker) requestFilename(requestID string) string {
 }
 
 func (r *requestTracker) initStep() error {
+	usedKeys := strings.Join(acc.SortStringMapKeys(r.vars), ", ")
+	expectedKeys := strings.Join(acc.SortStringMapKeys(r.data.Variables), ", ")
+	require.Equal(r.t, expectedKeys, usedKeys, "mock variables didn't match mock data variables")
 	r.usedResponses = map[string]int{}
 	r.foundsDiffs = map[string]string{}
 	step := r.currentStep()
