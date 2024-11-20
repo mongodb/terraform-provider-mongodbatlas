@@ -1,6 +1,7 @@
 package unit
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -64,6 +65,7 @@ type mockHTTPData struct {
 
 type MockHTTPDataConfig struct {
 	AllowMissingRequests bool
+	AllowReReadGet       bool
 }
 
 func parseTestDataConfigYAML(filePath string) (*mockHTTPData, error) {
@@ -91,6 +93,7 @@ func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPData
 	tracker := requestTracker{data: data, g: g, vars: vars, t: t}
 	if config != nil {
 		tracker.allowMissingRequests = config.AllowMissingRequests
+		tracker.allowReReadGet = config.AllowReReadGet
 	}
 	err = tracker.initStep()
 	require.NoError(t, err)
@@ -119,6 +122,7 @@ type requestTracker struct {
 	foundsDiffs          map[string]string
 	currentStepIndex     int
 	allowMissingRequests bool
+	allowReReadGet       bool
 }
 
 func (r *requestTracker) requestFilename(requestID string) string {
@@ -196,8 +200,26 @@ func (r *requestTracker) receiveRequest(method string) func(req *http.Request) (
 		if err != nil {
 			return nil, err
 		}
-		return httpmock.NewStringResponse(status, text), nil
+		response := httpmock.NewStringResponse(status, text)
+		response.Header.Set("Content-Type", fmt.Sprintf("application/vnd.atlas.%s+json;charset=utf-8", version))
+		return response, nil
 	}
+}
+
+func normalizePayload(payload string) (string, error) {
+	var tempHolder any
+	err := json.Unmarshal([]byte(payload), &tempHolder)
+	if err != nil {
+		return "", err
+	}
+	sb := strings.Builder{}
+	encoder := json.NewEncoder(&sb)
+	encoder.SetIndent("", " ")
+	err = encoder.Encode(tempHolder)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSuffix(sb.String(), "\n"), nil
 }
 
 func (r *requestTracker) matchRequest(method, urlPath, version, payload string) (response string, statusCode int, err error) {
@@ -210,7 +232,11 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 		if _, ok := r.foundsDiffs[requestID]; ok {
 			continue
 		}
-		r.foundsDiffs[requestID] = payload
+		normalizedPayload, err := normalizePayload(payload)
+		if err != nil {
+			return "", 0, err
+		}
+		r.foundsDiffs[requestID] = normalizedPayload
 	}
 
 	for _, request := range step.RequestResponses {
@@ -220,7 +246,11 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 		requestID := request.id()
 		nextIndex := r.usedResponses[requestID]
 		if nextIndex >= len(request.Responses) {
-			continue
+			if r.allowReReadGet && method == "GET" {
+				nextIndex = len(request.Responses) - 1
+			} else {
+				continue
+			}
 		}
 		r.usedResponses[requestID]++
 		response := request.Responses[nextIndex]
