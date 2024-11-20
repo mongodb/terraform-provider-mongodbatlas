@@ -48,7 +48,7 @@ func convertTagsToLatest(tags []admin20240530.ResourceTag) []admin.ResourceTag {
 	return results
 }
 
-func convertBiConnectToOldSDK(biconnector *admin20240805.BiConnector) *admin20240530.BiConnector {
+func convertBiConnectToOldSDK(biconnector *admin.BiConnector) *admin20240530.BiConnector {
 	if biconnector == nil {
 		return nil
 	}
@@ -126,7 +126,7 @@ func convertLabelsToLatest(labels *[]admin20240530.ComponentLabel) *[]admin.Comp
 	return &results
 }
 
-func convertLabelSliceToOldSDK(slice []admin20240805.ComponentLabel, err diag.Diagnostics) ([]admin20240530.ComponentLabel, diag.Diagnostics) {
+func convertLabelSliceToOldSDK(slice []admin.ComponentLabel, err diag.Diagnostics) ([]admin20240530.ComponentLabel, diag.Diagnostics) {
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func convertLabelSliceToOldSDK(slice []admin20240805.ComponentLabel, err diag.Di
 	return results, nil
 }
 
-func convertRegionConfigSliceToOldSDK(slice *[]admin20240805.CloudRegionConfig20240805) *[]admin20240530.CloudRegionConfig {
+func convertRegionConfigSliceToOldSDK(slice *[]admin.CloudRegionConfig20240805) *[]admin20240530.CloudRegionConfig {
 	if slice == nil {
 		return nil
 	}
@@ -164,7 +164,7 @@ func convertRegionConfigSliceToOldSDK(slice *[]admin20240805.CloudRegionConfig20
 	return &results
 }
 
-func convertHardwareSpecToOldSDK(hwspec *admin20240805.HardwareSpec20240805) *admin20240530.HardwareSpec {
+func convertHardwareSpecToOldSDK(hwspec *admin.HardwareSpec20240805) *admin20240530.HardwareSpec {
 	if hwspec == nil {
 		return nil
 	}
@@ -176,7 +176,7 @@ func convertHardwareSpecToOldSDK(hwspec *admin20240805.HardwareSpec20240805) *ad
 	}
 }
 
-func convertAdvancedAutoScalingSettingsToOldSDK(settings *admin20240805.AdvancedAutoScalingSettings) *admin20240530.AdvancedAutoScalingSettings {
+func convertAdvancedAutoScalingSettingsToOldSDK(settings *admin.AdvancedAutoScalingSettings) *admin20240530.AdvancedAutoScalingSettings {
 	if settings == nil {
 		return nil
 	}
@@ -186,7 +186,7 @@ func convertAdvancedAutoScalingSettingsToOldSDK(settings *admin20240805.Advanced
 	}
 }
 
-func convertAdvancedComputeAutoScalingToOldSDK(settings *admin20240805.AdvancedComputeAutoScaling) *admin20240530.AdvancedComputeAutoScaling {
+func convertAdvancedComputeAutoScalingToOldSDK(settings *admin.AdvancedComputeAutoScaling) *admin20240530.AdvancedComputeAutoScaling {
 	if settings == nil {
 		return nil
 	}
@@ -198,7 +198,7 @@ func convertAdvancedComputeAutoScalingToOldSDK(settings *admin20240805.AdvancedC
 	}
 }
 
-func convertDiskGBAutoScalingToOldSDK(settings *admin20240805.DiskGBAutoScaling) *admin20240530.DiskGBAutoScaling {
+func convertDiskGBAutoScalingToOldSDK(settings *admin.DiskGBAutoScaling) *admin20240530.DiskGBAutoScaling {
 	if settings == nil {
 		return nil
 	}
@@ -207,7 +207,7 @@ func convertDiskGBAutoScalingToOldSDK(settings *admin20240805.DiskGBAutoScaling)
 	}
 }
 
-func convertDedicatedHardwareSpecToOldSDK(spec *admin20240805.DedicatedHardwareSpec20240805) *admin20240530.DedicatedHardwareSpec {
+func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec20240805) *admin20240530.DedicatedHardwareSpec {
 	if spec == nil {
 		return nil
 	}

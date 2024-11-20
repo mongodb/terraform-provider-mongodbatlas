@@ -419,14 +419,14 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	params := &admin20240805.ClusterDescription20240805{
 		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
 		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
-		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB),
+		ReplicationSpecs: expandAdvancedReplicationSpecs20240805(d.Get("replication_specs").([]any), rootDiskSizeGB),
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {
 		params.BackupEnabled = conversion.Pointer(v.(bool))
 	}
 	if _, ok := d.GetOk("bi_connector_config"); ok {
-		params.BiConnector = expandBiConnectorConfig(d)
+		params.BiConnector = expandBiConnectorConfig20240805(d)
 	}
 
 	if v, ok := d.GetOk("encryption_at_rest_provider"); ok {
@@ -434,7 +434,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOk("labels"); ok {
-		labels, err := expandLabelSliceFromSetSchema(d)
+		labels, err := expandLabelSliceFromSetSchema20240805(d)
 		if err != nil {
 			return err
 		}
@@ -479,7 +479,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	if err := CheckRegionConfigsPriorityOrder(params.GetReplicationSpecs()); err != nil {
+	if err := CheckRegionConfigsPriorityOrder20240805(params.GetReplicationSpecs()); err != nil {
 		return diag.FromErr(err)
 	}
 	// cannot call latest API (2024-10-23 or newer) as it can enable ISS autoscaling
@@ -821,7 +821,6 @@ func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenan
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -850,7 +849,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			waitOnUpdate = true
 		}
 		if d.HasChange("replica_set_scaling_strategy") || d.HasChange("redact_client_log_data") || d.HasChange("config_server_management_mode") {
-			request := new(admin20240805.ClusterDescription20240805)
+			request := new(admin.ClusterDescription20240805)
 			if d.HasChange("replica_set_scaling_strategy") {
 				request.ReplicaSetScalingStrategy = conversion.Pointer(d.Get("replica_set_scaling_strategy").(string))
 			}
@@ -861,7 +860,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				request.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
 			}
 			// can call latest API (2024-10-23 or newer) as autoscaling property is not specified, using older version just for caution until iss autoscaling epic is done
-			if _, _, err := connV220240805.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
+			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 			waitOnUpdate = true
@@ -882,7 +881,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				return diag.FromErr(err)
 			}
 			// cannot call latest API (2024-10-23 or newer) as it can enable ISS autoscaling
-			if _, _, err := connV220240805.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
+			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
@@ -916,11 +915,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.Get("paused").(bool) {
-		clusterRequest := &admin20240805.ClusterDescription20240805{
+		clusterRequest := &admin.ClusterDescription20240805{
 			Paused: conversion.Pointer(true),
 		}
 		// can call latest API (2024-10-23 or newer) as autoscaling property is not specified, using older version just for caution until iss autoscaling epic is done
-		if _, _, err := connV220240805.ClustersApi.UpdateCluster(ctx, projectID, clusterName, clusterRequest).Execute(); err != nil {
+		if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, clusterRequest).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
 		if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
@@ -931,8 +930,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
-func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clusterName string, connV2 *admin.APIClient) (*admin20240805.ClusterDescription20240805, diag.Diagnostics) {
-	cluster := new(admin20240805.ClusterDescription20240805)
+func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clusterName string, connV2 *admin.APIClient) (*admin.ClusterDescription20240805, diag.Diagnostics) {
+	cluster := new(admin.ClusterDescription20240805)
 
 	if d.HasChange("replication_specs") || d.HasChange("disk_size_gb") {
 		var updatedDiskSizeGB *float64
@@ -979,7 +978,7 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 	}
 
 	if d.HasChange("tags") {
-		cluster.Tags = conversion.ExpandTagsFromSetSchemaV220240805(d)
+		cluster.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 
 	if d.HasChange("mongo_db_major_version") {
