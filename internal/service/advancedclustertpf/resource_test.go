@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
@@ -61,13 +63,16 @@ func TestAdvancedCluster_basic(t *testing.T) {
 			transaction_lifetime_limit_seconds                             = 300
 		}
 		`
-		fullUpdateUnpaused = strings.Replace(fullUpdate, "paused = true", "paused = false", 1)
-		vars               = map[string]string{
+		fullUpdateResumed = strings.Replace(fullUpdate, "paused = true", "paused = false", 1)
+		vars              = map[string]string{
 			"groupId":     projectID,
 			"clusterName": clusterName,
 		}
 	)
-	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true})
+	advancedclustertpf.RetryMinTimeout = 1 * time.Second
+	advancedclustertpf.RetryDelay = 1 * time.Second
+	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
+	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true})
 
 	resource.Test(t, resource.TestCase{ // Sequential as it is using global variables
 		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithMock(mockTransport),
@@ -83,24 +88,31 @@ func TestAdvancedCluster_basic(t *testing.T) {
 				Config: configBasic(projectID, clusterName, oneNewVariable),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
+					checkFunc,
 				),
 			},
 			{
 				Config: configBasic(projectID, clusterName, fullUpdate),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
+					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
 					checkFunc,
 				),
 			},
 			{
-				Config: configBasic(projectID, clusterName, fullUpdateUnpaused),
+				Config: configBasic(projectID, clusterName, fullUpdateResumed),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
+					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
 					checkFunc,
 				),
 			},
 			{
-				Config: configBasic(projectID, clusterName, fullUpdateUnpaused+advClusterConfig),
+				Config: configBasic(projectID, clusterName, fullUpdateResumed+advClusterConfig),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
@@ -127,7 +139,9 @@ func TestAdvancedCluster_configSharded(t *testing.T) {
 			"clusterName": clusterName,
 		}
 	)
-
+	advancedclustertpf.RetryMinTimeout = 1 * time.Second
+	advancedclustertpf.RetryDelay = 1 * time.Second
+	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
 	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true})
 	resource.Test(t, resource.TestCase{ // Sequential as it is using global variables
 		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithMock(mockTransport),
@@ -160,6 +174,9 @@ func TestAdvancedCluster_configSharded(t *testing.T) {
 func configBasic(projectID, clusterName, extra string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
+			timeouts = {
+				create = "20s"
+			}
 			project_id = %[1]q
 			name = %[2]q
 			cluster_type = "REPLICASET"
@@ -168,6 +185,11 @@ func configBasic(projectID, clusterName, extra string) string {
 					priority        = 7
 					provider_name = "AWS"
 					region_name     = "US_EAST_1"
+					auto_scaling = {
+						compute_scale_down_enabled = false # necessary to have similar SDKv2 request
+						compute_enabled = false # necessary to have similar SDKv2 request
+						disk_gb_enabled = true
+					}
 					electable_specs = {
 						node_count = 3
 						instance_size = "M10"
