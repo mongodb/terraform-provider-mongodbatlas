@@ -29,7 +29,7 @@ func TestDataSourceSchemasTemporary(t *testing.T) {
 	ds.Schema(context.Background(), schemaRequest, schemaResponse)
 }
 
-func TestDataSourceSchemaFromResource_basic(t *testing.T) {
+func TestDataSourceSchemaFromResource(t *testing.T) {
 	s := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"requiredAttrString": schema.StringAttribute{
@@ -60,6 +60,16 @@ func TestDataSourceSchemaFromResource_basic(t *testing.T) {
 				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "desc mapAttr",
+			},
+			"nestSingle": schema.SingleNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc nestSingle",
+				Attributes: map[string]schema.Attribute{
+					"nestedSingleAttr": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "desc nestedSingleAttr",
+					},
+				},
 			},
 			"nestList": schema.ListNestedAttribute{
 				Computed:            true,
@@ -134,6 +144,18 @@ func TestDataSourceSchemaFromResource_basic(t *testing.T) {
 				ElementType:         types.StringType,
 				MarkdownDescription: "desc mapAttr",
 				Description:         "desc mapAttr",
+			},
+			"nestSingle": dsschema.SingleNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc nestSingle",
+				Description:         "desc nestSingle",
+				Attributes: map[string]dsschema.Attribute{
+					"nestedSingleAttr": dsschema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "desc nestedSingleAttr",
+						Description:         "desc nestedSingleAttr",
+					},
+				},
 			},
 			"nestList": dsschema.ListNestedAttribute{
 				Computed:            true,

@@ -24,6 +24,17 @@ func UpdateSchemaDescription[T schema.Schema | dsschema.Schema](s *T) {
 	UpdateAttr(s)
 }
 
+var convertMappings = map[string]reflect.Type{
+	"StringAttribute":       reflect.TypeOf(dsschema.StringAttribute{}),
+	"BoolAttribute":         reflect.TypeOf(dsschema.BoolAttribute{}),
+	"Int64Attribute":        reflect.TypeOf(dsschema.Int64Attribute{}),
+	"Float64Attribute":      reflect.TypeOf(dsschema.Float64Attribute{}),
+	"MapAttribute":          reflect.TypeOf(dsschema.MapAttribute{}),
+	"SingleNestedAttribute": reflect.TypeOf(dsschema.SingleNestedAttribute{}),
+	"ListNestedAttribute":   reflect.TypeOf(dsschema.ListNestedAttribute{}),
+	"SetNestedAttribute":    reflect.TypeOf(dsschema.SetNestedAttribute{}),
+}
+
 func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFields []string) map[string]dsschema.Attribute {
 	dsAttrs := make(map[string]dsschema.Attribute, len(rsAttrs))
 	for name, attr := range rsAttrs {
@@ -36,66 +47,34 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields, ignoreFie
 			computed = false
 			required = true
 		}
-		switch attrTyped := attr.(type) {
-		case schema.StringAttribute:
-			dsAttrs[name] = dsschema.StringAttribute{
-				MarkdownDescription: attrTyped.MarkdownDescription,
-				Computed:            computed,
-				Required:            required,
-			}
-		case schema.Int64Attribute:
-			dsAttrs[name] = dsschema.Int64Attribute{
-				MarkdownDescription: attrTyped.MarkdownDescription,
-				Computed:            computed,
-				Required:            required,
-			}
-		case schema.Float64Attribute:
-			dsAttrs[name] = dsschema.Float64Attribute{
-				MarkdownDescription: attrTyped.MarkdownDescription,
-				Computed:            computed,
-				Required:            required,
-			}
-		case schema.BoolAttribute:
-			dsAttrs[name] = dsschema.BoolAttribute{
-				MarkdownDescription: attrTyped.MarkdownDescription,
-				Computed:            computed,
-				Required:            required,
-			}
-		case schema.MapAttribute:
-			dsAttrs[name] = dsschema.MapAttribute{
-				ElementType:         attrTyped.ElementType,
-				MarkdownDescription: attrTyped.MarkdownDescription,
-				Computed:            computed,
-				Required:            required,
-			}
-		case schema.SingleNestedAttribute:
-			dsAttrs[name] = dsschema.SingleNestedAttribute{
-				Attributes:          convertAttrs(attrTyped.Attributes, nil, nil),
-				MarkdownDescription: attrTyped.MarkdownDescription,
-				Computed:            computed,
-				Required:            required,
-			}
-		case schema.ListNestedAttribute:
-			dsAttrs[name] = dsschema.ListNestedAttribute{
-				NestedObject: dsschema.NestedAttributeObject{
-					Attributes: convertAttrs(attrTyped.NestedObject.Attributes, nil, nil),
-				},
-				MarkdownDescription: attrTyped.MarkdownDescription,
-				Computed:            computed,
-				Required:            required,
-			}
-		case schema.SetNestedAttribute:
-			dsAttrs[name] = dsschema.SetNestedAttribute{
-				NestedObject: dsschema.NestedAttributeObject{
-					Attributes: convertAttrs(attrTyped.NestedObject.Attributes, nil, nil),
-				},
-				MarkdownDescription: attrTyped.MarkdownDescription,
-				Computed:            computed,
-				Required:            required,
-			}
-		default:
-			panic("attribute type not support yet with name " + name + ": " + reflect.TypeOf(attr).String())
+		vSrc := reflect.ValueOf(attr)
+		tSrc := reflect.TypeOf(attr)
+		tDst := convertMappings[tSrc.Name()]
+		if tDst == nil {
+			panic("attribute type not support yet, add it to convertMappings: " + tSrc.Name())
 		}
+		vDest := reflect.New(tDst).Elem()
+		vDest.FieldByName("MarkdownDescription").SetString(vSrc.FieldByName("MarkdownDescription").String())
+		vDest.FieldByName("Computed").SetBool(computed)
+		vDest.FieldByName("Required").SetBool(required)
+		// ElementType is in schema.MapAttribute
+		if fElementType := vDest.FieldByName("ElementType"); fElementType.IsValid() && fElementType.CanSet() {
+			fElementType.Set(vSrc.FieldByName("ElementType"))
+		}
+		// Attributes is in schema.SingleNestedAttribute
+		if fAttributes := vDest.FieldByName("Attributes"); fAttributes.IsValid() && fAttributes.CanSet() {
+			attrsSrc := vSrc.FieldByName("Attributes").Interface().(map[string]schema.Attribute)
+			fAttributes.Set(reflect.ValueOf(convertAttrs(attrsSrc, nil, nil)))
+		}
+		// NestedObject is in schema.ListNestedAttribute and schema.SetNestedAttribute
+		if fNestedObject := vDest.FieldByName("NestedObject"); fNestedObject.IsValid() && fNestedObject.CanSet() {
+			attrsSrc := vSrc.FieldByName("NestedObject").FieldByName("Attributes").Interface().(map[string]schema.Attribute)
+			nested := dsschema.NestedAttributeObject{
+				Attributes: convertAttrs(attrsSrc, nil, nil),
+			}
+			fNestedObject.Set(reflect.ValueOf(nested))
+		}
+		dsAttrs[name] = vDest.Interface().(dsschema.Attribute)
 	}
 	return dsAttrs
 }
