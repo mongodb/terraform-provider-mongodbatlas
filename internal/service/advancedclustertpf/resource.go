@@ -13,6 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241023002/admin"
 )
 
@@ -73,7 +74,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if diags.HasError() {
 		return "", ""
 	}
-	api := r.Client.AtlasV2.ClustersApi
+	api := r.Client.AtlasV220240805.ClustersApi
 	apiLegacy := r.Client.AtlasV220240530.ClustersApi
 	projectID := plan.ProjectID.ValueString()
 	clusterName := plan.Name.ValueString()
@@ -92,7 +93,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	}
 
 	advConfigUpdate := NewAtlasReqAdvancedConfiguration(ctx, &plan.AdvancedConfiguration, diags)
-	var advConfig *admin.ClusterDescriptionProcessArgs20240805
+	var advConfig *admin20240805.ClusterDescriptionProcessArgs20240805
 	if advConfigUpdate != nil {
 		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, advConfigUpdate).Execute()
 		if err != nil {
@@ -103,8 +104,8 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	return r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan.Timeouts, diags, &resp.State)
 }
 
-func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, resourceTimeouts timeouts.Value, diags *diag.Diagnostics, state *tfsdk.State) (summary, detail string) {
-	api := r.Client.AtlasV2.ClustersApi
+func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin20240805.ClusterDescriptionProcessArgs20240805, cluster *admin20240805.ClusterDescription20240805, resourceTimeouts timeouts.Value, diags *diag.Diagnostics, state *tfsdk.State) (summary, detail string) {
+	api := r.Client.AtlasV220240805.ClustersApi
 	apiLegacy := r.Client.AtlasV220240530.ClustersApi
 	projectID := cluster.GetGroupId()
 	clusterName := cluster.GetName()
@@ -145,7 +146,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State, diags *diag.Diagnostics) {
 	clusterName := model.Name.ValueString()
 	projectID := model.ProjectID.ValueString()
-	api := r.Client.AtlasV2.ClustersApi
+	api := r.Client.AtlasV220240805.ClustersApi
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin.IsErrorCode(err, "CLUSTER_NOT_FOUND") {
@@ -169,7 +170,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	api := r.Client.AtlasV2.ClustersApi
+	api := r.Client.AtlasV220240805.ClustersApi
 	patchReq := update.PatchPayloadTpf(ctx, diags, &state, &plan, NewAtlasReq)
 	projectID := plan.ProjectID.ValueString()
 	clusterName := plan.Name.ValueString()

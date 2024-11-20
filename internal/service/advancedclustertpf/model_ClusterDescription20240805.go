@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20240805005/admin"
 )
 
 func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics) *TFModel {
@@ -120,7 +120,8 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 
 func NewTagsObjType(ctx context.Context, input *[]admin.ResourceTag, diags *diag.Diagnostics) types.Set {
 	if input == nil {
-		return types.SetNull(TagsObjType)
+		// API Response not consistent, using empty array instead of null
+		return types.SetValueMust(TagsObjType, nil)
 	}
 	tfModels := make([]TFTagsModel, len(*input))
 	for i, item := range *input {

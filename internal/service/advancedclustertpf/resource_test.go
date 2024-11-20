@@ -111,13 +111,13 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAdvancedCluster_configSharded(t *testing.T) {
+func TestAdvancedCluster_configSharded(t *testing.T) {
 	var (
 		projectID   = "111111111111111111111111"
 		clusterName = "sharded-multi-replication"
 		vars        = map[string]string{
-			"project_id": projectID,
-			"name":       clusterName,
+			"groupId":     projectID,
+			"clusterName": clusterName,
 		}
 	)
 
