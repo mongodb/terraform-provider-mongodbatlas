@@ -42,6 +42,10 @@ type RequestInfo struct {
 }
 
 func (i *RequestInfo) id() string {
+	return fmt.Sprintf("%s_%s_%s_%s", i.Method, i.Path, i.Version, i.Text)
+}
+
+func (i *RequestInfo) idShort() string {
 	return fmt.Sprintf("%s_%s_%s", i.Method, i.Path, i.Version)
 }
 
@@ -120,7 +124,7 @@ type requestTracker struct {
 	data                 *mockHTTPData
 	vars                 map[string]string
 	usedResponses        map[string]int
-	foundsDiffs          map[string]string
+	foundsDiffs          map[int]string
 	currentStepIndex     int
 	allowMissingRequests bool
 	allowReReadGet       bool
@@ -135,13 +139,13 @@ func (r *requestTracker) initStep() error {
 	expectedKeys := strings.Join(acc.SortStringMapKeys(r.data.Variables), ", ")
 	require.Equal(r.t, expectedKeys, usedKeys, "mock variables didn't match mock data variables")
 	r.usedResponses = map[string]int{}
-	r.foundsDiffs = map[string]string{}
+	r.foundsDiffs = map[int]string{}
 	step := r.currentStep()
 	if step == nil {
 		return nil
 	}
 	for _, req := range step.DiffRequests {
-		err := r.g.Update(r.t, r.requestFilename(req.id()), []byte(req.Text))
+		err := r.g.Update(r.t, r.requestFilename(req.idShort()), []byte(req.Text))
 		if err != nil {
 			return err
 		}
@@ -158,10 +162,11 @@ func (r *requestTracker) currentStep() *stepRequests {
 
 func (r *requestTracker) checkStepRequests(_ *terraform.State) error {
 	missingRequests := []string{}
-	for _, req := range r.currentStep().RequestResponses {
+	step := r.currentStep()
+	for _, req := range step.RequestResponses {
 		missingRequestsCount := len(req.Responses) - r.usedResponses[req.id()]
 		if missingRequestsCount > 0 {
-			missingRequests = append(missingRequests, fmt.Sprintf("missing %d requests of %s", missingRequestsCount, req.id()))
+			missingRequests = append(missingRequests, fmt.Sprintf("missing %d requests of %s", missingRequestsCount, req.idShort()))
 		}
 	}
 	if r.allowMissingRequests {
@@ -172,14 +177,15 @@ func (r *requestTracker) checkStepRequests(_ *terraform.State) error {
 		assert.Empty(r.t, missingRequests)
 	}
 	missingDiffs := []string{}
-	for _, req := range r.currentStep().DiffRequests {
-		if _, ok := r.foundsDiffs[req.id()]; !ok {
-			missingDiffs = append(missingDiffs, fmt.Sprintf("missing diff request %s", req.id()))
+	for i, req := range step.DiffRequests {
+		if _, ok := r.foundsDiffs[i]; !ok {
+			missingDiffs = append(missingDiffs, fmt.Sprintf("missing diff request %s", req.idShort()))
 		}
 	}
 	assert.Empty(r.t, missingDiffs)
-	for id, payload := range r.foundsDiffs {
-		r.g.Assert(r.t, r.requestFilename(id), []byte(payload))
+	for index, payload := range r.foundsDiffs {
+		diff := step.DiffRequests[index]
+		r.g.Assert(r.t, r.requestFilename(diff.idShort()), []byte(payload))
 	}
 	r.currentStepIndex++
 	return r.initStep()
@@ -228,19 +234,18 @@ func normalizePayload(payload string) (string, error) {
 
 func (r *requestTracker) matchRequest(method, urlPath, version, payload string) (response string, statusCode int, err error) {
 	step := r.currentStep()
-	for _, request := range step.DiffRequests {
+	for index, request := range step.DiffRequests {
 		if !request.Match(method, urlPath, version, r.vars) {
 			continue
 		}
-		requestID := request.id()
-		if _, ok := r.foundsDiffs[requestID]; ok {
+		if _, ok := r.foundsDiffs[index]; ok {
 			continue
 		}
 		normalizedPayload, err := normalizePayload(payload)
 		if err != nil {
 			return "", 0, err
 		}
-		r.foundsDiffs[requestID] = normalizedPayload
+		r.foundsDiffs[index] = normalizedPayload
 	}
 
 	for _, request := range step.RequestResponses {
