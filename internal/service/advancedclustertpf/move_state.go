@@ -6,8 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -227,26 +225,10 @@ func isSource(req resource.MoveStateRequest, resourceName, moveMode string) bool
 
 func setMoveState(ctx context.Context, projectID, clusterName string, resp *resource.MoveStateResponse) {
 	// TODO: timeout should be read from source if provided
-	timeout := timeouts.Value{
-		Object: types.ObjectValueMust(
-			map[string]attr.Type{
-				"create": types.StringType,
-				"update": types.StringType,
-				"delete": types.StringType,
-			},
-			map[string]attr.Value{
-				"create": types.StringValue("30m"),
-				"update": types.StringValue("30m"),
-				"delete": types.StringValue("30m"),
-			}),
-	}
 	// TODO: we need to have a good state (all attributes known or null) but not need to be the final ones as Read is called after
-	tfNewModel, shouldReturn := mockedSDK(ctx, &resp.Diagnostics, timeout)
-	if shouldReturn {
-		return
+	tfNewModel := TFModel{
+		ProjectID: types.StringValue(projectID),
+		Name:      types.StringValue(clusterName),
 	}
-	// TODO: setting attributed needed by Read, confirm if ClusterID is needed
-	tfNewModel.ProjectID = types.StringValue(projectID)
-	tfNewModel.Name = types.StringValue(clusterName)
 	resp.Diagnostics.Append(resp.TargetState.Set(ctx, tfNewModel)...)
 }

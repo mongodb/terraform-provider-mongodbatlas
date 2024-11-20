@@ -6,12 +6,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/sebdah/goldie/v2"
-	"github.com/stretchr/testify/require"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
 const (
@@ -19,68 +16,10 @@ const (
 	processResponseOnly = "processResponseOnly"
 )
 
-func ChangeMockData(data *advancedclustertpf.MockData, extraFlags ...string) resource.TestCheckFunc {
-	changer := func(*terraform.State) error {
-		if len(extraFlags) > 0 && extraFlags[0] == processResponseOnly {
-			return data.NextResponse(false, true)
-		}
-		return data.NextResponse(true, false)
-	}
-	return changer
-}
-
-func CheckRequestPayload(t *testing.T, requestName string) resource.TestCheckFunc {
-	t.Helper()
-	return func(state *terraform.State) error {
-		g := goldie.New(t, goldie.WithNameSuffix(".json"))
-		lastPayload, err := advancedclustertpf.ReadLastCreatePayload()
-		if err != nil {
-			return err
-		}
-		g.Assert(t, requestName, []byte(lastPayload))
-		return nil
-	}
-}
-
-func CheckUpdatePayload(t *testing.T, requestName string) resource.TestCheckFunc {
-	t.Helper()
-	return func(state *terraform.State) error {
-		g := goldie.New(t, goldie.WithNameSuffix(".json"))
-		lastPayload, err := advancedclustertpf.ReadLastUpdatePayload()
-		if err != nil {
-			return err
-		}
-		g.Assert(t, requestName, []byte(lastPayload))
-		return nil
-	}
-}
-
-func CheckUpdatePayloadProcessArgs(t *testing.T, requestName string) resource.TestCheckFunc {
-	t.Helper()
-	return func(state *terraform.State) error {
-		g := goldie.New(t, goldie.WithNameSuffix(".json"))
-		lastPayload, err := advancedclustertpf.ReadLastUpdatePayloadProcessArgs()
-		if err != nil {
-			return err
-		}
-		g.Assert(t, requestName, []byte(lastPayload))
-		requestNameLegacy := requestName + "_legacy"
-		lastPayload, err = advancedclustertpf.ReadLastUpdatePayloadProcessArgsLegacy()
-		if err != nil {
-			return err
-		}
-		g.Assert(t, requestNameLegacy, []byte(lastPayload))
-		return nil
-	}
-}
-
 func TestAccAdvancedCluster_basic(t *testing.T) {
 	var (
-		projectID   = "111111111111111111111111"
-		clusterName = "test"
-		mockData    = &advancedclustertpf.MockData{
-			ClusterResponse: "replicaset",
-		}
+		projectID      = "111111111111111111111111"
+		clusterName    = "test"
 		oneNewVariable = "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""
 		fullUpdate     = `
 		backup_enabled = false
@@ -122,34 +61,35 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 			transaction_lifetime_limit_seconds                             = 300
 		}
 		`
+		vars = map[string]string{
+			"project_id": projectID,
+			"name":       clusterName,
+		}
 	)
-	err := advancedclustertpf.SetMockDataResetResponses(mockData)
-	require.NoError(t, err)
+	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true})
+
 	resource.Test(t, resource.TestCase{ // Sequential as it is using global variables
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithMock(mockTransport),
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, clusterName, ""),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "state_name", "CREATING"),
-					CheckRequestPayload(t, "replicaset_create"),
-					ChangeMockData(mockData), // For the next test step
+					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
+					checkFunc,
 				),
 			},
 			{
 				Config: configBasic(projectID, clusterName, oneNewVariable),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", "2006-01-02T15:04:05Z"),
-					CheckUpdatePayload(t, "replicaset_update1"),
-					ChangeMockData(mockData), // For the next test step
+					checkFunc,
 				),
 			},
 			{
 				Config: configBasic(projectID, clusterName, fullUpdate),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
-					CheckUpdatePayload(t, "replicaset_update2"),
-					ChangeMockData(mockData, processResponseOnly), // For the next test step
+					checkFunc,
 				),
 			},
 			{
@@ -157,7 +97,7 @@ func TestAccAdvancedCluster_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
-					CheckUpdatePayloadProcessArgs(t, "process_args_2_request"),
+					checkFunc,
 				),
 			},
 			{
@@ -175,27 +115,27 @@ func TestAccAdvancedCluster_configSharded(t *testing.T) {
 	var (
 		projectID   = "111111111111111111111111"
 		clusterName = "sharded-multi-replication"
-		mockData    = &advancedclustertpf.MockData{
-			ClusterResponse: "sharded",
+		vars        = map[string]string{
+			"project_id": projectID,
+			"name":       clusterName,
 		}
 	)
-	err := advancedclustertpf.SetMockDataResetResponses(mockData)
-	require.NoError(t, err)
+
+	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true})
 	resource.Test(t, resource.TestCase{ // Sequential as it is using global variables
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithMock(mockTransport),
 		Steps: []resource.TestStep{
 			{
 				Config: configSharded(projectID, clusterName, false),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "state_name", "CREATING"),
-					CheckRequestPayload(t, "sharded_create"),
-					ChangeMockData(mockData), // For the next test step
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					checkFunc,
 				),
 			},
 			{
 				Config: configSharded(projectID, clusterName, true),
 				Check: resource.ComposeTestCheckFunc(
-					CheckUpdatePayload(t, "sharded_update1"),
+					checkFunc,
 				),
 			},
 			{
