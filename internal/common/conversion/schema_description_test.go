@@ -2,32 +2,15 @@ package conversion_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestDataSourceSchemaFromResourceTemporary(t *testing.T) {
-	s := mongodbemployeeaccessgrant.ResourceSchema(context.Background())
-	ds := conversion.DataSourceSchemaFromResource(s)
-	fmt.Println(ds)
-}
-
-func TestDataSourceSchemasTemporary(t *testing.T) {
-	ds := advancedclustertpf.DataSource()
-	schemaRequest := datasource.SchemaRequest{}
-	schemaResponse := &datasource.SchemaResponse{}
-	ds.Schema(context.Background(), schemaRequest, schemaResponse)
-}
 
 func TestDataSourceSchemaFromResource(t *testing.T) {
 	s := schema.Schema{
