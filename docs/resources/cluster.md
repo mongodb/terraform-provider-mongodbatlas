@@ -187,19 +187,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
   }
 }
 ```
-### Example AWS Shared Tier (M2/M5) cluster
-```terraform
-resource "mongodbatlas_cluster" "cluster-test" {
-  project_id              = "<YOUR-PROJECT-ID>"
-  name                    = "cluster-test-global"
-
-  # Provider Settings "block"
-  provider_name = "TENANT"
-  backing_provider_name = "AWS"
-  provider_region_name = "US_EAST_1"
-  provider_instance_size_name = "M2"
-}
-```
 ### Example AWS Free Tier cluster
 ```terraform
 resource "mongodbatlas_cluster" "cluster-test" {
