@@ -2,8 +2,11 @@ package resourcepolicy
 
 import (
 	"context"
+	"log"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -27,7 +30,14 @@ type resourcePolicyDS struct {
 }
 
 func (d *resourcePolicyDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = DataSourceSchema(ctx)
+	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
+	ds1 := DataSourceSchemaDelete(ctx)
+	conversion.UpdateSchemaDescription(&ds1)
+	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), "org_id", "id")
+	if diff := cmp.Diff(ds1, ds2); diff != "" {
+		log.Fatal(diff)
+	}
+	resp.Schema = ds2
 }
 
 func (d *resourcePolicyDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
