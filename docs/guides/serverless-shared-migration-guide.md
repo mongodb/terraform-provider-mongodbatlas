@@ -11,7 +11,7 @@ If a Serverless instance has $0 MRR, it automatically converts into a Free clust
 Some of these conversions will result in configuration drift in Terraform. 
 
 
-You can migrate from Serverless instances and Shared-tier clusters manually before March 2025. 
+You can migrate from Serverless instances and Shared-tier clusters manually before autoconversion. 
 
 **--> NOTE:** We recommend waiting until March 2025 or later for Serverless instances and Shared-tier clusters to autoconvert.
 
