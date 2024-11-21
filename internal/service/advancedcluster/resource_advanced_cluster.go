@@ -416,17 +416,17 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		rootDiskSizeGB = conversion.Pointer(v.(float64))
 	}
 
-	params := &admin20240805.ClusterDescription20240805{
+	params := &admin.ClusterDescription20240805{
 		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
 		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
-		ReplicationSpecs: expandAdvancedReplicationSpecs20240805(d.Get("replication_specs").([]any), rootDiskSizeGB),
+		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB),
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {
 		params.BackupEnabled = conversion.Pointer(v.(bool))
 	}
 	if _, ok := d.GetOk("bi_connector_config"); ok {
-		params.BiConnector = expandBiConnectorConfig20240805(d)
+		params.BiConnector = expandBiConnectorConfig(d)
 	}
 
 	if v, ok := d.GetOk("encryption_at_rest_provider"); ok {
@@ -434,7 +434,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOk("labels"); ok {
-		labels, err := expandLabelSliceFromSetSchema20240805(d)
+		labels, err := expandLabelSliceFromSetSchema(d)
 		if err != nil {
 			return err
 		}
@@ -442,7 +442,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
-		params.Tags = conversion.ExpandTagsFromSetSchemaV220240805(d)
+		params.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
 		params.MongoDBMajorVersion = conversion.StringPtr(FormatMongoDBMajorVersion(v.(string)))
@@ -479,11 +479,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	if err := CheckRegionConfigsPriorityOrder20240805(params.GetReplicationSpecs()); err != nil {
+	if err := CheckRegionConfigsPriorityOrder(params.GetReplicationSpecs()); err != nil {
 		return diag.FromErr(err)
 	}
-	// cannot call latest API (2024-10-23 or newer) as it can enable ISS autoscaling
-	cluster, _, err := connV220240805.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
+
+	cluster, _, err := connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
@@ -1072,7 +1072,7 @@ func updateRequestOldAPI(d *schema.ResourceData, clusterName string) (*admin2024
 	}
 
 	if d.HasChange("tags") {
-		cluster.Tags = convertTagsPtrToOldSDK(conversion.ExpandTagsFromSetSchemaV220240805(d))
+		cluster.Tags = convertTagsPtrToOldSDK(conversion.ExpandTagsFromSetSchema(d))
 	}
 
 	if d.HasChange("mongo_db_major_version") {
