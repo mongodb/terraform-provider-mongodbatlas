@@ -20,7 +20,7 @@ const (
 	clusterName         = "test"
 )
 
-func TestAdvancedCluster_replicaset(t *testing.T) {
+func TestMockAdvancedCluster_replicaset(t *testing.T) {
 	var (
 		oneNewVariable = "backup_enabled = false"
 		fullUpdate     = `
@@ -129,7 +129,7 @@ func shortenRetries() {
 	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
 }
 
-func TestAdvancedCluster_configSharded(t *testing.T) {
+func TestMockAdvancedCluster_configSharded(t *testing.T) {
 	var (
 		projectID   = "111111111111111111111111"
 		clusterName = "sharded-multi-replication"
@@ -254,7 +254,7 @@ func configSharded(projectID, clusterName string, withUpdate bool) string {
 	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)
 }
 
-func TestClusterAdvancedCluster_basicTenant(t *testing.T) {
+func TestMockClusterAdvancedCluster_basicTenant(t *testing.T) {
 	var (
 		clusterName        = "test-acc-tf-c-8049930413007488732"
 		clusterNameUpdated = "test-acc-tf-c-91771214182147246"
