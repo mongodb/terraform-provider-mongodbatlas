@@ -859,7 +859,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if d.HasChange("config_server_management_mode") {
 				request.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
 			}
-			// can call latest API (2024-10-23 or newer) as autoscaling property is not specified, using older version just for caution until iss autoscaling epic is done
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
@@ -880,7 +879,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if err := CheckRegionConfigsPriorityOrder(req.GetReplicationSpecs()); err != nil {
 				return diag.FromErr(err)
 			}
-			// cannot call latest API (2024-10-23 or newer) as it can enable ISS autoscaling
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
@@ -918,7 +916,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterRequest := &admin.ClusterDescription20240805{
 			Paused: conversion.Pointer(true),
 		}
-		// can call latest API (2024-10-23 or newer) as autoscaling property is not specified, using older version just for caution until iss autoscaling epic is done
 		if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, clusterRequest).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
