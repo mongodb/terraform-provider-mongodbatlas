@@ -143,7 +143,7 @@ func (r *rs) awaitChanges(ctx context.Context, t *timeouts.Value, diags *diag.Di
 	stateConf := CreateStateChangeConfig(ctx, r.Client.AtlasV220240805, projectID, clusterName, targetState, timeoutDuration, extraPending...)
 	clusterAny, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		if admin.IsErrorCode(err, "CLUSTER_NOT_FOUND") && changeReason == "delete" {
+		if admin.IsErrorCode(err, constant.ErrorCodeClusterNotFound) && changeReason == "delete" {
 			return nil, "", ""
 		}
 		return nil, "errorAwaitingCluster", fmt.Sprintf(errorCreate, err)
@@ -204,7 +204,7 @@ func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State
 	api := r.Client.AtlasV220240805.ClustersApi
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if admin.IsErrorCode(err, "CLUSTER_NOT_FOUND") {
+		if admin.IsErrorCode(err, constant.ErrorCodeClusterNotFound) {
 			state.RemoveResource(ctx)
 			return
 		}
