@@ -16,12 +16,12 @@ import (
 const (
 	resourceName        = "mongodbatlas_advanced_cluster.test"
 	processResponseOnly = "processResponseOnly"
+	projectID      = "111111111111111111111111"
+	clusterName    = "test"
 )
 
 func TestAdvancedCluster_replicaset(t *testing.T) {
 	var (
-		projectID      = "111111111111111111111111"
-		clusterName    = "test"
 		oneNewVariable = "backup_enabled = false"
 		fullUpdate     = `
 		backup_enabled = true
@@ -79,14 +79,14 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, clusterName, ""),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
 					checkFunc,
 				),
 			},
 			{
 				Config: configBasic(projectID, clusterName, oneNewVariable),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
 					checkFunc,
@@ -94,7 +94,7 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 			},
 			{
 				Config: configBasic(projectID, clusterName, fullUpdate),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
 					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "true"),
@@ -104,7 +104,7 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 			},
 			{
 				Config: configBasic(projectID, clusterName, fullUpdateResumed),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
 					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
@@ -113,7 +113,7 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 			},
 			{
 				Config: configBasic(projectID, clusterName, fullUpdateResumed+advClusterConfig),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
 					checkFunc,
@@ -148,14 +148,14 @@ func TestAdvancedCluster_configSharded(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configSharded(projectID, clusterName, false),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					checkFunc,
 				),
 			},
 			{
 				Config: configSharded(projectID, clusterName, true),
-				Check: resource.ComposeTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 					checkFunc,
 				),
 			},
@@ -260,4 +260,78 @@ func configSharded(projectID, clusterName string, withUpdate bool) string {
 		
 
 	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)
+}
+func TestClusterAdvancedCluster_basicTenant(t *testing.T) {
+	var (
+		clusterName = "test-acc-tf-c-8049930413007488732"
+		clusterNameUpdated = "test-acc-tf-c-91771214182147246"
+		vars = map[string]string{
+			"groupId":   projectID,
+			"clusterName": clusterName,
+			"clusterName2": clusterNameUpdated,
+		}
+	)
+	advancedclustertpf.RetryMinTimeout = 1 * time.Second
+	advancedclustertpf.RetryDelay = 1 * time.Second
+	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
+	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true})
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithMock(mockTransport),
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configTenant(projectID, clusterName),
+				Check:  resource.ComposeAggregateTestCheckFunc(checkTenant(projectID, clusterName), checkFunc),
+			},
+			{
+				Config: configTenant(projectID, clusterNameUpdated),
+				Check:  resource.ComposeAggregateTestCheckFunc(checkTenant(projectID, clusterNameUpdated), checkFunc),
+			},
+			{
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "name",
+			},
+		},
+	})
+}
+
+
+func configTenant(projectID, name string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M5"
+					}
+					provider_name         = "TENANT"
+					backing_provider_name = "AWS"
+					region_name           = "US_EAST_1"
+					priority              = 7
+				}]
+			}]
+		}
+	`, projectID, name)
+}
+
+func checkTenant(projectID, name string) resource.TestCheckFunc {
+	attrsSet := []string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"}
+	attrsMap := 		map[string]string{
+		"project_id":                           projectID,
+		"name":                                 name,
+		"termination_protection_enabled":       "false",
+		"global_cluster_self_managed_sharding": "false",
+		"labels.#":                             "0",
+	}
+	checks := acc.AddAttrSetChecks(resourceName, nil, attrsSet...)
+	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
