@@ -13,8 +13,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
-	"go.mongodb.org/atlas-sdk/v20241023002/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/mockadmin"
 )
 
 type testCase struct {
