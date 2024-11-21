@@ -86,7 +86,7 @@ func parseTestDataConfigYAML(filePath string) (*mockHTTPData, error) {
 	return &testData, nil
 }
 
-func MockTestCase(t *testing.T, vars map[string]string, config *MockHTTPDataConfig, testCase *resource.TestCase) {
+func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
 	roundTripper, checkFunc := MockRoundTripper(t, vars, config)
 	testCase.ProtoV6ProviderFactories = acc.TestAccProviderV6FactoriesWithMock(roundTripper)
@@ -97,6 +97,15 @@ func MockTestCase(t *testing.T, vars map[string]string, config *MockHTTPDataConf
 		if oldCheck != nil {
 			step.Check = resource.ComposeAggregateTestCheckFunc(oldCheck, checkFunc)
 		}
+	}
+	noAccFlag := os.Getenv("TF_ACC") == ""
+	if noAccFlag {
+		// TF_ACC Must be set for the test to run.
+		// If we set it manually, the test must be sequential. (panic: testing: t.Parallel called after t.Setenv; cannot set environment variables in parallel tests)
+		t.Setenv("TF_ACC", "1")
+		resource.Test(t, *testCase)
+	} else {
+		resource.ParallelTest(t, *testCase)
 	}
 }
 
