@@ -274,19 +274,18 @@ func TestClusterAdvancedCluster_basicTenant(t *testing.T) {
 	advancedclustertpf.RetryMinTimeout = 1 * time.Second
 	advancedclustertpf.RetryDelay = 1 * time.Second
 	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
-	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true})
 
-	resource.ParallelTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithMock(mockTransport),
+	testCase := resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: configTenant(projectID, clusterName),
-				Check:  resource.ComposeAggregateTestCheckFunc(checkTenant(projectID, clusterName), checkFunc),
+				Check:  checkTenant(projectID, clusterName),
 			},
 			{
 				Config: configTenant(projectID, clusterNameUpdated),
-				Check:  resource.ComposeAggregateTestCheckFunc(checkTenant(projectID, clusterNameUpdated), checkFunc),
+				Check:  checkTenant(projectID, clusterNameUpdated),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -296,7 +295,9 @@ func TestClusterAdvancedCluster_basicTenant(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "name",
 			},
 		},
-	})
+	}
+	unit.MockTestCase(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, &testCase)
+	resource.ParallelTest(t, testCase)
 }
 
 func configTenant(projectID, name string) string {

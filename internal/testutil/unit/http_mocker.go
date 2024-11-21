@@ -86,6 +86,19 @@ func parseTestDataConfigYAML(filePath string) (*mockHTTPData, error) {
 	return &testData, nil
 }
 
+func MockTestCase(t *testing.T, vars map[string]string, config *MockHTTPDataConfig, testCase *resource.TestCase) {
+	t.Helper()
+	roundTripper, checkFunc := MockRoundTripper(t, vars, config)
+	testCase.ProtoV6ProviderFactories = acc.TestAccProviderV6FactoriesWithMock(roundTripper)
+	for i := range testCase.Steps {
+		step := &testCase.Steps[i]
+		oldCheck := step.Check
+		if oldCheck != nil {
+			step.Check = resource.ComposeAggregateTestCheckFunc(oldCheck, checkFunc)
+		}
+	}
+}
+
 func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPDataConfig) (http.RoundTripper, resource.TestCheckFunc) {
 	t.Helper()
 	testDir := "testdata"
