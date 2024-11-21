@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-func DataSourceSchema(ctx context.Context) schema.Schema {
+func DataSourceSchemaDelete(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: DSAttributes(true),
 	}
@@ -17,7 +17,7 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 		"cloud_provider": schema.StringAttribute{
 			Required:            withArguments,
 			Computed:            !withArguments,
-			MarkdownDescription: "Label that identifies the cloud provider of the private endpoint.",
+			MarkdownDescription: "Label that identifies the cloud provider for the Encryption At Rest private endpoint.",
 		},
 		"error_message": schema.StringAttribute{
 			Computed:            true,

@@ -37,7 +37,7 @@ output "number_of_endpoints" {
 
 Read-Only:
 
-- `cloud_provider` (String) Label that identifies the cloud provider of the private endpoint.
+- `cloud_provider` (String) Label that identifies the cloud provider for the Encryption At Rest private endpoint.
 - `error_message` (String) Error message for failures associated with the Encryption At Rest private endpoint.
 - `id` (String) Unique 24-hexadecimal digit string that identifies the Private Endpoint Service.
 - `private_endpoint_connection_name` (String) Connection name of the Azure Private Endpoint.
