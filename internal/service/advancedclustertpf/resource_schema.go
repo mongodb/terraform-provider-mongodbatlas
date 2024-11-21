@@ -186,9 +186,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Version of MongoDB that the cluster runs.",
 			},
-			"name": schema.StringAttribute{ // TODO: fail if trying to update
+			"name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Human-readable label that identifies this cluster.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"paused": schema.BoolAttribute{
 				Computed:            true,
