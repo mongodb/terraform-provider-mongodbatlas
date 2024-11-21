@@ -2,6 +2,7 @@ package advancedclustertpf_test
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -15,6 +16,7 @@ func TestAccAdvancedCluster_move_preferred(t *testing.T) {
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
+	skipIfMoveTestsNotSet(t)
 	t.Setenv(advancedclustertpf.MoveModeEnvVarName, advancedclustertpf.MoveModeValPreferred)
 	// TODO: temporary no parallel tests so t.Setenv can be used
 	resource.Test(t, resource.TestCase{
@@ -34,11 +36,20 @@ func TestAccAdvancedCluster_move_preferred(t *testing.T) {
 	})
 }
 
+// Skip for now as these needs to either run with mock data or be refactored to use a live cluster
+func skipIfMoveTestsNotSet(t *testing.T) {
+	t.Helper()
+	if os.Getenv("TF_RUN_MOVED_TESTS") == "" {
+		t.Skip("Move tests are skipped unless TF_RUN_MOVED_TESTS is set")
+	}
+}
+
 func TestAccAdvancedCluster_move_rawstate(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
+	skipIfMoveTestsNotSet(t)
 	t.Setenv(advancedclustertpf.MoveModeEnvVarName, advancedclustertpf.MoveModeValRawState)
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -62,6 +73,7 @@ func TestAccAdvancedCluster_move_json(t *testing.T) {
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
+	skipIfMoveTestsNotSet(t)
 	t.Setenv(advancedclustertpf.MoveModeEnvVarName, advancedclustertpf.MoveModeValJSON)
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
