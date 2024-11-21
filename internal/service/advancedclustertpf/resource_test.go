@@ -18,7 +18,7 @@ const (
 	processResponseOnly = "processResponseOnly"
 )
 
-func TestAdvancedCluster_basic(t *testing.T) {
+func TestAdvancedCluster_replicaset(t *testing.T) {
 	var (
 		projectID      = "111111111111111111111111"
 		clusterName    = "test"
@@ -165,7 +165,6 @@ func TestAdvancedCluster_configSharded(t *testing.T) {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "name",
-				ImportStateVerifyIgnore:              []string{"connection_strings", "state_name"}, // Figure out how to do the read after import more stable
 			},
 		},
 	})
