@@ -6,12 +6,16 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"go.mongodb.org/atlas-sdk/v20240805005/admin"
 )
 
 const (
@@ -138,7 +142,7 @@ func stateMoverTemporaryPreferred(ctx context.Context, req resource.MoveStateReq
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	setMoveState(ctx, state.ProjectID.String(), state.Username.String(), resp)
+	setMoveState(ctx, state.ProjectID.ValueString(), state.Username.ValueString(), resp)
 }
 
 func stateMoverTemporaryRawState(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
@@ -225,10 +229,27 @@ func isSource(req resource.MoveStateRequest, resourceName, moveMode string) bool
 
 func setMoveState(ctx context.Context, projectID, clusterName string, resp *resource.MoveStateResponse) {
 	// TODO: timeout should be read from source if provided
-	// TODO: we need to have a good state (all attributes known or null) but not need to be the final ones as Read is called after
-	tfNewModel := TFModel{
-		ProjectID: types.StringValue(projectID),
-		Name:      types.StringValue(clusterName),
+	timeout := timeouts.Value{
+		Object: types.ObjectValueMust(
+			map[string]attr.Type{
+				"create": types.StringType,
+				"update": types.StringType,
+				"delete": types.StringType,
+			},
+			map[string]attr.Value{
+				"create": types.StringValue("30m"),
+				"update": types.StringValue("30m"),
+				"delete": types.StringValue("30m"),
+			}),
 	}
-	resp.Diagnostics.Append(resp.TargetState.Set(ctx, tfNewModel)...)
+	// TODO: we need to have a good state (all attributes known or null) but not need to be the final ones as Read is called after
+	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
+		GroupId: conversion.StringPtr(projectID),
+		Name:    conversion.StringPtr(clusterName),
+	}, timeout, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	AddAdvancedConfig(ctx, model, nil, nil, &resp.Diagnostics)
+	resp.Diagnostics.Append(resp.TargetState.Set(ctx, model)...)
 }
