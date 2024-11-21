@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
@@ -119,7 +120,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 func (r *rs) awaitChanges(ctx context.Context, t *timeouts.Value, diags *diag.Diagnostics, projectID, clusterName, changeReason string) (cluster *admin20240805.ClusterDescription20240805, summary, detail string) {
 	var timeoutDuration time.Duration
 	var localDiags diag.Diagnostics
-	var targetState = "IDLE"
+	var targetState = retrystrategy.RetryStrategyIdleState
 	var extraPending = []string{}
 	switch changeReason {
 	case "create":
@@ -131,8 +132,8 @@ func (r *rs) awaitChanges(ctx context.Context, t *timeouts.Value, diags *diag.Di
 	case "delete":
 		timeoutDuration, localDiags = t.Delete(ctx, defaultTimeout)
 		diags.Append(localDiags...)
-		targetState = "DELETED"
-		extraPending = append(extraPending, "IDLE")
+		targetState = retrystrategy.RetryStrategyDeletedState
+		extraPending = append(extraPending, retrystrategy.RetryStrategyIdleState)
 	default:
 		return nil, "errorReadingTimeout", "unknown change reason" + changeReason
 	}
@@ -147,7 +148,7 @@ func (r *rs) awaitChanges(ctx context.Context, t *timeouts.Value, diags *diag.Di
 		}
 		return nil, "errorAwaitingCluster", fmt.Sprintf(errorCreate, err)
 	}
-	if targetState == "DELETED" {
+	if targetState == retrystrategy.RetryStrategyDeletedState {
 		return nil, "", ""
 	}
 	cluster, ok := clusterAny.(*admin20240805.ClusterDescription20240805)

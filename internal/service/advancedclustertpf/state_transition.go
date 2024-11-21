@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 )
 
@@ -18,7 +19,14 @@ var (
 
 func CreateStateChangeConfig(ctx context.Context, connV2 *admin20240805.APIClient, projectID, name, targetState string, timeout time.Duration, extraPending ...string) retry.StateChangeConf {
 	return retry.StateChangeConf{
-		Pending:      slices.Concat([]string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING", "DELETING"}, extraPending),
+		Pending: slices.Concat([]string{
+			retrystrategy.RetryStrategyCreatingState,
+			retrystrategy.RetryStrategyUpdatingState,
+			retrystrategy.RetryStrategyRepairingState,
+			retrystrategy.RetryStrategyRepeatingState,
+			retrystrategy.RetryStrategyPendingState,
+			retrystrategy.RetryStrategyDeletingState,
+		}, extraPending),
 		Target:       []string{targetState},
 		Refresh:      resourceRefreshFunc(ctx, name, projectID, connV2),
 		Timeout:      timeout,
@@ -32,7 +40,7 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *ad
 	return func() (any, string, error) {
 		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, name).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
-			return nil, "REPEATING", nil
+			return nil, retrystrategy.RetryStrategyRepeatingState, nil
 		}
 
 		if err != nil && cluster == nil && resp == nil {
@@ -41,10 +49,10 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *ad
 
 		if err != nil {
 			if resp.StatusCode == 404 {
-				return "", "DELETED", nil
+				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
 			if resp.StatusCode == 503 {
-				return "", "PENDING", nil
+				return "", retrystrategy.RetryStrategyPendingState, nil
 			}
 			return nil, "", err
 		}
