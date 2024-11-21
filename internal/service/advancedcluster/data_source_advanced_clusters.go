@@ -436,7 +436,6 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"encryption_at_rest_provider":          cluster.GetEncryptionAtRestProvider(),
 			"labels":                               flattenLabels(*convertLabelsToLatest(cluster.Labels)),
 			"tags":                                 conversion.FlattenTags(convertTagsToLatest(cluster.GetTags())),
-			"mongo_db_major_version":               cluster.GetMongoDBMajorVersion(),
 			"mongo_db_version":                     cluster.GetMongoDBVersion(),
 			"name":                                 cluster.GetName(),
 			"paused":                               cluster.GetPaused(),
@@ -447,6 +446,7 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"termination_protection_enabled":       cluster.GetTerminationProtectionEnabled(),
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
+			"mongo_db_major_version":               clusterDescNew.GetMongoDBMajorVersion(), // uses 2024-08-05 as it has fix for correct value when FCV is active
 			"replica_set_scaling_strategy":         clusterDescNew.GetReplicaSetScalingStrategy(),
 			"redact_client_log_data":               clusterDescNew.GetRedactClientLogData(),
 			"config_server_management_mode":        clusterDescNew.GetConfigServerManagementMode(),

@@ -916,7 +916,22 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 					"mongo_db_major_version":       "7.0",
 				}),
 			},
-			// TODO: add steps for upgrading and downgrading mongo_db_major_version
+			{ // upgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
+				Check: acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.0.version":         "7.0",
+					"pinned_fcv.0.expiration_date": updatedExpirationDate,
+					"mongo_db_major_version":       "8.0",
+				}, resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression("8..*"))),
+			},
+			{ // downgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check: acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.0.version":         "7.0",
+					"pinned_fcv.0.expiration_date": updatedExpirationDate,
+					"mongo_db_major_version":       "7.0",
+				}, resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression("7..*"))),
+			},
 			{ // unpins fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
 				Check: acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), []string{}, map[string]string{
