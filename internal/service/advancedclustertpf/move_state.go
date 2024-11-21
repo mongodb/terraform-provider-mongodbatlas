@@ -251,5 +251,8 @@ func setMoveState(ctx context.Context, projectID, clusterName string, resp *reso
 		return
 	}
 	AddAdvancedConfig(ctx, model, nil, nil, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.TargetState.Set(ctx, model)...)
 }
