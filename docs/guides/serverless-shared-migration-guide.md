@@ -60,7 +60,7 @@ The following steps explain how to move your exising Shared-tier cluster resourc
 
 ### Pre-Autoconversion Migration Procedure
 
-**NOTE:** We recommend waiting until March 2025 or later for Shared-tier clusters to autoconvert. Manually doing the migration can cause downtime and workload disruption.
+**NOTE:** We recommend waiting until January 2025 or later for Shared-tier clusters to autoconvert. Manually doing the migration can cause downtime and workload disruption.
 
 1. Create a new Flex Cluster directly from your `.tf` file, e.g.:
 
