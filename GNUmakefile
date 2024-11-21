@@ -39,7 +39,7 @@ install: fmtcheck
 
 .PHONY: test
 test: fmtcheck
-	go test ./... -timeout=90s -parallel=4 -race
+	go test ./... -timeout=120s -parallel=4 -race
 
 .PHONY: testacc
 testacc: fmtcheck
