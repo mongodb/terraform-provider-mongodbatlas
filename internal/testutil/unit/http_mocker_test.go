@@ -58,6 +58,10 @@ const reqPoliciesUpdateBody = `{
  ]
 }`
 
+const reqPoliciesManualValidateBody = `{
+ "name": "overriding the filename by using _manual"
+ }`
+
 func TestMockRoundTripper(t *testing.T) {
 	orgID := "123"
 	resourcePolicyID := "456"
@@ -95,4 +99,12 @@ func TestMockRoundTripper(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&policyResp)
 	require.NoError(t, err)
 	assert.Equal(t, resourcePolicyID, policyResp.GetId())
+
+	// Step 3
+	validateRequest := request("POST", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies:validate", orgID))
+	validateRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesManualValidateBody))
+	_, err = client.Do(validateRequest)
+	require.NoError(t, err)
+	err = checkFunc(nil)
+	require.NoError(t, err)
 }

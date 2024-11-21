@@ -96,8 +96,22 @@ steps:
       text: "[\n {\n  \"createdByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"createdDate\": \"2024-11-19T09:52:01Z\",\n  \"id\": \"673c5fc1779e38359495f179\",\n  \"lastUpdatedByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"lastUpdatedDate\": \"2024-11-19T09:52:10Z\",\n  \"name\": \"updated-policy\",\n  \"orgId\": \"{orgId}\",\n  \"policies\": [\n   {\n    \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n    \"id\": \"673c5fca779e38359495f181\"\n   }\n  ],\n  \"version\": \"v1\"\n }\n]"
     - status: 200
       text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:01Z\",\n \"id\": \"673c5fc1779e38359495f179\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:10Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fca779e38359495f181\"\n  }\n ],\n \"version\": \"v1\"\n}"
-- diff_requests: []
+- diff_requests:
+  - version: '2024-08-05'
+    method: POST
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies:validate
+    text: "{\n \"name\": \"updated-policy\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\"\n  }\n ]\n}"
+    responses:
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:08Z\",\n \"id\": \"673c5fc811ac0c143dd3ca8c\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:08Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc811ac0c143dd3ca8b\"\n  }\n ],\n \"version\": \"v1\"\n}"
   request_responses:
+  - version: '2024-08-05'
+    method: POST
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies:validate
+    text: "{\n \"name\": \"updated-policy\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\"\n  }\n ]\n}"
+    responses:
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-19T09:52:08Z\",\n \"id\": \"673c5fc811ac0c143dd3ca8c\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-19T09:52:08Z\",\n \"name\": \"updated-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673c5fc811ac0c143dd3ca8b\"\n  }\n ],\n \"version\": \"v1\"\n}"
   - version: '2024-08-05'
     method: GET
     path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}

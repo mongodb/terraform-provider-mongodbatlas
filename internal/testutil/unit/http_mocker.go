@@ -134,6 +134,15 @@ func (r *requestTracker) requestFilename(requestID string, index int) string {
 	return strings.ReplaceAll(fmt.Sprintf("%02d_%02d_%s", r.currentStepIndex+1, index+1, requestID), "/", "_")
 }
 
+func (r *requestTracker) manualFilenameIfExist(requestID string, index int) string {
+	defaultFilestem := strings.ReplaceAll(fmt.Sprintf("%02d_%02d_%s", r.currentStepIndex+1, index+1, requestID), "/", "_")
+	manualFilestem := defaultFilestem + "_manual"
+	if _, err := os.Stat("testdata" + "/" + r.t.Name() + "/" + manualFilestem + ".json"); err == nil {
+		return manualFilestem
+	}
+	return defaultFilestem
+}
+
 func (r *requestTracker) initStep() error {
 	usedKeys := strings.Join(acc.SortStringMapKeys(r.vars), ", ")
 	expectedKeys := strings.Join(acc.SortStringMapKeys(r.data.Variables), ", ")
@@ -185,7 +194,8 @@ func (r *requestTracker) checkStepRequests(_ *terraform.State) error {
 	assert.Empty(r.t, missingDiffs)
 	for index, payload := range r.foundsDiffs {
 		diff := step.DiffRequests[index]
-		r.g.Assert(r.t, r.requestFilename(diff.idShort(), index), []byte(payload))
+		filename := r.manualFilenameIfExist(diff.idShort(), index)
+		r.g.Assert(r.t, filename, []byte(payload))
 	}
 	r.currentStepIndex++
 	return r.initStep()
