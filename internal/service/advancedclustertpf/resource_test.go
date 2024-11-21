@@ -16,8 +16,8 @@ import (
 const (
 	resourceName        = "mongodbatlas_advanced_cluster.test"
 	processResponseOnly = "processResponseOnly"
-	projectID      = "111111111111111111111111"
-	clusterName    = "test"
+	projectID           = "111111111111111111111111"
+	clusterName         = "test"
 )
 
 func TestAdvancedCluster_replicaset(t *testing.T) {
@@ -263,11 +263,11 @@ func configSharded(projectID, clusterName string, withUpdate bool) string {
 }
 func TestClusterAdvancedCluster_basicTenant(t *testing.T) {
 	var (
-		clusterName = "test-acc-tf-c-8049930413007488732"
+		clusterName        = "test-acc-tf-c-8049930413007488732"
 		clusterNameUpdated = "test-acc-tf-c-91771214182147246"
-		vars = map[string]string{
-			"groupId":   projectID,
-			"clusterName": clusterName,
+		vars               = map[string]string{
+			"groupId":      projectID,
+			"clusterName":  clusterName,
 			"clusterName2": clusterNameUpdated,
 		}
 	)
@@ -299,7 +299,6 @@ func TestClusterAdvancedCluster_basicTenant(t *testing.T) {
 	})
 }
 
-
 func configTenant(projectID, name string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -324,7 +323,7 @@ func configTenant(projectID, name string) string {
 
 func checkTenant(projectID, name string) resource.TestCheckFunc {
 	attrsSet := []string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"}
-	attrsMap := 		map[string]string{
+	attrsMap := map[string]string{
 		"project_id":                           projectID,
 		"name":                                 name,
 		"termination_protection_enabled":       "false",

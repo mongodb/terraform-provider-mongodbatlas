@@ -498,7 +498,7 @@ func MuxProviderFactoryForTesting(proxyPort *int, mockRoundTripper http.RoundTri
 	return muxProviderFactory(proxyPort, mockRoundTripper)
 }
 
-func muxProviderFactory(proxyPort *int, mockRoundTripper *http.RoundTripper) func() tfprotov6.ProviderServer {
+func muxProviderFactory(proxyPort *int, mockRoundTripper http.RoundTripper) func() tfprotov6.ProviderServer {
 	v2Provider := NewSdkV2Provider(proxyPort)
 	newProvider := NewFrameworkProvider(proxyPort, mockRoundTripper)
 	ctx := context.Background()
