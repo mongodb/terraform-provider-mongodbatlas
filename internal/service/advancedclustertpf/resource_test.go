@@ -72,16 +72,13 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 	advancedclustertpf.RetryMinTimeout = 1 * time.Second
 	advancedclustertpf.RetryDelay = 1 * time.Second
 	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
-	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true})
-
-	resource.Test(t, resource.TestCase{ // Sequential as it is using global variables
-		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithMock(mockTransport),
+	testCase := resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, clusterName, ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
-					checkFunc,
 				),
 			},
 			{
@@ -89,7 +86,6 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
-					checkFunc,
 				),
 			},
 			{
@@ -99,7 +95,6 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
 					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
-					checkFunc,
 				),
 			},
 			{
@@ -108,7 +103,6 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
 					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
-					checkFunc,
 				),
 			},
 			{
@@ -116,7 +110,6 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
-					checkFunc,
 				),
 			},
 			{
@@ -127,7 +120,9 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "name",
 			},
 		},
-	})
+	}
+	unit.MockTestCase(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, &testCase)
+	resource.ParallelTest(t, testCase)
 }
 
 func TestAdvancedCluster_configSharded(t *testing.T) {
@@ -142,22 +137,16 @@ func TestAdvancedCluster_configSharded(t *testing.T) {
 	advancedclustertpf.RetryMinTimeout = 1 * time.Second
 	advancedclustertpf.RetryDelay = 1 * time.Second
 	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
-	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true})
-	resource.Test(t, resource.TestCase{ // Sequential as it is using global variables
-		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithMock(mockTransport),
+	testCase := resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: configSharded(projectID, clusterName, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					checkFunc,
-				),
+				Check:  resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 			},
 			{
 				Config: configSharded(projectID, clusterName, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkFunc,
-				),
+				Check:  resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -167,7 +156,9 @@ func TestAdvancedCluster_configSharded(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "name",
 			},
 		},
-	})
+	}
+	unit.MockTestCase(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, &testCase)
+	resource.ParallelTest(t, testCase)
 }
 
 func configBasic(projectID, clusterName, extra string) string {
