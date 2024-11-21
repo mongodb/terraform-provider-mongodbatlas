@@ -2,7 +2,9 @@ package streamprocessor
 
 import (
 	"context"
+	"log"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -24,9 +26,14 @@ type StreamProccesorDS struct {
 }
 
 func (d *StreamProccesorDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	// TODO: Schema and model must be defined in data_source_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
-	resp.Schema = DataSourceSchema(ctx)
-	conversion.UpdateSchemaDescription(&resp.Schema)
+	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
+	ds1 := DataSourceSchemaDelete(ctx)
+	conversion.UpdateSchemaDescription(&ds1)
+	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), "project_id", "instance_name", "processor_name")
+	if diff := cmp.Diff(ds1, ds2); diff != "" {
+		log.Fatal(diff)
+	}
+	resp.Schema = ds2
 }
 
 func (d *StreamProccesorDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
