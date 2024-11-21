@@ -2,7 +2,6 @@ package advancedclustertpf
 
 import (
 	"context"
-	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -22,12 +21,8 @@ func NewAtlasReqAdvancedConfigurationLegacy(ctx context.Context, objInput *types
 		return resp
 	}
 	// Choosing to only handle legacy fields in the old API
-	resp = &admin20240530.ClusterDescriptionProcessArgs{
+	return &admin20240530.ClusterDescriptionProcessArgs{
 		DefaultReadConcern:  conversion.NilForUnknown(input.DefaultReadConcern, input.DefaultReadConcern.ValueStringPointer()),
 		FailIndexKeyTooLong: conversion.NilForUnknown(input.FailIndexKeyTooLong, input.FailIndexKeyTooLong.ValueBoolPointer()),
 	}
-	if reflect.DeepEqual(*resp, admin20240530.ClusterDescriptionProcessArgs{}) {
-		return nil
-	}
-	return resp
 }

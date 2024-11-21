@@ -120,8 +120,7 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 			},
 		},
 	}
-	unit.MockTestCase(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, &testCase)
-	resource.ParallelTest(t, testCase)
+	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, &testCase)
 }
 
 func shortenRetries() {
@@ -160,8 +159,7 @@ func TestAdvancedCluster_configSharded(t *testing.T) {
 			},
 		},
 	}
-	unit.MockTestCase(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, &testCase)
-	resource.ParallelTest(t, testCase)
+	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, &testCase)
 }
 
 func configBasic(projectID, clusterName, extra string) string {
@@ -268,8 +266,7 @@ func TestClusterAdvancedCluster_basicTenant(t *testing.T) {
 	)
 	shortenRetries()
 	testCase := basicTenantTestCase(t, projectID, clusterName, clusterNameUpdated)
-	unit.MockTestCase(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
-	resource.ParallelTest(t, *testCase)
+	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
 }
 
 func basicTenantTestCase(t *testing.T, projectID, clusterName, clusterNameUpdated string) *resource.TestCase {
