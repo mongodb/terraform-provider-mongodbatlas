@@ -98,15 +98,7 @@ func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDa
 			step.Check = resource.ComposeAggregateTestCheckFunc(oldCheck, checkFunc)
 		}
 	}
-	noAccFlag := os.Getenv("TF_ACC") == ""
-	if noAccFlag {
-		// TF_ACC Must be set for the test to run.
-		// If we set it manually, the test must be sequential. (panic: testing: t.Parallel called after t.Setenv; cannot set environment variables in parallel tests)
-		t.Setenv("TF_ACC", "1")
-		resource.Test(t, *testCase)
-	} else {
-		resource.ParallelTest(t, *testCase)
-	}
+	resource.ParallelTest(t, *testCase)
 }
 
 func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPDataConfig) (http.RoundTripper, resource.TestCheckFunc) {
