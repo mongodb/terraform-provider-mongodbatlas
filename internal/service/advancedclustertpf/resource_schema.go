@@ -502,8 +502,8 @@ type TFModel struct {
 	Labels                                    types.Set      `tfsdk:"labels"`
 	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
 	Tags                                      types.Set      `tfsdk:"tags"`
-	StateName                                 types.String   `tfsdk:"state_name"`
-	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
+	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
+	BiConnectorConfig                         types.Object   `tfsdk:"bi_connector_config"`
 	CreateDate                                types.String   `tfsdk:"create_date"`
 	AcceptDataRisksAndForceReplicaSetReconfig types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	EncryptionAtRestProvider                  types.String   `tfsdk:"encryption_at_rest_provider"`
@@ -512,22 +512,22 @@ type TFModel struct {
 	ClusterID                                 types.String   `tfsdk:"cluster_id"`
 	ConfigServerManagementMode                types.String   `tfsdk:"config_server_management_mode"`
 	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
-	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
+	StateName                                 types.String   `tfsdk:"state_name"`
 	Name                                      types.String   `tfsdk:"name"`
 	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
-	BiConnectorConfig                         types.Object   `tfsdk:"bi_connector_config"`
+	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
 	ConfigServerType                          types.String   `tfsdk:"config_server_type"`
 	ReplicaSetScalingStrategy                 types.String   `tfsdk:"replica_set_scaling_strategy"`
 	ClusterType                               types.String   `tfsdk:"cluster_type"`
 	RootCertType                              types.String   `tfsdk:"root_cert_type"`
-	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
+	AdvancedConfiguration                     types.Object   `tfsdk:"advanced_configuration"`
 	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
 	TerminationProtectionEnabled              types.Bool     `tfsdk:"termination_protection_enabled"`
 	Paused                                    types.Bool     `tfsdk:"paused"`
 	RetainBackupsEnabled                      types.Bool     `tfsdk:"retain_backups_enabled"`
 	BackupEnabled                             types.Bool     `tfsdk:"backup_enabled"`
 	GlobalClusterSelfManagedSharding          types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
-	AdvancedConfiguration                     types.Object   `tfsdk:"advanced_configuration"`
+	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
 }
 
 type TFBiConnectorModel struct {
@@ -595,13 +595,13 @@ var LabelsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFReplicationSpecsModel struct {
-	Id            types.String `tfsdk:"id"`
-	ContainerId   types.Map    `tfsdk:"container_id"`
-	ExternalId    types.String `tfsdk:"external_id"`
-	NumShards     types.Int64  `tfsdk:"num_shards"`
 	RegionConfigs types.List   `tfsdk:"region_configs"`
+	ContainerId   types.Map    `tfsdk:"container_id"`
+	Id            types.String `tfsdk:"id"`
+	ExternalId    types.String `tfsdk:"external_id"`
 	ZoneId        types.String `tfsdk:"zone_id"`
 	ZoneName      types.String `tfsdk:"zone_name"`
+	NumShards     types.Int64  `tfsdk:"num_shards"`
 }
 
 var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{

@@ -67,7 +67,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.ConnV2().AWSClustersDNSApi.GetAWSCustomDNS(context.Background(), rs.Primary.ID).Execute()
+		_, _, err := acc.ConnV2().AWSClustersDNSApi.GetAwsCustomDns(context.Background(), rs.Primary.ID).Execute()
 		if err == nil {
 			return nil
 		}
@@ -81,7 +81,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 
-		resp, _, err := acc.ConnV2().AWSClustersDNSApi.GetAWSCustomDNS(context.Background(), rs.Primary.ID).Execute()
+		resp, _, err := acc.ConnV2().AWSClustersDNSApi.GetAwsCustomDns(context.Background(), rs.Primary.ID).Execute()
 		if err != nil && resp != nil && resp.Enabled {
 			return fmt.Errorf("custom dns configuration cluster aws (%s) still enabled", rs.Primary.ID)
 		}

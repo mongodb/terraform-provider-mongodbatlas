@@ -16,7 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 const (
@@ -222,7 +222,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err))
 	}
 
@@ -274,6 +273,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 	}
 
+	if privateEndpoint.GetErrorMessage() != "" {
+		return diag.FromErr(fmt.Errorf("privatelink endpoint service is in a failed state: %s", privateEndpoint.GetErrorMessage()))
+	}
 	return nil
 }
 
