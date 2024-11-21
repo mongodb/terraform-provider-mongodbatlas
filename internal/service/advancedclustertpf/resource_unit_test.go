@@ -69,9 +69,7 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 			"clusterName": clusterName,
 		}
 	)
-	advancedclustertpf.RetryMinTimeout = 1 * time.Second
-	advancedclustertpf.RetryDelay = 1 * time.Second
-	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
+	shortenRetries()
 	testCase := resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -79,6 +77,7 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 				Config: configBasic(projectID, clusterName, ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
+					resource.TestCheckResourceAttr(resourceName, "timeouts.create", "20s"),
 				),
 			},
 			{
@@ -125,6 +124,12 @@ func TestAdvancedCluster_replicaset(t *testing.T) {
 	resource.ParallelTest(t, testCase)
 }
 
+func shortenRetries() {
+	advancedclustertpf.RetryMinTimeout = 1 * time.Second
+	advancedclustertpf.RetryDelay = 1 * time.Second
+	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
+}
+
 func TestAdvancedCluster_configSharded(t *testing.T) {
 	var (
 		projectID   = "111111111111111111111111"
@@ -134,9 +139,7 @@ func TestAdvancedCluster_configSharded(t *testing.T) {
 			"clusterName": clusterName,
 		}
 	)
-	advancedclustertpf.RetryMinTimeout = 1 * time.Second
-	advancedclustertpf.RetryDelay = 1 * time.Second
-	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
+	shortenRetries()
 	testCase := resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -252,6 +255,7 @@ func configSharded(projectID, clusterName string, withUpdate bool) string {
 
 	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)
 }
+
 func TestClusterAdvancedCluster_basicTenant(t *testing.T) {
 	var (
 		clusterName        = "test-acc-tf-c-8049930413007488732"
@@ -262,10 +266,7 @@ func TestClusterAdvancedCluster_basicTenant(t *testing.T) {
 			"clusterName2": clusterNameUpdated,
 		}
 	)
-	advancedclustertpf.RetryMinTimeout = 1 * time.Second
-	advancedclustertpf.RetryDelay = 1 * time.Second
-	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
-
+	shortenRetries()
 	testCase := basicTenantTestCase(t, projectID, clusterName, clusterNameUpdated)
 	unit.MockTestCase(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
 	resource.ParallelTest(t, *testCase)
