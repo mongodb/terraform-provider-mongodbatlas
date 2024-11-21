@@ -90,6 +90,7 @@ func MockTestCase(t *testing.T, vars map[string]string, config *MockHTTPDataConf
 	t.Helper()
 	roundTripper, checkFunc := MockRoundTripper(t, vars, config)
 	testCase.ProtoV6ProviderFactories = acc.TestAccProviderV6FactoriesWithMock(roundTripper)
+	testCase.PreCheck = nil
 	for i := range testCase.Steps {
 		step := &testCase.Steps[i]
 		oldCheck := step.Check
