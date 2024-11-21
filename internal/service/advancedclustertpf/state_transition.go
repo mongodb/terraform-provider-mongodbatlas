@@ -2,6 +2,7 @@ package advancedclustertpf
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"time"
 
@@ -15,9 +16,9 @@ var (
 	RetryPollInterval = 30 * time.Second
 )
 
-func CreateStateChangeConfig(ctx context.Context, connV2 *admin20240805.APIClient, projectID, name, targetState string, timeout time.Duration) retry.StateChangeConf {
+func CreateStateChangeConfig(ctx context.Context, connV2 *admin20240805.APIClient, projectID, name, targetState string, timeout time.Duration, extraPending ...string) retry.StateChangeConf {
 	return retry.StateChangeConf{
-		Pending:      []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING", "DELETING"},
+		Pending:      slices.Concat([]string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING", "DELETING"}, extraPending),
 		Target:       []string{targetState},
 		Refresh:      resourceRefreshFunc(ctx, name, projectID, connV2),
 		Timeout:      timeout,

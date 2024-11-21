@@ -120,6 +120,7 @@ func (r *rs) awaitChanges(ctx context.Context, t *timeouts.Value, diags *diag.Di
 	var timeoutDuration time.Duration
 	var localDiags diag.Diagnostics
 	var targetState = "IDLE"
+	var extraPending = []string{}
 	switch changeReason {
 	case "create":
 		timeoutDuration, localDiags = t.Create(ctx, defaultTimeout)
@@ -131,15 +132,19 @@ func (r *rs) awaitChanges(ctx context.Context, t *timeouts.Value, diags *diag.Di
 		timeoutDuration, localDiags = t.Delete(ctx, defaultTimeout)
 		diags.Append(localDiags...)
 		targetState = "DELETED"
+		extraPending = append(extraPending, "IDLE")
 	default:
 		return nil, "errorReadingTimeout", "unknown change reason" + changeReason
 	}
 	if diags.HasError() {
 		return nil, "errorReadingTimeout", ""
 	}
-	stateConf := CreateStateChangeConfig(ctx, r.Client.AtlasV220240805, projectID, clusterName, targetState, timeoutDuration)
+	stateConf := CreateStateChangeConfig(ctx, r.Client.AtlasV220240805, projectID, clusterName, targetState, timeoutDuration, extraPending...)
 	clusterAny, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
+		if admin.IsErrorCode(err, "CLUSTER_NOT_FOUND") && changeReason == "delete" {
+			return nil, "", ""
+		}
 		return nil, "errorAwaitingCluster", fmt.Sprintf(errorCreate, err)
 	}
 	if targetState == "DELETED" {
