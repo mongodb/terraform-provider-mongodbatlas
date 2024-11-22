@@ -3,7 +3,9 @@ package projectipaccesslist
 import (
 	"bytes"
 	"context"
+	"log"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -45,7 +47,8 @@ type TfProjectIPAccessListDSModel struct {
 }
 
 func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
+	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
+	ds1 := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -90,7 +93,47 @@ func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 			},
 		},
 	}
-	conversion.UpdateSchemaDescription(&resp.Schema)
+	conversion.UpdateSchemaDescription(&ds1)
+	requiredFields := []string{"project_id"}
+	overridenFields := map[string]schema.Attribute{
+		"cidr_block": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+			Validators: []validator.String{
+				validate.ValidCIDR(),
+				stringvalidator.ConflictsWith(path.Expressions{
+					path.MatchRelative().AtParent().AtName("aws_security_group"),
+					path.MatchRelative().AtParent().AtName("ip_address"),
+				}...),
+			},
+		},
+		"ip_address": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+			Validators: []validator.String{
+				validate.ValidIP(),
+				stringvalidator.ConflictsWith(path.Expressions{
+					path.MatchRelative().AtParent().AtName("aws_security_group"),
+					path.MatchRelative().AtParent().AtName("cidr_block"),
+				}...),
+			},
+		},
+		"aws_security_group": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.Expressions{
+					path.MatchRelative().AtParent().AtName("ip_address"),
+					path.MatchRelative().AtParent().AtName("cidr_block"),
+				}...),
+			},
+		},
+	}
+	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, overridenFields)
+	if diff := cmp.Diff(ds1, ds2); diff != "" {
+		log.Fatal(diff)
+	}
+	resp.Schema = ds2
 }
 
 func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
