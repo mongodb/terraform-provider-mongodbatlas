@@ -82,7 +82,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if diags.HasError() {
 		return
 	}
-	r.readCluster(ctx, &state, &resp.State, diags)
+	r.readCluster(ctx, &state, &resp.State, diags, true)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -144,7 +144,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if cluster != nil {
 		r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan.Timeouts, diags, &resp.State)
 	} else {
-		r.readCluster(ctx, &plan, &resp.State, diags)
+		r.readCluster(ctx, &plan, &resp.State, diags, false)
 	}
 }
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -215,13 +215,13 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan.Timeouts, diags, &resp.State)
 }
 
-func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State, diags *diag.Diagnostics) {
+func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State, diags *diag.Diagnostics, allowNotFound bool) {
 	clusterName := model.Name.ValueString()
 	projectID := model.ProjectID.ValueString()
 	api := r.Client.AtlasV220240805.ClustersApi
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
+		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && allowNotFound {
 			state.RemoveResource(ctx)
 			return
 		}
