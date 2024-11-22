@@ -39,6 +39,7 @@ const (
 	ignoreLabel                    = "Infrastructure Tool"
 	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 	defaultTimeout                 = 3 * time.Hour
+	ErrorCodeClusterNotFound       = "CLUSTER_NOT_FOUND"
 )
 
 var (
@@ -223,7 +224,7 @@ func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State
 	api := r.Client.AtlasV220240805.ClustersApi
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if admin.IsErrorCode(err, constant.ErrorCodeClusterNotFound) {
+		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
 			state.RemoveResource(ctx)
 			return
 		}
@@ -278,7 +279,7 @@ func (r *rs) awaitChanges(ctx context.Context, t *timeouts.Value, diags *diag.Di
 	stateConf := CreateStateChangeConfig(ctx, r.Client.AtlasV220240805, projectID, clusterName, targetState, timeoutDuration, extraPending...)
 	clusterAny, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		if admin.IsErrorCode(err, constant.ErrorCodeClusterNotFound) && changeReason == "delete" {
+		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && changeReason == "delete" {
 			return nil, "", ""
 		}
 		return nil, "errorAwaitingCluster", fmt.Sprintf(errorCreate, err)
