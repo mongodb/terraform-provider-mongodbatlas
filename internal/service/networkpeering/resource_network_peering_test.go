@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -69,6 +70,28 @@ func TestAccNetworkRSNetworkPeering_Azure(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"container_id"},
+			},
+		},
+	})
+}
+
+func TestAccNetworkRSNetworkPeering_AzureFailedStatus(t *testing.T) {
+	var (
+		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
+		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
+		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
+		vNetName          = os.Getenv("AZURE_VNET_NAME")
+		providerName      = "AZURE"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAzure(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering,
+		Steps: []resource.TestStep{
+			{
+				Config:      configAzureTwoPeeringSameCIDR(providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
+				ExpectError: regexp.MustCompile("peer networking is in a failed state:"),
 			},
 		},
 	})
@@ -310,6 +333,45 @@ func configAzure(projectID, providerName, directoryID, subscriptionID, resourceG
 			vnet_name	          = %[6]q
 		}
 	`, projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
+}
+
+func configAzureTwoPeeringSameCIDR(providerName, directoryID, subscriptionID, resourceGroupName, vNetName string) string {
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	firstProjName := acc.RandomProjectName()
+	secondProjName := acc.RandomProjectName()
+	cidrBlock := "172.16.0.0/21" // failure expected as 2 peering connections use same cidr block range in same azure account
+	firstAzureConfig := configAzureWithProject("first", orgID, firstProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
+	secondAzureConfig := configAzureWithProject("second", orgID, secondProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
+	return fmt.Sprintf(`
+		%[1]s
+		%[2]s
+	`, firstAzureConfig, secondAzureConfig)
+}
+
+func configAzureWithProject(rsName, orgID, projectName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "%[8]s" {
+			org_id 			 = %[1]q
+			name   			 = %[2]q
+		}
+
+		resource "mongodbatlas_network_container" "%[8]s" {
+			project_id   		  = mongodbatlas_project.%[8]s.id
+			atlas_cidr_block  = %[9]q
+			provider_name		  = %[3]q
+			region    			  = "US_EAST_2"
+		}
+
+		resource "mongodbatlas_network_peering" "%[8]s" {
+			project_id   		  = mongodbatlas_project.%[8]s.id
+			container_id          = mongodbatlas_network_container.%[8]s.container_id
+			provider_name         = %[3]q
+			azure_directory_id    = %[4]q
+			azure_subscription_id = %[5]q
+			resource_group_name   = %[6]q
+			vnet_name	          = %[7]q
+		}
+	`, orgID, projectName, providerName, directoryID, subscriptionID, resourceGroupName, vNetName, rsName, cidrBlock)
 }
 
 func configGCP(projectID, providerName, gcpProjectID, networkName string) string {

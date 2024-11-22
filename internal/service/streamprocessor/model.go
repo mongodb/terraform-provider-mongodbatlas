@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/fwtypes"
-	"go.mongodb.org/atlas-sdk/v20241023001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {

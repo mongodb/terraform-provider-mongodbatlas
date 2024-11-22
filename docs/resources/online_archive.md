@@ -8,6 +8,8 @@
 
 ~> **IMPORTANT:** There are fields that are immutable after creation, i.e if `date_field` value does not exist in the collection, the online archive state will be pending forever, and this field cannot be updated, that means a destroy is required, known error `ONLINE_ARCHIVE_CANNOT_MODIFY_FIELD`
 
+~> **IMPORTANT:** Support for Online Archive on `GCP` is available in Private Preview. To request access and participate in the Private Preview release of this feature, complete the [sign-up form](https://www.mongodb.com/products/platform/atlas-online-archive#promo).
+
 ## Example Usages
 ```terraform
 resource "mongodbatlas_online_archive" "test" {
@@ -139,7 +141,7 @@ The only field required for criteria type `CUSTOM`
 * `expire_after_days` - Number of days used in the date criteria for nominating documents for deletion. Value must be between 7 and 9215.
 
 ### Data Process Region
-* `cloud_provider` - Human-readable label that identifies the Cloud service provider where you wish to store your archived data. `AZURE` may be selected only if Azure is the Cloud service provider for the cluster and no AWS online archive has been created for the cluster.
+* `cloud_provider` - Human-readable label that identifies the Cloud service provider where you wish to store your archived data. `AZURE` may be selected only if Azure is the Cloud service provider for the cluster and no AWS online archive has been created for the cluster. 
 * `region` - Human-readable label that identifies the geographic location of the region where you wish to store your archived data. For allowed values, see [MongoDB Atlas API documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Online-Archive/operation/createOnlineArchive)
 
 ### Schedule

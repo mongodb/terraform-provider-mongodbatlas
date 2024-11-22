@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"go.mongodb.org/atlas-sdk/v20241023001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -55,7 +55,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	clusterName := tfModel.Name.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.FlexClustersApi.CreateFlexcluster(ctx, projectID, flexClusterReq).Execute()
+	_, _, err := connV2.FlexClustersApi.CreateFlexCluster(ctx, projectID, flexClusterReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return

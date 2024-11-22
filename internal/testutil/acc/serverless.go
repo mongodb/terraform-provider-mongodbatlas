@@ -3,7 +3,7 @@ package acc
 import (
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20241023001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 func ConfigServerlessInstance(projectID, name string, ignoreConnectionStrings bool, autoIndexing *bool, tags []admin.ResourceTag) string {

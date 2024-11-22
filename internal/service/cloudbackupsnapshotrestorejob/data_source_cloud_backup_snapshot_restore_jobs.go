@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241023001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -62,6 +62,10 @@ func PluralDataSource() *schema.Resource {
 						},
 						"expires_at": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"failed": {
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 						"finished_at": {
@@ -148,6 +152,7 @@ func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []
 				"delivery_url":              cloudProviderSnapshotRestoreJob.GetDeliveryUrl(),
 				"expired":                   cloudProviderSnapshotRestoreJob.GetExpired(),
 				"expires_at":                conversion.TimePtrToStringPtr(cloudProviderSnapshotRestoreJob.ExpiresAt),
+				"failed":                    cloudProviderSnapshotRestoreJob.GetFailed(),
 				"finished_at":               conversion.TimePtrToStringPtr(cloudProviderSnapshotRestoreJob.FinishedAt),
 				"snapshot_id":               cloudProviderSnapshotRestoreJob.GetSnapshotId(),
 				"target_project_id":         cloudProviderSnapshotRestoreJob.GetTargetGroupId(),

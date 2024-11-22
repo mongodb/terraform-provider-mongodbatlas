@@ -18,6 +18,13 @@ func PreCheckBasic(tb testing.TB) {
 	}
 }
 
+func SkipIfTPFAdvancedCluster(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS") == "true" {
+		tb.Skip("Skipping tests as resource is TPF Advanced Cluster and implementation is pending")
+	}
+}
+
 // PreCheckBasicSleep is a helper function to call SerialSleep, see its help for more info.
 // Some examples of use are when the test is calling ProjectIDExecution or GetClusterInfo to create clusters.
 func PreCheckBasicSleep(tb testing.TB, clusterInfo *ClusterInfo, projectID, clusterName string) func() {

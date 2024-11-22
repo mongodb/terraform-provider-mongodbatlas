@@ -237,9 +237,10 @@ jobs:
       with:
         filters: |
           advanced_cluster:
-            - 'internal/service/advancedcluster/*.go'
+            - 'internal/service/advancedcluster/!(*_test).go' # matches any adv_cluster file change except test files
           advanced_cluster_tpf:
             - 'internal/service/advancedclustertpf/*.go'
+            - 'internal/service/advancedcluster/*_test.go'
           assume_role:
             - 'internal/provider/*.go'
           backup:
@@ -367,7 +368,10 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
+          MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS: "true"
+          ACCTEST_PACKAGES: |
+            ./internal/service/advancedcluster
+            ./internal/service/advancedclustertpf
         run: make testacc
 
   assume_role:
@@ -662,10 +666,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
+      - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd

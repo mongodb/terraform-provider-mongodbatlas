@@ -3,10 +3,10 @@ package team
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20241023001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
-func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersApi, existingTeamUsers *admin.PaginatedApiAppUser, newUsernames []string, orgID, teamID string) error {
+func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersApi, existingTeamUsers *admin.PaginatedAppUser, newUsernames []string, orgID, teamID string) error {
 	validNewUsers, err := ValidateUsernames(usersAPI, newUsernames)
 	if err != nil {
 		return err

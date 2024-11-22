@@ -7,6 +7,6 @@ import (
 )
 
 func TestMigCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
-	mig.SkipIfVersionBelow(t, "1.16.1")
+	mig.SkipIfVersionBelow(t, "1.22.0") // this is when the new `failed` field was added
 	mig.CreateAndRunTest(t, basicTestCase(t))
 }

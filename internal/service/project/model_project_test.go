@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20241023001/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"

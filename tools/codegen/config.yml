@@ -11,7 +11,6 @@ resources:
         group_id: project_id
       ignores: ["links"]
       timeouts: ["create", "update", "delete"]
-      
       # overrides:
       #   project_id:
       #     plan_modifiers: [{
@@ -25,12 +24,10 @@ resources:
       #       ],
       #       definition: "stringvalidator.ConflictsWith(path.MatchRoot(\"name\"))"
       #     }]
-      
       #   prefix_path:
       #     computability:
       #       optional: true
       #       computed: true
-  
   search_deployment:
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
@@ -43,3 +40,28 @@ resources:
         group_id: project_id
       ignores: ["links"]
       timeouts: ["create", "update", "delete"]
+
+  advanced_cluster:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters
+      method: POST
+    schema:
+      aliases:
+        group_id: project_id
+      ignores: ["links"]
+      timeouts: ["create", "update", "delete"]
+
+  # advanced_configuration attribute in advanced_cluster
+  advanced_cluster_process_args:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
+      method: PATCH
+    schema:
+      aliases:
+        group_id: project_id

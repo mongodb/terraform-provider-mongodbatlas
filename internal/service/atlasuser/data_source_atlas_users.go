@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin" // Using older version of API as lastest version with preview enabled includes breaking changes in AtlasUser. To be changed to lastest version when flexCluster is in prod and preview is no longer used.
 )
 
 const (
@@ -161,7 +162,7 @@ func (d *atlasUsersDS) Schema(ctx context.Context, req datasource.SchemaRequest,
 }
 
 func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	connV220240805 := d.Client.AtlasV220240805
+	connV2 := d.Client.AtlasV2
 
 	var atlasUsersConfig tfAtlasUsersDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &atlasUsersConfig)...)
@@ -175,14 +176,14 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 	}
 
 	var (
-		users      []admin20240805.CloudAppUser
+		users      []admin.CloudAppUser
 		totalCount int
 	)
 
 	switch {
 	case !atlasUsersConfig.ProjectID.IsNull():
 		projectID := atlasUsersConfig.ProjectID.ValueString()
-		apiResp, _, err := connV220240805.ProjectsApi.ListProjectUsersWithParams(ctx, &admin20240805.ListProjectUsersApiParams{
+		apiResp, _, err := connV2.ProjectsApi.ListProjectUsersWithParams(ctx, &admin.ListProjectUsersApiParams{
 			GroupId:      projectID,
 			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
 			ItemsPerPage: conversion.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
@@ -195,7 +196,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		totalCount = *apiResp.TotalCount
 	case !atlasUsersConfig.TeamID.IsNull() && !atlasUsersConfig.OrgID.IsNull():
 		teamID := atlasUsersConfig.TeamID.ValueString()
-		apiResp, _, err := connV220240805.TeamsApi.ListTeamUsersWithParams(ctx, &admin20240805.ListTeamUsersApiParams{
+		apiResp, _, err := connV2.TeamsApi.ListTeamUsersWithParams(ctx, &admin.ListTeamUsersApiParams{
 			OrgId:        atlasUsersConfig.OrgID.ValueString(),
 			TeamId:       teamID,
 			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
@@ -209,7 +210,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		totalCount = *apiResp.TotalCount
 	default: // only org_id is defined
 		orgID := atlasUsersConfig.OrgID.ValueString()
-		apiResp, _, err := connV220240805.OrganizationsApi.ListOrganizationUsersWithParams(ctx, &admin20240805.ListOrganizationUsersApiParams{
+		apiResp, _, err := connV2.OrganizationsApi.ListOrganizationUsersWithParams(ctx, &admin.ListOrganizationUsersApiParams{
 			OrgId:        atlasUsersConfig.OrgID.ValueString(),
 			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
 			ItemsPerPage: conversion.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
@@ -226,7 +227,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 	resp.Diagnostics.Append(resp.State.Set(ctx, &usersResultState)...)
 }
 
-func newTFAtlasUsersDSModel(atlasUsersConfig *tfAtlasUsersDSModel, users []admin20240805.CloudAppUser, totalCount int) tfAtlasUsersDSModel {
+func newTFAtlasUsersDSModel(atlasUsersConfig *tfAtlasUsersDSModel, users []admin.CloudAppUser, totalCount int) tfAtlasUsersDSModel {
 	return tfAtlasUsersDSModel{
 		ID:           types.StringValue(id.UniqueId()),
 		OrgID:        atlasUsersConfig.OrgID,
@@ -239,7 +240,7 @@ func newTFAtlasUsersDSModel(atlasUsersConfig *tfAtlasUsersDSModel, users []admin
 	}
 }
 
-func newTFAtlasUsersList(users []admin20240805.CloudAppUser) []tfAtlasUserDSModel {
+func newTFAtlasUsersList(users []admin.CloudAppUser) []tfAtlasUserDSModel {
 	resUsers := make([]tfAtlasUserDSModel, len(users))
 	for i := range users {
 		resUsers[i] = newTFAtlasUserDSModel(&users[i])

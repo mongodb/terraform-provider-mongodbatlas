@@ -85,6 +85,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.automated", "true"),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "failed", "false"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "snapshot_id"),
 					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.#"),

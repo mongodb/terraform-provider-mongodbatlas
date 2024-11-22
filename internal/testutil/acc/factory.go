@@ -7,10 +7,10 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241023001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 const (
@@ -40,9 +40,8 @@ func ConnV2() *admin.APIClient {
 	return MongoDBClient.AtlasV2
 }
 
-// For temporary use in atlas_user as workaround for lastest preview containing breaking changes in atlas_user.
-func ConnV220240805() *admin20240805.APIClient {
-	return MongoDBClient.AtlasV220240805
+func ConnPreview() *adminpreview.APIClient {
+	return MongoDBClient.AtlasPreview
 }
 
 func ConnV2UsingProxy(proxyPort *int) *admin.APIClient {
