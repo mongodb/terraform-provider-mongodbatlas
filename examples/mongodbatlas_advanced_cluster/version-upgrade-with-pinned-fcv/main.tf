@@ -13,7 +13,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   pinned_fcv {
     expiration_date = var.fcv_expiration_date # e.g. format: "2024-11-22T10:50:00Z"  
   }
-  
+
   replication_specs {
     region_configs {
       electable_specs {
@@ -28,6 +28,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 }
 
 output "feature_compatibility_version" {
-  value = mongodbatlas_advanced_cluster.cluster.pinned_fcv.feature_compatibility_version
+  value = mongodbatlas_advanced_cluster.cluster.pinned_fcv[0].version
 }
 
