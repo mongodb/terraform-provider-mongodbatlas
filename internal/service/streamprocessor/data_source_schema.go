@@ -43,7 +43,7 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 		"state": schema.StringAttribute{
 			Computed: true,
 			MarkdownDescription: "The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`." +
-				" When a Stream Processor is created without specifying the state, it will default to `CREATED` state.\n\n**NOTE** When a stream processor is created, the only valid states are CREATED or STARTED. A stream processor can be automatically started when creating it if the state is set to STARTED.",
+				" When a Stream Processor is created without specifying the state, it will default to `CREATED` state.\n\n**NOTE** When creating a stream processor, setting the state to STARTED can automatically start the stream processor.",
 		},
 		"stats": schema.StringAttribute{
 			Computed:            true,
