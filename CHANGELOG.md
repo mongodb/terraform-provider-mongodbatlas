@@ -1,11 +1,19 @@
 ## (Unreleased)
 
+NOTES:
+
+* data-source/mongodbatlas_organization: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+* data-source/mongodbatlas_organizations: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+* resource/mongodbatlas_organization: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Adds `failed` attribute ([#2781](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2781))
 * data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Adds `failed` attribute ([#2781](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2781))
 * resource/mongodbatlas_cloud_backup_snapshot_restore_job: Adds `failed` attribute ([#2781](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2781))
 * resource/mongodbatlas_network_peering: Improve error message when networking peering reaches a failed status ([#2766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2766))
+* resource/mongodbatlas_privatelink_endpoint: Improves error message when privatelink endpoint returns error after POST ([#2803](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2803))
+* resource/mongodbatlas_privatelink_endpoint_service: Improves error message when privatelink endpoint service returns error after POST ([#2803](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2803))
 
 ## 1.21.4 (October 29, 2024)
 

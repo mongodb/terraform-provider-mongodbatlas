@@ -5,10 +5,11 @@ go 1.23.2
 require (
 	github.com/andygrunwald/go-jira/v2 v2.0.0-20240116150243-50d59fe116d6
 	github.com/aws/aws-sdk-go v1.55.5
+	github.com/evanphx/json-patch/v5 v5.9.0
 	github.com/hashicorp/go-changelog v0.0.0-20240318095659-4d68c58a6e7f
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-version v1.7.0
-	github.com/hashicorp/hcl/v2 v2.22.0
+	github.com/hashicorp/hcl/v2 v2.23.0
 	github.com/hashicorp/terraform-plugin-framework v1.13.0
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.15.0
@@ -20,16 +21,17 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.9.0
 	github.com/huandu/xstrings v1.5.0
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20241107132712-0a5b4ac7c9c8
-	github.com/pb33f/libopenapi v0.18.6
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20241118083841-bbaaca0f41c5
+	github.com/pb33f/libopenapi v0.18.7
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.6.0
 	github.com/stretchr/testify v1.9.0
+	github.com/wI2L/jsondiff v0.6.0
 	github.com/zclconf/go-cty v1.15.0
 	go.mongodb.org/atlas v0.37.0
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
 	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.0
-	go.mongodb.org/atlas-sdk/v20241023002 v20241023002.1.0
+	go.mongodb.org/atlas-sdk/v20241113001 v20241113001.0.0
 	go.mongodb.org/realm v0.1.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -110,6 +112,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
@@ -118,6 +121,10 @@ require (
 	github.com/skeema/knownhosts v1.2.2 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/tidwall/gjson v1.17.1 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/trivago/tgo v1.0.7 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
@@ -136,7 +143,7 @@ require (
 	golang.org/x/crypto v0.28.0 // indirect
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/oauth2 v0.22.0 // indirect
+	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.19.0 // indirect

@@ -1,6 +1,7 @@
 {
-    "backupEnabled": true,
     "clusterType": "REPLICASET",
+    "groupId": "111111111111111111111111",
+    "labels": [],
     "name": "test",
     "replicationSpecs": [
         {
@@ -18,5 +19,6 @@
             ],
             "zoneName": "ZoneName managed by Terraform"
         }
-    ]
+    ],
+    "tags": []
 }

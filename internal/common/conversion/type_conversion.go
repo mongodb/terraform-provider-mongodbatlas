@@ -75,3 +75,14 @@ func MongoDBRegionToAWSRegion(region string) string {
 func AWSRegionToMongoDBRegion(region string) string {
 	return strings.ReplaceAll(strings.ToUpper(region), "-", "_")
 }
+
+type TFPrimitiveType interface {
+	IsUnknown() bool
+}
+
+func NilForUnknown[T any](primitiveAttr TFPrimitiveType, value *T) *T {
+	if primitiveAttr.IsUnknown() {
+		return nil
+	}
+	return value
+}

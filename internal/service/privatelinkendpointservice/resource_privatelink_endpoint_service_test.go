@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -15,6 +16,30 @@ import (
 func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 	testCase := basicAWSTestCase(t)
 	resource.Test(t, *testCase)
+}
+
+func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Failed(t *testing.T) {
+	var (
+		resourceSuffix = "test"
+
+		providerName = "AWS"
+		projectID    = acc.ProjectIDExecution(t)
+		region       = os.Getenv("AWS_REGION")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configFailAWS(
+					projectID, providerName, region, resourceSuffix,
+				),
+				ExpectError: regexp.MustCompile("privatelink endpoint service is in a failed state: Interface endpoint vpce-11111111111111111 was not found."),
+			},
+		},
+	})
 }
 
 func basicAWSTestCase(tb testing.TB) *resource.TestCase {
@@ -146,4 +171,21 @@ func configCompleteAWS(awsAccessKey, awsSecretKey, projectID, providerName, regi
 			provider_name = "%[4]s"
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix)
+}
+
+func configFailAWS(projectID, providerName, region, resourceSuffix string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_privatelink_endpoint" "test" {
+			project_id    = %[1]q
+			provider_name = %[2]q
+			region        = %[3]q
+		}
+
+		resource "mongodbatlas_privatelink_endpoint_service" %[4]q {
+			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
+			endpoint_service_id   = "vpce-11111111111111111"
+			private_link_id       = mongodbatlas_privatelink_endpoint.test.id
+			provider_name         = %[2]q
+		}
+	`, projectID, providerName, region, resourceSuffix)
 }

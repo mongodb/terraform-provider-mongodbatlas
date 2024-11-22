@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 var (

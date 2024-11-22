@@ -28,7 +28,7 @@ func DataSource() *schema.Resource {
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-	dnsResp, _, err := connV2.AWSClustersDNSApi.GetAWSCustomDNS(ctx, projectID).Execute()
+	dnsResp, _, err := connV2.AWSClustersDNSApi.GetAwsCustomDns(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorRead, err))
 	}

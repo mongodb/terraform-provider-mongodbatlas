@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -644,7 +645,7 @@ func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, 
 		return nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
 	}
 
-	ipAddresses, _, err := projectsAPI.ReturnAllIPAddresses(ctx, projectID).Execute()
+	ipAddresses, _, err := projectsAPI.ReturnAllIpAddresses(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", projectID, err.Error())
 	}

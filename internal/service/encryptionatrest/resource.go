@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"

@@ -59,7 +59,7 @@ output "mongodbatlas_search_deployment_id" {
 ### Required
 
 - `cluster_name` (String) Label that identifies the cluster to return the search nodes for.
-- `project_id` (String) Unique 24-hexadecimal character string that identifies the project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 - `specs` (Attributes List) List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element. (see [below for nested schema](#nestedatt--specs))
 
 ### Optional
