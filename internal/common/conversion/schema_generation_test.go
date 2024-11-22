@@ -6,23 +6,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestDataSourceSchemasTemporary(t *testing.T) {
-	ds := streamconnection.DataSource()
-	schemaRequest := datasource.SchemaRequest{}
-	schemaResponse := &datasource.SchemaResponse{}
-	ds.Schema(context.Background(), schemaRequest, schemaResponse)
-}
 
 func TestDataSourceSchemaFromResource(t *testing.T) {
 	s := schema.Schema{
