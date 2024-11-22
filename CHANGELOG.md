@@ -4,6 +4,8 @@ NOTES:
 
 * data-source/mongodbatlas_organization: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
 * data-source/mongodbatlas_organizations: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+* data-source/mongodbatlas_project: Changes `role_names` from a list to a set as in the resource ([#2815](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2815))
+* data-source/mongodbatlas_projects: Changes `role_names` from a list to a set as in the resource ([#2815](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2815))
 * resource/mongodbatlas_organization: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
 
 ENHANCEMENTS:
