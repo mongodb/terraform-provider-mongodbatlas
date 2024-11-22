@@ -111,7 +111,7 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 									"team_id": schema.StringAttribute{
 										Computed: true,
 									},
-									"role_names": schema.ListAttribute{
+									"role_names": schema.SetAttribute{
 										Computed:    true,
 										ElementType: types.StringType,
 									},
@@ -178,6 +178,7 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 			},
 		},
 	}
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
