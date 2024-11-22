@@ -121,11 +121,9 @@ func (r *projectIPAccessListRS) Schema(ctx context.Context, req resource.SchemaR
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-		},
-		Blocks: map[string]schema.Block{
-			"timeouts": timeouts.Block(ctx, timeouts.Opts{
-				Delete: true,
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Read:   true,
+				Delete: true,
 			}),
 		},
 	}
