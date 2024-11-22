@@ -810,15 +810,28 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 func warningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
 	pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any)
 	presentInState := ok && len(pinnedFCVBlock) > 0
-	presentInAPIResp := cluster.GetFeatureCompatibilityVersion() != ""
-	if presentInState && !presentInAPIResp {
-		// used to raise awareness of not unitentionally re-pinning FCV
+	expirationDatePresent := cluster.FeatureCompatibilityVersionExpirationDate != nil
+	if presentInState && !expirationDatePresent { // pin is not active but present in state (and potentially in config file)
 		return diag.Diagnostics{
 			diag.Diagnostic{
 				Severity: diag.Warning,
-				Summary:  "FCV pin is no longer active, please remove `pinned_fcv` from the configuration and apply changes to avoid re-pinning the FCV",
+				Summary:  "FCV pin is no longer active",
+				Detail:   "Please remove `pinned_fcv` from the configuration and apply changes to avoid re-pinning the FCV. Warning can be ignored if `pinned_fcv` block has been removed from the configuration.",
 			},
 		}
+	}
+	if presentInState && expirationDatePresent {
+		expirationDate := *cluster.FeatureCompatibilityVersionExpirationDate
+		if time.Now().After(expirationDate) { // pin is active, present in state, but its expiration date has passed
+			return diag.Diagnostics{
+				diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "FCV pin expiration date has expired",
+					Detail:   "During the next maintenance window FCV will be unpinned. FCV expiration date can be extended, or `pinned_fcv` block can be removed to trigger the unpin immediately.",
+				},
+			}
+		}
+		return nil
 	}
 	return nil
 }
