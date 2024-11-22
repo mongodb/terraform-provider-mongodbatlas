@@ -2,7 +2,6 @@ package acc
 
 import (
 	"context"
-	"net/http"
 	"os"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -25,15 +24,7 @@ var TestAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, erro
 func TestAccProviderV6FactoriesWithProxy(proxyPort *int) map[string]func() (tfprotov6.ProviderServer, error) {
 	return map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return provider.MuxProviderFactoryForTesting(proxyPort, nil)(), nil
-		},
-	}
-}
-
-func TestAccProviderV6FactoriesWithMock(mockRoundTripper http.RoundTripper) map[string]func() (tfprotov6.ProviderServer, error) {
-	return map[string]func() (tfprotov6.ProviderServer, error){
-		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return provider.MuxProviderFactoryForTesting(nil, mockRoundTripper)(), nil
+			return provider.MuxProviderFactoryForTesting(proxyPort)(), nil
 		},
 	}
 }

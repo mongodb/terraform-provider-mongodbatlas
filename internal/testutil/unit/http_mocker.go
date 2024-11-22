@@ -89,7 +89,7 @@ func parseTestDataConfigYAML(filePath string) (*mockHTTPData, error) {
 func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
 	roundTripper, checkFunc := MockRoundTripper(t, vars, config)
-	testCase.ProtoV6ProviderFactories = acc.TestAccProviderV6FactoriesWithMock(roundTripper)
+	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, roundTripper)
 	testCase.PreCheck = nil
 	for i := range testCase.Steps {
 		step := &testCase.Steps[i]

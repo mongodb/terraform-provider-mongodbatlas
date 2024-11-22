@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -59,8 +58,7 @@ const (
 )
 
 type MongodbtlasProvider struct {
-	proxyPort        *int
-	mockRoundTripper *http.RoundTripper
+	proxyPort *int
 }
 
 type tfMongodbAtlasProviderModel struct {
@@ -247,7 +245,6 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		RealmBaseURL:     data.RealmBaseURL.ValueString(),
 		TerraformVersion: req.TerraformVersion,
 		ProxyPort:        p.proxyPort,
-		HTTPRoundTripper: p.mockRoundTripper,
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -483,24 +480,23 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	return resources
 }
 
-func NewFrameworkProvider(proxyPort *int, mockRoundTripper http.RoundTripper) provider.Provider {
+func NewFrameworkProvider(proxyPort *int) provider.Provider {
 	return &MongodbtlasProvider{
-		proxyPort:        proxyPort,
-		mockRoundTripper: &mockRoundTripper,
+		proxyPort: proxyPort,
 	}
 }
 
 func MuxProviderFactory() func() tfprotov6.ProviderServer {
-	return muxProviderFactory(nil, nil)
+	return muxProviderFactory(nil)
 }
 
-func MuxProviderFactoryForTesting(proxyPort *int, mockRoundTripper http.RoundTripper) func() tfprotov6.ProviderServer {
-	return muxProviderFactory(proxyPort, mockRoundTripper)
+func MuxProviderFactoryForTesting(proxyPort *int) func() tfprotov6.ProviderServer {
+	return muxProviderFactory(proxyPort)
 }
 
-func muxProviderFactory(proxyPort *int, mockRoundTripper http.RoundTripper) func() tfprotov6.ProviderServer {
+func muxProviderFactory(proxyPort *int) func() tfprotov6.ProviderServer {
 	v2Provider := NewSdkV2Provider(proxyPort)
-	newProvider := NewFrameworkProvider(proxyPort, mockRoundTripper)
+	newProvider := NewFrameworkProvider(proxyPort)
 	ctx := context.Background()
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, v2Provider.GRPCProvider)
 	if err != nil {
