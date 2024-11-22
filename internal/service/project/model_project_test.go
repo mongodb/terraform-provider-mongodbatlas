@@ -30,7 +30,6 @@ const (
 
 var (
 	roles              = []string{"GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER"}
-	roleList, _        = types.ListValueFrom(context.Background(), types.StringType, roles)
 	roleSet, _         = types.SetValueFrom(context.Background(), types.StringType, roles)
 	ipAddresses        = []string{"13.13.13.13"}
 	ipAddressesList, _ = types.ListValueFrom(context.Background(), types.StringType, ipAddresses)
@@ -41,10 +40,10 @@ var (
 			RoleNames: &roles,
 		},
 	}
-	teamsDSTF = []*project.TFTeamDSModel{
+	teamsDSTF = []*project.TFTeamModel{
 		{
 			TeamID:    types.StringValue("teamId"),
-			RoleNames: roleList,
+			RoleNames: roleSet,
 		},
 	}
 	teamsTFSet, _ = types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TFTeamModel{
@@ -152,7 +151,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 	testCases := []struct {
 		name              string
 		paginatedTeamRole *admin.PaginatedTeamRole
-		expectedTFModel   []*project.TFTeamDSModel
+		expectedTFModel   []*project.TFTeamModel
 	}{
 		{
 			name: "TeamRole",

@@ -35,29 +35,24 @@ type projectDS struct {
 }
 
 type TFProjectDSModel struct {
-	IPAddresses                                 types.Object     `tfsdk:"ip_addresses"`
-	Created                                     types.String     `tfsdk:"created"`
-	OrgID                                       types.String     `tfsdk:"org_id"`
-	RegionUsageRestrictions                     types.String     `tfsdk:"region_usage_restrictions"`
-	ID                                          types.String     `tfsdk:"id"`
-	Name                                        types.String     `tfsdk:"name"`
-	ProjectID                                   types.String     `tfsdk:"project_id"`
-	Tags                                        types.Map        `tfsdk:"tags"`
-	Teams                                       []*TFTeamDSModel `tfsdk:"teams"`
-	Limits                                      []*TFLimitModel  `tfsdk:"limits"`
-	ClusterCount                                types.Int64      `tfsdk:"cluster_count"`
-	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool       `tfsdk:"is_collect_database_specifics_statistics_enabled"`
-	IsRealtimePerformancePanelEnabled           types.Bool       `tfsdk:"is_realtime_performance_panel_enabled"`
-	IsSchemaAdvisorEnabled                      types.Bool       `tfsdk:"is_schema_advisor_enabled"`
-	IsPerformanceAdvisorEnabled                 types.Bool       `tfsdk:"is_performance_advisor_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool       `tfsdk:"is_extended_storage_sizes_enabled"`
-	IsDataExplorerEnabled                       types.Bool       `tfsdk:"is_data_explorer_enabled"`
-	IsSlowOperationThresholdingEnabled          types.Bool       `tfsdk:"is_slow_operation_thresholding_enabled"`
-}
-
-type TFTeamDSModel struct {
-	TeamID    types.String `tfsdk:"team_id"`
-	RoleNames types.List   `tfsdk:"role_names"`
+	IPAddresses                                 types.Object    `tfsdk:"ip_addresses"`
+	Created                                     types.String    `tfsdk:"created"`
+	OrgID                                       types.String    `tfsdk:"org_id"`
+	RegionUsageRestrictions                     types.String    `tfsdk:"region_usage_restrictions"`
+	ID                                          types.String    `tfsdk:"id"`
+	Name                                        types.String    `tfsdk:"name"`
+	ProjectID                                   types.String    `tfsdk:"project_id"`
+	Tags                                        types.Map       `tfsdk:"tags"`
+	Teams                                       []*TFTeamModel  `tfsdk:"teams"`
+	Limits                                      []*TFLimitModel `tfsdk:"limits"`
+	ClusterCount                                types.Int64     `tfsdk:"cluster_count"`
+	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool      `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	IsRealtimePerformancePanelEnabled           types.Bool      `tfsdk:"is_realtime_performance_panel_enabled"`
+	IsSchemaAdvisorEnabled                      types.Bool      `tfsdk:"is_schema_advisor_enabled"`
+	IsPerformanceAdvisorEnabled                 types.Bool      `tfsdk:"is_performance_advisor_enabled"`
+	IsExtendedStorageSizesEnabled               types.Bool      `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsDataExplorerEnabled                       types.Bool      `tfsdk:"is_data_explorer_enabled"`
+	IsSlowOperationThresholdingEnabled          types.Bool      `tfsdk:"is_slow_operation_thresholding_enabled"`
 }
 
 func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
