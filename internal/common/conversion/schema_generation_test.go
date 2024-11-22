@@ -5,12 +5,24 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestDataSourceSchemasTemporary(t *testing.T) {
+	ds := project.DataSource()
+	schemaRequest := datasource.SchemaRequest{}
+	schemaResponse := &datasource.SchemaResponse{}
+	ds.Schema(context.Background(), schemaRequest, schemaResponse)
+}
 
 func TestDataSourceSchemaFromResource(t *testing.T) {
 	s := schema.Schema{
@@ -39,10 +51,24 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				Computed:            true,
 				MarkdownDescription: "desc attrBool",
 			},
+			"attrDelete": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrDelete",
+			},
 			"mapAttr": schema.MapAttribute{
 				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "desc mapAttr",
+			},
+			"listAttr": schema.ListAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "desc listAttr",
+			},
+			"setAttr": schema.SetAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "desc setAttr",
 			},
 			"nestSingle": schema.SingleNestedAttribute{
 				Computed:            true,
@@ -88,6 +114,18 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				Delete: true,
 			}),
 		},
+		Blocks: map[string]schema.Block{
+			"nestBlock": schema.SetNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"nestBlockAttr": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc nestBlockAttr",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	expected := dsschema.Schema{
@@ -127,6 +165,18 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				ElementType:         types.StringType,
 				MarkdownDescription: "desc mapAttr",
 				Description:         "desc mapAttr",
+			},
+			"listAttr": dsschema.ListAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "desc listAttr",
+				Description:         "desc listAttr",
+			},
+			"setAttr": dsschema.SetAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "desc setAttr",
+				Description:         "desc setAttr",
 			},
 			"nestSingle": dsschema.SingleNestedAttribute{
 				Computed:            true,
@@ -173,9 +223,42 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 					},
 				},
 			},
+			"overridenString": dsschema.StringAttribute{
+				Computed:            true,
+				Description:         "desc overridenString",
+				MarkdownDescription: "desc overridenString",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+				},
+			},
+		},
+		Blocks: map[string]dsschema.Block{
+			"nestBlock": dsschema.SetNestedBlock{
+				NestedObject: dsschema.NestedBlockObject{
+					Attributes: map[string]dsschema.Attribute{
+						"nestBlockAttr": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc nestBlockAttr",
+							Description:         "desc nestBlockAttr",
+						},
+					},
+				},
+			},
 		},
 	}
-	ds := conversion.DataSourceSchemaFromResource(s, "requiredAttrString", "requiredAttrInt64")
+
+	requiredFields := []string{"requiredAttrString", "requiredAttrInt64"}
+	overridenFields := map[string]dsschema.Attribute{
+		"overridenString": dsschema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "desc overridenString",
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+			},
+		},
+		"attrDelete": nil,
+	}
+	ds := conversion.DataSourceSchemaFromResource(s, requiredFields, overridenFields)
 	assert.Equal(t, expected, ds)
 }
 

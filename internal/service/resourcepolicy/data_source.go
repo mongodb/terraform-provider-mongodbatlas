@@ -33,7 +33,8 @@ func (d *resourcePolicyDS) Schema(ctx context.Context, req datasource.SchemaRequ
 	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
 	ds1 := DataSourceSchemaDelete(ctx)
 	conversion.UpdateSchemaDescription(&ds1)
-	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), "org_id", "id")
+	requiredFields := []string{"org_id", "id"}
+	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil)
 	if diff := cmp.Diff(ds1, ds2); diff != "" {
 		log.Fatal(diff)
 	}

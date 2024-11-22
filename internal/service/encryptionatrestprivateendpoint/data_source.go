@@ -31,7 +31,8 @@ func (d *encryptionAtRestPrivateEndpointDS) Schema(ctx context.Context, req data
 	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
 	ds1 := DataSourceSchemaDelete(ctx)
 	conversion.UpdateSchemaDescription(&ds1)
-	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), "id", "project_id", "cloud_provider")
+	requiredFields := []string{"id", "project_id", "cloud_provider"}
+	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil)
 	if diff := cmp.Diff(ds1, ds2); diff != "" {
 		log.Fatal(diff)
 	}

@@ -29,7 +29,8 @@ func (d *StreamProccesorDS) Schema(ctx context.Context, req datasource.SchemaReq
 	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
 	ds1 := DataSourceSchemaDelete(ctx)
 	conversion.UpdateSchemaDescription(&ds1)
-	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), "project_id", "instance_name", "processor_name")
+	requireFields := []string{"project_id", "instance_name", "processor_name"}
+	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requireFields, nil)
 	if diff := cmp.Diff(ds1, ds2); diff != "" {
 		log.Fatal(diff)
 	}
