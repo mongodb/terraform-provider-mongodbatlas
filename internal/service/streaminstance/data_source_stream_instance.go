@@ -2,9 +2,7 @@ package streaminstance
 
 import (
 	"context"
-	"log"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -28,17 +26,8 @@ type streamInstanceDS struct {
 }
 
 func (d *streamInstanceDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
-	ds1 := schema.Schema{
-		Attributes: DSAttributes(true),
-	}
-	conversion.UpdateSchemaDescription(&ds1)
 	requiredFields := []string{"project_id", "instance_name"}
-	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil)
-	if diff := cmp.Diff(ds1, ds2); diff != "" {
-		log.Fatal(diff)
-	}
-	resp.Schema = ds2
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil)
 }
 
 // DSAttributes returns the attribute definitions for a single stream instance.

@@ -3,9 +3,7 @@ package encryptionatrestprivateendpoint
 
 import (
 	"context"
-	"log"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -28,15 +26,8 @@ type encryptionAtRestPrivateEndpointDS struct {
 }
 
 func (d *encryptionAtRestPrivateEndpointDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
-	ds1 := DataSourceSchemaDelete(ctx)
-	conversion.UpdateSchemaDescription(&ds1)
 	requiredFields := []string{"id", "project_id", "cloud_provider"}
-	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil)
-	if diff := cmp.Diff(ds1, ds2); diff != "" {
-		log.Fatal(diff)
-	}
-	resp.Schema = ds2
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil)
 }
 
 func (d *encryptionAtRestPrivateEndpointDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

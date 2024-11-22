@@ -3,18 +3,15 @@ package project
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -56,130 +53,6 @@ type TFProjectDSModel struct {
 }
 
 func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	// TODO: DELETE BEFORE MERGING
-	ds1 := schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"project_id": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.MatchRoot("name")),
-				},
-			},
-			"name": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.MatchRoot("project_id")),
-				},
-			},
-			"org_id": schema.StringAttribute{
-				Computed: true,
-			},
-			"cluster_count": schema.Int64Attribute{
-				Computed: true,
-			},
-			"created": schema.StringAttribute{
-				Computed: true,
-			},
-			"is_collect_database_specifics_statistics_enabled": schema.BoolAttribute{
-				Computed: true,
-			},
-			"is_data_explorer_enabled": schema.BoolAttribute{
-				Computed: true,
-			},
-			"is_extended_storage_sizes_enabled": schema.BoolAttribute{
-				Computed: true,
-			},
-			"is_performance_advisor_enabled": schema.BoolAttribute{
-				Computed: true,
-			},
-			"is_realtime_performance_panel_enabled": schema.BoolAttribute{
-				Computed: true,
-			},
-			"is_schema_advisor_enabled": schema.BoolAttribute{
-				Computed: true,
-			},
-			"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
-				Computed:           true,
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersion, "1.24.0"),
-			},
-			"region_usage_restrictions": schema.StringAttribute{
-				Computed: true,
-			},
-			"ip_addresses": schema.SingleNestedAttribute{
-				Computed:           true,
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.21.0", "mongodbatlas_project_ip_addresses data source"),
-				Attributes: map[string]schema.Attribute{
-					"services": schema.SingleNestedAttribute{
-						Computed: true,
-						Attributes: map[string]schema.Attribute{
-							"clusters": schema.ListNestedAttribute{
-								Computed: true,
-								NestedObject: schema.NestedAttributeObject{
-									Attributes: map[string]schema.Attribute{
-										"cluster_name": schema.StringAttribute{
-											Computed: true,
-										},
-										"inbound": schema.ListAttribute{
-											ElementType: types.StringType,
-											Computed:    true,
-										},
-										"outbound": schema.ListAttribute{
-											ElementType: types.StringType,
-											Computed:    true,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			"tags": schema.MapAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-			},
-		},
-		Blocks: map[string]schema.Block{
-			"teams": schema.SetNestedBlock{
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"team_id": schema.StringAttribute{
-							Computed: true,
-						},
-						"role_names": schema.SetAttribute{
-							Computed:    true,
-							ElementType: types.StringType,
-						},
-					},
-				},
-			},
-			"limits": schema.SetNestedBlock{
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Computed: true,
-						},
-						"value": schema.Int64Attribute{
-							Computed: true,
-						},
-						"current_usage": schema.Int64Attribute{
-							Computed: true,
-						},
-						"default_limit": schema.Int64Attribute{
-							Computed: true,
-						},
-						"maximum_limit": schema.Int64Attribute{
-							Computed: true,
-						},
-					},
-				},
-			},
-		},
-	}
-	conversion.UpdateSchemaDescription(&ds1)
 	overridenFields := map[string]schema.Attribute{
 		"project_id": schema.StringAttribute{
 			Optional: true,
@@ -196,11 +69,7 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 		"project_owner_id":             nil,
 		"with_default_alerts_settings": nil,
 	}
-	ds2 := conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), nil, overridenFields)
-	if diff := cmp.Diff(ds1, ds2); diff != "" {
-		log.Fatal(diff)
-	}
-	resp.Schema = ds2
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), nil, overridenFields)
 }
 
 func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

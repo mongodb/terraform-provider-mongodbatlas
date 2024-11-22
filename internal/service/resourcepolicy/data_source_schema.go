@@ -1,16 +1,8 @@
 package resourcepolicy
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
-
-func DataSourceSchemaDelete(ctx context.Context) schema.Schema {
-	return schema.Schema{
-		Attributes: dataSourceSchema(false),
-	}
-}
 
 func dataSourceSchema(isPlural bool) map[string]schema.Attribute {
 	return map[string]schema.Attribute{
