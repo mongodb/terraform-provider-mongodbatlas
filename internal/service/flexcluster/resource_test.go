@@ -113,6 +113,9 @@ func configBasic(projectID, clusterName, provider, region string, terminationPro
 				region_name           = %[4]q
 			}
 			termination_protection_enabled = %[5]t
+			tags = {
+				testKey = "testValue"
+			}
 		}
 		data "mongodbatlas_flex_cluster" "test" {
 			project_id = mongodbatlas_flex_cluster.test.project_id
@@ -129,6 +132,7 @@ func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabl
 		"project_id":                     projectID,
 		"name":                           clusterName,
 		"termination_protection_enabled": fmt.Sprintf("%v", terminationProtectionEnabled),
+		"tags.testKey":                   "testValue",
 	}
 	pluralMap := map[string]string{
 		"project_id": projectID,

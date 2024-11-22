@@ -128,7 +128,7 @@ func TestNewTFModel(t *testing.T) {
 			expectedTFModel: &flexcluster.TFModel{
 				ProjectId:                    types.StringNull(),
 				Id:                           types.StringNull(),
-				Tags:                         types.MapNull(types.StringType),
+				Tags:                         types.MapValueMust(types.StringType, map[string]attr.Value{}),
 				ProviderSettings:             nilProviderSettingsObject,
 				ConnectionStrings:            types.ObjectNull(flexcluster.ConnectionStringsType.AttrTypes),
 				CreateDate:                   types.StringNull(),
