@@ -88,6 +88,9 @@ func convertElement(name string, element any, requiredFields []string) any {
 	vDest := reflect.New(tDest).Elem()
 	vDest.FieldByName("MarkdownDescription").Set(vSrc.FieldByName("MarkdownDescription"))
 	vDest.FieldByName("DeprecationMessage").Set(vSrc.FieldByName("DeprecationMessage"))
+	if fSensitive := vDest.FieldByName("Sensitive"); fSensitive.CanSet() {
+		fSensitive.Set(vSrc.FieldByName("Sensitive"))
+	}
 	if fComputed := vDest.FieldByName("Computed"); fComputed.CanSet() {
 		fComputed.SetBool(computed)
 	}

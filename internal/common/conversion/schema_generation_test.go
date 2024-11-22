@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDataSourceSchemasTemporary(t *testing.T) {
-	ds := projectipaccesslist.DataSource()
+	ds := streamconnection.DataSource()
 	schemaRequest := datasource.SchemaRequest{}
 	schemaResponse := &datasource.SchemaResponse{}
 	ds.Schema(context.Background(), schemaRequest, schemaResponse)
@@ -54,6 +54,11 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 			"attrDelete": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "desc attrDelete",
+			},
+			"attrSensitive": schema.StringAttribute{
+				Computed:            true,
+				Sensitive:           true,
+				MarkdownDescription: "desc attrSensitive",
 			},
 			"mapAttr": schema.MapAttribute{
 				Computed:            true,
@@ -159,6 +164,12 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				Computed:            true,
 				MarkdownDescription: "desc attrBool",
 				Description:         "desc attrBool",
+			},
+			"attrSensitive": dsschema.StringAttribute{
+				Computed:            true,
+				Sensitive:           true,
+				MarkdownDescription: "desc attrSensitive",
+				Description:         "desc attrSensitive",
 			},
 			"mapAttr": dsschema.MapAttribute{
 				Computed:            true,
