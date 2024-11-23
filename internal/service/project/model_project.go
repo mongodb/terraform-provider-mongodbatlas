@@ -40,15 +40,15 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 	}, nil
 }
 
-func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*TFTeamModel {
+func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*TFTeamDSModel {
 	if atlasTeams.GetTotalCount() == 0 {
 		return nil
 	}
 	results := atlasTeams.GetResults()
-	teams := make([]*TFTeamModel, len(results))
+	teams := make([]*TFTeamDSModel, len(results))
 	for i, atlasTeam := range results {
-		roleNames, _ := types.SetValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
-		teams[i] = &TFTeamModel{
+		roleNames, _ := types.ListValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
+		teams[i] = &TFTeamDSModel{
 			TeamID:    types.StringValue(atlasTeam.GetTeamId()),
 			RoleNames: roleNames,
 		}
