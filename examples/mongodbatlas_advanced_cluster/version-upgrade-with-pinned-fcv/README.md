@@ -2,7 +2,7 @@
 
 Example shows how to pin the FCV of a cluster making use of `pinned_fcv` block. This enables direct control to pin cluster’s FCV before performing an upgrade on the `mongo_db_major_version`. Users can then downgrade to the previous MongoDB version with minimal risk if desired, as the FCV is maintained.
 
-The unpin operation can be performed by removing the `pinned_fcv` block. **Note**: Once FCV is unpinned it will not be possible to downgrade the `mongo_db_major_version`. If FCV has unpinned due to expiration date the `pinned_fcv` attribute must be removed.
+The unpin operation can be performed by removing the `pinned_fcv` block. **Note**: Once FCV is unpinned it will not be possible to downgrade the `mongo_db_major_version`. If FCV is unpinned past the expiration date the `pinned_fcv` attribute must be removed.
 
 The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) can be referenced for more details.
 
@@ -49,7 +49,7 @@ $ terraform apply
 
 **4\. Destroy the resources.**
 
-Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
+Once you finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
 
 ``` bash
 $ terraform destroy

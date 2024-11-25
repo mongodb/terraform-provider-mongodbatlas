@@ -339,7 +339,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"advanced_configuration": AdvancedConfigurationSchema(ctx),
 			"pinned_fcv": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed. Once FCV has expired `pinned_fcv` attribute must be removed.",
+				MarkdownDescription: "Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed, this operation can take several minutes as the request processes through the MongoDB data plane. Once FCV is unpinned it will not be possible to downgrade the `mongo_db_major_version`. It is advised that updates to `pinned_fcv` are done isolated from other cluster changes, and if a plan contains multiple changes, the FCV change will be applied first. If FCV is unpinned past the expiration date the `pinned_fcv` attribute must be removed. The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) can be referenced for more details.",
 				Attributes: map[string]schema.Attribute{
 					"version": schema.StringAttribute{
 						Computed:            true,
@@ -347,7 +347,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"expiration_date": schema.StringAttribute{
 						Required:            true,
-						MarkdownDescription: "Expiration date of the fixed FCV. Note that this field cannot exceed 4 weeks from the pinned date.",
+						MarkdownDescription: "Expiration date of the fixed FCV. This value is in the ISO 8601 timestamp format (e.g. 2024-12-04T16:25:00Z). Note that this field cannot exceed 4 weeks from the pinned date.",
 					},
 				},
 			},
