@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
@@ -136,7 +135,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		diags.AddError("errorDelete", fmt.Sprintf(errorDelete, clusterName, err.Error()))
 		return
 	}
-	_ = r.awaitChanges(ctx, &state.Timeouts, diags, projectID, clusterName, changeReasonDelete)
+	_ = AwaitChanges(ctx, r.Client.AtlasV220240805.ClustersApi, &state.Timeouts, diags, projectID, clusterName, changeReasonDelete)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -157,7 +156,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		diags.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
 		return nil
 	}
-	cluster := r.awaitChanges(ctx, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
+	cluster := AwaitChanges(ctx, r.Client.AtlasV220240805.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
 	if diags.HasError() {
 		return nil
 	}
@@ -266,50 +265,7 @@ func (r *rs) updateAndWait(ctx context.Context, patchReq *admin20240805.ClusterD
 		diags.AddError("errorUpdate", fmt.Sprintf(errorUpdate, clusterName, err.Error()))
 		return nil
 	}
-	return r.awaitChanges(ctx, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
-}
-
-func (r *rs) awaitChanges(ctx context.Context, t *timeouts.Value, diags *diag.Diagnostics, projectID, clusterName, changeReason string) (cluster *admin20240805.ClusterDescription20240805) {
-	var timeoutDuration time.Duration
-	var localDiags diag.Diagnostics
-	var targetState = retrystrategy.RetryStrategyIdleState
-	var extraPending = []string{}
-	switch changeReason {
-	case changeReasonCreate:
-		timeoutDuration, localDiags = t.Create(ctx, defaultTimeout)
-		diags.Append(localDiags...)
-	case changeReasonUpdate:
-		timeoutDuration, localDiags = t.Update(ctx, defaultTimeout)
-		diags.Append(localDiags...)
-	case changeReasonDelete:
-		timeoutDuration, localDiags = t.Delete(ctx, defaultTimeout)
-		diags.Append(localDiags...)
-		targetState = retrystrategy.RetryStrategyDeletedState
-		extraPending = append(extraPending, retrystrategy.RetryStrategyIdleState)
-	default:
-		diags.AddError("errorAwaitingChanges", "unknown change reason "+changeReason)
-	}
-	if diags.HasError() {
-		return nil
-	}
-	stateConf := CreateStateChangeConfig(ctx, r.Client.AtlasV220240805, projectID, clusterName, targetState, timeoutDuration, extraPending...)
-	clusterAny, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && changeReason == "delete" {
-			return nil
-		}
-		diags.AddError("errorAwaitingCluster", fmt.Sprintf(errorCreate, err))
-		return nil
-	}
-	if targetState == retrystrategy.RetryStrategyDeletedState {
-		return nil
-	}
-	cluster, ok := clusterAny.(*admin20240805.ClusterDescription20240805)
-	if !ok {
-		diags.AddError("errorAwaitingCluster", fmt.Sprintf(errorCreate, "unexpected type from WaitForStateContext"))
-		return nil
-	}
-	return cluster
+	return AwaitChanges(ctx, r.Client.AtlasV220240805.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
 func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin20240805.ClusterDescriptionProcessArgs20240805, cluster *admin20240805.ClusterDescription20240805, resourceTimeouts timeouts.Value, diags *diag.Diagnostics) *TFModel {
