@@ -96,55 +96,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	var (
-		api             = r.Client.AtlasV220240805.ClustersApi
-		patchReq        = update.PatchPayloadTpf(ctx, diags, &state, &plan, NewAtlasReq)
-		projectID       = plan.ProjectID.ValueString()
-		clusterName     = plan.Name.ValueString()
-		cluster         *admin20240805.ClusterDescription20240805
-		advConfig       *admin20240805.ClusterDescriptionProcessArgs20240805
-		legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
-		err             error
-	)
-	if patchReq != nil {
-		pauseAfter := false
-		if patchReq.Paused != nil && patchReq.GetPaused() {
-			// More changes than pause, need to pause after
-			if !reflect.DeepEqual(pauseRequest, *patchReq) {
-				pauseAfter = true
-				patchReq.Paused = nil
-			}
-		} else if patchReq.Paused != nil && !patchReq.GetPaused() {
-			// More changes than pause, need to resume before applying changes
-			if !reflect.DeepEqual(resumeRequest, *patchReq) {
-				patchReq.Paused = nil
-				cluster = r.updateAndWait(ctx, &resumeRequest, diags, &plan)
-				if cluster == nil {
-					return
-				}
-			}
-		}
-		cluster = r.updateAndWait(ctx, patchReq, diags, &plan)
-		if cluster == nil {
-			return
-		}
-		if pauseAfter {
-			cluster = r.updateAndWait(ctx, &pauseRequest, diags, &plan)
-		}
+	cluster := r.applyClusterChanges(ctx, diags, &state, &plan)
+	if diags.HasError() {
+		return
 	}
-	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	if patchReqProcessArgs != nil {
-		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgs).Execute()
-		if err != nil {
-			diags.AddError("errorUpdateAdvancedConfig", fmt.Sprintf(errorConfigUpdate, clusterName, err.Error()))
-		}
-	}
-	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
-	if patchReqProcessArgsLegacy != nil {
-		legacyAdvConfig, _, err = r.Client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgsLegacy).Execute()
-		if err != nil {
-			diags.AddError("errorUpdateAdvancedConfigLegacy", fmt.Sprintf(errorConfigUpdate, clusterName, err.Error()))
-		}
+	advConfig, legacyAdvConfig := r.applyAdvancedConfigurationChanges(ctx, diags, &state, &plan)
+	if diags.HasError() {
+		return
 	}
 	if cluster != nil {
 		r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan.Timeouts, diags, &resp.State)
@@ -152,6 +110,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		r.readCluster(ctx, &plan, &resp.State, diags, false)
 	}
 }
+
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state TFModel
 	diags := &resp.Diagnostics
@@ -231,6 +190,63 @@ func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State
 	}
 	r.convertClusterAddAdvConfig(ctx, nil, nil, readResp, model.Timeouts, diags, state)
 }
+func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (*admin20240805.ClusterDescriptionProcessArgs20240805, *admin20240530.ClusterDescriptionProcessArgs) {
+	var (
+		api             = r.Client.AtlasV220240805.ClustersApi
+		projectID       = plan.ProjectID.ValueString()
+		clusterName     = plan.Name.ValueString()
+		err             error
+		advConfig       *admin20240805.ClusterDescriptionProcessArgs20240805
+		legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
+	)
+	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	if patchReqProcessArgs != nil {
+		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgs).Execute()
+		if err != nil {
+			diags.AddError("errorUpdateAdvancedConfig", fmt.Sprintf(errorConfigUpdate, clusterName, err.Error()))
+			return advConfig, legacyAdvConfig
+		}
+	}
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	if patchReqProcessArgsLegacy != nil {
+		legacyAdvConfig, _, err = r.Client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgsLegacy).Execute()
+		if err != nil {
+			diags.AddError("errorUpdateAdvancedConfigLegacy", fmt.Sprintf(errorConfigUpdate, clusterName, err.Error()))
+		}
+	}
+	return advConfig, legacyAdvConfig
+}
+
+func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) *admin20240805.ClusterDescription20240805 {
+	patchReq := update.PatchPayloadTpf(ctx, diags, state, plan, NewAtlasReq)
+	if patchReq == nil {
+		return nil
+	}
+	var cluster *admin20240805.ClusterDescription20240805
+	pauseAfter := false
+	if patchReq.Paused != nil && patchReq.GetPaused() {
+		// More changes than pause, need to pause after
+		if !reflect.DeepEqual(pauseRequest, *patchReq) {
+			pauseAfter = true
+			patchReq.Paused = nil
+		}
+	} else if patchReq.Paused != nil && !patchReq.GetPaused() {
+		// More changes than pause, need to resume before applying changes
+		if !reflect.DeepEqual(resumeRequest, *patchReq) {
+			patchReq.Paused = nil
+			_ = r.updateAndWait(ctx, &resumeRequest, diags, plan)
+		}
+	}
+	if diags.HasError() {
+		return nil
+	}
+	cluster = r.updateAndWait(ctx, patchReq, diags, plan)
+	if pauseAfter && cluster != nil {
+		cluster = r.updateAndWait(ctx, &pauseRequest, diags, plan)
+	}
+	return cluster
+}
+
 func (r *rs) updateAndWait(ctx context.Context, patchReq *admin20240805.ClusterDescription20240805, diags *diag.Diagnostics, tfModel *TFModel) *admin20240805.ClusterDescription20240805 {
 	api := r.Client.AtlasV220240805.ClustersApi
 	projectID := tfModel.ProjectID.ValueString()
