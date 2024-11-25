@@ -111,7 +111,7 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 									"team_id": schema.StringAttribute{
 										Computed: true,
 									},
-									"role_names": schema.SetAttribute{
+									"role_names": schema.ListAttribute{
 										Computed:    true,
 										ElementType: types.StringType,
 									},

@@ -1,7 +1,0 @@
-```release-note:note
-data-source/mongodbatlas_project: Changes `role_names` from a list to a set as in the resource
-```
-
-```release-note:note
-data-source/mongodbatlas_projects: Changes `role_names` from a list to a set as in the resource
-```
