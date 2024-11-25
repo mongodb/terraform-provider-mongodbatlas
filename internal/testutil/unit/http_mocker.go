@@ -159,6 +159,7 @@ func (r *requestTracker) manualFilenameIfExist(requestID string, index int) stri
 }
 
 func (r *requestTracker) initStep() error {
+	require.Len(r.t, r.data.Steps, r.data.StepCount, "step count didn't match steps")
 	usedKeys := strings.Join(acc.SortStringMapKeys(r.vars), ", ")
 	expectedKeys := strings.Join(acc.SortStringMapKeys(r.data.Variables), ", ")
 	require.Equal(r.t, expectedKeys, usedKeys, "mock variables didn't match mock data variables")
