@@ -123,10 +123,10 @@ func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPData
 	return mockTransport, tracker.checkStepRequests
 }
 
-var _versionDatePattern = regexp.MustCompile(`(\d{4}-\d{2}-\d{2})`)
+var versionDatePattern = regexp.MustCompile(`(\d{4}-\d{2}-\d{2})`)
 
 func ExtractVersion(contentType string) (string, error) {
-	match := _versionDatePattern.FindStringSubmatch(contentType)
+	match := versionDatePattern.FindStringSubmatch(contentType)
 	if len(match) > 1 {
 		return match[1], nil
 	}

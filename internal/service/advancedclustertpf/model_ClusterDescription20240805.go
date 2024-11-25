@@ -120,7 +120,7 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 
 func NewTagsObjType(ctx context.Context, input *[]admin.ResourceTag, diags *diag.Diagnostics) types.Set {
 	if input == nil {
-		// API Response not consistent, using empty array instead of null
+		// API Response not consistent, even when not set in POST/PATCH `[]` is returned instead of null
 		return types.SetValueMust(TagsObjType, nil)
 	}
 	tfModels := make([]TFTagsModel, len(*input))

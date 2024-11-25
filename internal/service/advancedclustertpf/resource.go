@@ -40,6 +40,9 @@ const (
 	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 	defaultTimeout                 = 3 * time.Hour
 	ErrorCodeClusterNotFound       = "CLUSTER_NOT_FOUND"
+	changeReasonUpdate             = "update"
+	changeReasonCreate             = "create"
+	changeReasonDelete             = "delete"
 )
 
 var (
@@ -67,8 +70,8 @@ func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resou
 
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	diags := &resp.Diagnostics
+	diags.Append(req.Plan.Get(ctx, &plan)...)
 	if diags.HasError() {
 		return
 	}
@@ -93,14 +96,16 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	api := r.Client.AtlasV220240805.ClustersApi
-	patchReq := update.PatchPayloadTpf(ctx, diags, &state, &plan, NewAtlasReq)
-	projectID := plan.ProjectID.ValueString()
-	clusterName := plan.Name.ValueString()
-	var cluster *admin20240805.ClusterDescription20240805
-	var advConfig *admin20240805.ClusterDescriptionProcessArgs20240805
-	var legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
-	var err error
+	var (
+		api             = r.Client.AtlasV220240805.ClustersApi
+		patchReq        = update.PatchPayloadTpf(ctx, diags, &state, &plan, NewAtlasReq)
+		projectID       = plan.ProjectID.ValueString()
+		clusterName     = plan.Name.ValueString()
+		cluster         *admin20240805.ClusterDescription20240805
+		advConfig       *admin20240805.ClusterDescriptionProcessArgs20240805
+		legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
+		err             error
+	)
 	if patchReq != nil {
 		pauseAfter := false
 		if patchReq.Paused != nil && patchReq.GetPaused() {
@@ -156,17 +161,13 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 	clusterName := state.Name.ValueString()
 	projectID := state.ProjectID.ValueString()
-	if clusterName == "" {
-		resp.Diagnostics.AddError("errorDelete", fmt.Sprintf(errorDelete, clusterName, "clusterName is empty"))
-		return
-	}
 	api := r.Client.AtlasV2.ClustersApi
 	_, err := api.DeleteCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		diags.AddError("errorDelete", fmt.Sprintf(errorDelete, clusterName, err.Error()))
 		return
 	}
-	_ = r.awaitChanges(ctx, &state.Timeouts, diags, projectID, clusterName, "delete")
+	_ = r.awaitChanges(ctx, &state.Timeouts, diags, projectID, clusterName, changeReasonDelete)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -187,7 +188,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		diags.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
 		return
 	}
-	cluster := r.awaitChanges(ctx, &plan.Timeouts, diags, projectID, clusterName, "create")
+	cluster := r.awaitChanges(ctx, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
 	if diags.HasError() {
 		return
 	}
@@ -239,7 +240,7 @@ func (r *rs) updateAndWait(ctx context.Context, patchReq *admin20240805.ClusterD
 		diags.AddError("errorUpdate", fmt.Sprintf(errorUpdate, clusterName, err.Error()))
 		return nil
 	}
-	return r.awaitChanges(ctx, &tfModel.Timeouts, diags, projectID, clusterName, "update")
+	return r.awaitChanges(ctx, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
 func (r *rs) awaitChanges(ctx context.Context, t *timeouts.Value, diags *diag.Diagnostics, projectID, clusterName, changeReason string) (cluster *admin20240805.ClusterDescription20240805) {
@@ -248,19 +249,19 @@ func (r *rs) awaitChanges(ctx context.Context, t *timeouts.Value, diags *diag.Di
 	var targetState = retrystrategy.RetryStrategyIdleState
 	var extraPending = []string{}
 	switch changeReason {
-	case "create":
+	case changeReasonCreate:
 		timeoutDuration, localDiags = t.Create(ctx, defaultTimeout)
 		diags.Append(localDiags...)
-	case "update":
+	case changeReasonUpdate:
 		timeoutDuration, localDiags = t.Update(ctx, defaultTimeout)
 		diags.Append(localDiags...)
-	case "delete":
+	case changeReasonDelete:
 		timeoutDuration, localDiags = t.Delete(ctx, defaultTimeout)
 		diags.Append(localDiags...)
 		targetState = retrystrategy.RetryStrategyDeletedState
 		extraPending = append(extraPending, retrystrategy.RetryStrategyIdleState)
 	default:
-		diags.AddError("errorAwaitingChanges", "unknown change reason"+changeReason)
+		diags.AddError("errorAwaitingChanges", "unknown change reason "+changeReason)
 	}
 	if diags.HasError() {
 		return nil
