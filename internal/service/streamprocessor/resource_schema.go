@@ -11,38 +11,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/fwtypes"
 )
 
-func optionsSchema(isDatasource bool) schema.SingleNestedAttribute {
-	return schema.SingleNestedAttribute{
-		Attributes: map[string]schema.Attribute{
-			"dlq": schema.SingleNestedAttribute{
-				Attributes: map[string]schema.Attribute{
-					"coll": schema.StringAttribute{
-						Required:            !isDatasource,
-						Computed:            isDatasource,
-						MarkdownDescription: "Name of the collection to use for the DLQ.",
-					},
-					"connection_name": schema.StringAttribute{
-						Required:            !isDatasource,
-						Computed:            isDatasource,
-						MarkdownDescription: "Name of the connection to write DLQ messages to. Must be an Atlas connection.",
-					},
-					"db": schema.StringAttribute{
-						Required:            !isDatasource,
-						Computed:            isDatasource,
-						MarkdownDescription: "Name of the database to use for the DLQ.",
-					},
-				},
-				Required:            !isDatasource,
-				Computed:            isDatasource,
-				MarkdownDescription: "Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information.",
-			},
-		},
-		Optional:            !isDatasource,
-		Computed:            isDatasource,
-		MarkdownDescription: "Optional configuration for the stream processor.",
-	}
-}
-
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -61,7 +29,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				CustomType: fwtypes.JSONStringType,
 				Required:   true,
 				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation)" +
-					" contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when settig this attribute. For more details see [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
+					" contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when setting this attribute. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
 			},
 			"processor_name": schema.StringAttribute{
 				Required:            true,
@@ -75,9 +43,32 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional: true,
 				Computed: true,
 				MarkdownDescription: "The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`." +
-					" When a Stream Processor is created without specifying the state, it will default to `CREATED` state.\n\n**NOTE** When a stream processor is created, the only valid states are CREATED or STARTED. A stream processor can be automatically started when creating it if the state is set to STARTED.",
+					" When a Stream Processor is created without specifying the state, it will default to `CREATED` state.\n\n**NOTE** When creating a stream processor, setting the state to STARTED can automatically start the stream processor.",
 			},
-			"options": optionsSchema(false),
+			"options": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Optional configuration for the stream processor.",
+				Attributes: map[string]schema.Attribute{
+					"dlq": schema.SingleNestedAttribute{
+						Attributes: map[string]schema.Attribute{
+							"coll": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "Name of the collection to use for the DLQ.",
+							},
+							"connection_name": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "Name of the connection to write DLQ messages to. Must be an Atlas connection.",
+							},
+							"db": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "Name of the database to use for the DLQ.",
+							},
+						},
+						Required:            true,
+						MarkdownDescription: "Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information.",
+					},
+				},
+			},
 			"stats": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.",

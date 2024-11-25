@@ -138,6 +138,7 @@ func (d *atlasUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, 
 			},
 		},
 	}
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *atlasUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

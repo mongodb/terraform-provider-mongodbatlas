@@ -24,9 +24,8 @@ type StreamProccesorDS struct {
 }
 
 func (d *StreamProccesorDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	// TODO: Schema and model must be defined in data_source_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
-	resp.Schema = DataSourceSchema(ctx)
-	conversion.UpdateSchemaDescription(&resp.Schema)
+	requireFields := []string{"project_id", "instance_name", "processor_name"}
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requireFields, nil)
 }
 
 func (d *StreamProccesorDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

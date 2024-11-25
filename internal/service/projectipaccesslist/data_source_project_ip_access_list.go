@@ -45,52 +45,42 @@ type TfProjectIPAccessListDSModel struct {
 }
 
 func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
+	requiredFields := []string{"project_id"}
+	overridenFields := map[string]schema.Attribute{
+		"cidr_block": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+			Validators: []validator.String{
+				validate.ValidCIDR(),
+				stringvalidator.ConflictsWith(path.Expressions{
+					path.MatchRelative().AtParent().AtName("aws_security_group"),
+					path.MatchRelative().AtParent().AtName("ip_address"),
+				}...),
 			},
-			"project_id": schema.StringAttribute{
-				Required: true,
+		},
+		"ip_address": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+			Validators: []validator.String{
+				validate.ValidIP(),
+				stringvalidator.ConflictsWith(path.Expressions{
+					path.MatchRelative().AtParent().AtName("aws_security_group"),
+					path.MatchRelative().AtParent().AtName("cidr_block"),
+				}...),
 			},
-			"cidr_block": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					validate.ValidCIDR(),
-					stringvalidator.ConflictsWith(path.Expressions{
-						path.MatchRelative().AtParent().AtName("aws_security_group"),
-						path.MatchRelative().AtParent().AtName("ip_address"),
-					}...),
-				},
-			},
-			"ip_address": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					validate.ValidIP(),
-					stringvalidator.ConflictsWith(path.Expressions{
-						path.MatchRelative().AtParent().AtName("aws_security_group"),
-						path.MatchRelative().AtParent().AtName("cidr_block"),
-					}...),
-				},
-			},
-			"aws_security_group": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.Expressions{
-						path.MatchRelative().AtParent().AtName("ip_address"),
-						path.MatchRelative().AtParent().AtName("cidr_block"),
-					}...),
-				},
-			},
-			"comment": schema.StringAttribute{
-				Computed: true,
+		},
+		"aws_security_group": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.Expressions{
+					path.MatchRelative().AtParent().AtName("ip_address"),
+					path.MatchRelative().AtParent().AtName("cidr_block"),
+				}...),
 			},
 		},
 	}
-	conversion.UpdateSchemaDescription(&resp.Schema)
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, overridenFields)
 }
 
 func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
