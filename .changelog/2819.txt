@@ -1,3 +1,3 @@
 ```release-note:enhancement
-mongodbatlas_privatelink_endpoint_service: Decreases delay time when creating a resource
+mongodbatlas_privatelink_endpoint_service: Decreases delay time when creating or deleting a resource
 ```
