@@ -110,10 +110,10 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	var model *TFModel
-	if cluster != nil {
-		model = r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan.Timeouts, diags)
-	} else {
+	if cluster == nil { // no cluster updates
 		model = r.readCluster(ctx, &plan, &resp.State, diags, false)
+	} else {
+		model = r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan.Timeouts, diags)
 	}
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
