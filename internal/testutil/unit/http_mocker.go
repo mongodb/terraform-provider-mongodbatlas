@@ -29,8 +29,9 @@ func replaceVars(text string, vars map[string]string) string {
 }
 
 type statusText struct {
-	Text   string `yaml:"text"`
-	Status int    `yaml:"status"`
+	Text          string `yaml:"text"`
+	Status        int    `yaml:"status"`
+	ResponseIndex int    `yaml:"response_index"`
 }
 
 type RequestInfo struct {
@@ -141,6 +142,7 @@ type requestTracker struct {
 	usedResponses        map[string]int
 	foundsDiffs          map[int]string
 	currentStepIndex     int
+	diffResponseIndex    int
 	allowMissingRequests bool
 	allowReReadGet       bool
 }
@@ -175,7 +177,20 @@ func (r *requestTracker) initStep() error {
 			return err
 		}
 	}
+	r.nextDiffResponseIndex()
 	return nil
+}
+
+func (r *requestTracker) nextDiffResponseIndex() {
+	step := r.currentStep()
+	for index, req := range step.DiffRequests {
+		if _, ok := r.foundsDiffs[index]; !ok {
+			r.diffResponseIndex = req.Responses[0].ResponseIndex
+			return
+		}
+	}
+	// no more diffs in current step, any response index will do, assuming never more than 100k responses
+	r.diffResponseIndex = 99999
 }
 
 func (r *requestTracker) currentStep() *stepRequests {
@@ -191,7 +206,13 @@ func (r *requestTracker) checkStepRequests(_ *terraform.State) error {
 	for _, req := range step.RequestResponses {
 		missingRequestsCount := len(req.Responses) - r.usedResponses[req.id()]
 		if missingRequestsCount > 0 {
-			missingRequests = append(missingRequests, fmt.Sprintf("missing %d requests of %s", missingRequestsCount, req.idShort()))
+			missingIndexes := []string{}
+			for i := 0; i < missingRequestsCount; i++ {
+				missingResponse := (len(req.Responses) - missingRequestsCount) + i
+				missingIndexes = append(missingIndexes, fmt.Sprintf("%d", req.Responses[missingResponse].ResponseIndex))
+			}
+			missingIndexesStr := strings.Join(missingIndexes, ", ")
+			missingRequests = append(missingRequests, fmt.Sprintf("missing %d requests of %s (%s)", missingRequestsCount, req.idShort(), missingIndexesStr))
 		}
 	}
 	if r.allowMissingRequests {
@@ -272,8 +293,10 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 			return "", 0, err
 		}
 		r.foundsDiffs[index] = normalizedPayload
+		r.nextDiffResponseIndex()
 		break
 	}
+	nextDiffResponse := r.diffResponseIndex
 
 	for _, request := range step.RequestResponses {
 		if !request.Match(method, urlPath, version, r.vars) {
@@ -288,8 +311,18 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 				continue
 			}
 		}
-		r.usedResponses[requestID]++
 		response := request.Responses[nextIndex]
+		if response.ResponseIndex > nextDiffResponse {
+			prevIndex := nextIndex - 1
+			if r.allowReReadGet && method == "GET" && prevIndex >= 0 {
+				response = request.Responses[prevIndex]
+				r.t.Logf("re-reading GET request with response_index=%d as diff hasn't been returned yet (%d)", response.ResponseIndex, nextDiffResponse)
+				return replaceVars(response.Text, r.vars), response.Status, nil
+			}
+			continue
+		}
+		r.usedResponses[requestID]++
+		// cannot return a response that is sent after a diff response
 		return replaceVars(response.Text, r.vars), response.Status, nil
 	}
 	return "", 0, fmt.Errorf("no matching request found %s %s %s", method, urlPath, version)

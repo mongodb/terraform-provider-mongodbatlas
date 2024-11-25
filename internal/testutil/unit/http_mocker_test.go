@@ -58,9 +58,7 @@ const reqPoliciesUpdateBody = `{
  ]
 }`
 
-const reqPoliciesManualValidateBody = `{
- "name": "overriding the filename by using _manual"
- }`
+const reqPoliciesManualValidateDelete = `{}`
 
 func TestMockRoundTripper(t *testing.T) {
 	orgID := "123"
@@ -101,10 +99,30 @@ func TestMockRoundTripper(t *testing.T) {
 	assert.Equal(t, resourcePolicyID, policyResp.GetId())
 
 	// Step 3
-	validateRequest := request("POST", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies:validate", orgID))
-	validateRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesManualValidateBody))
+	// First GET request OK
+	// Second GET request OK
+	getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID))
+	_, err = client.Do(getRequest)
+	require.NoError(t, err)
+	_, err = client.Do(getRequest)
+	require.NoError(t, err)
+	// Third GET request FAIL with no match as there are no more responses until after DELETE
+	_, err = client.Do(getRequest)
+	require.ErrorContains(t, err, "no matching request found")
+
+	// Test _manual diff file (set to {} instead of '')
+	validateRequest := request("DELETE", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID))
+	validateRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesManualValidateDelete))
 	_, err = client.Do(validateRequest)
 	require.NoError(t, err)
+	// Fourth GET request OK, since we have gotten the diff
+	notFoundResp, err := client.Do(getRequest)
+	require.NoError(t, err)
+	notFoundMap := map[string]any{}
+	err = json.NewDecoder(notFoundResp.Body).Decode(&notFoundMap)
+	require.NoError(t, err)
+	assert.Equal(t, "RESOURCE_POLICY_NOT_FOUND", notFoundMap["errorCode"])
+
 	err = checkFunc(nil)
 	require.NoError(t, err)
 }
