@@ -56,10 +56,8 @@ Read-Only:
 - `create_date` (String) Date and time when MongoDB Cloud created this instance. This parameter expresses its value in ISO 8601 format in UTC.
 - `id` (String) Unique 24-hexadecimal digit string that identifies the instance.
 - `mongo_db_version` (String) Version of MongoDB that the instance runs.
-- `name` (String) Human-readable label that identifies the flex cluster.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
-**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+- `name` (String) Human-readable label that identifies the instance.
+- `project_id` (String) Unique 24-hexadecimal character string that identifies the project.
 - `provider_settings` (Attributes) Group of cloud provider settings that configure the provisioned MongoDB flex cluster. (see [below for nested schema](#nestedatt--results--provider_settings))
 - `state_name` (String) Human-readable label that indicates the current operating condition of this instance.
 - `tags` (Map of String) Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.
