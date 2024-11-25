@@ -1,6 +1,7 @@
 package advancedclustertpf_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -22,4 +23,35 @@ func TestAdvancedCluster_PlanModifierErrors(t *testing.T) {
 			},
 		},
 	})
+}
+
+func configBasic(projectID, clusterName, extra string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			timeouts = {
+				create = "20s"
+			}
+			project_id = %[1]q
+			name = %[2]q
+			cluster_type = "REPLICASET"
+			replication_specs = [{
+				region_configs = [{
+					priority        = 7
+					provider_name = "AWS"
+					region_name     = "US_EAST_1"
+					auto_scaling = {
+						compute_scale_down_enabled = false # necessary to have similar SDKv2 request
+						compute_enabled = false # necessary to have similar SDKv2 request
+						disk_gb_enabled = true
+					}
+					electable_specs = {
+						node_count = 3
+						instance_size = "M10"
+						disk_size_gb = 10
+					}
+				}]
+			}]
+			%[3]s
+		}
+	`, projectID, clusterName, extra)
 }
