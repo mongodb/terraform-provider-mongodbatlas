@@ -110,7 +110,7 @@ func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPData
 	require.NoError(t, err)
 	myTransport := httpmock.NewMockTransport()
 	var mockTransport http.RoundTripper = myTransport
-	g := goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json"))
+	g := goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json"), goldie.WithDiffEngine(goldie.ColoredDiff))
 	tracker := requestTracker{data: data, g: g, vars: vars, t: t}
 	if config != nil {
 		tracker.allowMissingRequests = config.AllowMissingRequests
@@ -232,6 +232,7 @@ func (r *requestTracker) checkStepRequests(_ *terraform.State) error {
 	for index, payload := range r.foundsDiffs {
 		diff := step.DiffRequests[index]
 		filename := r.manualFilenameIfExist(diff.idShort(), index)
+		r.t.Logf("checking diff %s", filename)
 		r.g.Assert(r.t, filename, []byte(payload))
 	}
 	r.currentStepIndex++
@@ -264,6 +265,9 @@ func (r *requestTracker) receiveRequest(method string) func(req *http.Request) (
 }
 
 func normalizePayload(payload string) (string, error) {
+	if payload == "" {
+		return "", nil
+	}
 	var tempHolder any
 	err := json.Unmarshal([]byte(payload), &tempHolder)
 	if err != nil {
