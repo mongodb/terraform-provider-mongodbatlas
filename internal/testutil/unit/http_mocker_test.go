@@ -118,11 +118,44 @@ func TestMockRoundTripper(t *testing.T) {
 	// Fourth GET request OK, since we have gotten the diff
 	notFoundResp, err := client.Do(getRequest)
 	require.NoError(t, err)
-	notFoundMap := map[string]any{}
-	err = json.NewDecoder(notFoundResp.Body).Decode(&notFoundMap)
-	require.NoError(t, err)
+	notFoundMap := parseMapStringAny(t, notFoundResp)
 	assert.Equal(t, "RESOURCE_POLICY_NOT_FOUND", notFoundMap["errorCode"])
 
+	err = checkFunc(nil)
+	require.NoError(t, err)
+}
+
+func parseMapStringAny(t *testing.T, resp *http.Response) map[string]any {
+	t.Helper()
+	stringMap := map[string]any{}
+	err := json.NewDecoder(resp.Body).Decode(&stringMap)
+	require.NoError(t, err)
+	return stringMap
+}
+
+func TestMockRoundTripperAllowReRead(t *testing.T) {
+	orgID := "123"
+	resourcePolicyID := "456"
+	vars := map[string]string{
+		"orgId":            orgID,
+		"resourcePolicyId": resourcePolicyID,
+	}
+	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowReReadGet: true, AllowMissingRequests: true})
+	client := &http.Client{
+		Transport: mockTransport,
+	}
+	for range []int{0, 1, 2} {
+		getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID))
+		resp, err := client.Do(getRequest)
+		require.NoError(t, err)
+		assert.Equal(t, "returned again", parseMapStringAny(t, resp)["expect"])
+	}
+	createRequest := request("POST", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID))
+	createRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesCreateBody))
+	resp, err := client.Do(createRequest)
+
+	require.NoError(t, err)
+	require.Equal(t, 201, resp.StatusCode)
 	err = checkFunc(nil)
 	require.NoError(t, err)
 }
