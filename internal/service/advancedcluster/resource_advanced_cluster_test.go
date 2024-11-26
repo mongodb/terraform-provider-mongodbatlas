@@ -30,7 +30,6 @@ var (
 )
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -895,7 +894,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func configTenant(projectID, name string) string {
-	return fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToTPF(fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -922,7 +921,7 @@ func configTenant(projectID, name string) string {
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, projectID, name)
+	`, projectID, name))
 }
 
 func checkTenant(projectID, name string) resource.TestCheckFunc {
