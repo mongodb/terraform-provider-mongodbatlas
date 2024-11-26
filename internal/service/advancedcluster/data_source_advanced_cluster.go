@@ -260,6 +260,22 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"pinned_fcv": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"expiration_date": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -301,12 +317,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
-		if err := d.Set("replica_set_scaling_strategy", clusterDescNew.GetReplicaSetScalingStrategy()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
-		}
-		if err := d.Set("redact_client_log_data", clusterDescNew.GetRedactClientLogData()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
-		}
 
 		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(clusterDescNew)
 		if err != nil {
@@ -318,10 +328,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		clusterDesc := convertClusterDescToLatestExcludeRepSpecs(clusterDescOld)
-		clusterDesc.ConfigServerManagementMode = clusterDescNew.ConfigServerManagementMode
-		clusterDesc.ConfigServerType = clusterDescNew.ConfigServerType
-		diags := setRootFields(d, clusterDesc, false)
+		diags := setRootFields(d, clusterDescNew, false)
 		if diags.HasError() {
 			return diags
 		}
@@ -339,12 +346,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		// root disk_size_gb defined for backwards compatibility avoiding breaking changes
 		if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(clusterDescLatest)); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
-		}
-		if err := d.Set("replica_set_scaling_strategy", clusterDescLatest.GetReplicaSetScalingStrategy()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
-		}
-		if err := d.Set("redact_client_log_data", clusterDescLatest.GetRedactClientLogData()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
 		}
 
 		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
