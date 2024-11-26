@@ -1011,7 +1011,6 @@ func TestAccProject_withTags(t *testing.T) {
 		projectName  = acc.RandomProjectName()
 		nameUpdated  = "my-tag-name-updated"
 		envUnchanged = "unchanged"
-		tagsEmpty    = map[string]string{}
 		tags1        = map[string]string{
 			"Name":        "my-tag-name",
 			"Environment": envUnchanged,
@@ -1051,7 +1050,7 @@ func TestAccProject_withTags(t *testing.T) {
 				ExpectError: regexp.MustCompile(`exceeded the maximum allowed length of \d+ characters`),
 			},
 			{
-				Config: configWithTags(orgID, projectName, tagsEmpty),
+				Config: configWithTags(orgID, projectName, nil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceNameByID, "tags.#", "0"),
