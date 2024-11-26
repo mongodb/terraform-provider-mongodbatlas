@@ -265,7 +265,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		}
 		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
 			// DefaultMaxTimeMS: conversion.IntPtr(60),
-			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the config
+			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
 		}
 
 		processArgs20240530Updated = &admin20240530.ClusterDescriptionProcessArgs{
