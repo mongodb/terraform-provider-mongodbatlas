@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.22.0 (November 26, 2024)
+
 NOTES:
 
 * data-source/mongodbatlas_organization: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
