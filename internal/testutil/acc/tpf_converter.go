@@ -18,12 +18,12 @@ func ConvertAdvancedClusterToTPF(def string) string {
 
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {
 	t.Helper()
-	assert.Equal(t, CanonicalHCL(t, expected), CanonicalHCL(t, actual), msgAndArgs...)
+	assert.Equal(t, canonicalHCL(t, expected), canonicalHCL(t, actual), msgAndArgs...)
 }
 
-func CanonicalHCL(t *testing.T, def string) string {
+func canonicalHCL(t *testing.T, def string) string {
 	t.Helper()
 	parse, diags := hclwrite.ParseConfig([]byte(def), "", hcl.Pos{Line: 1, Column: 1})
-	require.False(t, diags.HasErrors())
+	require.False(t, diags.HasErrors(), "failed to parse HCL: %s", diags.Error())
 	return string(parse.Bytes())
 }

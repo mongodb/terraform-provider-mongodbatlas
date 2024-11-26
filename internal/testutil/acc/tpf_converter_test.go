@@ -67,3 +67,25 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 	actual := input
 	acc.AssertEqualHCL(t, expected, actual)
 }
+
+func TestAssertEqualHCL(t *testing.T) {
+	var (
+		val1 = `
+			resource "type1" "name1" {
+				attr1 = "val1"
+				block1 {
+					attr2 = "val2"
+				}
+			}
+ 		`
+		val2 = `
+			resource "type1"      "name1" {
+				attr1 =        "val1"
+				block1    {
+					attr2="val2"
+				      }			
+		}
+ 		`
+	)
+	acc.AssertEqualHCL(t, val1, val2)
+}
