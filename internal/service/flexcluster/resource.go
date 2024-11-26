@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -77,6 +78,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
+
+	if conversion.UseNilForEmpty(tfModel.Tags, newFlexClusterModel.Tags) {
+		newFlexClusterModel.Tags = types.MapNull(types.StringType)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 }
 
@@ -103,6 +109,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.Diagnostics.Append(diags...)
 		return
 	}
+
+	if conversion.UseNilForEmpty(flexClusterState.Tags, newFlexClusterModel.Tags) {
+		newFlexClusterModel.Tags = types.MapNull(types.StringType)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 }
 
@@ -145,6 +156,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
+
+	if conversion.UseNilForEmpty(plan.Tags, newFlexClusterModel.Tags) {
+		newFlexClusterModel.Tags = types.MapNull(types.StringType)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 }
 
