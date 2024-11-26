@@ -520,11 +520,6 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
 		}
 
-		// if v := p.DefaultMaxTimeMS; v == nil {
-		// 	flattenedProcessArgs[0]["default_max_time_ms"] = -1 // default in schema, otherwise user gets drift detection
-		// } else {
-		// 	flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
-		// }
 		if v := p.DefaultMaxTimeMS; v != nil {
 			flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
 		}
@@ -873,12 +868,6 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok {
 		res.DefaultMaxTimeMS = conversion.Pointer(cast.ToInt(p["default_max_time_ms"]))
-
-		// if defaultMaxTime := cast.ToInt64(p["default_max_time_ms"]); defaultMaxTime != 0 {
-		// 	res.DefaultMaxTimeMS = conversion.Pointer(cast.ToInt(p["default_max_time_ms"]))
-		// } else {
-		// 	log.Printf(ErrorClusterSetting, `default_max_time_ms`, "", cast.ToString(defaultMaxTime))
-		// }
 	}
 
 	return res20240530, res

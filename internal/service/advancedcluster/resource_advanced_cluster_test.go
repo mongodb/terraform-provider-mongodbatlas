@@ -264,7 +264,6 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
 		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
-			// DefaultMaxTimeMS: conversion.IntPtr(60),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
 		}
 
