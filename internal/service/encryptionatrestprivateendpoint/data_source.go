@@ -26,8 +26,8 @@ type encryptionAtRestPrivateEndpointDS struct {
 }
 
 func (d *encryptionAtRestPrivateEndpointDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = DataSourceSchema(ctx)
-	conversion.UpdateSchemaDescription(&resp.Schema)
+	requiredFields := []string{"id", "project_id", "cloud_provider"}
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil)
 }
 
 func (d *encryptionAtRestPrivateEndpointDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

@@ -95,6 +95,9 @@ on:
       azure_private_endpoint_region:
         type: string
         required: true
+      mongodb_atlas_flex_project_id:
+        type: string
+        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -213,6 +216,7 @@ jobs:
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
+      flex_cluster: ${{ steps.filter.outputs.flex_cluster == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
       global_cluster_config: ${{ steps.filter.outputs.global_cluster_config == 'true' || env.mustTrigger == 'true' }}
       ldap: ${{ steps.filter.outputs.ldap == 'true' || env.mustTrigger == 'true' }}
@@ -278,6 +282,8 @@ jobs:
             - 'internal/service/federatedsettingsidentityprovider/*.go'
             - 'internal/service/federatedsettingsorgconfig/*.go'
             - 'internal/service/federatedsettingsorgrolemapping/*.go'
+          flex_cluster:
+            - 'internal/service/flexcluster/*.go'
           generic:
             - 'internal/service/auditing/*.go'
             - 'internal/service/backupcompliancepolicy/*.go'
@@ -652,6 +658,30 @@ jobs:
             ./internal/service/federatedsettingsidentityprovider
             ./internal/service/federatedsettingsorgconfig
             ./internal/service/federatedsettingsorgrolemapping
+        run: make testacc
+
+  flex_cluster:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.flex_cluster == 'true' || inputs.test_group == 'flex_cluster' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false    
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_FLEX_PROJECT_ID: ${{ inputs.mongodb_atlas_flex_project_id }}
+          MONGODB_ATLAS_ENABLE_PREVIEW: "true"
+          ACCTEST_PACKAGES: ./internal/service/flexcluster
         run: make testacc
 
   generic:

@@ -25,7 +25,8 @@ type pushBasedLogExportDS struct {
 }
 
 func (d *pushBasedLogExportDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), "project_id")
+	requiredFields := []string{"project_id"}
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil)
 }
 
 func (d *pushBasedLogExportDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
