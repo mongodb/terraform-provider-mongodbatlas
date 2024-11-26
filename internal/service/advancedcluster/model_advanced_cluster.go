@@ -117,6 +117,10 @@ func SchemaAdvancedConfigDS() *schema.Schema {
 					Type:     schema.TypeInt,
 					Computed: true,
 				},
+				"default_max_time_ms": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -261,6 +265,11 @@ func SchemaAdvancedConfig() *schema.Schema {
 					Type:     schema.TypeInt,
 					Optional: true,
 					Default:  -1,
+				},
+				"default_max_time_ms": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
 				},
 			},
 		},
@@ -511,7 +520,17 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 		} else {
 			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
 		}
+
+		// if v := p.DefaultMaxTimeMS; v == nil {
+		// 	flattenedProcessArgs[0]["default_max_time_ms"] = -1 // default in schema, otherwise user gets drift detection
+		// } else {
+		// 	flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
+		// }
+		if v := p.DefaultMaxTimeMS; v != nil {
+			flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
+		}
 	}
+
 	return flattenedProcessArgs
 }
 
@@ -852,6 +871,15 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 
 		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(tmpInt)
 	}
+
+	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok {
+		if defaultMaxTime := cast.ToInt64(p["default_max_time_ms"]); defaultMaxTime != 0 {
+			res.DefaultMaxTimeMS = conversion.Pointer(cast.ToInt(p["default_max_time_ms"]))
+		} else {
+			log.Printf(ErrorClusterSetting, `default_max_time_ms`, "", cast.ToString(defaultMaxTime))
+		}
+	}
+
 	return res20240530, res
 }
 

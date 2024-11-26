@@ -502,7 +502,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
 			}
-			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params).Execute()
+			tmp, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params).Execute()
+			log.Println(tmp)
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
 			}
