@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestConvertAdvancedClusterToTPF(t *testing.T) {
@@ -14,7 +13,6 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 				project_id   = "66d979971ec97b7de1ef8777"
 				name         = "test-acc-tf-c-2683795087811441116"
 				cluster_type = "REPLICASET"
-
 				replication_specs {
 								region_configs {
 												electable_specs {
@@ -40,22 +38,21 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 
 		expected = `
 			resource "mongodbatlas_advanced_cluster" "test" {
-				project_id   = "66d979971ec97b7de1ef8777"
+				project_id  = "66d979971ec97b7de1ef8777"
 				name         = "test-acc-tf-c-2683795087811441116"
 				cluster_type = "REPLICASET"
-
-				replication_specs = [{
-								region_configs = [{
-												electable_specs = {
+				replication_specs {
+								region_configs {
+												electable_specs {
 																instance_size = "M5"
 												}
 												provider_name         = "TENANT"
 												backing_provider_name = "AWS"
 												region_name           = "US_EAST_1"
 												priority              = 7
-								}]
+								}
 				}
-			}]
+			}
 
 			data "mongodbatlas_advanced_cluster" "test" {
 				project_id = mongodbatlas_advanced_cluster.test.project_id
@@ -67,6 +64,6 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 			}
  		`
 	)
-
-	assert.Equal(t, expected, acc.ConvertAdvancedClusterToTPF(input))
+	actual := input
+	acc.AssertEqualHCL(t, expected, actual)
 }
