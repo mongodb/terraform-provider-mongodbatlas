@@ -11,24 +11,24 @@ import (
 )
 
 func DataSourcePluralSchema(ctx context.Context) schema.Schema {
-	dsAttributes := dataSourceSchema(true)
+	dsAttributes1 := dataSourceSchema(true)
+	dsAttributes2 := dataSourceSchema(true)
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"org_id": schema.StringAttribute{
 				Required:            true,
-				Description:         "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
 			},
 			"resource_policies": schema.ListNestedAttribute{
 				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamWithReplacement, "`results`"),
 				NestedObject: schema.NestedAttributeObject{
-					Attributes: dsAttributes,
+					Attributes: dsAttributes1,
 				},
 				Computed: true,
 			},
 			"results": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
-					Attributes: dsAttributes,
+					Attributes: dsAttributes2,
 				},
 				Computed: true,
 			},

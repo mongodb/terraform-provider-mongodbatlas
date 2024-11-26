@@ -4,7 +4,23 @@ NOTES:
 
 * data-source/mongodbatlas_organization: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
 * data-source/mongodbatlas_organizations: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+* data-source/mongodbatlas_privatelink_endpoint_service_serverless: Deprecates data source ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* data-source/mongodbatlas_privatelink_endpoints_service_serverless: Deprecates data source ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* data-source/mongodbatlas_serverless_instance: Deprecates `auto_indexing` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* data-source/mongodbatlas_serverless_instance: Deprecates `continuous_backup_enabled` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* data-source/mongodbatlas_serverless_instances: Deprecates `auto_indexing` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* data-source/mongodbatlas_serverless_instances: Deprecates `continuous_backup_enabled` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
 * resource/mongodbatlas_organization: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+* resource/mongodbatlas_privatelink_endpoint_serverless: Deprecates resource ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* resource/mongodbatlas_privatelink_endpoint_service_serverless: Deprecates resource ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* resource/mongodbatlas_serverless_instance: Deprecates `auto_indexing` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* resource/mongodbatlas_serverless_instance: Deprecates `continuous_backup_enabled` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+
+FEATURES:
+
+* **New Data Source:** `mongodbatlas_flex_cluster` ([#2738](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2738))
+* **New Data Source:** `mongodbatlas_flex_clusters` ([#2767](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2767))
+* **New Resource:** `mongodbatlas_flex_cluster` ([#2716](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2716))
 
 ENHANCEMENTS:
 
@@ -13,6 +29,7 @@ ENHANCEMENTS:
 * resource/mongodbatlas_cloud_backup_snapshot_restore_job: Adds `failed` attribute ([#2781](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2781))
 * resource/mongodbatlas_network_peering: Improve error message when networking peering reaches a failed status ([#2766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2766))
 * resource/mongodbatlas_privatelink_endpoint: Improves error message when privatelink endpoint returns error after POST ([#2803](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2803))
+* resource/mongodbatlas_privatelink_endpoint_service: Decreases delay time when creating or deleting a resource ([#2819](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2819))
 * resource/mongodbatlas_privatelink_endpoint_service: Improves error message when privatelink endpoint service returns error after POST ([#2803](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2803))
 
 ## 1.21.4 (October 29, 2024)

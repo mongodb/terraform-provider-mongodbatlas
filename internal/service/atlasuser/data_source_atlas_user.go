@@ -10,9 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 const (
@@ -137,6 +138,7 @@ func (d *atlasUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, 
 			},
 		},
 	}
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *atlasUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

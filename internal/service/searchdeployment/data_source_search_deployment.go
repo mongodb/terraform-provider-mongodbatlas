@@ -24,7 +24,8 @@ type searchDeploymentDS struct {
 }
 
 func (d *searchDeploymentDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), "project_id", "cluster_name")
+	requiredFields := []string{"project_id", "cluster_name"}
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil)
 }
 
 func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
