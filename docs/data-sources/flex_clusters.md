@@ -2,6 +2,8 @@
 
 `mongodbatlas_flex_clusters` returns all flex clusters in a project.
 
+**NOTE:** Flex Cluster is in Public Preview. In order to use the resources and data sources you need to set the environment variable MONGODB_ATLAS_ENABLE_PREVIEW to true.
+
 ## Example Usages
 ```terraform
 resource "mongodbatlas_flex_cluster" "example-cluster" {
