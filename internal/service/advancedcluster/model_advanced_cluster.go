@@ -269,7 +269,6 @@ func SchemaAdvancedConfig() *schema.Schema {
 				"default_max_time_ms": {
 					Type:     schema.TypeInt,
 					Optional: true,
-					Computed: true,
 				},
 			},
 		},
