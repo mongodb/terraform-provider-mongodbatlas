@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
@@ -43,12 +42,6 @@ func DataSource() *schema.Resource {
 			},
 		},
 	}
-}
-
-func LegacyTeamsDataSource() *schema.Resource {
-	res := DataSource()
-	res.DeprecationMessage = fmt.Sprintf(constant.DeprecationDataSourceByDateWithReplacement, "November 2024", "mongodbatlas_team")
-	return res
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
