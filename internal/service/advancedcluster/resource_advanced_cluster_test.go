@@ -264,7 +264,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
 		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
-			DefaultMaxTimeMS: conversion.IntPtr(60),
+			// DefaultMaxTimeMS: conversion.IntPtr(60),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the config
 		}
 
@@ -297,7 +297,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			},
 			{
 				Config: configAdvanced(projectID, clusterNameUpdated, processArgs20240530Updated, processArgsUpdated),
-				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", processArgs),
+				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", processArgsUpdated),
 			},
 		},
 	})

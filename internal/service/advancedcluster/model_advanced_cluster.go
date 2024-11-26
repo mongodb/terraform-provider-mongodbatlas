@@ -873,11 +873,13 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok {
-		if defaultMaxTime := cast.ToInt64(p["default_max_time_ms"]); defaultMaxTime != 0 {
-			res.DefaultMaxTimeMS = conversion.Pointer(cast.ToInt(p["default_max_time_ms"]))
-		} else {
-			log.Printf(ErrorClusterSetting, `default_max_time_ms`, "", cast.ToString(defaultMaxTime))
-		}
+		res.DefaultMaxTimeMS = conversion.Pointer(cast.ToInt(p["default_max_time_ms"]))
+
+		// if defaultMaxTime := cast.ToInt64(p["default_max_time_ms"]); defaultMaxTime != 0 {
+		// 	res.DefaultMaxTimeMS = conversion.Pointer(cast.ToInt(p["default_max_time_ms"]))
+		// } else {
+		// 	log.Printf(ErrorClusterSetting, `default_max_time_ms`, "", cast.ToString(defaultMaxTime))
+		// }
 	}
 
 	return res20240530, res
