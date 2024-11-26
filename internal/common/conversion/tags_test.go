@@ -33,7 +33,7 @@ func TestNewResourceTags(t *testing.T) {
 
 func TestNewTFTags(t *testing.T) {
 	var (
-		tfMapEmpty     = types.MapValueMust(types.StringType, map[string]attr.Value{})
+		tfMapNull      = types.MapNull(types.StringType)
 		apiListEmpty   = []admin.ResourceTag{}
 		apiSingleTag   = []admin.ResourceTag{*admin.NewResourceTag("key1", "value1")}
 		tfMapSingleTag = types.MapValueMust(types.StringType, map[string]attr.Value{"key1": types.StringValue("value1")})
@@ -42,7 +42,7 @@ func TestNewTFTags(t *testing.T) {
 		expected  types.Map
 		adminTags []admin.ResourceTag
 	}{
-		"api empty list tf null should give map null":      {tfMapEmpty, apiListEmpty},
+		"api empty list tf null should give map null":      {tfMapNull, apiListEmpty},
 		"tags single value tf null should give map single": {tfMapSingleTag, apiSingleTag},
 	}
 	for name, tc := range testCases {

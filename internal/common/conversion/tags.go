@@ -25,6 +25,9 @@ func NewResourceTags(ctx context.Context, tags types.Map) *[]admin.ResourceTag {
 }
 
 func NewTFTags(tags []admin.ResourceTag) types.Map {
+	if len(tags) == 0 {
+		return types.MapNull(types.StringType)
+	}
 	typesTags := make(map[string]attr.Value, len(tags))
 	for _, tag := range tags {
 		typesTags[tag.Key] = types.StringValue(tag.Value)
