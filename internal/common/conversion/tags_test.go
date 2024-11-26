@@ -47,7 +47,7 @@ func TestNewTFTags(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, conversion.NewTFTags(&tc.adminTags))
+			assert.Equal(t, tc.expected, conversion.NewTFTags(tc.adminTags))
 		})
 	}
 }

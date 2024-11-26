@@ -26,7 +26,7 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202411
 	return &TFModel{
 		ProviderSettings:             *providerSettings,
 		ConnectionStrings:            *connectionStrings,
-		Tags:                         conversion.NewTFTags(apiResp.Tags),
+		Tags:                         conversion.NewTFTags(apiResp.GetTags()),
 		CreateDate:                   types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreateDate)),
 		ProjectId:                    types.StringPointerValue(apiResp.GroupId),
 		Id:                           types.StringPointerValue(apiResp.Id),
