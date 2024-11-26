@@ -186,9 +186,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Version of MongoDB that the cluster runs.",
 			},
-			"name": schema.StringAttribute{ // TODO: fail if trying to update
+			"name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Human-readable label that identifies this cluster.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"paused": schema.BoolAttribute{
 				Computed:            true,
@@ -429,6 +432,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 		Attributes: map[string]schema.Attribute{
 			"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				// Default:             int64default.StaticInt64(-1), // TODO: think if default in the server only
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
 			},
@@ -453,6 +457,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				MarkdownDescription: "Flag that indicates whether the cluster disables executing any query that requires a collection scan to return results.",
 			},
 			"oplog_min_retention_hours": schema.Float64Attribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.",
 			},

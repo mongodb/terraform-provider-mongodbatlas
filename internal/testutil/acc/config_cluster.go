@@ -98,7 +98,7 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 		}
 	}
 	if len(req.Tags) > 0 {
-		for _, key := range sortStringMapKeys(req.Tags) {
+		for _, key := range SortStringMapKeys(req.Tags) {
 			value := req.Tags[key]
 			tagBlock := cluster.AppendNewBlock("tags", nil).Body()
 			tagBlock.SetAttributeValue("key", cty.StringVal(key))
