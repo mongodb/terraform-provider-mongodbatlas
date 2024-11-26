@@ -34,7 +34,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		Teams:                                       NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
 		Limits:                                      NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
 		IPAddresses:                                 ipAddressesModel,
-		Tags:                                        conversion.NewTFTags(project.GetTags()),
+		Tags:                                        conversion.NewTFTags(project.Tags),
 		IsSlowOperationThresholdingEnabled:          types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
 	}, nil
 }
@@ -110,7 +110,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		Teams:                              newTFTeamsResourceModel(ctx, projectProps.Teams),
 		Limits:                             newTFLimitsResourceModel(ctx, projectProps.Limits),
 		IPAddresses:                        ipAddressesModel,
-		Tags:                               conversion.NewTFTags(projectRes.GetTags()),
+		Tags:                               conversion.NewTFTags(projectRes.Tags),
 		IsSlowOperationThresholdingEnabled: types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
 	}
 

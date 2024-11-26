@@ -24,10 +24,17 @@ func NewResourceTags(ctx context.Context, tags types.Map) *[]admin.ResourceTag {
 	return &tagsAdmin
 }
 
-func NewTFTags(tags []admin.ResourceTag) types.Map {
-	typesTags := make(map[string]attr.Value, len(tags))
-	for _, tag := range tags {
+func NewTFTags(tags *[]admin.ResourceTag) types.Map {
+	if tags == nil {
+		return types.MapNull(types.StringType)
+	}
+	typesTags := make(map[string]attr.Value, len(*tags))
+	for _, tag := range *tags {
 		typesTags[tag.Key] = types.StringValue(tag.Value)
 	}
 	return types.MapValueMust(types.StringType, typesTags)
+}
+
+func UseNilForEmpty(planTag, newTag types.Map) bool {
+	return planTag.IsNull() && len(newTag.Elements()) == 0
 }
