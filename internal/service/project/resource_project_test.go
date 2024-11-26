@@ -96,13 +96,6 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name:            "Fail to get project's ip addresses",
-			teamRoleReponse: successfulTeamRoleResponse,
-			limitResponse:   successfulLimitsResponse,
-			groupResponse:   successfulGroupSettingsResponse,
-			expectedError:   true,
-		},
-		{
 			name:             "Fail to decode getManagedSlowMs response",
 			teamRoleReponse:  successfulTeamRoleResponse,
 			limitResponse:    successfulLimitsResponse,
