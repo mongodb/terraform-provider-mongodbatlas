@@ -12,10 +12,6 @@ import (
 )
 
 func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties) (*TFProjectDSModel, diag.Diagnostics) {
-	ipAddressesModel, diags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
-	if diags.HasError() {
-		return nil, diags
-	}
 	projectSettings := projectProps.Settings
 	return &TFProjectDSModel{
 		ID:                      types.StringValue(project.GetId()),
@@ -33,7 +29,6 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
 		Teams:                                       NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
 		Limits:                                      NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
-		IPAddresses:                                 ipAddressesModel,
 		Tags:                                        conversion.NewTFTags(project.GetTags()),
 		IsSlowOperationThresholdingEnabled:          types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
 	}, nil
@@ -95,10 +90,6 @@ func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddres
 }
 
 func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps AdditionalProperties) (*TFProjectRSModel, diag.Diagnostics) {
-	ipAddressesModel, diags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
-	if diags.HasError() {
-		return nil, diags
-	}
 	projectPlan := TFProjectRSModel{
 		ID:                                 types.StringValue(projectRes.GetId()),
 		Name:                               types.StringValue(projectRes.Name),
@@ -109,7 +100,6 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		WithDefaultAlertsSettings:          types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
 		Teams:                              newTFTeamsResourceModel(ctx, projectProps.Teams),
 		Limits:                             newTFLimitsResourceModel(ctx, projectProps.Limits),
-		IPAddresses:                        ipAddressesModel,
 		Tags:                               conversion.NewTFTags(projectRes.GetTags()),
 		IsSlowOperationThresholdingEnabled: types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
 	}

@@ -51,13 +51,12 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 		Err:           nil,
 	}
 	testCases := []struct {
-		teamRoleReponse     TeamRoleResponse
-		groupResponse       GroupSettingsResponse
-		ipAddressesResponse IPAddressesResponse
-		name                string
-		getManagedSlowMs    string
-		limitResponse       LimitsResponse
-		expectedError       bool
+		teamRoleReponse  TeamRoleResponse
+		groupResponse    GroupSettingsResponse
+		name             string
+		getManagedSlowMs string
+		limitResponse    LimitsResponse
+		expectedError    bool
 	}{
 		{
 			name:            "Successful",
@@ -101,12 +100,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			teamRoleReponse: successfulTeamRoleResponse,
 			limitResponse:   successfulLimitsResponse,
 			groupResponse:   successfulGroupSettingsResponse,
-			ipAddressesResponse: IPAddressesResponse{
-				IPAddresses:  nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
-				Err:          errors.New("Service Unavailable"),
-			},
-			expectedError: true,
+			expectedError:   true,
 		},
 		{
 			name:             "Fail to decode getManagedSlowMs response",
@@ -132,9 +126,6 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 
 			projectsMock.EXPECT().GetProjectSettings(mock.Anything, mock.Anything).Return(admin.GetProjectSettingsApiRequest{ApiService: projectsMock}).Maybe()
 			projectsMock.EXPECT().GetProjectSettingsExecute(mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
-
-			projectsMock.EXPECT().ReturnAllIpAddresses(mock.Anything, mock.Anything).Return(admin.ReturnAllIpAddressesApiRequest{ApiService: projectsMock}).Maybe()
-			projectsMock.EXPECT().ReturnAllIpAddressesExecute(mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
 
 			perfMock.EXPECT().GetManagedSlowMs(mock.Anything, mock.Anything).Return(admin.GetManagedSlowMsApiRequest{ApiService: perfMock}).Maybe()
 			managedSlowMsJSON := tc.getManagedSlowMs
@@ -535,7 +526,6 @@ func TestAccProject_basic(t *testing.T) {
 		"is_slow_operation_thresholding_enabled": "true",
 	}
 	commonSetChecks := []string{
-		"ip_addresses.services.clusters.#",
 		"is_collect_database_specifics_statistics_enabled",
 		"is_data_explorer_enabled",
 		"is_extended_storage_sizes_enabled",

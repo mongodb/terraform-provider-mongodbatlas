@@ -33,7 +33,6 @@ type projectDS struct {
 }
 
 type TFProjectDSModel struct {
-	IPAddresses                                 types.Object     `tfsdk:"ip_addresses"`
 	Created                                     types.String     `tfsdk:"created"`
 	OrgID                                       types.String     `tfsdk:"org_id"`
 	RegionUsageRestrictions                     types.String     `tfsdk:"region_usage_restrictions"`
@@ -142,35 +141,6 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 						},
 						"maximum_limit": schema.Int64Attribute{
 							Computed: true,
-						},
-					},
-				},
-			},
-			"ip_addresses": schema.SingleNestedAttribute{
-				Computed:           true,
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.21.0", "mongodbatlas_project_ip_addresses data source"),
-				Attributes: map[string]schema.Attribute{
-					"services": schema.SingleNestedAttribute{
-						Computed: true,
-						Attributes: map[string]schema.Attribute{
-							"clusters": schema.ListNestedAttribute{
-								Computed: true,
-								NestedObject: schema.NestedAttributeObject{
-									Attributes: map[string]schema.Attribute{
-										"cluster_name": schema.StringAttribute{
-											Computed: true,
-										},
-										"inbound": schema.ListAttribute{
-											ElementType: types.StringType,
-											Computed:    true,
-										},
-										"outbound": schema.ListAttribute{
-											ElementType: types.StringType,
-											Computed:    true,
-										},
-									},
-								},
-							},
 						},
 					},
 				},

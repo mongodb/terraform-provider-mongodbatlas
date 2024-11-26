@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -112,38 +111,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed: true,
 				Optional: true,
 			},
-			"ip_addresses": schema.SingleNestedAttribute{
-				Computed:           true,
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.21.0", "mongodbatlas_project_ip_addresses data source"),
-				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.UseStateForUnknown(),
-				},
-				Attributes: map[string]schema.Attribute{
-					"services": schema.SingleNestedAttribute{
-						Computed: true,
-						Attributes: map[string]schema.Attribute{
-							"clusters": schema.ListNestedAttribute{
-								Computed: true,
-								NestedObject: schema.NestedAttributeObject{
-									Attributes: map[string]schema.Attribute{
-										"cluster_name": schema.StringAttribute{
-											Computed: true,
-										},
-										"inbound": schema.ListAttribute{
-											ElementType: types.StringType,
-											Computed:    true,
-										},
-										"outbound": schema.ListAttribute{
-											ElementType: types.StringType,
-											Computed:    true,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
 			"tags": schema.MapAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
@@ -196,7 +163,6 @@ type TFProjectRSModel struct {
 	Limits                                      types.Set    `tfsdk:"limits"`
 	Teams                                       types.Set    `tfsdk:"teams"`
 	Tags                                        types.Map    `tfsdk:"tags"`
-	IPAddresses                                 types.Object `tfsdk:"ip_addresses"`
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
 	Name                                        types.String `tfsdk:"name"`
 	OrgID                                       types.String `tfsdk:"org_id"`

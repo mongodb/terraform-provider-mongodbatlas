@@ -363,7 +363,6 @@ func FilterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimit
 type AdditionalProperties struct {
 	Teams                              *admin.PaginatedTeamRole
 	Settings                           *admin.GroupSettings
-	IPAddresses                        *admin.GroupIPAddresses
 	Limits                             []admin.DataFederationLimit
 	IsSlowOperationThresholdingEnabled bool
 }
@@ -385,10 +384,6 @@ func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, 
 		return nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
 	}
 
-	ipAddresses, _, err := projectsAPI.ReturnAllIpAddresses(ctx, projectID).Execute()
-	if err != nil {
-		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", projectID, err.Error())
-	}
 	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, performanceAdvisorAPI, projectID, warnings)
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", projectID, err.Error())
@@ -398,7 +393,6 @@ func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, 
 		Teams:                              teams,
 		Limits:                             limits,
 		Settings:                           projectSettings,
-		IPAddresses:                        ipAddresses,
 		IsSlowOperationThresholdingEnabled: isSlowOperationThresholdingEnabled,
 	}, nil
 }
