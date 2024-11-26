@@ -6,7 +6,6 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
@@ -236,7 +235,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				Limits:                                      limitsTF,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
+				Tags:                                        types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -271,7 +270,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				Limits:                                      limitsTF,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
+				Tags:                                        types.MapNull(types.StringType),
 			},
 		},
 	}
@@ -323,7 +322,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				Limits:                                      limitsTFSet,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
+				Tags:                                        types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -356,7 +355,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				Limits:                                      limitsTFSet,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
+				Tags:                                        types.MapNull(types.StringType),
 			},
 		},
 	}
