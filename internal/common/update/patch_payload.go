@@ -2,6 +2,7 @@ package update
 
 import (
 	"encoding/json"
+	"reflect"
 	"regexp"
 	"slices"
 	"strings"
@@ -176,4 +177,14 @@ func PatchPayload[T any](state, plan *T) (*T, error) {
 		return nil, nil
 	}
 	return patchReq, json.Unmarshal(reqJSON, patchReq)
+}
+
+
+func IsEmpty[T any](last *T) bool {
+	if last == nil {
+		return true
+	}
+	empty := new(T)
+	return reflect.DeepEqual(last, empty)
+
 }

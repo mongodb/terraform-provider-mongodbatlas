@@ -254,3 +254,10 @@ func TestPatchAdvancedConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestIsEmpty(t *testing.T) {
+	assert.True(t, update.IsEmpty(&admin.ClusterDescription20240805{}))
+	var myVar admin.ClusterDescription20240805
+	assert.True(t, update.IsEmpty(&myVar))
+	assert.False(t, update.IsEmpty(&admin.ClusterDescription20240805{Name: conversion.Pointer("my-cluster")}))
+}
