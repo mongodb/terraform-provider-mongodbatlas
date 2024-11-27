@@ -148,12 +148,12 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		return nil
 	}
 	var (
-		projectID = plan.ProjectID.ValueString()
-		clusterName = plan.Name.ValueString()
+		projectID               = plan.ProjectID.ValueString()
+		clusterName             = plan.Name.ValueString()
 		apiLegacyAdvancedConfig = r.Client.AtlasV220240530.ClustersApi
-		apiLegacyCluster = r.Client.AtlasV220240805.ClustersApi
-		apiLatest = r.Client.AtlasV2.ClustersApi
-		err error
+		apiLegacyCluster        = r.Client.AtlasV220240805.ClustersApi
+		apiLatest               = r.Client.AtlasV2.ClustersApi
+		err                     error
 	)
 	if legacyReq != nil {
 		_, _, err = apiLegacyCluster.CreateCluster(ctx, projectID, legacyReq).Execute()
