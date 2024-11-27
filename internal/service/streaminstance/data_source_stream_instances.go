@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 var _ datasource.DataSource = &streamInstancesDS{}
@@ -45,6 +45,7 @@ func (d *streamInstancesDS) Schema(ctx context.Context, req datasource.SchemaReq
 			},
 		},
 		DSAttributes(false))
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *streamInstancesDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

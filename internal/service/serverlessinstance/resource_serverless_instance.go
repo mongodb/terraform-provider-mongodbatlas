@@ -12,10 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 const (
@@ -110,14 +111,16 @@ func resourceSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"continuous_backup_enabled": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Computed: true,
+			Deprecated: fmt.Sprintf(constant.DeprecatioParamByDateWithExternalLink, "March 2025", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
+			Type:       schema.TypeBool,
+			Optional:   true,
+			Computed:   true,
 		},
 		"auto_indexing": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Computed: true,
+			Deprecated: fmt.Sprintf(constant.DeprecatioParamByDateWithExternalLink, "March 2025", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
+			Type:       schema.TypeBool,
+			Optional:   true,
+			Computed:   true,
 		},
 		"tags": &advancedcluster.RSTagsSchema,
 	}

@@ -8,7 +8,7 @@ endif
 
 ACCTEST_REGEX_RUN?=^TestAcc
 ACCTEST_TIMEOUT?=300m
-PARALLEL_GO_TEST?=20
+PARALLEL_GO_TEST?=50
 
 BINARY_NAME=terraform-provider-mongodbatlas
 DESTINATION=./bin/$(BINARY_NAME)
@@ -18,7 +18,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v1.60.3 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v1.61.0 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -84,6 +84,7 @@ tools:  ## Install dev tools
 	go install github.com/hashicorp/terraform-plugin-codegen-framework/cmd/tfplugingen-framework@latest
 	go install github.com/hashicorp/go-changelog/cmd/changelog-build@latest
 	go install github.com/hashicorp/go-changelog/cmd/changelog-entry@latest
+	go install golang.org/x/tools/cmd/goimports@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
 .PHONY: docs
@@ -117,11 +118,17 @@ scaffold:
 	@echo "Reminder: configure the new $(type) in provider.go"
 
 # e.g. run: make scaffold-schemas resource_name=streamInstance
-# details on usage can be found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
+# details on usage can be found in contributing/development-best-practices.md under "Generating Schema and Model Definitions - Using schema generation HashiCorp tooling"
 .PHONY: scaffold-schemas
 scaffold-schemas:
 	@scripts/schema-scaffold.sh $(resource_name)
 
+# e.g. run: make generate-schema resource_name=search_deployment
+# resource_name is optional, if not provided all configured resources will be generated
+# details on usage can be found in contributing/development-best-practices.md under "Generating Schema and Model Definitions - Using internal tool"
+.PHONY: generate-schema
+generate-schema: 
+	@go run ./tools/codegen/main.go $(resource_name)
 
 .PHONY: generate-doc
 # e.g. run: make generate-doc resource_name=search_deployment
@@ -138,6 +145,10 @@ generate-docs-all:
 update-tf-compatibility-matrix: ## Update Terraform Compatibility Matrix documentation
 	./scripts/update-tf-compatibility-matrix.sh
 
+.PHONY: update-tf-version-in-repository
+update-tf-version-in-repository: ## Update Terraform versions
+	./scripts/update-tf-version-in-repository.sh
+
 .PHONY: update-changelog-unreleased-section
 update-changelog-unreleased-section:
 	./scripts/update-changelog-unreleased-section.sh
@@ -153,3 +164,24 @@ check-changelog-entry-file:
 .PHONY: jira-release-version
 jira-release-version:
 	go run ./tools/jira-release-version/*.go
+
+.PHONY: enable-advancedclustertpf
+enable-advancedclustertpf:
+	make delete-lines filename="./internal/provider/provider_sdk2.go" delete="mongodbatlas_advanced_cluster"
+	make add-lines filename=./internal/provider/provider.go find="project.Resource," add="advancedclustertpf.Resource,"
+	make add-lines filename=./internal/provider/provider.go find="project.DataSource," add="advancedclustertpf.DataSource,"
+	make add-lines filename=./internal/provider/provider.go find="project.PluralDataSource," add="advancedclustertpf.PluralDataSource,"
+
+.PHONY: delete-lines ${filename} ${delete}
+delete-lines:
+	rm -f file.tmp
+	grep -v "${delete}" "${filename}" > file.tmp
+	mv file.tmp ${filename}
+	goimports -w ${filename}
+
+.PHONY: add-lines ${filename} ${find} ${add}
+add-lines:
+	rm -f file.tmp
+	sed 's/${find}/${find}${add}/' "${filename}" > "file.tmp"
+	mv file.tmp ${filename}
+	goimports -w ${filename}

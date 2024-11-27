@@ -4,7 +4,7 @@
 ## Table of Contents
 - [Creating New Resource and Data Sources](#creating-new-resources-and-data-sources)
     - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
-    - [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions)
+    - [Generating Schema and Model Definitions](#scaffolding-schema-and-model-definitions)
 
 - Each resource (and associated data sources) is in a package in `internal/service`.
 - There can be multiple helper files and they can also be used from other resources, e.g. `common_advanced_cluster.go` defines functions that are also used from other resources using `advancedcluster.FunctionName`.
@@ -26,11 +26,30 @@ This will generate resource/data source files and accompanying test files needed
 
 As a follow up step, use [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions) to autogenerate the schema via the Open API specification. This will require making adjustments to the generated `./internal/service/<resource_name>/tfplugingen/generator_config.yml` file.
 
-#### Scaffolding Schema and Model Definitions
+#### Generating Schema and Model Definitions
+
+##### (Recommended) Using internal tool
+
+The generation command makes use of a configuration file defined under [`./tools/codegen/config.yml`](../tools/codegen/config.yml). The structure of this configuration file can be found under  [`./tools/codegen/config/config_model.go`](../tools/codegen/config/config_model.go).
+
+The generation command takes a single optional argument `resource_name`. If not provided, all resources defined in the configuration are generated.
+
+```bash
+make generate-schema resource_name=search_deployment
+```
+
+As a result, content of schemas will be written into the corresponding resource packages:
+`./internal/service/<resource-package>/resource_schema.go`
+
+**Note**: Data source schema generation is currently not supported.
+
+
+##### (Legacy) Using schema generation HashiCorp tooling
+
 
 Complementary to the `scaffold` command, there is a command which generates the initial Terraform schema definition and associated Go types for a resource or data source. This processes leverages [Code Generation Tools](https://developer.hashicorp.com/terraform/plugin/code-generation) developed by HashiCorp, which in turn make use of the [Atlas Admin API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/) OpenAPI Specification.
 
-##### Running the command
+###### Running the command
 
 Both `tfplugingen-openapi` and `tfplugingen-framework` must be installed. This can be done by running `make tools`.
 
@@ -49,7 +68,7 @@ Note: if the resulting file paths already exist the content will be stored in fi
 
 Note: you can override the Open API description of a field with a custom description via the [overrides](https://developer.hashicorp.com/terraform/plugin/code-generation/openapi-generator#overriding-attribute-descriptions) param. See this [example](internal/service/searchdeployment/tfplugingen/generator_config.yml).
 
-##### Considerations over generated schema and types
+###### Considerations over generated schema and types
 
 - Generated Go type should include a TF prefix to follow the convention in our codebase, this will not be present in generated code.
 - Some attribute names may need to be adjusted if there is a difference in how they are named in Terraform vs the API. An examples of this is `group_id` → `project_id`.

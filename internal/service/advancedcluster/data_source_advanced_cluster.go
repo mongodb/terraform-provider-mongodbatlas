@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -68,9 +67,8 @@ func DataSource() *schema.Resource {
 				Computed: true,
 			},
 			"labels": {
-				Type:       schema.TypeSet,
-				Computed:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationParamFutureWithReplacement, "tags"),
+				Type:     schema.TypeSet,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -250,6 +248,18 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"redact_client_log_data": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"config_server_management_mode": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"config_server_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -294,6 +304,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err := d.Set("replica_set_scaling_strategy", clusterDescNew.GetReplicaSetScalingStrategy()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
 		}
+		if err := d.Set("redact_client_log_data", clusterDescNew.GetRedactClientLogData()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
+		}
 
 		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(clusterDescNew)
 		if err != nil {
@@ -305,7 +318,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 
-		diags := setRootFields(d, convertClusterDescToLatestExcludeRepSpecs(clusterDescOld), false)
+		clusterDesc := convertClusterDescToLatestExcludeRepSpecs(clusterDescOld)
+		clusterDesc.ConfigServerManagementMode = clusterDescNew.ConfigServerManagementMode
+		clusterDesc.ConfigServerType = clusterDescNew.ConfigServerType
+		diags := setRootFields(d, clusterDesc, false)
 		if diags.HasError() {
 			return diags
 		}
@@ -326,6 +342,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		if err := d.Set("replica_set_scaling_strategy", clusterDescLatest.GetReplicaSetScalingStrategy()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
+		}
+		if err := d.Set("redact_client_log_data", clusterDescLatest.GetRedactClientLogData()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
 		}
 
 		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)

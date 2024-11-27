@@ -78,7 +78,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	resp, _, err := connV2.LDAPConfigurationApi.GetLDAPConfiguration(ctx, projectID).Execute()
+	resp, _, err := connV2.LDAPConfigurationApi.GetLdapConfiguration(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCustomerX509AuthDBUsersRead, projectID, err))
 	}

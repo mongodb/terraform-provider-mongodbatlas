@@ -25,7 +25,7 @@ func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 	config := configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, deleteExpirationDays)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     mig.PreCheckBasicSleep(t),
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{

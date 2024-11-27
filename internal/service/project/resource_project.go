@@ -2,6 +2,7 @@ package project
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,23 +10,15 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -56,249 +49,9 @@ type projectRS struct {
 	config.RSCommon
 }
 
-type TFProjectRSModel struct {
-	Limits                                      types.Set    `tfsdk:"limits"`
-	Teams                                       types.Set    `tfsdk:"teams"`
-	Tags                                        types.Map    `tfsdk:"tags"`
-	IPAddresses                                 types.Object `tfsdk:"ip_addresses"`
-	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
-	Name                                        types.String `tfsdk:"name"`
-	OrgID                                       types.String `tfsdk:"org_id"`
-	Created                                     types.String `tfsdk:"created"`
-	ProjectOwnerID                              types.String `tfsdk:"project_owner_id"`
-	ID                                          types.String `tfsdk:"id"`
-	ClusterCount                                types.Int64  `tfsdk:"cluster_count"`
-	IsDataExplorerEnabled                       types.Bool   `tfsdk:"is_data_explorer_enabled"`
-	IsPerformanceAdvisorEnabled                 types.Bool   `tfsdk:"is_performance_advisor_enabled"`
-	IsRealtimePerformancePanelEnabled           types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`
-	IsSchemaAdvisorEnabled                      types.Bool   `tfsdk:"is_schema_advisor_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
-	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
-	WithDefaultAlertsSettings                   types.Bool   `tfsdk:"with_default_alerts_settings"`
-}
-
-type TFTeamModel struct {
-	TeamID    types.String `tfsdk:"team_id"`
-	RoleNames types.Set    `tfsdk:"role_names"`
-}
-
-type TFLimitModel struct {
-	Name         types.String `tfsdk:"name"`
-	Value        types.Int64  `tfsdk:"value"`
-	CurrentUsage types.Int64  `tfsdk:"current_usage"`
-	DefaultLimit types.Int64  `tfsdk:"default_limit"`
-	MaximumLimit types.Int64  `tfsdk:"maximum_limit"`
-}
-
-type TFIPAddressesModel struct {
-	Services TFServicesModel `tfsdk:"services"`
-}
-
-type TFServicesModel struct {
-	Clusters []TFClusterIPsModel `tfsdk:"clusters"`
-}
-
-type TFClusterIPsModel struct {
-	ClusterName types.String `tfsdk:"cluster_name"`
-	Inbound     types.List   `tfsdk:"inbound"`
-	Outbound    types.List   `tfsdk:"outbound"`
-}
-
-var IPAddressesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"services": ServicesObjectType,
-}}
-
-var ServicesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"clusters": types.ListType{ElemType: ClusterIPsObjectType},
-}}
-
-var ClusterIPsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"cluster_name": types.StringType,
-	"inbound":      types.ListType{ElemType: types.StringType},
-	"outbound":     types.ListType{ElemType: types.StringType},
-}}
-
-var TfTeamObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"team_id":    types.StringType,
-	"role_names": types.SetType{ElemType: types.StringType},
-}}
-var TfLimitObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"name":          types.StringType,
-	"value":         types.Int64Type,
-	"current_usage": types.Int64Type,
-	"default_limit": types.Int64Type,
-	"maximum_limit": types.Int64Type,
-}}
-
-// Resources that need to be cleaned up before a project can be deleted
-type AtlasProjectDependants struct {
-	AdvancedClusters *admin.PaginatedClusterDescription20240805
-}
-
 func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				Required: true,
-			},
-			"org_id": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"cluster_count": schema.Int64Attribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
-				},
-			},
-			"created": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"project_owner_id": schema.StringAttribute{
-				Optional: true,
-			},
-			"with_default_alerts_settings": schema.BoolAttribute{
-				// Default values also must be Computed otherwise Terraform throws error:
-				// Schema Using Attribute Default For Non-Computed Attribute
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
-			},
-			"is_collect_database_specifics_statistics_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"is_data_explorer_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"is_extended_storage_sizes_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"is_performance_advisor_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"is_realtime_performance_panel_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"is_schema_advisor_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"region_usage_restrictions": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"ip_addresses": schema.SingleNestedAttribute{
-				Computed:           true,
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.21.0", "mongodbatlas_project_ip_addresses data source"),
-				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.UseStateForUnknown(),
-				},
-				Attributes: map[string]schema.Attribute{
-					"services": schema.SingleNestedAttribute{
-						Computed: true,
-						Attributes: map[string]schema.Attribute{
-							"clusters": schema.ListNestedAttribute{
-								Computed: true,
-								NestedObject: schema.NestedAttributeObject{
-									Attributes: map[string]schema.Attribute{
-										"cluster_name": schema.StringAttribute{
-											Computed: true,
-										},
-										"inbound": schema.ListAttribute{
-											ElementType: types.StringType,
-											Computed:    true,
-										},
-										"outbound": schema.ListAttribute{
-											ElementType: types.StringType,
-											Computed:    true,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			"tags": schema.MapAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-		},
-		Blocks: map[string]schema.Block{
-			"teams": schema.SetNestedBlock{
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"team_id": schema.StringAttribute{
-							Required: true,
-						},
-						"role_names": schema.SetAttribute{
-							Required:    true,
-							ElementType: types.StringType,
-						},
-					},
-				},
-			},
-			"limits": schema.SetNestedBlock{
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Required: true,
-						},
-						"value": schema.Int64Attribute{
-							Required: true,
-						},
-						"current_usage": schema.Int64Attribute{
-							Computed: true,
-						},
-						"default_limit": schema.Int64Attribute{
-							Computed: true,
-						},
-						"maximum_limit": schema.Int64Attribute{
-							Computed: true,
-						},
-					},
-				},
-				// https://discuss.hashicorp.com/t/computed-attributes-and-plan-modifiers/45830/12
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
-			},
-		},
-	}
+	resp.Schema = ResourceSchema(ctx)
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -313,13 +66,12 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	tags := NewResourceTags(ctx, projectPlan.Tags)
 	projectGroup := &admin.Group{
 		OrgId:                     projectPlan.OrgID.ValueString(),
 		Name:                      projectPlan.Name.ValueString(),
 		WithDefaultAlertsSettings: projectPlan.WithDefaultAlertsSettings.ValueBoolPointer(),
 		RegionUsageRestrictions:   conversion.StringNullIfEmpty(projectPlan.RegionUsageRestrictions.ValueString()).ValueStringPointer(),
-		Tags:                      &tags,
+		Tags:                      conversion.NewResourceTags(ctx, projectPlan.Tags),
 	}
 
 	projectAPIParams := &admin.CreateProjectApiParams{
@@ -402,18 +154,19 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	projectID := project.GetId()
-	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
+	projectRes, _, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 	if err != nil {
-		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
+		return
+	}
+	err = SetSlowOperationThresholding(ctx, connV2.PerformanceAdvisorApi, projectID, projectPlan.IsSlowOperationThresholdingEnabled)
+	if err != nil {
+		resp.Diagnostics.AddError(fmt.Sprintf("error when setting slow operation thresholding after create (%s): %s", projectID, err.Error()), "")
 		return
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -465,7 +218,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -523,24 +276,20 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	err = updateProjectSettings(ctx, connV2.ProjectsApi, &projectState, &projectPlan)
+	err = updateProjectSettings(ctx, connV2.ProjectsApi, connV2.PerformanceAdvisorApi, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project settings update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
-	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
+	projectRes, _, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 	if err != nil {
-		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, projectID)
+	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -612,14 +361,15 @@ func FilterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimit
 }
 
 type AdditionalProperties struct {
-	Teams       *admin.PaginatedTeamRole
-	Settings    *admin.GroupSettings
-	IPAddresses *admin.GroupIPAddresses
-	Limits      []admin.DataFederationLimit
+	Teams                              *admin.PaginatedTeamRole
+	Settings                           *admin.GroupSettings
+	IPAddresses                        *admin.GroupIPAddresses
+	Limits                             []admin.DataFederationLimit
+	IsSlowOperationThresholdingEnabled bool
 }
 
 // GetProjectPropsFromAPI fetches properties obtained from complementary endpoints associated with a project.
-func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, teamsAPI admin.TeamsApi, projectID string) (*AdditionalProperties, error) {
+func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, teamsAPI admin.TeamsApi, performanceAdvisorAPI admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (*AdditionalProperties, error) {
 	teams, _, err := teamsAPI.ListProjectTeams(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
@@ -635,20 +385,58 @@ func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, 
 		return nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
 	}
 
-	ipAddresses, _, err := projectsAPI.ReturnAllIPAddresses(ctx, projectID).Execute()
+	ipAddresses, _, err := projectsAPI.ReturnAllIpAddresses(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", projectID, err.Error())
 	}
+	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, performanceAdvisorAPI, projectID, warnings)
+	if err != nil {
+		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", projectID, err.Error())
+	}
 
 	return &AdditionalProperties{
-		Teams:       teams,
-		Limits:      limits,
-		Settings:    projectSettings,
-		IPAddresses: ipAddresses,
+		Teams:                              teams,
+		Limits:                             limits,
+		Settings:                           projectSettings,
+		IPAddresses:                        ipAddresses,
+		IsSlowOperationThresholdingEnabled: isSlowOperationThresholdingEnabled,
 	}, nil
 }
 
-func updateProjectSettings(ctx context.Context, projectsAPI admin.ProjectsApi, state, plan *TFProjectRSModel) error {
+func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI admin.PerformanceAdvisorApi, projectID string, enabledPlan types.Bool) error {
+	if enabledPlan.IsNull() || enabledPlan.IsUnknown() {
+		return nil
+	}
+	enabled := enabledPlan.ValueBool()
+	var err error
+	if enabled {
+		_, err = performanceAdvisorAPI.EnableSlowOperationThresholding(ctx, projectID).Execute()
+	} else {
+		_, err = performanceAdvisorAPI.DisableSlowOperationThresholding(ctx, projectID).Execute()
+	}
+	return err
+}
+
+func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (bool, error) {
+	response, err := api.GetManagedSlowMs(ctx, projectID).Execute()
+	if err != nil {
+		if admin.IsErrorCode(err, "USER_UNAUTHORIZED") {
+			if warnings != nil {
+				warnings.AddWarning("user does not have permission to read is_slow_operation_thresholding_enabled. Please read our documentation for more information.", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
+			}
+			return false, nil
+		}
+		return false, err
+	}
+	var isEnabled bool
+	err = json.NewDecoder(response.Body).Decode(&isEnabled)
+	if err != nil {
+		return false, fmt.Errorf("error reading is_slow_operation_thresholding_enabled body %w", err)
+	}
+	return isEnabled, nil
+}
+
+func updateProjectSettings(ctx context.Context, projectsAPI admin.ProjectsApi, performanceAdvisorAPI admin.PerformanceAdvisorApi, state, plan *TFProjectRSModel) error {
 	projectID := state.ID.ValueString()
 	settings, _, err := projectsAPI.GetProjectSettings(ctx, projectID).Execute()
 	if err != nil {
@@ -667,6 +455,10 @@ func updateProjectSettings(ctx context.Context, projectsAPI admin.ProjectsApi, s
 		if err != nil {
 			return fmt.Errorf("error updating project's settings assigned: %v", err.Error())
 		}
+	}
+	err = SetSlowOperationThresholding(ctx, performanceAdvisorAPI, projectID, plan.IsSlowOperationThresholdingEnabled)
+	if err != nil {
+		return fmt.Errorf("error updating project's slow operation thresholding: %v", err.Error())
 	}
 	return nil
 }
@@ -741,8 +533,7 @@ func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsApi, projectSta
 		teamID := team.TeamID.ValueString()
 		_, err := teamsAPI.RemoveProjectTeam(ctx, projectID, teamID).Execute()
 		if err != nil {
-			apiError, ok := admin.AsError(err)
-			if ok && *apiError.ErrorCode != "USER_UNAUTHORIZED" {
+			if !admin.IsErrorCode(err, "USER_UNAUTHORIZED") {
 				return fmt.Errorf("error removing team(%s) from the project(%s): %s", teamID, projectID, err)
 			}
 			log.Printf("[WARN] error removing team(%s) from the project(%s): %s", teamID, projectID, err)
@@ -792,15 +583,15 @@ func hasLimitsChanged(planLimits, stateLimits []TFLimitModel) bool {
 }
 
 func UpdateProject(ctx context.Context, projectsAPI admin.ProjectsApi, projectState, projectPlan *TFProjectRSModel) error {
-	tagsBefore := NewResourceTags(ctx, projectState.Tags)
-	tagsAfter := NewResourceTags(ctx, projectPlan.Tags)
+	tagsBefore := conversion.NewResourceTags(ctx, projectState.Tags)
+	tagsAfter := conversion.NewResourceTags(ctx, projectPlan.Tags)
 	if projectPlan.Name.Equal(projectState.Name) && reflect.DeepEqual(tagsBefore, tagsAfter) {
 		return nil
 	}
 
 	projectID := projectState.ID.ValueString()
 
-	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan, &tagsAfter)).Execute(); err != nil {
+	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan, tagsAfter)).Execute(); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
 

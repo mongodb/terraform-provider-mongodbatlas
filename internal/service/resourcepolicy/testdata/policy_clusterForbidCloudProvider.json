@@ -1,0 +1,22 @@
+{
+    "createdByUser": {
+        "id": "65def6f00f722a1507105ad8",
+        "name": "mvccpeou"
+    },
+    "createdDate": "2024-09-10T14:59:34Z",
+    "id": "66e05ed6680f032312b6b22b",
+    "lastUpdatedByUser": {
+        "id": "65def6f00f722a1507105ad9",
+        "name": "updateUser"
+    },
+    "lastUpdatedDate": "2024-09-10T14:59:35Z",
+    "name": "clusterForbidCloudProvider",
+    "orgId": "65def6ce0f722a1507105aa5",
+    "policies": [
+        {
+            "body": "\n\tforbid (\n\t\tprincipal,\n\t\taction == cloud::Action::\"cluster.createEdit\",\n\t\tresource\n\t) when {\n\t\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\"aws\"])\n\t};",
+            "id": "66e05ed6680f032312b6b22a"
+        }
+    ],
+    "version": "v1"
+}

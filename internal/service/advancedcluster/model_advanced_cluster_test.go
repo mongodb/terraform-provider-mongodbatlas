@@ -8,8 +8,9 @@ import (
 	"testing"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
-	"go.mongodb.org/atlas-sdk/v20240805004/mockadmin"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
@@ -450,13 +451,13 @@ func TestCheckRegionConfigsPriorityOrder(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			configs := make([]admin.CloudRegionConfig20240805, len(tc.priorities))
+			configs := make([]admin20240805.CloudRegionConfig20240805, len(tc.priorities))
 			configsOld := make([]admin20240530.CloudRegionConfig, len(tc.priorities))
 			for i, priority := range tc.priorities {
 				configs[i].Priority = conversion.IntPtr(priority)
 				configsOld[i].Priority = conversion.IntPtr(priority)
 			}
-			err := advancedcluster.CheckRegionConfigsPriorityOrder([]admin.ReplicationSpec20240805{{RegionConfigs: &configs}})
+			err := advancedcluster.CheckRegionConfigsPriorityOrder([]admin20240805.ReplicationSpec20240805{{RegionConfigs: &configs}})
 			assert.Equal(t, tc.errorExpected, err != nil)
 			err = advancedcluster.CheckRegionConfigsPriorityOrderOld([]admin20240530.ReplicationSpec{{RegionConfigs: &configsOld}})
 			assert.Equal(t, tc.errorExpected, err != nil)

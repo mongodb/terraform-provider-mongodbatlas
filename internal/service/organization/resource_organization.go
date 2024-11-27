@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -76,6 +77,11 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"gen_ai_features_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -88,7 +94,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	organization, resp, err := conn.OrganizationsApi.CreateOrganization(ctx, newCreateOrganizationRequest(d)).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if resp.StatusCode == http.StatusNotFound && !strings.Contains(err.Error(), "USER_NOT_FOUND") {
 			d.SetId("")
 			return nil
 		}
@@ -182,6 +188,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err := d.Set("restrict_employee_access", settings.RestrictEmployeeAccess); err != nil {
 		return diag.Errorf("error setting `restrict_employee_access` for organization (%s): %s", orgID, err)
 	}
+	if err := d.Set("gen_ai_features_enabled", settings.GenAIFeaturesEnabled); err != nil {
+		return diag.Errorf("error setting `gen_ai_features_enabled` for organization (%s): %s", orgID, err)
+	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id": organization.GetId(),
@@ -212,7 +221,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	if d.HasChange("api_access_list_required") || d.HasChange("multi_factor_auth_required") || d.HasChange("restrict_employee_access") {
+	if d.HasChange("api_access_list_required") ||
+		d.HasChange("multi_factor_auth_required") ||
+		d.HasChange("restrict_employee_access") ||
+		d.HasChange("gen_ai_features_enabled") {
 		if _, _, err := conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization settings: %s", err))
 		}
@@ -264,6 +276,7 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 		ApiAccessListRequired:   conversion.Pointer(d.Get("api_access_list_required").(bool)),
 		MultiFactorAuthRequired: conversion.Pointer(d.Get("multi_factor_auth_required").(bool)),
 		RestrictEmployeeAccess:  conversion.Pointer(d.Get("restrict_employee_access").(bool)),
+		GenAIFeaturesEnabled:    conversion.Pointer(d.Get("gen_ai_features_enabled").(bool)),
 	}
 }
 

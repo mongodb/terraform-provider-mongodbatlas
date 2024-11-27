@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 const (
@@ -120,7 +120,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		userReq := &admin.UserSecurity{
 			CustomerX509: &admin.DBUserTLSX509Settings{Cas: &customerX509Cas},
 		}
-		_, _, err := connV2.LDAPConfigurationApi.SaveLDAPConfiguration(ctx, projectID, userReq).Execute()
+		_, _, err := connV2.LDAPConfigurationApi.SaveLdapConfiguration(ctx, projectID, userReq).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCustomerX509AuthDBUsersCreate, projectID, err))
 		}
@@ -206,7 +206,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		}
 	}
 
-	resp, _, err := connV2.LDAPConfigurationApi.GetLDAPConfiguration(ctx, projectID).Execute()
+	resp, _, err := connV2.LDAPConfigurationApi.GetLdapConfiguration(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorCustomerX509AuthDBUsersRead, projectID, err)
 	}

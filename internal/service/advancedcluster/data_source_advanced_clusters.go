@@ -7,13 +7,12 @@ import (
 	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -81,9 +80,8 @@ func PluralDataSource() *schema.Resource {
 							Computed: true,
 						},
 						"labels": {
-							Type:       schema.TypeSet,
-							Computed:   true,
-							Deprecated: fmt.Sprintf(constant.DeprecationParamFutureWithReplacement, "tags"),
+							Type:     schema.TypeSet,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"key": {
@@ -263,6 +261,18 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"redact_client_log_data": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"config_server_management_mode": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"config_server_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -362,6 +372,9 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
 			"replica_set_scaling_strategy":         cluster.GetReplicaSetScalingStrategy(),
+			"redact_client_log_data":               cluster.GetRedactClientLogData(),
+			"config_server_management_mode":        cluster.GetConfigServerManagementMode(),
+			"config_server_type":                   cluster.GetConfigServerType(),
 		}
 		results = append(results, result)
 	}
@@ -418,6 +431,9 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
 			"replica_set_scaling_strategy":         clusterDescNew.GetReplicaSetScalingStrategy(),
+			"redact_client_log_data":               clusterDescNew.GetRedactClientLogData(),
+			"config_server_management_mode":        clusterDescNew.GetConfigServerManagementMode(),
+			"config_server_type":                   clusterDescNew.GetConfigServerType(),
 		}
 		results = append(results, result)
 	}

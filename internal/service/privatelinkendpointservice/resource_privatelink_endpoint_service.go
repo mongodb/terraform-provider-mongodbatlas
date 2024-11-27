@@ -16,7 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 const (
@@ -175,7 +175,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
-		Delay:      5 * time.Minute,
+		Delay:      1 * time.Minute,
 	}
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
@@ -189,7 +189,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
-		Delay:      5 * time.Minute,
+		Delay:      1 * time.Minute,
 	}
 
 	if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
@@ -222,7 +222,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err))
 	}
 
@@ -274,6 +273,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 	}
 
+	if privateEndpoint.GetErrorMessage() != "" {
+		return diag.FromErr(fmt.Errorf("privatelink endpoint service is in a failed state: %s", privateEndpoint.GetErrorMessage()))
+	}
 	return nil
 }
 
@@ -313,7 +315,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: 5 * time.Second,
-			Delay:      5 * time.Minute,
+			Delay:      1 * time.Minute,
 		}
 
 		if _, err = clusterConf.WaitForStateContext(ctx); err != nil {

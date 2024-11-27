@@ -26,7 +26,7 @@ func TestAccEventTrigger_basic(t *testing.T) {
 		Name:       acc.RandomName(),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   conversion.Pointer(false),
+		Disabled:   conversion.Pointer(true),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE"},
 			Database:       "sample_airbnb",
@@ -39,7 +39,7 @@ func TestAccEventTrigger_basic(t *testing.T) {
 		Name:       acc.RandomName(),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   conversion.Pointer(false),
+		Disabled:   conversion.Pointer(true),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE", "DELETE"},
 			Database:       "sample_airbnb",
@@ -58,6 +58,7 @@ func TestAccEventTrigger_basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "disabled", "true"),
 				),
 			},
 			{
@@ -65,6 +66,7 @@ func TestAccEventTrigger_basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "disabled", "true"),
 				),
 			},
 			{

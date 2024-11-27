@@ -11,11 +11,11 @@ jobs:
     permissions: {}
     steps:
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           sparse-checkout: |
             scripts
-      - uses: mongodb/atlas-github-action@07d212bf80c068dfcfbf6e15b22c61ae6e66d96e
+      - uses: mongodb/atlas-github-action@15663d068c40a8582d881560961fce9d45e0df9a
       - name: Cleanup cloud-dev
         shell: bash
         env:
@@ -29,11 +29,11 @@ jobs:
     permissions: {}
     steps:
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           sparse-checkout: |
             scripts
-      - uses: mongodb/atlas-github-action@07d212bf80c068dfcfbf6e15b22c61ae6e66d96e
+      - uses: mongodb/atlas-github-action@15663d068c40a8582d881560961fce9d45e0df9a
       - name: Cleanup test env network
         shell: bash
         env:

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 func Resource() *schema.Resource {
@@ -108,6 +108,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"failed": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"finished_at": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -189,6 +193,10 @@ func setCommonFields(d *schema.ResourceData, snapshotReq *admin.DiskBackupSnapsh
 
 	if err = d.Set("expires_at", conversion.TimePtrToStringPtr(snapshotReq.ExpiresAt)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `expires_at` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
+	}
+
+	if err = d.Set("failed", snapshotReq.GetFailed()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `failed` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
 	if err = d.Set("finished_at", conversion.TimePtrToStringPtr(snapshotReq.FinishedAt)); err != nil {

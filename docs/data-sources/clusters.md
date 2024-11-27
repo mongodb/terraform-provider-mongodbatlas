@@ -119,6 +119,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
 
+* `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more info.
+
 ### BI Connector
 
 Indicates BI Connector for Atlas configuration.
@@ -130,7 +132,7 @@ Indicates BI Connector for Atlas configuration.
 
 Configuration for cluster regions.
 
-* `id` - Unique identifer of the replication document for a zone in a Global Cluster.
+* `id` - Unique identifer of the replication document for a zone in a Global Cluster. This value corresponds to the legacy sharding schema (no independent shard scaling) and is different from the Shard ID you may see in the Atlas UI.
 * `num_shards` - Number of shards to deploy in the specified zone.
 * `regions_config` - Describes the physical location of the region. Each regionsConfig document describes the region’s priority in elections and the number and type of MongoDB nodes Atlas deploys to the region. You must order each regionsConfigs document by regionsConfig.priority, descending. See [Region Config](#region-config) below for more details.
 * `zone_name` - Indicates the n ame for the zone in a Global Cluster.
@@ -156,8 +158,6 @@ Key-value pairs between 1 to 255 characters in length for tagging and categorizi
 To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas).
 
 ### Labels
-
-**WARNING:** This property is deprecated and will be removed in the future, use the `tags` attribute instead.
 
 Key-value pairs that categorize the cluster. Each key and value has a maximum length of 255 characters.  You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
 

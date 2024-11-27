@@ -59,6 +59,7 @@ data "mongodbatlas_advanced_cluster" "cluster" {
   count      = var.cluster_name == "" ? 0 : 1
   project_id = var.project_id
   name       = var.cluster_name
+  depends_on = [mongodbatlas_privatelink_endpoint_service.test]
 }
 
 locals {

@@ -79,6 +79,10 @@ func filesToGenerate(params *ScaffoldParams) ([]FileGeneration, error) {
 				TemplatePath: "tools/scaffold/template/generator_config.tmpl",
 				OutputPath:   fmt.Sprintf("%s/tfplugingen/generator_config.yml", folderPath),
 			},
+			{
+				TemplatePath: "tools/scaffold/template/main_test.tmpl",
+				OutputPath:   fmt.Sprintf("%s/main_test.go", folderPath),
+			},
 		}, nil
 	case DataSourceCmd:
 		return []FileGeneration{
@@ -88,7 +92,7 @@ func filesToGenerate(params *ScaffoldParams) ([]FileGeneration, error) {
 			},
 			{
 				TemplatePath: "tools/scaffold/template/acc_test.tmpl",
-				OutputPath:   fmt.Sprintf("%s/data_source_test.go", folderPath),
+				OutputPath:   fmt.Sprintf("%s/resource_test.go", folderPath),
 			},
 			{
 				TemplatePath: "tools/scaffold/template/model.tmpl",
@@ -101,6 +105,10 @@ func filesToGenerate(params *ScaffoldParams) ([]FileGeneration, error) {
 			{
 				TemplatePath: "tools/scaffold/template/generator_config.tmpl",
 				OutputPath:   fmt.Sprintf("%s/tfplugingen/generator_config.yml", folderPath),
+			},
+			{
+				TemplatePath: "tools/scaffold/template/main_test.tmpl",
+				OutputPath:   fmt.Sprintf("%s/main_test.go", folderPath),
 			},
 		}, nil
 	case PluralDataSourceCmd:
@@ -111,7 +119,7 @@ func filesToGenerate(params *ScaffoldParams) ([]FileGeneration, error) {
 			},
 			{
 				TemplatePath: "tools/scaffold/template/acc_test.tmpl",
-				OutputPath:   fmt.Sprintf("%s/plural_data_source_test.go", folderPath),
+				OutputPath:   fmt.Sprintf("%s/resource_test.go", folderPath),
 			},
 			{
 				TemplatePath: "tools/scaffold/template/model.tmpl",
@@ -124,6 +132,10 @@ func filesToGenerate(params *ScaffoldParams) ([]FileGeneration, error) {
 			{
 				TemplatePath: "tools/scaffold/template/generator_config.tmpl",
 				OutputPath:   fmt.Sprintf("%s/tfplugingen/generator_config.yml", folderPath),
+			},
+			{
+				TemplatePath: "tools/scaffold/template/main_test.tmpl",
+				OutputPath:   fmt.Sprintf("%s/main_test.go", folderPath),
 			},
 		}, nil
 	default:

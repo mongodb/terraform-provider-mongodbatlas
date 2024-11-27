@@ -4,6 +4,9 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func PreCheckBasic(tb testing.TB) {
@@ -12,6 +15,28 @@ func PreCheckBasic(tb testing.TB) {
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
+	}
+}
+
+func SkipIfTPFAdvancedCluster(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS") == "true" {
+		tb.Skip("Skipping tests as resource is TPF Advanced Cluster and implementation is pending")
+	}
+}
+
+// PreCheckBasicSleep is a helper function to call SerialSleep, see its help for more info.
+// Some examples of use are when the test is calling ProjectIDExecution or GetClusterInfo to create clusters.
+func PreCheckBasicSleep(tb testing.TB, clusterInfo *ClusterInfo, projectID, clusterName string) func() {
+	tb.Helper()
+	return func() {
+		PreCheckBasic(tb)
+		SerialSleep(tb)
+		if clusterInfo != nil {
+			projectID = clusterInfo.ProjectID
+			clusterName = clusterInfo.Name
+		}
+		tb.Logf("Time before creating cluster: %s, ProjectID: %s, Cluster name: %s", conversion.TimeToString(time.Now()), projectID, clusterName)
 	}
 }
 
@@ -79,6 +104,14 @@ func PreCheckAtlasUsername(tb testing.TB) {
 	PreCheckBasic(tb)
 	if os.Getenv("MONGODB_ATLAS_USERNAME") == "" {
 		tb.Fatal("`MONGODB_ATLAS_USERNAME` must be set ")
+	}
+}
+
+func PreCheckAtlasUsernames(tb testing.TB) {
+	tb.Helper()
+	PreCheckAtlasUsername(tb)
+	if os.Getenv("MONGODB_ATLAS_USERNAME_2") == "" {
+		tb.Fatal("`MONGODB_ATLAS_USERNAME_2` must be set")
 	}
 }
 

@@ -16,7 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 const (
@@ -247,7 +247,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
-		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
+		Target:     []string{"FAILED", "AVAILABLE", "PENDING_ACCEPTANCE"},
 		Refresh:    resourceRefreshFunc(ctx, peer.GetId(), projectID, peerRequest.GetContainerId(), conn.NetworkPeeringApi),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
@@ -313,7 +313,24 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	return setCommonFields(d, peer, peerID, accepterRegionName)
+
+	diags := setCommonFields(d, peer, peerID, accepterRegionName)
+
+	failedStatusDiag := errorIfFailedStatusIsPresent(peer)
+
+	return append(diags, failedStatusDiag...)
+}
+
+func errorIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
+	// for Azure/GCP "status" and "errorState" is returned, for AWS "statusName" and "errorStateName" :-/
+	if peer.GetStatus() == "FAILED" || peer.GetStatusName() == "FAILED" {
+		errorState := peer.GetErrorState()
+		if peer.GetErrorStateName() != "" {
+			errorState = peer.GetErrorStateName()
+		}
+		return diag.FromErr(fmt.Errorf("peer networking is in a failed state: %s", errorState))
+	}
+	return nil
 }
 
 func setCommonFields(d *schema.ResourceData, peer *admin.BaseNetworkPeeringConnectionSettings, peerID, accepterRegionName string) diag.Diagnostics {
@@ -440,7 +457,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
-		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
+		Target:     []string{"FAILED", "AVAILABLE", "PENDING_ACCEPTANCE"},
 		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn.NetworkPeeringApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 30 * time.Second,

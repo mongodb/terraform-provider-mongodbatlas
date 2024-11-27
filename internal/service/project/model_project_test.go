@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -231,11 +231,12 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
 				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
+				IsSlowOperationThresholdingEnabled:          types.BoolValue(false),
 				Teams:                                       teamsDSTF,
 				Limits:                                      limitsTF,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        emptyTfTags(),
+				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
 			},
 		},
 		{
@@ -246,9 +247,10 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 					Results:    &teamRolesSDK,
 					TotalCount: conversion.IntPtr(1),
 				},
-				Settings:    &projectSettingsSDK,
-				IPAddresses: &IPAddressesSDK,
-				Limits:      limitsSDK,
+				Settings:                           &projectSettingsSDK,
+				IPAddresses:                        &IPAddressesSDK,
+				Limits:                             limitsSDK,
+				IsSlowOperationThresholdingEnabled: true,
 			},
 			expectedTFModel: project.TFProjectDSModel{
 
@@ -264,11 +266,12 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
 				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
+				IsSlowOperationThresholdingEnabled:          types.BoolValue(true),
 				Teams:                                       teamsDSTF,
 				Limits:                                      limitsTF,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        emptyTfTags(),
+				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
 			},
 		},
 	}
@@ -315,11 +318,12 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
 				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
+				IsSlowOperationThresholdingEnabled:          types.BoolValue(false),
 				Teams:                                       teamsTFSet,
 				Limits:                                      limitsTFSet,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        emptyTfTags(),
+				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
 			},
 		},
 		{
@@ -347,11 +351,12 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				IsPerformanceAdvisorEnabled:                 types.BoolValue(true),
 				IsRealtimePerformancePanelEnabled:           types.BoolValue(true),
 				IsSchemaAdvisorEnabled:                      types.BoolValue(true),
+				IsSlowOperationThresholdingEnabled:          types.BoolValue(false),
 				Teams:                                       teamsTFSet,
 				Limits:                                      limitsTFSet,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
-				Tags:                                        emptyTfTags(),
+				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
 			},
 		},
 	}
@@ -544,49 +549,4 @@ func TestUpdateProjectBool(t *testing.T) {
 			assert.Equal(t, tc.expectedSetting, *setting)
 		})
 	}
-}
-
-func TestNewResourceTags(t *testing.T) {
-	testCases := map[string]struct {
-		plan     types.Map
-		expected []admin.ResourceTag
-	}{
-		"tags null":    {types.MapNull(types.StringType), []admin.ResourceTag{}},
-		"tags unknown": {types.MapUnknown(types.StringType), []admin.ResourceTag{}},
-		"tags convert normally": {types.MapValueMust(types.StringType, map[string]attr.Value{
-			"key1": types.StringValue("value1"),
-		}), []admin.ResourceTag{
-			*admin.NewResourceTag("key1", "value1"),
-		}},
-	}
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, project.NewResourceTags(context.Background(), tc.plan))
-		})
-	}
-}
-
-func TestNewTFTags(t *testing.T) {
-	var (
-		tfMapEmpty     = emptyTfTags()
-		apiListEmpty   = []admin.ResourceTag{}
-		apiSingleTag   = []admin.ResourceTag{*admin.NewResourceTag("key1", "value1")}
-		tfMapSingleTag = types.MapValueMust(types.StringType, map[string]attr.Value{"key1": types.StringValue("value1")})
-	)
-	testCases := map[string]struct {
-		expected  types.Map
-		adminTags []admin.ResourceTag
-	}{
-		"api empty list tf null should give map null":      {tfMapEmpty, apiListEmpty},
-		"tags single value tf null should give map single": {tfMapSingleTag, apiSingleTag},
-	}
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, project.NewTFTags(tc.adminTags))
-		})
-	}
-}
-
-func emptyTfTags() types.Map {
-	return types.MapValueMust(types.StringType, map[string]attr.Value{})
 }

@@ -54,7 +54,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, attrsPluralDS)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		PreCheck:                 acc.PreCheckBasicSleep(tb, &clusterInfo, "", ""),
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -63,10 +63,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"state"}, // state can change from Queued to InProgress
 			},
 		},
 	}

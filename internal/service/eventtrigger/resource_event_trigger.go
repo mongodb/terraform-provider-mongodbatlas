@@ -402,7 +402,6 @@ func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.Resour
 }
 
 func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
 	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
@@ -418,12 +417,10 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 		Name:       d.Get("name").(string),
 		Type:       typeTrigger,
 		FunctionID: d.Get("function_id").(string),
+		Disabled:   conversion.Pointer(d.Get("disabled").(bool)),
 	}
 	eventTriggerConfig := &realm.EventTriggerConfig{}
 
-	if d.HasChange("disabled") {
-		eventReq.Disabled = conversion.Pointer(d.Get("disabled").(bool))
-	}
 	if typeTrigger == "DATABASE" {
 		eventTriggerConfig.OperationTypes = cast.ToStringSlice(d.Get("config_operation_types"))
 		eventTriggerConfig.Database = d.Get("config_database").(string)

@@ -1,13 +1,112 @@
 ## (Unreleased)
 
+## 1.22.0 (November 26, 2024)
+
+NOTES:
+
+* data-source/mongodbatlas_organization: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+* data-source/mongodbatlas_organizations: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+* data-source/mongodbatlas_privatelink_endpoint_service_serverless: Deprecates data source ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* data-source/mongodbatlas_privatelink_endpoints_service_serverless: Deprecates data source ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* data-source/mongodbatlas_serverless_instance: Deprecates `auto_indexing` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* data-source/mongodbatlas_serverless_instance: Deprecates `continuous_backup_enabled` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* data-source/mongodbatlas_serverless_instances: Deprecates `auto_indexing` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* data-source/mongodbatlas_serverless_instances: Deprecates `continuous_backup_enabled` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* resource/mongodbatlas_organization: Adds new `gen_ai_features_enabled` attribute ([#2724](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2724))
+* resource/mongodbatlas_privatelink_endpoint_serverless: Deprecates resource ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* resource/mongodbatlas_privatelink_endpoint_service_serverless: Deprecates resource ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* resource/mongodbatlas_serverless_instance: Deprecates `auto_indexing` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+* resource/mongodbatlas_serverless_instance: Deprecates `continuous_backup_enabled` attribute ([#2742](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2742))
+
+FEATURES:
+
+* **New Data Source:** `mongodbatlas_flex_cluster` ([#2738](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2738))
+* **New Data Source:** `mongodbatlas_flex_clusters` ([#2767](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2767))
+* **New Resource:** `mongodbatlas_flex_cluster` ([#2716](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2716))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_job: Adds `failed` attribute ([#2781](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2781))
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Adds `failed` attribute ([#2781](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2781))
+* resource/mongodbatlas_cloud_backup_snapshot_restore_job: Adds `failed` attribute ([#2781](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2781))
+* resource/mongodbatlas_network_peering: Improve error message when networking peering reaches a failed status ([#2766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2766))
+* resource/mongodbatlas_privatelink_endpoint: Improves error message when privatelink endpoint returns error after POST ([#2803](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2803))
+* resource/mongodbatlas_privatelink_endpoint_service: Decreases delay time when creating or deleting a resource ([#2819](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2819))
+* resource/mongodbatlas_privatelink_endpoint_service: Improves error message when privatelink endpoint service returns error after POST ([#2803](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2803))
+
+## 1.21.4 (October 29, 2024)
+
+NOTES:
+
+* data-source/mongodbatlas_resource_policies: Deprecates `resource_policies` attribute ([#2740](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2740))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_resource_policies: Adds `results` attribute ([#2740](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2740))
+
+BUG FIXES:
+
+* resource/mongodbatlas_project_api_key: Validates `project_id` are unique across `project_assignment` blocks and fixes update issues with error `API_KEY_ALREADY_IN_GROUP` ([#2737](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2737))
+
+## 1.21.3 (October 25, 2024)
+
+NOTES:
+
+* data-source/mongodbatlas_project: Deprecates `is_slow_operation_thresholding_enabled`. Attribute will be supported in a separate data source as it requires different set of permissions ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* data-source/mongodbatlas_projects: Deprecates `is_slow_operation_thresholding_enabled`. Attribute will be supported in a separate data source as it requires different set of permissions ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* resource/mongodbatlas_project: Deprecates `is_slow_operation_thresholding_enabled`. Attribute will be supported in a separate resource as it requires different set of permissions ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_project: Avoids error when user doesn't have project owner permission ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* data-source/mongodbatlas_projects: Avoids error when user doesn't have project owner permission ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+* resource/mongodbatlas_project: Avoids error when user doesn't have project owner permission ([#2731](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2731))
+
+## 1.21.2 (October 22, 2024)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
+* data-source/mongodbatlas_advanced_clusters: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
+* data-source/mongodbatlas_project: Adds `is_slow_operation_thresholding_enabled` attribute ([#2698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2698))
+* data-source/mongodbatlas_projects: Adds `is_slow_operation_thresholding_enabled` attribute ([#2698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2698))
+* resource/mongodbatlas_advanced_cluster: Adds new `config_server_management_mode` and `config_server_type` fields ([#2670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2670))
+* resource/mongodbatlas_project: Adds `is_slow_operation_thresholding_enabled` attribute ([#2698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2698))
+
+BUG FIXES:
+
+* resource/mongodbatlas_event_trigger: Always includes `disabled` in the PUT payload ([#2690](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2690))
+* resource/mongodbatlas_organization: Avoids inconsistent result returned by provider when `USER_NOT_FOUND` ([#2684](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2684))
+* resource/mongodbatlas_search_deployment: Fixes inconsistent result for a multi-region cluster that always uses a single spec. ([#2685](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2685))
+
+## 1.21.1 (October 09, 2024)
+
+BUG FIXES:
+
+* resource/mongodbatlas_team: Fixes update logic of `usernames` attribute ensuring team is never emptied ([#2669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2669))
+
+## 1.21.0 (October 07, 2024)
+
 NOTES:
 
 * data-source/mongodbatlas_global_cluster_config: Deprecates `custom_zone_mapping` in favor of `custom_zone_mapping_zone_id` ([#2637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2637))
 * resource/mongodbatlas_global_cluster_config: Deprecates `custom_zone_mapping` in favor of `custom_zone_mapping_zone_id` ([#2637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2637))
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_resource_policies` ([#2598](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2598))
+* **New Data Source:** `data-source/mongodbatlas_resource_policy` ([#2598](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2598))
+* **New Resource:** `resource/mongodbatlas_resource_policy` ([#2585](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2585))
+
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_advanced_cluster: Supports `redact_client_log_data` attribute ([#2600](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2600))
+* data-source/mongodbatlas_advanced_clusters: Supports `redact_client_log_data` attribute ([#2600](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2600))
+* data-source/mongodbatlas_cluster: Supports `redact_client_log_data` attribute ([#2601](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2601))
+* data-source/mongodbatlas_clusters: Supports `redact_client_log_data` attribute ([#2601](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2601))
 * data-source/mongodbatlas_global_cluster_config: Adds `custom_zone_mapping_zone_id` attribute ([#2637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2637))
+* resource/mongodbatlas_advanced_cluster: Supports `redact_client_log_data` attribute ([#2600](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2600))
+* resource/mongodbatlas_cluster: Supports `redact_client_log_data` attribute ([#2601](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2601))
 * resource/mongodbatlas_global_cluster_config: Adds `custom_zone_mapping_zone_id` attribute ([#2637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2637))
 
 BUG FIXES:

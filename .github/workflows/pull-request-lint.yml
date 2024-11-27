@@ -75,7 +75,7 @@ jobs:
       contents: read
       pull-requests: write # Needed by labeler
     steps:
-      - uses: srvaroa/labeler@bfe288801b8091b6a70e67f3ce7c9e87c88921cf
+      - uses: srvaroa/labeler@29471ee1118fa4e10b011964e6e8fe2fd243e700
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

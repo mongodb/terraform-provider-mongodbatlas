@@ -3,7 +3,6 @@ package advancedcluster_test
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -16,38 +15,44 @@ import (
 const versionBeforeISSRelease = "1.17.6"
 
 func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	testCase := replicaSetAWSProviderTestCase(t)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	testCase := replicaSetMultiCloudTestCase(t)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	testCase := singleShardedMultiCloudTestCase(t)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	testCase := symmetricGeoShardedOldSchemaTestCase(t)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	testCase := asymmetricShardedNewSchemaTestCase(t)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     mig.PreCheckBasicSleep(t),
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -65,6 +70,7 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -90,6 +96,7 @@ func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -108,11 +115,6 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
-				ExpectError:              regexp.MustCompile("SERVICE_UNAVAILABLE"),
-			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
 				Check:                    checkShardedTransitionOldToNewSchema(true),
 			},
 		},
@@ -120,6 +122,7 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -137,11 +140,6 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
-				ExpectError:              regexp.MustCompile("SERVICE_UNAVAILABLE"),
-			},
-			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
 				Check:                    checkGeoShardedTransitionOldToNewSchema(true),
 			},
@@ -150,6 +148,7 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 }
 
 func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	mig.SkipIfVersionBelow(t, "1.19.0") // version where change_stream_options_pre_and_post_images_expire_after_seconds was introduced
 	var (
 		projectID   = acc.ProjectIDExecution(t)
@@ -192,7 +191,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
+		PreCheck:     mig.PreCheckBasicSleep(t),
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{

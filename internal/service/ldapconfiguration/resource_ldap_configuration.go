@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20240805004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 const (
@@ -144,7 +144,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	params := &admin.UserSecurity{
 		Ldap: ldap,
 	}
-	_, _, err := connV2.LDAPConfigurationApi.SaveLDAPConfiguration(ctx, projectID, params).Execute()
+	_, _, err := connV2.LDAPConfigurationApi.SaveLdapConfiguration(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, projectID, err))
 	}
@@ -154,7 +154,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	resp, httpResp, err := connV2.LDAPConfigurationApi.GetLDAPConfiguration(context.Background(), d.Id()).Execute()
+	resp, httpResp, err := connV2.LDAPConfigurationApi.GetLdapConfiguration(context.Background(), d.Id()).Execute()
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -233,7 +233,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	params := &admin.UserSecurity{
 		Ldap: ldap,
 	}
-	_, _, err := connV2.LDAPConfigurationApi.SaveLDAPConfiguration(ctx, d.Id(), params).Execute()
+	_, _, err := connV2.LDAPConfigurationApi.SaveLdapConfiguration(ctx, d.Id(), params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdate, d.Id(), err))
 	}
@@ -248,7 +248,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			AuthorizationEnabled:  conversion.Pointer(false),
 		},
 	}
-	_, _, err := connV2.LDAPConfigurationApi.SaveLDAPConfiguration(ctx, d.Id(), params).Execute()
+	_, _, err := connV2.LDAPConfigurationApi.SaveLdapConfiguration(ctx, d.Id(), params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDelete, d.Id(), err))
 	}
