@@ -1,5 +1,6 @@
 {
  "clusterType": "REPLICASET",
+ "labels": [],
  "name": "test-acc-tf-c-8049930413007488732",
  "replicationSpecs": [
   {
@@ -17,5 +18,6 @@
    ],
    "zoneName": "ZoneName managed by Terraform"
   }
- ]
+ ],
+ "tags": []
 }
