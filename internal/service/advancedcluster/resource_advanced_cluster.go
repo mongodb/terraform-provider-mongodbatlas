@@ -554,8 +554,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	// var clusterResp *admin.ClusterDescription20240805
-
 	var replicationSpecs []map[string]any
 
 	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
@@ -594,9 +592,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 	}
-	// clusterResp = cluster
-
-	// *** KEEP AS IS!! ----------------------------
 	diags := setRootFields(d, cluster, true)
 	if diags.HasError() {
 		return diags
@@ -620,7 +615,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	return nil
-	// *** -----------------------------------------
 }
 
 // getReplicationSpecAttributesFromOldAPI returns the id values of replication specs coming from old API. This is used to populate old replication_specs.*.id attribute avoiding breaking changes.

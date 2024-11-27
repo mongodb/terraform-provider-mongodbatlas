@@ -566,11 +566,9 @@ func flattenAdvancedReplicationSpecsLogic[T ReplicationSpecSDKModel](
 	for i := 0; i < len(tfList); i++ {
 		var tfMapObject map[string]any
 
-		// *** if we haven't gone thru the whole list, assign the object at [i] to tfMapObject
 		if len(tfMapObjects) > i {
 			tfMapObject = tfMapObjects[i].(map[string]any)
 		}
-		// ** here I will want to add logic to check if this zoneName has already been logged
 		for j := 0; j < len(apiObjects); j++ {
 			if wasAPIObjectUsed[j] || !tfModelWithSDKMatcher(tfMapObject, &apiObjects[j]) {
 				continue
