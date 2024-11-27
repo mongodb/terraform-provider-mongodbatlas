@@ -143,15 +143,22 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 }
 
 func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagnostics) *TFModel {
-	sdkReq := NewAtlasReq(ctx, plan, diags)
+	legacyReq, latestReq := normalizeReqModel(ctx, plan, diags)
 	if diags.HasError() {
 		return nil
 	}
-	api := r.Client.AtlasV220240805.ClustersApi
-	apiLegacy := r.Client.AtlasV220240530.ClustersApi
 	projectID := plan.ProjectID.ValueString()
 	clusterName := plan.Name.ValueString()
-	_, _, err := api.CreateCluster(ctx, projectID, sdkReq).Execute()
+	apiLegacy := r.Client.AtlasV220240805.ClustersApi
+	apiLatest := r.Client.AtlasV2.ClustersApi
+	var err error
+	if legacyReq != nil {
+		_, _, err = apiLegacy.CreateCluster(ctx, projectID, legacyReq).Execute()
+	} else {
+		_, _, err = apiLatest.CreateCluster(ctx, projectID, latestReq).Execute()
+
+	}
+	// TODO: Support handling pause
 	if err != nil {
 		diags.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
 		return nil
@@ -162,7 +169,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	}
 	var legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
 	legacyAdvConfigUpdate := NewAtlasReqAdvancedConfigurationLegacy(ctx, &plan.AdvancedConfiguration, diags)
-	if legacyAdvConfigUpdate != nil {
+	if !update.IsEmpty(legacyAdvConfigUpdate){
 		legacyAdvConfig, _, err = apiLegacy.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, legacyAdvConfigUpdate).Execute()
 		if err != nil {
 			// Maybe should be warning instead of error to avoid having to re-create the cluster
@@ -173,8 +180,8 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 
 	advConfigUpdate := NewAtlasReqAdvancedConfiguration(ctx, &plan.AdvancedConfiguration, diags)
 	var advConfig *admin20240805.ClusterDescriptionProcessArgs20240805
-	if advConfigUpdate != nil {
-		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, advConfigUpdate).Execute()
+	if !update.IsEmpty(advConfigUpdate){
+		advConfig, _, err = apiLatest.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, advConfigUpdate).Execute()
 		if err != nil {
 			// Maybe should be warning instead of error to avoid having to re-create the cluster
 			diags.AddError("errorUpdateAdvConfig", fmt.Sprintf(errorCreate, err.Error()))
