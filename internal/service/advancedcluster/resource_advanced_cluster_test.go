@@ -41,11 +41,11 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(projectID, clusterName),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configTenant(projectID, clusterName)),
 				Check:  checkTenant(projectID, clusterName),
 			},
 			{
-				Config: configTenant(projectID, clusterNameUpdated),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configTenant(projectID, clusterNameUpdated)),
 				Check:  checkTenant(projectID, clusterNameUpdated),
 			},
 			{
@@ -894,7 +894,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func configTenant(projectID, name string) string {
-	return acc.ConvertAdvancedClusterToTPF(fmt.Sprintf(`
+	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -921,7 +921,7 @@ func configTenant(projectID, name string) string {
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, projectID, name))
+	`, projectID, name)
 }
 
 func checkTenant(projectID, name string) resource.TestCheckFunc {
