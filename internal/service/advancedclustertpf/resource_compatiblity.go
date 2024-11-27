@@ -9,19 +9,20 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
-func normalizeReqModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics) (*admin20240805.ClusterDescription20240805, *admin.ClusterDescription20240805) {
+func normalizeReqModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics) (legacyReq *admin20240805.ClusterDescription20240805, req *admin.ClusterDescription20240805) {
 	// Ensure normal model is valid
-	legacyModel := NewAtlasReq(ctx, model, diags) // TODO: Support converting legacy model
 	latestModel := NewAtlasReq(ctx, model, diags)
+	var legacyModel *admin20240805.ClusterDescription20240805
 	if diags.HasError() {
 		return nil, nil
 	}
 	counts := numShardsCounts(ctx, model.ReplicationSpecs, diags)
-	usingLegacySchema := numShardsGt1(counts)
 	if diags.HasError() {
 		return nil, nil
 	}
+	usingLegacySchema := numShardsGt1(counts)
 	if usingLegacySchema {
+		legacyModel = newLegacyModel(latestModel)
 		explodeNumShards(legacyModel, counts)
 	}
 	rootDiskSize := model.DiskSizeGB.ValueFloat64Pointer()
@@ -76,7 +77,7 @@ func numShardsGt1(counts []int64) bool {
 // todo: Add validation for root disk size never set together with disk_size_gb
 func addRootDiskSize(req *admin.ClusterDescription20240805, size *float64) {
 	for i, spec := range req.GetReplicationSpecs() {
-		for j, _ := range spec.GetRegionConfigs() {
+		for j := range spec.GetRegionConfigs() {
 			actualConfig := req.GetReplicationSpecs()[i].GetRegionConfigs()[j]
 			analyticsSpecs := actualConfig.AnalyticsSpecs
 			if analyticsSpecs != nil {
@@ -96,7 +97,7 @@ func addRootDiskSize(req *admin.ClusterDescription20240805, size *float64) {
 
 func addRootDiskSizeLegacy(req *admin20240805.ClusterDescription20240805, size *float64) {
 	for i, spec := range req.GetReplicationSpecs() {
-		for j, _ := range spec.GetRegionConfigs() {
+		for j := range spec.GetRegionConfigs() {
 			actualConfig := req.GetReplicationSpecs()[i].GetRegionConfigs()[j]
 			analyticsSpecs := actualConfig.AnalyticsSpecs
 			if analyticsSpecs != nil {
@@ -111,7 +112,5 @@ func addRootDiskSizeLegacy(req *admin20240805.ClusterDescription20240805, size *
 				readonly.DiskSizeGB = size
 			}
 		}
-
 	}
-
 }
