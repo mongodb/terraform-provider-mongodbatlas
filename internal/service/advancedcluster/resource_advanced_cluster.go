@@ -46,6 +46,11 @@ const (
 
 var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
 
+type oldShardConfigMeta struct {
+	ID       string
+	NumShard int
+}
+
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceCreate,
@@ -549,84 +554,50 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	var clusterResp *admin.ClusterDescription20240805
+	// var clusterResp *admin.ClusterDescription20240805
 
 	var replicationSpecs []map[string]any
-	if isUsingOldAPISchemaStructure(d) {
-		clusterOldSDK, resp, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				d.SetId("")
-				return nil
-			}
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		}
 
-		if err := d.Set("disk_size_gb", clusterOldSDK.GetDiskSizeGB()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
 		}
-		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				d.SetId("")
-				return nil
-			}
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		}
-		if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
-		}
-		if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
-		}
-		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(cluster)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-
-		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterOldSDK.GetReplicationSpecs(), zoneNameToZoneIDs, clusterOldSDK.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connV2)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
-		}
-
-		clusterResp = convertClusterDescToLatestExcludeRepSpecs(clusterOldSDK)
-		clusterResp.ConfigServerManagementMode = cluster.ConfigServerManagementMode
-		clusterResp.ConfigServerType = cluster.ConfigServerType
-	} else {
-		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				d.SetId("")
-				return nil
-			}
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		}
-
-		// root disk_size_gb defined for backwards compatibility avoiding breaking changes
-		if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(cluster)); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
-		}
-		if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
-		}
-		if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
-		}
-
-		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-
-		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecIDs, d.Get("replication_specs").([]any), d, connV2)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
-		}
-
-		clusterResp = cluster
+		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 	}
 
-	diags := setRootFields(d, clusterResp, true)
+	// root disk_size_gb defined for backwards compatibility avoiding breaking changes
+	if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(cluster)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+	}
+	if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
+	}
+	if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
+	}
+
+	zoneNameToOldReplicationSpecMeta, err := getReplicationSpecAttributesFromOldAPI(ctx, projectID, clusterName, connV220240530)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if isUsingOldAPISchemaStructure(d) {
+		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldShardConfig(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
+		}
+	} else {
+		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
+		}
+	}
+	// clusterResp = cluster
+
+	// *** KEEP AS IS!! ----------------------------
+	diags := setRootFields(d, cluster, true)
 	if diags.HasError() {
 		return diags
 	}
@@ -649,6 +620,26 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	return nil
+	// *** -----------------------------------------
+}
+
+// getReplicationSpecAttributesFromOldAPI returns the id values of replication specs coming from old API. This is used to populate old replication_specs.*.id attribute avoiding breaking changes.
+// In the old API each replications spec has a 1:1 relation with each zone, so ids are returned in a map from zoneName to id.
+func getReplicationSpecAttributesFromOldAPI(ctx context.Context, projectID, clusterName string, connV220240530 *admin20240530.APIClient) (map[string]oldShardConfigMeta, error) {
+	clusterOldAPI, _, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	if apiError, ok := admin20240530.AsError(err); ok {
+		if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
+			return nil, nil // if it's the case of an asymmetric shard, an error is expected in old API and replication_specs.*.id attribute will not be populated
+		}
+		readErrorMsg := "error reading  advanced cluster with 2023-02-01 API (%s): %s"
+		return nil, fmt.Errorf(readErrorMsg, clusterName, err)
+	}
+	specs := clusterOldAPI.GetReplicationSpecs()
+	result := make(map[string]oldShardConfigMeta, len(specs))
+	for _, spec := range specs {
+		result[spec.GetZoneName()] = oldShardConfigMeta{spec.GetId(), spec.GetNumShards()}
+	}
+	return result, nil
 }
 
 // getReplicationSpecIDsFromOldAPI returns the id values of replication specs coming from old API. This is used to populate old replication_specs.*.id attribute avoiding breaking changes.
