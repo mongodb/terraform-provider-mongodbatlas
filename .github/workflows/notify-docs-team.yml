@@ -30,10 +30,9 @@ jobs:
       pull-requests: write # Needed by sticky-pull-request-comment
     steps:
       - uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_DOCS }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_DOCS }}
+          webhook-type: incoming-webhook
           payload: |
             {
               "blocks": [

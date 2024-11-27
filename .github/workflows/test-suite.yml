@@ -93,6 +93,8 @@ jobs:
         id: slack
         uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d
         with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
             {
               "text": ":red_circle: Test Suite failed (reminder to log failures)",
@@ -119,6 +121,3 @@ jobs:
                 }
               ]
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
