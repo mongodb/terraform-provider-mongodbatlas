@@ -178,6 +178,7 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 			},
 		},
 	}
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

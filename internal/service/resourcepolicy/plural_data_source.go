@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -30,6 +31,7 @@ type resourcePolicysDS struct {
 
 func (d *resourcePolicysDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = DataSourcePluralSchema(ctx)
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *resourcePolicysDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
