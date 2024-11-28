@@ -49,10 +49,7 @@ func generateAllReplicationSpecs(t *testing.T, writeBody *hclwrite.Body) {
 		if match == nil {
 			break
 		}
-		parser := getBlockParser(t, match)
-		body, ok := parser.Body.(*hclsyntax.Body)
-		require.True(t, ok, "unexpected *hclsyntax.Body type: %T", parser.Body)
-		vals = append(vals, getOneReplicationSpecs(t, body))
+		vals = append(vals, getOneReplicationSpecs(t, getBlockBody(t, match)))
 		writeBody.RemoveBlock(match)
 	}
 	require.NotEmpty(t, vals, "there must be at least one %s block", name)
@@ -99,9 +96,12 @@ func getDefParser(t *testing.T, def string) *hclwrite.File {
 	return parser
 }
 
-func getBlockParser(t *testing.T, block *hclwrite.Block) *hcl.File {
+func getBlockBody(t *testing.T, block *hclwrite.Block) *hclsyntax.Body {
 	t.Helper()
 	parser, diags := hclparse.NewParser().ParseHCL(block.Body().BuildTokens(nil).Bytes(), "")
 	require.False(t, diags.HasErrors(), "failed to parse block: %s", diags.Error())
-	return parser
+
+	body, ok := parser.Body.(*hclsyntax.Body)
+	require.True(t, ok, "unexpected *hclsyntax.Body type: %T", parser.Body)
+	return body
 }
