@@ -866,11 +866,16 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 }
 
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	checks := make([]resource.TestCheckFunc, 0)
+	if !acc.IsTPFAdvancedCluster() { // TODO: checkExists not implemented for TPF yet
+		checks = append(checks, checkExists(resourceName))
+	}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
-	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
 	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
-	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+	if !acc.IsTPFAdvancedCluster() { // TODO: data sources not implemented for TPF yet
+		checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
+		checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+	}
 	checks = append(checks, extra...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
@@ -927,6 +932,9 @@ func configTenant(projectID, name string) string {
 func checkTenant(projectID, name string) resource.TestCheckFunc {
 	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
+	if acc.IsTPFAdvancedCluster() { // TODO: data sources not implemented for TPF yet
+		pluralChecks = nil
+	}
 	return checkAggr(
 		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
