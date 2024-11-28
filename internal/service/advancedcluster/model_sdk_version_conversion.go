@@ -298,9 +298,6 @@ func convertRegionConfigSliceToLatest(slice *[]admin20240530.CloudRegionConfig, 
 	return &results
 }
 
-// Essentially, AdvancedClusterDescription is totally same and copied over bar diskSizeGb (which is held in rep spec for latestSDK),
-// replication spec,(which we deal w elsewhere), and links (which are dismissed)
-// That is to say, not lossing anything here by just using latestSDK
 func convertClusterDescToLatestExcludeRepSpecs(oldClusterDesc *admin20240530.AdvancedClusterDescription) *admin.ClusterDescription20240805 {
 	return &admin.ClusterDescription20240805{
 		BackupEnabled: oldClusterDesc.BackupEnabled,
