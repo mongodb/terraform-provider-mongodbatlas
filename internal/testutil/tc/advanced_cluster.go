@@ -85,30 +85,9 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel(diskSizeGB int) resource.Test
 }
 
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
-	// checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	checks := []resource.TestCheckFunc{}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
-	// checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
 	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
-	// checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
 	checks = append(checks, extra...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
-
-// func checkExists(resourceName string) resource.TestCheckFunc {
-// 	return func(s *terraform.State) error {
-// 		rs, ok := s.RootModule().Resources[resourceName]
-// 		if !ok {
-// 			return fmt.Errorf("not found: %s", resourceName)
-// 		}
-// 		if rs.Primary.ID == "" {
-// 			return fmt.Errorf("no ID is set")
-// 		}
-// 		ids := conversion.DecodeStateID(rs.Primary.ID)
-// 		err := acc.CheckClusterExistsHandlingRetry(ids["project_id"], ids["cluster_name"])
-// 		if err == nil {
-// 			return nil
-// 		}
-// 		return fmt.Errorf("cluster(%s:%s) does not exist: %w", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
-// 	}
-// }
