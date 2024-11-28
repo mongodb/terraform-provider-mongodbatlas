@@ -37,13 +37,7 @@ func basicTenantTestCase(t *testing.T, projectID, clusterName, clusterNameUpdate
 				Config: configTenant(projectID, clusterNameUpdated),
 				Check:  checkTenant(projectID, clusterNameUpdated),
 			},
-			{
-				ResourceName:                         resourceName,
-				ImportStateIdFunc:                    acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "name",
-			},
+			acc.TestStepImportCluster(resourceName),
 		},
 	}
 }

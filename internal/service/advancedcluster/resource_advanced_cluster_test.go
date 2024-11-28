@@ -48,12 +48,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 				Config: acc.ConvertAdvancedClusterToTPF(t, configTenant(projectID, clusterNameUpdated)),
 				Check:  checkTenant(projectID, clusterNameUpdated),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -82,13 +77,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) resource.TestCase {
 				Config: configReplicaSetAWSProvider(projectID, clusterName, 50, 5),
 				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 50, 5, true, true),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"replication_specs", "retain_backups_enabled"},
-			},
+			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
 		},
 	}
 }
@@ -119,13 +108,7 @@ func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
 				Config: configReplicaSetMultiCloud(orgID, projectName, clusterNameUpdated),
 				Check:  checkReplicaSetMultiCloud(clusterNameUpdated, 3),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"replication_specs", "retain_backups_enabled"},
-			},
+			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
 		},
 	}
 }
@@ -157,13 +140,7 @@ func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
 				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M10", nil),
 				Check:  checkShardedOldSchemaMultiCloud(clusterNameUpdated, 1, "M10", true, nil),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"replication_specs"},
-			},
+			acc.TestStepImportCluster(resourceName, "replication_specs"),
 		},
 	}
 }
@@ -194,13 +171,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				Config:      configSingleProviderPaused(projectID, clusterName, true, anotherInstanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"replication_specs"},
-			},
+			acc.TestStepImportCluster(resourceName, "replication_specs"),
 		},
 	})
 }
@@ -233,13 +204,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 			{
 				Config: configSingleProviderPaused(projectID, clusterName, false, instanceSize),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"replication_specs"},
-			},
+			acc.TestStepImportCluster(resourceName, "replication_specs"),
 		},
 	})
 }

@@ -77,13 +77,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_disk_gb_enabled", "false"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"cloud_backup", "retain_backups_enabled"},
-			},
+			acc.TestStepImportCluster(resourceName, "cloud_backup", "retain_backups_enabled"),
 		},
 	}
 }
@@ -1293,13 +1287,7 @@ func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"cloud_backup", "backup_enabled"},
-			},
+			acc.TestStepImportCluster(resourceName, "cloud_backup", "backup_enabled"),
 		},
 	})
 }
