@@ -110,7 +110,7 @@ func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPData
 	require.NoError(t, err)
 	myTransport := httpmock.NewMockTransport()
 	var mockTransport http.RoundTripper = myTransport
-	g := goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json"), goldie.WithDiffEngine(goldie.ColoredDiff))
+	g := goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json"))
 	tracker := requestTracker{data: data, g: g, vars: vars, t: t}
 	if config != nil {
 		tracker.allowMissingRequests = config.AllowMissingRequests
