@@ -10,6 +10,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/tc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
@@ -236,5 +237,19 @@ func TestMockClusterAdvancedCluster_basicTenant(t *testing.T) {
 	)
 	shortenRetries()
 	testCase := basicTenantTestCase(t, projectID, clusterName, clusterNameUpdated)
+	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
+}
+
+func TestMockAdvancedCluster_SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
+	var (
+		clusterName = "6746cee8aef48d1cb265882d"
+		projectName = "test-acc-tf-p-4311574251574843475"
+		vars        = map[string]string{
+			"groupId":     projectID,
+			"clusterName": clusterName,
+		}
+	)
+	shortenRetries()
+	testCase := tc.SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t, projectName, clusterName)
 	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
 }

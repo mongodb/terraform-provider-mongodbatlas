@@ -6,12 +6,33 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
+func resolveLegacyInfo(ctx context.Context, legacyReq *admin20240805.ClusterDescription20240805, plan *TFModel, diags *diag.Diagnostics, api20240530 admin20240530.ClustersApi) *LegacySchemaInfo {
+	if legacyReq == nil {
+		return nil
+	}
+	rootDiskSize := conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
+	zoneNameSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), api20240530)
+	if err != nil {
+		errMsg := err.Error()
+		diags.AddError(errMsg, errMsg)
+		return nil
+	}
+	if rootDiskSize == nil {
+		rootDiskSize = findRootDiskSizeLegacy(legacyReq)
+	}
+	return &LegacySchemaInfo{
+		ZoneNameNumShards:          numShardsMap(ctx, plan.ReplicationSpecs, diags),
+		RootDiskSize:               rootDiskSize,
+		ZoneNameReplicationSpecIDs: zoneNameSpecIDs,
+	}
+}
+
 func normalizeReqModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics) (legacyReq *admin20240805.ClusterDescription20240805, req *admin.ClusterDescription20240805) {
-	// Ensure normal model is valid
 	latestModel := NewAtlasReq(ctx, model, diags)
 	var legacyModel *admin20240805.ClusterDescription20240805
 	if diags.HasError() {
@@ -66,6 +87,20 @@ func numShardsCounts(ctx context.Context, input types.List, diags *diag.Diagnost
 	return counts
 }
 
+func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]int64 {
+	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
+	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return nil
+	}
+	counts := map[string]int64{}
+	for i := range elements {
+		e := elements[i]
+		counts[e.ZoneName.ValueString()] = e.NumShards.ValueInt64()
+	}
+	return counts
+}
+
 func numShardsGt1(counts []int64) bool {
 	for _, count := range counts {
 		if count > 1 {
@@ -94,6 +129,26 @@ func addRootDiskSize(req *admin.ClusterDescription20240805, size *float64) {
 			}
 		}
 	}
+}
+
+func findRootDiskSizeLegacy(req *admin20240805.ClusterDescription20240805) *float64 {
+	for _, spec := range req.GetReplicationSpecs() {
+		for _, regionConfig := range spec.GetRegionConfigs() {
+			analyticsSpecs := regionConfig.AnalyticsSpecs
+			if analyticsSpecs != nil && analyticsSpecs.DiskSizeGB != nil {
+				return analyticsSpecs.DiskSizeGB
+			}
+			electable := regionConfig.ElectableSpecs
+			if electable != nil && electable.DiskSizeGB != nil {
+				return electable.DiskSizeGB
+			}
+			readonly := regionConfig.ReadOnlySpecs
+			if readonly != nil && readonly.DiskSizeGB != nil {
+				return readonly.DiskSizeGB
+			}
+		}
+	}
+	return nil
 }
 
 func addRootDiskSizeLegacy(req *admin20240805.ClusterDescription20240805, size *float64) {

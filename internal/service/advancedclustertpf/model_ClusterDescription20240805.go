@@ -2,6 +2,9 @@ package advancedclustertpf
 
 import (
 	"context"
+	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -10,14 +13,30 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
-func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics) *TFModel {
+const (
+	errorZoneNameNotSet          = "zoneName is required for legacy schema"
+	errorNumShardsNotSet         = "numShards not set for zoneName %s"
+	errorReplicationSpecIDNotSet = "replicationSpecID not set for zoneName %s"
+)
+
+type LegacySchemaInfo struct {
+	ZoneNameNumShards          map[string]int64
+	ZoneNameReplicationSpecIDs map[string]string
+	RootDiskSize               *float64
+}
+
+func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo) *TFModel {
 	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, input.Labels, diags)
-	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags)
+	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, legacyInfo)
 	tags := NewTagsObjType(ctx, input.Tags, diags)
 	if diags.HasError() {
 		return nil
+	}
+	rootDiskSize := types.Float64Null()
+	if legacyInfo != nil {
+		rootDiskSize = types.Float64PointerValue(legacyInfo.RootDiskSize)
 	}
 	return &TFModel{
 		AcceptDataRisksAndForceReplicaSetReconfig: types.StringPointerValue(conversion.TimePtrToStringPtr(input.AcceptDataRisksAndForceReplicaSetReconfig)),
@@ -28,6 +47,7 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 		ConfigServerType:                 types.StringPointerValue(input.ConfigServerType),
 		ConnectionStrings:                connectionStrings,
 		CreateDate:                       types.StringPointerValue(conversion.TimePtrToStringPtr(input.CreateDate)),
+		DiskSizeGB:                       rootDiskSize,
 		EncryptionAtRestProvider:         types.StringPointerValue(input.EncryptionAtRestProvider),
 		GlobalClusterSelfManagedSharding: types.BoolPointerValue(input.GlobalClusterSelfManagedSharding),
 		ProjectID:                        types.StringPointerValue(input.GroupId),
@@ -96,16 +116,31 @@ func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags 
 	return setType
 }
 
-func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics) types.List {
+func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo) types.List {
 	if input == nil {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
+	var tfModels *[]TFReplicationSpecsModel
+	if legacyInfo == nil {
+		tfModels = convertReplicationSpecs(ctx, input, diags)
+	} else {
+		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, legacyInfo)
+	}
+	if diags.HasError() {
+		return types.ListNull(ReplicationSpecsObjType)
+	}
+	listType, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, *tfModels)
+	diags.Append(diagsLocal...)
+	return listType
+}
+
+func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics) *[]TFReplicationSpecsModel {
 	tfModels := make([]TFReplicationSpecsModel, len(*input))
 	for i, item := range *input {
 		regionConfigs := NewRegionConfigsObjType(ctx, item.RegionConfigs, diags)
 		tfModels[i] = TFReplicationSpecsModel{
 			Id:            types.StringPointerValue(item.Id),
-			ExternalId:    types.StringNull(),                          // TODO: Static
+			ExternalId:    types.StringPointerValue(item.Id),
 			NumShards:     types.Int64Value(1),                         // TODO: Static
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, nil), // TODO: Static
 			RegionConfigs: regionConfigs,
@@ -113,9 +148,52 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 			ZoneName:      types.StringPointerValue(item.ZoneName),
 		}
 	}
-	listType, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, tfModels)
-	diags.Append(diagsLocal...)
-	return listType
+	return &tfModels
+}
+
+func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo) *[]TFReplicationSpecsModel {
+	tfModels := []TFReplicationSpecsModel{}
+	tfModelsSkipIndexes := []int{}
+	for i, item := range *input {
+		if slices.Contains(tfModelsSkipIndexes, i) {
+			continue
+		}
+		regionConfigs := NewRegionConfigsObjType(ctx, item.RegionConfigs, diags)
+		zoneName := item.GetZoneName()
+		if zoneName == "" {
+			diags.AddError(errorZoneNameNotSet, errorZoneNameNotSet)
+			return &tfModels
+		}
+		numShards, ok := legacyInfo.ZoneNameNumShards[zoneName]
+		errMsg := []string{}
+		if !ok {
+			errMsg = append(errMsg, fmt.Sprintf(errorNumShardsNotSet, zoneName))
+		}
+		legacyID, ok := legacyInfo.ZoneNameReplicationSpecIDs[zoneName]
+		if !ok {
+			errMsg = append(errMsg, fmt.Sprintf(errorReplicationSpecIDNotSet, zoneName))
+		}
+		if len(errMsg) > 0 {
+			errMsgStr := strings.Join(errMsg, ", ")
+			diags.AddError(errMsgStr, errMsgStr)
+			return &tfModels
+		}
+		if numShards > 1 {
+			for j := 1; j < int(numShards); j++ {
+				tfModelsSkipIndexes = append(tfModelsSkipIndexes, i+j)
+			}
+		}
+		tfModels = append(tfModels, TFReplicationSpecsModel{
+			ContainerId:   conversion.ToTFMapOfString(ctx, diags, nil), // TODO: Static
+			ExternalId:    types.StringPointerValue(item.Id),
+			Id:            types.StringValue(legacyID),
+			RegionConfigs: regionConfigs,
+			NumShards:     types.Int64Value(numShards),
+			ZoneId:        types.StringPointerValue(item.ZoneId),
+			ZoneName:      types.StringPointerValue(item.ZoneName),
+		})
+	}
+	return &tfModels
 }
 
 func NewTagsObjType(ctx context.Context, input *[]admin.ResourceTag, diags *diag.Diagnostics) types.Set {
