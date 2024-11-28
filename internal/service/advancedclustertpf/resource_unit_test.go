@@ -244,12 +244,13 @@ func TestMockAdvancedCluster_SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel
 	var (
 		clusterName = "6746cee8aef48d1cb265882d"
 		projectName = "test-acc-tf-p-4311574251574843475"
+		orgID       = "65def6ce0f722a1507105aa5"
 		vars        = map[string]string{
 			"groupId":     projectID,
 			"clusterName": clusterName,
 		}
 	)
 	shortenRetries()
-	testCase := tc.SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t, projectName, clusterName)
+	testCase := tc.SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t, orgID, projectName, clusterName)
 	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
 }

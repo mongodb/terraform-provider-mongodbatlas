@@ -2,7 +2,6 @@ package tc
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -15,9 +14,8 @@ const (
 	dataSourcePluralName = "data.mongodbatlas_advanced_clusters.test"
 )
 
-func SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T, projectName, clusterName string) *resource.TestCase {
+func SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T, orgID, projectName, clusterName string) *resource.TestCase {
 	t.Helper()
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
