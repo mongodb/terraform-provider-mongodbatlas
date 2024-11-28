@@ -19,17 +19,15 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 	if !IsTPFAdvancedCluster() {
 		return def
 	}
-	parse, diags := hclwrite.ParseConfig([]byte(def), "", hcl.Pos{Line: 1, Column: 1})
-	require.False(t, diags.HasErrors(), "failed to parse HCL: %s", diags.Error())
-	body := parse.Body()
-	for _, resource := range body.Blocks() {
+	parse := getDefParser(t, def)
+	for _, resource := range parse.Body().Blocks() {
 		isResource := resource.Type() == "resource"
-		resourceType := resource.Labels()[0]
-		if !isResource || resourceType != "mongodbatlas_advanced_cluster" {
+		resourceName := resource.Labels()[0]
+		if !isResource || resourceName != "mongodbatlas_advanced_cluster" {
 			continue
 		}
 		writeBody := resource.Body()
-		generateReplicationSpecs(t, writeBody)
+		generateAllReplicationSpecs(t, writeBody)
 	}
 	content := parse.Bytes()
 	// RemoveBlock is not deleting the newline at the end of the block
@@ -42,14 +40,7 @@ func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interfa
 	assert.Equal(t, canonicalHCL(t, expected), canonicalHCL(t, actual), msgAndArgs...)
 }
 
-func canonicalHCL(t *testing.T, def string) string {
-	t.Helper()
-	parse, diags := hclwrite.ParseConfig([]byte(def), "", hcl.Pos{Line: 1, Column: 1})
-	require.False(t, diags.HasErrors(), "failed to parse HCL: %s", diags.Error())
-	return string(parse.Bytes())
-}
-
-func generateReplicationSpecs(t *testing.T, writeBody *hclwrite.Body) {
+func generateAllReplicationSpecs(t *testing.T, writeBody *hclwrite.Body) {
 	t.Helper()
 	const name = "replication_specs"
 	var vals []cty.Value
@@ -58,38 +49,31 @@ func generateReplicationSpecs(t *testing.T, writeBody *hclwrite.Body) {
 		if match == nil {
 			break
 		}
-		parse, diags := hclparse.NewParser().ParseHCL(match.Body().BuildTokens(nil).Bytes(), "")
-		require.False(t, diags.HasErrors(), "failed to parse %s: %s", name, diags.Error())
-		body, ok := parse.Body.(*hclsyntax.Body)
-		require.True(t, ok, "unexpected hclsyntax.Body type: %T", parse.Body)
-		vals = append(vals, getReplicationSpecsAttribute(t, body))
-		match.BuildTokens(nil)
+		parser := getBlockParser(t, match)
+		body, ok := parser.Body.(*hclsyntax.Body)
+		require.True(t, ok, "unexpected *hclsyntax.Body type: %T", parser.Body)
+		vals = append(vals, getOneReplicationSpecs(t, body))
 		writeBody.RemoveBlock(match)
 	}
 	require.NotEmpty(t, vals, "there must be at least one %s block", name)
 	writeBody.SetAttributeValue(name, cty.TupleVal(vals))
 }
 
-func getReplicationSpecsAttribute(t *testing.T, body *hclsyntax.Body) cty.Value {
+func getOneReplicationSpecs(t *testing.T, body *hclsyntax.Body) cty.Value {
 	t.Helper()
 	const name = "region_configs"
 	var vals []cty.Value
-
 	for _, block := range body.Blocks {
-		vals = append(vals, getRegionConfigsAttribute(t, block))
+		assert.Equal(t, name, block.Type, "unexpected block type: %s", block.Type)
+		oneRegionConfigs := cty.ObjectVal(getVal(t, block.Body))
+		vals = append(vals, oneRegionConfigs)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
 		name: cty.TupleVal(vals),
 	})
 }
 
-func getRegionConfigsAttribute(t *testing.T, block *hclsyntax.Block) cty.Value {
-	t.Helper()
-	valMap := getValMap(t, block.Body)
-	return cty.ObjectVal(valMap)
-}
-
-func getValMap(t *testing.T, body *hclsyntax.Body) map[string]cty.Value {
+func getVal(t *testing.T, body *hclsyntax.Body) map[string]cty.Value {
 	t.Helper()
 	ret := make(map[string]cty.Value)
 	for name, attr := range body.Attributes {
@@ -98,7 +82,26 @@ func getValMap(t *testing.T, body *hclsyntax.Body) map[string]cty.Value {
 		ret[name] = val
 	}
 	for _, block := range body.Blocks {
-		ret[block.Type] = cty.ObjectVal(getValMap(t, block.Body))
+		ret[block.Type] = cty.ObjectVal(getVal(t, block.Body))
 	}
 	return ret
+}
+
+func canonicalHCL(t *testing.T, def string) string {
+	t.Helper()
+	return string(getDefParser(t, def).Bytes())
+}
+
+func getDefParser(t *testing.T, def string) *hclwrite.File {
+	t.Helper()
+	parser, diags := hclwrite.ParseConfig([]byte(def), "", hcl.Pos{Line: 1, Column: 1})
+	require.False(t, diags.HasErrors(), "failed to parse def: %s", diags.Error())
+	return parser
+}
+
+func getBlockParser(t *testing.T, block *hclwrite.Block) *hcl.File {
+	t.Helper()
+	parser, diags := hclparse.NewParser().ParseHCL(block.Body().BuildTokens(nil).Bytes(), "")
+	require.False(t, diags.HasErrors(), "failed to parse block: %s", diags.Error())
+	return parser
 }

@@ -1,7 +1,6 @@
 package acc_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -61,7 +60,7 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 				}
 			}	
  		`
-
+		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToTPF
 		expected = `
 			resource "mongodbatlas_advanced_cluster" "cluster2" {
 				project_id   = "MY-PROJECT-ID"
@@ -113,11 +112,6 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
  		`
 	)
 	actual := acc.ConvertAdvancedClusterToTPF(t, input)
-
-	fmt.Println(actual)
-	fmt.Println("hello")
-	fmt.Println(expected)
-
 	acc.AssertEqualHCL(t, expected, actual)
 }
 
