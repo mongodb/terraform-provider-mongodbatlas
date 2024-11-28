@@ -25,6 +25,7 @@ import (
 )
 
 const minVersionForChangeStreamOptions = 6.0
+const minVersionForDefaultMaxTimeMS = 8.0
 
 var (
 	DSTagsSchema = schema.Schema{
@@ -799,7 +800,7 @@ func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 	return ""
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
+func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805, error) {
 	res20240530 := admin20240530.ClusterDescriptionProcessArgs{}
 	res := admin.ClusterDescriptionProcessArgs20240805{}
 
@@ -866,14 +867,14 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(tmpInt)
 	}
 
-	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok && IsDefaultMaxTimeMinRequiredMajorVersion(mongodbMajorVersion){
 		res.DefaultMaxTimeMS = conversion.Pointer(cast.ToInt(p["default_max_time_ms"]))
 	}
 
-	return res20240530, res
+	return res20240530, res, nil
 }
 
-func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
+func isMinRequiredMajorVersion(input *string, minVersion float64) bool {
 	if input == nil || *input == "" {
 		return true
 	}
@@ -887,7 +888,15 @@ func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
 		return false
 	}
 
-	return value >= minVersionForChangeStreamOptions
+	return value >= minVersion
+}
+
+func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
+	return isMinRequiredMajorVersion(input, minVersionForChangeStreamOptions)
+}
+
+func IsDefaultMaxTimeMinRequiredMajorVersion(input *string) bool {
+	return isMinRequiredMajorVersion(input, minVersionForDefaultMaxTimeMS)
 }
 
 func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin20240805.ComponentLabel, diag.Diagnostics) {
