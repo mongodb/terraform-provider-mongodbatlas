@@ -1,6 +1,7 @@
 package acc
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/hashicorp/hcl/v2"
@@ -30,7 +31,10 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 		writeBody := resource.Body()
 		generateReplicationSpecs(t, writeBody)
 	}
-	return string(parse.Bytes())
+	content := parse.Bytes()
+	// RemoveBlock is not deleting the newline at the end of the block
+	content = bytes.ReplaceAll(content, []byte("\n\n"), []byte("\n"))
+	return string(content)
 }
 
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {
@@ -59,10 +63,11 @@ func generateReplicationSpecs(t *testing.T, writeBody *hclwrite.Body) {
 		body, ok := parse.Body.(*hclsyntax.Body)
 		require.True(t, ok, "unexpected hclsyntax.Body type: %T", parse.Body)
 		vals = append(vals, getReplicationSpecsAttribute(t, body))
+		match.BuildTokens(nil)
 		writeBody.RemoveBlock(match)
 	}
 	require.NotEmpty(t, vals, "there must be at least one %s block", name)
-	writeBody.SetAttributeValue(name, cty.ListVal(vals))
+	writeBody.SetAttributeValue(name, cty.TupleVal(vals))
 }
 
 func getReplicationSpecsAttribute(t *testing.T, body *hclsyntax.Body) cty.Value {
@@ -74,17 +79,26 @@ func getReplicationSpecsAttribute(t *testing.T, body *hclsyntax.Body) cty.Value 
 		vals = append(vals, getRegionConfigsAttribute(t, block))
 	}
 	return cty.ObjectVal(map[string]cty.Value{
-		name: cty.ListVal(vals),
+		name: cty.TupleVal(vals),
 	})
 }
 
 func getRegionConfigsAttribute(t *testing.T, block *hclsyntax.Block) cty.Value {
 	t.Helper()
-	valMap := make(map[string]cty.Value)
-	for name, attr := range block.Body.Attributes {
+	valMap := getValMap(t, block.Body)
+	return cty.ObjectVal(valMap)
+}
+
+func getValMap(t *testing.T, body *hclsyntax.Body) map[string]cty.Value {
+	t.Helper()
+	ret := make(map[string]cty.Value)
+	for name, attr := range body.Attributes {
 		val, diags := attr.Expr.Value(nil)
 		require.False(t, diags.HasErrors(), "failed to parse attribute %s: %s", name, diags.Error())
-		valMap[name] = val
+		ret[name] = val
 	}
-	return cty.ObjectVal(valMap)
+	for _, block := range body.Blocks {
+		ret[block.Type] = cty.ObjectVal(getValMap(t, block.Body))
+	}
+	return ret
 }

@@ -1,6 +1,7 @@
 package acc_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -17,17 +18,17 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 				replication_specs {
 					region_configs {
 						electable_specs {
+							disk_size_gb  = 10
 							instance_size = "M10"
 							node_count    = 3
-							disk_size_gb  = 10
 						}
 						analytics_specs {
+							disk_size_gb  = 10
 							instance_size = "M10"
 							node_count    = 1
-							disk_size_gb  = 10
 						}
-						provider_name = "AWS"
 						priority      = 7
+						provider_name = "AWS"
 						region_name   = "EU_WEST_1"
 					}
 					region_configs {
@@ -44,17 +45,17 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 				replication_specs {
 					region_configs {
 						electable_specs {
+							disk_size_gb  = 10
 							instance_size = "M10"
 							node_count    = 3
-							disk_size_gb  = 10
 						}
 						analytics_specs {
+							disk_size_gb  = 10
 							instance_size = "M10"
 							node_count    = 1
-							disk_size_gb  = 10
 						}
-						provider_name = "AWS"
 						priority      = 7
+						provider_name = "AWS"
 						region_name   = "EU_WEST_1"
 					}
 				}
@@ -67,52 +68,56 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 				name         = "cluster2"
 				cluster_type = "SHARDED"
 
-				replication_specs = [
-					{
+				replication_specs = [{
 						region_configs = [{
-							electable_specs = {
-								instance_size = "M10"
-								node_count    = 3
-								disk_size_gb  = 10
-							}
 							analytics_specs = {
+								disk_size_gb  = 10
 								instance_size = "M10"
 								node_count    = 1
-								disk_size_gb  = 10
 							}
-							provider_name = "AWS"
+							electable_specs = {
+								disk_size_gb  = 10
+								instance_size = "M10"
+								node_count    = 3
+							}
 							priority      = 7
+							provider_name = "AWS"
 							region_name   = "EU_WEST_1"
 						},  {
 							electable_specs = {
 								instance_size = "M30"
 								node_count    = 2
 							}
-							provider_name = "AZURE"
 							priority      = 6
+							provider_name = "AZURE"
 							region_name   = "US_EAST_2"
-						}] }, {
+						}] 
+						}, {
 						region_configs = [{
-							electable_specs = {
-								instance_size = "M10"
-								node_count    = 3
-								disk_size_gb  = 10
-							}
 							analytics_specs = {
+								disk_size_gb  = 10
 								instance_size = "M10"
 								node_count    = 1
-								disk_size_gb  = 10
 							}
-							provider_name = "AWS"
+							electable_specs = {
+								disk_size_gb  = 10
+								instance_size = "M10"
+								node_count    = 3
+							}
 							priority      = 7
+							provider_name = "AWS"
 							region_name   = "EU_WEST_1"
 						}]
-					}
-				]
+					}]
 			}
  		`
 	)
 	actual := acc.ConvertAdvancedClusterToTPF(t, input)
+
+	fmt.Println(actual)
+	fmt.Println("hello")
+	fmt.Println(expected)
+
 	acc.AssertEqualHCL(t, expected, actual)
 }
 
