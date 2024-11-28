@@ -34,7 +34,10 @@ func CheckDestroyCluster(s *terraform.State) error {
 			continue
 		}
 		projectID := rs.Primary.Attributes["project_id"]
-		clusterName := rs.Primary.Attributes["cluster_name"]
+		clusterName := rs.Primary.Attributes["name"]
+		if projectID == "" || clusterName == "" {
+			return fmt.Errorf("projectID or clusterName is empty: %s, %s", projectID, clusterName)
+		}
 		resp, _, _ := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
 		if resp.GetId() != "" {
 			return fmt.Errorf("cluster (%s:%s) still exists", clusterName, rs.Primary.ID)
@@ -43,14 +46,14 @@ func CheckDestroyCluster(s *terraform.State) error {
 	return nil
 }
 
-func ImportStateClusterIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"]), nil
+func TestStepImportCluster(resourceName string, ignoredFields ...string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:                         resourceName,
+		ImportStateIdFunc:                    ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
+		ImportState:                          true,
+		ImportStateVerify:                    true,
+		ImportStateVerifyIdentifierAttribute: "name",
+		ImportStateVerifyIgnore:              ignoredFields,
 	}
 }
 
