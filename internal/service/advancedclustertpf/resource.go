@@ -15,7 +15,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
@@ -46,8 +45,8 @@ const (
 
 var (
 	DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
-	pauseRequest            = admin20240805.ClusterDescription20240805{Paused: conversion.Pointer(true)}
-	resumeRequest           = admin20240805.ClusterDescription20240805{Paused: conversion.Pointer(false)}
+	pauseRequest            = admin.ClusterDescription20240805{Paused: conversion.Pointer(true)}
+	resumeRequest           = admin.ClusterDescription20240805{Paused: conversion.Pointer(false)}
 )
 
 func Resource() resource.Resource {
@@ -135,7 +134,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		diags.AddError("errorDelete", fmt.Sprintf(errorDelete, clusterName, err.Error()))
 		return
 	}
-	_ = AwaitChanges(ctx, r.Client.AtlasV220240805.ClustersApi, &state.Timeouts, diags, projectID, clusterName, changeReasonDelete)
+	_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &state.Timeouts, diags, projectID, clusterName, changeReasonDelete)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -165,7 +164,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		diags.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
 		return nil
 	}
-	cluster := AwaitChanges(ctx, r.Client.AtlasV220240805.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
+	cluster := AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
 	if diags.HasError() {
 		return nil
 	}
@@ -196,7 +195,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State, diags *diag.Diagnostics, allowNotFound bool) *TFModel {
 	clusterName := model.Name.ValueString()
 	projectID := model.ProjectID.ValueString()
-	api := r.Client.AtlasV220240805.ClustersApi
+	api := r.Client.AtlasV2.ClustersApi
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && allowNotFound {
@@ -235,13 +234,13 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 	return legacyAdvConfig, advConfig
 }
 
-func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) *admin20240805.ClusterDescription20240805 {
+func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) *admin.ClusterDescription20240805 {
 	// TODO: Update
 	patchReq := update.PatchPayloadTpf(ctx, diags, state, plan, NewAtlasReq)
 	if patchReq == nil {
 		return nil
 	}
-	var cluster *admin20240805.ClusterDescription20240805
+	var cluster *admin.ClusterDescription20240805
 	pauseAfter := false
 	if patchReq.Paused != nil && patchReq.GetPaused() {
 		// More changes than pause, need to pause after
@@ -259,15 +258,15 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 	if diags.HasError() {
 		return nil
 	}
-	cluster = r.updateAndWait(ctx, newLegacyModel(patchReq), diags, plan)
+	cluster = r.updateAndWait(ctx, patchReq, diags, plan)
 	if pauseAfter && cluster != nil {
 		cluster = r.updateAndWait(ctx, &pauseRequest, diags, plan)
 	}
 	return cluster
 }
 
-func (r *rs) updateAndWait(ctx context.Context, patchReq *admin20240805.ClusterDescription20240805, diags *diag.Diagnostics, tfModel *TFModel) *admin20240805.ClusterDescription20240805 {
-	api := r.Client.AtlasV220240805.ClustersApi
+func (r *rs) updateAndWait(ctx context.Context, patchReq *admin.ClusterDescription20240805, diags *diag.Diagnostics, tfModel *TFModel) *admin.ClusterDescription20240805 {
+	api := r.Client.AtlasV2.ClustersApi
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.Name.ValueString()
 	_, _, err := api.UpdateCluster(ctx, projectID, clusterName, patchReq).Execute()
@@ -275,10 +274,10 @@ func (r *rs) updateAndWait(ctx context.Context, patchReq *admin20240805.ClusterD
 		diags.AddError("errorUpdate", fmt.Sprintf(errorUpdate, clusterName, err.Error()))
 		return nil
 	}
-	return AwaitChanges(ctx, r.Client.AtlasV220240805.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
-func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin20240805.ClusterDescription20240805, resourceTimeouts timeouts.Value, diags *diag.Diagnostics) *TFModel {
+func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, resourceTimeouts timeouts.Value, diags *diag.Diagnostics) *TFModel {
 	apiLatest := r.Client.AtlasV2.ClustersApi
 	apiLegacy := r.Client.AtlasV220240530.ClustersApi
 	projectID := cluster.GetGroupId()

@@ -211,6 +211,7 @@ func configSharded(projectID, clusterName string, withUpdate bool) string {
 						disk_iops       = 1000
 						node_count      = 3
 					}
+					%[3]s
 					%[5]s
 					provider_name = "AWS"
 					priority      = 7

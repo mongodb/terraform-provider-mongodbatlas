@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
@@ -25,7 +26,7 @@ func normalizeReqModel(ctx context.Context, model *TFModel, diags *diag.Diagnost
 		legacyModel = newLegacyModel(latestModel)
 		explodeNumShards(legacyModel, counts)
 	}
-	rootDiskSize := model.DiskSizeGB.ValueFloat64Pointer()
+	rootDiskSize := conversion.NilForUnknown(model.DiskSizeGB, model.DiskSizeGB.ValueFloat64Pointer())
 	if rootDiskSize != nil {
 		if usingLegacySchema {
 			addRootDiskSizeLegacy(legacyModel, rootDiskSize)

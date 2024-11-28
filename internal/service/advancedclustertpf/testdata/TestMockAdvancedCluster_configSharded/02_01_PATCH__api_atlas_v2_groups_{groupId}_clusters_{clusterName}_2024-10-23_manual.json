@@ -59,7 +59,7 @@
        "scaleDownEnabled": false
       },
       "diskGB": {
-       "enabled": false
+       "enabled": true
       }
      },
      "electableSpecs": {
