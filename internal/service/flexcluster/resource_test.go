@@ -44,15 +44,15 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, provider, region, true),
-				Check:  checksFlexCluster(projectID, clusterName, true),
+				Config: configBasic(projectID, clusterName, provider, region, true, false),
+				Check:  checksFlexCluster(projectID, clusterName, true, false),
 			},
 			{
-				Config: configBasic(projectID, clusterName, provider, region, false),
-				Check:  checksFlexCluster(projectID, clusterName, false),
+				Config: configBasic(projectID, clusterName, provider, region, false, true),
+				Check:  checksFlexCluster(projectID, clusterName, false, true),
 			},
 			{
-				Config:            configBasic(projectID, clusterName, provider, region, true),
+				Config:            configBasic(projectID, clusterName, provider, region, true, true),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -80,30 +80,37 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, provider, region, false),
-				Check:  checksFlexCluster(projectID, clusterName, false),
+				Config: configBasic(projectID, clusterName, provider, region, false, false),
+				Check:  checksFlexCluster(projectID, clusterName, false, false),
 			},
 			{
-				Config:      configBasic(projectID, clusterNameUpdated, provider, region, false),
+				Config:      configBasic(projectID, clusterNameUpdated, provider, region, false, false),
 				ExpectError: regexp.MustCompile("name cannot be updated"),
 			},
 			{
-				Config:      configBasic(projectIDUpdated, clusterName, provider, region, false),
+				Config:      configBasic(projectIDUpdated, clusterName, provider, region, false, false),
 				ExpectError: regexp.MustCompile("project_id cannot be updated"),
 			},
 			{
-				Config:      configBasic(projectID, clusterName, providerUpdated, region, false),
+				Config:      configBasic(projectID, clusterName, providerUpdated, region, false, false),
 				ExpectError: regexp.MustCompile("provider_settings.backing_provider_name cannot be updated"),
 			},
 			{
-				Config:      configBasic(projectID, clusterName, provider, regionUpdated, false),
+				Config:      configBasic(projectID, clusterName, provider, regionUpdated, false, false),
 				ExpectError: regexp.MustCompile("provider_settings.region_name cannot be updated"),
 			},
 		},
 	}
 }
 
-func configBasic(projectID, clusterName, provider, region string, terminationProtectionEnabled bool) string {
+func configBasic(projectID, clusterName, provider, region string, terminationProtectionEnabled, tags bool) string {
+	tagsConfig := ""
+	if tags {
+		tagsConfig = `
+			tags = {
+				testKey = "testValue"
+			}`
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_flex_cluster" "test" {
 			project_id = %[1]q
@@ -113,9 +120,7 @@ func configBasic(projectID, clusterName, provider, region string, terminationPro
 				region_name           = %[4]q
 			}
 			termination_protection_enabled = %[5]t
-			tags = {
-				testKey = "testValue"
-			}
+			%[6]s
 		}
 		data "mongodbatlas_flex_cluster" "test" {
 			project_id = mongodbatlas_flex_cluster.test.project_id
@@ -123,16 +128,18 @@ func configBasic(projectID, clusterName, provider, region string, terminationPro
 		}
 		data "mongodbatlas_flex_clusters" "test" {
 			project_id = mongodbatlas_flex_cluster.test.project_id
-		}`, projectID, clusterName, provider, region, terminationProtectionEnabled)
+		}`, projectID, clusterName, provider, region, terminationProtectionEnabled, tagsConfig)
 }
 
-func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabled bool) resource.TestCheckFunc {
+func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabled, tagsCheck bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists()}
 	attrMap := map[string]string{
 		"project_id":                     projectID,
 		"name":                           clusterName,
 		"termination_protection_enabled": fmt.Sprintf("%v", terminationProtectionEnabled),
-		"tags.testKey":                   "testValue",
+	}
+	if tagsCheck {
+		attrMap["tags.testKey"] = "testValue"
 	}
 	pluralMap := map[string]string{
 		"project_id": projectID,

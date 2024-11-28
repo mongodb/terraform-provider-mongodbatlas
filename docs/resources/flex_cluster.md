@@ -2,6 +2,8 @@
 
 `mongodbatlas_flex_cluster` provides a Flex Cluster resource. The resource lets you create, update, delete and import a flex cluster.
 
+**NOTE:** Flex Cluster is in Public Preview. In order to use the resource and data sources you need to set the environment variable MONGODB_ATLAS_ENABLE_PREVIEW to true.
+
 ## Example Usages
 
 ```terraform

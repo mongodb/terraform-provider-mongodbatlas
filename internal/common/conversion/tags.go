@@ -31,3 +31,7 @@ func NewTFTags(tags []admin.ResourceTag) types.Map {
 	}
 	return types.MapValueMust(types.StringType, typesTags)
 }
+
+func UseNilForEmpty(planTag, newTag types.Map) bool {
+	return planTag.IsNull() && len(newTag.Elements()) == 0
+}
