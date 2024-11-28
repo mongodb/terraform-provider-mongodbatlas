@@ -111,6 +111,7 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 			}
  		`
 	)
+	t.Setenv("MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS", "true")
 	actual := acc.ConvertAdvancedClusterToTPF(t, input)
 	acc.AssertEqualHCL(t, expected, actual)
 }
