@@ -46,7 +46,7 @@ const (
 
 var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
 
-type oldShardConfigMeta struct {
+type OldShardConfigMeta struct {
 	ID       string
 	NumShard int
 }
@@ -565,29 +565,21 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 	}
 
-	// root disk_size_gb defined for backwards compatibility avoiding breaking changes
-	if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(cluster)); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
-	}
-	if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
-	}
-	if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
-	}
-
-	zoneNameToOldReplicationSpecMeta, err := getReplicationSpecAttributesFromOldAPI(ctx, projectID, clusterName, connV220240530)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
 	if isUsingOldAPISchemaStructure(d) {
+		zoneNameToOldReplicationSpecMeta, err := GetReplicationSpecAttributesFromOldAPI(ctx, projectID, clusterName, connV220240530.ClustersApi)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldShardConfig(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 	} else {
-		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
+		zoneNameToOldReplicationSpecID, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecID, d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
@@ -617,21 +609,18 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	return nil
 }
 
-// getReplicationSpecAttributesFromOldAPI returns the id values of replication specs coming from old API. This is used to populate old replication_specs.*.id attribute avoiding breaking changes.
-// In the old API each replications spec has a 1:1 relation with each zone, so ids are returned in a map from zoneName to id.
-func getReplicationSpecAttributesFromOldAPI(ctx context.Context, projectID, clusterName string, connV220240530 *admin20240530.APIClient) (map[string]oldShardConfigMeta, error) {
-	clusterOldAPI, _, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	if apiError, ok := admin20240530.AsError(err); ok {
-		if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
-			return nil, nil // if it's the case of an asymmetric shard, an error is expected in old API and replication_specs.*.id attribute will not be populated
-		}
-		readErrorMsg := "error reading  advanced cluster with 2023-02-01 API (%s): %s"
+// GetReplicationSpecAttributesFromOldAPI returns the id and num shard values of replication specs coming from old API. This is used to populate replication_specs.*.id and replication_specs.*.num_shard attributes for old shard confirguration.
+// In the old API each replications spec has a 1:1 relation with each zone, so ids and num shards are stored in a struct oldShardConfigMeta and are returned in a map from zoneName to oldShardConfigMeta.
+func GetReplicationSpecAttributesFromOldAPI(ctx context.Context, projectID, clusterName string, client20240530 admin20240530.ClustersApi) (map[string]OldShardConfigMeta, error) {
+	clusterOldAPI, _, err := client20240530.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		readErrorMsg := "error reading advanced cluster with 2023-02-01 API (%s): %s"
 		return nil, fmt.Errorf(readErrorMsg, clusterName, err)
 	}
 	specs := clusterOldAPI.GetReplicationSpecs()
-	result := make(map[string]oldShardConfigMeta, len(specs))
+	result := make(map[string]OldShardConfigMeta, len(specs))
 	for _, spec := range specs {
-		result[spec.GetZoneName()] = oldShardConfigMeta{spec.GetId(), spec.GetNumShards()}
+		result[spec.GetZoneName()] = OldShardConfigMeta{spec.GetId(), spec.GetNumShards()}
 	}
 	return result, nil
 }
@@ -642,9 +631,9 @@ func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName
 	clusterOldAPI, _, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if apiError, ok := admin20240530.AsError(err); ok {
 		if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
-			return nil, nil // if its the case of an asymmetric shard an error is expected in old API, replication_specs.*.id attribute will not be populated
+			return nil, nil // if it's the case of an asymmetric shard, an error is expected in old API and replication_specs.*.id attribute will not be populated
 		}
-		readErrorMsg := "error reading  advanced cluster with 2023-02-01 API (%s): %s"
+		readErrorMsg := "error reading advanced cluster with 2023-02-01 API (%s): %s"
 		return nil, fmt.Errorf(readErrorMsg, clusterName, err)
 	}
 	specs := clusterOldAPI.GetReplicationSpecs()
@@ -698,6 +687,11 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "create_date", clusterName, err))
 	}
 
+	// root disk_size_gb defined for backwards compatibility avoiding breaking changes
+	if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(cluster)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+	}
+
 	if err := d.Set("encryption_at_rest_provider", cluster.GetEncryptionAtRestProvider()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "encryption_at_rest_provider", clusterName, err))
 	}
@@ -748,6 +742,13 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 
 	if err := d.Set("global_cluster_self_managed_sharding", cluster.GetGlobalClusterSelfManagedSharding()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "global_cluster_self_managed_sharding", clusterName, err))
+	}
+
+	if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
+	}
+	if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
 	}
 
 	if err := d.Set("config_server_type", cluster.GetConfigServerType()); err != nil {

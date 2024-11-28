@@ -14,7 +14,6 @@ import (
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241023002/admin"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -517,7 +516,6 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 
 func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []admin20240530.ReplicationSpec, zoneNameToZoneIDs map[string]string, rootDiskSizeGB float64, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
-	tflog.Debug(ctx, ">>>> In Old SDK!!")
 	// for flattening old model we need information of value defined at root disk_size_gb so we set the value in new location under hardware specs
 	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin20240530.ReplicationSpec, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
 		return flattenAdvancedReplicationSpecOldSDK(ctx, sdkModel, zoneNameToZoneIDs, rootDiskSizeGB, tfModel, resourceData, connV2)
@@ -526,9 +524,8 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 		doesAdvancedReplicationSpecMatchAPIOldSDK, replicationSpecFlattener, connV2)
 }
 
-func FlattenAdvancedReplicationSpecsOldShardConfig(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]oldShardConfigMeta, tfMapObjects []any,
+func FlattenAdvancedReplicationSpecsOldShardConfig(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]OldShardConfigMeta, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
-	tflog.Debug(ctx, ">>>> In new OldConfig Flattener!!")
 	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin.ReplicationSpec20240805, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
 		return flattenAdvancedReplicationSpecOldShardConfig(ctx, sdkModel, zoneNameToOldReplicationSpecMeta, tfModel, resourceData, connV2)
 	}
@@ -537,9 +534,8 @@ func FlattenAdvancedReplicationSpecsOldShardConfig(ctx context.Context, apiObjec
 		doesAdvancedReplicationSpecMatchAPIOldShardConfig, replicationSpecFlattener, connV2)
 }
 
-func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecIDs map[string]oldShardConfigMeta, tfMapObjects []any,
+func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecIDs map[string]string, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
-	tflog.Debug(ctx, "<<< In NEW SDK!!")
 	// for flattening new model we need information of replication spec ids associated to old API to avoid breaking changes for users referencing replication_specs.*.id
 	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin.ReplicationSpec20240805, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
 		return flattenAdvancedReplicationSpec(ctx, sdkModel, zoneNameToOldReplicationSpecIDs, tfModel, resourceData, connV2)
@@ -1152,7 +1148,7 @@ func flattenAdvancedReplicationSpecDS(ctx context.Context, apiObject *admin.Repl
 	return tfMap, nil
 }
 
-func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]oldShardConfigMeta, tfMapObject map[string]any,
+func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]string, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
 		return nil, nil
@@ -1161,8 +1157,8 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 	tfMap := map[string]any{}
 	tfMap["external_id"] = apiObject.GetId()
 
-	if oldMeta, ok := zoneNameToOldReplicationSpecMeta[apiObject.GetZoneName()]; ok {
-		tfMap["id"] = oldMeta.ID // replicationSpecs.*.id stores value associated to old cluster API (2023-02-01)
+	if oldID, ok := zoneNameToOldReplicationSpecMeta[apiObject.GetZoneName()]; ok {
+		tfMap["id"] = oldID // replicationSpecs.*.id stores value associated to old cluster API (2023-02-01)
 	}
 
 	// define num_shards for backwards compatibility as this attribute has default value of 1.
@@ -1221,7 +1217,7 @@ func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin2
 	return tfMap, nil
 }
 
-func flattenAdvancedReplicationSpecOldShardConfig(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldShardConfigMeta map[string]oldShardConfigMeta, tfMapObject map[string]any,
+func flattenAdvancedReplicationSpecOldShardConfig(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldShardConfigMeta map[string]OldShardConfigMeta, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
 		return nil, nil

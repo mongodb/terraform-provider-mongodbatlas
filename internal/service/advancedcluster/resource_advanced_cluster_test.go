@@ -1,17 +1,23 @@
 package advancedcluster_test
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 	"testing"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
 	"go.mongodb.org/atlas-sdk/v20241023002/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -28,6 +34,61 @@ var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 )
+
+func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
+	var (
+		projectID   = "11111"
+		clusterName = "testCluster"
+		ID          = "111111"
+		num_shard   = 2
+		zoneName    = "ZoneName managed by Terraform"
+	)
+
+	testCases := map[string]struct {
+		mockCluster    *admin20240530.AdvancedClusterDescription
+		mockResponse   *http.Response
+		mockError      error
+		expectedResult map[string]advancedcluster.OldShardConfigMeta
+		expectedError  error
+	}{
+		"Error in the API call": {
+			mockCluster:    &admin20240530.AdvancedClusterDescription{},
+			mockResponse:   &http.Response{StatusCode: 400},
+			mockError:      errGeneric,
+			expectedError:  errors.New("error reading advanced cluster with 2023-02-01 API (testCluster): generic"),
+			expectedResult: nil,
+		},
+		"Successfull": {
+			mockCluster: &admin20240530.AdvancedClusterDescription{
+				ReplicationSpecs: &[]admin20240530.ReplicationSpec{
+					{
+						NumShards: &num_shard,
+						Id:        &ID,
+						ZoneName:  &zoneName,
+					},
+				},
+			},
+			mockResponse:  &http.Response{},
+			mockError:     nil,
+			expectedError: nil,
+			expectedResult: map[string]advancedcluster.OldShardConfigMeta{
+				zoneName: {ID: ID, NumShard: num_shard},
+			},
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			testObject := mockadmin20240530.NewClustersApi(t)
+
+			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin20240530.GetClusterApiRequest{ApiService: testObject}).Once()
+			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
+
+			result, err := advancedcluster.GetReplicationSpecAttributesFromOldAPI(context.Background(), projectID, clusterName, testObject)
+			assert.Equal(t, tc.expectedError, err)
+			assert.Equal(t, tc.expectedResult, result)
+		})
+	}
+}
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	acc.SkipIfTPFAdvancedCluster(t)
