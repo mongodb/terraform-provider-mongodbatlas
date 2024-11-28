@@ -486,7 +486,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var clusterName string
 	var clusterID string
 	var err error
-	if isUsingOldAPISchemaStructure(d) {
+	if isUsingOldShardingConfiguration(d) {
 		var cluster20240805 *admin20240805.ClusterDescription20240805
 		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, ConvertClusterDescription20241023to20240805(params)).Execute()
 		if err != nil {
@@ -568,7 +568,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	var clusterResp *admin.ClusterDescription20240805
 
 	var replicationSpecs []map[string]any
-	if isUsingOldAPISchemaStructure(d) {
+	if isUsingOldShardingConfiguration(d) {
 		clusterOldSDK, resp, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -792,7 +792,7 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 }
 
 // For both read and update operations if old sharding schema structure is used (at least one replication spec with numShards > 1) we continue to invoke the old API
-func isUsingOldAPISchemaStructure(d *schema.ResourceData) bool {
+func isUsingOldShardingConfiguration(d *schema.ResourceData) bool {
 	tfList := d.Get("replication_specs").([]any)
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
@@ -848,7 +848,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
-	if isUsingOldAPISchemaStructure(d) {
+	if isUsingOldShardingConfiguration(d) {
 		req, diags := updateRequestOldAPI(d, clusterName)
 		if diags != nil {
 			return diags
