@@ -800,7 +800,7 @@ func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 	return ""
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805, error) {
+func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
 	res20240530 := admin20240530.ClusterDescriptionProcessArgs{}
 	res := admin.ClusterDescriptionProcessArgs20240805{}
 
@@ -875,7 +875,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		}
 	}
 
-	return res20240530, res, nil
+	return res20240530, res
 }
 
 func isMinRequiredMajorVersion(input *string, minVersion float64) bool {

@@ -503,10 +503,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
-			params20240530, params, err := expandProcessArgs(d, aclist[0].(map[string]any), params.MongoDBMajorVersion)
-			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
-			}
+			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), params.MongoDBMajorVersion)
 			_, _, err = connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params20240530).Execute()
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
@@ -908,10 +905,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		ac := d.Get("advanced_configuration")
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
-			params20240530, params, err := expandProcessArgs(d, aclist[0].(map[string]any), &mongoDBMajorVersion)
-			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
-			}
+			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), &mongoDBMajorVersion)
 			if !reflect.DeepEqual(params20240530, admin20240530.ClusterDescriptionProcessArgs{}) {
 				_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params20240530).Execute()
 				if err != nil {

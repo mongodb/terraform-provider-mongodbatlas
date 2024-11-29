@@ -245,6 +245,47 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 	})
 }
 
+func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+
+		processArgs20240530 = &admin20240530.ClusterDescriptionProcessArgs{
+			DefaultReadConcern:               conversion.StringPtr("available"),
+			DefaultWriteConcern:              conversion.StringPtr("1"),
+			FailIndexKeyTooLong:              conversion.Pointer(false),
+			JavascriptEnabled:                conversion.Pointer(true),
+			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+			NoTableScan:                      conversion.Pointer(false),
+			OplogSizeMB:                      conversion.Pointer(1000),
+			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
+			SampleSizeBIConnector:            conversion.Pointer(110),
+			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+		}
+		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
+			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
+			DefaultMaxTimeMS: conversion.IntPtr(65),
+		}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:      configAdvanced(projectID, clusterName, "7.0", processArgs20240530, processArgs),
+				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
+			},
+			{
+				Config: configAdvanced(projectID, clusterName, "7.0", processArgs20240530, &admin.ClusterDescriptionProcessArgs20240805{}),
+				Check:  checkAdvanced(clusterName, "TLS1_1", &admin.ClusterDescriptionProcessArgs20240805{}),
+			},
+		},
+	})
+}
+
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 	acc.SkipIfTPFAdvancedCluster(t)
 	var (
@@ -291,11 +332,11 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvanced(projectID, clusterName, processArgs20240530, processArgs),
+				Config: configAdvanced(projectID, clusterName, "", processArgs20240530, processArgs),
 				Check:  checkAdvanced(clusterName, "TLS1_1", processArgs),
 			},
 			{
-				Config: configAdvanced(projectID, clusterNameUpdated, processArgs20240530Updated, processArgsUpdated),
+				Config: configAdvanced(projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdated),
 				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", processArgsUpdated),
 			},
 		},
@@ -1328,22 +1369,29 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 			"paused": strconv.FormatBool(paused)})
 }
 
-func configAdvanced(projectID, clusterName string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
+func configAdvanced(projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	changeStreamOptionsString := ""
 	defaultMaxTimeString := ""
+	mongoDBMajorVersionString := ""
+
 	if p != nil {
-		if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
+		if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
 			changeStreamOptionsString = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
 		}
 		if p.DefaultMaxTimeMS != nil {
 			defaultMaxTimeString = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
 		}
 	}
+	if mongoDBMajorVersion != "" {
+		mongoDBMajorVersionString = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
+	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
 			cluster_type           = "REPLICASET"
+			%[13]s
 
 			replication_specs {
 				region_configs {
@@ -1386,21 +1434,24 @@ func configAdvanced(projectID, clusterName string, p20240530 *admin20240530.Clus
 	`, projectID, clusterName,
 		p20240530.GetFailIndexKeyTooLong(), p20240530.GetJavascriptEnabled(), p20240530.GetMinimumEnabledTlsProtocol(), p20240530.GetNoTableScan(),
 		p20240530.GetOplogSizeMB(), p20240530.GetSampleSizeBIConnector(), p20240530.GetSampleRefreshIntervalBIConnector(), p20240530.GetTransactionLifetimeLimitSeconds(),
-		changeStreamOptionsString, defaultMaxTimeString)
+		changeStreamOptionsString, defaultMaxTimeString, mongoDBMajorVersionString)
 }
 
 func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
 	advancedConfig := map[string]string{
 		"name": name,
-		"advanced_configuration.0.minimum_enabled_tls_protocol":                                   tls,
-		"advanced_configuration.0.fail_index_key_too_long":                                        "false",
-		"advanced_configuration.0.javascript_enabled":                                             "true",
-		"advanced_configuration.0.no_table_scan":                                                  "false",
-		"advanced_configuration.0.oplog_size_mb":                                                  "1000",
-		"advanced_configuration.0.sample_refresh_interval_bi_connector":                           "310",
-		"advanced_configuration.0.sample_size_bi_connector":                                       "110",
-		"advanced_configuration.0.transaction_lifetime_limit_seconds":                             "300",
-		"advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds": strconv.Itoa(*processArgs.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds),
+		"advanced_configuration.0.minimum_enabled_tls_protocol":         tls,
+		"advanced_configuration.0.fail_index_key_too_long":              "false",
+		"advanced_configuration.0.javascript_enabled":                   "true",
+		"advanced_configuration.0.no_table_scan":                        "false",
+		"advanced_configuration.0.oplog_size_mb":                        "1000",
+		"advanced_configuration.0.sample_refresh_interval_bi_connector": "310",
+		"advanced_configuration.0.sample_size_bi_connector":             "110",
+		"advanced_configuration.0.transaction_lifetime_limit_seconds":   "300",
+	}
+
+	if processArgs.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil {
+		advancedConfig["advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"] = strconv.Itoa(*processArgs.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
 	}
 
 	if processArgs.DefaultMaxTimeMS != nil {
