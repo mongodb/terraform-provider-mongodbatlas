@@ -990,21 +990,27 @@ func configWithKeyValueBlocks(orgID, projectName, clusterName, blockName string,
 	`, orgID, projectName, clusterName, extraConfig)
 }
 
-func checkKeyValueBlocks(clusterName, blockName string, tags ...map[string]string) resource.TestCheckFunc {
+func checkKeyValueBlocks(clusterName, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
 	const pluralPrefix = "results.0."
-	lenStr := strconv.Itoa(len(tags))
+	lenStr := strconv.Itoa(len(blocks))
 	keyHash := fmt.Sprintf("%s.#", blockName)
 	keyStar := fmt.Sprintf("%s.*", blockName)
 	checks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, keyHash, lenStr),
-		resource.TestCheckResourceAttr(dataSourceName, keyHash, lenStr),
-		resource.TestCheckResourceAttr(dataSourcePluralName, pluralPrefix+keyHash, lenStr),
 	}
-	for _, tag := range tags {
+	if !acc.IsTPFAdvancedCluster() { // TODO: data sources not implemented for TPF yet
 		checks = append(checks,
-			resource.TestCheckTypeSetElemNestedAttrs(resourceName, keyStar, tag),
-			resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, keyStar, tag),
-			resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, pluralPrefix+keyStar, tag))
+			resource.TestCheckResourceAttr(dataSourceName, keyHash, lenStr),
+			resource.TestCheckResourceAttr(dataSourcePluralName, pluralPrefix+keyHash, lenStr),
+		)
+	}
+	for _, block := range blocks {
+		checks = append(checks, resource.TestCheckTypeSetElemNestedAttrs(resourceName, keyStar, block))
+		if !acc.IsTPFAdvancedCluster() { // TODO: data sources not implemented for TPF yet
+			checks = append(checks,
+				resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, keyStar, block),
+				resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, pluralPrefix+keyStar, block))
+		}
 	}
 	return checkAggr(
 		[]string{"project_id"},
