@@ -26,15 +26,9 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 			continue
 		}
 		writeBody := resource.Body()
-		generateAllAttributeSpecs(t, "labels", writeBody, func(body *hclsyntax.Body) cty.Value {
-			return getVal(t, body)
-		})
-		generateAllAttributeSpecs(t, "tags", writeBody, func(body *hclsyntax.Body) cty.Value {
-			return getVal(t, body)
-		})
-		generateAllAttributeSpecs(t, "replication_specs", writeBody, func(body *hclsyntax.Body) cty.Value {
-			return getOneReplicationSpecs(t, body)
-		})
+		convertAttrs(t, "labels", writeBody, getAttrVal)
+		convertAttrs(t, "tags", writeBody, getAttrVal)
+		convertAttrs(t, "replication_specs", writeBody, getReplicationSpecs)
 	}
 	content := parse.Bytes()
 	return string(content)
@@ -45,7 +39,7 @@ func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interfa
 	assert.Equal(t, canonicalHCL(t, expected), canonicalHCL(t, actual), msgAndArgs...)
 }
 
-func generateAllAttributeSpecs(t *testing.T, name string, writeBody *hclwrite.Body, getOneAttr func(*hclsyntax.Body) cty.Value) {
+func convertAttrs(t *testing.T, name string, writeBody *hclwrite.Body, getOneAttr func(*testing.T, *hclsyntax.Body) cty.Value) {
 	t.Helper()
 	var vals []cty.Value
 	for {
@@ -53,7 +47,7 @@ func generateAllAttributeSpecs(t *testing.T, name string, writeBody *hclwrite.Bo
 		if match == nil {
 			break
 		}
-		vals = append(vals, getOneAttr(getBlockBody(t, match)))
+		vals = append(vals, getOneAttr(t, getBlockBody(t, match)))
 		writeBody.RemoveBlock(match) // TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
 	}
 	if len(vals) > 0 {
@@ -61,21 +55,20 @@ func generateAllAttributeSpecs(t *testing.T, name string, writeBody *hclwrite.Bo
 	}
 }
 
-func getOneReplicationSpecs(t *testing.T, body *hclsyntax.Body) cty.Value {
+func getReplicationSpecs(t *testing.T, body *hclsyntax.Body) cty.Value {
 	t.Helper()
 	const name = "region_configs"
 	var vals []cty.Value
 	for _, block := range body.Blocks {
 		assert.Equal(t, name, block.Type, "unexpected block type: %s", block.Type)
-		oneRegionConfigs := getVal(t, block.Body)
-		vals = append(vals, oneRegionConfigs)
+		vals = append(vals, getAttrVal(t, block.Body))
 	}
 	return cty.ObjectVal(map[string]cty.Value{
 		name: cty.TupleVal(vals),
 	})
 }
 
-func getVal(t *testing.T, body *hclsyntax.Body) cty.Value {
+func getAttrVal(t *testing.T, body *hclsyntax.Body) cty.Value {
 	t.Helper()
 	ret := make(map[string]cty.Value)
 	for name, attr := range body.Attributes {
@@ -84,7 +77,7 @@ func getVal(t *testing.T, body *hclsyntax.Body) cty.Value {
 		ret[name] = val
 	}
 	for _, block := range body.Blocks {
-		ret[block.Type] = getVal(t, block.Body)
+		ret[block.Type] = getAttrVal(t, block.Body)
 	}
 	return cty.ObjectVal(ret)
 }
