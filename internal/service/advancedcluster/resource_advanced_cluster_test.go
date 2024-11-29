@@ -210,7 +210,6 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -247,11 +246,11 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvanced(projectID, clusterName, processArgs, nil),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvanced(projectID, clusterName, processArgs, nil)),
 				Check:  checkAdvanced(clusterName, "TLS1_1", "-1"),
 			},
 			{
-				Config: configAdvanced(projectID, clusterNameUpdated, processArgsUpdated, conversion.IntPtr(100)),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvanced(projectID, clusterNameUpdated, processArgsUpdated, conversion.IntPtr(100))),
 				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", "100"),
 			},
 		},
@@ -1382,22 +1381,30 @@ func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescr
 }
 
 func checkAdvanced(name, tls, changeStreamOptions string) resource.TestCheckFunc {
+	pluralChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+	}
+	prefix := "advanced_configuration.0."
+	if acc.IsTPFAdvancedCluster() { // TODO: data sources not implemented for TPF yet
+		pluralChecks = nil
+		prefix = "advanced_configuration."
+	}
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"name": name,
-			"advanced_configuration.0.minimum_enabled_tls_protocol":                                   tls,
-			"advanced_configuration.0.fail_index_key_too_long":                                        "false",
-			"advanced_configuration.0.javascript_enabled":                                             "true",
-			"advanced_configuration.0.no_table_scan":                                                  "false",
-			"advanced_configuration.0.oplog_size_mb":                                                  "1000",
-			"advanced_configuration.0.sample_refresh_interval_bi_connector":                           "310",
-			"advanced_configuration.0.sample_size_bi_connector":                                       "110",
-			"advanced_configuration.0.transaction_lifetime_limit_seconds":                             "300",
-			"advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds": changeStreamOptions},
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
+			"name":                                          name,
+			prefix + "minimum_enabled_tls_protocol":         tls,
+			prefix + "fail_index_key_too_long":              "false",
+			prefix + "javascript_enabled":                   "true",
+			prefix + "no_table_scan":                        "false",
+			prefix + "oplog_size_mb":                        "1000",
+			prefix + "sample_refresh_interval_bi_connector": "310",
+			prefix + "sample_size_bi_connector":             "110",
+			prefix + "transaction_lifetime_limit_seconds":   "300",
+			prefix + "change_stream_options_pre_and_post_images_expire_after_seconds": changeStreamOptions},
+		pluralChecks...)
 }
 
 func configAdvancedDefaultWrite(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
