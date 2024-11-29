@@ -30,6 +30,7 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 		convertAttrs(t, "tags", writeBody, true, getAttrVal)
 		convertAttrs(t, "replication_specs", writeBody, true, getReplicationSpecs)
 		convertAttrs(t, "advanced_configuration", writeBody, false, getAttrVal)
+		convertAttrs(t, "bi_connector_config", writeBody, false, getAttrVal)
 	}
 	content := parse.Bytes()
 	return string(content)

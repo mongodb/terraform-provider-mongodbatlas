@@ -95,6 +95,11 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 			    transaction_lifetime_limit_seconds   = 300  
 			    change_stream_options_pre_and_post_images_expire_after_seconds = 100
 				}
+
+				bi_connector_config {
+ 					enabled         = true
+  				read_preference = "secondary"
+				}
 			}	
  		`
 		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToTPF
@@ -103,6 +108,7 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 				project_id   = "MY-PROJECT-ID"
 				name         = "cluster2"
 				cluster_type = "SHARDED"
+
 
 
 
@@ -179,6 +185,10 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 					sample_refresh_interval_bi_connector = 310
 					sample_size_bi_connector			 = 110
 			    transaction_lifetime_limit_seconds   = 300  
+				}
+				bi_connector_config = {
+ 					enabled         = true
+  				read_preference = "secondary"
 				}
 			}
  		`
