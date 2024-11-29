@@ -47,6 +47,11 @@ var (
 	DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
 	pauseRequest            = admin.ClusterDescription20240805{Paused: conversion.Pointer(true)}
 	resumeRequest           = admin.ClusterDescription20240805{Paused: conversion.Pointer(false)}
+	updateOptions           = []update.PatchOptions{
+		{
+			IgnoreInState: []string{"diskSizeGB"},
+		},
+	}
 )
 
 func Resource() resource.Resource {
@@ -234,11 +239,12 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 
 func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) *admin.ClusterDescription20240805 {
 	legacyReq, latestReq := normalizeFromTFModel(ctx, plan, diags)
-	stateModel := NewAtlasReq(ctx, state, diags)
+	_, latestReqState := normalizeFromTFModel(ctx, state, diags)
 	if diags.HasError() {
 		return nil
 	}
-	patchReq, err := update.PatchPayload(stateModel, latestReq)
+	normalizePatchPayload(latestReqState)
+	patchReq, err := update.PatchPayload(latestReqState, latestReq, updateOptions...)
 	if err != nil {
 		diags.AddError("errorPatchPayload", err.Error())
 		return nil
