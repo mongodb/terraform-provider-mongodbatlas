@@ -481,7 +481,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok {
 		if !IsDefaultMaxTimeMinRequiredMajorVersion(params.MongoDBMajorVersion) {
-			return diag.FromErr(fmt.Errorf(ErrorDefaultMaxTimeMinVersion))
+			return diag.FromErr(errors.New(ErrorDefaultMaxTimeMinVersion))
 		}
 	}
 
