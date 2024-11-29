@@ -856,6 +856,29 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 	})
 }
 
+func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConvertAdvancedClusterToTPF(t, configBiConnectorConfig(projectID, clusterName, false)),
+				Check:  checkTenantBiConnectorConfig(projectID, clusterName, false),
+			},
+			{
+				Config: acc.ConvertAdvancedClusterToTPF(t, configBiConnectorConfig(projectID, clusterName, true)),
+				Check:  checkTenantBiConnectorConfig(projectID, clusterName, true),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := make([]resource.TestCheckFunc, 0)
 	if !acc.IsTPFAdvancedCluster() { // TODO: checkExists not implemented for TPF yet
@@ -932,8 +955,7 @@ func checkTenant(projectID, name string) resource.TestCheckFunc {
 			"project_id":                           projectID,
 			"name":                                 name,
 			"termination_protection_enabled":       "false",
-			"global_cluster_self_managed_sharding": "false",
-			"labels.#":                             "0"},
+			"global_cluster_self_managed_sharding": "false"},
 		pluralChecks...)
 }
 
@@ -2280,4 +2302,73 @@ func configPriority(orgID, projectName, clusterName string, oldSchema, swapPrior
 			}
 		}
 	`, orgID, projectName, clusterName, strType, strNumShards, strConfigs)
+}
+
+func configBiConnectorConfig(projectID, name string, enabled bool) string {
+	additionalConfig := `
+		bi_connector_config {
+			enabled = false
+		}	
+	`
+	if enabled {
+		additionalConfig = `
+			bi_connector_config {
+				enabled         = true
+				read_preference = "secondary"
+			}	
+		`
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
+
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+				}
+			}
+
+			%[3]s
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
+	`, projectID, name, additionalConfig)
+}
+
+func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource.TestCheckFunc {
+	prefix := "bi_connector_config.0."
+	if acc.IsTPFAdvancedCluster() {
+		prefix = "bi_connector_config."
+	}
+	attrsMap := map[string]string{
+		"project_id": projectID,
+		"name":       name,
+	}
+	if enabled {
+		attrsMap[prefix+"enabled"] = "true"
+		attrsMap[prefix+"read_preference"] = "secondary"
+	} else {
+		attrsMap[prefix+"enabled"] = "false"
+	}
+	return checkAggr(nil, attrsMap)
 }
