@@ -570,7 +570,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldShardConfig(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
+		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldShardingConfig(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}

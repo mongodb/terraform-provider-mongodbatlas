@@ -268,7 +268,7 @@ func TestFlattenAdvancedReplicationSpecOldSDK(t *testing.T) {
 			}
 			resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]any{"project_id": "p1"})
 
-			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldShardConfig(context.Background(), tc.adminSpecs, tc.zoneNameToOldReplicationSpecMeta, tc.tfInputSpecs, resourceData, client)
+			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldShardingConfig(context.Background(), tc.adminSpecs, tc.zoneNameToOldReplicationSpecMeta, tc.tfInputSpecs, resourceData, client)
 
 			require.NoError(t, err)
 			assert.Len(t, tfOutputSpecs, tc.expectedLen)

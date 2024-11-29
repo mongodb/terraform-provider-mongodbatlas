@@ -524,7 +524,7 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 		doesAdvancedReplicationSpecMatchAPIOldSDK, replicationSpecFlattener, connV2)
 }
 
-func FlattenAdvancedReplicationSpecsOldShardConfig(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]OldShardConfigMeta, tfMapObjects []any,
+func FlattenAdvancedReplicationSpecsOldShardingConfig(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]OldShardConfigMeta, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin.ReplicationSpec20240805, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
 		return flattenAdvancedReplicationSpecOldShardingConfig(ctx, sdkModel, zoneNameToOldReplicationSpecMeta, tfModel, resourceData, connV2)
@@ -1102,7 +1102,7 @@ func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.
 	tfList := make([]map[string]any, len(apiRepSpecs))
 
 	for i, apiRepSpec := range apiRepSpecs {
-		tfReplicationSpec, err := flattenAdvancedReplicationSpecDS(ctx, &apiRepSpec, zoneNameToOldReplicationSpecIDs, nil, d, connV2)
+		tfReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiRepSpec, zoneNameToOldReplicationSpecIDs, nil, d, connV2)
 		if err != nil {
 			return nil, err
 		}
@@ -1111,7 +1111,7 @@ func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.
 	return tfList, nil
 }
 
-func flattenAdvancedReplicationSpecDS(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecIDs map[string]string, tfMapObject map[string]any,
+func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecIDs map[string]string, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
 		return nil, nil
@@ -1121,43 +1121,6 @@ func flattenAdvancedReplicationSpecDS(ctx context.Context, apiObject *admin.Repl
 	tfMap["external_id"] = apiObject.GetId()
 
 	if oldID, ok := zoneNameToOldReplicationSpecIDs[apiObject.GetZoneName()]; ok {
-		tfMap["id"] = oldID // replicationSpecs.*.id stores value associated to old cluster API (2023-02-01)
-	}
-
-	// define num_shards for backwards compatibility as this attribute has default value of 1.
-	tfMap["num_shards"] = 1
-
-	if tfMapObject != nil {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), tfMapObject["region_configs"].([]any), d, connV2)
-		if err != nil {
-			return nil, err
-		}
-		tfMap["region_configs"] = object
-		tfMap["container_id"] = containerIDs
-	} else {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), nil, d, connV2)
-		if err != nil {
-			return nil, err
-		}
-		tfMap["region_configs"] = object
-		tfMap["container_id"] = containerIDs
-	}
-	tfMap["zone_name"] = apiObject.GetZoneName()
-	tfMap["zone_id"] = apiObject.GetZoneId()
-
-	return tfMap, nil
-}
-
-func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]string, tfMapObject map[string]any,
-	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
-	if apiObject == nil {
-		return nil, nil
-	}
-
-	tfMap := map[string]any{}
-	tfMap["external_id"] = apiObject.GetId()
-
-	if oldID, ok := zoneNameToOldReplicationSpecMeta[apiObject.GetZoneName()]; ok {
 		tfMap["id"] = oldID // replicationSpecs.*.id stores value associated to old cluster API (2023-02-01)
 	}
 
