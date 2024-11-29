@@ -514,6 +514,7 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 	return flattenedProcessArgs
 }
 
+// This function is untilised by DS read which still uses the old API and will be removed when refactor to DS read operation is implemented.
 func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []admin20240530.ReplicationSpec, zoneNameToZoneIDs map[string]string, rootDiskSizeGB float64, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	// for flattening old model we need information of value defined at root disk_size_gb so we set the value in new location under hardware specs
@@ -544,7 +545,7 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.Rep
 		doesAdvancedReplicationSpecMatchAPI, replicationSpecFlattener, connV2)
 }
 
-// Compresses an array of Replication Specs from all shards to only one shard per zoneName
+// compressAPIObjectList returns an array of ReplicationSpec20240805. The input array is reduced from all shards to only one shard per zoneName
 func compressAPIObjectList(apiObjects []admin.ReplicationSpec20240805) []admin.ReplicationSpec20240805 {
 	var compressedAPIObjectList []admin.ReplicationSpec20240805
 	wasZoneNameUsed := populateZoneNameMap(apiObjects)
@@ -557,7 +558,7 @@ func compressAPIObjectList(apiObjects []admin.ReplicationSpec20240805) []admin.R
 	return compressedAPIObjectList
 }
 
-// Populates map with zoneNames and initializes all keys to false
+// populateZoneNameMap returns a map of zoneNames and initializes all keys to false.
 func populateZoneNameMap(apiObjects []admin.ReplicationSpec20240805) map[string]bool {
 	zoneNames := make(map[string]bool)
 	for _, apiObject := range apiObjects {
@@ -632,6 +633,7 @@ func flattenAdvancedReplicationSpecsLogic[T ReplicationSpecSDKModel](
 	return tfList, nil
 }
 
+// This function is untilised by DS read which still uses the old API and will be removed when refactor to DS read operation is implemented.
 func doesAdvancedReplicationSpecMatchAPIOldSDK(tfObject map[string]any, apiObject *admin20240530.ReplicationSpec) bool {
 	return tfObject["id"] == apiObject.GetId() || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.GetZoneName())
 }
@@ -1148,8 +1150,7 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 	return tfMap, nil
 }
 
-// flattenAdvancedReplicationSpecOldSDK returns a map populated with ReplicationSpec attributes. This function is untilised by DS read which still uses the old API.
-// This function will be removed when refactor to DS read operation is implemented.
+// This function is untilised by DS read which still uses the old API and will be removed when refactor to DS read operation is implemented.
 func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin20240530.ReplicationSpec, zoneNameToZoneIDs map[string]string, rootDiskSizeGB float64, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
