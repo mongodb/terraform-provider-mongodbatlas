@@ -3,7 +3,7 @@ steps:
 - diff_requests:
   - path: /api/atlas/v2/groups/{groupId}/clusters
     method: POST
-    version: '2024-08-05'
+    version: '2024-10-23'
     text: "{\n \"clusterType\": \"SHARDED\",\n \"labels\": [],\n \"mongoDBMajorVersion\": \"7.0\",\n \"name\": \"{clusterName}\",\n \"replicationSpecs\": [\n  {\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskSizeGB\": 50,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"electableSpecs\": {\n      \"diskSizeGB\": 50,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  },\n  {\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskSizeGB\": 50,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"electableSpecs\": {\n      \"diskSizeGB\": 50,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ],\n \"tags\": []\n}"
     responses:
     - response_index: 9
@@ -88,7 +88,7 @@ steps:
       duplicate_responses: 1
   - path: /api/atlas/v2/groups/{groupId}/clusters
     method: POST
-    version: '2024-08-05'
+    version: '2024-10-23'
     text: "{\n \"clusterType\": \"SHARDED\",\n \"labels\": [],\n \"mongoDBMajorVersion\": \"7.0\",\n \"name\": \"{clusterName}\",\n \"replicationSpecs\": [\n  {\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskSizeGB\": 50,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"electableSpecs\": {\n      \"diskSizeGB\": 50,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  },\n  {\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskSizeGB\": 50,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"electableSpecs\": {\n      \"diskSizeGB\": 50,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ],\n \"tags\": []\n}"
     responses:
     - response_index: 9
@@ -146,7 +146,7 @@ steps:
 - diff_requests:
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
     method: PATCH
-    version: '2023-02-01'
+    version: '2024-08-05'
     text: "{\n \"diskSizeGB\": 55,\n \"replicationSpecs\": [\n  {\n   \"id\": \"6746ceeeaef48d1cb26589ea\",\n   \"numShards\": 2,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ]\n}"
     responses:
     - response_index: 67
@@ -279,7 +279,7 @@ steps:
       duplicate_responses: 5
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
     method: PATCH
-    version: '2023-02-01'
+    version: '2024-08-05'
     text: "{\n \"diskSizeGB\": 55,\n \"replicationSpecs\": [\n  {\n   \"id\": \"6746ceeeaef48d1cb26589ea\",\n   \"numShards\": 2,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ]\n}"
     responses:
     - response_index: 67

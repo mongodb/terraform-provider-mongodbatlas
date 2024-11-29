@@ -179,6 +179,55 @@ func PatchPayload[T any](state, plan *T) (*T, error) {
 	return patchReq, json.Unmarshal(reqJSON, patchReq)
 }
 
+func PatchPayloadDiffTypes[T any, U any](state *T, plan *U) (*U, error) {
+	if plan == nil {
+		return nil, nil
+	}
+	statePlanPatch, err := jsondiff.Compare(state, plan, jsondiff.Invertible())
+	if err != nil {
+		return nil, err
+	}
+	attrOperations := newAttrPatchOperations(statePlanPatch)
+	reqJSON := []byte(`{}`)
+
+	addPatchToRequest := func(patchDiff jsondiff.Patch) error {
+		if len(patchDiff) == 0 {
+			return nil
+		}
+		patch, err := convertJSONDiffToJSONPatch(patchDiff)
+		if err != nil {
+			return err
+		}
+		reqJSON, err = patch.Apply(reqJSON)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	patchReq := new(U)
+	patchFromPlanDiff, err := jsondiff.Compare(patchReq, plan)
+	if err != nil {
+		return nil, err
+	}
+	for _, attr := range attrOperations.ChangedAttributes() {
+		patchFromPlan := filterPatches(attr, patchFromPlanDiff)
+		err = addPatchToRequest(patchFromPlan)
+		if err != nil {
+			return nil, err
+		}
+		patchFromState := attrOperations.StatePatch(attr)
+		err = addPatchToRequest(patchFromState)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if string(reqJSON) == "{}" {
+		return nil, nil
+	}
+	return patchReq, json.Unmarshal(reqJSON, patchReq)
+}
+
 func IsEmpty[T any](last *T) bool {
 	if last == nil {
 		return true

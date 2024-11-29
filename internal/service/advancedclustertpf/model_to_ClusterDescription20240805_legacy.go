@@ -133,7 +133,7 @@ func convertBiConnector20241023to20240805(biConnector *admin.BiConnector) *admin
 
 func convertLabels20241023to20240805(labels *[]admin.ComponentLabel) *[]admin20240805.ComponentLabel {
 	if labels == nil {
-		return &[]admin20240805.ComponentLabel{}
+		return nil
 	}
 	result := make([]admin20240805.ComponentLabel, len(*labels))
 	for i, label := range *labels {
@@ -147,7 +147,7 @@ func convertLabels20241023to20240805(labels *[]admin.ComponentLabel) *[]admin202
 
 func convertTag20241023to20240805(tags *[]admin.ResourceTag) *[]admin20240805.ResourceTag {
 	if tags == nil {
-		return &[]admin20240805.ResourceTag{}
+		return nil
 	}
 	result := make([]admin20240805.ResourceTag, len(*tags))
 	for i, tag := range *tags {

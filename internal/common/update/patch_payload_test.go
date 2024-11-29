@@ -187,6 +187,15 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				plan:          &planNoChanges,
 				patchExpected: nil,
 			},
+			"Empty array should return no changes": {
+				state: &admin.ClusterDescription20240805{
+					Labels: &[]admin.ComponentLabel{},
+				},
+				plan: &admin.ClusterDescription20240805{
+					Labels: &[]admin.ComponentLabel{},
+				},
+				patchExpected: nil,
+			},
 		}
 	)
 	for name, tc := range testCases {

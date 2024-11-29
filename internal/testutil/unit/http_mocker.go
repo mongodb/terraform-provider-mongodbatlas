@@ -92,13 +92,25 @@ func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDa
 	roundTripper, checkFunc := MockRoundTripper(t, vars, config)
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, roundTripper)
 	testCase.PreCheck = nil
-	for i := range testCase.Steps {
+	stepCount := len(testCase.Steps)
+	for i := range stepCount - 1 {
 		step := &testCase.Steps[i]
 		oldCheck := step.Check
 		if oldCheck != nil {
 			step.Check = resource.ComposeAggregateTestCheckFunc(oldCheck, checkFunc)
 		}
 	}
+	oldCheckDestroy := testCase.CheckDestroy
+	newCheckDestroy := func(s *terraform.State) error {
+		if oldCheckDestroy != nil {
+			err := oldCheckDestroy(s)
+			if err != nil {
+				return err
+			}
+		}
+		return checkFunc(s)
+	}
+	testCase.CheckDestroy = newCheckDestroy
 	resource.ParallelTest(t, *testCase)
 }
 
@@ -147,6 +159,10 @@ type requestTracker struct {
 	allowReReadGet       bool
 }
 
+func (r *requestTracker) allowReUse(method string) bool {
+	return r.allowReReadGet && method == "GET"
+}
+
 func (r *requestTracker) requestFilename(requestID string, index int) string {
 	return strings.ReplaceAll(fmt.Sprintf("%02d_%02d_%s", r.currentStepIndex+1, index+1, requestID), "/", "_")
 }
@@ -165,8 +181,8 @@ func (r *requestTracker) initStep() error {
 	usedKeys := strings.Join(acc.SortStringMapKeys(r.vars), ", ")
 	expectedKeys := strings.Join(acc.SortStringMapKeys(r.data.Variables), ", ")
 	require.Equal(r.t, expectedKeys, usedKeys, "mock variables didn't match mock data variables")
-	r.usedResponses = map[string]int{}
 	r.foundsDiffs = map[int]string{}
+	r.usedResponses = map[string]int{}
 	step := r.currentStep()
 	if step == nil {
 		return nil
@@ -183,6 +199,10 @@ func (r *requestTracker) initStep() error {
 
 func (r *requestTracker) nextDiffResponseIndex() {
 	step := r.currentStep()
+	if step == nil {
+		r.t.Log("no more steps, in testCase")
+		return
+	}
 	for index, req := range step.DiffRequests {
 		if _, ok := r.foundsDiffs[index]; !ok {
 			r.diffResponseIndex = req.Responses[0].ResponseIndex
@@ -285,6 +305,9 @@ func normalizePayload(payload string) (string, error) {
 
 func (r *requestTracker) matchRequest(method, urlPath, version, payload string) (response string, statusCode int, err error) {
 	step := r.currentStep()
+	if step == nil {
+		return "", 0, fmt.Errorf("no more steps in mock data")
+	}
 	for index, request := range step.DiffRequests {
 		if !request.Match(method, urlPath, version, r.vars) {
 			continue
@@ -318,7 +341,7 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 		response := request.Responses[nextIndex]
 		if response.ResponseIndex > nextDiffResponse {
 			prevIndex := nextIndex - 1
-			if r.allowReReadGet && method == "GET" && prevIndex >= 0 {
+			if prevIndex >= 0 && r.allowReUse(method) {
 				response = request.Responses[prevIndex]
 				r.t.Logf("re-reading GET request with response_index=%d as diff hasn't been returned yet (%d)", response.ResponseIndex, nextDiffResponse)
 				return replaceVars(response.Text, r.vars), response.Status, nil
