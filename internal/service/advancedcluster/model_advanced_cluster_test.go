@@ -149,7 +149,7 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 	}
 }
 
-func TestFlattenAdvancedReplicationSpecOldSDK(t *testing.T) {
+func TestFlattenAdvancedReplicationSpecsOldShardingConfig(t *testing.T) {
 	var (
 		regionName         = "EU_WEST_1"
 		providerName       = "AWS"
