@@ -26,6 +26,20 @@ var (
 		"key":   "key 3",
 		"value": "value 3",
 	}
+	ClusterLabelsMap1 = map[string]string{
+		"key":   "label key 1",
+		"value": "label value 1",
+	}
+
+	ClusterLabelsMap2 = map[string]string{
+		"key":   "label key 2",
+		"value": "label value 2",
+	}
+
+	ClusterLabelsMap3 = map[string]string{
+		"key":   "label key 3",
+		"value": "label value 3",
+	}
 )
 
 func CheckDestroyCluster(s *terraform.State) error {

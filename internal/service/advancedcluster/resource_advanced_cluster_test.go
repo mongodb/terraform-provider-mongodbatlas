@@ -429,16 +429,44 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configWithTags(orgID, projectName, clusterName)),
-				Check:  checkTags(clusterName),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags")),
+				Check:  checkKeyValueBlocks(clusterName, "tags"),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configWithTags(orgID, projectName, clusterName, acc.ClusterTagsMap1, acc.ClusterTagsMap2)),
-				Check:  checkTags(clusterName, acc.ClusterTagsMap1, acc.ClusterTagsMap2),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2)),
+				Check:  checkKeyValueBlocks(clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configWithTags(orgID, projectName, clusterName, acc.ClusterTagsMap3)),
-				Check:  checkTags(clusterName, acc.ClusterTagsMap3),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap3)),
+				Check:  checkKeyValueBlocks(clusterName, "tags", acc.ClusterTagsMap3),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to check correctly plural data source in the different test steps
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels")),
+				Check:  checkKeyValueBlocks(clusterName, "labels"),
+			},
+			{
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2)),
+				Check:  checkKeyValueBlocks(clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2),
+			},
+			{
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap3)),
+				Check:  checkKeyValueBlocks(clusterName, "labels", acc.ClusterLabelsMap3),
 			},
 		},
 	})
@@ -910,21 +938,21 @@ func checkTenant(projectID, name string) resource.TestCheckFunc {
 		pluralChecks...)
 }
 
-func configWithTags(orgID, projectName, name string, tags ...map[string]string) string {
-	var tagsConf string
-	for _, label := range tags {
-		tagsConf += fmt.Sprintf(`
-			tags {
-				key   = "%s"
-				value = "%s"
+func configWithKeyValueBlocks(orgID, projectName, clusterName, blockName string, blocks ...map[string]string) string {
+	var extraConfig string
+	for _, block := range blocks {
+		extraConfig += fmt.Sprintf(`
+			%[1]s {
+				key   = %[2]q
+				value = %[3]q
 			}
-		`, label["key"], label["value"])
+		`, blockName, block["key"], block["value"])
 	}
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
-			name   = %[2]q
 			org_id = %[1]q
+			name   = %[2]q
 		}
 		
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -959,28 +987,31 @@ func configWithTags(orgID, projectName, name string, tags ...map[string]string) 
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, orgID, projectName, name, tagsConf)
+	`, orgID, projectName, clusterName, extraConfig)
 }
 
-func checkTags(name string, tags ...map[string]string) resource.TestCheckFunc {
+func checkKeyValueBlocks(clusterName, blockName string, tags ...map[string]string) resource.TestCheckFunc {
+	const pluralPrefix = "results.0."
 	lenStr := strconv.Itoa(len(tags))
-	tagChecks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(resourceName, "tags.#", lenStr),
-		resource.TestCheckResourceAttr(dataSourceName, "tags.#", lenStr),
-		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", lenStr),
+	keyHash := fmt.Sprintf("%s.#", blockName)
+	keyStar := fmt.Sprintf("%s.*", blockName)
+	checks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(resourceName, keyHash, lenStr),
+		resource.TestCheckResourceAttr(dataSourceName, keyHash, lenStr),
+		resource.TestCheckResourceAttr(dataSourcePluralName, pluralPrefix+keyHash, lenStr),
 	}
 	for _, tag := range tags {
-		tagChecks = append(tagChecks,
-			resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tag),
-			resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tag),
-			resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", tag))
+		checks = append(checks,
+			resource.TestCheckTypeSetElemNestedAttrs(resourceName, keyStar, tag),
+			resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, keyStar, tag),
+			resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, pluralPrefix+keyStar, tag))
 	}
 	return checkAggr(
 		[]string{"project_id"},
 		map[string]string{
-			"name": name,
+			"name": clusterName,
 		},
-		tagChecks...)
+		checks...)
 }
 
 func configReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountElectable int) string {
