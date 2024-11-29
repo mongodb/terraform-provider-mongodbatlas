@@ -26,9 +26,15 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 			continue
 		}
 		writeBody := resource.Body()
-		generateAllKeyValueAttributeSpecs(t, "labels", writeBody)
-		generateAllKeyValueAttributeSpecs(t, "tags", writeBody)
-		generateAllReplicationSpecs(t, writeBody)
+		generateAllAttributeSpecs(t, "labels", writeBody, func(body *hclsyntax.Body) cty.Value {
+			return cty.ObjectVal(getVal(t, body))
+		})
+		generateAllAttributeSpecs(t, "tags", writeBody, func(body *hclsyntax.Body) cty.Value {
+			return cty.ObjectVal(getVal(t, body))
+		})
+		generateAllAttributeSpecs(t, "replication_specs", writeBody, func(body *hclsyntax.Body) cty.Value {
+			return getOneReplicationSpecs(t, body)
+		})
 	}
 	content := parse.Bytes()
 	return string(content)
@@ -39,7 +45,7 @@ func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interfa
 	assert.Equal(t, canonicalHCL(t, expected), canonicalHCL(t, actual), msgAndArgs...)
 }
 
-func generateAllKeyValueAttributeSpecs(t *testing.T, name string, writeBody *hclwrite.Body) {
+func generateAllAttributeSpecs(t *testing.T, name string, writeBody *hclwrite.Body, getOneAttr func(*hclsyntax.Body) cty.Value) {
 	t.Helper()
 	var vals []cty.Value
 	for {
@@ -47,29 +53,12 @@ func generateAllKeyValueAttributeSpecs(t *testing.T, name string, writeBody *hcl
 		if match == nil {
 			break
 		}
-		vals = append(vals, cty.ObjectVal(getVal(t, getBlockBody(t, match))))
-		// TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
-		writeBody.RemoveBlock(match)
+		vals = append(vals, getOneAttr(getBlockBody(t, match)))
+		writeBody.RemoveBlock(match) // TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
 	}
-	require.NotEmpty(t, vals, "there must be at least one %s block", name)
-	writeBody.SetAttributeValue(name, cty.TupleVal(vals))
-}
-
-func generateAllReplicationSpecs(t *testing.T, writeBody *hclwrite.Body) {
-	t.Helper()
-	const name = "replication_specs"
-	var vals []cty.Value
-	for {
-		match := writeBody.FirstMatchingBlock(name, nil)
-		if match == nil {
-			break
-		}
-		vals = append(vals, getOneReplicationSpecs(t, getBlockBody(t, match)))
-		// TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
-		writeBody.RemoveBlock(match)
+	if len(vals) > 0 {
+		writeBody.SetAttributeValue(name, cty.TupleVal(vals))
 	}
-	require.NotEmpty(t, vals, "there must be at least one %s block", name)
-	writeBody.SetAttributeValue(name, cty.TupleVal(vals))
 }
 
 func getOneReplicationSpecs(t *testing.T, body *hclsyntax.Body) cty.Value {
