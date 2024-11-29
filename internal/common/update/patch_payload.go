@@ -12,12 +12,28 @@ import (
 )
 
 type attrPatchOperations struct {
-	data map[string][]jsondiff.Operation
+	data          map[string][]jsondiff.Operation
+	ignoreInState []string
 }
 
-func newAttrPatchOperations(patch jsondiff.Patch) *attrPatchOperations {
+func (m *attrPatchOperations) ignoreInStatePath(path string) bool {
+	for _, ignore := range m.ignoreInState {
+		suffix := "/" + ignore
+		if strings.HasSuffix(path, suffix) {
+			return true
+		}
+	}
+	return false
+}
+
+func newAttrPatchOperations(patch jsondiff.Patch, options []PatchOptions) *attrPatchOperations {
+	ignoreInState := []string{}
+	for _, option := range options {
+		ignoreInState = append(ignoreInState, option.IgnoreInState...)
+	}
 	self := &attrPatchOperations{
-		data: map[string][]jsondiff.Operation{},
+		data:          map[string][]jsondiff.Operation{},
+		ignoreInState: ignoreInState,
 	}
 	for _, op := range patch {
 		if op.Path == "" {
@@ -80,10 +96,14 @@ func (m *attrPatchOperations) StatePatch(attr string) jsondiff.Patch {
 			lastValue = op.Value
 		}
 		if op.Type == jsondiff.OperationRemove && !indexRemoval(op.Path) {
+			path := op.Path
+			if m.ignoreInStatePath(path) {
+				continue
+			}
 			patch = append(patch, jsondiff.Operation{
 				Type:  jsondiff.OperationAdd,
 				Value: lastValue,
-				Path:  op.Path,
+				Path:  path,
 			})
 		}
 	}
@@ -114,6 +134,11 @@ func convertJSONDiffToJSONPatch(patch jsondiff.Patch) (jsonpatch.Patch, error) {
 	return decodedPatch, nil
 }
 
+// Current limitation if the field is set as part of a nested attribute in a map
+type PatchOptions struct {
+	IgnoreInState []string
+}
+
 // PatchPayload uses the state and plan to changes to find the patch request, including changes only when:
 // - The plan has replaced, added, or removed list values from the state
 // Note that we intentionally do NOT include removed state values:
@@ -130,11 +155,11 @@ func convertJSONDiffToJSONPatch(patch jsondiff.Patch) (jsonpatch.Patch, error) {
 // 4. Adds nested "removed" values from the state to the request
 // 5. Use `jsonpatch` to apply each attribute plan & state patch to an empty JSON object
 // 6. Create a `patchReq` pointer with the final JSON object marshaled to `T` or return nil if there are no changes (`{}`)
-func PatchPayload[T any](state, plan *T) (*T, error) {
-	return PatchPayloadDiffTypes(state, plan)
+func PatchPayload[T any](state, plan *T, options ...PatchOptions) (*T, error) {
+	return PatchPayloadDiffTypes(state, plan, options...)
 }
 
-func PatchPayloadDiffTypes[T any, U any](state *T, plan *U) (*U, error) {
+func PatchPayloadDiffTypes[T any, U any](state *T, plan *U, options ...PatchOptions) (*U, error) {
 	if plan == nil {
 		return nil, nil
 	}
@@ -142,7 +167,7 @@ func PatchPayloadDiffTypes[T any, U any](state *T, plan *U) (*U, error) {
 	if err != nil {
 		return nil, err
 	}
-	attrOperations := newAttrPatchOperations(statePlanPatch)
+	attrOperations := newAttrPatchOperations(statePlanPatch, options)
 	reqJSON := []byte(`{}`)
 
 	addPatchToRequest := func(patchDiff jsondiff.Patch) error {

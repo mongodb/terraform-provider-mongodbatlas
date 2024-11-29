@@ -66,6 +66,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 			state         *admin.ClusterDescription20240805
 			plan          *admin.ClusterDescription20240805
 			patchExpected *admin.ClusterDescription20240805
+			options       []update.PatchOptions
 		}{
 			"ComputedValues from the state are added to plan and unchanged attributes are not included": {
 				state: &state,
@@ -196,6 +197,16 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				},
 				patchExpected: nil,
 			},
+			"diskSizeGb ignored in state": {
+				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0),
+				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0),
+				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0),
+				options: []update.PatchOptions{
+					{
+						IgnoreInState: []string{"diskSizeGB"},
+					},
+				},
+			},
 		}
 	)
 	for name, tc := range testCases {
@@ -203,7 +214,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 			if name == "Removed list entry should be included" {
 				t.Log("This test case is expected to fail due to the current implementation")
 			}
-			patchReq, err := update.PatchPayload(tc.state, tc.plan)
+			patchReq, err := update.PatchPayload(tc.state, tc.plan, tc.options...)
 			require.NoError(t, err)
 			assert.Equal(t, tc.patchExpected, patchReq)
 		})
@@ -219,6 +230,7 @@ func TestPatchAdvancedConfig(t *testing.T) {
 			state         *admin.ClusterDescriptionProcessArgs20240805
 			plan          *admin.ClusterDescriptionProcessArgs20240805
 			patchExpected *admin.ClusterDescriptionProcessArgs20240805
+			options       []update.PatchOptions
 		}{
 			"JavascriptEnabled is set to false": {
 				state: &state,
@@ -257,7 +269,7 @@ func TestPatchAdvancedConfig(t *testing.T) {
 	)
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			patchReq, err := update.PatchPayload(tc.state, tc.plan)
+			patchReq, err := update.PatchPayload(tc.state, tc.plan, tc.options...)
 			require.NoError(t, err)
 			assert.Equal(t, tc.patchExpected, patchReq)
 		})
@@ -269,4 +281,25 @@ func TestIsEmpty(t *testing.T) {
 	var myVar admin.ClusterDescription20240805
 	assert.True(t, update.IsEmpty(&myVar))
 	assert.False(t, update.IsEmpty(&admin.ClusterDescription20240805{Name: conversion.Pointer("my-cluster")}))
+}
+
+func clusterDescriptionDiskSizeNodeCount(diskSizeGBElectable float64, nodeCountElectable int, diskSizeGBReadOnly *float64, nodeCountReadOnly int) *admin.ClusterDescription20240805 {
+	return &admin.ClusterDescription20240805{
+		ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+			{
+				RegionConfigs: &[]admin.CloudRegionConfig20240805{
+					{
+						ElectableSpecs: &admin.HardwareSpec20240805{
+							NodeCount:  &nodeCountElectable,
+							DiskSizeGB: &diskSizeGBElectable,
+						},
+						ReadOnlySpecs: &admin.DedicatedHardwareSpec20240805{
+							NodeCount:  &nodeCountReadOnly,
+							DiskSizeGB: diskSizeGBReadOnly,
+						},
+					},
+				},
+			},
+		},
+	}
 }
