@@ -67,6 +67,7 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 				name         = "cluster2"
 				cluster_type = "SHARDED"
 
+				
 				replication_specs = [{
 						region_configs = [{
 							analytics_specs = {

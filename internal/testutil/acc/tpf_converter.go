@@ -1,7 +1,6 @@
 package acc
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/hashicorp/hcl/v2"
@@ -30,8 +29,6 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 		generateAllReplicationSpecs(t, writeBody)
 	}
 	content := parse.Bytes()
-	// RemoveBlock is not deleting the newline at the end of the block
-	content = bytes.ReplaceAll(content, []byte("\n\n"), []byte("\n"))
 	return string(content)
 }
 
@@ -50,6 +47,7 @@ func generateAllReplicationSpecs(t *testing.T, writeBody *hclwrite.Body) {
 			break
 		}
 		vals = append(vals, getOneReplicationSpecs(t, getBlockBody(t, match)))
+		// TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
 		writeBody.RemoveBlock(match)
 	}
 	require.NotEmpty(t, vals, "there must be at least one %s block", name)
