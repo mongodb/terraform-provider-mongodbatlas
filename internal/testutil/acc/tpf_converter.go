@@ -27,10 +27,10 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 		}
 		writeBody := resource.Body()
 		generateAllAttributeSpecs(t, "labels", writeBody, func(body *hclsyntax.Body) cty.Value {
-			return cty.ObjectVal(getVal(t, body))
+			return getVal(t, body)
 		})
 		generateAllAttributeSpecs(t, "tags", writeBody, func(body *hclsyntax.Body) cty.Value {
-			return cty.ObjectVal(getVal(t, body))
+			return getVal(t, body)
 		})
 		generateAllAttributeSpecs(t, "replication_specs", writeBody, func(body *hclsyntax.Body) cty.Value {
 			return getOneReplicationSpecs(t, body)
@@ -67,7 +67,7 @@ func getOneReplicationSpecs(t *testing.T, body *hclsyntax.Body) cty.Value {
 	var vals []cty.Value
 	for _, block := range body.Blocks {
 		assert.Equal(t, name, block.Type, "unexpected block type: %s", block.Type)
-		oneRegionConfigs := cty.ObjectVal(getVal(t, block.Body))
+		oneRegionConfigs := getVal(t, block.Body)
 		vals = append(vals, oneRegionConfigs)
 	}
 	return cty.ObjectVal(map[string]cty.Value{
@@ -75,7 +75,7 @@ func getOneReplicationSpecs(t *testing.T, body *hclsyntax.Body) cty.Value {
 	})
 }
 
-func getVal(t *testing.T, body *hclsyntax.Body) map[string]cty.Value {
+func getVal(t *testing.T, body *hclsyntax.Body) cty.Value {
 	t.Helper()
 	ret := make(map[string]cty.Value)
 	for name, attr := range body.Attributes {
@@ -84,9 +84,9 @@ func getVal(t *testing.T, body *hclsyntax.Body) map[string]cty.Value {
 		ret[name] = val
 	}
 	for _, block := range body.Blocks {
-		ret[block.Type] = cty.ObjectVal(getVal(t, block.Body))
+		ret[block.Type] = getVal(t, block.Body)
 	}
-	return ret
+	return cty.ObjectVal(ret)
 }
 
 func canonicalHCL(t *testing.T, def string) string {
