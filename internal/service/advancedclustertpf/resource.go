@@ -47,11 +47,6 @@ var (
 	DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
 	pauseRequest            = admin.ClusterDescription20240805{Paused: conversion.Pointer(true)}
 	resumeRequest           = admin.ClusterDescription20240805{Paused: conversion.Pointer(false)}
-	updateOptions           = []update.PatchOptions{
-		{
-			IgnoreInState: []string{"diskSizeGB"},
-		},
-	}
 )
 
 func Resource() resource.Resource {
@@ -244,7 +239,7 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 		return nil
 	}
 	normalizePatchPayload(latestReqState)
-	patchReq, err := update.PatchPayload(latestReqState, latestReq, updateOptions...)
+	patchReq, err := update.PatchPayload(latestReqState, latestReq)
 	if err != nil {
 		diags.AddError("errorPatchPayload", err.Error())
 		return nil
