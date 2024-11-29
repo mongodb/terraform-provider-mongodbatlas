@@ -51,6 +51,7 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "validations.0.status", "OK"),
 					resource.TestCheckResourceAttr(resourceName, "validations.1.validation_type", "AUTHENTICATE"),
 					resource.TestCheckResourceAttr(resourceName, "validations.1.status", "OK"),
+					resource.TestCheckResourceAttr(resourceName, "request_id", ""),
 				),
 			},
 		},
