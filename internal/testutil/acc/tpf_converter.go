@@ -26,9 +26,10 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 			continue
 		}
 		writeBody := resource.Body()
-		convertAttrs(t, "labels", writeBody, getAttrVal)
-		convertAttrs(t, "tags", writeBody, getAttrVal)
-		convertAttrs(t, "replication_specs", writeBody, getReplicationSpecs)
+		convertAttrs(t, "labels", writeBody, true, getAttrVal)
+		convertAttrs(t, "tags", writeBody, true, getAttrVal)
+		convertAttrs(t, "replication_specs", writeBody, true, getReplicationSpecs)
+		convertAttrs(t, "advanced_configuration", writeBody, false, getAttrVal)
 	}
 	content := parse.Bytes()
 	return string(content)
@@ -39,7 +40,7 @@ func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interfa
 	assert.Equal(t, canonicalHCL(t, expected), canonicalHCL(t, actual), msgAndArgs...)
 }
 
-func convertAttrs(t *testing.T, name string, writeBody *hclwrite.Body, getOneAttr func(*testing.T, *hclsyntax.Body) cty.Value) {
+func convertAttrs(t *testing.T, name string, writeBody *hclwrite.Body, isList bool, getOneAttr func(*testing.T, *hclsyntax.Body) cty.Value) {
 	t.Helper()
 	var vals []cty.Value
 	for {
@@ -50,8 +51,14 @@ func convertAttrs(t *testing.T, name string, writeBody *hclwrite.Body, getOneAtt
 		vals = append(vals, getOneAttr(t, getBlockBody(t, match)))
 		writeBody.RemoveBlock(match) // TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
 	}
-	if len(vals) > 0 {
+	if len(vals) == 0 {
+		return
+	}
+	if isList {
 		writeBody.SetAttributeValue(name, cty.TupleVal(vals))
+	} else {
+		assert.Len(t, vals, 1, "can be only one of %s", name)
+		writeBody.SetAttributeValue(name, vals[0])
 	}
 }
 

@@ -83,6 +83,18 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 					key   = "Key Label 3"
 					value = "Value Label 3"
   			}
+
+				advanced_configuration  {
+					fail_index_key_too_long              = false
+					javascript_enabled                   = true
+					minimum_enabled_tls_protocol         = "TLS1_1"
+					no_table_scan                        = false
+					oplog_size_mb                        = 1000
+					sample_size_bi_connector			 = 110
+					sample_refresh_interval_bi_connector = 310
+			    transaction_lifetime_limit_seconds   = 300  
+			    change_stream_options_pre_and_post_images_expire_after_seconds = 100
+				}
 			}	
  		`
 		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToTPF
@@ -91,6 +103,7 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 				project_id   = "MY-PROJECT-ID"
 				name         = "cluster2"
 				cluster_type = "SHARDED"
+
 
 
 
@@ -156,6 +169,17 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 							region_name   = "EU_WEST_1"
 						}]
 					}]
+				advanced_configuration = {
+			    change_stream_options_pre_and_post_images_expire_after_seconds = 100
+					fail_index_key_too_long              = false
+					javascript_enabled                   = true
+					minimum_enabled_tls_protocol         = "TLS1_1"
+					no_table_scan                        = false
+					oplog_size_mb                        = 1000
+					sample_refresh_interval_bi_connector = 310
+					sample_size_bi_connector			 = 110
+			    transaction_lifetime_limit_seconds   = 300  
+				}
 			}
  		`
 	)
