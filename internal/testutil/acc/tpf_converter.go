@@ -26,6 +26,8 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 			continue
 		}
 		writeBody := resource.Body()
+		generateAllKeyValueAttributeSpecs(t, "labels", writeBody)
+		generateAllKeyValueAttributeSpecs(t, "tags", writeBody)
 		generateAllReplicationSpecs(t, writeBody)
 	}
 	content := parse.Bytes()
@@ -35,6 +37,22 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {
 	t.Helper()
 	assert.Equal(t, canonicalHCL(t, expected), canonicalHCL(t, actual), msgAndArgs...)
+}
+
+func generateAllKeyValueAttributeSpecs(t *testing.T, name string, writeBody *hclwrite.Body) {
+	t.Helper()
+	var vals []cty.Value
+	for {
+		match := writeBody.FirstMatchingBlock(name, nil)
+		if match == nil {
+			break
+		}
+		vals = append(vals, cty.ObjectVal(getVal(t, getBlockBody(t, match))))
+		// TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
+		writeBody.RemoveBlock(match)
+	}
+	require.NotEmpty(t, vals, "there must be at least one %s block", name)
+	writeBody.SetAttributeValue(name, cty.TupleVal(vals))
 }
 
 func generateAllReplicationSpecs(t *testing.T, writeBody *hclwrite.Body) {

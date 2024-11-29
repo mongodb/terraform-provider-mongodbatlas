@@ -58,6 +58,31 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 						region_name   = "EU_WEST_1"
 					}
 				}
+
+ 				tags {
+					key   = "Key Tag 2"
+					value = "Value Tag 2"
+  			}
+
+ 				labels {
+					key   = "Key Label 1"
+					value = "Value Label 1"
+  			}
+
+				tags {
+					key   = "Key Tag 1"
+					value = "Value Tag 1"
+			  }
+
+ 				labels {
+					key   = "Key Label 2"
+					value = "Value Label 2"
+  			}
+
+ 				labels {
+					key   = "Key Label 3"
+					value = "Value Label 3"
+  			}
 			}	
  		`
 		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToTPF
@@ -67,7 +92,29 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 				name         = "cluster2"
 				cluster_type = "SHARDED"
 
+
+
+
+
+
 				
+				labels = [{
+					key   = "Key Label 1"
+					value = "Value Label 1"
+  			}, {
+					key   = "Key Label 2"
+					value = "Value Label 2"
+  			}, {
+					key   = "Key Label 3"
+					value = "Value Label 3"
+  			}]
+				tags = [{
+					key   = "Key Tag 2"
+					value = "Value Tag 2"
+  			}, {
+					key   = "Key Tag 1"
+					value = "Value Tag 1"
+  			}]
 				replication_specs = [{
 						region_configs = [{
 							analytics_specs = {
