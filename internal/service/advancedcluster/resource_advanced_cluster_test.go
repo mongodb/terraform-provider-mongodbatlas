@@ -2349,10 +2349,12 @@ func configBiConnectorConfig(projectID, name string, enabled bool) string {
 		data "mongodbatlas_advanced_cluster" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
+			depends_on = [mongodbatlas_advanced_cluster.test]
 		}
 
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
+			depends_on = [mongodbatlas_advanced_cluster.test]
 		}
 	`, projectID, name, additionalConfig)
 }
