@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -89,10 +88,6 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	model := r.readCluster(ctx, &state, &resp.State, diags, true)
 	if model != nil {
-		aReq := NewAtlasReq(ctx, model, diags)
-		if aReq == nil {
-			return
-		}
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
@@ -114,17 +109,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	var model *TFModel
-	if cluster == nil { // no cluster updates
+	if cluster == nil { // no cluster updates, TODO: See if we can only update the advanced config if no cluster changes
 		model = r.readCluster(ctx, &plan, &resp.State, diags, false)
 	} else {
-		legacyInfo := resolveLegacyInfo(ctx, &plan, diags, cluster, r.Client.AtlasV220240530.ClustersApi)
-		model = r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan.Timeouts, diags, legacyInfo)
+		model = r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, &plan, diags)
 	}
 	if model != nil {
-		req := NewAtlasReq(ctx, model, diags)
-		if req == nil {
-			return
-		}
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
@@ -162,8 +152,8 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		apiLegacy20240530 = r.Client.AtlasV220240530.ClustersApi
 		apiLatest         = r.Client.AtlasV2.ClustersApi
 		err               error
+		pauseAfter        = latestReq.GetPaused()
 	)
-	pauseAfter := latestReq.GetPaused()
 	_, _, err = apiLatest.CreateCluster(ctx, projectID, latestReq).Execute()
 	if err != nil {
 		diags.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
@@ -197,8 +187,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 			return nil
 		}
 	}
-	legacyInfo := resolveLegacyInfo(ctx, plan, diags, latestReq, apiLegacy20240530)
-	return r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan.Timeouts, diags, legacyInfo)
+	return r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan, diags)
 }
 
 func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State, diags *diag.Diagnostics, allowNotFound bool) *TFModel {
@@ -214,8 +203,7 @@ func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State
 		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
 		return nil
 	}
-	legacyInfo := resolveLegacyInfo(ctx, model, diags, readResp, r.Client.AtlasV220240530.ClustersApi)
-	return r.convertClusterAddAdvConfig(ctx, nil, nil, readResp, model.Timeouts, diags, legacyInfo)
+	return r.convertClusterAddAdvConfig(ctx, nil, nil, readResp, model, diags)
 }
 func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (*admin20240530.ClusterDescriptionProcessArgs, *admin.ClusterDescriptionProcessArgs20240805) {
 	var (
@@ -311,7 +299,7 @@ func (r *rs) updateAndWaitLegacy(ctx context.Context, patchReq *admin20240805.Cl
 	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
-func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, resourceTimeouts timeouts.Value, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo) *TFModel {
+func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModel, diags *diag.Diagnostics) *TFModel {
 	apiLatest := r.Client.AtlasV2.ClustersApi
 	apiLegacy := r.Client.AtlasV220240530.ClustersApi
 	projectID := cluster.GetGroupId()
@@ -331,13 +319,14 @@ func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *ad
 			return nil
 		}
 	}
-	model := NewTFModel(ctx, cluster, resourceTimeouts, diags, legacyInfo)
+	legacyInfo := resolveLegacyInfo(ctx, modelIn, diags, cluster, apiLegacy)
+	modelOut := NewTFModel(ctx, cluster, modelIn.Timeouts, diags, legacyInfo)
 	if diags.HasError() {
 		return nil
 	}
-	AddAdvancedConfig(ctx, model, advConfig, legacyAdvConfig, diags)
+	AddAdvancedConfig(ctx, modelOut, advConfig, legacyAdvConfig, diags)
 	if diags.HasError() {
 		return nil
 	}
-	return model
+	return modelOut
 }
