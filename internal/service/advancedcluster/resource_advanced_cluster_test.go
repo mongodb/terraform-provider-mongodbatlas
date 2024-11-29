@@ -210,6 +210,8 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
+	// TODO: Already prepared for TPF but getting this error:
+	//  unexpected new value: .advanced_configuration.fail_index_key_too_long: was cty.False, but now null
 	acc.SkipIfTPFAdvancedCluster(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
@@ -247,11 +249,11 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvanced(projectID, clusterName, processArgs, nil),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvanced(projectID, clusterName, processArgs, nil)),
 				Check:  checkAdvanced(clusterName, "TLS1_1", "-1"),
 			},
 			{
-				Config: configAdvanced(projectID, clusterNameUpdated, processArgsUpdated, conversion.IntPtr(100)),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvanced(projectID, clusterNameUpdated, processArgsUpdated, conversion.IntPtr(100))),
 				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", "100"),
 			},
 		},
@@ -417,7 +419,6 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 }
 
 func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to check correctly plural data source in the different test steps
@@ -430,16 +431,44 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithTags(orgID, projectName, clusterName),
-				Check:  checkTags(clusterName),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags")),
+				Check:  checkKeyValueBlocks(clusterName, "tags"),
 			},
 			{
-				Config: configWithTags(orgID, projectName, clusterName, acc.ClusterTagsMap1, acc.ClusterTagsMap2),
-				Check:  checkTags(clusterName, acc.ClusterTagsMap1, acc.ClusterTagsMap2),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2)),
+				Check:  checkKeyValueBlocks(clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2),
 			},
 			{
-				Config: configWithTags(orgID, projectName, clusterName, acc.ClusterTagsMap3),
-				Check:  checkTags(clusterName, acc.ClusterTagsMap3),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap3)),
+				Check:  checkKeyValueBlocks(clusterName, "tags", acc.ClusterTagsMap3),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to check correctly plural data source in the different test steps
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels")),
+				Check:  checkKeyValueBlocks(clusterName, "labels"),
+			},
+			{
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2)),
+				Check:  checkKeyValueBlocks(clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2),
+			},
+			{
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap3)),
+				Check:  checkKeyValueBlocks(clusterName, "labels", acc.ClusterLabelsMap3),
 			},
 		},
 	})
@@ -830,6 +859,28 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 	})
 }
 
+func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConvertAdvancedClusterToTPF(t, configBiConnectorConfig(projectID, clusterName, false)),
+				Check:  checkTenantBiConnectorConfig(projectID, clusterName, false),
+			},
+			{
+				Config: acc.ConvertAdvancedClusterToTPF(t, configBiConnectorConfig(projectID, clusterName, true)),
+				Check:  checkTenantBiConnectorConfig(projectID, clusterName, true),
+			},
+		},
+	})
+}
+
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := make([]resource.TestCheckFunc, 0)
 	if !acc.IsTPFAdvancedCluster() { // TODO: checkExists not implemented for TPF yet
@@ -906,26 +957,25 @@ func checkTenant(projectID, name string) resource.TestCheckFunc {
 			"project_id":                           projectID,
 			"name":                                 name,
 			"termination_protection_enabled":       "false",
-			"global_cluster_self_managed_sharding": "false",
-			"labels.#":                             "0"},
+			"global_cluster_self_managed_sharding": "false"},
 		pluralChecks...)
 }
 
-func configWithTags(orgID, projectName, name string, tags ...map[string]string) string {
-	var tagsConf string
-	for _, label := range tags {
-		tagsConf += fmt.Sprintf(`
-			tags {
-				key   = "%s"
-				value = "%s"
+func configWithKeyValueBlocks(orgID, projectName, clusterName, blockName string, blocks ...map[string]string) string {
+	var extraConfig string
+	for _, block := range blocks {
+		extraConfig += fmt.Sprintf(`
+			%[1]s {
+				key   = %[2]q
+				value = %[3]q
 			}
-		`, label["key"], label["value"])
+		`, blockName, block["key"], block["value"])
 	}
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
-			name   = %[2]q
 			org_id = %[1]q
+			name   = %[2]q
 		}
 		
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -960,28 +1010,37 @@ func configWithTags(orgID, projectName, name string, tags ...map[string]string) 
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, orgID, projectName, name, tagsConf)
+	`, orgID, projectName, clusterName, extraConfig)
 }
 
-func checkTags(name string, tags ...map[string]string) resource.TestCheckFunc {
-	lenStr := strconv.Itoa(len(tags))
-	tagChecks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(resourceName, "tags.#", lenStr),
-		resource.TestCheckResourceAttr(dataSourceName, "tags.#", lenStr),
-		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.tags.#", lenStr),
+func checkKeyValueBlocks(clusterName, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
+	const pluralPrefix = "results.0."
+	lenStr := strconv.Itoa(len(blocks))
+	keyHash := fmt.Sprintf("%s.#", blockName)
+	keyStar := fmt.Sprintf("%s.*", blockName)
+	checks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(resourceName, keyHash, lenStr),
 	}
-	for _, tag := range tags {
-		tagChecks = append(tagChecks,
-			resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tag),
-			resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tag),
-			resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, "results.0.tags.*", tag))
+	if !acc.IsTPFAdvancedCluster() { // TODO: data sources not implemented for TPF yet
+		checks = append(checks,
+			resource.TestCheckResourceAttr(dataSourceName, keyHash, lenStr),
+			resource.TestCheckResourceAttr(dataSourcePluralName, pluralPrefix+keyHash, lenStr),
+		)
+	}
+	for _, block := range blocks {
+		checks = append(checks, resource.TestCheckTypeSetElemNestedAttrs(resourceName, keyStar, block))
+		if !acc.IsTPFAdvancedCluster() { // TODO: data sources not implemented for TPF yet
+			checks = append(checks,
+				resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, keyStar, block),
+				resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, pluralPrefix+keyStar, block))
+		}
 	}
 	return checkAggr(
 		[]string{"project_id"},
 		map[string]string{
-			"name": name,
+			"name": clusterName,
 		},
-		tagChecks...)
+		checks...)
 }
 
 func configReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountElectable int) string {
@@ -1346,22 +1405,30 @@ func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescr
 }
 
 func checkAdvanced(name, tls, changeStreamOptions string) resource.TestCheckFunc {
+	pluralChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+	}
+	prefix := "advanced_configuration.0."
+	if acc.IsTPFAdvancedCluster() { // TODO: data sources not implemented for TPF yet
+		pluralChecks = nil
+		prefix = "advanced_configuration."
+	}
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"name": name,
-			"advanced_configuration.0.minimum_enabled_tls_protocol":                                   tls,
-			"advanced_configuration.0.fail_index_key_too_long":                                        "false",
-			"advanced_configuration.0.javascript_enabled":                                             "true",
-			"advanced_configuration.0.no_table_scan":                                                  "false",
-			"advanced_configuration.0.oplog_size_mb":                                                  "1000",
-			"advanced_configuration.0.sample_refresh_interval_bi_connector":                           "310",
-			"advanced_configuration.0.sample_size_bi_connector":                                       "110",
-			"advanced_configuration.0.transaction_lifetime_limit_seconds":                             "300",
-			"advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds": changeStreamOptions},
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
+			"name":                                          name,
+			prefix + "minimum_enabled_tls_protocol":         tls,
+			prefix + "fail_index_key_too_long":              "false",
+			prefix + "javascript_enabled":                   "true",
+			prefix + "no_table_scan":                        "false",
+			prefix + "oplog_size_mb":                        "1000",
+			prefix + "sample_refresh_interval_bi_connector": "310",
+			prefix + "sample_size_bi_connector":             "110",
+			prefix + "transaction_lifetime_limit_seconds":   "300",
+			prefix + "change_stream_options_pre_and_post_images_expire_after_seconds": changeStreamOptions},
+		pluralChecks...)
 }
 
 func configAdvancedDefaultWrite(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
@@ -2237,4 +2304,75 @@ func configPriority(orgID, projectName, clusterName string, oldSchema, swapPrior
 			}
 		}
 	`, orgID, projectName, clusterName, strType, strNumShards, strConfigs)
+}
+
+func configBiConnectorConfig(projectID, name string, enabled bool) string {
+	additionalConfig := `
+		bi_connector_config {
+			enabled = false
+		}	
+	`
+	if enabled {
+		additionalConfig = `
+			bi_connector_config {
+				enabled         = true
+				read_preference = "secondary"
+			}	
+		`
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
+
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+				}
+			}
+
+			%[3]s
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+			depends_on = [mongodbatlas_advanced_cluster.test]
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			depends_on = [mongodbatlas_advanced_cluster.test]
+		}
+	`, projectID, name, additionalConfig)
+}
+
+func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource.TestCheckFunc {
+	prefix := "bi_connector_config.0."
+	if acc.IsTPFAdvancedCluster() {
+		prefix = "bi_connector_config."
+	}
+	attrsMap := map[string]string{
+		"project_id": projectID,
+		"name":       name,
+	}
+	if enabled {
+		attrsMap[prefix+"enabled"] = "true"
+		attrsMap[prefix+"read_preference"] = "secondary"
+	} else {
+		attrsMap[prefix+"enabled"] = "false"
+	}
+	return checkAggr(nil, attrsMap)
 }
