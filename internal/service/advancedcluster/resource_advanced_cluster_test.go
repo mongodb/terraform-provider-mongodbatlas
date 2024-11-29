@@ -417,7 +417,6 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 }
 
 func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to check correctly plural data source in the different test steps
@@ -430,15 +429,15 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithTags(orgID, projectName, clusterName),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithTags(orgID, projectName, clusterName)),
 				Check:  checkTags(clusterName),
 			},
 			{
-				Config: configWithTags(orgID, projectName, clusterName, acc.ClusterTagsMap1, acc.ClusterTagsMap2),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithTags(orgID, projectName, clusterName, acc.ClusterTagsMap1, acc.ClusterTagsMap2)),
 				Check:  checkTags(clusterName, acc.ClusterTagsMap1, acc.ClusterTagsMap2),
 			},
 			{
-				Config: configWithTags(orgID, projectName, clusterName, acc.ClusterTagsMap3),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configWithTags(orgID, projectName, clusterName, acc.ClusterTagsMap3)),
 				Check:  checkTags(clusterName, acc.ClusterTagsMap3),
 			},
 		},
