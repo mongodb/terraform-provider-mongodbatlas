@@ -40,6 +40,7 @@ const (
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
+	ErrorDefaultMaxTimeMinVersion  = "default_max_time_ms can not be set for mongo_db_major_version lower than 8.0"
 	ignoreLabel                    = "Infrastructure Tool"
 	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 )
@@ -480,7 +481,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok {
 		if !IsDefaultMaxTimeMinRequiredMajorVersion(params.MongoDBMajorVersion) {
-			return diag.FromErr(fmt.Errorf("default_max_time_ms can not be set for mongo_db_major_version lower than 8.0"))
+			return diag.FromErr(fmt.Errorf(ErrorDefaultMaxTimeMinVersion))
 		}
 	}
 

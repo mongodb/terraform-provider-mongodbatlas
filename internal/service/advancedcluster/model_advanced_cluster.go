@@ -867,8 +867,12 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(tmpInt)
 	}
 
-	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok && IsDefaultMaxTimeMinRequiredMajorVersion(mongodbMajorVersion) {
-		res.DefaultMaxTimeMS = conversion.Pointer(cast.ToInt(p["default_max_time_ms"]))
+	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok {
+		if IsDefaultMaxTimeMinRequiredMajorVersion(mongodbMajorVersion) {
+			res.DefaultMaxTimeMS = conversion.Pointer(cast.ToInt(p["default_max_time_ms"]))
+		} else {
+			log.Print(ErrorDefaultMaxTimeMinVersion)
+		}
 	}
 
 	return res20240530, res, nil
