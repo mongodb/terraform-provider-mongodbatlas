@@ -609,8 +609,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	return nil
 }
 
-// GetReplicationSpecAttributesFromOldAPI returns the id and num shard values of replication specs coming from old API. This is used to populate replication_specs.*.id and replication_specs.*.num_shard attributes for old shard confirguration.
-// In the old API each replications spec has a 1:1 relation with each zone, so ids and num shards are stored in a struct oldShardConfigMeta and are returned in a map from zoneName to oldShardConfigMeta.
+// GetReplicationSpecAttributesFromOldAPI returns the id and num shard values of replication specs coming from old API. This is used to populate replication_specs.*.id and replication_specs.*.num_shard attributes for old sharding confirgurations.
+// In the old API, each replications spec has a 1:1 relation with each zone, so ids and num shards are stored in a struct oldShardConfigMeta and are returned in a map from zoneName to oldShardConfigMeta.
 func GetReplicationSpecAttributesFromOldAPI(ctx context.Context, projectID, clusterName string, client20240530 admin20240530.ClustersApi) (map[string]OldShardConfigMeta, error) {
 	clusterOldAPI, _, err := client20240530.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
@@ -631,7 +631,7 @@ func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName
 	clusterOldAPI, _, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if apiError, ok := admin20240530.AsError(err); ok {
 		if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
-			return nil, nil // if it's the case of an asymmetric shard, an error is expected in old API and replication_specs.*.id attribute will not be populated
+			return nil, nil // If it is the case of an asymmetric shard, an error is expected in old API and replication_specs.*.id attribute will not be populated.
 		}
 		readErrorMsg := "error reading advanced cluster with 2023-02-01 API (%s): %s"
 		return nil, fmt.Errorf(readErrorMsg, clusterName, err)
@@ -644,7 +644,7 @@ func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName
 	return result, nil
 }
 
-// getZoneIDsFromNewAPI returns the zone id values of replication specs coming from new API. This is used to populate zone_id when old API is called in the read.
+// getZoneIDsFromNewAPI returns the zone id values of replication specs coming from new API. This is used to populate zone_id when old API is called in DS read.
 func getZoneIDsFromNewAPI(cluster *admin.ClusterDescription20240805) (map[string]string, error) {
 	specs := cluster.GetReplicationSpecs()
 	result := make(map[string]string, len(specs))

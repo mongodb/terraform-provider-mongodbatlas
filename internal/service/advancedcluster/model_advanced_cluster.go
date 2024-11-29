@@ -527,7 +527,7 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 func FlattenAdvancedReplicationSpecsOldShardConfig(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]OldShardConfigMeta, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin.ReplicationSpec20240805, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
-		return flattenAdvancedReplicationSpecOldShardConfig(ctx, sdkModel, zoneNameToOldReplicationSpecMeta, tfModel, resourceData, connV2)
+		return flattenAdvancedReplicationSpecOldShardingConfig(ctx, sdkModel, zoneNameToOldReplicationSpecMeta, tfModel, resourceData, connV2)
 	}
 	compressedAPIObjects := compressAPIObjectList(apiObjects)
 	return flattenAdvancedReplicationSpecsLogic[admin.ReplicationSpec20240805](ctx, compressedAPIObjects, tfMapObjects, d,
@@ -1185,6 +1185,8 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 	return tfMap, nil
 }
 
+// flattenAdvancedReplicationSpecOldSDK returns a map populated with ReplicationSpec attributes. This function is untilised by DS read which still uses the old API.
+// This function will be removed when refactor to DS read operation is implemented.
 func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin20240530.ReplicationSpec, zoneNameToZoneIDs map[string]string, rootDiskSizeGB float64, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
@@ -1217,7 +1219,7 @@ func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin2
 	return tfMap, nil
 }
 
-func flattenAdvancedReplicationSpecOldShardConfig(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldShardConfigMeta map[string]OldShardConfigMeta, tfMapObject map[string]any,
+func flattenAdvancedReplicationSpecOldShardingConfig(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldShardConfigMeta map[string]OldShardConfigMeta, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
 		return nil, nil
