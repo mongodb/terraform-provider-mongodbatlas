@@ -1,0 +1,11 @@
+```release-note:note
+resource/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.default_max_time_ms` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.default_max_time_ms` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_clusters: Adds new `advanced_configuration.0.default_max_time_ms` attribute
+```
