@@ -40,7 +40,7 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 		projectID   = "11111"
 		clusterName = "testCluster"
 		ID          = "111111"
-		num_shard   = 2
+		numShard    = 2
 		zoneName    = "ZoneName managed by Terraform"
 	)
 
@@ -58,11 +58,11 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 			expectedError:  errors.New("error reading advanced cluster with 2023-02-01 API (testCluster): generic"),
 			expectedResult: nil,
 		},
-		"Successfull": {
+		"Successful": {
 			mockCluster: &admin20240530.AdvancedClusterDescription{
 				ReplicationSpecs: &[]admin20240530.ReplicationSpec{
 					{
-						NumShards: &num_shard,
+						NumShards: &numShard,
 						Id:        &ID,
 						ZoneName:  &zoneName,
 					},
@@ -72,7 +72,7 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 			mockError:     nil,
 			expectedError: nil,
 			expectedResult: map[string]advancedcluster.OldShardConfigMeta{
-				zoneName: {ID: ID, NumShard: num_shard},
+				zoneName: {ID: ID, NumShard: numShard},
 			},
 		},
 	}

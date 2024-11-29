@@ -202,56 +202,56 @@ func TestFlattenAdvancedReplicationSpecOldSDK(t *testing.T) {
 	)
 	testCases := map[string]struct {
 		adminSpecs                       []admin.ReplicationSpec20240805
-		tfInputSpecs                     []any
 		zoneNameToOldReplicationSpecMeta map[string]advancedcluster.OldShardConfigMeta
+		tfInputSpecs                     []any
 		expectedLen                      int
 	}{
 		"empty admin spec should return empty list": {
 			[]admin.ReplicationSpec20240805{},
-			[]any{tfSameIDSameZone},
 			map[string]advancedcluster.OldShardConfigMeta{},
+			[]any{tfSameIDSameZone},
 			0,
 		},
 		"existing id, should match admin": {
 			[]admin.ReplicationSpec20240805{apiSpecExpected},
-			[]any{tfSameIDSameZone},
 			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
+			[]any{tfSameIDSameZone},
 			1,
 		},
 		"existing different id, should change to admin spec": {
 			[]admin.ReplicationSpec20240805{apiSpecExpected},
-			[]any{tfdiffIDDiffZone},
 			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
+			[]any{tfdiffIDDiffZone},
 			1,
 		},
 		"missing id, should be set when zone_name matches": {
 			[]admin.ReplicationSpec20240805{apiSpecExpected},
-			[]any{tfNoIDSameZone},
 			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
+			[]any{tfNoIDSameZone},
 			1,
 		},
 		"missing id and diff zone, should change to admin spec": {
 			[]admin.ReplicationSpec20240805{apiSpecExpected},
-			[]any{tfNoIDDiffZone},
 			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
+			[]any{tfNoIDDiffZone},
 			1,
 		},
 		"existing id, should match correct api spec using `id` and extra api spec added": {
 			[]admin.ReplicationSpec20240805{apiSpecDifferent, apiSpecExpected},
-			[]any{tfSameIDSameZone},
 			map[string]advancedcluster.OldShardConfigMeta{unexpectedZoneName: {unexpectedID, 1}, expectedZoneName: {expectedID, 1}},
+			[]any{tfSameIDSameZone},
 			2,
 		},
 		"missing id, should match correct api spec using `zone_name` and extra api spec added": {
 			[]admin.ReplicationSpec20240805{apiSpecDifferent, apiSpecExpected},
-			[]any{tfNoIDSameZone},
 			map[string]advancedcluster.OldShardConfigMeta{unexpectedZoneName: {unexpectedID, 1}, expectedZoneName: {expectedID, 1}},
+			[]any{tfNoIDSameZone},
 			2,
 		},
 		"two matching specs should be set to api specs": {
 			[]admin.ReplicationSpec20240805{apiSpecExpected, apiSpecDifferent},
-			[]any{tfSameIDSameZone, tfdiffIDDiffZone},
 			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}, unexpectedZoneName: {unexpectedID, 1}},
+			[]any{tfSameIDSameZone, tfdiffIDDiffZone},
 			2,
 		},
 	}
