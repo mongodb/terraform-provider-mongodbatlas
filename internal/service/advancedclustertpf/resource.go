@@ -309,7 +309,7 @@ func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFMo
 	if diags.HasError() {
 		return false
 	}
-	legacyPatch := newLegacyModel20240530OnlyReplicationSpecs(specChanges, numShardsPlan)
+	legacyPatch := newLegacyModel20240530OnlyReplicationSpecsAndDiskGB(specChanges, numShardsPlan, state.DiskSizeGB.ValueFloat64Pointer())
 	api20240530 := r.Client.AtlasV220240530.ClustersApi
 	api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch)
 	_, _, err := api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch).Execute()
@@ -372,5 +372,6 @@ func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *ad
 	if diags.HasError() {
 		return nil
 	}
+	overrideKnowTPFIssueFields(modelIn, modelOut)
 	return modelOut
 }

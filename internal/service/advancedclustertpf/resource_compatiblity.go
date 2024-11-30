@@ -11,6 +11,13 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
+func overrideKnowTPFIssueFields(modelIn, modelOut *TFModel) {
+	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
+	if beforeVersion != nil && !modelIn.MongoDBMajorVersion.Equal(modelOut.MongoDBMajorVersion) {
+		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
+	}
+}
+
 func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) map[string]int64 {
 	if !usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
 		return nil

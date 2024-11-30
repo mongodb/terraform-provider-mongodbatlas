@@ -6,9 +6,13 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
-func newLegacyModel20240530OnlyReplicationSpecs(specs *[]admin.ReplicationSpec20240805, zoneNameNumShards map[string]int64) *admin20240530.AdvancedClusterDescription {
+func newLegacyModel20240530OnlyReplicationSpecsAndDiskGB(specs *[]admin.ReplicationSpec20240805, zoneNameNumShards map[string]int64, oldDiskGB *float64) *admin20240530.AdvancedClusterDescription {
+	newDiskGB := findRegionRootDiskSize(specs)
+	if oldDiskGB != nil && newDiskGB != nil && (*newDiskGB-*oldDiskGB) < 0.01 {
+		newDiskGB = nil
+	}
 	return &admin20240530.AdvancedClusterDescription{
-		DiskSizeGB:       findRegionRootDiskSize(specs),
+		DiskSizeGB:       newDiskGB,
 		ReplicationSpecs: convertReplicationSpecs20240805to20240530(specs, zoneNameNumShards),
 	}
 }

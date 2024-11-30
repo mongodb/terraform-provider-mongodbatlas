@@ -89,3 +89,13 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 	testCase := tc.SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t, orgID, projectName, clusterName)
 	resource.ParallelTest(t, *testCase)
 }
+
+func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+	testCase := tc.SymmetricShardedOldSchema(t, orgID, projectName, clusterName)
+	resource.ParallelTest(t, *testCase)
+}

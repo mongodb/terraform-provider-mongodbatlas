@@ -16,6 +16,11 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 	if !ok {
 		diags.AddError("error converting AcceptDataRisksAndForceReplicaSetReconfig", fmt.Sprintf("not a valid time: %s", input.AcceptDataRisksAndForceReplicaSetReconfig.ValueString()))
 	}
+	majorVersion := conversion.NilForUnknown(input.MongoDBMajorVersion, input.MongoDBMajorVersion.ValueStringPointer())
+	if majorVersion != nil {
+		majorVersionFormatted := FormatMongoDBMajorVersion(*majorVersion)
+		majorVersion = &majorVersionFormatted
+	}
 	return &admin.ClusterDescription20240805{
 		AcceptDataRisksAndForceReplicaSetReconfig: acceptDataRisksAndForceReplicaSetReconfig,
 		BackupEnabled:                    conversion.NilForUnknown(input.BackupEnabled, input.BackupEnabled.ValueBoolPointer()),
@@ -25,7 +30,7 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		EncryptionAtRestProvider:         conversion.NilForUnknown(input.EncryptionAtRestProvider, input.EncryptionAtRestProvider.ValueStringPointer()),
 		GlobalClusterSelfManagedSharding: conversion.NilForUnknown(input.GlobalClusterSelfManagedSharding, input.GlobalClusterSelfManagedSharding.ValueBoolPointer()),
 		Labels:                           newComponentLabel(ctx, input.Labels, diags),
-		MongoDBMajorVersion:              conversion.NilForUnknown(input.MongoDBMajorVersion, input.MongoDBMajorVersion.ValueStringPointer()),
+		MongoDBMajorVersion:              majorVersion,
 		Name:                             input.Name.ValueStringPointer(),
 		Paused:                           conversion.NilForUnknown(input.Paused, input.Paused.ValueBoolPointer()),
 		PitEnabled:                       conversion.NilForUnknown(input.PitEnabled, input.PitEnabled.ValueBoolPointer()),

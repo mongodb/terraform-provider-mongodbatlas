@@ -251,3 +251,18 @@ func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtE
 	testCase := tc.SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t, orgID, projectName, clusterName)
 	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
 }
+
+func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
+	var (
+		clusterName = "test-acc-tf-c-6025103075771235151"
+		projectName = "test-acc-tf-p-7889034782442569766"
+		orgID       = "65def6ce0f722a1507105aa5"
+		vars        = map[string]string{
+			"groupId":     projectID,
+			"clusterName": clusterName,
+		}
+	)
+	shortenRetries()
+	testCase := tc.SymmetricShardedOldSchema(t, orgID, projectName, clusterName)
+	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
+}

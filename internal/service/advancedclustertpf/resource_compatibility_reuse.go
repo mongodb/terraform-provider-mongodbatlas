@@ -3,10 +3,19 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/spf13/cast"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
+
+func FormatMongoDBMajorVersion(version string) string {
+	if strings.Contains(version, ".") {
+		return version
+	}
+	return fmt.Sprintf("%.1f", cast.ToFloat32(version))
+}
 
 func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName string, api admin20240530.ClustersApi) (map[string]string, error) {
 	clusterOldAPI, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
