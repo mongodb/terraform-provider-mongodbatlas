@@ -1,27 +1,18 @@
 {
+ "clusterType": "SHARDED",
+ "mongoDBMajorVersion": "7.0",
+ "name": "6746cee8aef48d1cb265882d",
  "replicationSpecs": [
   {
-   "id": "6746ceeeaef48d1cb26589ea",
    "regionConfigs": [
     {
      "analyticsSpecs": {
-      "diskSizeGB": 55,
+      "diskSizeGB": 50,
       "instanceSize": "M10",
       "nodeCount": 0
      },
-     "autoScaling": {
-      "compute": {
-       "enabled": false,
-       "scaleDownEnabled": false
-      },
-      "diskGB": {
-       "enabled": false
-      }
-     },
      "electableSpecs": {
-      "diskIOPS": 3000,
-      "diskSizeGB": 55,
-      "ebsVolumeType": "STANDARD",
+      "diskSizeGB": 50,
       "instanceSize": "M10",
       "nodeCount": 3
      },
@@ -30,30 +21,18 @@
      "regionName": "US_EAST_1"
     }
    ],
-   "zoneId": "6746ceeeaef48d1cb26589e9",
    "zoneName": "ZoneName managed by Terraform"
   },
   {
    "regionConfigs": [
     {
      "analyticsSpecs": {
-      "diskSizeGB": 55,
+      "diskSizeGB": 50,
       "instanceSize": "M10",
       "nodeCount": 0
      },
-     "autoScaling": {
-      "compute": {
-       "enabled": false,
-       "scaleDownEnabled": false
-      },
-      "diskGB": {
-       "enabled": false
-      }
-     },
      "electableSpecs": {
-      "diskIOPS": 3000,
-      "diskSizeGB": 55,
-      "ebsVolumeType": "STANDARD",
+      "diskSizeGB": 50,
       "instanceSize": "M10",
       "nodeCount": 3
      },
