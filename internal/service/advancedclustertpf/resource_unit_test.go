@@ -124,8 +124,8 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 }
 
 func shortenRetries() {
-	advancedclustertpf.RetryMinTimeout = 1 * time.Second
-	advancedclustertpf.RetryDelay = 1 * time.Second
+	advancedclustertpf.RetryMinTimeout = 100 * time.Millisecond
+	advancedclustertpf.RetryDelay = 100 * time.Millisecond
 	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
 }
 
@@ -237,7 +237,7 @@ func TestMockClusterAdvancedCluster_basicTenant(t *testing.T) {
 	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
 }
 
-func TestMockAdvancedCluster_SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
+func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
 	var (
 		clusterName = "6746cee8aef48d1cb265882d"
 		projectName = "test-acc-tf-p-4311574251574843475"

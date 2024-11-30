@@ -6,9 +6,10 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
-func newLegacyModel20240530OnlyReplicationSpecs(clusterDescription *admin.ClusterDescription20240805, zoneNameNumShards map[string]int64) *admin20240530.AdvancedClusterDescription {
+func newLegacyModel20240530OnlyReplicationSpecs(specs *[]admin.ReplicationSpec20240805, zoneNameNumShards map[string]int64) *admin20240530.AdvancedClusterDescription {
 	return &admin20240530.AdvancedClusterDescription{
-		ReplicationSpecs: convertReplicationSpecs20240805to20240530(clusterDescription.ReplicationSpecs, zoneNameNumShards),
+		DiskSizeGB:       findRegionRootDiskSize(specs),
+		ReplicationSpecs: convertReplicationSpecs20240805to20240530(specs, zoneNameNumShards),
 	}
 }
 

@@ -38,7 +38,7 @@ func resolveLegacyInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnosti
 		return nil
 	}
 	if rootDiskSize == nil {
-		rootDiskSize = findRegionRootDiskSize(clusterLatest)
+		rootDiskSize = findRegionRootDiskSize(clusterLatest.ReplicationSpecs)
 	}
 	return &LegacySchemaInfo{
 		ZoneNameNumShards:          numShardsMap(ctx, plan.ReplicationSpecs, diags),
@@ -48,7 +48,7 @@ func resolveLegacyInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnosti
 }
 
 // instead of using `num_shards` explode the replication specs, and set disk_size_gb
-func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
+func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics, shoudlExplodeNumShards bool) *admin.ClusterDescription20240805 {
 	latestModel := NewAtlasReq(ctx, model, diags)
 	if diags.HasError() {
 		return nil
@@ -58,11 +58,11 @@ func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagn
 		return nil
 	}
 	usingLegacySchema := numShardsGt1(counts)
-	if usingLegacySchema {
+	if usingLegacySchema && shoudlExplodeNumShards {
 		explodeNumShards(latestModel, counts)
 	}
 	rootDiskSize := conversion.NilForUnknown(model.DiskSizeGB, model.DiskSizeGB.ValueFloat64Pointer())
-	regionRootDiskSize := findRegionRootDiskSize(latestModel)
+	regionRootDiskSize := findRegionRootDiskSize(latestModel.ReplicationSpecs)
 	if rootDiskSize != nil && regionRootDiskSize != nil && (*regionRootDiskSize-*rootDiskSize) > 0.01 {
 		errMsg := "disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)"
 		diags.AddError(errMsg, errMsg)
@@ -181,8 +181,11 @@ func setDiskSize(req *admin.ClusterDescription20240805, size *float64) {
 	}
 }
 
-func findRegionRootDiskSize(req *admin.ClusterDescription20240805) *float64 {
-	for _, spec := range req.GetReplicationSpecs() {
+func findRegionRootDiskSize(specs *[]admin.ReplicationSpec20240805) *float64 {
+	if specs == nil {
+		return nil
+	}
+	for _, spec := range *specs {
 		for _, regionConfig := range spec.GetRegionConfigs() {
 			analyticsSpecs := regionConfig.AnalyticsSpecs
 			if analyticsSpecs != nil && analyticsSpecs.DiskSizeGB != nil {

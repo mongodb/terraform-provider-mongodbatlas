@@ -142,7 +142,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 }
 
 func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagnostics) *TFModel {
-	latestReq := normalizeFromTFModel(ctx, plan, diags)
+	latestReq := normalizeFromTFModel(ctx, plan, diags, true)
 	if diags.HasError() {
 		return nil
 	}
@@ -233,12 +233,12 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 }
 
 func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) *admin.ClusterDescription20240805 {
-	stateReq := normalizeFromTFModel(ctx, state, diags)
-	normalizePatchState(stateReq)
-	planReq := normalizeFromTFModel(ctx, plan, diags)
+	stateReq := normalizeFromTFModel(ctx, state, diags, false)
+	planReq := normalizeFromTFModel(ctx, plan, diags, false)
 	if diags.HasError() {
 		return nil
 	}
+	normalizePatchState(stateReq)
 	patchReq, err := update.PatchPayload(stateReq, planReq)
 	if err != nil {
 		diags.AddError("errorPatchPayload", err.Error())
@@ -246,10 +246,14 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 	}
 	var cluster *admin.ClusterDescription20240805
 	if usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
-		// Only updates of replication specs will be done with legacy api
-		cluster = r.updateLegacyReplicationSpecs(ctx, state, plan, diags, patchReq)
+		// Only updates of replication specs will be done with legacy API
+		legacySpecsChanged := r.updateLegacyReplicationSpecs(ctx, state, plan, diags, patchReq.ReplicationSpecs)
 		if diags.HasError() {
 			return nil
+		}
+		patchReq.ReplicationSpecs = nil // already updated by legacy API
+		if legacySpecsChanged && update.IsEmpty(patchReq) {
+			return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, plan.ProjectID.ValueString(), plan.Name.ValueString(), changeReasonUpdate)
 		}
 	}
 	if update.IsEmpty(patchReq) {
@@ -286,33 +290,34 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 	return cluster
 }
 
-func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, patchReq *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
+func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, specChanges *[]admin.ReplicationSpec20240805) bool {
 	numShardsUpdates := findNumShardsUpdates(ctx, state, plan, diags)
 	if diags.HasError() {
-		return nil
+		return false
 	}
-	if patchReq.ReplicationSpecs == nil && numShardsUpdates == nil {
-		return nil
+	if specChanges == nil && numShardsUpdates == nil { // no changes to replication specs
+		return false
 	}
-	planReq := NewAtlasReq(ctx, plan, diags)
+	if specChanges == nil {
+		// use state replication specs as there are no changes in paln except for numShardsupdates
+		specChanges = newReplicationSpec20240805(ctx, state.ReplicationSpecs, diags)
+		if diags.HasError() {
+			return false
+		}
+	}
+	numShardsPlan := numShardsMap(ctx, plan.ReplicationSpecs, diags)
 	if diags.HasError() {
-		return nil
+		return false
 	}
-	legacyPatch := newLegacyModel20240530OnlyReplicationSpecs(planReq, numShardsUpdates)
+	legacyPatch := newLegacyModel20240530OnlyReplicationSpecs(specChanges, numShardsPlan)
 	api20240530 := r.Client.AtlasV220240530.ClustersApi
 	api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch)
 	_, _, err := api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch).Execute()
 	if err != nil {
 		diags.AddError("errorUpdateLegacy", fmt.Sprintf(errorUpdate, plan.Name.ValueString(), err.Error()))
-		return nil
+		return false
 	}
-	// Ensure newest API don't update replication specs
-	patchReq.ReplicationSpecs = nil
-	if update.IsEmpty(patchReq) {
-		// Need to await changes as there are no PATCH done with latest API
-		return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, plan.ProjectID.ValueString(), plan.Name.ValueString(), changeReasonUpdate)
-	}
-	return nil
+	return true
 }
 
 func (r *rs) updateAndWait(ctx context.Context, patchReq *admin.ClusterDescription20240805, diags *diag.Diagnostics, tfModel *TFModel) *admin.ClusterDescription20240805 {
