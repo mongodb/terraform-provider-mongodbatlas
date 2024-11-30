@@ -2,14 +2,29 @@ package advancedclustertpf
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
+
+func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) map[string]int64 {
+	if !usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
+		return nil
+	}
+	stateCounts := numShardsMap(ctx, state.ReplicationSpecs, diags)
+	planCounts := numShardsMap(ctx, plan.ReplicationSpecs, diags)
+	if diags.HasError() {
+		return nil
+	}
+	if reflect.DeepEqual(stateCounts, planCounts) {
+		return nil
+	}
+	return planCounts
+}
 
 func resolveLegacyInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnostics, clusterLatest *admin.ClusterDescription20240805, api20240530 admin20240530.ClustersApi) *LegacySchemaInfo {
 	if !usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
@@ -32,21 +47,18 @@ func resolveLegacyInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnosti
 	}
 }
 
-// instead of using `num_shards` explode the replication specs
-func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics) (legacyReq *admin20240805.ClusterDescription20240805, req *admin.ClusterDescription20240805) {
+// instead of using `num_shards` explode the replication specs, and set disk_size_gb
+func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
 	latestModel := NewAtlasReq(ctx, model, diags)
-	var legacyModel *admin20240805.ClusterDescription20240805
 	if diags.HasError() {
-		return nil, nil
+		return nil
 	}
 	counts := numShardsCounts(ctx, model.ReplicationSpecs, diags)
 	if diags.HasError() {
-		return nil, nil
+		return nil
 	}
 	usingLegacySchema := numShardsGt1(counts)
 	if usingLegacySchema {
-		legacyModel = newLegacyModel(latestModel)
-		explodeNumShardsLegacy(legacyModel, counts)
 		explodeNumShards(latestModel, counts)
 	}
 	rootDiskSize := conversion.NilForUnknown(model.DiskSizeGB, model.DiskSizeGB.ValueFloat64Pointer())
@@ -54,22 +66,20 @@ func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagn
 	if rootDiskSize != nil && regionRootDiskSize != nil && (*regionRootDiskSize-*rootDiskSize) > 0.01 {
 		errMsg := "disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)"
 		diags.AddError(errMsg, errMsg)
-		return nil, nil
+		return nil
 	}
 	if rootDiskSize != nil || regionRootDiskSize != nil {
 		finalDiskSize := rootDiskSize
 		if finalDiskSize == nil {
 			finalDiskSize = regionRootDiskSize
 		}
-		if usingLegacySchema {
-			setDiskSizeLegacy(legacyModel, finalDiskSize)
-		}
 		setDiskSize(latestModel, finalDiskSize)
 	}
-	return legacyModel, latestModel
+	return latestModel
 }
 
-func normalizePatchPayload(cluster *admin.ClusterDescription20240805) {
+// Set "Computed" Specs to nil to avoid unnecessary diffs
+func normalizePatchState(cluster *admin.ClusterDescription20240805) {
 	for i, specCopy := range cluster.GetReplicationSpecs() {
 		for j := range specCopy.GetRegionConfigs() {
 			spec := cluster.GetReplicationSpecs()[i]
@@ -100,24 +110,6 @@ func explodeNumShards(req *admin.ClusterDescription20240805, counts []int64) {
 }
 
 func repSpecNoIDs(repspec admin.ReplicationSpec20240805) *admin.ReplicationSpec20240805 {
-	repspec.Id = nil
-	repspec.ZoneId = nil
-	return &repspec
-}
-
-func explodeNumShardsLegacy(req *admin20240805.ClusterDescription20240805, counts []int64) {
-	specs := req.GetReplicationSpecs()
-	newSpecs := []admin20240805.ReplicationSpec20240805{}
-	for i, spec := range specs {
-		newSpecs = append(newSpecs, spec)
-		for range counts[i] - 1 {
-			newSpecs = append(newSpecs, *repSpecNoIDsLegacy(spec))
-		}
-	}
-	req.ReplicationSpecs = &newSpecs
-}
-
-func repSpecNoIDsLegacy(repspec admin20240805.ReplicationSpec20240805) *admin20240805.ReplicationSpec20240805 {
 	repspec.Id = nil
 	repspec.ZoneId = nil
 	return &repspec
@@ -207,24 +199,4 @@ func findRegionRootDiskSize(req *admin.ClusterDescription20240805) *float64 {
 		}
 	}
 	return nil
-}
-
-func setDiskSizeLegacy(req *admin20240805.ClusterDescription20240805, size *float64) {
-	for i, spec := range req.GetReplicationSpecs() {
-		for j := range spec.GetRegionConfigs() {
-			actualConfig := req.GetReplicationSpecs()[i].GetRegionConfigs()[j]
-			analyticsSpecs := actualConfig.AnalyticsSpecs
-			if analyticsSpecs != nil {
-				analyticsSpecs.DiskSizeGB = size
-			}
-			electable := actualConfig.ElectableSpecs
-			if electable != nil {
-				electable.DiskSizeGB = size
-			}
-			readonly := actualConfig.ReadOnlySpecs
-			if readonly != nil {
-				readonly.DiskSizeGB = size
-			}
-		}
-	}
 }
