@@ -34,7 +34,6 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 	if diags.HasError() {
 		return nil
 	}
-	rootDiskSize := types.Float64PointerValue(findRegionRootDiskSize(input))
 	return &TFModel{
 		AcceptDataRisksAndForceReplicaSetReconfig: types.StringPointerValue(conversion.TimePtrToStringPtr(input.AcceptDataRisksAndForceReplicaSetReconfig)),
 		BackupEnabled:                    types.BoolPointerValue(input.BackupEnabled),
@@ -44,7 +43,7 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 		ConfigServerType:                 types.StringPointerValue(input.ConfigServerType),
 		ConnectionStrings:                connectionStrings,
 		CreateDate:                       types.StringPointerValue(conversion.TimePtrToStringPtr(input.CreateDate)),
-		DiskSizeGB:                       rootDiskSize,
+		DiskSizeGB:                       types.Float64PointerValue(findRegionRootDiskSize(input.ReplicationSpecs)),
 		EncryptionAtRestProvider:         types.StringPointerValue(input.EncryptionAtRestProvider),
 		GlobalClusterSelfManagedSharding: types.BoolPointerValue(input.GlobalClusterSelfManagedSharding),
 		ProjectID:                        types.StringPointerValue(input.GroupId),
