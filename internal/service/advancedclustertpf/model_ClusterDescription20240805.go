@@ -34,10 +34,7 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 	if diags.HasError() {
 		return nil
 	}
-	rootDiskSize := types.Float64Null()
-	if legacyInfo != nil {
-		rootDiskSize = types.Float64PointerValue(legacyInfo.RootDiskSize)
-	}
+	rootDiskSize := types.Float64PointerValue(findRegionRootDiskSize(input))
 	return &TFModel{
 		AcceptDataRisksAndForceReplicaSetReconfig: types.StringPointerValue(conversion.TimePtrToStringPtr(input.AcceptDataRisksAndForceReplicaSetReconfig)),
 		BackupEnabled:                    types.BoolPointerValue(input.BackupEnabled),
