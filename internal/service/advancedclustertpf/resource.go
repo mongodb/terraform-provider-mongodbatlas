@@ -24,6 +24,7 @@ var _ resource.ResourceWithImportState = &rs{}
 var _ resource.ResourceWithMoveState = &rs{}
 
 const (
+	resourceName                   = "advanced_cluster"
 	errorCreate                    = "error creating advanced cluster: %s"
 	errorRead                      = "error reading  advanced cluster (%s): %s"
 	errorDelete                    = "error deleting advanced cluster (%s): %s"
