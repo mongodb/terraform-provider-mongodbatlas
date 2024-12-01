@@ -23,6 +23,30 @@ func DataSourceSchemaFromResource(rs schema.Schema, requiredFields []string, ove
 	return ds
 }
 
+func PluralDataSourceSchemaFromResource(rs schema.Schema, requiredFields []string) dsschema.Schema {
+	blocks := convertBlocks(rs.Blocks, nil)
+	if len(blocks) > 0 {
+		panic("blocks not supported yet in auto-generated plural data source schema as they can't go in ListNestedAttribute")
+	}
+	resultAttrs := convertAttrs(rs.Attributes, nil)
+	rootAttrs := convertAttrs(rs.Attributes, requiredFields)
+	for name := range rootAttrs {
+		if !slices.Contains(requiredFields, name) {
+			delete(rootAttrs, name)
+		}
+	}
+	rootAttrs["results"] = dsschema.ListNestedAttribute{
+		Computed: true,
+		NestedObject: dsschema.NestedAttributeObject{
+			Attributes: resultAttrs,
+		},
+		MarkdownDescription: "List of returned documents that MongoDB Cloud provides when completing this request.",
+	}
+	ds := dsschema.Schema{Attributes: rootAttrs}
+	UpdateSchemaDescription(&ds)
+	return ds
+}
+
 func UpdateSchemaDescription[T schema.Schema | dsschema.Schema](s *T) {
 	UpdateAttr(s)
 }
