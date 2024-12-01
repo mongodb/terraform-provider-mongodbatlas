@@ -11,34 +11,31 @@ import (
 func DataSourceSchemaFromResource(rs schema.Schema, requiredFields []string, overridenFields map[string]dsschema.Attribute) dsschema.Schema {
 	blocks := convertBlocks(rs.Blocks, requiredFields)
 	attrs := convertAttrs(rs.Attributes, requiredFields)
-	for name, attr := range overridenFields {
-		if attr == nil {
-			delete(attrs, name)
-		} else {
-			attrs[name] = attr
-		}
-	}
+	overrideFields(attrs, overridenFields)
 	ds := dsschema.Schema{Attributes: attrs, Blocks: blocks}
 	UpdateSchemaDescription(&ds)
 	return ds
 }
 
-func PluralDataSourceSchemaFromResource(rs schema.Schema, requiredFields []string) dsschema.Schema {
+func PluralDataSourceSchemaFromResource(rs schema.Schema, requiredFields []string, overridenFields, overridenRootFields map[string]dsschema.Attribute) dsschema.Schema {
 	blocks := convertBlocks(rs.Blocks, nil)
 	if len(blocks) > 0 {
 		panic("blocks not supported yet in auto-generated plural data source schema as they can't go in ListNestedAttribute")
 	}
-	resultAttrs := convertAttrs(rs.Attributes, nil)
+	attrs := convertAttrs(rs.Attributes, nil)
+	overrideFields(attrs, overridenFields)
 	rootAttrs := convertAttrs(rs.Attributes, requiredFields)
 	for name := range rootAttrs {
 		if !slices.Contains(requiredFields, name) {
 			delete(rootAttrs, name)
 		}
 	}
+	overrideFields(rootAttrs, overridenRootFields)
+
 	rootAttrs["results"] = dsschema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: dsschema.NestedAttributeObject{
-			Attributes: resultAttrs,
+			Attributes: attrs,
 		},
 		MarkdownDescription: "List of returned documents that MongoDB Cloud provides when completing this request.",
 	}
@@ -139,6 +136,16 @@ func convertElement(name string, element any, requiredFields []string) any {
 		fNested.Set(vNested)
 	}
 	return vDest.Interface()
+}
+
+func overrideFields(attrs, overridenFields map[string]dsschema.Attribute) {
+	for name, attr := range overridenFields {
+		if attr == nil {
+			delete(attrs, name)
+		} else {
+			attrs[name] = attr
+		}
+	}
 }
 
 // UpdateAttr is exported for testing purposes only and should not be used directly.

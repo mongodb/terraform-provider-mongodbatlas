@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/stretchr/testify/assert"
 )
 
 // TODO: DON'T MERGE
 func TestDataSourceSchemasTemporary(t *testing.T) {
-	ds := flexcluster.PluralDataSource()
+	ds := advancedclustertpf.PluralDataSource()
 	schemaRequest := datasource.SchemaRequest{}
 	schemaResponse := &datasource.SchemaResponse{}
 	ds.Schema(context.Background(), schemaRequest, schemaResponse)
@@ -285,6 +285,15 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 				Computed:            true,
 				MarkdownDescription: "desc attrString",
 			},
+			"attrDelete": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrDelete",
+			},
+			"overridenString": dsschema.StringAttribute{
+				Computed:            true,
+				Description:         "desc overridenString",
+				MarkdownDescription: "desc overridenString",
+			},
 		},
 	}
 
@@ -294,6 +303,16 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 				Required:            true,
 				MarkdownDescription: "desc requiredAttrString",
 				Description:         "desc requiredAttrString",
+			},
+			"overridenRootStringOptional": dsschema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "desc overridenRootStringOptional",
+				Description:         "desc overridenRootStringOptional",
+			},
+			"overridenRootStringRequired": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc overridenRootStringRequired",
+				Description:         "desc overridenRootStringRequired",
 			},
 			"results": dsschema.ListNestedAttribute{
 				Computed: true,
@@ -309,6 +328,14 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 							MarkdownDescription: "desc attrString",
 							Description:         "desc attrString",
 						},
+						"overridenString": dsschema.StringAttribute{
+							Computed:            true,
+							Description:         "desc overridenString",
+							MarkdownDescription: "desc overridenString",
+							Validators: []validator.String{
+								stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+							},
+						},
 					},
 				},
 				Description:         "List of returned documents that MongoDB Cloud provides when completing this request.",
@@ -318,7 +345,27 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 	}
 
 	requiredFields := []string{"requiredAttrString"}
-	ds := conversion.PluralDataSourceSchemaFromResource(s, requiredFields)
+	overridenFields := map[string]dsschema.Attribute{
+		"overridenString": dsschema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "desc overridenString",
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+			},
+		},
+		"attrDelete": nil,
+	}
+	overridenRootFields := map[string]dsschema.Attribute{
+		"overridenRootStringOptional": dsschema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "desc overridenRootStringOptional",
+		},
+		"overridenRootStringRequired": dsschema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "desc overridenRootStringRequired",
+		},
+	}
+	ds := conversion.PluralDataSourceSchemaFromResource(s, requiredFields, overridenFields, overridenRootFields)
 	assert.Equal(t, expected, ds)
 }
 
