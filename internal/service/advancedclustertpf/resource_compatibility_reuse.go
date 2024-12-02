@@ -19,9 +19,11 @@ func FormatMongoDBMajorVersion(version string) string {
 
 func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName string, api admin20240530.ClustersApi) (map[string]string, error) {
 	clusterOldAPI, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
-	if apiError, ok := admin20240530.AsError(err); ok {
-		if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
-			return nil, nil // if its the case of an asymmetric shard an error is expected in old API, replication_specs.*.id attribute will not be populated
+	if err != nil {
+		if apiError, ok := admin20240530.AsError(err); ok {
+			if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
+				return nil, nil // if its the case of an asymmetric shard an error is expected in old API, replication_specs.*.id attribute will not be populated
+			}
 		}
 		return nil, fmt.Errorf("error reading  advanced cluster with 2023-02-01 API (%s): %s", clusterName, err)
 	}

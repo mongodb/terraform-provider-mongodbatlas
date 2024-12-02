@@ -64,7 +64,7 @@ func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagn
 	if diags.HasError() {
 		return nil
 	}
-	usingLegacySchema := numShardsGt1(counts)
+	usingLegacySchema := isNumShardsGreaterThanOne(counts)
 	if usingLegacySchema && shoudlExplodeNumShards {
 		explodeNumShards(latestModel, counts)
 	}
@@ -149,7 +149,7 @@ func usingLegacySchema(ctx context.Context, input types.List, diags *diag.Diagno
 	if diags.HasError() {
 		return false
 	}
-	return numShardsGt1(counts)
+	return isNumShardsGreaterThanOne(counts)
 }
 
 func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]int64 {
@@ -166,7 +166,7 @@ func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics
 	return counts
 }
 
-func numShardsGt1(counts []int64) bool {
+func isNumShardsGreaterThanOne(counts []int64) bool {
 	for _, count := range counts {
 		if count > 1 {
 			return true

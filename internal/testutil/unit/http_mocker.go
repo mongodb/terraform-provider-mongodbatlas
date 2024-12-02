@@ -95,8 +95,7 @@ func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDa
 	stepCount := len(testCase.Steps)
 	for i := range stepCount - 1 {
 		step := &testCase.Steps[i]
-		oldCheck := step.Check
-		if oldCheck != nil {
+		if oldCheck := step.Check; oldCheck != nil {
 			step.Check = resource.ComposeAggregateTestCheckFunc(oldCheck, checkFunc)
 		}
 	}
@@ -104,8 +103,7 @@ func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDa
 	oldCheckDestroy := testCase.CheckDestroy
 	newCheckDestroy := func(s *terraform.State) error {
 		if oldCheckDestroy != nil {
-			err := oldCheckDestroy(s)
-			if err != nil {
+			if err := oldCheckDestroy(s); err != nil {
 				return err
 			}
 		}
