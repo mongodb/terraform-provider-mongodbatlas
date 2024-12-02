@@ -211,9 +211,6 @@ func TestPatchReplicationSpecs(t *testing.T) {
 	)
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			if name == "Removed list entry should be included" {
-				t.Log("This test case is expected to fail due to the current implementation")
-			}
 			patchReq, err := update.PatchPayload(tc.state, tc.plan, tc.options...)
 			require.NoError(t, err)
 			assert.Equal(t, tc.patchExpected, patchReq)
@@ -277,10 +274,10 @@ func TestPatchAdvancedConfig(t *testing.T) {
 }
 
 func TestIsEmpty(t *testing.T) {
-	assert.True(t, update.IsEmpty(&admin.ClusterDescription20240805{}))
+	assert.True(t, update.IsZeroValues(&admin.ClusterDescription20240805{}))
 	var myVar admin.ClusterDescription20240805
-	assert.True(t, update.IsEmpty(&myVar))
-	assert.False(t, update.IsEmpty(&admin.ClusterDescription20240805{Name: conversion.Pointer("my-cluster")}))
+	assert.True(t, update.IsZeroValues(&myVar))
+	assert.False(t, update.IsZeroValues(&admin.ClusterDescription20240805{Name: conversion.Pointer("my-cluster")}))
 }
 
 func clusterDescriptionDiskSizeNodeCount(diskSizeGBElectable float64, nodeCountElectable int, diskSizeGBReadOnly *float64, nodeCountReadOnly int) *admin.ClusterDescription20240805 {

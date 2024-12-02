@@ -23,8 +23,7 @@ func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName
 		if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
 			return nil, nil // if its the case of an asymmetric shard an error is expected in old API, replication_specs.*.id attribute will not be populated
 		}
-		readErrorMsg := "error reading  advanced cluster with 2023-02-01 API (%s): %s"
-		return nil, fmt.Errorf(readErrorMsg, clusterName, err)
+		return nil, fmt.Errorf("error reading  advanced cluster with 2023-02-01 API (%s): %s", clusterName, err)
 	}
 	specs := clusterOldAPI.GetReplicationSpecs()
 	result := make(map[string]string, len(specs))

@@ -168,7 +168,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	}
 	var legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
 	legacyAdvConfigUpdate := NewAtlasReqAdvancedConfigurationLegacy(ctx, &plan.AdvancedConfiguration, diags)
-	if !update.IsEmpty(legacyAdvConfigUpdate) {
+	if !update.IsZeroValues(legacyAdvConfigUpdate) {
 		legacyAdvConfig, _, err = api20240530.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, legacyAdvConfigUpdate).Execute()
 		if err != nil {
 			// Maybe should be warning instead of error to avoid having to re-create the cluster
@@ -179,7 +179,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 
 	advConfigUpdate := NewAtlasReqAdvancedConfiguration(ctx, &plan.AdvancedConfiguration, diags)
 	var advConfig *admin.ClusterDescriptionProcessArgs20240805
-	if !update.IsEmpty(advConfigUpdate) {
+	if !update.IsZeroValues(advConfigUpdate) {
 		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, advConfigUpdate).Execute()
 		if err != nil {
 			// Maybe should be warning instead of error to avoid having to re-create the cluster
@@ -252,11 +252,11 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 			return nil
 		}
 		patchReq.ReplicationSpecs = nil // Already updated by legacy API
-		if legacySpecsChanged && update.IsEmpty(patchReq) {
+		if legacySpecsChanged && update.IsZeroValues(patchReq) {
 			return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, plan.ProjectID.ValueString(), plan.Name.ValueString(), changeReasonUpdate)
 		}
 	}
-	if update.IsEmpty(patchReq) {
+	if update.IsZeroValues(patchReq) {
 		return cluster
 	}
 	pauseAfter := false

@@ -155,11 +155,7 @@ type PatchOptions struct {
 // 4. Adds nested "removed" values from the state to the request
 // 5. Use `jsonpatch` to apply each attribute plan & state patch to an empty JSON object
 // 6. Create a `patchReq` pointer with the final JSON object marshaled to `T` or return nil if there are no changes (`{}`)
-func PatchPayload[T any](state, plan *T, options ...PatchOptions) (*T, error) {
-	return PatchPayloadDiffTypes(state, plan, options...)
-}
-
-func PatchPayloadDiffTypes[T any, U any](state *T, plan *U, options ...PatchOptions) (*U, error) {
+func PatchPayload[T any, U any](state *T, plan *U, options ...PatchOptions) (*U, error) {
 	if plan == nil {
 		return nil, nil
 	}
@@ -208,7 +204,7 @@ func PatchPayloadDiffTypes[T any, U any](state *T, plan *U, options ...PatchOpti
 	return patchReq, json.Unmarshal(reqJSON, patchReq)
 }
 
-func IsEmpty[T any](last *T) bool {
+func IsZeroValues[T any](last *T) bool {
 	if last == nil {
 		return true
 	}

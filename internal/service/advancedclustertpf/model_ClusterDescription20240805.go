@@ -170,8 +170,7 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 			errMsg = append(errMsg, fmt.Sprintf(errorReplicationSpecIDNotSet, zoneName))
 		}
 		if len(errMsg) > 0 {
-			errMsgStr := strings.Join(errMsg, ", ")
-			diags.AddError(errMsgStr, errMsgStr)
+			diags.AddError("replicationSpecsLegacySchema", strings.Join(errMsg, ", "))
 			return &tfModels
 		}
 		if numShards > 1 {
