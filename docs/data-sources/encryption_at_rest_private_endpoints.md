@@ -25,12 +25,12 @@ output "number_of_endpoints" {
 
 ### Required
 
-- `cloud_provider` (String) Label that identifies the cloud provider of the private endpoint.
+- `cloud_provider` (String) Label that identifies the cloud provider for the Encryption At Rest private endpoint.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 
 ### Read-Only
 
-- `results` (Attributes List) List of returned documents that MongoDB Cloud providers when completing this request. (see [below for nested schema](#nestedatt--results))
+- `results` (Attributes List) List of documents that MongoDB Cloud returns for this request. (see [below for nested schema](#nestedatt--results))
 
 <a id="nestedatt--results"></a>
 ### Nested Schema for `results`

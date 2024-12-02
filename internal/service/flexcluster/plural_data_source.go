@@ -28,8 +28,9 @@ type pluralDS struct {
 }
 
 func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = PluralDataSourceSchema(ctx)
-	conversion.UpdateSchemaDescription(&resp.Schema)
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
+		RequiredFields: []string{"project_id"},
+	})
 }
 
 func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

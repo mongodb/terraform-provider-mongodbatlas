@@ -108,3 +108,20 @@ var DlqObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"db":              types.StringType,
 },
 }
+
+type TFStreamProcessorDSModel struct {
+	ID            types.String `tfsdk:"id"`
+	InstanceName  types.String `tfsdk:"instance_name"`
+	Options       types.Object `tfsdk:"options"`
+	Pipeline      types.String `tfsdk:"pipeline"`
+	ProcessorName types.String `tfsdk:"processor_name"`
+	ProjectID     types.String `tfsdk:"project_id"`
+	State         types.String `tfsdk:"state"`
+	Stats         types.String `tfsdk:"stats"`
+}
+
+type TFStreamProcessorsDSModel struct {
+	ProjectID    types.String               `tfsdk:"project_id"`
+	InstanceName types.String               `tfsdk:"instance_name"`
+	Results      []TFStreamProcessorDSModel `tfsdk:"results"`
+}
