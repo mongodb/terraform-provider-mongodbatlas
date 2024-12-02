@@ -328,8 +328,8 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 						},
 					},
 				},
-				Description:         "List of returned documents that MongoDB Cloud provides when completing this request.",
-				MarkdownDescription: "List of returned documents that MongoDB Cloud provides when completing this request.",
+				Description:         "List of documents that MongoDB Cloud returns for this request.",
+				MarkdownDescription: "List of documents that MongoDB Cloud returns for this request.",
 			},
 		},
 	}
@@ -408,8 +408,8 @@ func TestPluralDataSourceSchemaFromResource_legacyFields(t *testing.T) {
 						},
 					},
 				},
-				Description:         "List of returned documents that MongoDB Cloud provides when completing this request.",
-				MarkdownDescription: "List of returned documents that MongoDB Cloud provides when completing this request.",
+				Description:         "List of documents that MongoDB Cloud returns for this request.",
+				MarkdownDescription: "List of documents that MongoDB Cloud returns for this request.",
 			},
 		},
 	}

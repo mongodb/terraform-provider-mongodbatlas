@@ -31,7 +31,7 @@ func PluralDataSourceSchemaFromResource(rs schema.Schema, requiredFields []strin
 		}
 	}
 	overrideFields(rootAttrs, overridenRootFields)
-	resultsDoc := "List of returned documents that MongoDB Cloud provides when completing this request."
+	resultsDoc := "List of documents that MongoDB Cloud returns for this request."
 	if overrideResultsDoc != "" {
 		resultsDoc = overrideResultsDoc
 	}

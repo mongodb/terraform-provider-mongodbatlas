@@ -43,7 +43,7 @@ output "mongodbatlas_flex_clusters_names" {
 
 ### Read-Only
 
-- `results` (Attributes List) List of returned documents that MongoDB Cloud provides when completing this request. (see [below for nested schema](#nestedatt--results))
+- `results` (Attributes List) List of documents that MongoDB Cloud returns for this request. (see [below for nested schema](#nestedatt--results))
 
 <a id="nestedatt--results"></a>
 ### Nested Schema for `results`
