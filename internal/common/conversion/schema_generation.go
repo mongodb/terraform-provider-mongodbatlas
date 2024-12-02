@@ -17,7 +17,7 @@ func DataSourceSchemaFromResource(rs schema.Schema, requiredFields []string, ove
 	return ds
 }
 
-func PluralDataSourceSchemaFromResource(rs schema.Schema, requiredFields []string, overridenFields, overridenRootFields map[string]dsschema.Attribute, hasLegacyFields bool) dsschema.Schema {
+func PluralDataSourceSchemaFromResource(rs schema.Schema, requiredFields []string, overridenFields, overridenRootFields map[string]dsschema.Attribute, overrideResultsDoc string, hasLegacyFields bool) dsschema.Schema {
 	blocks := convertBlocks(rs.Blocks, nil)
 	if len(blocks) > 0 {
 		panic("blocks not supported yet in auto-generated plural data source schema as they can't go in ListNestedAttribute")
@@ -31,12 +31,16 @@ func PluralDataSourceSchemaFromResource(rs schema.Schema, requiredFields []strin
 		}
 	}
 	overrideFields(rootAttrs, overridenRootFields)
+	resultsDoc := "List of returned documents that MongoDB Cloud provides when completing this request."
+	if overrideResultsDoc != "" {
+		resultsDoc = overrideResultsDoc
+	}
 	rootAttrs["results"] = dsschema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: dsschema.NestedAttributeObject{
 			Attributes: attrs,
 		},
-		MarkdownDescription: "List of returned documents that MongoDB Cloud provides when completing this request.",
+		MarkdownDescription: resultsDoc,
 	}
 	if hasLegacyFields {
 		rootAttrs["id"] = dsschema.StringAttribute{Computed: true}

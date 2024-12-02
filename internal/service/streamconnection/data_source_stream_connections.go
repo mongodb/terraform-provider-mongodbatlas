@@ -55,7 +55,7 @@ func (d *streamConnectionsDS) Schema(ctx context.Context, req datasource.SchemaR
 	conversion.UpdateSchemaDescription(&ds1)
 
 	requiredFields := []string{"project_id", "instance_name"}
-	ds2 := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, true)
+	ds2 := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, "", true)
 	if diff := cmp.Diff(ds1, ds2); diff != "" {
 		log.Fatal(diff)
 	}

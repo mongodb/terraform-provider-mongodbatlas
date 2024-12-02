@@ -38,7 +38,7 @@ func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, res
 			MarkdownDescription: "Flag that indicates whether to return Clusters with retain backups.",
 		},
 	}
-	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, overridenRootFields, false)
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, overridenRootFields, "", false)
 }
 
 func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

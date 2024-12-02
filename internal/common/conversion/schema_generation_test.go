@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/stretchr/testify/assert"
 )
 
 // TODO: DON'T MERGE
 func TestDataSourceSchemasTemporary(t *testing.T) {
-	ds := streaminstance.PluralDataSource()
+	ds := streamprocessor.PluralDataSource()
 	schemaRequest := datasource.SchemaRequest{}
 	schemaResponse := &datasource.SchemaResponse{}
 	ds.Schema(context.Background(), schemaRequest, schemaResponse)
@@ -365,11 +365,11 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 			MarkdownDescription: "desc overridenRootStringRequired",
 		},
 	}
-	ds := conversion.PluralDataSourceSchemaFromResource(s, requiredFields, overridenFields, overridenRootFields, false)
+	ds := conversion.PluralDataSourceSchemaFromResource(s, requiredFields, overridenFields, overridenRootFields, "", false)
 	assert.Equal(t, expected, ds)
 }
 
-func TestPluralDataSourceSchemaFromResourceLegacyFields(t *testing.T) {
+func TestPluralDataSourceSchemaFromResource_legacyFields(t *testing.T) {
 	s := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"requiredAttrString": schema.StringAttribute{
@@ -424,7 +424,41 @@ func TestPluralDataSourceSchemaFromResourceLegacyFields(t *testing.T) {
 		},
 	}
 	requiredFields := []string{"requiredAttrString"}
-	ds := conversion.PluralDataSourceSchemaFromResource(s, requiredFields, nil, nil, true)
+	ds := conversion.PluralDataSourceSchemaFromResource(s, requiredFields, nil, nil, "", true)
+	assert.Equal(t, expected, ds)
+}
+
+func TestPluralDataSourceSchemaFromResource_overrideResultsDoc(t *testing.T) {
+	doc := "results doc"
+
+	s := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"attrString": dsschema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "desc attrString",
+			},
+		},
+	}
+
+	expected := dsschema.Schema{
+		Attributes: map[string]dsschema.Attribute{
+			"results": dsschema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: doc,
+				Description:         doc,
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: map[string]dsschema.Attribute{
+						"attrString": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc attrString",
+							Description:         "desc attrString",
+						},
+					},
+				},
+			},
+		},
+	}
+	ds := conversion.PluralDataSourceSchemaFromResource(s, nil, nil, nil, doc, false)
 	assert.Equal(t, expected, ds)
 }
 

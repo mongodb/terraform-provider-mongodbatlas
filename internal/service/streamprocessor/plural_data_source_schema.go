@@ -3,7 +3,9 @@ package streamprocessor
 import (
 	"context"
 	"fmt"
+	"log"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,7 +29,8 @@ type streamProcessorsDS struct {
 }
 
 func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
+	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
+	ds1 := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{
 				Required:            true,
@@ -46,7 +49,15 @@ func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRe
 			},
 		},
 	}
-	conversion.UpdateSchemaDescription(&resp.Schema)
+	conversion.UpdateSchemaDescription(&ds1)
+
+	requiredFields := []string{"project_id", "instance_name"}
+	desc := "Returns all Stream Processors within the specified stream instance.\n\nTo use this resource, the requesting API Key must have the Project Owner\n\nrole or Project Stream Processing Owner role."
+	ds2 := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, desc, false)
+	if diff := cmp.Diff(ds1, ds2); diff != "" {
+		log.Fatal(diff)
+	}
+	resp.Schema = ds2
 }
 
 type TFStreamProcessorsDSModel struct {
