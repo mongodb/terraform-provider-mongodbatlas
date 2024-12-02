@@ -100,6 +100,7 @@ func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDa
 			step.Check = resource.ComposeAggregateTestCheckFunc(oldCheck, checkFunc)
 		}
 	}
+	// Using CheckDestroy for the final step assertions to allow mocked responses in cleanup
 	oldCheckDestroy := testCase.CheckDestroy
 	newCheckDestroy := func(s *terraform.State) error {
 		if oldCheckDestroy != nil {
@@ -181,8 +182,8 @@ func (r *requestTracker) initStep() error {
 	usedKeys := strings.Join(acc.SortStringMapKeys(r.vars), ", ")
 	expectedKeys := strings.Join(acc.SortStringMapKeys(r.data.Variables), ", ")
 	require.Equal(r.t, expectedKeys, usedKeys, "mock variables didn't match mock data variables")
-	r.foundsDiffs = map[int]string{}
 	r.usedResponses = map[string]int{}
+	r.foundsDiffs = map[int]string{}
 	step := r.currentStep()
 	if step == nil {
 		return nil

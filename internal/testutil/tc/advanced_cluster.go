@@ -41,39 +41,39 @@ func SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T, orgID, pr
 
 func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name string, diskSizeGB int) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "cluster_project" {
-			org_id = %[1]q
-			name   = %[2]q
-		}
+	resource "mongodbatlas_project" "cluster_project" {
+		org_id = %[1]q
+		name   = %[2]q
+	}
 
-		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_project.cluster_project.id
-			name = %[3]q
-			backup_enabled = false
-			mongo_db_major_version = "7.0"
-			cluster_type   = "SHARDED"
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id = mongodbatlas_project.cluster_project.id
+		name = %[3]q
+		backup_enabled = false
+		mongo_db_major_version = "7.0"
+		cluster_type   = "SHARDED"
 
-			replication_specs = [{
-				num_shards = 2
+		replication_specs = [{
+			num_shards = 2
 
-				region_configs = [{
-				electable_specs = {
-					instance_size = "M10"
-					node_count    = 3
-					disk_size_gb  = %[4]d
-				}
-				analytics_specs = {
-					instance_size = "M10"
-					node_count    = 0
-					disk_size_gb  = %[4]d
-				}
-				provider_name = "AWS"
-				priority      = 7
-				region_name   = "US_EAST_1"
-				},
-				]
-			}]
-		}
+			region_configs = [{
+			electable_specs = {
+				instance_size = "M10"
+				node_count    = 3
+				disk_size_gb  = %[4]d
+			}
+			analytics_specs = {
+				instance_size = "M10"
+				node_count    = 0
+				disk_size_gb  = %[4]d
+			}
+			provider_name = "AWS"
+			priority      = 7
+			region_name   = "US_EAST_1"
+			},
+			]
+		}]
+	}
 	`, orgID, projectName, name, diskSizeGB)
 }
 
@@ -127,42 +127,42 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 		`, *configServerManagementMode)
 	}
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "cluster_project" {
-			org_id = %[1]q
-			name   = %[2]q
-		}	
+	resource "mongodbatlas_project" "cluster_project" {
+		org_id = %[1]q
+		name   = %[2]q
+	}	
 
-		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id   = mongodbatlas_project.cluster_project.id
-			name         = %[3]q
-			cluster_type = "SHARDED"
-			%[6]s
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id   = mongodbatlas_project.cluster_project.id
+		name         = %[3]q
+		cluster_type = "SHARDED"
+		%[6]s
 
-			replication_specs = [{
-				num_shards = %[4]d
-				region_configs = [{
-					electable_specs = {
-						instance_size = "M10"
-						node_count    = 3
-					}
-					analytics_specs = {
-						instance_size = %[5]q
-						node_count    = 1
-					}
-					provider_name = "AWS"
-					priority      = 7
-					region_name   = "EU_WEST_1"
-				}, {
-					electable_specs = {
-						instance_size = "M10"
-						node_count    = 2
-					}
-					provider_name = "AZURE"
-					priority      = 6
-					region_name   = "US_EAST_2"
-				},]
+		replication_specs = [{
+			num_shards = %[4]d
+			region_configs = [{
+				electable_specs = {
+					instance_size = "M10"
+					node_count    = 3
+				}
+				analytics_specs = {
+					instance_size = %[5]q
+					node_count    = 1
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+			}, {
+				electable_specs = {
+					instance_size = "M10"
+					node_count    = 2
+				}
+				provider_name = "AZURE"
+				priority      = 6
+				region_name   = "US_EAST_2"
 			},]
-		}
+		},]
+	}
 	`, orgID, projectName, name, numShards, analyticsSize, rootConfig)
 }
 

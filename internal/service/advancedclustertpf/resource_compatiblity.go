@@ -68,6 +68,17 @@ func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagn
 	if usingLegacySchema && shoudlExplodeNumShards {
 		explodeNumShards(latestModel, counts)
 	}
+	diskSize := normalizeDiskSize(model, latestModel, diags)
+	if diags.HasError() {
+		return nil
+	}
+	if diskSize != nil {
+		setDiskSize(latestModel, diskSize)
+	}
+	return latestModel
+}
+
+func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription20240805, diags *diag.Diagnostics) *float64 {
 	rootDiskSize := conversion.NilForUnknown(model.DiskSizeGB, model.DiskSizeGB.ValueFloat64Pointer())
 	regionRootDiskSize := findRegionRootDiskSize(latestModel.ReplicationSpecs)
 	if rootDiskSize != nil && regionRootDiskSize != nil && (*regionRootDiskSize-*rootDiskSize) > 0.01 {
@@ -75,14 +86,11 @@ func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagn
 		diags.AddError(errMsg, errMsg)
 		return nil
 	}
-	if rootDiskSize != nil || regionRootDiskSize != nil {
-		finalDiskSize := rootDiskSize
-		if finalDiskSize == nil {
-			finalDiskSize = regionRootDiskSize
-		}
-		setDiskSize(latestModel, finalDiskSize)
+	// Prefer regionRootDiskSize over rootDiskSize
+	if regionRootDiskSize != nil {
+		return regionRootDiskSize
 	}
-	return latestModel
+	return rootDiskSize
 }
 
 // Set "Computed" Specs to nil to avoid unnecessary diffs
@@ -167,7 +175,6 @@ func numShardsGt1(counts []int64) bool {
 	return false
 }
 
-// todo: Add validation for root disk size never set together with disk_size_gb?
 func setDiskSize(req *admin.ClusterDescription20240805, size *float64) {
 	for i, spec := range req.GetReplicationSpecs() {
 		for j := range spec.GetRegionConfigs() {

@@ -147,19 +147,19 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		return nil
 	}
 	var (
-		projectID         = plan.ProjectID.ValueString()
-		clusterName       = plan.Name.ValueString()
-		apiLegacy20240530 = r.Client.AtlasV220240530.ClustersApi
-		apiLatest         = r.Client.AtlasV2.ClustersApi
-		err               error
-		pauseAfter        = latestReq.GetPaused()
+		projectID   = plan.ProjectID.ValueString()
+		clusterName = plan.Name.ValueString()
+		api20240530 = r.Client.AtlasV220240530.ClustersApi
+		api         = r.Client.AtlasV2.ClustersApi
+		err         error
+		pauseAfter  = latestReq.GetPaused()
 	)
-	_, _, err = apiLatest.CreateCluster(ctx, projectID, latestReq).Execute()
+	_, _, err = api.CreateCluster(ctx, projectID, latestReq).Execute()
 	if err != nil {
 		diags.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
 		return nil
 	}
-	cluster := AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
+	cluster := AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
 	if diags.HasError() {
 		return nil
 	}
@@ -169,7 +169,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	var legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
 	legacyAdvConfigUpdate := NewAtlasReqAdvancedConfigurationLegacy(ctx, &plan.AdvancedConfiguration, diags)
 	if !update.IsEmpty(legacyAdvConfigUpdate) {
-		legacyAdvConfig, _, err = apiLegacy20240530.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, legacyAdvConfigUpdate).Execute()
+		legacyAdvConfig, _, err = api20240530.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, legacyAdvConfigUpdate).Execute()
 		if err != nil {
 			// Maybe should be warning instead of error to avoid having to re-create the cluster
 			diags.AddError("errorUpdateeAdvConfigLegacy", fmt.Sprintf(errorCreate, err.Error()))
@@ -180,7 +180,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	advConfigUpdate := NewAtlasReqAdvancedConfiguration(ctx, &plan.AdvancedConfiguration, diags)
 	var advConfig *admin.ClusterDescriptionProcessArgs20240805
 	if !update.IsEmpty(advConfigUpdate) {
-		advConfig, _, err = apiLatest.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, advConfigUpdate).Execute()
+		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, advConfigUpdate).Execute()
 		if err != nil {
 			// Maybe should be warning instead of error to avoid having to re-create the cluster
 			diags.AddError("errorUpdateAdvConfig", fmt.Sprintf(errorCreate, err.Error()))
@@ -207,7 +207,7 @@ func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State
 }
 func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (*admin20240530.ClusterDescriptionProcessArgs, *admin.ClusterDescriptionProcessArgs20240805) {
 	var (
-		apiLatest       = r.Client.AtlasV2.ClustersApi
+		api             = r.Client.AtlasV2.ClustersApi
 		projectID       = plan.ProjectID.ValueString()
 		clusterName     = plan.Name.ValueString()
 		err             error
@@ -216,7 +216,7 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 	)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	if patchReqProcessArgs != nil {
-		advConfig, _, err = apiLatest.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgs).Execute()
+		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgs).Execute()
 		if err != nil {
 			diags.AddError("errorUpdateAdvancedConfig", fmt.Sprintf(errorConfigUpdate, clusterName, err.Error()))
 			return legacyAdvConfig, advConfig
@@ -251,7 +251,7 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 		if diags.HasError() {
 			return nil
 		}
-		patchReq.ReplicationSpecs = nil // already updated by legacy API
+		patchReq.ReplicationSpecs = nil // Already updated by legacy API
 		if legacySpecsChanged && update.IsEmpty(patchReq) {
 			return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, plan.ProjectID.ValueString(), plan.Name.ValueString(), changeReasonUpdate)
 		}
@@ -278,7 +278,7 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 	}
 	replicationSpecsUpdated := patchReq.ReplicationSpecs != nil
 	if replicationSpecsUpdated {
-		// cannot call latest API (2024-10-23 or newer) as it can enable ISS autoscaling
+		// Cannot call latest API (2024-10-23 or newer) as it can enable ISS autoscaling
 		legacyPatch := newLegacyModel(patchReq)
 		cluster = r.updateAndWaitLegacy(ctx, legacyPatch, diags, plan)
 	} else {
@@ -295,11 +295,11 @@ func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFMo
 	if diags.HasError() {
 		return false
 	}
-	if specChanges == nil && numShardsUpdates == nil { // no changes to replication specs
+	if specChanges == nil && numShardsUpdates == nil { // No changes to replication specs
 		return false
 	}
 	if specChanges == nil {
-		// use state replication specs as there are no changes in paln except for numShardsupdates
+		// Use state replication specs as there are no changes in plan except for numShards updates
 		specChanges = newReplicationSpec20240805(ctx, state.ReplicationSpecs, diags)
 		if diags.HasError() {
 			return false
@@ -309,7 +309,7 @@ func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFMo
 	if diags.HasError() {
 		return false
 	}
-	legacyPatch := newLegacyModel20240530OnlyReplicationSpecsAndDiskGB(specChanges, numShardsPlan, state.DiskSizeGB.ValueFloat64Pointer())
+	legacyPatch := newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specChanges, numShardsPlan, state.DiskSizeGB.ValueFloat64Pointer())
 	api20240530 := r.Client.AtlasV220240530.ClustersApi
 	api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch)
 	_, _, err := api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch).Execute()
@@ -332,10 +332,10 @@ func (r *rs) updateAndWait(ctx context.Context, patchReq *admin.ClusterDescripti
 	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 func (r *rs) updateAndWaitLegacy(ctx context.Context, patchReq *admin20240805.ClusterDescription20240805, diags *diag.Diagnostics, tfModel *TFModel) *admin.ClusterDescription20240805 {
-	api := r.Client.AtlasV220240805.ClustersApi
+	api20240805 := r.Client.AtlasV220240805.ClustersApi
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.Name.ValueString()
-	_, _, err := api.UpdateCluster(ctx, projectID, clusterName, patchReq).Execute()
+	_, _, err := api20240805.UpdateCluster(ctx, projectID, clusterName, patchReq).Execute()
 	if err != nil {
 		diags.AddError("errorUpdateLegacy", fmt.Sprintf(errorUpdate, clusterName, err.Error()))
 		return nil
@@ -344,26 +344,26 @@ func (r *rs) updateAndWaitLegacy(ctx context.Context, patchReq *admin20240805.Cl
 }
 
 func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModel, diags *diag.Diagnostics) *TFModel {
-	apiLatest := r.Client.AtlasV2.ClustersApi
-	apiLegacy := r.Client.AtlasV220240530.ClustersApi
+	api := r.Client.AtlasV2.ClustersApi
+	api20240530 := r.Client.AtlasV220240530.ClustersApi
 	projectID := cluster.GetGroupId()
 	clusterName := cluster.GetName()
 	var err error
 	if legacyAdvConfig == nil {
-		legacyAdvConfig, _, err = apiLegacy.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+		legacyAdvConfig, _, err = api20240530.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			diags.AddError("errorReadAdvConfigLegacy", fmt.Sprintf(errorRead, clusterName, err.Error()))
 			return nil
 		}
 	}
 	if advConfig == nil {
-		advConfig, _, err = apiLatest.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+		advConfig, _, err = api.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			diags.AddError("errorReadAdvConfig", fmt.Sprintf(errorRead, clusterName, err.Error()))
 			return nil
 		}
 	}
-	legacyInfo := resolveLegacyInfo(ctx, modelIn, diags, cluster, apiLegacy)
+	legacyInfo := resolveLegacyInfo(ctx, modelIn, diags, cluster, api20240530)
 	modelOut := NewTFModel(ctx, cluster, modelIn.Timeouts, diags, legacyInfo)
 	if diags.HasError() {
 		return nil
