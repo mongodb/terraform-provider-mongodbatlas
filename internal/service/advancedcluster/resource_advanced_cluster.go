@@ -483,9 +483,25 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
-	cluster, _, err := connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorCreate, err))
+	var clusterName string
+	var clusterID string
+	var err error
+	if isUsingOldShardingConfiguration(d) {
+		var cluster20240805 *admin20240805.ClusterDescription20240805
+		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, ConvertClusterDescription20241023to20240805(params)).Execute()
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorCreate, err))
+		}
+		clusterName = cluster20240805.GetName()
+		clusterID = cluster20240805.GetId()
+	} else {
+		var cluster *admin.ClusterDescription20240805
+		cluster, _, err = connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorCreate, err))
+		}
+		clusterName = cluster.GetName()
+		clusterID = cluster.GetId()
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
@@ -498,13 +514,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
 			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), params.MongoDBMajorVersion)
-			_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params20240530).Execute()
+			_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params20240530).Execute()
 			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
+				return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 			}
-			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params).Execute()
+			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
 			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
+				return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 			}
 		}
 	}
@@ -523,9 +539,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   cluster.GetId(),
+		"cluster_id":   clusterID,
 		"project_id":   projectID,
-		"cluster_name": cluster.GetName(),
+		"cluster_name": clusterName,
 	}))
 
 	return resourceRead(ctx, d, meta)
@@ -552,7 +568,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	var clusterResp *admin.ClusterDescription20240805
 
 	var replicationSpecs []map[string]any
-	if isUsingOldAPISchemaStructure(d) {
+	if isUsingOldShardingConfiguration(d) {
 		clusterOldSDK, resp, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -776,7 +792,7 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 }
 
 // For both read and update operations if old sharding schema structure is used (at least one replication spec with numShards > 1) we continue to invoke the old API
-func isUsingOldAPISchemaStructure(d *schema.ResourceData) bool {
+func isUsingOldShardingConfiguration(d *schema.ResourceData) bool {
 	tfList := d.Get("replication_specs").([]any)
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
@@ -832,7 +848,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
-	if isUsingOldAPISchemaStructure(d) {
+	if isUsingOldShardingConfiguration(d) {
 		req, diags := updateRequestOldAPI(d, clusterName)
 		if diags != nil {
 			return diags
