@@ -30,7 +30,8 @@ func DataSourcePluralSchema(ctx context.Context) schema.Schema {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: dsAttributes2,
 				},
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "List of returned documents that MongoDB Cloud provides when completing this request.",
 			},
 		},
 	}
