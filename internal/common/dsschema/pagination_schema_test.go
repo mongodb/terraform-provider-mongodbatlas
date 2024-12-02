@@ -27,7 +27,8 @@ func TestPaginatedDSSchema(t *testing.T) {
 				Computed: true,
 			},
 			"results": schema.ListNestedAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "List of returned documents that MongoDB Cloud provides when completing this request.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
