@@ -8,32 +8,45 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-func DataSourceSchemaFromResource(rs schema.Schema, requiredFields []string, overridenFields map[string]dsschema.Attribute) dsschema.Schema {
-	blocks := convertBlocks(rs.Blocks, requiredFields)
-	attrs := convertAttrs(rs.Attributes, requiredFields)
-	overrideFields(attrs, overridenFields)
+type DataSourceSchemaRequest struct {
+	OverridenFields map[string]dsschema.Attribute
+	RequiredFields  []string
+}
+
+type PluralDataSourceSchemaRequest struct {
+	OverridenFields     map[string]dsschema.Attribute
+	OverridenRootFields map[string]dsschema.Attribute
+	OverrideResultsDoc  string
+	RequiredFields      []string
+	HasLegacyFields     bool
+}
+
+func DataSourceSchemaFromResource(rs schema.Schema, req *DataSourceSchemaRequest) dsschema.Schema {
+	blocks := convertBlocks(rs.Blocks, req.RequiredFields)
+	attrs := convertAttrs(rs.Attributes, req.RequiredFields)
+	overrideFields(attrs, req.OverridenFields)
 	ds := dsschema.Schema{Attributes: attrs, Blocks: blocks}
 	UpdateSchemaDescription(&ds)
 	return ds
 }
 
-func PluralDataSourceSchemaFromResource(rs schema.Schema, requiredFields []string, overridenFields, overridenRootFields map[string]dsschema.Attribute, overrideResultsDoc string, hasLegacyFields bool) dsschema.Schema {
+func PluralDataSourceSchemaFromResource(rs schema.Schema, req *PluralDataSourceSchemaRequest) dsschema.Schema {
 	blocks := convertBlocks(rs.Blocks, nil)
 	if len(blocks) > 0 {
 		panic("blocks not supported yet in auto-generated plural data source schema as they can't go in ListNestedAttribute")
 	}
 	attrs := convertAttrs(rs.Attributes, nil)
-	overrideFields(attrs, overridenFields)
-	rootAttrs := convertAttrs(rs.Attributes, requiredFields)
+	overrideFields(attrs, req.OverridenFields)
+	rootAttrs := convertAttrs(rs.Attributes, req.RequiredFields)
 	for name := range rootAttrs {
-		if !slices.Contains(requiredFields, name) {
+		if !slices.Contains(req.RequiredFields, name) {
 			delete(rootAttrs, name)
 		}
 	}
-	overrideFields(rootAttrs, overridenRootFields)
+	overrideFields(rootAttrs, req.OverridenRootFields)
 	resultsDoc := "List of documents that MongoDB Cloud returns for this request."
-	if overrideResultsDoc != "" {
-		resultsDoc = overrideResultsDoc
+	if req.OverrideResultsDoc != "" {
+		resultsDoc = req.OverrideResultsDoc
 	}
 	rootAttrs["results"] = dsschema.ListNestedAttribute{
 		Computed: true,
@@ -42,7 +55,7 @@ func PluralDataSourceSchemaFromResource(rs schema.Schema, requiredFields []strin
 		},
 		MarkdownDescription: resultsDoc,
 	}
-	if hasLegacyFields {
+	if req.HasLegacyFields {
 		rootAttrs["id"] = dsschema.StringAttribute{Computed: true}
 		rootAttrs["total_count"] = dsschema.Int64Attribute{Computed: true}
 		rootAttrs["page_num"] = dsschema.Int64Attribute{Optional: true}

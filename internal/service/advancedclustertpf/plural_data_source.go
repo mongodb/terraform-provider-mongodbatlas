@@ -27,18 +27,19 @@ type pluralDS struct {
 }
 
 func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	requiredFields := []string{"project_id"}
-	overridenRootFields := map[string]schema.Attribute{
-		"use_replication_spec_per_shard": schema.BoolAttribute{ // TODO: added as in current resource
-			Optional:            true,
-			MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
+		RequiredFields: []string{"project_id"},
+		OverridenRootFields: map[string]schema.Attribute{
+			"use_replication_spec_per_shard": schema.BoolAttribute{ // TODO: added as in current resource
+				Optional:            true,
+				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
+			},
+			"include_deleted_with_retained_backups": schema.BoolAttribute{ // TODO: not in current resource, decide if keep
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether to return Clusters with retain backups.",
+			},
 		},
-		"include_deleted_with_retained_backups": schema.BoolAttribute{ // TODO: not in current resource, decide if keep
-			Optional:            true,
-			MarkdownDescription: "Flag that indicates whether to return Clusters with retain backups.",
-		},
-	}
-	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, overridenRootFields, "", false)
+	})
 }
 
 func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

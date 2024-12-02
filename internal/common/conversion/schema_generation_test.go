@@ -249,18 +249,19 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 		},
 	}
 
-	requiredFields := []string{"requiredAttrString", "requiredAttrInt64"}
-	overridenFields := map[string]dsschema.Attribute{
-		"overridenString": dsschema.StringAttribute{
-			Computed:            true,
-			MarkdownDescription: "desc overridenString",
-			Validators: []validator.String{
-				stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+	ds := conversion.DataSourceSchemaFromResource(s, &conversion.DataSourceSchemaRequest{
+		RequiredFields: []string{"requiredAttrString", "requiredAttrInt64"},
+		OverridenFields: map[string]dsschema.Attribute{
+			"overridenString": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc overridenString",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+				},
 			},
+			"attrDelete": nil,
 		},
-		"attrDelete": nil,
-	}
-	ds := conversion.DataSourceSchemaFromResource(s, requiredFields, overridenFields)
+	})
 	assert.Equal(t, expected, ds)
 }
 
@@ -334,28 +335,29 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 		},
 	}
 
-	requiredFields := []string{"requiredAttrString"}
-	overridenFields := map[string]dsschema.Attribute{
-		"overridenString": dsschema.StringAttribute{
-			Computed:            true,
-			MarkdownDescription: "desc overridenString",
-			Validators: []validator.String{
-				stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+	ds := conversion.PluralDataSourceSchemaFromResource(s, &conversion.PluralDataSourceSchemaRequest{
+		RequiredFields: []string{"requiredAttrString"},
+		OverridenFields: map[string]dsschema.Attribute{
+			"overridenString": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc overridenString",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+				},
+			},
+			"attrDelete": nil,
+		},
+		OverridenRootFields: map[string]dsschema.Attribute{
+			"overridenRootStringOptional": dsschema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "desc overridenRootStringOptional",
+			},
+			"overridenRootStringRequired": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc overridenRootStringRequired",
 			},
 		},
-		"attrDelete": nil,
-	}
-	overridenRootFields := map[string]dsschema.Attribute{
-		"overridenRootStringOptional": dsschema.StringAttribute{
-			Optional:            true,
-			MarkdownDescription: "desc overridenRootStringOptional",
-		},
-		"overridenRootStringRequired": dsschema.StringAttribute{
-			Required:            true,
-			MarkdownDescription: "desc overridenRootStringRequired",
-		},
-	}
-	ds := conversion.PluralDataSourceSchemaFromResource(s, requiredFields, overridenFields, overridenRootFields, "", false)
+	})
 	assert.Equal(t, expected, ds)
 }
 
@@ -413,8 +415,10 @@ func TestPluralDataSourceSchemaFromResource_legacyFields(t *testing.T) {
 			},
 		},
 	}
-	requiredFields := []string{"requiredAttrString"}
-	ds := conversion.PluralDataSourceSchemaFromResource(s, requiredFields, nil, nil, "", true)
+	ds := conversion.PluralDataSourceSchemaFromResource(s, &conversion.PluralDataSourceSchemaRequest{
+		RequiredFields:  []string{"requiredAttrString"},
+		HasLegacyFields: true,
+	})
 	assert.Equal(t, expected, ds)
 }
 
@@ -448,7 +452,9 @@ func TestPluralDataSourceSchemaFromResource_overrideResultsDoc(t *testing.T) {
 			},
 		},
 	}
-	ds := conversion.PluralDataSourceSchemaFromResource(s, nil, nil, nil, doc, false)
+	ds := conversion.PluralDataSourceSchemaFromResource(s, &conversion.PluralDataSourceSchemaRequest{
+		OverrideResultsDoc: doc,
+	})
 	assert.Equal(t, expected, ds)
 }
 

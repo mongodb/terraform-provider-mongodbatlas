@@ -33,9 +33,11 @@ type resourcePolicysDS struct {
 }
 
 func (d *resourcePolicysDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	requiredFields := []string{"org_id"}
-	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, "", false)
-	clone := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, "", false)
+	reqSchema := &conversion.PluralDataSourceSchemaRequest{
+		RequiredFields: []string{"org_id"},
+	}
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), reqSchema)
+	clone := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), reqSchema)
 	resourcePolicies := clone.Attributes["results"].(schema.ListNestedAttribute)
 	resourcePolicies.DeprecationMessage = fmt.Sprintf(constant.DeprecationParamWithReplacement, "`results`")
 	resourcePolicies.Description = ""
