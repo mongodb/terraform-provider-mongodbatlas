@@ -117,3 +117,9 @@ type TFPolicyModel struct {
 	Body types.String `tfsdk:"body"`
 	ID   types.String `tfsdk:"id"`
 }
+
+type TFModelDSP struct {
+	OrgID            types.String `tfsdk:"org_id"`
+	ResourcePolicies []TFModel    `tfsdk:"resource_policies"`
+	Results          []TFModel    `tfsdk:"results"`
+}

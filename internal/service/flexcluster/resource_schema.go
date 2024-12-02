@@ -196,3 +196,8 @@ var ProviderSettingsType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"provider_name":         types.StringType,
 	"region_name":           types.StringType,
 }}
+
+type TFModelDSP struct {
+	ProjectId types.String `tfsdk:"project_id"`
+	Results   []TFModel    `tfsdk:"results"`
+}

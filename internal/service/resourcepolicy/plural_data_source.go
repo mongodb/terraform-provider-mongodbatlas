@@ -3,9 +3,7 @@ package resourcepolicy
 import (
 	"context"
 	"fmt"
-	"log"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
@@ -35,21 +33,14 @@ type resourcePolicysDS struct {
 }
 
 func (d *resourcePolicysDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
-	ds1 := DataSourcePluralSchema(ctx)
-	conversion.UpdateSchemaDescription(&ds1)
 	requiredFields := []string{"org_id"}
-	ds2 := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, "", false)
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, "", false)
 	clone := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, "", false)
 	resourcePolicies := clone.Attributes["results"].(schema.ListNestedAttribute)
 	resourcePolicies.DeprecationMessage = fmt.Sprintf(constant.DeprecationParamWithReplacement, "`results`")
 	resourcePolicies.Description = ""
 	resourcePolicies.MarkdownDescription = ""
-	ds2.Attributes["resource_policies"] = resourcePolicies
-	if diff := cmp.Diff(ds1, ds2); diff != "" {
-		log.Fatal(diff)
-	}
-	resp.Schema = ds2
+	resp.Schema.Attributes["resource_policies"] = resourcePolicies
 }
 
 func (d *resourcePolicysDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

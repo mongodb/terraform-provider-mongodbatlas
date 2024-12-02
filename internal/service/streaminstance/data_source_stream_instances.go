@@ -3,14 +3,10 @@ package streaminstance
 import (
 	"context"
 	"fmt"
-	"log"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
@@ -30,32 +26,9 @@ type streamInstancesDS struct {
 	config.DSCommon
 }
 
-type TFStreamInstancesModel struct {
-	ID           types.String            `tfsdk:"id"`
-	ProjectID    types.String            `tfsdk:"project_id"`
-	Results      []TFStreamInstanceModel `tfsdk:"results"`
-	PageNum      types.Int64             `tfsdk:"page_num"`
-	ItemsPerPage types.Int64             `tfsdk:"items_per_page"`
-	TotalCount   types.Int64             `tfsdk:"total_count"`
-}
-
 func (d *streamInstancesDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
-	ds1 := dsschema.PaginatedDSSchema(
-		map[string]schema.Attribute{
-			"project_id": schema.StringAttribute{
-				Required: true,
-			},
-		},
-		DSAttributes(false))
-	conversion.UpdateSchemaDescription(&ds1)
-
 	requiredFields := []string{"project_id"}
-	ds2 := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, "", true)
-	if diff := cmp.Diff(ds1, ds2); diff != "" {
-		log.Fatal(diff)
-	}
-	resp.Schema = ds2
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, "", true)
 }
 
 func (d *streamInstancesDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -85,4 +58,13 @@ func (d *streamInstancesDS) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamInstancesModel)...)
+}
+
+type TFStreamInstancesModel struct {
+	ID           types.String            `tfsdk:"id"`
+	ProjectID    types.String            `tfsdk:"project_id"`
+	Results      []TFStreamInstanceModel `tfsdk:"results"`
+	PageNum      types.Int64             `tfsdk:"page_num"`
+	ItemsPerPage types.Int64             `tfsdk:"items_per_page"`
+	TotalCount   types.Int64             `tfsdk:"total_count"`
 }

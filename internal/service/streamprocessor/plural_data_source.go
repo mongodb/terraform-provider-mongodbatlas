@@ -2,12 +2,36 @@ package streamprocessor
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
+
+var _ datasource.DataSource = &StreamProccesorDS{}
+var _ datasource.DataSourceWithConfigure = &StreamProccesorDS{}
+
+func PluralDataSource() datasource.DataSource {
+	return &streamProcessorsDS{
+		DSCommon: config.DSCommon{
+			DataSourceName: fmt.Sprintf("%ss", StreamProcessorName),
+		},
+	}
+}
+
+type streamProcessorsDS struct {
+	config.DSCommon
+}
+
+func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	requiredFields := []string{"project_id", "instance_name"}
+	desc := "Returns all Stream Processors within the specified stream instance.\n\nTo use this resource, the requesting API Key must have the Project Owner\n\nrole or Project Stream Processing Owner role."
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, desc, false)
+}
 
 func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var streamConnectionsConfig TFStreamProcessorsDSModel

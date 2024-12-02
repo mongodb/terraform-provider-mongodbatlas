@@ -3,10 +3,8 @@ package flexcluster
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
@@ -30,15 +28,8 @@ type pluralDS struct {
 }
 
 func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
-	ds1 := PluralDataSourceSchema(ctx)
-	conversion.UpdateSchemaDescription(&ds1)
 	requiredFields := []string{"project_id"}
-	ds2 := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, "", false)
-	if diff := cmp.Diff(ds1, ds2); diff != "" {
-		log.Fatal(diff)
-	}
-	resp.Schema = ds2
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, "", false)
 }
 
 func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

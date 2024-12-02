@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -28,47 +26,6 @@ type streamInstanceDS struct {
 func (d *streamInstanceDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	requiredFields := []string{"project_id", "instance_name"}
 	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil)
-}
-
-// DSAttributes returns the attribute definitions for a single stream instance.
-// `withArguments` marks certain attributes as required (for singular data source) or as computed (for plural data source)
-func DSAttributes(withArguments bool) map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"id": schema.StringAttribute{
-			Computed: true,
-		},
-		"instance_name": schema.StringAttribute{
-			Required: withArguments,
-			Computed: !withArguments,
-		},
-		"project_id": schema.StringAttribute{
-			Required: withArguments,
-			Computed: !withArguments,
-		},
-		"data_process_region": schema.SingleNestedAttribute{
-			Computed: true,
-			Attributes: map[string]schema.Attribute{
-				"cloud_provider": schema.StringAttribute{
-					Computed: true,
-				},
-				"region": schema.StringAttribute{
-					Computed: true,
-				},
-			},
-		},
-		"hostnames": schema.ListAttribute{
-			ElementType: types.StringType,
-			Computed:    true,
-		},
-		"stream_config": schema.SingleNestedAttribute{
-			Computed: true,
-			Attributes: map[string]schema.Attribute{
-				"tier": schema.StringAttribute{
-					Computed: true,
-				},
-			},
-		},
-	}
 }
 
 func (d *streamInstanceDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

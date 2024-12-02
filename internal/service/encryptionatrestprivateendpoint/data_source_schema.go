@@ -2,6 +2,7 @@ package encryptionatrestprivateendpoint
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func DSAttributes(withArguments bool) map[string]schema.Attribute {
@@ -38,4 +39,10 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 			MarkdownDescription: "State of the Encryption At Rest private endpoint.",
 		},
 	}
+}
+
+type TFEncryptionAtRestPrivateEndpointsDSModel struct {
+	CloudProvider types.String                `tfsdk:"cloud_provider"`
+	ProjectID     types.String                `tfsdk:"project_id"`
+	Results       []TFEarPrivateEndpointModel `tfsdk:"results"`
 }
