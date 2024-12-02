@@ -34,7 +34,7 @@ func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, res
 	ds1 := PluralDataSourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&ds1)
 	requiredFields := []string{"project_id"}
-	ds2 := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil)
+	ds2 := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, false)
 	if diff := cmp.Diff(ds1, ds2); diff != "" {
 		log.Fatal(diff)
 	}

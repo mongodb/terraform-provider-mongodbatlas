@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
+// TODO: DECIDE IF DELETE THIS AND TEST FILE
 func PaginatedDSSchema(arguments, resultAttributes map[string]schema.Attribute) schema.Schema {
 	result := schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -22,7 +23,8 @@ func PaginatedDSSchema(arguments, resultAttributes map[string]schema.Attribute) 
 				Computed: true,
 			},
 			"results": schema.ListNestedAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "List of returned documents that MongoDB Cloud provides when completing this request.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: resultAttributes,
 				},

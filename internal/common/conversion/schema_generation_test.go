@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
 )
 
 // TODO: DON'T MERGE
 func TestDataSourceSchemasTemporary(t *testing.T) {
-	ds := resourcepolicy.PluralDataSource()
+	ds := streamconnection.PluralDataSource()
 	schemaRequest := datasource.SchemaRequest{}
 	schemaResponse := &datasource.SchemaResponse{}
 	ds.Schema(context.Background(), schemaRequest, schemaResponse)
@@ -365,7 +365,66 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 			MarkdownDescription: "desc overridenRootStringRequired",
 		},
 	}
-	ds := conversion.PluralDataSourceSchemaFromResource(s, requiredFields, overridenFields, overridenRootFields)
+	ds := conversion.PluralDataSourceSchemaFromResource(s, requiredFields, overridenFields, overridenRootFields, false)
+	assert.Equal(t, expected, ds)
+}
+
+func TestPluralDataSourceSchemaFromResourceLegacyFields(t *testing.T) {
+	s := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"requiredAttrString": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttrString",
+			},
+			"attrString": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrString",
+			},
+		},
+	}
+
+	expected := dsschema.Schema{
+		Attributes: map[string]dsschema.Attribute{
+			"requiredAttrString": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttrString",
+				Description:         "desc requiredAttrString",
+			},
+			"id": dsschema.StringAttribute{
+				Computed: true,
+			},
+			"page_num": dsschema.Int64Attribute{
+				Optional: true,
+			},
+			"items_per_page": dsschema.Int64Attribute{
+				Optional: true,
+			},
+			"total_count": dsschema.Int64Attribute{
+				Computed: true,
+			},
+			"results": dsschema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: map[string]dsschema.Attribute{
+						"requiredAttrString": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc requiredAttrString",
+							Description:         "desc requiredAttrString",
+						},
+						"attrString": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc attrString",
+							Description:         "desc attrString",
+						},
+					},
+				},
+				Description:         "List of returned documents that MongoDB Cloud provides when completing this request.",
+				MarkdownDescription: "List of returned documents that MongoDB Cloud provides when completing this request.",
+			},
+		},
+	}
+	requiredFields := []string{"requiredAttrString"}
+	ds := conversion.PluralDataSourceSchemaFromResource(s, requiredFields, nil, nil, true)
 	assert.Equal(t, expected, ds)
 }
 

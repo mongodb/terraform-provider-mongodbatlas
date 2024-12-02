@@ -3,7 +3,9 @@ package streamconnection
 import (
 	"context"
 	"fmt"
+	"log"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,7 +41,8 @@ type TFStreamConnectionsDSModel struct {
 }
 
 func (d *streamConnectionsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = dsschema.PaginatedDSSchema(
+	// TODO: THIS WILL BE REMOVED BEFORE MERGING, check old data source schema and new auto-generated schema are the same
+	ds1 := dsschema.PaginatedDSSchema(
 		map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{
 				Required: true,
@@ -49,6 +52,14 @@ func (d *streamConnectionsDS) Schema(ctx context.Context, req datasource.SchemaR
 			},
 		},
 		DSAttributes(false))
+	conversion.UpdateSchemaDescription(&ds1)
+
+	requiredFields := []string{"project_id", "instance_name"}
+	ds2 := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil, nil, true)
+	if diff := cmp.Diff(ds1, ds2); diff != "" {
+		log.Fatal(diff)
+	}
+	resp.Schema = ds2
 }
 
 func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
