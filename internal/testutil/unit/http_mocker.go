@@ -201,8 +201,7 @@ func (r *requestTracker) initStep() error {
 func (r *requestTracker) nextDiffResponseIndex() {
 	step := r.currentStep()
 	if step == nil {
-		r.t.Log("no more steps, in testCase")
-		return
+		r.t.Fatal("no more steps, in testCase")
 	}
 	for index, req := range step.DiffRequests {
 		if _, ok := r.foundsDiffs[index]; !ok {
