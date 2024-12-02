@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 	"github.com/stretchr/testify/assert"
 )
 
 // TODO: DON'T MERGE
 func TestDataSourceSchemasTemporary(t *testing.T) {
-	ds := advancedclustertpf.PluralDataSource()
+	ds := encryptionatrestprivateendpoint.PluralDataSource()
 	schemaRequest := datasource.SchemaRequest{}
 	schemaResponse := &datasource.SchemaResponse{}
 	ds.Schema(context.Background(), schemaRequest, schemaResponse)
