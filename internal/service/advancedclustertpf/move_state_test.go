@@ -48,6 +48,9 @@ func TestAccAdvancedCluster_moveInvalid(t *testing.T) {
 				Config:      configMoveSecondInvalid(projectID, clusterName),
 				ExpectError: regexp.MustCompile("Unable to Move Resource State"),
 			},
+			{
+				Config: configMoveFirstInvalid(projectID, clusterName),
+			},
 		},
 	})
 }

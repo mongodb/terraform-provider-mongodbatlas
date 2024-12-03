@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccAdvancedCluster_moveNotSupportedSdkv2(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // This is intended to be used only in the old schema
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -25,6 +25,9 @@ func TestAccAdvancedCluster_moveNotSupportedSdkv2(t *testing.T) {
 			{
 				Config:      configMoveSecond(projectID, clusterName),
 				ExpectError: regexp.MustCompile("Move Resource State Not Supported"),
+			},
+			{
+				Config: configMoveFirst(projectID, clusterName),
 			},
 		},
 	})
