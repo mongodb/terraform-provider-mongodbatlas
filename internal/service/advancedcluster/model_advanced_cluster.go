@@ -25,6 +25,11 @@ import (
 
 const minVersionForChangeStreamOptions = 6.0
 
+type OldShardConfigMeta struct {
+	ID       string
+	NumShard int
+}
+
 var (
 	DSTagsSchema = schema.Schema{
 		Type:     schema.TypeSet,

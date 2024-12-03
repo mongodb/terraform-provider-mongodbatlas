@@ -46,11 +46,6 @@ const (
 
 var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
 
-type OldShardConfigMeta struct {
-	ID       string
-	NumShard int
-}
-
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceCreate,
