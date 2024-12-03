@@ -26,6 +26,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
@@ -447,6 +448,9 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		encryptionatrestprivateendpoint.PluralDataSource,
 		mongodbemployeeaccessgrant.DataSource,
 	}
+	if config.LatestAdvancedClusterEnabled() {
+		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
+	}
 	previewDataSources := []func() datasource.DataSource{
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
@@ -473,6 +477,9 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		streamprocessor.Resource,
 		encryptionatrestprivateendpoint.Resource,
 		mongodbemployeeaccessgrant.Resource,
+	}
+	if config.LatestAdvancedClusterEnabled() {
+		resources = append(resources, advancedclustertpf.Resource)
 	}
 	previewResources := []func() resource.Resource{
 		resourcepolicy.Resource,
