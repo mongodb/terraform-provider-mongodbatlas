@@ -19,7 +19,7 @@ func PreCheckBasic(tb testing.TB) {
 	}
 }
 
-func SkipIfTPFAdvancedCluster(tb testing.TB) {
+func SkipIfAdvancedClusterV2Schema(tb testing.TB) {
 	tb.Helper()
 	if config.AdvancedClusterV2Schema() {
 		tb.Skip("Skipping tests as resource is TPF Advanced Cluster and implementation is pending")

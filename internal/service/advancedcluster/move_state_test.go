@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccAdvancedCluster_moveNotSupportedSdkv2(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
