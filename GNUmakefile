@@ -167,10 +167,7 @@ jira-release-version:
 
 .PHONY: enable-advancedclustertpf
 enable-advancedclustertpf:
-	make delete-lines filename="./internal/provider/provider_sdk2.go" delete="mongodbatlas_advanced_cluster"
-	make add-lines filename=./internal/provider/provider.go find="project.Resource," add="advancedclustertpf.Resource,"
-	make add-lines filename=./internal/provider/provider.go find="project.DataSource," add="advancedclustertpf.DataSource,"
-	make add-lines filename=./internal/provider/provider.go find="project.PluralDataSource," add="advancedclustertpf.PluralDataSource,"
+	make change-lines filename=./internal/config/latest_advanced_cluster.go find="allowLatestAdvancedClusterEnabled = false" new="allowLatestAdvancedClusterEnabled = true"
 
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:
@@ -183,5 +180,12 @@ delete-lines:
 add-lines:
 	rm -f file.tmp
 	sed 's/${find}/${find}${add}/' "${filename}" > "file.tmp"
+	mv file.tmp ${filename}
+	goimports -w ${filename}
+
+.PHONY: change-lines ${filename} ${find} ${new}
+change-lines:
+	rm -f file.tmp
+	sed 's/${find}/${new}/' "${filename}" > "file.tmp"
 	mv file.tmp ${filename}
 	goimports -w ${filename}
