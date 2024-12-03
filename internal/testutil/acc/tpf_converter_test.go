@@ -3,6 +3,7 @@ package acc_test
 import (
 	"testing"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -193,13 +194,15 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 			}
  		`
 	)
-	t.Setenv("MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS", "true")
-	actual := acc.ConvertAdvancedClusterToTPF(t, input)
-	acc.AssertEqualHCL(t, expected, actual)
+	t.Setenv(config.LatestAdvancedClusterEnabledEnvVar, "true")
+	if config.LatestAdvancedClusterEnabled() {
+		actual := acc.ConvertAdvancedClusterToTPF(t, input)
+		acc.AssertEqualHCL(t, expected, actual, "convert in new format")
+	}
 
-	t.Setenv("MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS", "false")
-	actual = acc.ConvertAdvancedClusterToTPF(t, input)
-	acc.AssertEqualHCL(t, input, actual)
+	t.Setenv(config.LatestAdvancedClusterEnabledEnvVar, "false")
+	actual := acc.ConvertAdvancedClusterToTPF(t, input)
+	acc.AssertEqualHCL(t, input, actual, "convert in old format")
 }
 
 func TestAssertEqualHCL(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/zclconf/go-cty/cty"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ import (
 
 func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 	t.Helper()
-	if !IsTPFAdvancedCluster() {
+	if !config.LatestAdvancedClusterEnabled() {
 		return def
 	}
 	parse := getDefParser(t, def)
