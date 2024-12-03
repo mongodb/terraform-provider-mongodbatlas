@@ -884,12 +884,12 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := make([]resource.TestCheckFunc, 0)
-	if !config.LatestAdvancedClusterEnabled() { // TODO: checkExists not implemented for TPF yet
+	if !config.AdvancedClusterV2Schema() { // TODO: checkExists not implemented for TPF yet
 		checks = append(checks, checkExists(resourceName))
 	}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
 	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
-	if !config.LatestAdvancedClusterEnabled() { // TODO: data sources not implemented for TPF yet
+	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 		checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
 		checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
 	}
@@ -949,7 +949,7 @@ func configTenant(projectID, name string) string {
 func checkTenant(projectID, name string) resource.TestCheckFunc {
 	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
-	if config.LatestAdvancedClusterEnabled() { // TODO: data sources not implemented for TPF yet
+	if config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 		pluralChecks = nil
 	}
 	return checkAggr(
@@ -1022,7 +1022,7 @@ func checkKeyValueBlocks(clusterName, blockName string, blocks ...map[string]str
 	checks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, keyHash, lenStr),
 	}
-	if !config.LatestAdvancedClusterEnabled() { // TODO: data sources not implemented for TPF yet
+	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 		checks = append(checks,
 			resource.TestCheckResourceAttr(dataSourceName, keyHash, lenStr),
 			resource.TestCheckResourceAttr(dataSourcePluralName, pluralPrefix+keyHash, lenStr),
@@ -1030,7 +1030,7 @@ func checkKeyValueBlocks(clusterName, blockName string, blocks ...map[string]str
 	}
 	for _, block := range blocks {
 		checks = append(checks, resource.TestCheckTypeSetElemNestedAttrs(resourceName, keyStar, block))
-		if !config.LatestAdvancedClusterEnabled() { // TODO: data sources not implemented for TPF yet
+		if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 			checks = append(checks,
 				resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, keyStar, block),
 				resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, pluralPrefix+keyStar, block))
@@ -1412,7 +1412,7 @@ func checkAdvanced(name, tls, changeStreamOptions string) resource.TestCheckFunc
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 	}
 	prefix := "advanced_configuration.0."
-	if config.LatestAdvancedClusterEnabled() { // TODO: data sources not implemented for TPF yet
+	if config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 		pluralChecks = nil
 		prefix = "advanced_configuration."
 	}
@@ -2362,7 +2362,7 @@ func configBiConnectorConfig(projectID, name string, enabled bool) string {
 
 func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource.TestCheckFunc {
 	prefix := "bi_connector_config.0."
-	if config.LatestAdvancedClusterEnabled() {
+	if config.AdvancedClusterV2Schema() {
 		prefix = "bi_connector_config."
 	}
 	attrsMap := map[string]string{
