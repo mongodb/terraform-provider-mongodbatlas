@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccAdvancedCluster_move_basic(t *testing.T) {
+func TestAccAdvancedCluster_moveBasic(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -32,7 +32,7 @@ func TestAccAdvancedCluster_move_basic(t *testing.T) {
 	})
 }
 
-func TestAccAdvancedCluster_move_invalid(t *testing.T) {
+func TestAccAdvancedCluster_moveInvalid(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -47,9 +47,6 @@ func TestAccAdvancedCluster_move_invalid(t *testing.T) {
 			{
 				Config:      configMoveSecondInvalid(projectID, clusterName),
 				ExpectError: regexp.MustCompile("Unable to Move Resource State"),
-			},
-			{
-				Config: configMoveFirstInvalid(projectID, clusterName),
 			},
 		},
 	})

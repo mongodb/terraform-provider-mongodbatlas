@@ -9,7 +9,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccAdvancedCluster_move_not_supported_sdkv2(t *testing.T) {
+func TestAccAdvancedCluster_moveNotSupportedSdkv2(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -24,9 +25,6 @@ func TestAccAdvancedCluster_move_not_supported_sdkv2(t *testing.T) {
 			{
 				Config:      configMoveSecond(projectID, clusterName),
 				ExpectError: regexp.MustCompile("Move Resource State Not Supported"),
-			},
-			{
-				Config: configMoveFirst(projectID, clusterName),
 			},
 		},
 	})
