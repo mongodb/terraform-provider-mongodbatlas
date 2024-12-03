@@ -2,10 +2,12 @@ package advancedclustertpf_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/tc"
 )
 
 const (
@@ -76,4 +78,24 @@ func checkTenant(projectID, name string) resource.TestCheckFunc {
 	checks := acc.AddAttrSetChecks(resourceName, nil, attrsSet...)
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+	testCase := tc.SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t, orgID, projectName, clusterName)
+	resource.ParallelTest(t, *testCase)
+}
+
+func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+	testCase := tc.SymmetricShardedOldSchema(t, orgID, projectName, clusterName)
+	resource.ParallelTest(t, *testCase)
 }

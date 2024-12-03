@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
 const (
@@ -246,7 +246,7 @@ func setMoveState(ctx context.Context, projectID, clusterName string, resp *reso
 	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
 		GroupId: conversion.StringPtr(projectID),
 		Name:    conversion.StringPtr(clusterName),
-	}, timeout, &resp.Diagnostics)
+	}, timeout, &resp.Diagnostics, nil)
 	if resp.Diagnostics.HasError() {
 		return
 	}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/tc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
@@ -23,44 +24,44 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 	var (
 		oneNewVariable = "backup_enabled = false"
 		fullUpdate     = `
-		backup_enabled = true
-		bi_connector_config = {
-			enabled = true
-		}
-		# config_server_management_mode = "ATLAS_MANAGED" UNSTABLE: After applying this test step, the non-refresh plan was not empty
-		labels = [{
-			key   = "env"
-			value = "test"
-		}]
-		tags = [{
-			key   = "env"
-			value = "test"
-		}]
-		mongo_db_major_version = "8.0"
-		paused = true
-		pit_enabled = true
-		redact_client_log_data = true
-		replica_set_scaling_strategy = "NODE_TYPE"
-		# retain_backups_enabled = true # only set on delete
-		root_cert_type = "ISRGROOTX1"
-		# termination_protection_enabled = true # must be reset to false to enable delete
-		version_release_system = "CONTINUOUS"
+	backup_enabled = true
+	bi_connector_config = {
+		enabled = true
+	}
+	# config_server_management_mode = "ATLAS_MANAGED" UNSTABLE: After applying this test step, the non-refresh plan was not empty
+	labels = [{
+		key   = "env"
+		value = "test"
+	}]
+	tags = [{
+		key   = "env"
+		value = "test"
+	}]
+	mongo_db_major_version = "8.0"
+	paused = true
+	pit_enabled = true
+	redact_client_log_data = true
+	replica_set_scaling_strategy = "NODE_TYPE"
+	# retain_backups_enabled = true # only set on delete
+	root_cert_type = "ISRGROOTX1"
+	# termination_protection_enabled = true # must be reset to false to enable delete
+	version_release_system = "CONTINUOUS"
 		`
 		// # oplog_min_retention_hours                                      = 5.5
 		// # oplog_size_mb                                                  = 1000
 		// # fail_index_key_too_long 								        = true # only valid for MongoDB version 4.4 and earlier
 		advClusterConfig = `
-		advanced_configuration = {
-			change_stream_options_pre_and_post_images_expire_after_seconds = 100
-			default_read_concern                                           = "available"
-			default_write_concern                                          = "majority"
-			javascript_enabled                                             = false
-			minimum_enabled_tls_protocol                                   = "TLS1_0"
-			no_table_scan                                                  = true
-			sample_refresh_interval_bi_connector                           = 310
-			sample_size_bi_connector                                       = 110
-			transaction_lifetime_limit_seconds                             = 300
-		}
+	advanced_configuration = {
+		change_stream_options_pre_and_post_images_expire_after_seconds = 100
+		default_read_concern                                           = "available"
+		default_write_concern                                          = "majority"
+		javascript_enabled                                             = false
+		minimum_enabled_tls_protocol                                   = "TLS1_0"
+		no_table_scan                                                  = true
+		sample_refresh_interval_bi_connector                           = 310
+		sample_size_bi_connector                                       = 110
+		transaction_lifetime_limit_seconds                             = 300
+	}
 		`
 		fullUpdateResumed = strings.Replace(fullUpdate, "paused = true", "paused = false", 1)
 		vars              = map[string]string{
@@ -123,14 +124,13 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 }
 
 func shortenRetries() {
-	advancedclustertpf.RetryMinTimeout = 1 * time.Second
-	advancedclustertpf.RetryDelay = 1 * time.Second
+	advancedclustertpf.RetryMinTimeout = 100 * time.Millisecond
+	advancedclustertpf.RetryDelay = 100 * time.Millisecond
 	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
 }
 
 func TestMockAdvancedCluster_configSharded(t *testing.T) {
 	var (
-		projectID   = "111111111111111111111111"
 		clusterName = "sharded-multi-replication"
 		vars        = map[string]string{
 			"groupId":     projectID,
@@ -182,44 +182,43 @@ func configSharded(projectID, clusterName string, withUpdate bool) string {
 	// The API raises no errors, but the response reflects this rule
 	analyticsSpecsForSpec2 := strings.ReplaceAll(analyticsSpecs, "2000", "1000")
 	return fmt.Sprintf(`
-		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
-			cluster_type = "SHARDED"
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id   = %[1]q
+		name         = %[2]q
+		cluster_type = "SHARDED"
 
-			replication_specs = [
-				{ # shard 1
-				region_configs = [{
-					electable_specs = {
-						instance_size   = "M30"
-						disk_iops       = 2000
-						node_count      = 3
-						ebs_volume_type = "PROVISIONED"
-					}
-					%[3]s
-					%[4]s
-					provider_name = "AWS"
-					priority      = 7
-					region_name   = "EU_WEST_1"
-					}]
-					},
-					{ # shard 2
-				region_configs = [{
-					electable_specs = {
-						instance_size   = "M30"
-						ebs_volume_type = "PROVISIONED"
-						disk_iops       = 1000
-						node_count      = 3
-					}
-					%[5]s
-					provider_name = "AWS"
-					priority      = 7
-					region_name   = "EU_WEST_1"
+		replication_specs = [
+			{ # shard 1
+			region_configs = [{
+				electable_specs = {
+					instance_size   = "M30"
+					disk_iops       = 2000
+					node_count      = 3
+					ebs_volume_type = "PROVISIONED"
+				}
+				%[3]s
+				%[4]s
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
 				}]
+				},
+				{ # shard 2
+			region_configs = [{
+				electable_specs = {
+					instance_size   = "M30"
+					ebs_volume_type = "PROVISIONED"
+					disk_iops       = 1000
+					node_count      = 3
+				}
+				%[3]s
+				%[5]s
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
 			}]
-			}
-		
-
+		}]
+	}
 	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)
 }
 
@@ -235,5 +234,35 @@ func TestMockClusterAdvancedCluster_basicTenant(t *testing.T) {
 	)
 	shortenRetries()
 	testCase := basicTenantTestCase(t, projectID, clusterName, clusterNameUpdated)
+	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
+}
+
+func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
+	var (
+		clusterName = "6746cee8aef48d1cb265882d"
+		projectName = "test-acc-tf-p-4311574251574843475"
+		orgID       = "65def6ce0f722a1507105aa5"
+		vars        = map[string]string{
+			"groupId":     projectID,
+			"clusterName": clusterName,
+		}
+	)
+	shortenRetries()
+	testCase := tc.SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t, orgID, projectName, clusterName)
+	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
+}
+
+func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
+	var (
+		clusterName = "test-acc-tf-c-6025103075771235151"
+		projectName = "test-acc-tf-p-7889034782442569766"
+		orgID       = "65def6ce0f722a1507105aa5"
+		vars        = map[string]string{
+			"groupId":     projectID,
+			"clusterName": clusterName,
+		}
+	)
+	shortenRetries()
+	testCase := tc.SymmetricShardedOldSchema(t, orgID, projectName, clusterName)
 	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
 }

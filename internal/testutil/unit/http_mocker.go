@@ -92,13 +92,24 @@ func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDa
 	roundTripper, checkFunc := MockRoundTripper(t, vars, config)
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, roundTripper)
 	testCase.PreCheck = nil
-	for i := range testCase.Steps {
+	stepCount := len(testCase.Steps)
+	for i := range stepCount - 1 {
 		step := &testCase.Steps[i]
-		oldCheck := step.Check
-		if oldCheck != nil {
+		if oldCheck := step.Check; oldCheck != nil {
 			step.Check = resource.ComposeAggregateTestCheckFunc(oldCheck, checkFunc)
 		}
 	}
+	// Using CheckDestroy for the final step assertions to allow mocked responses in cleanup
+	oldCheckDestroy := testCase.CheckDestroy
+	newCheckDestroy := func(s *terraform.State) error {
+		if oldCheckDestroy != nil {
+			if err := oldCheckDestroy(s); err != nil {
+				return err
+			}
+		}
+		return checkFunc(s)
+	}
+	testCase.CheckDestroy = newCheckDestroy
 	resource.ParallelTest(t, *testCase)
 }
 
@@ -110,7 +121,7 @@ func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPData
 	require.NoError(t, err)
 	myTransport := httpmock.NewMockTransport()
 	var mockTransport http.RoundTripper = myTransport
-	g := goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json"), goldie.WithDiffEngine(goldie.ColoredDiff))
+	g := goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json"))
 	tracker := requestTracker{data: data, g: g, vars: vars, t: t}
 	if config != nil {
 		tracker.allowMissingRequests = config.AllowMissingRequests
@@ -145,6 +156,10 @@ type requestTracker struct {
 	diffResponseIndex    int
 	allowMissingRequests bool
 	allowReReadGet       bool
+}
+
+func (r *requestTracker) allowReUse(method string) bool {
+	return r.allowReReadGet && method == "GET"
 }
 
 func (r *requestTracker) requestFilename(requestID string, index int) string {
@@ -183,6 +198,9 @@ func (r *requestTracker) initStep() error {
 
 func (r *requestTracker) nextDiffResponseIndex() {
 	step := r.currentStep()
+	if step == nil {
+		r.t.Fatal("no more steps, in testCase")
+	}
 	for index, req := range step.DiffRequests {
 		if _, ok := r.foundsDiffs[index]; !ok {
 			r.diffResponseIndex = req.Responses[0].ResponseIndex
@@ -285,6 +303,9 @@ func normalizePayload(payload string) (string, error) {
 
 func (r *requestTracker) matchRequest(method, urlPath, version, payload string) (response string, statusCode int, err error) {
 	step := r.currentStep()
+	if step == nil {
+		return "", 0, fmt.Errorf("no more steps in mock data")
+	}
 	for index, request := range step.DiffRequests {
 		if !request.Match(method, urlPath, version, r.vars) {
 			continue
@@ -318,7 +339,7 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 		response := request.Responses[nextIndex]
 		if response.ResponseIndex > nextDiffResponse {
 			prevIndex := nextIndex - 1
-			if r.allowReReadGet && method == "GET" && prevIndex >= 0 {
+			if prevIndex >= 0 && r.allowReUse(method) {
 				response = request.Responses[prevIndex]
 				r.t.Logf("re-reading GET request with response_index=%d as diff hasn't been returned yet (%d)", response.ResponseIndex, nextDiffResponse)
 				return replaceVars(response.Text, r.vars), response.Status, nil
