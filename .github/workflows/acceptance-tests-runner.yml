@@ -351,7 +351,7 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf' }}
     env:
-      MONGODB_ATLAS_LATEST_ADVANCED_CLUSTER_ENABLED: 'true'
+      MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -367,7 +367,7 @@ jobs:
           terraform_wrapper: false  
       - name: Prepare new advanced_cluster
         run: make tools enable-advancedclustertpf  
-      - name: Unit tests # delete after allowLatestAdvancedClusterEnabled is removed
+      - name: Unit tests # delete after allowAdvancedClusterV2Schema is removed
         run: go test ./internal/testutil/acc/tpf_converter_test.go 
       - name: Mocked Acceptance Tests
         env:

@@ -448,7 +448,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		encryptionatrestprivateendpoint.PluralDataSource,
 		mongodbemployeeaccessgrant.DataSource,
 	}
-	if config.LatestAdvancedClusterEnabled() {
+	if config.AdvancedClusterV2Schema() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
 	}
 	previewDataSources := []func() datasource.DataSource{
@@ -478,7 +478,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		encryptionatrestprivateendpoint.Resource,
 		mongodbemployeeaccessgrant.Resource,
 	}
-	if config.LatestAdvancedClusterEnabled() {
+	if config.AdvancedClusterV2Schema() {
 		resources = append(resources, advancedclustertpf.Resource)
 	}
 	previewResources := []func() resource.Resource{

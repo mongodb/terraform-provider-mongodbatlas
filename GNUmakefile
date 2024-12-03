@@ -167,7 +167,7 @@ jira-release-version:
 
 .PHONY: enable-advancedclustertpf
 enable-advancedclustertpf:
-	make change-lines filename=./internal/config/latest_advanced_cluster.go find="allowLatestAdvancedClusterEnabled = false" new="allowLatestAdvancedClusterEnabled = true"
+	make change-lines filename=./internal/config/latest_advanced_cluster.go find="allowAdvancedClusterV2Schema = false" new="allowAdvancedClusterV2Schema = true"
 
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:
