@@ -365,7 +365,12 @@ func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *ad
 		}
 	}
 	legacyInfo := resolveLegacyInfo(ctx, modelIn, diags, cluster, api20240530)
-	modelOut := NewTFModel(ctx, cluster, modelIn.Timeouts, diags, legacyInfo)
+	apiInfo, err := resolveExtraAPIInfo(ctx, projectID, cluster, r.Client.AtlasV2.NetworkPeeringApi)
+	if err != nil {
+		diags.AddError("errorExtraApiInfo", err.Error())
+		return nil
+	}
+	modelOut := NewTFModel(ctx, cluster, modelIn.Timeouts, diags, legacyInfo, apiInfo)
 	if diags.HasError() {
 		return nil
 	}

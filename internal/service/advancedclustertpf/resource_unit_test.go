@@ -78,6 +78,7 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
 					resource.TestCheckResourceAttr(resourceName, "timeouts.create", "20s"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.container_id.AWS:US_EAST_1", "67345bd9905b8c30c54fd220"),
 				),
 			},
 			{

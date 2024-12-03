@@ -246,7 +246,7 @@ func setMoveState(ctx context.Context, projectID, clusterName string, resp *reso
 	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
 		GroupId: conversion.StringPtr(projectID),
 		Name:    conversion.StringPtr(clusterName),
-	}, timeout, &resp.Diagnostics, nil)
+	}, timeout, &resp.Diagnostics, nil, &ExtraAPIInfo{})
 	if resp.Diagnostics.HasError() {
 		return
 	}
