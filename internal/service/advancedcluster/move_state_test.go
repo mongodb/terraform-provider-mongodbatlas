@@ -15,7 +15,7 @@ func TestAccAdvancedCluster_moveNotSupportedSdkv2(t *testing.T) {
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
