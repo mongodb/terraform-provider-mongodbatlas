@@ -101,7 +101,24 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	cluster := r.applyClusterChanges(ctx, diags, &state, &plan)
+	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
+	planReq := normalizeFromTFModel(ctx, &plan, diags, false)
+	if diags.HasError() {
+		return
+	}
+	normalizePatchState(stateReq)
+	patchReq, err := update.PatchPayload(stateReq, planReq)
+	if err != nil {
+		diags.AddError("errorPatchPayload", err.Error())
+		return
+	}
+	upgradeRequest := tenantUpgrade(stateReq, patchReq)
+	var cluster *admin.ClusterDescription20240805
+	if upgradeRequest != nil {
+		cluster = r.applyTenantUpgrade(ctx, &plan, upgradeRequest, diags)
+	} else {
+		cluster = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq)
+	}
 	if diags.HasError() {
 		return
 	}
@@ -233,18 +250,7 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 	return legacyAdvConfig, advConfig
 }
 
-func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) *admin.ClusterDescription20240805 {
-	stateReq := normalizeFromTFModel(ctx, state, diags, false)
-	planReq := normalizeFromTFModel(ctx, plan, diags, false)
-	if diags.HasError() {
-		return nil
-	}
-	normalizePatchState(stateReq)
-	patchReq, err := update.PatchPayload(stateReq, planReq)
-	if err != nil {
-		diags.AddError("errorPatchPayload", err.Error())
-		return nil
-	}
+func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
 	var cluster *admin.ClusterDescription20240805
 	if usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
 		// Only updates of replication specs will be done with legacy API
@@ -342,6 +348,19 @@ func (r *rs) updateAndWaitLegacy(ctx context.Context, patchReq *admin20240805.Cl
 		return nil
 	}
 	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+}
+
+func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
+	api := r.Client.AtlasV2.ClustersApi
+	projectID := plan.ProjectID.ValueString()
+	clusterName := plan.Name.ValueString()
+	upgradeRequest.Name = clusterName
+	_, _, err := api.UpgradeSharedCluster(ctx, projectID, upgradeRequest).Execute()
+	if err != nil {
+		diags.AddError("errorTenantUpgrade", fmt.Sprintf(errorUpdate, clusterName, err.Error()))
+		return nil
+	}
+	return AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
 func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModel, diags *diag.Diagnostics) *TFModel {

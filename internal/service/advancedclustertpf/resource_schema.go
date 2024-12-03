@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
@@ -128,10 +127,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"create_date": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud created this cluster. This parameter expresses its value in ISO 8601 format in UTC.",
 			},
 			"encryption_at_rest_provider": schema.StringAttribute{
@@ -150,9 +146,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"cluster_id": schema.StringAttribute{ // TODO: was generated as id
 				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				// PlanModifiers: []planmodifier.String{
+				// 	stringplanmodifier.UseStateForUnknown(),
+				// },
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the cluster.",
 			},
 			"labels": schema.SetNestedAttribute{
@@ -276,9 +272,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. This value can be used to configure Global Cluster backup policies.",
 						},
 						"zone_name": schema.StringAttribute{
-							Computed:            true, // must be computed to have a Default
-							Optional:            true,
-							Default:             stringdefault.StaticString("ZoneName managed by Terraform"), // TODO: as in current resource
+							Computed: true, // must be computed to have a Default
+							Optional: true,
+							// Default:             stringdefault.StaticString("ZoneName managed by Terraform"), // TODO: as in current resource
 							MarkdownDescription: "Human-readable label that describes the zone this shard belongs to in a Global Cluster. Provide this value only if \"clusterType\" : \"GEOSHARDED\" but not \"selfManagedSharding\" : true.",
 						},
 					},
