@@ -7,7 +7,7 @@ import (
 
 const (
 	LatestAdvancedClusterEnabledEnvVar = "MONGODB_ATLAS_LATEST_ADVANCED_CLUSTER_ENABLED"
-	allowLatestAdvancedClusterEnabled  = false // Don't allow in master branch yet
+	allowLatestAdvancedClusterEnabled  = true // Don't allow in master branch yet
 )
 
 func LatestAdvancedClusterEnabled() bool {
