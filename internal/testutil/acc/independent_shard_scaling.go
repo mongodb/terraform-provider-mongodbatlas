@@ -10,7 +10,8 @@ import (
 )
 
 func GetIndependentShardScalingMode(ctx context.Context, projectID, clusterName string) (*string, *http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://cloud-dev.mongodb.com/test/utils/auth/groups/"+projectID+"/clusters/"+clusterName+"/independentShardScalingMode", http.NoBody)
+	baseURL := os.Getenv("MONGODB_ATLAS_BASE_URL")
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL+"test/utils/auth/groups/"+projectID+"/clusters/"+clusterName+"/independentShardScalingMode", http.NoBody)
 	if err != nil {
 		return nil, nil, err
 	}
