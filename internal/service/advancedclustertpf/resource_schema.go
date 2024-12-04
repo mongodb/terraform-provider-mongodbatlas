@@ -224,11 +224,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "container_id", // TODO: add description
 						},
-						"external_id": schema.StringAttribute{ // TODO: added as in current resource
+						"external_id": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "external_id", // TODO: add description
 						},
-						"num_shards": schema.Int64Attribute{ // TODO: added as in current resource
+						"num_shards": schema.Int64Attribute{
 							DeprecationMessage:  DeprecationMsgOldSchema,
 							Default:             int64default.StaticInt64(1),
 							Computed:            true,
@@ -319,7 +319,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify **mongoDBMajorVersion**.",
 			},
-			"retain_backups_enabled": schema.BoolAttribute{ // TODO: not exposed in API, used in Delete operation
+			"retain_backups_enabled": schema.BoolAttribute{
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster.",
 			},
@@ -416,9 +416,8 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 		MarkdownDescription: "advanced_configuration", // TODO: add description
 		Attributes: map[string]schema.Attribute{
 			"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				// Default:             int64default.StaticInt64(-1), // TODO: think if default in the server only
+				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
 			},
 			"default_write_concern": schema.StringAttribute{
