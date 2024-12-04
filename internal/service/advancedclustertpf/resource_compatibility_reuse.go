@@ -40,6 +40,8 @@ func resolveExtraAPIInfo(ctx context.Context, projectID string, cluster *admin.C
 			}
 			if results := getAdvancedClusterContainerID(containers.GetResults(), &regionConfig); results != "" {
 				containerIDs[containerIDKey] = results
+			} else {
+				return nil, fmt.Errorf("container id not found for %s", containerIDKey)
 			}
 		}
 	}
@@ -50,9 +52,6 @@ func resolveExtraAPIInfo(ctx context.Context, projectID string, cluster *admin.C
 
 // copied from model_advanced_cluster.go
 func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
-	if len(containers) == 0 {
-		return ""
-	}
 	for i := range containers {
 		if cluster.GetProviderName() == constant.GCP {
 			return containers[i].GetId()

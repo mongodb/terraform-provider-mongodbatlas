@@ -389,7 +389,7 @@ func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *ad
 		diags.AddError("errorExtraApiInfo", err.Error())
 		return nil
 	}
-	modelOut := NewTFModel(ctx, cluster, modelIn.Timeouts, diags, legacyInfo, apiInfo)
+	modelOut := NewTFModel(ctx, cluster, modelIn.Timeouts, diags, legacyInfo, *apiInfo)
 	if diags.HasError() {
 		return nil
 	}

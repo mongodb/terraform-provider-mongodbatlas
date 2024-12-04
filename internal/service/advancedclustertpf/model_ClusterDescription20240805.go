@@ -29,14 +29,13 @@ type ExtraAPIInfo struct {
 	ContainerIDs map[string]string
 }
 
-func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo *ExtraAPIInfo) *TFModel {
+func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo ExtraAPIInfo) *TFModel {
 	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, input.Labels, diags)
 	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, legacyInfo, apiInfo)
 	tags := NewTagsObjType(ctx, input.Tags, diags)
-	if diags.HasError() || apiInfo == nil {
-		diags.AddError("apiInfo", "apiInfo is required")
+	if diags.HasError() {
 		return nil
 	}
 	return &TFModel{
@@ -117,11 +116,15 @@ func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags 
 	return setType
 }
 
-func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo *ExtraAPIInfo) types.List {
+func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo ExtraAPIInfo) types.List {
 	if input == nil {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
 	var tfModels *[]TFReplicationSpecsModel
+	if len(apiInfo.ContainerIDs) == 0 {
+		diags.AddError("containerIDs", "containerIDs not set in ExtraAPIInfo")
+		return types.ListNull(ReplicationSpecsObjType)
+	}
 	if legacyInfo == nil {
 		tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
 	} else {
@@ -135,7 +138,7 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 	return listType
 }
 
-func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) *[]TFReplicationSpecsModel {
+func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *[]TFReplicationSpecsModel {
 	tfModels := make([]TFReplicationSpecsModel, len(*input))
 	for i, item := range *input {
 		regionConfigs := NewRegionConfigsObjType(ctx, item.RegionConfigs, diags)
@@ -152,7 +155,7 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 	return &tfModels
 }
 
-func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo *ExtraAPIInfo) *[]TFReplicationSpecsModel {
+func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo ExtraAPIInfo) *[]TFReplicationSpecsModel {
 	tfModels := []TFReplicationSpecsModel{}
 	tfModelsSkipIndexes := []int{}
 	for i, item := range *input {

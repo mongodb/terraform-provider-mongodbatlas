@@ -95,13 +95,13 @@ func newReplicationSpec20240805(ctx context.Context, input types.List, diags *di
 			Id:            conversion.NilForUnknown(item.Id, item.Id.ValueStringPointer()),
 			ZoneId:        conversion.NilForUnknown(item.ZoneId, item.ZoneId.ValueStringPointer()),
 			RegionConfigs: newCloudRegionConfig20240805(ctx, item.RegionConfigs, diags),
-			ZoneName:      conversion.StringPtr(resolveDefaultZoneName(item)),
+			ZoneName:      conversion.StringPtr(resolveZoneNameOrUseDefault(item)),
 		}
 	}
 	return &resp
 }
 
-func resolveDefaultZoneName(item *TFReplicationSpecsModel) string {
+func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
 	zoneName := conversion.NilForUnknown(item.ZoneName, item.ZoneName.ValueStringPointer())
 	if zoneName == nil {
 		return defaultZoneName
