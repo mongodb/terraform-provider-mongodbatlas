@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 )
 
 var (

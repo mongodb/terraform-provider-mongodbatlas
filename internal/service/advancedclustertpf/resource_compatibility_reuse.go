@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/spf13/cast"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 )
 
 func FormatMongoDBMajorVersion(version string) string {
