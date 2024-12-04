@@ -576,7 +576,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 	}
 
-	if isUsingOldShardingConfiguration(d) {
+	if isUsingOldShardingConfiguration(d) { // both paths do the same except FlattenAdvancedReplicationSpecsOldShardingConfig / flattenAdvancedReplicationSpecs
 		zoneNameToOldReplicationSpecMeta, err := GetReplicationSpecAttributesFromOldAPI(ctx, projectID, clusterName, connV220240530.ClustersApi)
 		if err != nil {
 			return diag.FromErr(err)
@@ -586,11 +586,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 	} else {
-		zoneNameToOldReplicationSpecID, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
+		zoneNameToOldReplicationSpecMeta, err := GetReplicationSpecAttributesFromOldAPI(ctx, projectID, clusterName, connV220240530.ClustersApi)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecID, d.Get("replication_specs").([]any), d, connV2)
+		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
@@ -632,35 +632,6 @@ func GetReplicationSpecAttributesFromOldAPI(ctx context.Context, projectID, clus
 	result := make(map[string]OldShardConfigMeta, len(specs))
 	for _, spec := range specs {
 		result[spec.GetZoneName()] = OldShardConfigMeta{spec.GetId(), spec.GetNumShards()}
-	}
-	return result, nil
-}
-
-// getReplicationSpecIDsFromOldAPI returns the id values of replication specs coming from old API. This is used to populate old replication_specs.*.id attribute avoiding breaking changes.
-// In the old API each replications spec has a 1:1 relation with each zone, so ids are returned in a map from zoneName to id.
-func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName string, connV220240530 *admin20240530.APIClient) (map[string]string, error) {
-	clusterOldAPI, _, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	if apiError, ok := admin20240530.AsError(err); ok {
-		if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
-			return nil, nil // If it is the case of an asymmetric shard, an error is expected in old API and replication_specs.*.id attribute will not be populated.
-		}
-		readErrorMsg := "error reading advanced cluster with 2023-02-01 API (%s): %s"
-		return nil, fmt.Errorf(readErrorMsg, clusterName, err)
-	}
-	specs := clusterOldAPI.GetReplicationSpecs()
-	result := make(map[string]string, len(specs))
-	for _, spec := range specs {
-		result[spec.GetZoneName()] = spec.GetId()
-	}
-	return result, nil
-}
-
-// getZoneIDsFromNewAPI returns the zone id values of replication specs coming from new API. This is used to populate zone_id when old API is called in DS read.
-func getZoneIDsFromNewAPI(cluster *admin.ClusterDescription20240805) (map[string]string, error) {
-	specs := cluster.GetReplicationSpecs()
-	result := make(map[string]string, len(specs))
-	for _, spec := range specs {
-		result[spec.GetZoneName()] = spec.GetZoneId()
 	}
 	return result, nil
 }

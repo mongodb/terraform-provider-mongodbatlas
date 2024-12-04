@@ -12,14 +12,6 @@ import (
 // - These functions must not contain any business logic.
 // - All will be removed once we rely on a single API version.
 
-func convertTagsPtrToLatest(tags *[]admin20240530.ResourceTag) *[]admin.ResourceTag {
-	if tags == nil {
-		return nil
-	}
-	result := convertTagsToLatest(*tags)
-	return &result
-}
-
 func convertTagsPtrToOldSDK(tags *[]admin.ResourceTag) *[]admin20240530.ResourceTag {
 	if tags == nil {
 		return nil
@@ -36,18 +28,6 @@ func convertTagsPtrToOldSDK(tags *[]admin.ResourceTag) *[]admin20240530.Resource
 	return &results
 }
 
-func convertTagsToLatest(tags []admin20240530.ResourceTag) []admin.ResourceTag {
-	results := make([]admin.ResourceTag, len(tags))
-	for i := range len(tags) {
-		tag := tags[i]
-		results[i] = admin.ResourceTag{
-			Key:   tag.Key,
-			Value: tag.Value,
-		}
-	}
-	return results
-}
-
 func convertBiConnectToOldSDK(biconnector *admin.BiConnector) *admin20240530.BiConnector {
 	if biconnector == nil {
 		return nil
@@ -56,74 +36,6 @@ func convertBiConnectToOldSDK(biconnector *admin.BiConnector) *admin20240530.BiC
 		Enabled:        biconnector.Enabled,
 		ReadPreference: biconnector.ReadPreference,
 	}
-}
-
-func convertBiConnectToLatest(biconnector *admin20240530.BiConnector) *admin.BiConnector {
-	return &admin.BiConnector{
-		Enabled:        biconnector.Enabled,
-		ReadPreference: biconnector.ReadPreference,
-	}
-}
-
-func convertConnectionStringToLatest(connStrings *admin20240530.ClusterConnectionStrings) *admin.ClusterConnectionStrings {
-	return &admin.ClusterConnectionStrings{
-		AwsPrivateLink:    connStrings.AwsPrivateLink,
-		AwsPrivateLinkSrv: connStrings.AwsPrivateLinkSrv,
-		Private:           connStrings.Private,
-		PrivateEndpoint:   convertPrivateEndpointToLatest(connStrings.PrivateEndpoint),
-		PrivateSrv:        connStrings.PrivateSrv,
-		Standard:          connStrings.Standard,
-		StandardSrv:       connStrings.StandardSrv,
-	}
-}
-
-func convertPrivateEndpointToLatest(privateEndpoints *[]admin20240530.ClusterDescriptionConnectionStringsPrivateEndpoint) *[]admin.ClusterDescriptionConnectionStringsPrivateEndpoint {
-	if privateEndpoints == nil {
-		return nil
-	}
-	peSlice := *privateEndpoints
-	results := make([]admin.ClusterDescriptionConnectionStringsPrivateEndpoint, len(peSlice))
-	for i := range len(peSlice) {
-		pe := peSlice[i]
-		results[i] = admin.ClusterDescriptionConnectionStringsPrivateEndpoint{
-			ConnectionString:                  pe.ConnectionString,
-			Endpoints:                         convertEndpointsToLatest(pe.Endpoints),
-			SrvConnectionString:               pe.SrvConnectionString,
-			SrvShardOptimizedConnectionString: pe.SrvShardOptimizedConnectionString,
-			Type:                              pe.Type,
-		}
-	}
-	return &results
-}
-
-func convertEndpointsToLatest(privateEndpoints *[]admin20240530.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint) *[]admin.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint {
-	if privateEndpoints == nil {
-		return nil
-	}
-	peSlice := *privateEndpoints
-	results := make([]admin.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint, len(peSlice))
-	for i := range len(peSlice) {
-		pe := peSlice[i]
-		results[i] = admin.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint{
-			EndpointId:   pe.EndpointId,
-			ProviderName: pe.ProviderName,
-			Region:       pe.Region,
-		}
-	}
-	return &results
-}
-
-func convertLabelsToLatest(labels *[]admin20240530.ComponentLabel) *[]admin.ComponentLabel {
-	labelSlice := *labels
-	results := make([]admin.ComponentLabel, len(labelSlice))
-	for i := range len(labelSlice) {
-		label := labelSlice[i]
-		results[i] = admin.ComponentLabel{
-			Key:   label.Key,
-			Value: label.Value,
-		}
-	}
-	return &results
 }
 
 func convertLabelSliceToOldSDK(slice []admin.ComponentLabel, err diag.Diagnostics) ([]admin20240530.ComponentLabel, diag.Diagnostics) {
@@ -216,113 +128,6 @@ func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec20240
 		DiskIOPS:      spec.DiskIOPS,
 		EbsVolumeType: spec.EbsVolumeType,
 		InstanceSize:  spec.InstanceSize,
-	}
-}
-
-func convertDedicatedHwSpecToLatest(spec *admin20240530.DedicatedHardwareSpec, rootDiskSizeGB float64) *admin.DedicatedHardwareSpec20240805 {
-	if spec == nil {
-		return nil
-	}
-	return &admin.DedicatedHardwareSpec20240805{
-		NodeCount:     spec.NodeCount,
-		DiskIOPS:      spec.DiskIOPS,
-		EbsVolumeType: spec.EbsVolumeType,
-		InstanceSize:  spec.InstanceSize,
-		DiskSizeGB:    &rootDiskSizeGB,
-	}
-}
-
-func convertAdvancedAutoScalingSettingsToLatest(settings *admin20240530.AdvancedAutoScalingSettings) *admin.AdvancedAutoScalingSettings {
-	if settings == nil {
-		return nil
-	}
-	return &admin.AdvancedAutoScalingSettings{
-		Compute: convertAdvancedComputeAutoScalingToLatest(settings.Compute),
-		DiskGB:  convertDiskGBAutoScalingToLatest(settings.DiskGB),
-	}
-}
-
-func convertAdvancedComputeAutoScalingToLatest(settings *admin20240530.AdvancedComputeAutoScaling) *admin.AdvancedComputeAutoScaling {
-	if settings == nil {
-		return nil
-	}
-	return &admin.AdvancedComputeAutoScaling{
-		Enabled:          settings.Enabled,
-		MaxInstanceSize:  settings.MaxInstanceSize,
-		MinInstanceSize:  settings.MinInstanceSize,
-		ScaleDownEnabled: settings.ScaleDownEnabled,
-	}
-}
-
-func convertDiskGBAutoScalingToLatest(settings *admin20240530.DiskGBAutoScaling) *admin.DiskGBAutoScaling {
-	if settings == nil {
-		return nil
-	}
-	return &admin.DiskGBAutoScaling{
-		Enabled: settings.Enabled,
-	}
-}
-
-func convertHardwareSpecToLatest(hwspec *admin20240530.HardwareSpec, rootDiskSizeGB float64) *admin.HardwareSpec20240805 {
-	if hwspec == nil {
-		return nil
-	}
-	return &admin.HardwareSpec20240805{
-		DiskIOPS:      hwspec.DiskIOPS,
-		EbsVolumeType: hwspec.EbsVolumeType,
-		InstanceSize:  hwspec.InstanceSize,
-		NodeCount:     hwspec.NodeCount,
-		DiskSizeGB:    &rootDiskSizeGB,
-	}
-}
-
-func convertRegionConfigSliceToLatest(slice *[]admin20240530.CloudRegionConfig, rootDiskSizeGB float64) *[]admin.CloudRegionConfig20240805 {
-	if slice == nil {
-		return nil
-	}
-	cloudRegionSlice := *slice
-	results := make([]admin.CloudRegionConfig20240805, len(cloudRegionSlice))
-	for i := range len(cloudRegionSlice) {
-		cloudRegion := cloudRegionSlice[i]
-		results[i] = admin.CloudRegionConfig20240805{
-			ElectableSpecs:       convertHardwareSpecToLatest(cloudRegion.ElectableSpecs, rootDiskSizeGB),
-			Priority:             cloudRegion.Priority,
-			ProviderName:         cloudRegion.ProviderName,
-			RegionName:           cloudRegion.RegionName,
-			AnalyticsAutoScaling: convertAdvancedAutoScalingSettingsToLatest(cloudRegion.AnalyticsAutoScaling),
-			AnalyticsSpecs:       convertDedicatedHwSpecToLatest(cloudRegion.AnalyticsSpecs, rootDiskSizeGB),
-			AutoScaling:          convertAdvancedAutoScalingSettingsToLatest(cloudRegion.AutoScaling),
-			ReadOnlySpecs:        convertDedicatedHwSpecToLatest(cloudRegion.ReadOnlySpecs, rootDiskSizeGB),
-			BackingProviderName:  cloudRegion.BackingProviderName,
-		}
-	}
-	return &results
-}
-
-func convertClusterDescToLatestExcludeRepSpecs(oldClusterDesc *admin20240530.AdvancedClusterDescription) *admin.ClusterDescription20240805 {
-	return &admin.ClusterDescription20240805{
-		BackupEnabled: oldClusterDesc.BackupEnabled,
-		AcceptDataRisksAndForceReplicaSetReconfig: oldClusterDesc.AcceptDataRisksAndForceReplicaSetReconfig,
-		ClusterType:                      oldClusterDesc.ClusterType,
-		CreateDate:                       oldClusterDesc.CreateDate,
-		DiskWarmingMode:                  oldClusterDesc.DiskWarmingMode,
-		EncryptionAtRestProvider:         oldClusterDesc.EncryptionAtRestProvider,
-		GlobalClusterSelfManagedSharding: oldClusterDesc.GlobalClusterSelfManagedSharding,
-		GroupId:                          oldClusterDesc.GroupId,
-		Id:                               oldClusterDesc.Id,
-		MongoDBMajorVersion:              oldClusterDesc.MongoDBMajorVersion,
-		MongoDBVersion:                   oldClusterDesc.MongoDBVersion,
-		Name:                             oldClusterDesc.Name,
-		Paused:                           oldClusterDesc.Paused,
-		PitEnabled:                       oldClusterDesc.PitEnabled,
-		RootCertType:                     oldClusterDesc.RootCertType,
-		StateName:                        oldClusterDesc.StateName,
-		TerminationProtectionEnabled:     oldClusterDesc.TerminationProtectionEnabled,
-		VersionReleaseSystem:             oldClusterDesc.VersionReleaseSystem,
-		Tags:                             convertTagsPtrToLatest(oldClusterDesc.Tags),
-		BiConnector:                      convertBiConnectToLatest(oldClusterDesc.BiConnector),
-		ConnectionStrings:                convertConnectionStringToLatest(oldClusterDesc.ConnectionStrings),
-		Labels:                           convertLabelsToLatest(oldClusterDesc.Labels),
 	}
 }
 
