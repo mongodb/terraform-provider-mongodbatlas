@@ -108,13 +108,13 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				DiffSuppressFunc: func(k, oldAttr, newAttr string, d *schema.ResourceData) bool {
 					var j, j2 any
-					if err := json.Unmarshal([]byte(old), &j); err != nil {
+					if err := json.Unmarshal([]byte(oldAttr), &j); err != nil {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
 						return false
 					}
-					if err := json.Unmarshal([]byte(new), &j2); err != nil {
+					if err := json.Unmarshal([]byte(newAttr), &j2); err != nil {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
 						return false
 					}
@@ -129,13 +129,13 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				DiffSuppressFunc: func(k, oldAttr, newAttr string, d *schema.ResourceData) bool {
 					var j, j2 any
-					if err := json.Unmarshal([]byte(old), &j); err != nil {
+					if err := json.Unmarshal([]byte(oldAttr), &j); err != nil {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
 						return false
 					}
-					if err := json.Unmarshal([]byte(new), &j2); err != nil {
+					if err := json.Unmarshal([]byte(newAttr), &j2); err != nil {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
 						return false
 					}
