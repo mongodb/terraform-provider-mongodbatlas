@@ -149,6 +149,137 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 	}
 }
 
+func TestFlattenAdvancedReplicationSpecsOldShardingConfig(t *testing.T) {
+	var (
+		regionName         = "EU_WEST_1"
+		providerName       = "AWS"
+		expectedID         = "id1"
+		unexpectedID       = "id2"
+		expectedZoneName   = "z1"
+		unexpectedZoneName = "z2"
+		regionConfigAdmin  = []admin.CloudRegionConfig20240805{{
+			ProviderName: &providerName,
+			RegionName:   &regionName,
+		}}
+		regionConfigTfSameZone = map[string]any{
+			"provider_name": "AWS",
+			"region_name":   regionName,
+		}
+		regionConfigTfDiffZone = map[string]any{
+			"provider_name": "AWS",
+			"region_name":   regionName,
+			"zone_name":     unexpectedZoneName,
+		}
+		apiSpecExpected  = admin.ReplicationSpec20240805{Id: &expectedID, ZoneName: &expectedZoneName, RegionConfigs: &regionConfigAdmin}
+		apiSpecDifferent = admin.ReplicationSpec20240805{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &regionConfigAdmin}
+		testSchema       = map[string]*schema.Schema{
+			"project_id": {Type: schema.TypeString},
+		}
+		tfSameIDSameZone = map[string]any{
+			"id":             expectedID,
+			"num_shards":     1,
+			"region_configs": []any{regionConfigTfSameZone},
+			"zone_name":      expectedZoneName,
+		}
+		tfNoIDSameZone = map[string]any{
+			"id":             nil,
+			"num_shards":     1,
+			"region_configs": []any{regionConfigTfSameZone},
+			"zone_name":      expectedZoneName,
+		}
+		tfNoIDDiffZone = map[string]any{
+			"id":             nil,
+			"num_shards":     1,
+			"region_configs": []any{regionConfigTfDiffZone},
+			"zone_name":      unexpectedZoneName,
+		}
+		tfdiffIDDiffZone = map[string]any{
+			"id":             "unique",
+			"num_shards":     1,
+			"region_configs": []any{regionConfigTfDiffZone},
+			"zone_name":      unexpectedZoneName,
+		}
+	)
+	testCases := map[string]struct {
+		adminSpecs                       []admin.ReplicationSpec20240805
+		zoneNameToOldReplicationSpecMeta map[string]advancedcluster.OldShardConfigMeta
+		tfInputSpecs                     []any
+		expectedLen                      int
+	}{
+		"empty admin spec should return empty list": {
+			[]admin.ReplicationSpec20240805{},
+			map[string]advancedcluster.OldShardConfigMeta{},
+			[]any{tfSameIDSameZone},
+			0,
+		},
+		"existing id, should match admin": {
+			[]admin.ReplicationSpec20240805{apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
+			[]any{tfSameIDSameZone},
+			1,
+		},
+		"existing different id, should change to admin spec": {
+			[]admin.ReplicationSpec20240805{apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
+			[]any{tfdiffIDDiffZone},
+			1,
+		},
+		"missing id, should be set when zone_name matches": {
+			[]admin.ReplicationSpec20240805{apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
+			[]any{tfNoIDSameZone},
+			1,
+		},
+		"missing id and diff zone, should change to admin spec": {
+			[]admin.ReplicationSpec20240805{apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
+			[]any{tfNoIDDiffZone},
+			1,
+		},
+		"existing id, should match correct api spec using `id` and extra api spec added": {
+			[]admin.ReplicationSpec20240805{apiSpecDifferent, apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{unexpectedZoneName: {unexpectedID, 1}, expectedZoneName: {expectedID, 1}},
+			[]any{tfSameIDSameZone},
+			2,
+		},
+		"missing id, should match correct api spec using `zone_name` and extra api spec added": {
+			[]admin.ReplicationSpec20240805{apiSpecDifferent, apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{unexpectedZoneName: {unexpectedID, 1}, expectedZoneName: {expectedID, 1}},
+			[]any{tfNoIDSameZone},
+			2,
+		},
+		"two matching specs should be set to api specs": {
+			[]admin.ReplicationSpec20240805{apiSpecExpected, apiSpecDifferent},
+			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}, unexpectedZoneName: {unexpectedID, 1}},
+			[]any{tfSameIDSameZone, tfdiffIDDiffZone},
+			2,
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			peeringAPI := mockadmin.NetworkPeeringApi{}
+
+			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderWithParams(mock.Anything, mock.Anything).Return(admin.ListPeeringContainerByCloudProviderApiRequest{ApiService: &peeringAPI})
+			containerResult := []admin.CloudProviderContainer{{Id: conversion.StringPtr("c1"), RegionName: &regionName, ProviderName: &providerName}}
+			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderExecute(mock.Anything).Return(&admin.PaginatedCloudProviderContainer{Results: &containerResult}, nil, nil)
+
+			client := &admin.APIClient{
+				NetworkPeeringApi: &peeringAPI,
+			}
+			resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]any{"project_id": "p1"})
+
+			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldShardingConfig(context.Background(), tc.adminSpecs, tc.zoneNameToOldReplicationSpecMeta, tc.tfInputSpecs, resourceData, client)
+
+			require.NoError(t, err)
+			assert.Len(t, tfOutputSpecs, tc.expectedLen)
+			if tc.expectedLen != 0 {
+				assert.Equal(t, expectedID, tfOutputSpecs[0]["id"])
+				assert.Equal(t, expectedZoneName, tfOutputSpecs[0]["zone_name"])
+			}
+		})
+	}
+}
+
 func TestGetDiskSizeGBFromReplicationSpec(t *testing.T) {
 	diskSizeGBValue := 40.0
 

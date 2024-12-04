@@ -25,6 +25,11 @@ import (
 
 const minVersionForChangeStreamOptions = 6.0
 
+type OldShardConfigMeta struct {
+	ID       string
+	NumShard int
+}
+
 var (
 	DSTagsSchema = schema.Schema{
 		Type:     schema.TypeSet,
@@ -514,6 +519,7 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 	return flattenedProcessArgs
 }
 
+// This function is untilised by DS read which still uses the old API and will be removed when refactor to DS read operation is implemented.
 func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []admin20240530.ReplicationSpec, zoneNameToZoneIDs map[string]string, rootDiskSizeGB float64, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	// for flattening old model we need information of value defined at root disk_size_gb so we set the value in new location under hardware specs
@@ -524,6 +530,16 @@ func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []adm
 		doesAdvancedReplicationSpecMatchAPIOldSDK, replicationSpecFlattener, connV2)
 }
 
+func FlattenAdvancedReplicationSpecsOldShardingConfig(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]OldShardConfigMeta, tfMapObjects []any,
+	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
+	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin.ReplicationSpec20240805, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
+		return flattenAdvancedReplicationSpecOldShardingConfig(ctx, sdkModel, zoneNameToOldReplicationSpecMeta, tfModel, resourceData, connV2)
+	}
+	compressedAPIObjects := compressAPIObjectList(apiObjects)
+	return flattenAdvancedReplicationSpecsLogic[admin.ReplicationSpec20240805](ctx, compressedAPIObjects, tfMapObjects, d,
+		doesAdvancedReplicationSpecMatchAPIOldShardConfig, replicationSpecFlattener, connV2)
+}
+
 func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecIDs map[string]string, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	// for flattening new model we need information of replication spec ids associated to old API to avoid breaking changes for users referencing replication_specs.*.id
@@ -532,6 +548,30 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.Rep
 	}
 	return flattenAdvancedReplicationSpecsLogic[admin.ReplicationSpec20240805](ctx, apiObjects, tfMapObjects, d,
 		doesAdvancedReplicationSpecMatchAPI, replicationSpecFlattener, connV2)
+}
+
+// compressAPIObjectList returns an array of ReplicationSpec20240805. The input array is reduced from all shards to only one shard per zoneName
+func compressAPIObjectList(apiObjects []admin.ReplicationSpec20240805) []admin.ReplicationSpec20240805 {
+	var compressedAPIObjectList []admin.ReplicationSpec20240805
+	wasZoneNameUsed := populateZoneNameMap(apiObjects)
+	for _, apiObject := range apiObjects {
+		if !wasZoneNameUsed[apiObject.GetZoneName()] {
+			compressedAPIObjectList = append(compressedAPIObjectList, apiObject)
+			wasZoneNameUsed[apiObject.GetZoneName()] = true
+		}
+	}
+	return compressedAPIObjectList
+}
+
+// populateZoneNameMap returns a map of zoneNames and initializes all keys to false.
+func populateZoneNameMap(apiObjects []admin.ReplicationSpec20240805) map[string]bool {
+	zoneNames := make(map[string]bool)
+	for _, apiObject := range apiObjects {
+		if _, exists := zoneNames[apiObject.GetZoneName()]; !exists {
+			zoneNames[apiObject.GetZoneName()] = false
+		}
+	}
+	return zoneNames
 }
 
 type ReplicationSpecSDKModel interface {
@@ -556,7 +596,6 @@ func flattenAdvancedReplicationSpecsLogic[T ReplicationSpecSDKModel](
 		if len(tfMapObjects) > i {
 			tfMapObject = tfMapObjects[i].(map[string]any)
 		}
-
 		for j := 0; j < len(apiObjects); j++ {
 			if wasAPIObjectUsed[j] || !tfModelWithSDKMatcher(tfMapObject, &apiObjects[j]) {
 				continue
@@ -599,8 +638,13 @@ func flattenAdvancedReplicationSpecsLogic[T ReplicationSpecSDKModel](
 	return tfList, nil
 }
 
+// This function is untilised by DS read which still uses the old API and will be removed when refactor to DS read operation is implemented.
 func doesAdvancedReplicationSpecMatchAPIOldSDK(tfObject map[string]any, apiObject *admin20240530.ReplicationSpec) bool {
 	return tfObject["id"] == apiObject.GetId() || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.GetZoneName())
+}
+
+func doesAdvancedReplicationSpecMatchAPIOldShardConfig(tfObject map[string]any, apiObject *admin.ReplicationSpec20240805) bool {
+	return tfObject["zone_name"] == apiObject.GetZoneName()
 }
 
 func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *admin.ReplicationSpec20240805) bool {
@@ -1111,6 +1155,7 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 	return tfMap, nil
 }
 
+// This function is untilised by DS read which still uses the old API and will be removed when refactor to DS read operation is implemented.
 func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin20240530.ReplicationSpec, zoneNameToZoneIDs map[string]string, rootDiskSizeGB float64, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
@@ -1139,6 +1184,38 @@ func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin2
 	if zoneID, ok := zoneNameToZoneIDs[apiObject.GetZoneName()]; ok { // zone id is not present on old API SDK, so we fetch values from new API and map them using zone name
 		tfMap["zone_id"] = zoneID
 	}
+
+	return tfMap, nil
+}
+
+func flattenAdvancedReplicationSpecOldShardingConfig(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldShardConfigMeta map[string]OldShardConfigMeta, tfMapObject map[string]any,
+	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
+	if apiObject == nil {
+		return nil, nil
+	}
+
+	tfMap := map[string]any{}
+	if oldShardConfigData, ok := zoneNameToOldShardConfigMeta[apiObject.GetZoneName()]; ok {
+		tfMap["num_shards"] = oldShardConfigData.NumShard
+		tfMap["id"] = oldShardConfigData.ID
+	}
+	if tfMapObject != nil {
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), tfMapObject["region_configs"].([]any), d, connV2)
+		if err != nil {
+			return nil, err
+		}
+		tfMap["region_configs"] = object
+		tfMap["container_id"] = containerIDs
+	} else {
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), nil, d, connV2)
+		if err != nil {
+			return nil, err
+		}
+		tfMap["region_configs"] = object
+		tfMap["container_id"] = containerIDs
+	}
+	tfMap["zone_name"] = apiObject.GetZoneName()
+	tfMap["zone_id"] = apiObject.GetZoneId()
 
 	return tfMap, nil
 }
