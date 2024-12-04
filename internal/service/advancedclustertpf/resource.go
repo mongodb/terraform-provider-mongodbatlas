@@ -147,7 +147,14 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	clusterName := state.Name.ValueString()
 	projectID := state.ProjectID.ValueString()
 	api := r.Client.AtlasV2.ClustersApi
-	_, err := api.DeleteCluster(ctx, projectID, clusterName).Execute()
+	params := &admin.DeleteClusterApiParams{
+		GroupId:     projectID,
+		ClusterName: clusterName,
+	}
+	if retainBackups := conversion.NilForUnknown(state.RetainBackupsEnabled, state.RetainBackupsEnabled.ValueBoolPointer()); retainBackups != nil {
+		params.RetainBackups = retainBackups
+	}
+	_, err := api.DeleteClusterWithParams(ctx, params).Execute()
 	if err != nil {
 		diags.AddError("errorDelete", fmt.Sprintf(errorDelete, clusterName, err.Error()))
 		return
