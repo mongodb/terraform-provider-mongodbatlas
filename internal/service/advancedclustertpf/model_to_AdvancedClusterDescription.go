@@ -6,18 +6,18 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
-func newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specs *[]admin.ReplicationSpec20240805, zoneNameNumShards map[string]int64, oldDiskGB *float64) *admin20240530.AdvancedClusterDescription {
+func newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specs *[]admin.ReplicationSpec20240805, zoneNameNumShards map[string]int64, oldDiskGB *float64, externalIDToLegacyID map[string]string) *admin20240530.AdvancedClusterDescription {
 	newDiskGB := findRegionRootDiskSize(specs)
 	if oldDiskGB != nil && newDiskGB != nil && (*newDiskGB-*oldDiskGB) < 0.01 {
 		newDiskGB = nil
 	}
 	return &admin20240530.AdvancedClusterDescription{
 		DiskSizeGB:       newDiskGB,
-		ReplicationSpecs: convertReplicationSpecs20240805to20240530(specs, zoneNameNumShards),
+		ReplicationSpecs: convertReplicationSpecs20240805to20240530(specs, zoneNameNumShards, externalIDToLegacyID),
 	}
 }
 
-func convertReplicationSpecs20240805to20240530(replicationSpecs *[]admin.ReplicationSpec20240805, zoneNameNumShards map[string]int64) *[]admin20240530.ReplicationSpec {
+func convertReplicationSpecs20240805to20240530(replicationSpecs *[]admin.ReplicationSpec20240805, zoneNameNumShards map[string]int64, externalIDToLegacyID map[string]string) *[]admin20240530.ReplicationSpec {
 	if replicationSpecs == nil {
 		return nil
 	}
@@ -27,9 +27,10 @@ func convertReplicationSpecs20240805to20240530(replicationSpecs *[]admin.Replica
 		if !ok {
 			numShards = 1
 		}
+		legacyID := externalIDToLegacyID[replicationSpec.GetId()]
 		result[i] = admin20240530.ReplicationSpec{
 			NumShards:     conversion.Int64PtrToIntPtr(&numShards),
-			Id:            replicationSpec.Id,
+			Id:            conversion.StringPtr(legacyID),
 			ZoneName:      replicationSpec.ZoneName,
 			RegionConfigs: convertCloudRegionConfig20240805to20240530(replicationSpec.RegionConfigs),
 		}

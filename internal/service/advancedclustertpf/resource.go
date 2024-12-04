@@ -320,10 +320,14 @@ func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFMo
 		}
 	}
 	numShardsPlan := numShardsMap(ctx, plan.ReplicationSpecs, diags)
+	legacyIDs := externalIDToLegacyID(ctx, state.ReplicationSpecs, diags)
 	if diags.HasError() {
 		return false
 	}
-	legacyPatch := newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specChanges, numShardsPlan, state.DiskSizeGB.ValueFloat64Pointer())
+	legacyPatch := newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specChanges, numShardsPlan, state.DiskSizeGB.ValueFloat64Pointer(), legacyIDs)
+	if diags.HasError() {
+		return false
+	}
 	api20240530 := r.Client.AtlasV220240530.ClustersApi
 	api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch)
 	_, _, err := api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch).Execute()
@@ -345,16 +349,16 @@ func (r *rs) updateAndWait(ctx context.Context, patchReq *admin.ClusterDescripti
 	}
 	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
-func (r *rs) updateAndWaitLegacy(ctx context.Context, patchReq *admin20240805.ClusterDescription20240805, diags *diag.Diagnostics, tfModel *TFModel) *admin.ClusterDescription20240805 {
+func (r *rs) updateAndWaitLegacy(ctx context.Context, patchReq *admin20240805.ClusterDescription20240805, diags *diag.Diagnostics, plan *TFModel) *admin.ClusterDescription20240805 {
 	api20240805 := r.Client.AtlasV220240805.ClustersApi
-	projectID := tfModel.ProjectID.ValueString()
-	clusterName := tfModel.Name.ValueString()
+	projectID := plan.ProjectID.ValueString()
+	clusterName := plan.Name.ValueString()
 	_, _, err := api20240805.UpdateCluster(ctx, projectID, clusterName, patchReq).Execute()
 	if err != nil {
 		diags.AddError("errorUpdateLegacy", fmt.Sprintf(errorUpdate, clusterName, err.Error()))
 		return nil
 	}
-	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
 func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {

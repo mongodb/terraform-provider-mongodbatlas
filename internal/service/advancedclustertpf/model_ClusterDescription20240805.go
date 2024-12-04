@@ -136,8 +136,14 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 	tfModels := make([]TFReplicationSpecsModel, len(*input))
 	for i, item := range *input {
 		regionConfigs := NewRegionConfigsObjType(ctx, item.RegionConfigs, diags)
+		zoneName := item.GetZoneName()
+		if zoneName == "" {
+			diags.AddError(errorZoneNameNotSet, errorZoneNameNotSet)
+			return &tfModels
+		}
+		legacyID := apiInfo.ZoneNameReplicationSpecIDs[zoneName]
 		tfModels[i] = TFReplicationSpecsModel{
-			Id:            types.StringPointerValue(item.Id),
+			Id:            conversion.StringNullIfEmpty(legacyID),
 			ExternalId:    types.StringPointerValue(item.Id),
 			NumShards:     types.Int64Value(1),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &apiInfo.ContainerIDs),

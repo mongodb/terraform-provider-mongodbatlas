@@ -222,3 +222,21 @@ func findRegionRootDiskSize(specs *[]admin.ReplicationSpec20240805) *float64 {
 	}
 	return nil
 }
+
+func externalIDToLegacyID(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]string {
+	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
+	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return nil
+	}
+	idsMapped := map[string]string{}
+	for i := range elements {
+		e := elements[i]
+		externalID := e.ExternalId.ValueString()
+		legacyID := e.Id.ValueString()
+		if externalID != "" && legacyID != "" {
+			idsMapped[externalID] = legacyID
+		}
+	}
+	return idsMapped
+}
