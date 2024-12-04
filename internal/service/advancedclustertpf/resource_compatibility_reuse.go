@@ -3,6 +3,7 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
@@ -10,6 +11,23 @@ import (
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 )
+
+func IsMajorVersionHigherGreaterOrEqual(input *string, version float64) bool {
+	if input == nil || *input == "" {
+		return true
+	}
+	parts := strings.SplitN(*input, ".", 2)
+	if len(parts) == 0 {
+		return false
+	}
+
+	value, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		return false
+	}
+
+	return value >= version
+}
 
 func FormatMongoDBMajorVersion(version string) string {
 	if strings.Contains(version, ".") {
