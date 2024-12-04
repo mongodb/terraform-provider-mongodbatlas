@@ -194,13 +194,13 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 			}
  		`
 	)
-	t.Setenv(config.LatestAdvancedClusterEnabledEnvVar, "true")
-	if config.LatestAdvancedClusterEnabled() {
+	t.Setenv(config.AdvancedClusterV2SchemaEnvVar, "true")
+	if config.AdvancedClusterV2Schema() {
 		actual := acc.ConvertAdvancedClusterToTPF(t, input)
 		acc.AssertEqualHCL(t, expected, actual, "convert in new format")
 	}
 
-	t.Setenv(config.LatestAdvancedClusterEnabledEnvVar, "false")
+	t.Setenv(config.AdvancedClusterV2SchemaEnvVar, "false")
 	actual := acc.ConvertAdvancedClusterToTPF(t, input)
 	acc.AssertEqualHCL(t, input, actual, "convert in old format")
 }

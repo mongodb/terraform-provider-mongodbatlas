@@ -312,7 +312,7 @@ func checksTenantUpgraded(projectID, name string) resource.TestCheckFunc {
 		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": "M10",
 		"replication_specs.0.region_configs.0.provider_name":                   "AWS",
 	}
-	if config.LatestAdvancedClusterEnabled() {
+	if config.AdvancedClusterV2Schema() {
 		checkMap = enableChecksLatestTpf(checkMap)
 	}
 	checks = acc.AddAttrChecks(resourceName, checks, checkMap)

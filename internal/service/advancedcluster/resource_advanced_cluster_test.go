@@ -55,7 +55,7 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, replicaSetAWSProviderTestCase(t))
 }
 func replicaSetAWSProviderTestCase(t *testing.T) resource.TestCase {
@@ -84,7 +84,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t))
 }
 func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
@@ -115,7 +115,7 @@ func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t))
 }
 
@@ -147,7 +147,7 @@ func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID           = acc.ProjectIDExecution(t)
 		clusterName         = acc.RandomClusterName()
@@ -178,7 +178,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID    = acc.ProjectIDExecution(t)
 		clusterName  = acc.RandomClusterName()
@@ -213,7 +213,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 	// TODO: Already prepared for TPF but getting this error:
 	//  unexpected new value: .advanced_configuration.fail_index_key_too_long: was cty.False, but now null
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -262,7 +262,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -308,7 +308,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -352,7 +352,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 }
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -395,7 +395,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 }
 
 func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpectsError(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -476,7 +476,7 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -505,7 +505,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -525,7 +525,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -550,7 +550,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t))
 }
 
@@ -580,7 +580,7 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -605,7 +605,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAddingRemovingShard(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -634,7 +634,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t))
 }
 
@@ -660,7 +660,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemovingShard(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -689,7 +689,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 }
 
 func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -714,7 +714,7 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 }
 
 func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -739,7 +739,7 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 }
 
 func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -772,7 +772,7 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *t
 }
 
 func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -802,7 +802,7 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 
 // TestAccClusterAdvancedCluster_priorityOldSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -832,7 +832,7 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 
 // TestAccClusterAdvancedCluster_priorityNewSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -884,12 +884,12 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := make([]resource.TestCheckFunc, 0)
-	if !config.LatestAdvancedClusterEnabled() { // TODO: checkExists not implemented for TPF yet
+	if !config.AdvancedClusterV2Schema() { // TODO: checkExists not implemented for TPF yet
 		checks = append(checks, checkExists(resourceName))
 	}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
 	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
-	if !config.LatestAdvancedClusterEnabled() { // TODO: data sources not implemented for TPF yet
+	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 		checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
 		checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
 	}
@@ -949,7 +949,7 @@ func configTenant(projectID, name string) string {
 func checkTenant(projectID, name string) resource.TestCheckFunc {
 	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
-	if config.LatestAdvancedClusterEnabled() { // TODO: data sources not implemented for TPF yet
+	if config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 		pluralChecks = nil
 	}
 	return checkAggr(
@@ -1022,7 +1022,7 @@ func checkKeyValueBlocks(clusterName, blockName string, blocks ...map[string]str
 	checks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, keyHash, lenStr),
 	}
-	if !config.LatestAdvancedClusterEnabled() { // TODO: data sources not implemented for TPF yet
+	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 		checks = append(checks,
 			resource.TestCheckResourceAttr(dataSourceName, keyHash, lenStr),
 			resource.TestCheckResourceAttr(dataSourcePluralName, pluralPrefix+keyHash, lenStr),
@@ -1030,7 +1030,7 @@ func checkKeyValueBlocks(clusterName, blockName string, blocks ...map[string]str
 	}
 	for _, block := range blocks {
 		checks = append(checks, resource.TestCheckTypeSetElemNestedAttrs(resourceName, keyStar, block))
-		if !config.LatestAdvancedClusterEnabled() { // TODO: data sources not implemented for TPF yet
+		if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 			checks = append(checks,
 				resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, keyStar, block),
 				resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, pluralPrefix+keyStar, block))
@@ -1412,7 +1412,7 @@ func checkAdvanced(name, tls, changeStreamOptions string) resource.TestCheckFunc
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 	}
 	prefix := "advanced_configuration.0."
-	if config.LatestAdvancedClusterEnabled() { // TODO: data sources not implemented for TPF yet
+	if config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 		pluralChecks = nil
 		prefix = "advanced_configuration."
 	}
@@ -2362,7 +2362,7 @@ func configBiConnectorConfig(projectID, name string, enabled bool) string {
 
 func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource.TestCheckFunc {
 	prefix := "bi_connector_config.0."
-	if config.LatestAdvancedClusterEnabled() {
+	if config.AdvancedClusterV2Schema() {
 		prefix = "bi_connector_config."
 	}
 	attrsMap := map[string]string{

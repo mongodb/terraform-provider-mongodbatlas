@@ -16,7 +16,7 @@ import (
 
 func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 	t.Helper()
-	if !config.LatestAdvancedClusterEnabled() {
+	if !config.AdvancedClusterV2Schema() {
 		return def
 	}
 	parse := getDefParser(t, def)
