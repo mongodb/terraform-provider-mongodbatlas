@@ -141,7 +141,7 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 		tfModels[i] = TFReplicationSpecsModel{
 			Id:            types.StringPointerValue(item.Id),
 			ExternalId:    types.StringPointerValue(item.Id),
-			NumShards:     types.Int64Value(1), // TODO: Static
+			NumShards:     types.Int64Value(1),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &apiInfo.ContainerIDs),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringPointerValue(item.ZoneId),
