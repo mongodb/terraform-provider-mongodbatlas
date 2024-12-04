@@ -269,7 +269,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. This value can be used to configure Global Cluster backup policies.",
 						},
 						"zone_name": schema.StringAttribute{
-							Computed:            true, // must be computed to have a Default
+							Computed:            true,
 							Optional:            true,
 							MarkdownDescription: "Human-readable label that describes the zone this shard belongs to in a Global Cluster. Provide this value only if \"clusterType\" : \"GEOSHARDED\" but not \"selfManagedSharding\" : true.",
 						},
