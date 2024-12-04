@@ -145,10 +145,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 			},
 			"cluster_id": schema.StringAttribute{ // TODO: was generated as id
-				Computed: true,
-				// PlanModifiers: []planmodifier.String{
-				// 	stringplanmodifier.UseStateForUnknown(),
-				// },
+				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the cluster.",
 			},
 			"labels": schema.SetNestedAttribute{
@@ -272,9 +269,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. This value can be used to configure Global Cluster backup policies.",
 						},
 						"zone_name": schema.StringAttribute{
-							Computed: true, // must be computed to have a Default
-							Optional: true,
-							// Default:             stringdefault.StaticString("ZoneName managed by Terraform"), // TODO: as in current resource
+							Computed:            true, // must be computed to have a Default
+							Optional:            true,
 							MarkdownDescription: "Human-readable label that describes the zone this shard belongs to in a Global Cluster. Provide this value only if \"clusterType\" : \"GEOSHARDED\" but not \"selfManagedSharding\" : true.",
 						},
 					},
