@@ -91,18 +91,22 @@ func newReplicationSpec20240805(ctx context.Context, input types.List, diags *di
 	resp := make([]admin.ReplicationSpec20240805, len(input.Elements()))
 	for i := range elements {
 		item := &elements[i]
-		zoneName := conversion.NilForUnknown(item.ZoneName, item.ZoneName.ValueStringPointer())
-		if zoneName == nil {
-			zoneName = &defaultZoneName
-		}
 		resp[i] = admin.ReplicationSpec20240805{
 			Id:            conversion.NilForUnknown(item.Id, item.Id.ValueStringPointer()),
 			ZoneId:        conversion.NilForUnknown(item.ZoneId, item.ZoneId.ValueStringPointer()),
 			RegionConfigs: newCloudRegionConfig20240805(ctx, item.RegionConfigs, diags),
-			ZoneName:      zoneName,
+			ZoneName:      conversion.StringPtr(resolveDefaultZoneName(item)),
 		}
 	}
 	return &resp
+}
+
+func resolveDefaultZoneName(item *TFReplicationSpecsModel) string {
+	zoneName := conversion.NilForUnknown(item.ZoneName, item.ZoneName.ValueStringPointer())
+	if zoneName == nil {
+		return defaultZoneName
+	}
+	return *zoneName
 }
 func newResourceTag(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ResourceTag {
 	if input.IsUnknown() || input.IsNull() {
