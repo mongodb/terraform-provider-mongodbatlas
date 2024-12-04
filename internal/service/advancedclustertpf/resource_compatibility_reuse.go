@@ -53,12 +53,11 @@ func resolveExtraAPIInfo(ctx context.Context, projectID string, cluster *admin.C
 // copied from model_advanced_cluster.go
 func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
 	for i := range containers {
-		if cluster.GetProviderName() == constant.GCP {
-			return containers[i].GetId()
-		}
-		if containers[i].GetProviderName() == cluster.GetProviderName() &&
-			containers[i].GetRegion() == cluster.GetRegionName() || // For Azure
-			containers[i].GetRegionName() == cluster.GetRegionName() { // For AWS
+                gpc := cluster.GetProviderName() == constant.GCP
+                azure := containers[i].GetProviderName() == cluster.GetProviderName() && containers[i].GetRegion() == cluster.GetRegionName() 
+                aws := containers[i].GetRegionName() == cluster.GetRegionName()
+
+		if check gpc || azure || aws {
 			return containers[i].GetId()
 		}
 	}
