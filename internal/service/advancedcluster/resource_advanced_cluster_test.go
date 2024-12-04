@@ -1,6 +1,7 @@
 package advancedcluster_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -708,11 +709,11 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false, false),
 				Check:  checkShardedTransitionOldToNewSchema(false),
 			},
 			{
-				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, false),
 				Check:  checkShardedTransitionOldToNewSchema(true),
 			},
 		},
@@ -864,6 +865,127 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabled(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, orgID, projectName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false, false),
+				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, false),
+				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, orgID, projectName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false, true),
+				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, true),
+				Check:  checkIndependentShardScalingMode(clusterName, "SHARD"),
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, orgID, projectName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false, false),
+				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, false),
+				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, true),
+				Check:  checkIndependentShardScalingMode(clusterName, "SHARD"),
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_newSchema(t *testing.T) {
+	acc.SkipIfTPFAdvancedCluster(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, orgID, projectName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, false),
+				Check:  checkIndependentShardScalingMode(clusterName, "SHARD"),
+			},
+		},
+	})
+}
+
+func checkIndependentShardScalingMode(clusterName, expectedMode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		issMode, _, err := acc.GetIndependentShardScalingMode(context.Background(), ids["project_id"], clusterName)
+		if err != nil {
+			return fmt.Errorf("error getting independent shard scaling mode: %w", err)
+		}
+		if *issMode != expectedMode {
+			return fmt.Errorf("expected independent shard scaling mode to be %s, got %s", expectedMode, *issMode)
+		}
+		return nil
+	}
 }
 
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
@@ -1908,10 +2030,18 @@ func checkGeoShardedNewSchema(includeThirdShardInFirstZone bool) resource.TestCh
 	)
 }
 
-func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useNewSchema bool) string {
+func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useNewSchema, autoscaling bool) string {
 	var numShardsStr string
 	if !useNewSchema {
 		numShardsStr = `num_shards = 2`
+	}
+	var autoscalingStr string
+	if autoscaling {
+		autoscalingStr = `auto_scaling {
+			compute_enabled = true
+			disk_gb_enabled = true
+			compute_max_instance_size = "M20"
+		}`
 	}
 	replicationSpec := fmt.Sprintf(`
 		replication_specs {
@@ -1928,9 +2058,10 @@ func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useN
 				provider_name = "AWS"
 				priority      = 7
 				region_name   = "EU_WEST_1"
+				%[2]s
 			}
 		}
-	`, numShardsStr)
+	`, numShardsStr, autoscalingStr)
 
 	var replicationSpecs string
 	if useNewSchema {
