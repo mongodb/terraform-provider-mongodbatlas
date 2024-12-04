@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
-var defaultZoneName = "ZoneName managed by Terraform"
+const defaultZoneName = "ZoneName managed by Terraform"
 
 func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
 	acceptDataRisksAndForceReplicaSetReconfig, ok := conversion.StringPtrToTimePtr(input.AcceptDataRisksAndForceReplicaSetReconfig.ValueStringPointer())
@@ -108,6 +108,7 @@ func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
 	}
 	return *zoneName
 }
+
 func newResourceTag(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ResourceTag {
 	if input.IsUnknown() || input.IsNull() {
 		return nil

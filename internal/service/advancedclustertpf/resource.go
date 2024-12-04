@@ -112,7 +112,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		diags.AddError("errorPatchPayload", err.Error())
 		return
 	}
-	upgradeRequest := tenantUpgrade(stateReq, patchReq)
+	upgradeRequest := getTenantUpgradeRequest(stateReq, patchReq)
 	var cluster *admin.ClusterDescription20240805
 	if upgradeRequest != nil {
 		cluster = r.applyTenantUpgrade(ctx, &plan, upgradeRequest, diags)

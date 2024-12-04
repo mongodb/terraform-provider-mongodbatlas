@@ -121,10 +121,6 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 		return types.ListNull(ReplicationSpecsObjType)
 	}
 	var tfModels *[]TFReplicationSpecsModel
-	if len(apiInfo.ContainerIDs) == 0 {
-		diags.AddError("containerIDs", "containerIDs not set in ExtraAPIInfo")
-		return types.ListNull(ReplicationSpecsObjType)
-	}
 	if legacyInfo == nil {
 		tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
 	} else {

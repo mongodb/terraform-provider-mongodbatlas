@@ -18,6 +18,7 @@ func FormatMongoDBMajorVersion(version string) string {
 	return fmt.Sprintf("%.1f", cast.ToFloat32(version))
 }
 
+// based on flattenAdvancedReplicationSpecRegionConfigs in model_advanced_cluster.go
 func resolveExtraAPIInfo(ctx context.Context, projectID string, cluster *admin.ClusterDescription20240805, api admin.NetworkPeeringApi) (*ExtraAPIInfo, error) {
 	containerIDs := map[string]string{}
 	for _, spec := range cluster.GetReplicationSpecs() {
@@ -52,10 +53,10 @@ func resolveExtraAPIInfo(ctx context.Context, projectID string, cluster *admin.C
 
 // copied from model_advanced_cluster.go
 func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
-	for i := range containers {
+	for i, container := range containers {
 		gpc := cluster.GetProviderName() == constant.GCP
-		azure := containers[i].GetProviderName() == cluster.GetProviderName() && containers[i].GetRegion() == cluster.GetRegionName()
-		aws := containers[i].GetRegionName() == cluster.GetRegionName()
+		azure := container.GetProviderName() == cluster.GetProviderName() && container.GetRegion() == cluster.GetRegionName()
+		aws := container.GetRegionName() == cluster.GetRegionName()
 		if gpc || azure || aws {
 			return containers[i].GetId()
 		}

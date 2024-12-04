@@ -5,7 +5,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
-func tenantUpgrade(state, patch *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+func getTenantUpgradeRequest(state, patch *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {
 	if patch.ReplicationSpecs == nil {
 		return nil
 	}
