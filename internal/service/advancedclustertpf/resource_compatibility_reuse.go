@@ -19,7 +19,7 @@ func FormatMongoDBMajorVersion(version string) string {
 }
 
 // based on flattenAdvancedReplicationSpecRegionConfigs in model_advanced_cluster.go
-func resolveExtraAPIInfo(ctx context.Context, projectID string, cluster *admin.ClusterDescription20240805, api admin.NetworkPeeringApi) (*ExtraAPIInfo, error) {
+func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.ClusterDescription20240805, api admin.NetworkPeeringApi) (map[string]string, error) {
 	containerIDs := map[string]string{}
 	for _, spec := range cluster.GetReplicationSpecs() {
 		for _, regionConfig := range spec.GetRegionConfigs() {
@@ -46,9 +46,7 @@ func resolveExtraAPIInfo(ctx context.Context, projectID string, cluster *admin.C
 			}
 		}
 	}
-	return &ExtraAPIInfo{
-		ContainerIDs: containerIDs,
-	}, nil
+	return containerIDs, nil
 }
 
 // copied from model_advanced_cluster.go

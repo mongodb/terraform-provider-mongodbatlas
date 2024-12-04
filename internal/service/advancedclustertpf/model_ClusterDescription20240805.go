@@ -19,21 +19,19 @@ const (
 	errorReplicationSpecIDNotSet = "replicationSpecID not set for zoneName %s"
 )
 
-type LegacySchemaInfo struct {
+type ExtraAPIInfo struct {
 	ZoneNameNumShards          map[string]int64
 	ZoneNameReplicationSpecIDs map[string]string
 	RootDiskSize               *float64
+	ContainerIDs               map[string]string
+	UsingLegacySchema          bool
 }
 
-type ExtraAPIInfo struct {
-	ContainerIDs map[string]string
-}
-
-func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo ExtraAPIInfo) *TFModel {
+func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
 	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, input.Labels, diags)
-	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, legacyInfo, apiInfo)
+	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, &apiInfo)
 	tags := NewTagsObjType(ctx, input.Tags, diags)
 	if diags.HasError() {
 		return nil
@@ -116,15 +114,15 @@ func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags 
 	return setType
 }
 
-func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo ExtraAPIInfo) types.List {
+func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) types.List {
 	if input == nil {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
 	var tfModels *[]TFReplicationSpecsModel
-	if legacyInfo == nil {
-		tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
+	if apiInfo.UsingLegacySchema {
+		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, apiInfo)
 	} else {
-		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, legacyInfo, apiInfo)
+		tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
 	}
 	if diags.HasError() {
 		return types.ListNull(ReplicationSpecsObjType)
@@ -134,7 +132,7 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 	return listType
 }
 
-func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *[]TFReplicationSpecsModel {
+func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) *[]TFReplicationSpecsModel {
 	tfModels := make([]TFReplicationSpecsModel, len(*input))
 	for i, item := range *input {
 		regionConfigs := NewRegionConfigsObjType(ctx, item.RegionConfigs, diags)
@@ -151,7 +149,7 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 	return &tfModels
 }
 
-func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo ExtraAPIInfo) *[]TFReplicationSpecsModel {
+func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) *[]TFReplicationSpecsModel {
 	tfModels := []TFReplicationSpecsModel{}
 	tfModelsSkipIndexes := []int{}
 	for i, item := range *input {
@@ -164,12 +162,12 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 			diags.AddError(errorZoneNameNotSet, errorZoneNameNotSet)
 			return &tfModels
 		}
-		numShards, ok := legacyInfo.ZoneNameNumShards[zoneName]
+		numShards, ok := apiInfo.ZoneNameNumShards[zoneName]
 		errMsg := []string{}
 		if !ok {
 			errMsg = append(errMsg, fmt.Sprintf(errorNumShardsNotSet, zoneName))
 		}
-		legacyID, ok := legacyInfo.ZoneNameReplicationSpecIDs[zoneName]
+		legacyID, ok := apiInfo.ZoneNameReplicationSpecIDs[zoneName]
 		if !ok {
 			errMsg = append(errMsg, fmt.Sprintf(errorReplicationSpecIDNotSet, zoneName))
 		}
