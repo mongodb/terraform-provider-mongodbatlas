@@ -371,7 +371,7 @@ jobs:
         run: go test ./internal/testutil/acc/tpf_converter_test.go 
       - name: Mocked Acceptance Tests
         env:
-          ACCTEST_REGEX_RUN: '^TestAccAdvancedCluster_move'
+          ACCTEST_REGEX_RUN: '^TestMock'
           ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
         run: make testacc
       - name: Acceptance Tests
