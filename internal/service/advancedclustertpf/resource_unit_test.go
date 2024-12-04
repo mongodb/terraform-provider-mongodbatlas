@@ -78,6 +78,7 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
 					resource.TestCheckResourceAttr(resourceName, "timeouts.create", "20s"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.container_id.AWS:US_EAST_1", "67345bd9905b8c30c54fd220"),
 				),
 			},
 			{
@@ -111,13 +112,7 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
 				),
 			},
-			{
-				ResourceName:                         resourceName,
-				ImportStateIdFunc:                    acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "name",
-			},
+			acc.TestStepImportCluster(resourceName),
 		},
 	}
 	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, &testCase)
@@ -149,13 +144,7 @@ func TestMockAdvancedCluster_configSharded(t *testing.T) {
 				Config: configSharded(projectID, clusterName, true),
 				Check:  resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 			},
-			{
-				ResourceName:                         resourceName,
-				ImportStateIdFunc:                    acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "name",
-			},
+			acc.TestStepImportCluster(resourceName),
 		},
 	}
 	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, &testCase)
@@ -233,7 +222,7 @@ func TestMockClusterAdvancedCluster_basicTenant(t *testing.T) {
 		}
 	)
 	shortenRetries()
-	testCase := basicTenantTestCase(t, projectID, clusterName, clusterNameUpdated)
+	testCase := tc.BasicTenantTestCase(t, projectID, clusterName, clusterNameUpdated)
 	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
 }
 
@@ -264,5 +253,18 @@ func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T
 	)
 	shortenRetries()
 	testCase := tc.SymmetricShardedOldSchema(t, orgID, projectName, clusterName)
+	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
+}
+
+func TestMockClusterAdvancedCluster_tenantUpgrade(t *testing.T) {
+	var (
+		clusterName = "test-acc-tf-c-878317177498266511"
+		vars        = map[string]string{
+			"groupId":     projectID,
+			"clusterName": clusterName,
+		}
+	)
+	shortenRetries()
+	testCase := tc.TenantUpgrade(t, projectID, clusterName)
 	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
 }

@@ -161,7 +161,8 @@ func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics
 	counts := map[string]int64{}
 	for i := range elements {
 		e := elements[i]
-		counts[e.ZoneName.ValueString()] = e.NumShards.ValueInt64()
+		zoneName := resolveZoneNameOrUseDefault(&e)
+		counts[zoneName] = e.NumShards.ValueInt64()
 	}
 	return counts
 }

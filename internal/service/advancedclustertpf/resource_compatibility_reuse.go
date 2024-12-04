@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/spf13/cast"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
@@ -15,6 +16,52 @@ func FormatMongoDBMajorVersion(version string) string {
 		return version
 	}
 	return fmt.Sprintf("%.1f", cast.ToFloat32(version))
+}
+
+// based on flattenAdvancedReplicationSpecRegionConfigs in model_advanced_cluster.go
+func resolveExtraAPIInfo(ctx context.Context, projectID string, cluster *admin.ClusterDescription20240805, api admin.NetworkPeeringApi) (*ExtraAPIInfo, error) {
+	containerIDs := map[string]string{}
+	for _, spec := range cluster.GetReplicationSpecs() {
+		for _, regionConfig := range spec.GetRegionConfigs() {
+			providerName := regionConfig.GetProviderName()
+			if providerName == constant.TENANT {
+				continue
+			}
+			params := &admin.ListPeeringContainerByCloudProviderApiParams{
+				GroupId:      projectID,
+				ProviderName: &providerName,
+			}
+			containerIDKey := fmt.Sprintf("%s:%s", providerName, regionConfig.GetRegionName())
+			if _, ok := containerIDs[containerIDKey]; ok {
+				continue
+			}
+			containers, _, err := api.ListPeeringContainerByCloudProviderWithParams(ctx, params).Execute()
+			if err != nil {
+				return nil, err
+			}
+			if results := getAdvancedClusterContainerID(containers.GetResults(), &regionConfig); results != "" {
+				containerIDs[containerIDKey] = results
+			} else {
+				return nil, fmt.Errorf("container id not found for %s", containerIDKey)
+			}
+		}
+	}
+	return &ExtraAPIInfo{
+		ContainerIDs: containerIDs,
+	}, nil
+}
+
+// copied from model_advanced_cluster.go
+func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
+	for i, container := range containers {
+		gpc := cluster.GetProviderName() == constant.GCP
+		azure := container.GetProviderName() == cluster.GetProviderName() && container.GetRegion() == cluster.GetRegionName()
+		aws := container.GetRegionName() == cluster.GetRegionName()
+		if gpc || azure || aws {
+			return containers[i].GetId()
+		}
+	}
+	return ""
 }
 
 func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName string, api admin20240530.ClustersApi) (map[string]string, error) {

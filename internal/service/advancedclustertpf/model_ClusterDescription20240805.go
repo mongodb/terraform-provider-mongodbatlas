@@ -25,11 +25,15 @@ type LegacySchemaInfo struct {
 	RootDiskSize               *float64
 }
 
-func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo) *TFModel {
+type ExtraAPIInfo struct {
+	ContainerIDs map[string]string
+}
+
+func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo ExtraAPIInfo) *TFModel {
 	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, input.Labels, diags)
-	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, legacyInfo)
+	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, legacyInfo, apiInfo)
 	tags := NewTagsObjType(ctx, input.Tags, diags)
 	if diags.HasError() {
 		return nil
@@ -112,15 +116,15 @@ func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags 
 	return setType
 }
 
-func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo) types.List {
+func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo ExtraAPIInfo) types.List {
 	if input == nil {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
 	var tfModels *[]TFReplicationSpecsModel
 	if legacyInfo == nil {
-		tfModels = convertReplicationSpecs(ctx, input, diags)
+		tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
 	} else {
-		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, legacyInfo)
+		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, legacyInfo, apiInfo)
 	}
 	if diags.HasError() {
 		return types.ListNull(ReplicationSpecsObjType)
@@ -130,15 +134,15 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 	return listType
 }
 
-func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics) *[]TFReplicationSpecsModel {
+func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *[]TFReplicationSpecsModel {
 	tfModels := make([]TFReplicationSpecsModel, len(*input))
 	for i, item := range *input {
 		regionConfigs := NewRegionConfigsObjType(ctx, item.RegionConfigs, diags)
 		tfModels[i] = TFReplicationSpecsModel{
 			Id:            types.StringPointerValue(item.Id),
 			ExternalId:    types.StringPointerValue(item.Id),
-			NumShards:     types.Int64Value(1),                         // TODO: Static
-			ContainerId:   conversion.ToTFMapOfString(ctx, diags, nil), // TODO: Static
+			NumShards:     types.Int64Value(1), // TODO: Static
+			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &apiInfo.ContainerIDs),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringPointerValue(item.ZoneId),
 			ZoneName:      types.StringPointerValue(item.ZoneName),
@@ -147,7 +151,7 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 	return &tfModels
 }
 
-func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo) *[]TFReplicationSpecsModel {
+func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, legacyInfo *LegacySchemaInfo, apiInfo ExtraAPIInfo) *[]TFReplicationSpecsModel {
 	tfModels := []TFReplicationSpecsModel{}
 	tfModelsSkipIndexes := []int{}
 	for i, item := range *input {
@@ -179,7 +183,7 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 			}
 		}
 		tfModels = append(tfModels, TFReplicationSpecsModel{
-			ContainerId:   conversion.ToTFMapOfString(ctx, diags, nil), // TODO: Static
+			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &apiInfo.ContainerIDs),
 			ExternalId:    types.StringPointerValue(item.Id),
 			Id:            types.StringValue(legacyID),
 			RegionConfigs: regionConfigs,

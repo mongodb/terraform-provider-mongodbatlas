@@ -11,6 +11,8 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113001/admin"
 )
 
+const defaultZoneName = "ZoneName managed by Terraform"
+
 func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
 	acceptDataRisksAndForceReplicaSetReconfig, ok := conversion.StringPtrToTimePtr(input.AcceptDataRisksAndForceReplicaSetReconfig.ValueStringPointer())
 	if !ok {
@@ -93,11 +95,20 @@ func newReplicationSpec20240805(ctx context.Context, input types.List, diags *di
 			Id:            conversion.NilForUnknown(item.Id, item.Id.ValueStringPointer()),
 			ZoneId:        conversion.NilForUnknown(item.ZoneId, item.ZoneId.ValueStringPointer()),
 			RegionConfigs: newCloudRegionConfig20240805(ctx, item.RegionConfigs, diags),
-			ZoneName:      item.ZoneName.ValueStringPointer(),
+			ZoneName:      conversion.StringPtr(resolveZoneNameOrUseDefault(item)),
 		}
 	}
 	return &resp
 }
+
+func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
+	zoneName := conversion.NilForUnknown(item.ZoneName, item.ZoneName.ValueStringPointer())
+	if zoneName == nil {
+		return defaultZoneName
+	}
+	return *zoneName
+}
+
 func newResourceTag(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ResourceTag {
 	if input.IsUnknown() || input.IsNull() {
 		return nil
