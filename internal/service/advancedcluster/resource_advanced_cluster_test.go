@@ -946,7 +946,6 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 	})
 }
 
-// TO RUN
 func TestAccAdvancedCluster_newSchema(t *testing.T) {
 	acc.SkipIfTPFAdvancedCluster(t)
 	var (

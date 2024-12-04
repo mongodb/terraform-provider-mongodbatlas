@@ -241,7 +241,7 @@ func TestMigAdvancedCluster_newSchemaFromAutoscalingDisabledToEnabled(t *testing
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: acc.ExternalProviders("1.22.0"),
+				ExternalProviders: acc.ExternalProviders("1.22.0"), // last version before cluster tier auto-scaling per shard was introduced
 				Config:            configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, false),
 				Check:             checkIndependentShardScalingMode(clusterName, "CLUSTER"),
 			},
