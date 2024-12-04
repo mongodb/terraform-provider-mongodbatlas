@@ -11,7 +11,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -331,7 +330,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 			{
 				Config: configReplicationSpecsAutoScaling(projectID, clusterName, autoScaling),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "false"),
@@ -341,7 +340,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 			{
 				Config: configReplicationSpecsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"),
@@ -375,7 +374,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 			{
 				Config: configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName, autoScaling),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "false"),
@@ -384,7 +383,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 			{
 				Config: configReplicationSpecsAnalyticsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
@@ -491,7 +490,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 			{
 				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "global_cluster_self_managed_sharding", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "global_cluster_self_managed_sharding", "true"),
 				),
@@ -883,10 +882,7 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 }
 
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
-	checks := make([]resource.TestCheckFunc, 0)
-	if !config.AdvancedClusterV2Schema() { // TODO: checkExists not implemented for TPF yet
-		checks = append(checks, checkExists(resourceName))
-	}
+	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
 	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
 	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
@@ -895,24 +891,6 @@ func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.
 	}
 	checks = append(checks, extra...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
-}
-
-func checkExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		err := acc.CheckClusterExistsHandlingRetry(ids["project_id"], ids["cluster_name"])
-		if err == nil {
-			return nil
-		}
-		return fmt.Errorf("cluster(%s:%s) does not exist: %w", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
-	}
 }
 
 func configTenant(projectID, name string) string {

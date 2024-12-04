@@ -42,6 +42,17 @@ var (
 	}
 )
 
+func TestStepImportCluster(resourceName string, ignoredFields ...string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:                         resourceName,
+		ImportStateIdFunc:                    ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
+		ImportState:                          true,
+		ImportStateVerify:                    true,
+		ImportStateVerifyIdentifierAttribute: "name",
+		ImportStateVerifyIgnore:              ignoredFields,
+	}
+}
+
 func CheckDestroyCluster(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cluster" && rs.Type != "mongodbatlas_advanced_cluster" {
@@ -60,22 +71,28 @@ func CheckDestroyCluster(s *terraform.State) error {
 	return nil
 }
 
-func TestStepImportCluster(resourceName string, ignoredFields ...string) resource.TestStep {
-	return resource.TestStep{
-		ResourceName:                         resourceName,
-		ImportStateIdFunc:                    ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
-		ImportState:                          true,
-		ImportStateVerify:                    true,
-		ImportStateVerifyIdentifierAttribute: "name",
-		ImportStateVerifyIgnore:              ignoredFields,
+func CheckExistsCluster(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		clusterName := rs.Primary.Attributes["name"]
+		if projectID == "" || clusterName == "" {
+			return fmt.Errorf("projectID or clusterName is empty: %s, %s", projectID, clusterName)
+		}
+		if err := CheckExistsClusterHandlingRetry(projectID, clusterName); err != nil {
+			return fmt.Errorf("cluster(%s:%s) does not exist: %w", projectID, clusterName, err)
+		}
+		return nil
 	}
 }
 
-func CheckClusterExistsHandlingRetry(projectID, clusterName string) error {
+func CheckExistsClusterHandlingRetry(projectID, clusterName string) error {
 	return retry.RetryContext(context.Background(), 3*time.Minute, func() *retry.RetryError {
-		_, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
-		if apiError, ok := admin.AsError(err); ok {
-			if apiError.GetErrorCode() == "SERVICE_UNAVAILABLE" {
+		if _, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute(); err != nil {
+			if admin.IsErrorCode(err, "SERVICE_UNAVAILABLE") {
 				// retrying get operation because for migration test it can be the first time new API is called for a cluster so API responds with temporary error as it transition to enabling ISS FF
 				return retry.RetryableError(err)
 			}
