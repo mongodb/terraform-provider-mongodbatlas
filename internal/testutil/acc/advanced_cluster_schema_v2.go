@@ -37,15 +37,18 @@ func ConvertToTPFAttrsSet(attrsSet []string) []string {
 	return ret
 }
 
-func attrNameToSchemaV2(name string) string {
-	var tpfAttrMapping = map[string]string{
-		"electable_specs.0":        "electable_specs",
-		"advanced_configuration.0": "advanced_configuration",
-		"bi_connector_config.0":    "bi_connector_config",
-	}
+var tpfSingleNestedAttrs = []string{
+	"analytics_specs",
+	"electable_specs",
+	"read_only_specs",
+	"auto_scaling", // includes analytics_auto_scaling
+	"advanced_configuration",
+	"bi_connector_config",
+}
 
-	for k, v := range tpfAttrMapping {
-		name = strings.ReplaceAll(name, k, v)
+func attrNameToSchemaV2(name string) string {
+	for _, singleAttrName := range tpfSingleNestedAttrs {
+		name = strings.ReplaceAll(name, singleAttrName+".0", singleAttrName)
 	}
 	return name
 }
