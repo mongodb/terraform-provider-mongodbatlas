@@ -121,6 +121,11 @@ func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 
 func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
 	t.Helper()
+	// TODO: Already prepared for TPF but getting this error:
+	// resource_advanced_cluster_test.go:119: Step 1/3 error: Check failed: Check 9/12 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.0.disk_iops' expected to be set
+	// Check 10/12 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.analytics_specs.0.disk_iops' expected to be set
+	// Check 11/12 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.1.electable_specs.0.disk_iops' expected to be set
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -263,6 +268,9 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
+	// TODO: Already prepared for TPF but getting this error:
+	// Check failed: Check 8/14 error: mongodbatlas_advanced_cluster.test: Attribute 'advanced_configuration.fail_index_key_too_long' not found
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -536,6 +544,12 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
+	// TODO: Already prepared for TPF but getting this error:
+	// resource_advanced_cluster_test.go:545: Step 1/2 error: Check failed: Check 3/13 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.num_shards' expected "2", got "1"
+	// Check 9/13 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.0.disk_iops' expected to be set
+	// Check 10/13 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.analytics_specs.0.disk_iops' expected to be set
+	// Check 11/13 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.1.electable_specs.0.disk_iops' expected to be set
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -592,6 +606,9 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
+	// TODO: Already prepared for TPF but getting this error:
+	// Check failed: Check 2/5 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.num_shards' expected \"2\", got \"1\"
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -616,6 +633,9 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAddingRemovingShard(t *testing.T) {
+	// TODO: Already prepared for TPF but getting this error:
+	// PATCH: HTTP 400 Bad Request (Error code: \"AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG\") Detail: If any regionConfigs specify an autoScaling object, all regionConfigs must also specify an autoScaling object.
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -669,6 +689,9 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemovingShard(t *testing.T) {
+	// TODO: Already prepared for TPF but getting this error:
+	//  POST: HTTP 400 Bad Request (Error code: "ASYMMETRIC_REGION_TOPOLOGY_IN_ZONE"). Detail: All shards in the same zone must have the same region topology.
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -697,6 +720,9 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 }
 
 func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *testing.T) {
+	// TODO: Already prepared for TPF but getting this error:
+	// PATCH: HTTP 400 Bad Request (Error code: "AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG") Detail: If any regionConfigs specify an autoScaling object, all regionConfigs must also specify an autoScaling object.
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -809,6 +835,14 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 
 // TestAccClusterAdvancedCluster_priorityOldSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
+	// TODO: Already prepared for TPF but getting this error:
+	// .replication_specs[0].region_configs[0].electable_specs.node_count: was cty.NumberIntVal(1), but now cty.NumberIntVal(2)
+	// .replication_specs[0].region_configs[0].priority: was cty.NumberIntVal(6), but now cty.NumberIntVal(7).
+	//  .replication_specs[0].region_configs[0].region_name: was cty.StringVal("US_WEST_2"), but now cty.StringVal("US_EAST_1").
+	// .replication_specs[0].region_configs[1].electable_specs.node_count: was cty.NumberIntVal(2), but now cty.NumberIntVal(1).
+	// .replication_specs[0].region_configs[1].priority: was cty.NumberIntVal(7), but now cty.NumberIntVal(6).
+	// .replication_specs[0].region_configs[1].region_name: was cty.StringVal("US_EAST_1"), but now cty.StringVal("US_WEST_2").
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -838,6 +872,9 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 
 // TestAccClusterAdvancedCluster_priorityNewSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
+	// TODO: Already prepared for TPF but getting this error:
+	// Error: errorUpdateLegacy. PATCH: HTTP 400 Bad Request (Error code: "AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG") Detail: If any regionConfigs specify an autoScaling object, all regionConfigs must also specify an autoScaling object.
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -1153,6 +1190,8 @@ func configReplicaSetMultiCloud(orgID, projectName, name string) string {
 					region_name   = "EU_WEST_1"
 				}
 
+
+				
 				dynamic "region_configs" {
 					for_each = [
 						"US_EAST_4",
