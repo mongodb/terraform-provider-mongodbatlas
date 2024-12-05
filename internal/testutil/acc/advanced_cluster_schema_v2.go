@@ -1,6 +1,7 @@
 package acc
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/hcl/v2"
@@ -13,6 +14,32 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func ConvertToTPFAttrsMap(attrsMap map[string]string) {
+	if !config.AdvancedClusterV2Schema() {
+		return
+	}
+	names := make([]string, 0, len(attrsMap))
+	for name := range attrsMap {
+		names = append(names, name)
+	}
+	for _, name := range names {
+		newName := name
+		for k, v := range tpfAttrMapping {
+			newName = strings.ReplaceAll(newName, k, v)
+		}
+		if newName != name {
+			attrsMap[newName] = attrsMap[name]
+			delete(attrsMap, name)
+		}
+	}
+}
+
+var tpfAttrMapping = map[string]string{
+	"electable_specs.0":        "electable_specs",
+	"advanced_configuration.0": "advanced_configuration",
+	"bi_connector_config.0":    "bi_connector_config",
+}
 
 func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 	t.Helper()
