@@ -415,7 +415,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				Computed:            true,
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
 				PlanModifiers: []planmodifier.Int64{
-					PlanMustUseMongoDBVersion(7.0, false),
+					PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
 				},
 			},
 			"default_write_concern": schema.StringAttribute{
@@ -477,7 +477,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				Computed:           true,
 				Optional:           true,
 				PlanModifiers: []planmodifier.Bool{
-					PlanMustUseMongoDBVersion(5.0, true),
+					PlanMustUseMongoDBVersion(4.4, EqualOrLower),
 				},
 				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 			},

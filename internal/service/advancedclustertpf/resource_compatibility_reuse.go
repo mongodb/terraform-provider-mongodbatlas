@@ -13,7 +13,16 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 )
 
-func IsMajorVersionHigherGreaterOrEqual(input *string, version float64) *bool {
+type MajorVersionOperator int
+
+const (
+	EqualOrHigher MajorVersionOperator = iota
+	Higher
+	EqualOrLower
+	Lower
+)
+
+func MajorVersionCompatible(input *string, version float64, operator MajorVersionOperator) *bool {
 	if !conversion.IsStringPresent(input) {
 		return nil
 	}
@@ -21,8 +30,20 @@ func IsMajorVersionHigherGreaterOrEqual(input *string, version float64) *bool {
 	if err != nil {
 		return nil
 	}
-	higherOrEqual := value >= version
-	return &higherOrEqual
+	var result bool
+	switch operator {
+	case EqualOrHigher:
+		result = value >= version
+	case Higher:
+		result = value > version
+	case EqualOrLower:
+		result = value <= version
+	case Lower:
+		result = value < version
+	default:
+		return nil
+	}
+	return &result
 }
 
 func FormatMongoDBMajorVersion(version string) string {

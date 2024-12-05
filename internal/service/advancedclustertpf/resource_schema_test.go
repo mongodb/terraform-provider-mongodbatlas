@@ -35,7 +35,7 @@ func TestAdvancedCluster_PlanModifierErrors(t *testing.T) {
 			},
 			{
 				Config:      configBasic(projectID, clusterName, "advanced_configuration = { fail_index_key_too_long = true }"),
-				ExpectError: regexp.MustCompile("`advanced_configuration.fail_index_key_too_long` can only be configured if the mongo_db_major_version is lower than 5.0"),
+				ExpectError: regexp.MustCompile("`advanced_configuration.fail_index_key_too_long` can only be configured if the mongo_db_major_version is 4.4 or lower"),
 			},
 			{
 				Config:      configBasic(projectID, clusterName, "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
