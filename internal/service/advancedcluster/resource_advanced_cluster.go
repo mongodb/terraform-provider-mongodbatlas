@@ -624,7 +624,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 // In the old API, each replications spec has a 1:1 relation with each zone, so ids and num shards are stored in a struct oldShardConfigMeta and are returned in a map from zoneName to oldShardConfigMeta.
 func GetReplicationSpecAttributesFromOldAPI(ctx context.Context, projectID, clusterName string, client20240530 admin20240530.ClustersApi) (map[string]OldShardConfigMeta, error) {
 	clusterOldAPI, _, err := client20240530.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
+	if apiError, ok := admin20240530.AsError(err); ok {
+		if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
+			return nil, nil // If it is the case of an asymmetric shard, an error is expected in old API and replication_specs.*.id attribute will not be populated.
+		}
 		readErrorMsg := "error reading advanced cluster with 2023-02-01 API (%s): %s"
 		return nil, fmt.Errorf(readErrorMsg, clusterName, err)
 	}
