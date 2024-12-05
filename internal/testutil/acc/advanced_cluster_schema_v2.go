@@ -15,24 +15,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func ConvertToTPFAttrsMap(attrsMap map[string]string) {
+func ConvertToTPFAttrsMap(attrsMap map[string]string) map[string]string {
 	if !config.AdvancedClusterV2Schema() {
-		return
+		return attrsMap
 	}
-	names := make([]string, 0, len(attrsMap))
-	for name := range attrsMap {
-		names = append(names, name)
-	}
-	for _, name := range names {
-		newName := name
+	ret := make(map[string]string, len(attrsMap))
+	for name, value := range attrsMap {
 		for k, v := range tpfAttrMapping {
-			newName = strings.ReplaceAll(newName, k, v)
+			name = strings.ReplaceAll(name, k, v)
 		}
-		if newName != name {
-			attrsMap[newName] = attrsMap[name]
-			delete(attrsMap, name)
-		}
+		ret[name] = value
 	}
+	return ret
 }
 
 var tpfAttrMapping = map[string]string{

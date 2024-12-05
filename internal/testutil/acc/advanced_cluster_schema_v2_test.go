@@ -12,7 +12,7 @@ func TestConvertToTPFAttrsMap(t *testing.T) {
 	if !config.AdvancedClusterV2Schema() {
 		t.Skip("Skipping test as not in AdvancedClusterV2Schema")
 	}
-	actual := map[string]string{
+	attrs := map[string]string{
 		"attr":                            "val1",
 		"electable_specs.0":               "val2",
 		"prefixbi_connector_config.0":     "val3",
@@ -26,7 +26,7 @@ func TestConvertToTPFAttrsMap(t *testing.T) {
 		"advanced_configurationpostfix": "val4",
 		"electable_specsadvanced_configurationbi_connector_config": "val5",
 	}
-	acc.ConvertToTPFAttrsMap(actual)
+	actual := acc.ConvertToTPFAttrsMap(attrs)
 	assert.Equal(t, expected, actual)
 }
 
