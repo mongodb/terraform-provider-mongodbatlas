@@ -185,6 +185,9 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		err         error
 		pauseAfter  = latestReq.GetPaused()
 	)
+	if pauseAfter {
+		latestReq.Paused = nil
+	}
 	_, _, err = api.CreateCluster(ctx, projectID, latestReq).Execute()
 	if err != nil {
 		diags.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
