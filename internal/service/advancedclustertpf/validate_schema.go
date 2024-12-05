@@ -25,15 +25,15 @@ type FailOnIncompatibleMongoDBVersion struct {
 	MustBeLower bool
 }
 
-func (v FailOnIncompatibleMongoDBVersion) Description(_ context.Context) string {
-	if v.MustBeLower {
-		return fmt.Sprintf("can only be configured if the mongo_db_major_version is %.1f or lower", v.Version)
-	}
-	return fmt.Sprintf("can only be configured if the mongo_db_major_version is %.1f or higher", v.Version)
+func (v FailOnIncompatibleMongoDBVersion) Description(ctx context.Context) string {
+	return v.MarkdownDescription(ctx)
 }
 
-func (v FailOnIncompatibleMongoDBVersion) MarkdownDescription(ctx context.Context) string {
-	return v.Description(ctx)
+func (v FailOnIncompatibleMongoDBVersion) MarkdownDescription(_ context.Context) string {
+	if v.MustBeLower {
+		return fmt.Sprintf("can only be configured if the mongo_db_major_version is lower than %.1f", v.Version)
+	}
+	return fmt.Sprintf("can only be configured if the mongo_db_major_version is %.1f or higher", v.Version)
 }
 
 func (v FailOnIncompatibleMongoDBVersion) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
@@ -65,13 +65,12 @@ func performValidation(ctx context.Context, state *tfsdk.State, plan *tfsdk.Plan
 	if mongoDbMajorVersionString == "" {
 		mongoDbMajorVersionString = defaultMongoDBMajorVersion
 	}
-	var validationOk bool
-	if v.MustBeLower {
-		validationOk = !IsMajorVersionHigherGreaterOrEqual(&mongoDbMajorVersionString, v.Version)
-	} else {
-		validationOk = IsMajorVersionHigherGreaterOrEqual(&mongoDbMajorVersionString, v.Version)
+	isHigherOrEqual := IsMajorVersionHigherGreaterOrEqual(&mongoDbMajorVersionString, v.Version)
+	if isHigherOrEqual == nil {
+		diags.AddWarning("Unable to parse mongo_db_major_version", "")
+		return
 	}
-	if !validationOk {
+	if v.MustBeLower && *isHigherOrEqual || !v.MustBeLower && !*isHigherOrEqual {
 		diags.AddError(fmt.Sprintf("`%s` %s", validationPath, v.Description(ctx)), "")
 	}
 }

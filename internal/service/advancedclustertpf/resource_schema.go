@@ -2,9 +2,11 @@ package advancedclustertpf
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
@@ -170,8 +172,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"mongo_db_major_version": schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile(`^([0-9]+)\.?([0-9]+)?$`), "MongoDB major version must be in the format \"8\" or \"8.0\""),
+				},
 				MarkdownDescription: "MongoDB major version of the cluster.\n\nOn creation: Choose from the available versions of MongoDB, or leave unspecified for the current recommended default in the MongoDB Cloud platform. The recommended version is a recent Long Term Support version. The default is not guaranteed to be the most recently released version throughout the entire release cycle. For versions available in a specific project, see the linked documentation or use the API endpoint for [project LTS versions endpoint](#tag/Projects/operation/getProjectLTSVersions).\n\n On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, the MongoDB version can be downgraded to the previous major version.",
 			},
 			"mongo_db_version": schema.StringAttribute{
@@ -472,7 +477,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				Computed:           true,
 				Optional:           true,
 				PlanModifiers: []planmodifier.Bool{
-					PlanMustUseMongoDBVersion(4.4, true),
+					PlanMustUseMongoDBVersion(5.0, true),
 				},
 				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 			},

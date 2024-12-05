@@ -7,26 +7,22 @@ import (
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/spf13/cast"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 )
 
-func IsMajorVersionHigherGreaterOrEqual(input *string, version float64) bool {
-	if input == nil || *input == "" {
-		return true
+func IsMajorVersionHigherGreaterOrEqual(input *string, version float64) *bool {
+	if !conversion.IsStringPresent(input) {
+		return nil
 	}
-	parts := strings.SplitN(*input, ".", 2)
-	if len(parts) == 0 {
-		return false
-	}
-
-	value, err := strconv.ParseFloat(parts[0], 64)
+	value, err := strconv.ParseFloat(*input, 64)
 	if err != nil {
-		return false
+		return nil
 	}
-
-	return value >= version
+	higherOrEqual := value >= version
+	return &higherOrEqual
 }
 
 func FormatMongoDBMajorVersion(version string) string {

@@ -9,11 +9,23 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+func TestAdvancedCluster_ValidationErrors(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configBasic(projectID, clusterName, "mongo_db_major_version = \"8a\""),
+				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
+			},
+			{
+				Config:      configBasic(projectID, clusterName, "advanced_configuration = {oplog_size_mb = -1}"),
+				ExpectError: regexp.MustCompile("Invalid Attribute Value"),
+			},
+		},
+	})
+}
+
 func TestAdvancedCluster_PlanModifierErrors(t *testing.T) {
-	var (
-		projectID   = "111111111111111111111111"
-		clusterName = "test"
-	)
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -23,7 +35,7 @@ func TestAdvancedCluster_PlanModifierErrors(t *testing.T) {
 			},
 			{
 				Config:      configBasic(projectID, clusterName, "advanced_configuration = { fail_index_key_too_long = true }"),
-				ExpectError: regexp.MustCompile("`advanced_configuration.fail_index_key_too_long` can only be configured if the mongo_db_major_version is 4.4 or lower"),
+				ExpectError: regexp.MustCompile("`advanced_configuration.fail_index_key_too_long` can only be configured if the mongo_db_major_version is lower than 5.0"),
 			},
 			{
 				Config:      configBasic(projectID, clusterName, "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
@@ -43,6 +55,11 @@ func TestAdvancedCluster_PlanModifierValid(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:             configBasic(projectID, clusterName, "advanced_configuration = { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }\nmongo_db_major_version=\"7\""),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config:             configBasic(projectID, clusterName, "advanced_configuration = { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }\nmongo_db_major_version=\"7.0\""),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
