@@ -32,47 +32,6 @@ func replaceVars(text string, vars map[string]string) string {
 	return text
 }
 
-type statusText struct {
-	Text          string `yaml:"text"`
-	Status        int    `yaml:"status"`
-	ResponseIndex int    `yaml:"response_index"`
-}
-
-type RequestInfo struct {
-	Version   string       `yaml:"version"`
-	Method    string       `yaml:"method"`
-	Path      string       `yaml:"path"`
-	Text      string       `yaml:"text"`
-	Responses []statusText `yaml:"responses"`
-}
-
-func (i *RequestInfo) id() string {
-	return fmt.Sprintf("%s_%s_%s_%s", i.Method, i.Path, i.Version, i.Text)
-}
-
-func (i *RequestInfo) idShort() string {
-	return fmt.Sprintf("%s_%s_%s", i.Method, i.Path, i.Version)
-}
-
-func (i *RequestInfo) Match(method, urlPath, version string, vars map[string]string) bool {
-	if i.Method != method {
-		return false
-	}
-	selfPath := replaceVars(i.Path, vars)
-	return selfPath == urlPath && i.Version == version
-}
-
-type stepRequests struct {
-	DiffRequests     []RequestInfo `yaml:"diff_requests"`
-	RequestResponses []RequestInfo `yaml:"request_responses"`
-}
-
-type mockHTTPData struct {
-	Variables map[string]string `yaml:"variables"`
-	Steps     []stepRequests    `yaml:"steps"`
-	StepCount int               `yaml:"step_count"`
-}
-
 type MockHTTPDataConfig struct {
 	SideEffect           func() error
 	AllowMissingRequests bool
@@ -96,29 +55,6 @@ func parseTestDataConfigYAML(filePath string) (*mockHTTPData, error) {
 	return &testData, nil
 }
 
-type captureMockConfigClientModifier struct {
-	t *testing.T
-
-	oldTransport http.RoundTripper
-}
-
-func (c *captureMockConfigClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
-	if !IsCapture() {
-		return fmt.Errorf("cannot use capture modifier without %s='yes|true|1'", envNameHTTPMockerCapture)
-	}
-	c.oldTransport = httpClient.Transport
-	httpClient.Transport = c
-	return nil
-}
-
-func (c *captureMockConfigClientModifier) RoundTrip(req *http.Request) (*http.Response, error) {
-	resp, err := c.oldTransport.RoundTrip(req)
-	if err != nil {
-		return nil, err
-	}
-	return resp, err
-}
-
 type mockClientModifier struct {
 	config           *MockHTTPDataConfig
 	mockRoundTripper http.RoundTripper
@@ -135,7 +71,32 @@ func (c *mockClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
 func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
 	if IsCapture() {
-		testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &captureMockConfigClientModifier{t: t})
+		stepCount := len(testCase.Steps)
+		clientModifier := newCaptureMockConfigClientModifier(t, stepCount)
+		testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier)
+		for i := range stepCount {
+			step := &testCase.Steps[i]
+			oldSkip := step.SkipFunc
+			step.SkipFunc = func() (bool, error) {
+				clientModifier.IncreaseStepNumber()
+				var shouldSkip bool
+				var err error
+				if oldSkip != nil {
+					shouldSkip, err = oldSkip()
+				}
+				return shouldSkip, err
+			}
+		}
+		oldCheckDestroy := testCase.CheckDestroy
+		newCheckDestroy := func(s *terraform.State) error {
+			if oldCheckDestroy != nil {
+				if err := oldCheckDestroy(s); err != nil {
+					return err
+				}
+			}
+			return clientModifier.WriteCapturedData(MockConfigFilePath(t))
+		}
+		testCase.CheckDestroy = newCheckDestroy
 		resource.ParallelTest(t, *testCase)
 		return
 	}
@@ -323,13 +284,9 @@ func (r *requestTracker) receiveRequest(method string) func(req *http.Request) (
 		if err != nil {
 			return nil, err
 		}
-		var payload string
-		if req.Body != nil {
-			payloadBytes, err := io.ReadAll(req.Body)
-			if err != nil {
-				return nil, err
-			}
-			payload = string(payloadBytes)
+		payload, err := extractPayload(req.Body)
+		if err != nil {
+			return nil, err
 		}
 		text, status, err := r.matchRequest(method, req.URL.Path, version, payload)
 		if err != nil {
@@ -339,6 +296,22 @@ func (r *requestTracker) receiveRequest(method string) func(req *http.Request) (
 		response.Header.Set("Content-Type", fmt.Sprintf("application/vnd.atlas.%s+json;charset=utf-8", version))
 		return response, nil
 	}
+}
+
+func extractPayload(body io.Reader) (string, error) {
+	var payload string
+	if body != nil {
+		payloadBytes, err := io.ReadAll(body)
+		if err != nil {
+			return "", err
+		}
+		payload = string(payloadBytes)
+	}
+	payload, err := normalizePayload(payload)
+	if err != nil {
+		return "", err
+	}
+	return payload, nil
 }
 
 func normalizePayload(payload string) (string, error) {
@@ -372,11 +345,7 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 		if _, ok := r.foundsDiffs[index]; ok {
 			continue
 		}
-		normalizedPayload, err := normalizePayload(payload)
-		if err != nil {
-			return "", 0, err
-		}
-		r.foundsDiffs[index] = normalizedPayload
+		r.foundsDiffs[index] = payload
 		r.nextDiffResponseIndex()
 		break
 	}
