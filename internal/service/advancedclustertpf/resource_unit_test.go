@@ -20,6 +20,10 @@ const (
 	clusterName         = "test"
 )
 
+var (
+	mockConfig = &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true, SideEffect: shortenRetries}
+)
+
 func TestMockAdvancedCluster_replicaset(t *testing.T) {
 	var (
 		oneNewVariable = "backup_enabled = false"
@@ -69,7 +73,6 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 			"clusterName": clusterName,
 		}
 	)
-	shortenRetries()
 	testCase := resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -115,13 +118,14 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 			acc.TestStepImportCluster(resourceName),
 		},
 	}
-	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, &testCase)
+	unit.MockTestCaseAndRun(t, vars, mockConfig, &testCase)
 }
 
-func shortenRetries() {
+func shortenRetries() error{
 	advancedclustertpf.RetryMinTimeout = 100 * time.Millisecond
 	advancedclustertpf.RetryDelay = 100 * time.Millisecond
 	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
+	return nil
 }
 
 func TestMockAdvancedCluster_configSharded(t *testing.T) {
@@ -132,7 +136,6 @@ func TestMockAdvancedCluster_configSharded(t *testing.T) {
 			"clusterName": clusterName,
 		}
 	)
-	shortenRetries()
 	testCase := resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -147,7 +150,7 @@ func TestMockAdvancedCluster_configSharded(t *testing.T) {
 			acc.TestStepImportCluster(resourceName),
 		},
 	}
-	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, &testCase)
+	unit.MockTestCaseAndRun(t, vars, mockConfig, &testCase)
 }
 
 func configSharded(projectID, clusterName string, withUpdate bool) string {
@@ -221,9 +224,8 @@ func TestMockClusterAdvancedCluster_basicTenant(t *testing.T) {
 			"clusterName2": clusterNameUpdated,
 		}
 	)
-	shortenRetries()
 	testCase := tc.BasicTenantTestCase(t, projectID, clusterName, clusterNameUpdated)
-	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
+	unit.MockTestCaseAndRun(t, vars, mockConfig, testCase)
 }
 
 func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
@@ -236,9 +238,8 @@ func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtE
 			"clusterName": clusterName,
 		}
 	)
-	shortenRetries()
 	testCase := tc.SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t, orgID, projectName, clusterName)
-	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
+	unit.MockTestCaseAndRun(t, vars, mockConfig, testCase)
 }
 
 func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
@@ -253,7 +254,7 @@ func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T
 	)
 	shortenRetries()
 	testCase := tc.SymmetricShardedOldSchema(t, orgID, projectName, clusterName)
-	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
+	unit.MockTestCaseAndRun(t, vars, mockConfig, testCase)
 }
 
 func TestMockClusterAdvancedCluster_tenantUpgrade(t *testing.T) {
@@ -264,7 +265,6 @@ func TestMockClusterAdvancedCluster_tenantUpgrade(t *testing.T) {
 			"clusterName": clusterName,
 		}
 	)
-	shortenRetries()
 	testCase := tc.TenantUpgrade(t, projectID, clusterName)
-	unit.MockTestCaseAndRun(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true}, testCase)
+	unit.MockTestCaseAndRun(t, vars, mockConfig, testCase)
 }

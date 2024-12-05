@@ -2,12 +2,14 @@ package unit
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 
@@ -70,8 +72,13 @@ type mockHTTPData struct {
 }
 
 type MockHTTPDataConfig struct {
+	SideEffect           func() error
 	AllowMissingRequests bool
 	AllowReReadGet       bool
+}
+
+func (c MockHTTPDataConfig) IsCapture() bool {
+	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv("HTTP_MOCKER_CAPTURE")))
 }
 
 func parseTestDataConfigYAML(filePath string) (*mockHTTPData, error) {
@@ -87,11 +94,28 @@ func parseTestDataConfigYAML(filePath string) (*mockHTTPData, error) {
 	return &testData, nil
 }
 
+type clientModifier struct {
+	config           *MockHTTPDataConfig
+	mockRoundTripper http.RoundTripper
+}
+
+func (c *clientModifier) ModifyHTTPClient(httpClient *http.Client) error {
+	if c.config.IsCapture() {
+		return errors.New("cannot capture requests when using MockTestCaseAndRun")
+	}
+	httpClient.Transport = c.mockRoundTripper
+	return nil
+}
+
 func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
 	roundTripper, checkFunc := MockRoundTripper(t, vars, config)
-	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, roundTripper)
-	testCase.PreCheck = nil
+	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &clientModifier{config: config, mockRoundTripper: roundTripper})
+	testCase.PreCheck = func() {
+		if config.SideEffect != nil && !config.IsCapture() {
+			require.NoError(t, config.SideEffect())
+		}
+	}
 	stepCount := len(testCase.Steps)
 	for i := range stepCount - 1 {
 		step := &testCase.Steps[i]
@@ -337,6 +361,7 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 			}
 		}
 		response := request.Responses[nextIndex]
+		// cannot return a response that is sent after a diff response
 		if response.ResponseIndex > nextDiffResponse {
 			prevIndex := nextIndex - 1
 			if prevIndex >= 0 && r.allowReUse(method) {
@@ -347,7 +372,6 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 			continue
 		}
 		r.usedResponses[requestID]++
-		// cannot return a response that is sent after a diff response
 		return replaceVars(response.Text, r.vars), response.Status, nil
 	}
 	return "", 0, fmt.Errorf("no matching request found %s %s %s", method, urlPath, version)
