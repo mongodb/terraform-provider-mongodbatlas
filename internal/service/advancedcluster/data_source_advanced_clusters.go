@@ -330,9 +330,16 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 
 		var replicationSpecs []map[string]any
 
-		replicationSpecs, err = flattenAdvancedReplicationSpecsDS(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d, connV2)
-		if err != nil {
-			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
+		if !useReplicationSpecPerShard {
+			replicationSpecs, err = FlattenAdvancedReplicationSpecsOldShardingConfig(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
+			if err != nil {
+				log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
+			}
+		} else {
+			replicationSpecs, err = flattenAdvancedReplicationSpecsDS(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d, connV2)
+			if err != nil {
+				log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
+			}
 		}
 
 		result := map[string]any{
