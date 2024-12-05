@@ -39,6 +39,7 @@ func FormatMongoDBMajorVersion(version string) string {
 // based on flattenAdvancedReplicationSpecRegionConfigs in model_advanced_cluster.go
 func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.ClusterDescription20240805, api admin.NetworkPeeringApi) (map[string]string, error) {
 	containerIDs := map[string]string{}
+	responseCache := map[string]*admin.PaginatedCloudProviderContainer{}
 	for _, spec := range cluster.GetReplicationSpecs() {
 		for _, regionConfig := range spec.GetRegionConfigs() {
 			providerName := regionConfig.GetProviderName()
@@ -53,11 +54,18 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 			if _, ok := containerIDs[containerIDKey]; ok {
 				continue
 			}
-			containers, _, err := api.ListPeeringContainerByCloudProviderWithParams(ctx, params).Execute()
-			if err != nil {
-				return nil, err
+			var containersResponse *admin.PaginatedCloudProviderContainer
+			var err error
+			if response, ok := responseCache[providerName]; ok {
+				containersResponse = response
+			} else {
+				containersResponse, _, err = api.ListPeeringContainerByCloudProviderWithParams(ctx, params).Execute()
+				if err != nil {
+					return nil, err
+				}
+				responseCache[providerName] = containersResponse
 			}
-			if results := getAdvancedClusterContainerID(containers.GetResults(), &regionConfig); results != "" {
+			if results := getAdvancedClusterContainerID(containersResponse.GetResults(), &regionConfig); results != "" {
 				containerIDs[containerIDKey] = results
 			} else {
 				return nil, fmt.Errorf("container id not found for %s", containerIDKey)
