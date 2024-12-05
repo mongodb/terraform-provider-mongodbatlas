@@ -40,27 +40,30 @@ func (v FailOnIncompatibleMongoDBVersion) PlanModifyInt64(ctx context.Context, r
 	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return
 	}
-	performValidation(ctx, &req.Plan, &resp.Diagnostics, v, req.Path)
+	performValidation(ctx, &req.State, &req.Plan, &resp.Diagnostics, v, req.Path)
 }
 
 func (v FailOnIncompatibleMongoDBVersion) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
 	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return
 	}
-	performValidation(ctx, &req.Plan, &resp.Diagnostics, v, req.Path)
+	performValidation(ctx, &req.State, &req.Plan, &resp.Diagnostics, v, req.Path)
 }
 
-func performValidation(ctx context.Context, plan *tfsdk.Plan, diags *diag.Diagnostics, v FailOnIncompatibleMongoDBVersion, validationPath path.Path) {
+func performValidation(ctx context.Context, state *tfsdk.State, plan *tfsdk.Plan, diags *diag.Diagnostics, v FailOnIncompatibleMongoDBVersion, validationPath path.Path) {
 	var mongoDbMajorVersion types.String
+	var mongoDbMajorVersionState types.String
 	diags.Append(plan.GetAttribute(ctx, path.Root("mongo_db_major_version"), &mongoDbMajorVersion)...)
+	diags.Append(state.GetAttribute(ctx, path.Root("mongo_db_major_version"), &mongoDbMajorVersionState)...)
 	if diags.HasError() {
 		return
 	}
-	var mongoDbMajorVersionString string
-	if mongoDbMajorVersion.IsUnknown() || mongoDbMajorVersion.IsNull() {
+	mongoDbMajorVersionString := mongoDbMajorVersion.ValueString()
+	if mongoDbMajorVersionString == "" {
+		mongoDbMajorVersionString = mongoDbMajorVersionState.ValueString()
+	}
+	if mongoDbMajorVersionString == "" {
 		mongoDbMajorVersionString = defaultMongoDBMajorVersion
-	} else {
-		mongoDbMajorVersionString = mongoDbMajorVersion.ValueString()
 	}
 	var validationOk bool
 	if v.MustBeLower {

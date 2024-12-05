@@ -33,6 +33,33 @@ func TestAdvancedCluster_PlanModifierErrors(t *testing.T) {
 	})
 }
 
+func TestAdvancedCluster_PlanModifierValid(t *testing.T) {
+	var (
+		projectID   = "111111111111111111111111"
+		clusterName = "test"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:             configBasic(projectID, clusterName, "advanced_configuration = { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }\nmongo_db_major_version=\"7\""),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config:             configBasic(projectID, clusterName, "advanced_configuration = { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }"), // mongo_db_major_version is not set should also work
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config:             configBasic(projectID, clusterName, "advanced_configuration = { fail_index_key_too_long = true }\nmongo_db_major_version=\"4\""),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func configBasic(projectID, clusterName, extra string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
