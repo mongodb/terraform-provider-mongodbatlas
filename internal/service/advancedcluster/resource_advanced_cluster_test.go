@@ -54,7 +54,6 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, replicaSetAWSProviderTestCase(t))
 }
 func replicaSetAWSProviderTestCase(t *testing.T) resource.TestCase {
@@ -83,7 +82,6 @@ func replicaSetAWSProviderTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t))
 }
 func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
@@ -114,7 +112,6 @@ func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t))
 }
 
@@ -146,7 +143,6 @@ func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID           = acc.ProjectIDExecution(t)
 		clusterName         = acc.RandomClusterName()
@@ -177,7 +173,6 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID    = acc.ProjectIDExecution(t)
 		clusterName  = acc.RandomClusterName()
@@ -261,7 +256,6 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -307,7 +301,6 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -351,7 +344,6 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 }
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -394,7 +386,6 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 }
 
 func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpectsError(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -475,7 +466,6 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -504,7 +494,6 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -524,7 +513,6 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -549,7 +537,6 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t))
 }
 
@@ -579,7 +566,6 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -604,7 +590,6 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAddingRemovingShard(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -633,7 +618,6 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t))
 }
 
@@ -659,7 +643,6 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemovingShard(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -688,7 +671,6 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 }
 
 func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -713,7 +695,6 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 }
 
 func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -738,7 +719,6 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 }
 
 func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -771,7 +751,6 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *t
 }
 
 func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -801,7 +780,6 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 
 // TestAccClusterAdvancedCluster_priorityOldSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -831,7 +809,6 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 
 // TestAccClusterAdvancedCluster_priorityNewSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
