@@ -882,6 +882,7 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 }
 
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	acc.ConvertToTPFAttrsMap(attrsMap)
 	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
 	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
@@ -1389,24 +1390,22 @@ func checkAdvanced(name, tls, changeStreamOptions string) resource.TestCheckFunc
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 	}
-	prefix := "advanced_configuration.0."
 	if config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 		pluralChecks = nil
-		prefix = "advanced_configuration."
 	}
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"name":                                          name,
-			prefix + "minimum_enabled_tls_protocol":         tls,
-			prefix + "fail_index_key_too_long":              "false",
-			prefix + "javascript_enabled":                   "true",
-			prefix + "no_table_scan":                        "false",
-			prefix + "oplog_size_mb":                        "1000",
-			prefix + "sample_refresh_interval_bi_connector": "310",
-			prefix + "sample_size_bi_connector":             "110",
-			prefix + "transaction_lifetime_limit_seconds":   "300",
-			prefix + "change_stream_options_pre_and_post_images_expire_after_seconds": changeStreamOptions},
+			"name": name,
+			"advanced_configuration.0.minimum_enabled_tls_protocol":                                   tls,
+			"advanced_configuration.0.fail_index_key_too_long":                                        "false",
+			"advanced_configuration.0.javascript_enabled":                                             "true",
+			"advanced_configuration.0.no_table_scan":                                                  "false",
+			"advanced_configuration.0.oplog_size_mb":                                                  "1000",
+			"advanced_configuration.0.sample_refresh_interval_bi_connector":                           "310",
+			"advanced_configuration.0.sample_size_bi_connector":                                       "110",
+			"advanced_configuration.0.transaction_lifetime_limit_seconds":                             "300",
+			"advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds": changeStreamOptions},
 		pluralChecks...)
 }
 
@@ -2339,19 +2338,15 @@ func configBiConnectorConfig(projectID, name string, enabled bool) string {
 }
 
 func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource.TestCheckFunc {
-	prefix := "bi_connector_config.0."
-	if config.AdvancedClusterV2Schema() {
-		prefix = "bi_connector_config."
-	}
 	attrsMap := map[string]string{
 		"project_id": projectID,
 		"name":       name,
 	}
 	if enabled {
-		attrsMap[prefix+"enabled"] = "true"
-		attrsMap[prefix+"read_preference"] = "secondary"
+		attrsMap["bi_connector_config.0.enabled"] = "true"
+		attrsMap["bi_connector_config.0.read_preference"] = "secondary"
 	} else {
-		attrsMap[prefix+"enabled"] = "false"
+		attrsMap["bi_connector_config.0.enabled"] = "false"
 	}
 	return checkAggr(nil, attrsMap)
 }
