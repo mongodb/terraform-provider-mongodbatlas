@@ -1193,7 +1193,7 @@ func configReplicaSetMultiCloud(orgID, projectName, name string) string {
 				region_configs {
 						provider_name = "GCP"
 						priority      = 0
-						region_name   = US_EAST_4
+						region_name   = "US_EAST_4"
 
 						read_only_specs {
 							instance_size = "M10"
@@ -1203,7 +1203,7 @@ func configReplicaSetMultiCloud(orgID, projectName, name string) string {
 
 				provider_name = "GCP"
 					priority      = 0
-					region_name   = NORTH_AMERICA_NORTHEAST_1
+					region_name   = "NORTH_AMERICA_NORTHEAST_1"
 
 					read_only_specs {
 						instance_size = "M10"
