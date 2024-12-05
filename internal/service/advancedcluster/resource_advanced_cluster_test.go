@@ -1190,25 +1190,26 @@ func configReplicaSetMultiCloud(orgID, projectName, name string) string {
 					region_name   = "EU_WEST_1"
 				}
 
-
-				
-				dynamic "region_configs" {
-					for_each = [
-						"US_EAST_4",
-						"NORTH_AMERICA_NORTHEAST_1"
-					]
-
-					content {
+				region_configs {
 						provider_name = "GCP"
 						priority      = 0
-						region_name   = region_configs.value
+						region_name   = US_EAST_4
 
 						read_only_specs {
 							instance_size = "M10"
 							node_count    = 2
 						}
-					}
 				}
+
+				provider_name = "GCP"
+					priority      = 0
+					region_name   = NORTH_AMERICA_NORTHEAST_1
+
+					read_only_specs {
+						instance_size = "M10"
+						node_count    = 2
+				}
+
 			}
 		}
 
