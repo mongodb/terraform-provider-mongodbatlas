@@ -23,6 +23,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const envNameHTTPMockerCapture = "HTTP_MOCKER_CAPTURE"
+
 func replaceVars(text string, vars map[string]string) string {
 	for key, value := range vars {
 		text = strings.ReplaceAll(text, fmt.Sprintf("{%s}", key), value)
@@ -77,8 +79,8 @@ type MockHTTPDataConfig struct {
 	AllowReReadGet       bool
 }
 
-func (c MockHTTPDataConfig) IsCapture() bool {
-	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv("HTTP_MOCKER_CAPTURE")))
+func IsCapture() bool {
+	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(envNameHTTPMockerCapture)))
 }
 
 func parseTestDataConfigYAML(filePath string) (*mockHTTPData, error) {
@@ -94,13 +96,36 @@ func parseTestDataConfigYAML(filePath string) (*mockHTTPData, error) {
 	return &testData, nil
 }
 
-type clientModifier struct {
+type captureMockConfigClientModifier struct {
+	t *testing.T
+
+	oldTransport http.RoundTripper
+}
+
+func (c *captureMockConfigClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
+	if !IsCapture() {
+		return fmt.Errorf("cannot use capture modifier without %s='yes|true|1'", envNameHTTPMockerCapture)
+	}
+	c.oldTransport = httpClient.Transport
+	httpClient.Transport = c
+	return nil
+}
+
+func (c *captureMockConfigClientModifier) RoundTrip(req *http.Request) (*http.Response, error) {
+	resp, err := c.oldTransport.RoundTrip(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, err
+}
+
+type mockClientModifier struct {
 	config           *MockHTTPDataConfig
 	mockRoundTripper http.RoundTripper
 }
 
-func (c *clientModifier) ModifyHTTPClient(httpClient *http.Client) error {
-	if c.config.IsCapture() {
+func (c *mockClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
+	if IsCapture() {
 		return errors.New("cannot capture requests when using MockTestCaseAndRun")
 	}
 	httpClient.Transport = c.mockRoundTripper
@@ -109,10 +134,15 @@ func (c *clientModifier) ModifyHTTPClient(httpClient *http.Client) error {
 
 func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
+	if IsCapture() {
+		testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &captureMockConfigClientModifier{t: t})
+		resource.ParallelTest(t, *testCase)
+		return
+	}
 	roundTripper, checkFunc := MockRoundTripper(t, vars, config)
-	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &clientModifier{config: config, mockRoundTripper: roundTripper})
+	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &mockClientModifier{config: config, mockRoundTripper: roundTripper})
 	testCase.PreCheck = func() {
-		if config.SideEffect != nil && !config.IsCapture() {
+		if config.SideEffect != nil {
 			require.NoError(t, config.SideEffect())
 		}
 	}
@@ -137,10 +167,15 @@ func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDa
 	resource.ParallelTest(t, *testCase)
 }
 
-func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPDataConfig) (http.RoundTripper, resource.TestCheckFunc) {
+func MockConfigFilePath(t *testing.T) string {
 	t.Helper()
 	testDir := "testdata"
-	httpDataPath := path.Join(testDir, t.Name()+".yaml")
+	return path.Join(testDir, t.Name()+".yaml")
+}
+
+func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPDataConfig) (http.RoundTripper, resource.TestCheckFunc) {
+	t.Helper()
+	httpDataPath := MockConfigFilePath(t)
 	data, err := parseTestDataConfigYAML(httpDataPath)
 	require.NoError(t, err)
 	myTransport := httpmock.NewMockTransport()
