@@ -525,7 +525,7 @@ func FlattenAdvancedReplicationSpecsOldShardingConfig(ctx context.Context, apiOb
 		return flattenAdvancedReplicationSpecOldShardingConfig(ctx, sdkModel, zoneNameToOldReplicationSpecMeta, tfModel, resourceData, connV2)
 	}
 	compressedAPIObjects := compressAPIObjectList(apiObjects)
-	return flattenAdvancedReplicationSpecsLogic[admin.ReplicationSpec20240805](ctx, compressedAPIObjects, tfMapObjects, d,
+	return flattenAdvancedReplicationSpecsLogic(ctx, compressedAPIObjects, tfMapObjects, d,
 		doesAdvancedReplicationSpecMatchAPIOldShardConfig, replicationSpecFlattener, connV2)
 }
 
@@ -535,7 +535,7 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.Rep
 	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin.ReplicationSpec20240805, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
 		return flattenAdvancedReplicationSpec(ctx, sdkModel, zoneNameToOldReplicationSpecMeta, tfModel, resourceData, connV2)
 	}
-	return flattenAdvancedReplicationSpecsLogic[admin.ReplicationSpec20240805](ctx, apiObjects, tfMapObjects, d,
+	return flattenAdvancedReplicationSpecsLogic(ctx, apiObjects, tfMapObjects, d,
 		doesAdvancedReplicationSpecMatchAPI, replicationSpecFlattener, connV2)
 }
 
