@@ -21,18 +21,33 @@ func ConvertToTPFAttrsMap(attrsMap map[string]string) map[string]string {
 	}
 	ret := make(map[string]string, len(attrsMap))
 	for name, value := range attrsMap {
-		for k, v := range tpfAttrMapping {
-			name = strings.ReplaceAll(name, k, v)
-		}
-		ret[name] = value
+		ret[attrNameToSchemaV2(name)] = value
 	}
 	return ret
 }
 
-var tpfAttrMapping = map[string]string{
-	"electable_specs.0":        "electable_specs",
-	"advanced_configuration.0": "advanced_configuration",
-	"bi_connector_config.0":    "bi_connector_config",
+func ConvertToTPFAttrsSet(attrsSet []string) []string {
+	if !config.AdvancedClusterV2Schema() {
+		return attrsSet
+	}
+	ret := make([]string, 0, len(attrsSet))
+	for _, name := range attrsSet {
+		ret = append(ret, attrNameToSchemaV2(name))
+	}
+	return ret
+}
+
+func attrNameToSchemaV2(name string) string {
+	var tpfAttrMapping = map[string]string{
+		"electable_specs.0":        "electable_specs",
+		"advanced_configuration.0": "advanced_configuration",
+		"bi_connector_config.0":    "bi_connector_config",
+	}
+
+	for k, v := range tpfAttrMapping {
+		name = strings.ReplaceAll(name, k, v)
+	}
+	return name
 }
 
 func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {

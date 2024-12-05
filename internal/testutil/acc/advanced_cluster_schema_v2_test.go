@@ -1,6 +1,7 @@
 package acc_test
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -8,26 +9,39 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConvertToTPFAttrsMap(t *testing.T) {
+func TestConvertToTPFAttrsMapAndAttrsSet(t *testing.T) {
 	if !config.AdvancedClusterV2Schema() {
 		t.Skip("Skipping test as not in AdvancedClusterV2Schema")
 	}
-	attrs := map[string]string{
+	attrsMap := map[string]string{
 		"attr":                            "val1",
 		"electable_specs.0":               "val2",
 		"prefixbi_connector_config.0":     "val3",
 		"advanced_configuration.0postfix": "val4",
 		"electable_specs.0advanced_configuration.0bi_connector_config.0": "val5",
 	}
-	expected := map[string]string{
+	expectedMap := map[string]string{
 		"attr":                          "val1",
 		"electable_specs":               "val2",
 		"prefixbi_connector_config":     "val3",
 		"advanced_configurationpostfix": "val4",
 		"electable_specsadvanced_configurationbi_connector_config": "val5",
 	}
-	actual := acc.ConvertToTPFAttrsMap(attrs)
-	assert.Equal(t, expected, actual)
+	actualMap := acc.ConvertToTPFAttrsMap(attrsMap)
+	assert.Equal(t, expectedMap, actualMap)
+
+	attrsSet := make([]string, 0, len(attrsMap))
+	for name := range attrsMap {
+		attrsSet = append(attrsSet, name)
+	}
+	expectedSet := make([]string, 0, len(attrsMap))
+	for name := range expectedMap {
+		expectedSet = append(expectedSet, name)
+	}
+	actualSet := acc.ConvertToTPFAttrsSet(attrsSet)
+	sort.Strings(expectedSet)
+	sort.Strings(actualSet)
+	assert.Equal(t, expectedSet, actualSet)
 }
 
 func TestConvertAdvancedClusterToTPF(t *testing.T) {

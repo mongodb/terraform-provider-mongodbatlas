@@ -883,6 +883,7 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	attrsMap = acc.ConvertToTPFAttrsMap(attrsMap)
+	attrsSet = acc.ConvertToTPFAttrsSet(attrsSet)
 	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
 	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
 	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
