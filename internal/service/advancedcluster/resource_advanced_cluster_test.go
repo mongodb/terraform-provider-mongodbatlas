@@ -69,11 +69,11 @@ func replicaSetAWSProviderTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetAWSProvider(projectID, clusterName, 60, 3),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetAWSProvider(projectID, clusterName, 60, 3)),
 				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, true, true),
 			},
 			{
-				Config: configReplicaSetAWSProvider(projectID, clusterName, 50, 5),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetAWSProvider(projectID, clusterName, 50, 5)),
 				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 50, 5, true, true),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
@@ -99,11 +99,11 @@ func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetMultiCloud(orgID, projectName, clusterName),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetMultiCloud(orgID, projectName, clusterName)),
 				Check:  checkReplicaSetMultiCloud(clusterName, 3),
 			},
 			{
-				Config: configReplicaSetMultiCloud(orgID, projectName, clusterNameUpdated),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetMultiCloud(orgID, projectName, clusterNameUpdated)),
 				Check:  checkReplicaSetMultiCloud(clusterNameUpdated, 3),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
@@ -130,11 +130,11 @@ func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 1, "M10", nil),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 1, "M10", nil)),
 				Check:  checkShardedOldSchemaMultiCloud(clusterName, 1, "M10", true, nil),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M10", nil),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M10", nil)),
 				Check:  checkShardedOldSchemaMultiCloud(clusterNameUpdated, 1, "M10", true, nil),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"),
@@ -156,15 +156,15 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleProviderPaused(projectID, clusterName, false, instanceSize),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, false, instanceSize)),
 				Check:  checkSingleProviderPaused(clusterName, false),
 			},
 			{
-				Config: configSingleProviderPaused(projectID, clusterName, true, instanceSize),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, true, instanceSize)),
 				Check:  checkSingleProviderPaused(clusterName, true),
 			},
 			{
-				Config:      configSingleProviderPaused(projectID, clusterName, true, anotherInstanceSize),
+				Config:      acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, true, anotherInstanceSize)),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"),
@@ -185,19 +185,19 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configSingleProviderPaused(projectID, clusterName, true, instanceSize),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, true, instanceSize)),
 				Check:  checkSingleProviderPaused(clusterName, true),
 			},
 			{
-				Config: configSingleProviderPaused(projectID, clusterName, false, instanceSize),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, false, instanceSize)),
 				Check:  checkSingleProviderPaused(clusterName, false),
 			},
 			{
-				Config:      configSingleProviderPaused(projectID, clusterName, true, instanceSize),
+				Config:      acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, true, instanceSize)),
 				ExpectError: regexp.MustCompile("CANNOT_PAUSE_RECENTLY_RESUMED_CLUSTER"),
 			},
 			{
-				Config: configSingleProviderPaused(projectID, clusterName, false, instanceSize),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, false, instanceSize)),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"),
 		},
@@ -289,11 +289,11 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvancedDefaultWrite(projectID, clusterName, processArgs),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvancedDefaultWrite(projectID, clusterName, processArgs)),
 				Check:  checkAdvancedDefaultWrite(clusterName, "1", "TLS1_1"),
 			},
 			{
-				Config: configAdvancedDefaultWrite(projectID, clusterNameUpdated, processArgsUpdated),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvancedDefaultWrite(projectID, clusterNameUpdated, processArgsUpdated)),
 				Check:  checkAdvancedDefaultWrite(clusterNameUpdated, "majority", "TLS1_2"),
 			},
 		},
@@ -321,7 +321,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicationSpecsAutoScaling(projectID, clusterName, autoScaling),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicationSpecsAutoScaling(projectID, clusterName, autoScaling)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -331,7 +331,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 				),
 			},
 			{
-				Config: configReplicationSpecsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicationSpecsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
@@ -364,7 +364,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName, autoScaling),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName, autoScaling)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
@@ -373,7 +373,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 				),
 			},
 			{
-				Config: configReplicationSpecsAnalyticsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicationSpecsAnalyticsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
@@ -398,11 +398,11 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false)),
 				Check:  checkGeoShardedOldSchema(clusterName, 1, 1, true, true),
 			},
 			{
-				Config:      configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 2, false),
+				Config:      acc.ConvertAdvancedClusterToTPF(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 2, false)),
 				ExpectError: regexp.MustCompile(advancedcluster.ErrorOperationNotPermitted),
 			},
 		},
@@ -422,15 +422,15 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags")),
+				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags"))),
 				Check:  checkKeyValueBlocks(clusterName, "tags"),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2)),
+				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2))),
 				Check:  checkKeyValueBlocks(clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap3)),
+				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap3))),
 				Check:  checkKeyValueBlocks(clusterName, "tags", acc.ClusterTagsMap3),
 			},
 		},
@@ -450,15 +450,15 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels")),
+				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels"))),
 				Check:  checkKeyValueBlocks(clusterName, "labels"),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2)),
+				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2))),
 				Check:  checkKeyValueBlocks(clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap3)),
+				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap3))),
 				Check:  checkKeyValueBlocks(clusterName, "labels", acc.ClusterLabelsMap3),
 			},
 		},
@@ -485,12 +485,12 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, true),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, true)),
 				Check: resource.ComposeAggregateTestCheckFunc(checks...,
 				),
 			},
 			{
-				Config:      configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false),
+				Config:      acc.ConvertAdvancedClusterToTPF(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false)),
 				ExpectError: regexp.MustCompile("CANNOT_MODIFY_GLOBAL_CLUSTER_MANAGEMENT_SETTING"),
 			},
 		},
@@ -509,7 +509,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configIncorrectTypeGobalClusterSelfManagedSharding(projectID, clusterName),
+				Config:      acc.ConvertAdvancedClusterToTPF(t, configIncorrectTypeGobalClusterSelfManagedSharding(projectID, clusterName)),
 				ExpectError: regexp.MustCompile("CANNOT_SET_SELF_MANAGED_SHARDING_FOR_NON_GLOBAL_CLUSTER"),
 			},
 		},
@@ -529,11 +529,11 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated)),
 				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M10", false, &configServerManagementModeFixedToDedicated),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M20", &configServerManagementModeAtlasManaged)),
 				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
 			},
 		},
@@ -558,11 +558,11 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false)),
 				Check:  checkGeoShardedOldSchema(clusterName, 2, 2, true, false),
 			},
 			{
-				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 3, 3, false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 3, 3, false)),
 				Check:  checkGeoShardedOldSchema(clusterName, 3, 3, true, false),
 			},
 		},
@@ -582,11 +582,11 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 50),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 50)),
 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(50),
 			},
 			{
-				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 55),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 55)),
 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(55),
 			},
 		},
@@ -606,15 +606,15 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedNewSchema(orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false)),
 				Check:  checkShardedNewSchema(50, "M10", "M10", nil, nil, false, false),
 			},
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true), // add middle replication spec and transition to asymmetric
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true)), // add middle replication spec and transition to asymmetric
 				Check:  checkShardedNewSchema(55, "M10", "M20", nil, nil, true, true),
 			},
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false), // removes middle replication spec
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false)), // removes middle replication spec
 				Check:  checkShardedNewSchema(55, "M10", "M20", nil, nil, true, false),
 			},
 		},
@@ -639,7 +639,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false)),
 				Check:  checkShardedNewSchema(50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 			},
 		},
@@ -659,15 +659,15 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedNewSchema(orgID, projectName, clusterName, false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedNewSchema(orgID, projectName, clusterName, false)),
 				Check:  checkGeoShardedNewSchema(false),
 			},
 			{
-				Config: configGeoShardedNewSchema(orgID, projectName, clusterName, true),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedNewSchema(orgID, projectName, clusterName, true)),
 				Check:  checkGeoShardedNewSchema(true),
 			},
 			{
-				Config: configGeoShardedNewSchema(orgID, projectName, clusterName, false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedNewSchema(orgID, projectName, clusterName, false)),
 				Check:  checkGeoShardedNewSchema(false),
 			},
 		},
@@ -687,11 +687,11 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false)),
 				Check:  checkShardedTransitionOldToNewSchema(false),
 			},
 			{
-				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true)),
 				Check:  checkShardedTransitionOldToNewSchema(true),
 			},
 		},
@@ -711,11 +711,11 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false)),
 				Check:  checkGeoShardedTransitionOldToNewSchema(false),
 			},
 			{
-				Config: configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true)),
 				Check:  checkGeoShardedTransitionOldToNewSchema(true),
 			},
 		},
@@ -735,19 +735,19 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *t
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "WORKLOAD_TYPE", true),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "WORKLOAD_TYPE", true)),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("WORKLOAD_TYPE", true),
 			},
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "SEQUENTIAL", false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "SEQUENTIAL", false)),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("SEQUENTIAL", false),
 			},
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "NODE_TYPE", true),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "NODE_TYPE", true)),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("NODE_TYPE", true),
 			},
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "NODE_TYPE", false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "NODE_TYPE", false)),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("NODE_TYPE", false),
 			},
 		},
@@ -767,15 +767,15 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "WORKLOAD_TYPE", false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "WORKLOAD_TYPE", false)),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("WORKLOAD_TYPE", false),
 			},
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "SEQUENTIAL", true),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "SEQUENTIAL", true)),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("SEQUENTIAL", true),
 			},
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "NODE_TYPE", false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "NODE_TYPE", false)),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("NODE_TYPE", false),
 			},
 		},
@@ -796,15 +796,15 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configPriority(orgID, projectName, clusterName, true, true),
+				Config:      acc.ConvertAdvancedClusterToTPF(t, configPriority(orgID, projectName, clusterName, true, true)),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 			{
-				Config: configPriority(orgID, projectName, clusterName, true, false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configPriority(orgID, projectName, clusterName, true, false)),
 				Check:  resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 			{
-				Config:      configPriority(orgID, projectName, clusterName, true, true),
+				Config:      acc.ConvertAdvancedClusterToTPF(t, configPriority(orgID, projectName, clusterName, true, true)),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 		},
@@ -825,15 +825,15 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configPriority(orgID, projectName, clusterName, false, true),
+				Config:      acc.ConvertAdvancedClusterToTPF(t, configPriority(orgID, projectName, clusterName, false, true)),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 			{
-				Config: configPriority(orgID, projectName, clusterName, false, false),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configPriority(orgID, projectName, clusterName, false, false)),
 				Check:  resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 			{
-				Config:      configPriority(orgID, projectName, clusterName, false, true),
+				Config:      acc.ConvertAdvancedClusterToTPF(t, configPriority(orgID, projectName, clusterName, false, true)),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 		},
@@ -851,11 +851,11 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configBiConnectorConfig(projectID, clusterName, false)),
+				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configBiConnectorConfig(projectID, clusterName, false))),
 				Check:  checkTenantBiConnectorConfig(projectID, clusterName, false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configBiConnectorConfig(projectID, clusterName, true)),
+				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configBiConnectorConfig(projectID, clusterName, true))),
 				Check:  checkTenantBiConnectorConfig(projectID, clusterName, true),
 			},
 		},
