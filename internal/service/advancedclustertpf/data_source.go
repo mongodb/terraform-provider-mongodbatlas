@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -27,6 +28,12 @@ type ds struct {
 func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
 		RequiredFields: []string{"project_id", "name"},
+		OverridenFields: map[string]schema.Attribute{
+			"use_replication_spec_per_shard": schema.BoolAttribute{ // TODO: added as in current resource
+				Optional:            true,
+				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
+			},
+		},
 	})
 }
 
