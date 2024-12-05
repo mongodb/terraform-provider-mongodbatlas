@@ -3,11 +3,13 @@ package acc
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 )
 
@@ -100,4 +102,30 @@ func CheckExistsClusterHandlingRetry(projectID, clusterName string) error {
 		}
 		return nil
 	})
+}
+
+func ConvertToTPFAttrsMap(attrsMap map[string]string) {
+	if !config.AdvancedClusterV2Schema() {
+		return
+	}
+	names := make([]string, 0, len(attrsMap))
+	for name := range attrsMap {
+		names = append(names, name)
+	}
+	for _, name := range names {
+		newName := name
+		for k, v := range tpfAttrMapping {
+			newName = strings.ReplaceAll(newName, k, v)
+		}
+		if newName != name {
+			attrsMap[newName] = attrsMap[name]
+			delete(attrsMap, name)
+		}
+	}
+}
+
+var tpfAttrMapping = map[string]string{
+	"electable_specs.0":        "electable_specs",
+	"advanced_configuration.0": "advanced_configuration",
+	"bi_connector_config.0":    "bi_connector_config",
 }
