@@ -470,7 +470,14 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName = acc.RandomClusterName()
+		checks      = []resource.TestCheckFunc{
+			acc.CheckExistsCluster(resourceName),
+			resource.TestCheckResourceAttr(resourceName, "global_cluster_self_managed_sharding", "true"),
+		}
 	)
+	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
+		checks = append(checks, resource.TestCheckResourceAttr(dataSourceName, "global_cluster_self_managed_sharding", "true"))
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -479,10 +486,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.CheckExistsCluster(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "global_cluster_self_managed_sharding", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "global_cluster_self_managed_sharding", "true"),
+				Check: resource.ComposeAggregateTestCheckFunc(checks...,
 				),
 			},
 			{
@@ -1038,7 +1042,11 @@ func checkReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountEle
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+	}
+	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
+		additionalChecks = append(additionalChecks,
+			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		)
 	}
 	if checkDiskSizeGBInnerLevel {
 		additionalChecks = append(additionalChecks,
@@ -1155,12 +1163,16 @@ func checkReplicaSetMultiCloud(name string, regionConfigs int) resource.TestChec
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
 		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"),
+	}
+	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
+		additionalChecks = append(additionalChecks,
+			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+			resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+			resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+			resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+			resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+		)
 	}
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.id"},
@@ -1237,9 +1249,13 @@ func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize s
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
 		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+	}
+	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
+		additionalChecks = append(additionalChecks,
+			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		)
 	}
 
 	if verifyExternalID {
@@ -1252,11 +1268,15 @@ func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize s
 			additionalChecks,
 			resource.TestCheckResourceAttr(resourceName, "config_server_management_mode", *configServerManagementMode),
 			resource.TestCheckResourceAttrSet(resourceName, "config_server_type"),
-			resource.TestCheckResourceAttr(dataSourceName, "config_server_management_mode", *configServerManagementMode),
-			resource.TestCheckResourceAttrSet(dataSourceName, "config_server_type"),
-			resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.config_server_management_mode", *configServerManagementMode),
-			resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.config_server_type"),
 		)
+		if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
+			additionalChecks = append(additionalChecks,
+				resource.TestCheckResourceAttr(dataSourceName, "config_server_management_mode", *configServerManagementMode),
+				resource.TestCheckResourceAttrSet(dataSourceName, "config_server_type"),
+				resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.config_server_management_mode", *configServerManagementMode),
+				resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.config_server_type"),
+			)
+		}
 	}
 
 	return checkAggr(
@@ -1435,6 +1455,14 @@ func configAdvancedDefaultWrite(projectID, clusterName string, p *admin20240530.
 }
 
 func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestCheckFunc {
+	pluralChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+	}
+	if config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
+		pluralChecks = nil
+	}
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
@@ -1448,9 +1476,7 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 			"advanced_configuration.0.oplog_size_mb":                        "1000",
 			"advanced_configuration.0.sample_refresh_interval_bi_connector": "310",
 			"advanced_configuration.0.sample_size_bi_connector":             "110"},
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"))
+		pluralChecks...)
 }
 
 func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
@@ -1793,29 +1819,34 @@ func checkShardedNewSchema(diskSizeGB int, firstInstanceSize, lastInstanceSize s
 	}
 
 	// plural data source checks
-	additionalChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
+	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
-	additionalChecks = acc.AddAttrChecksPrefix(dataSourcePluralName, additionalChecks, clusterChecks, "results.0")
+
+	pluralChecks = acc.AddAttrChecksPrefix(dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
 
 	// expected id attribute only if cluster is symmetric
 	if isAsymmetricCluster {
-		additionalChecks = append(additionalChecks, checkAggr([]string{}, map[string]string{
+		pluralChecks = append(pluralChecks, checkAggr([]string{}, map[string]string{
 			"replication_specs.0.id": "",
 			"replication_specs.1.id": "",
 		}))
-		additionalChecks = acc.AddAttrChecks(dataSourcePluralName, additionalChecks, map[string]string{
+		pluralChecks = acc.AddAttrChecks(dataSourcePluralName, pluralChecks, map[string]string{
 			"results.0.replication_specs.0.id": "",
 			"results.0.replication_specs.1.id": "",
 		})
 	} else {
-		additionalChecks = append(additionalChecks, checkAggr([]string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
-		additionalChecks = acc.AddAttrSetChecks(dataSourcePluralName, additionalChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+		pluralChecks = append(pluralChecks, checkAggr([]string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
+		pluralChecks = acc.AddAttrSetChecks(dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+	}
+
+	if config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
+		pluralChecks = nil
 	}
 
 	return checkAggr(
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
 		clusterChecks,
-		additionalChecks...,
+		pluralChecks...,
 	)
 }
 
@@ -2199,12 +2230,17 @@ func checkReplicaSetScalingStrategyAndRedactClientLogData(replicaSetScalingStrat
 	}
 
 	// plural data source checks
-	additionalChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
+	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replica_set_scaling_strategy", "results.0.redact_client_log_data"}...)
+
+	if config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
+		pluralChecks = nil
+	}
+
 	return checkAggr(
 		[]string{},
 		clusterChecks,
-		additionalChecks...,
+		pluralChecks...,
 	)
 }
 
