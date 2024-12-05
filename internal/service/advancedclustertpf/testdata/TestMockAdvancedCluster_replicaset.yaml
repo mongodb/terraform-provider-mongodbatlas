@@ -56,7 +56,7 @@ steps:
     responses:
     - response_index: 18
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
       duplicate_responses: 1
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
     method: GET
@@ -65,7 +65,7 @@ steps:
     responses:
     - response_index: 19
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
       duplicate_responses: 1
 - diff_requests: []
   request_responses:
@@ -103,7 +103,7 @@ steps:
     responses:
     - response_index: 28
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
       duplicate_responses: 1
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
     method: GET
@@ -112,7 +112,7 @@ steps:
     responses:
     - response_index: 29
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
       duplicate_responses: 1
 - diff_requests:
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
@@ -183,10 +183,10 @@ steps:
     responses:
     - response_index: 38
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
     - response_index: 56
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
       duplicate_responses: 1
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
     method: GET
@@ -195,10 +195,10 @@ steps:
     responses:
     - response_index: 39
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
     - response_index: 57
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
       duplicate_responses: 1
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
     method: PATCH
@@ -270,7 +270,7 @@ steps:
     responses:
     - response_index: 66
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
       duplicate_responses: 2
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
     method: GET
@@ -279,7 +279,7 @@ steps:
     responses:
     - response_index: 67
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
       duplicate_responses: 2
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
     method: PATCH
@@ -289,8 +289,24 @@ steps:
     - response_index: 68
       status: 200
       text: "{\n \"backupEnabled\": true,\n \"biConnector\": {\n  \"enabled\": true,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"REPLICASET\",\n \"connectionStrings\": {\n  \"standard\": \"mongodb://{clusterName}-shard-00-00.jciib.mongodb-dev.net:27017,{clusterName}-shard-00-01.jciib.mongodb-dev.net:27017,{clusterName}-shard-00-02.jciib.mongodb-dev.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-h20vfw-shard-0\",\n  \"standardSrv\": \"mongodb+srv://{clusterName}.jciib.mongodb-dev.net\"\n },\n \"createDate\": \"2024-11-20T10:41:51Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"8.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"673dbcef6b13675d681b3fcf\",\n \"labels\": [\n  {\n   \"key\": \"env\",\n   \"value\": \"{clusterName}\"\n  }\n ],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"8.0\",\n \"mongoDBVersion\": \"8.0.3\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": true,\n \"redactClientLogData\": true,\n \"replicaSetScalingStrategy\": \"NODE_TYPE\",\n \"replicationSpecs\": [\n  {\n   \"id\": \"673dbcef6b13675d681b3fc7\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 10.0,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": true\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 10.0,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 10.0,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"673dbcef6b13675d681b3fc5\",\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"UPDATING\",\n \"tags\": [\n  {\n   \"key\": \"env\",\n   \"value\": \"{clusterName}\"\n  }\n ],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"CONTINUOUS\"\n}"
-- diff_requests: []
+- diff_requests:
+  - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
+    method: PATCH
+    version: '2024-08-05'
+    text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"javascriptEnabled\": true\n}"
+    responses:
+    - response_index: 94
+      status: 200
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
   request_responses:
+  - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
+    method: PATCH
+    version: '2024-08-05'
+    text: "{\n \"javascriptEnabled\": true\n}"
+    responses:
+    - response_index: 94
+      status: 200
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
     method: GET
     version: '2024-08-05'
@@ -325,7 +341,11 @@ steps:
     responses:
     - response_index: 92
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      duplicate_responses: 1
+    - response_index: 95
+      status: 200
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
       duplicate_responses: 1
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
     method: GET
@@ -334,7 +354,11 @@ steps:
     responses:
     - response_index: 93
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      duplicate_responses: 1
+    - response_index: 96
+      status: 200
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
       duplicate_responses: 1
 - diff_requests:
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
@@ -385,7 +409,7 @@ steps:
     responses:
     - response_index: 103
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
     method: GET
     version: '2024-08-05'
@@ -393,7 +417,7 @@ steps:
     responses:
     - response_index: 104
       status: 200
-      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": false,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+      text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_0\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": 0.0,\n \"oplogSizeMB\": 1000,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
   - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
     method: DELETE
     version: '2023-02-01'

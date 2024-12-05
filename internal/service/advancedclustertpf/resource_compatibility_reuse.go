@@ -3,13 +3,48 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/spf13/cast"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 )
+
+type MajorVersionOperator int
+
+const (
+	EqualOrHigher MajorVersionOperator = iota
+	Higher
+	EqualOrLower
+	Lower
+)
+
+func MajorVersionCompatible(input *string, version float64, operator MajorVersionOperator) *bool {
+	if !conversion.IsStringPresent(input) {
+		return nil
+	}
+	value, err := strconv.ParseFloat(*input, 64)
+	if err != nil {
+		return nil
+	}
+	var result bool
+	switch operator {
+	case EqualOrHigher:
+		result = value >= version
+	case Higher:
+		result = value > version
+	case EqualOrLower:
+		result = value <= version
+	case Lower:
+		result = value < version
+	default:
+		return nil
+	}
+	return &result
+}
 
 func FormatMongoDBMajorVersion(version string) string {
 	if strings.Contains(version, ".") {
@@ -19,8 +54,9 @@ func FormatMongoDBMajorVersion(version string) string {
 }
 
 // based on flattenAdvancedReplicationSpecRegionConfigs in model_advanced_cluster.go
-func resolveExtraAPIInfo(ctx context.Context, projectID string, cluster *admin.ClusterDescription20240805, api admin.NetworkPeeringApi) (*ExtraAPIInfo, error) {
+func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.ClusterDescription20240805, api admin.NetworkPeeringApi) (map[string]string, error) {
 	containerIDs := map[string]string{}
+	responseCache := map[string]*admin.PaginatedCloudProviderContainer{}
 	for _, spec := range cluster.GetReplicationSpecs() {
 		for _, regionConfig := range spec.GetRegionConfigs() {
 			providerName := regionConfig.GetProviderName()
@@ -35,20 +71,25 @@ func resolveExtraAPIInfo(ctx context.Context, projectID string, cluster *admin.C
 			if _, ok := containerIDs[containerIDKey]; ok {
 				continue
 			}
-			containers, _, err := api.ListPeeringContainerByCloudProviderWithParams(ctx, params).Execute()
-			if err != nil {
-				return nil, err
+			var containersResponse *admin.PaginatedCloudProviderContainer
+			var err error
+			if response, ok := responseCache[providerName]; ok {
+				containersResponse = response
+			} else {
+				containersResponse, _, err = api.ListPeeringContainerByCloudProviderWithParams(ctx, params).Execute()
+				if err != nil {
+					return nil, err
+				}
+				responseCache[providerName] = containersResponse
 			}
-			if results := getAdvancedClusterContainerID(containers.GetResults(), &regionConfig); results != "" {
+			if results := getAdvancedClusterContainerID(containersResponse.GetResults(), &regionConfig); results != "" {
 				containerIDs[containerIDKey] = results
 			} else {
 				return nil, fmt.Errorf("container id not found for %s", containerIDKey)
 			}
 		}
 	}
-	return &ExtraAPIInfo{
-		ContainerIDs: containerIDs,
-	}, nil
+	return containerIDs, nil
 }
 
 // copied from model_advanced_cluster.go

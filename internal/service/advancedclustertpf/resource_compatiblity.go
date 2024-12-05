@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 )
 
@@ -33,21 +33,25 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 	return planCounts
 }
 
-func resolveLegacyInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnostics, clusterLatest *admin.ClusterDescription20240805, api20240530 admin20240530.ClustersApi) *LegacySchemaInfo {
-	if !usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
-		return nil
-	}
+func resolveAPIInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnostics, clusterLatest *admin.ClusterDescription20240805, client *config.MongoDBClient) *ExtraAPIInfo {
 	rootDiskSize := conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
-	zoneNameSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), api20240530)
+	projectID := plan.ProjectID.ValueString()
+	zoneNameSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, plan.Name.ValueString(), client.AtlasV220240530.ClustersApi)
 	if err != nil {
-		errMsg := err.Error()
-		diags.AddError(errMsg, errMsg)
+		diags.AddError("getReplicationSpecIDsFromOldAPI", err.Error())
 		return nil
 	}
 	if rootDiskSize == nil {
 		rootDiskSize = findRegionRootDiskSize(clusterLatest.ReplicationSpecs)
 	}
-	return &LegacySchemaInfo{
+	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterLatest, client.AtlasV2.NetworkPeeringApi)
+	if err != nil {
+		diags.AddError("resolveContainerIDs failed", err.Error())
+		return nil
+	}
+	return &ExtraAPIInfo{
+		ContainerIDs:               containerIDs,
+		UsingLegacySchema:          usingLegacySchema(ctx, plan.ReplicationSpecs, diags),
 		ZoneNameNumShards:          numShardsMap(ctx, plan.ReplicationSpecs, diags),
 		RootDiskSize:               rootDiskSize,
 		ZoneNameReplicationSpecIDs: zoneNameSpecIDs,
@@ -217,4 +221,22 @@ func findRegionRootDiskSize(specs *[]admin.ReplicationSpec20240805) *float64 {
 		}
 	}
 	return nil
+}
+
+func externalIDToLegacyID(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]string {
+	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
+	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return nil
+	}
+	idsMapped := map[string]string{}
+	for i := range elements {
+		e := elements[i]
+		externalID := e.ExternalId.ValueString()
+		legacyID := e.Id.ValueString()
+		if externalID != "" && legacyID != "" {
+			idsMapped[externalID] = legacyID
+		}
+	}
+	return idsMapped
 }

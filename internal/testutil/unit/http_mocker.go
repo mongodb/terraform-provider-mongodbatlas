@@ -337,6 +337,7 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 			}
 		}
 		response := request.Responses[nextIndex]
+		// cannot return a response that is sent after a diff response
 		if response.ResponseIndex > nextDiffResponse {
 			prevIndex := nextIndex - 1
 			if prevIndex >= 0 && r.allowReUse(method) {
@@ -347,7 +348,6 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 			continue
 		}
 		r.usedResponses[requestID]++
-		// cannot return a response that is sent after a diff response
 		return replaceVars(response.Text, r.vars), response.Status, nil
 	}
 	return "", 0, fmt.Errorf("no matching request found %s %s %s", method, urlPath, version)
