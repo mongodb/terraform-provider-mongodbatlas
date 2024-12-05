@@ -55,7 +55,7 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 		change_stream_options_pre_and_post_images_expire_after_seconds = 100
 		default_read_concern                                           = "available"
 		default_write_concern                                          = "majority"
-		javascript_enabled                                             = false
+		javascript_enabled                                             = true
 		minimum_enabled_tls_protocol                                   = "TLS1_0"
 		no_table_scan                                                  = true
 		sample_refresh_interval_bi_connector                           = 310
