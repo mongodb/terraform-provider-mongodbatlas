@@ -82,11 +82,12 @@ func TestMockRoundTripper(t *testing.T) {
 		"orgId":            orgID,
 		"resourcePolicyId": resourcePolicyID,
 	}
-	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true})
+	mockTransport, nextStep, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true})
 	client := &http.Client{
 		Transport: mockTransport,
 	}
 	// Error check
+	nextStep()
 	unknownRequest := request("GET", "/v1/cluster/123", "")
 	resp, err := client.Do(unknownRequest)
 	require.ErrorContains(t, err, "no matching request found")
@@ -101,6 +102,7 @@ func TestMockRoundTripper(t *testing.T) {
 	err = checkFunc(nil)
 	require.NoError(t, err)
 	// Step 2
+	nextStep()
 	patchRequest := request("PATCH", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID), reqPoliciesUpdateBody)
 	resp, err = client.Do(patchRequest)
 	require.NoError(t, err)
@@ -112,6 +114,7 @@ func TestMockRoundTripper(t *testing.T) {
 	assert.Equal(t, resourcePolicyID, policyResp.GetId())
 
 	// Step 3
+	nextStep()
 	// First GET request OK
 	// Second GET request OK
 	getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID), "")
@@ -152,10 +155,11 @@ func TestMockRoundTripperAllowReRead(t *testing.T) {
 		"orgId":            orgID,
 		"resourcePolicyId": resourcePolicyID,
 	}
-	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowReReadGet: true, AllowMissingRequests: true})
+	mockTransport, nextStep, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowReReadGet: true, AllowMissingRequests: true})
 	client := &http.Client{
 		Transport: mockTransport,
 	}
+	nextStep()
 	for range []int{0, 1, 2} {
 		getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID), "")
 		resp, err := client.Do(getRequest)

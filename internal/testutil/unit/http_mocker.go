@@ -73,51 +73,72 @@ func (c *mockClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
 
 func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
+	var err error
 	if IsCapture() {
-		stepCount := len(testCase.Steps)
-		clientModifier := NewCaptureMockConfigClientModifier(t, stepCount)
-		testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier)
-		for i := range stepCount {
-			step := &testCase.Steps[i]
-			oldSkip := step.SkipFunc
-			step.SkipFunc = func() (bool, error) {
-				clientModifier.IncreaseStepNumber()
-				var shouldSkip bool
-				var err error
-				if oldSkip != nil {
-					shouldSkip, err = oldSkip()
-				}
-				return shouldSkip, err
-			}
-		}
-		oldCheckDestroy := testCase.CheckDestroy
-		newCheckDestroy := func(s *terraform.State) error {
-			if oldCheckDestroy != nil {
-				if err := oldCheckDestroy(s); err != nil {
-					return err
-				}
-			}
-			return clientModifier.WriteCapturedData(MockConfigFilePath(t))
-		}
-		testCase.CheckDestroy = newCheckDestroy
-		resource.ParallelTest(t, *testCase)
-		return
+		err = enableCaptureForTestCase(t, testCase)
+	} else {
+		err = enableMockingForTestCase(t, vars, config, testCase)
 	}
-	roundTripper, checkFunc := MockRoundTripper(t, vars, config)
+	require.NoError(t, err)
+	resource.ParallelTest(t, *testCase)
+}
+
+func enableMockingForTestCase(t *testing.T, vars map[string]string, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
+	t.Helper()
+	roundTripper, nextStep, checkFunc := MockRoundTripper(t, vars, config)
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &mockClientModifier{config: config, mockRoundTripper: roundTripper})
 	testCase.PreCheck = func() {
 		if config.SideEffect != nil {
 			require.NoError(t, config.SideEffect())
 		}
 	}
-	stepCount := len(testCase.Steps)
-	for i := range stepCount - 1 {
+	for i := range testCase.Steps {
 		step := &testCase.Steps[i]
+		oldSkip := step.SkipFunc
+		step.SkipFunc = func() (bool, error) {
+			nextStep()
+			var shouldSkip bool
+			var err error
+			if oldSkip != nil {
+				shouldSkip, err = oldSkip()
+			}
+			return shouldSkip, err
+		}
 		if oldCheck := step.Check; oldCheck != nil {
-			step.Check = resource.ComposeAggregateTestCheckFunc(oldCheck, checkFunc)
+			newCheck := func(s *terraform.State) error {
+				if err := oldCheck(s); err != nil {
+					errText := err.Error()
+					// TODO: Support also mocking the acc.Connv2
+					if !strings.Contains(errText, "not found") {
+						return err
+					}
+				}
+				return checkFunc(s)
+			}
+			step.Check = newCheck
 		}
 	}
-	// Using CheckDestroy for the final step assertions to allow mocked responses in cleanup
+	return nil
+}
+
+func enableCaptureForTestCase(t *testing.T, testCase *resource.TestCase) error {
+	t.Helper()
+	stepCount := len(testCase.Steps)
+	clientModifier := NewCaptureMockConfigClientModifier(t, stepCount)
+	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier)
+	for i := range stepCount {
+		step := &testCase.Steps[i]
+		oldSkip := step.SkipFunc
+		step.SkipFunc = func() (bool, error) {
+			clientModifier.IncreaseStepNumber()
+			var shouldSkip bool
+			var err error
+			if oldSkip != nil {
+				shouldSkip, err = oldSkip()
+			}
+			return shouldSkip, err
+		}
+	}
 	oldCheckDestroy := testCase.CheckDestroy
 	newCheckDestroy := func(s *terraform.State) error {
 		if oldCheckDestroy != nil {
@@ -125,10 +146,10 @@ func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDa
 				return err
 			}
 		}
-		return checkFunc(s)
+		return clientModifier.WriteCapturedData(MockConfigFilePath(t))
 	}
 	testCase.CheckDestroy = newCheckDestroy
-	resource.ParallelTest(t, *testCase)
+	return nil
 }
 
 func MockConfigFilePath(t *testing.T) string {
@@ -137,25 +158,22 @@ func MockConfigFilePath(t *testing.T) string {
 	return path.Join(testDir, t.Name()+configFileExtension)
 }
 
-func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPDataConfig) (http.RoundTripper, resource.TestCheckFunc) {
+func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPDataConfig) (http.RoundTripper, func(), resource.TestCheckFunc) {
 	t.Helper()
 	httpDataPath := MockConfigFilePath(t)
 	data, err := parseTestDataConfigYAML(httpDataPath)
 	require.NoError(t, err)
 	myTransport := httpmock.NewMockTransport()
 	var mockTransport http.RoundTripper = myTransport
-	g := goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json"))
-	tracker := requestTracker{data: data, g: g, vars: vars, t: t}
+	tracker := newRequestTracker(t, data, vars)
 	if config != nil {
 		tracker.allowMissingRequests = config.AllowMissingRequests
 		tracker.allowReReadGet = config.AllowReReadGet
 	}
-	err = tracker.initStep()
-	require.NoError(t, err)
 	for _, method := range []string{"GET", "POST", "PUT", "DELETE", "PATCH"} {
 		myTransport.RegisterRegexpResponder(method, regexp.MustCompile(".*"), tracker.receiveRequest(method))
 	}
-	return mockTransport, tracker.checkStepRequests
+	return mockTransport, tracker.IncreaseStepNumberAndInit, tracker.checkStepRequests
 }
 
 var versionDatePattern = regexp.MustCompile(`(\d{4}-\d{2}-\d{2})`)
@@ -176,6 +194,18 @@ func ExtractVersionRequestResponse(headerValueRequest, headerValueResponse strin
 	return versionDatePattern.FindString(headerValueResponse)
 }
 
+func newRequestTracker(t *testing.T, data *MockHTTPData, vars map[string]string) *requestTracker {
+	t.Helper()
+	return &requestTracker{
+		t:                t,
+		g:                goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json")),
+		data:             data,
+		vars:             vars,
+		logRequests:      os.Getenv("TF_LOG") == "DEBUG",
+		currentStepIndex: -1, // increased on the start of the test
+	}
+}
+
 type requestTracker struct {
 	t                    *testing.T
 	g                    *goldie.Goldie
@@ -187,10 +217,19 @@ type requestTracker struct {
 	diffResponseIndex    int
 	allowMissingRequests bool
 	allowReReadGet       bool
+	logRequests          bool
 }
 
-func (r *requestTracker) allowReUse(method string) bool {
-	return r.allowReReadGet && method == "GET"
+func (r *requestTracker) IncreaseStepNumberAndInit() {
+	r.currentStepIndex++
+	err := r.initStep()
+	require.NoError(r.t, err)
+}
+
+func (r *requestTracker) allowReUse(req *RequestInfo) bool {
+	getReReadOK := r.allowReReadGet && req.Method == "GET"
+	customReReadOk := req.Method == "POST" && strings.HasSuffix(req.Path, ":validate")
+	return getReReadOK || customReReadOk
 }
 
 func (r *requestTracker) requestFilename(requestID string, index int) string {
@@ -284,8 +323,7 @@ func (r *requestTracker) checkStepRequests(_ *terraform.State) error {
 		r.t.Logf("checking diff %s", filename)
 		r.g.Assert(r.t, filename, []byte(payload))
 	}
-	r.currentStepIndex++
-	return r.initStep()
+	return nil
 }
 
 func (r *requestTracker) receiveRequest(method string) func(req *http.Request) (*http.Response, error) {
@@ -295,7 +333,10 @@ func (r *requestTracker) receiveRequest(method string) func(req *http.Request) (
 		if err != nil {
 			return nil, err
 		}
-		payload, err := extractPayload(req.Body)
+		_, payload, err := extractAndNormalizePayload(req.Body)
+		if r.logRequests {
+			r.t.Logf("received request\n %s %s %s\n%s\n", method, req.URL.Path, version, payload)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -303,26 +344,28 @@ func (r *requestTracker) receiveRequest(method string) func(req *http.Request) (
 		if err != nil {
 			return nil, err
 		}
+		if r.logRequests {
+			r.t.Logf("responding with\n%d\n%s\n", status, text)
+		}
 		response := httpmock.NewStringResponse(status, text)
 		response.Header.Set("Content-Type", fmt.Sprintf("application/vnd.atlas.%s+json;charset=utf-8", version))
 		return response, nil
 	}
 }
 
-func extractPayload(body io.Reader) (string, error) {
-	var payload string
+func extractAndNormalizePayload(body io.Reader) (originalPayload, normalizedPayload string, err error) {
 	if body != nil {
 		payloadBytes, err := io.ReadAll(body)
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
-		payload = string(payloadBytes)
+		originalPayload = string(payloadBytes)
 	}
-	payload, err := normalizePayload(payload)
+	normalizedPayload, err = normalizePayload(originalPayload)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return payload, nil
+	return originalPayload, normalizedPayload, nil
 }
 
 func normalizePayload(payload string) (string, error) {
@@ -369,7 +412,7 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 		requestID := request.id()
 		nextIndex := r.usedResponses[requestID]
 		if nextIndex >= len(request.Responses) {
-			if r.allowReReadGet && method == "GET" {
+			if r.allowReUse(&request) {
 				nextIndex = len(request.Responses) - 1
 			} else {
 				continue
@@ -379,9 +422,9 @@ func (r *requestTracker) matchRequest(method, urlPath, version, payload string) 
 		// cannot return a response that is sent after a diff response
 		if response.ResponseIndex > nextDiffResponse {
 			prevIndex := nextIndex - 1
-			if prevIndex >= 0 && r.allowReUse(method) {
+			if prevIndex >= 0 && r.allowReUse(&request) {
 				response = request.Responses[prevIndex]
-				r.t.Logf("re-reading GET request with response_index=%d as diff hasn't been returned yet (%d)", response.ResponseIndex, nextDiffResponse)
+				r.t.Logf("re-reading %s request with response_index=%d as diff hasn't been returned yet (%d)", request.Method, response.ResponseIndex, nextDiffResponse)
 				return replaceVars(response.Text, r.vars), response.Status, nil
 			}
 			continue

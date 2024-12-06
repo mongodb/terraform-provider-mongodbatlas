@@ -14,7 +14,7 @@ import (
 )
 
 func defaultIsDiff(rt *RoundTrip) bool {
-	return rt.Request.Method != "GET"
+	return rt.Request.Method != "GET" && !strings.HasSuffix(rt.Request.Path, ":validate")
 }
 
 func NewCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int) *CaptureMockConfigClientModifier {
@@ -52,11 +52,11 @@ func (c *CaptureMockConfigClientModifier) ModifyHTTPClient(httpClient *http.Clie
 
 func (c *CaptureMockConfigClientModifier) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Capture request body to avoid it being consumed
-	requestBody, err := extractPayload(req.Body)
+	originalBody, normalizedBody, err := extractAndNormalizePayload(req.Body)
 	if err != nil {
 		return nil, err
 	}
-	req.Body = io.NopCloser(strings.NewReader(requestBody))
+	req.Body = io.NopCloser(strings.NewReader(originalBody))
 
 	resp, err := c.oldTransport.RoundTrip(req)
 	if err != nil {
@@ -65,7 +65,7 @@ func (c *CaptureMockConfigClientModifier) RoundTrip(req *http.Request) (*http.Re
 
 	c.responseIndex++
 	specPaths := apiSpecPaths[req.Method]
-	rt, parseError := parseRoundTrip(req, resp, c.responseIndex, c.stepNumber, &specPaths, requestBody)
+	rt, parseError := parseRoundTrip(req, resp, c.responseIndex, c.stepNumber, &specPaths, normalizedBody)
 	if parseError != nil {
 		c.t.Logf("error parsing round trip: %s", parseError)
 		return resp, err
@@ -118,12 +118,12 @@ func parseRoundTrip(req *http.Request, resp *http.Response, responseIndex, stepN
 	if err != nil {
 		return nil, err
 	}
-	responsePayload, err := extractPayload(resp.Body)
+	originalResponsePayload, responsePayload, err := extractAndNormalizePayload(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 	// Write back response body to support reading it again
-	resp.Body = io.NopCloser(strings.NewReader(responsePayload))
+	resp.Body = io.NopCloser(strings.NewReader(originalResponsePayload))
 	return &RoundTrip{
 		Request:    parseRequestInfo(req, version, requestPayload),
 		Response:   parseStatusText(resp, responsePayload, responseIndex),

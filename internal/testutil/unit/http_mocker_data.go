@@ -10,10 +10,10 @@ import (
 )
 
 type statusText struct {
-	Text               string
-	ResponseIndex      int
-	Status             int
-	DuplicateResponses int
+	Text               string `yaml:"text"`
+	ResponseIndex      int    `yaml:"response_index"`
+	Status             int    `yaml:"status"`
+	DuplicateResponses int    `yaml:"duplicate_responses"`
 }
 
 func (s statusText) MarshalYAML() (interface{}, error) {
