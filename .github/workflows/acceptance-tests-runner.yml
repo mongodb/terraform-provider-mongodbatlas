@@ -368,7 +368,7 @@ jobs:
       - name: Prepare new advanced_cluster
         run: make tools enable-advancedclustertpf  
       - name: Unit tests # delete after allowAdvancedClusterV2Schema is removed
-        run: go test ./internal/testutil/acc/tpf_converter_test.go 
+        run: go test -v ./internal/testutil/acc/advanced_cluster_schema_v2_test.go
       - name: Mocked Acceptance Tests
         env:
           ACCTEST_REGEX_RUN: '^TestMock'

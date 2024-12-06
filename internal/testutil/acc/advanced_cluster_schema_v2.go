@@ -1,6 +1,7 @@
 package acc
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/hcl/v2"
@@ -13,6 +14,44 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func ConvertToTPFAttrsMap(attrsMap map[string]string) map[string]string {
+	if !config.AdvancedClusterV2Schema() {
+		return attrsMap
+	}
+	ret := make(map[string]string, len(attrsMap))
+	for name, value := range attrsMap {
+		ret[attrNameToSchemaV2(name)] = value
+	}
+	return ret
+}
+
+func ConvertToTPFAttrsSet(attrsSet []string) []string {
+	if !config.AdvancedClusterV2Schema() {
+		return attrsSet
+	}
+	ret := make([]string, 0, len(attrsSet))
+	for _, name := range attrsSet {
+		ret = append(ret, attrNameToSchemaV2(name))
+	}
+	return ret
+}
+
+var tpfSingleNestedAttrs = []string{
+	"analytics_specs",
+	"electable_specs",
+	"read_only_specs",
+	"auto_scaling", // includes analytics_auto_scaling
+	"advanced_configuration",
+	"bi_connector_config",
+}
+
+func attrNameToSchemaV2(name string) string {
+	for _, singleAttrName := range tpfSingleNestedAttrs {
+		name = strings.ReplaceAll(name, singleAttrName+".0", singleAttrName)
+	}
+	return name
+}
 
 func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 	t.Helper()
@@ -35,6 +74,14 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 	}
 	content := parse.Bytes()
 	return string(content)
+}
+
+func ConvertAdvancedClusterToTPFIfEnabled(t *testing.T, enabled bool, def string) string {
+	t.Helper()
+	if enabled {
+		return ConvertAdvancedClusterToTPF(t, def)
+	}
+	return def
 }
 
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {
