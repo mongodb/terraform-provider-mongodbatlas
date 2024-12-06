@@ -23,7 +23,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const envNameHTTPMockerCapture = "HTTP_MOCKER_CAPTURE"
+const (
+	EnvNameHTTPMockerCapture = "HTTP_MOCKER_CAPTURE"
+	configFileExtension      = ".yaml"
+)
 
 func replaceVars(text string, vars map[string]string) string {
 	for key, value := range vars {
@@ -39,15 +42,15 @@ type MockHTTPDataConfig struct {
 }
 
 func IsCapture() bool {
-	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(envNameHTTPMockerCapture)))
+	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerCapture)))
 }
 
-func parseTestDataConfigYAML(filePath string) (*mockHTTPData, error) {
+func parseTestDataConfigYAML(filePath string) (*MockHTTPData, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
-	var testData mockHTTPData
+	var testData MockHTTPData
 	err = yaml.Unmarshal(data, &testData)
 	if err != nil {
 		return nil, err
@@ -72,7 +75,7 @@ func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDa
 	t.Helper()
 	if IsCapture() {
 		stepCount := len(testCase.Steps)
-		clientModifier := newCaptureMockConfigClientModifier(t, stepCount)
+		clientModifier := NewCaptureMockConfigClientModifier(t, stepCount)
 		testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier)
 		for i := range stepCount {
 			step := &testCase.Steps[i]
@@ -131,7 +134,7 @@ func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDa
 func MockConfigFilePath(t *testing.T) string {
 	t.Helper()
 	testDir := "testdata"
-	return path.Join(testDir, t.Name()+".yaml")
+	return path.Join(testDir, t.Name()+configFileExtension)
 }
 
 func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPDataConfig) (http.RoundTripper, resource.TestCheckFunc) {
@@ -165,10 +168,18 @@ func ExtractVersion(contentType string) (string, error) {
 	return "", fmt.Errorf("could not extract version from %s header", contentType)
 }
 
+func ExtractVersionRequestResponse(headerValueRequest, headerValueResponse string) string {
+	found := versionDatePattern.FindString(headerValueRequest)
+	if found != "" {
+		return found
+	}
+	return versionDatePattern.FindString(headerValueResponse)
+}
+
 type requestTracker struct {
 	t                    *testing.T
 	g                    *goldie.Goldie
-	data                 *mockHTTPData
+	data                 *MockHTTPData
 	vars                 map[string]string
 	usedResponses        map[string]int
 	foundsDiffs          map[int]string

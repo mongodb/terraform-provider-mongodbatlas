@@ -21,6 +21,17 @@ func TestExtractVersion(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "2022-06-01", version)
 }
+
+func TestExtractVersionRequestResponse(t *testing.T) {
+	version := unit.ExtractVersionRequestResponse("application/json;", "application/vnd.atlas.2023-01-01+json;charset=utf-8")
+	require.Equal(t, "2023-01-01", version)
+}
+
+func TestExtractVersionRequestResponseNotFOund(t *testing.T) {
+	version := unit.ExtractVersionRequestResponse("application/json;", "application/vnd.atlas.2023-01+json;charset=utf-8")
+	require.Equal(t, "", version)
+}
+
 func TestRequestInfo_Match(t *testing.T) {
 	req := unit.RequestInfo{
 		Version: "2022-06-01",
@@ -31,14 +42,18 @@ func TestRequestInfo_Match(t *testing.T) {
 	assert.False(t, req.Match("GET", "/v1/cluster/123", "2022-06-01", map[string]string{"cluster_id": "456"}))
 }
 
-func request(method, path string) *http.Request {
-	return &http.Request{
+func request(method, path, body string) *http.Request {
+	req := http.Request{
 		Method: method,
 		URL:    &url.URL{Path: path},
 		Header: http.Header{
 			"Accept": []string{"application/json; version=2024-08-05"},
 		},
 	}
+	if body != "" {
+		req.Body = io.NopCloser(strings.NewReader(body))
+	}
+	return &req
 }
 
 const reqPoliciesCreateBody = `{
@@ -72,14 +87,13 @@ func TestMockRoundTripper(t *testing.T) {
 		Transport: mockTransport,
 	}
 	// Error check
-	unknownRequest := request("GET", "/v1/cluster/123")
+	unknownRequest := request("GET", "/v1/cluster/123", "")
 	resp, err := client.Do(unknownRequest)
 	require.ErrorContains(t, err, "no matching request found")
 	assert.Nil(t, resp)
 
 	// Step 1
-	createRequest := request("POST", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID))
-	createRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesCreateBody))
+	createRequest := request("POST", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID), reqPoliciesCreateBody)
 	resp, err = client.Do(createRequest)
 
 	require.NoError(t, err)
@@ -87,8 +101,7 @@ func TestMockRoundTripper(t *testing.T) {
 	err = checkFunc(nil)
 	require.NoError(t, err)
 	// Step 2
-	patchRequest := request("PATCH", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID))
-	patchRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesUpdateBody))
+	patchRequest := request("PATCH", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID), reqPoliciesUpdateBody)
 	resp, err = client.Do(patchRequest)
 	require.NoError(t, err)
 	err = checkFunc(nil)
@@ -101,7 +114,7 @@ func TestMockRoundTripper(t *testing.T) {
 	// Step 3
 	// First GET request OK
 	// Second GET request OK
-	getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID))
+	getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID), "")
 	_, err = client.Do(getRequest)
 	require.NoError(t, err)
 	_, err = client.Do(getRequest)
@@ -111,8 +124,7 @@ func TestMockRoundTripper(t *testing.T) {
 	require.ErrorContains(t, err, "no matching request found")
 
 	// Test _manual diff file (set to {} instead of '')
-	validateRequest := request("DELETE", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID))
-	validateRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesManualValidateDelete))
+	validateRequest := request("DELETE", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID), reqPoliciesManualValidateDelete)
 	_, err = client.Do(validateRequest)
 	require.NoError(t, err)
 	// Fourth GET request OK, since we have gotten the diff
@@ -145,13 +157,12 @@ func TestMockRoundTripperAllowReRead(t *testing.T) {
 		Transport: mockTransport,
 	}
 	for range []int{0, 1, 2} {
-		getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID))
+		getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID), "")
 		resp, err := client.Do(getRequest)
 		require.NoError(t, err)
 		assert.Equal(t, "returned again", parseMapStringAny(t, resp)["expect"])
 	}
-	createRequest := request("POST", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID))
-	createRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesCreateBody))
+	createRequest := request("POST", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID), reqPoliciesCreateBody)
 	resp, err := client.Do(createRequest)
 
 	require.NoError(t, err)

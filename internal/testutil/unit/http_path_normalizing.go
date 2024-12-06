@@ -40,7 +40,7 @@ func (a *APISpecPath) Match(path string) bool {
 	return true
 }
 
-func findNormalizedPath(path string, apiSpecPaths *[]APISpecPath) (APISpecPath, error) {
+func FindNormalizedPath(path string, apiSpecPaths *[]APISpecPath) (APISpecPath, error) {
 	if strings.Contains(path, "?") {
 		path = strings.Split(path, "?")[0]
 	}

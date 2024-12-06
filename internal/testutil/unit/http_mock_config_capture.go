@@ -2,10 +2,13 @@ package unit
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
-	"regexp"
+	"path"
+	"strings"
 	"testing"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -14,99 +17,104 @@ func defaultIsDiff(rt *RoundTrip) bool {
 	return rt.Request.Method != "GET"
 }
 
-func newCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int) *captureMockConfigClientModifier {
+func NewCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int) *CaptureMockConfigClientModifier {
 	t.Helper()
-	// TODO: Support reading these from a file
-	apiSpecPaths := map[string][]APISpecPath{}
-	return &captureMockConfigClientModifier{
+	return &CaptureMockConfigClientModifier{
 		t:                 t,
-		apiSpecPaths:      apiSpecPaths,
 		expectedStepCount: expectedStepCount,
 		isDiff:            defaultIsDiff,
-		capturedData:      newMockHTTPData(expectedStepCount),
+		capturedData:      NewMockHTTPData(expectedStepCount),
 	}
 }
 
-type captureMockConfigClientModifier struct {
+type CaptureMockConfigClientModifier struct {
 	oldTransport      http.RoundTripper
 	t                 *testing.T
 	isDiff            func(*RoundTrip) bool
-	apiSpecPaths      map[string][]APISpecPath
-	capturedData      mockHTTPData
+	capturedData      MockHTTPData
 	expectedStepCount int
 	responseIndex     int
 	stepNumber        int
 }
 
-func (c *captureMockConfigClientModifier) IncreaseStepNumber() {
+func (c *CaptureMockConfigClientModifier) IncreaseStepNumber() {
 	c.stepNumber++
 }
 
-func (c *captureMockConfigClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
+func (c *CaptureMockConfigClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
 	if !IsCapture() {
-		return fmt.Errorf("cannot use capture modifier without %s='yes|true|1'", envNameHTTPMockerCapture)
+		return fmt.Errorf("cannot use capture modifier without %s='yes|true|1'", EnvNameHTTPMockerCapture)
 	}
 	c.oldTransport = httpClient.Transport
 	httpClient.Transport = c
 	return nil
 }
 
-func (c *captureMockConfigClientModifier) RoundTrip(req *http.Request) (*http.Response, error) {
+func (c *CaptureMockConfigClientModifier) RoundTrip(req *http.Request) (*http.Response, error) {
+	// Capture request body to avoid it being consumed
+	requestBody, err := extractPayload(req.Body)
+	if err != nil {
+		return nil, err
+	}
+	req.Body = io.NopCloser(strings.NewReader(requestBody))
+
 	resp, err := c.oldTransport.RoundTrip(req)
 	if err != nil {
 		return nil, err
 	}
+
 	c.responseIndex++
-	specPaths := c.apiSpecPaths[req.Method]
-	rt, parseError := parseRoundTrip(c.t, req, resp, c.responseIndex, c.stepNumber, &specPaths)
+	specPaths := apiSpecPaths[req.Method]
+	rt, parseError := parseRoundTrip(req, resp, c.responseIndex, c.stepNumber, &specPaths, requestBody)
 	if parseError != nil {
 		c.t.Logf("error parsing round trip: %s", parseError)
 		return resp, err
 	}
-	addError := c.capturedData.AddRT(c.t, rt, c.isDiff(rt))
+	addError := c.capturedData.AddRoundtrip(c.t, rt, c.isDiff(rt))
 	if addError != nil {
 		c.t.Logf("error adding round trip: %s", addError)
 	}
 	return resp, err
 }
 
-func (c *captureMockConfigClientModifier) WriteCapturedData(path string) error {
+func (c *CaptureMockConfigClientModifier) ConfigYaml() (string, error) {
+	initialYaml := strings.Builder{}
+	e := yaml.NewEncoder(&initialYaml)
+	e.SetIndent(1)
+	err := e.Encode(c.capturedData)
+	return initialYaml.String(), err
+}
+
+func (c *CaptureMockConfigClientModifier) WriteCapturedData(filePath string) error {
 	if c.stepNumber != c.expectedStepCount {
+		filePath = FailedFilename(filePath)
 		c.t.Logf("expected %d steps, but got %d, skipping config dump", c.expectedStepCount, c.stepNumber)
 	}
-	// will override content if file exists
-	configYaml, err := yaml.Marshal(c.capturedData)
+	configYaml, err := c.ConfigYaml()
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(path, configYaml, 0o600)
+	// will override content if file exists
+	err = os.WriteFile(filePath, []byte(configYaml), 0o600)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-var datePattern = regexp.MustCompile(`\d{4}-\d{2}-\d{2}`)
-
-func extractVersion(headerValueRequest, headerValueResponse string) string {
-	found := datePattern.FindString(headerValueRequest)
-	if found != "" {
-		return found
-	}
-	return datePattern.FindString(headerValueResponse)
+func FailedFilename(filePath string) string {
+	dirName := path.Dir(filePath)
+	formattedTime := time.Now().Format("2006-01-02-15-04")
+	stem, _ := strings.CutSuffix(path.Base(filePath), configFileExtension)
+	return path.Join(dirName, fmt.Sprintf("%s_failed_%s", stem, formattedTime)) + configFileExtension
 }
 
-func parseRoundTrip(t *testing.T, req *http.Request, resp *http.Response, responseIndex, stepNumber int, specPaths *[]APISpecPath) (*RoundTrip, error) {
-	t.Helper()
-	version := extractVersion(req.Header.Get("Accept"), resp.Header.Get("Content-Type"))
+func parseRoundTrip(req *http.Request, resp *http.Response, responseIndex, stepNumber int, specPaths *[]APISpecPath, requestPayload string) (*RoundTrip, error) {
+	version := ExtractVersionRequestResponse(req.Header.Get("Accept"), resp.Header.Get("Content-Type"))
 	if version == "" {
-		t.Logf("could not find version in request or response headers for responseIndex %d", responseIndex)
+		return nil, fmt.Errorf("could not find version in request or response headers for responseIndex %d", responseIndex)
 	}
-	normalizedPath, err := findNormalizedPath(req.URL.Path, specPaths)
-	if err != nil {
-		return nil, err
-	}
-	requestPayload, err := extractPayload(req.Body)
+	normalizedPath, err := FindNormalizedPath(req.URL.Path, specPaths)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +122,8 @@ func parseRoundTrip(t *testing.T, req *http.Request, resp *http.Response, respon
 	if err != nil {
 		return nil, err
 	}
+	// Write back response body to support reading it again
+	resp.Body = io.NopCloser(strings.NewReader(responsePayload))
 	return &RoundTrip{
 		Request:    parseRequestInfo(req, version, requestPayload),
 		Response:   parseStatusText(resp, responsePayload, responseIndex),

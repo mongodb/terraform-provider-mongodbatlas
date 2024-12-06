@@ -7,17 +7,17 @@ import (
 	"testing"
 )
 
-type statusText struct {
-	Text               string `yaml:"text"`
-	Status             int    `yaml:"status"`
+type statusText struct { //nolint:govet // fieldalignment error ignored, want a specific order when dumping to yaml
 	ResponseIndex      int    `yaml:"response_index"`
+	Status             int    `yaml:"status"`
 	DuplicateResponses int    `yaml:"duplicate_responses,omitempty"`
+	Text               string `yaml:"text"`
 }
 
 type RequestInfo struct {
-	Version   string       `yaml:"version"`
-	Method    string       `yaml:"method"`
 	Path      string       `yaml:"path"`
+	Method    string       `yaml:"method"`
+	Version   string       `yaml:"version"`
 	Text      string       `yaml:"text"`
 	Responses []statusText `yaml:"responses"`
 }
@@ -55,32 +55,31 @@ func (s *stepRequests) findRequest(request *RequestInfo) (*RequestInfo, bool) {
 func (s *stepRequests) AddRequest(request *RequestInfo, isDiff bool) {
 	if isDiff {
 		s.DiffRequests = append(s.DiffRequests, *request)
-	} else {
-		existing, found := s.findRequest(request)
-		if found {
-			lastResponse := existing.Responses[len(existing.Responses)-1]
-			newResponse := request.Responses[0]
-			if lastResponse.Status == newResponse.Status && lastResponse.Text == newResponse.Text {
-				lastResponse.DuplicateResponses++
-			} else {
-				existing.Responses = append(existing.Responses, request.Responses[0])
-			}
+	}
+	existing, found := s.findRequest(request)
+	if found {
+		lastResponse := existing.Responses[len(existing.Responses)-1]
+		newResponse := request.Responses[0]
+		if lastResponse.Status == newResponse.Status && lastResponse.Text == newResponse.Text {
+			lastResponse.DuplicateResponses++
 		} else {
-			s.RequestResponses = append(s.RequestResponses, *request)
+			existing.Responses = append(existing.Responses, request.Responses[0])
 		}
+	} else {
+		s.RequestResponses = append(s.RequestResponses, *request)
 	}
 }
 
 type RoundTrip struct {
 	Variables  map[string]string
-	Request    RequestInfo
 	Response   statusText
+	Request    RequestInfo
 	StepNumber int
 }
 
-func newMockHTTPData(stepCount int) mockHTTPData {
+func NewMockHTTPData(stepCount int) MockHTTPData {
 	steps := make([]stepRequests, stepCount)
-	return mockHTTPData{
+	return MockHTTPData{
 		StepCount: stepCount,
 		Steps:     steps,
 		Variables: map[string]string{},
@@ -98,17 +97,33 @@ type VariablesChangedError struct {
 	Changes []VariableChange
 }
 
-func (e *VariablesChangedError) Error() string {
+func (e VariablesChangedError) Error() string {
 	return fmt.Sprintf("variables changed: %v", e.Changes)
 }
 
-type mockHTTPData struct {
+func (e VariablesChangedError) ChangedNamesMap() map[string]string {
+	result := map[string]string{}
+	for _, change := range e.Changes {
+		result[change.OldName] = change.NewName
+	}
+	return result
+}
+
+func (e VariablesChangedError) ChangedValuesMap() map[string]string {
+	result := map[string]string{}
+	for _, change := range e.Changes {
+		result[change.OldValue] = change.NewValue
+	}
+	return result
+}
+
+type MockHTTPData struct {
 	Variables map[string]string `yaml:"variables"`
 	Steps     []stepRequests    `yaml:"steps"`
 	StepCount int               `yaml:"step_count"`
 }
 
-func (m *mockHTTPData) AddRT(t *testing.T, rt *RoundTrip, isDiff bool) error {
+func (m *MockHTTPData) AddRoundtrip(t *testing.T, rt *RoundTrip, isDiff bool) error {
 	t.Helper()
 	rtVariables := rt.Variables
 	err := m.UpdateVariables(t, rtVariables)
@@ -121,7 +136,7 @@ func (m *mockHTTPData) AddRT(t *testing.T, rt *RoundTrip, isDiff bool) error {
 		return err
 	}
 	normalizedPath := useVariables(rtVariables, rt.Request.Path)
-	step := &m.Steps[rt.StepNumber]
+	step := &m.Steps[rt.StepNumber-1]
 	requestInfo := RequestInfo{
 		Version: rt.Request.Version,
 		Method:  rt.Request.Method,
@@ -139,7 +154,7 @@ func (m *mockHTTPData) AddRT(t *testing.T, rt *RoundTrip, isDiff bool) error {
 	return nil
 }
 
-func (m *mockHTTPData) UpdateVariables(t *testing.T, variables map[string]string) error {
+func (m *MockHTTPData) UpdateVariables(t *testing.T, variables map[string]string) error {
 	t.Helper()
 	var missingValue []string
 	for name, value := range variables {
@@ -151,7 +166,6 @@ func (m *mockHTTPData) UpdateVariables(t *testing.T, variables map[string]string
 		sort.Strings(missingValue)
 		return fmt.Errorf("missing values for variables: %v", missingValue)
 	}
-
 	changes := []VariableChange{}
 	for name, value := range variables {
 		oldValue, exists := m.Variables[name]
@@ -161,6 +175,7 @@ func (m *mockHTTPData) UpdateVariables(t *testing.T, variables map[string]string
 				return err
 			}
 			changes = append(changes, *change)
+			m.Variables[change.NewName] = change.NewValue
 		} else {
 			m.Variables[name] = value
 		}

@@ -1,0 +1,327 @@
+variables:
+  clusterName: test-acc-tf-c-7871793563057636102
+  groupId: g1
+  groupId2: 6746ceed6f62fc3c122a3e0e
+steps:
+  - diff_requests:
+      - path: /api/atlas/v2/groups/{groupId}/clusters
+        method: POST
+        version: "2024-08-05"
+        text: |-
+          {
+           "clusterType": "REPLICASET",
+           "name": "test-acc-tf-c-7871793563057636102",
+           "replicationSpecs": [
+            {
+             "regionConfigs": [
+              {
+               "backingProviderName": "AWS",
+               "electableSpecs": {
+                "instanceSize": "M5",
+                "nodeCount": 0
+               },
+               "priority": 7,
+               "providerName": "TENANT",
+               "regionName": "US_EAST_1"
+              }
+             ],
+             "zoneName": "ZoneName managed by Terraform"
+            }
+           ]
+          }
+        responses:
+          - response_index: 1
+            status: 201
+            text: |-
+              {
+               "backupEnabled": true,
+               "biConnector": {
+                "enabled": false,
+                "readPreference": "secondary"
+               },
+               "clusterType": "REPLICASET",
+               "connectionStrings": {},
+               "createDate": "2024-11-27T07:49:10Z",
+               "diskWarmingMode": "FULLY_WARMED",
+               "encryptionAtRestProvider": "NONE",
+               "featureCompatibilityVersion": "8.0",
+               "globalClusterSelfManagedSharding": false,
+               "groupId": "6746ceed6f62fc3c122a3e0e",
+               "id": "6746cef66f62fc3c122a3fe9",
+               "labels": [],
+               "links": [
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/6746ceed6f62fc3c122a3e0e/clusters/test-acc-tf-c-7871793563057636102",
+                 "rel": "self"
+                },
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/6746ceed6f62fc3c122a3e0e/clusters/test-acc-tf-c-7871793563057636102/backup/restoreJobs",
+                 "rel": "https://cloud.mongodb.com/restoreJobs"
+                },
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/6746ceed6f62fc3c122a3e0e/clusters/test-acc-tf-c-7871793563057636102/backup/snapshots",
+                 "rel": "https://cloud.mongodb.com/snapshots"
+                }
+               ],
+               "mongoDBMajorVersion": "8.0",
+               "mongoDBVersion": "8.0.3",
+               "name": "test-acc-tf-c-7871793563057636102",
+               "paused": false,
+               "pitEnabled": false,
+               "redactClientLogData": false,
+               "replicationSpecs": [
+                {
+                 "id": "6746cef66f62fc3c122a3fcb",
+                 "regionConfigs": [
+                  {
+                   "backingProviderName": "AWS",
+                   "electableSpecs": {
+                    "diskSizeGB": 5,
+                    "effectiveInstanceSize": "M5",
+                    "instanceSize": "M5"
+                   },
+                   "priority": 7,
+                   "providerName": "TENANT",
+                   "regionName": "US_EAST_1"
+                  }
+                 ],
+                 "zoneId": "6746cef66f62fc3c122a3fc9",
+                 "zoneName": "ZoneName managed by Terraform"
+                }
+               ],
+               "rootCertType": "ISRGROOTX1",
+               "stateName": "CREATING",
+               "terminationProtectionEnabled": false,
+               "versionReleaseSystem": "LTS"
+              }
+    request_responses:
+      - path: /api/atlas/v2/groups/{groupId}/clusters
+        method: POST
+        version: "2024-08-05"
+        text: |-
+          {
+           "clusterType": "REPLICASET",
+           "name": "test-acc-tf-c-7871793563057636102",
+           "replicationSpecs": [
+            {
+             "regionConfigs": [
+              {
+               "backingProviderName": "AWS",
+               "electableSpecs": {
+                "instanceSize": "M5",
+                "nodeCount": 0
+               },
+               "priority": 7,
+               "providerName": "TENANT",
+               "regionName": "US_EAST_1"
+              }
+             ],
+             "zoneName": "ZoneName managed by Terraform"
+            }
+           ]
+          }
+        responses:
+          - response_index: 1
+            status: 201
+            text: |-
+              {
+               "backupEnabled": true,
+               "biConnector": {
+                "enabled": false,
+                "readPreference": "secondary"
+               },
+               "clusterType": "REPLICASET",
+               "connectionStrings": {},
+               "createDate": "2024-11-27T07:49:10Z",
+               "diskWarmingMode": "FULLY_WARMED",
+               "encryptionAtRestProvider": "NONE",
+               "featureCompatibilityVersion": "8.0",
+               "globalClusterSelfManagedSharding": false,
+               "groupId": "6746ceed6f62fc3c122a3e0e",
+               "id": "6746cef66f62fc3c122a3fe9",
+               "labels": [],
+               "links": [
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/6746ceed6f62fc3c122a3e0e/clusters/test-acc-tf-c-7871793563057636102",
+                 "rel": "self"
+                },
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/6746ceed6f62fc3c122a3e0e/clusters/test-acc-tf-c-7871793563057636102/backup/restoreJobs",
+                 "rel": "https://cloud.mongodb.com/restoreJobs"
+                },
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/6746ceed6f62fc3c122a3e0e/clusters/test-acc-tf-c-7871793563057636102/backup/snapshots",
+                 "rel": "https://cloud.mongodb.com/snapshots"
+                }
+               ],
+               "mongoDBMajorVersion": "8.0",
+               "mongoDBVersion": "8.0.3",
+               "name": "test-acc-tf-c-7871793563057636102",
+               "paused": false,
+               "pitEnabled": false,
+               "redactClientLogData": false,
+               "replicationSpecs": [
+                {
+                 "id": "6746cef66f62fc3c122a3fcb",
+                 "regionConfigs": [
+                  {
+                   "backingProviderName": "AWS",
+                   "electableSpecs": {
+                    "diskSizeGB": 5,
+                    "effectiveInstanceSize": "M5",
+                    "instanceSize": "M5"
+                   },
+                   "priority": 7,
+                   "providerName": "TENANT",
+                   "regionName": "US_EAST_1"
+                  }
+                 ],
+                 "zoneId": "6746cef66f62fc3c122a3fc9",
+                 "zoneName": "ZoneName managed by Terraform"
+                }
+               ],
+               "rootCertType": "ISRGROOTX1",
+               "stateName": "CREATING",
+               "terminationProtectionEnabled": false,
+               "versionReleaseSystem": "LTS"
+              }
+  - diff_requests: []
+    request_responses:
+      - path: /api/atlas/v2/groups/{groupId2}/clusters/{clusterName}
+        method: GET
+        version: "2024-08-05"
+        text: ""
+        responses:
+          - response_index: 2
+            status: 200
+            text: |-
+              {
+               "backupEnabled": true,
+               "biConnector": {
+                "enabled": false,
+                "readPreference": "secondary"
+               },
+               "clusterType": "REPLICASET",
+               "connectionStrings": {},
+               "createDate": "2024-11-27T07:49:10Z",
+               "diskWarmingMode": "FULLY_WARMED",
+               "encryptionAtRestProvider": "NONE",
+               "featureCompatibilityVersion": "8.0",
+               "globalClusterSelfManagedSharding": false,
+               "groupId": "{groupId2}",
+               "id": "6746cef66f62fc3c122a3fe9",
+               "labels": [],
+               "links": [
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}",
+                 "rel": "self"
+                },
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}/backup/restoreJobs",
+                 "rel": "https://cloud.mongodb.com/restoreJobs"
+                },
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}/backup/snapshots",
+                 "rel": "https://cloud.mongodb.com/snapshots"
+                }
+               ],
+               "mongoDBMajorVersion": "8.0",
+               "mongoDBVersion": "8.0.3",
+               "name": "{clusterName}",
+               "paused": false,
+               "pitEnabled": false,
+               "redactClientLogData": false,
+               "replicationSpecs": [
+                {
+                 "id": "6746cef66f62fc3c122a3fcb",
+                 "regionConfigs": [
+                  {
+                   "backingProviderName": "AWS",
+                   "electableSpecs": {
+                    "diskSizeGB": 5,
+                    "effectiveInstanceSize": "M5",
+                    "instanceSize": "M5"
+                   },
+                   "priority": 7,
+                   "providerName": "TENANT",
+                   "regionName": "US_EAST_1"
+                  }
+                 ],
+                 "zoneId": "6746cef66f62fc3c122a3fc9",
+                 "zoneName": "ZoneName managed by Terraform"
+                }
+               ],
+               "rootCertType": "ISRGROOTX1",
+               "stateName": "CREATING",
+               "terminationProtectionEnabled": false,
+               "versionReleaseSystem": "LTS"
+              }
+          - response_index: 3
+            status: 200
+            text: |-
+              {
+               "backupEnabled": true,
+               "biConnector": {
+                "enabled": false,
+                "readPreference": "secondary"
+               },
+               "clusterType": "REPLICASET",
+               "connectionStrings": {
+                "standard": "mongodb://ac-a43sbzi-shard-00-00.efwnixe.mongodb-dev.net:27017,ac-a43sbzi-shard-00-01.efwnixe.mongodb-dev.net:27017,ac-a43sbzi-shard-00-02.efwnixe.mongodb-dev.net:27017/?ssl=true\u0026authSource=admin\u0026replicaSet=atlas-13c9xc-shard-0",
+                "standardSrv": "mongodb+srv://test-acc-tf-c-787179356.efwnixe.mongodb-dev.net"
+               },
+               "createDate": "2024-11-27T07:49:10Z",
+               "diskWarmingMode": "FULLY_WARMED",
+               "encryptionAtRestProvider": "NONE",
+               "featureCompatibilityVersion": "8.0",
+               "globalClusterSelfManagedSharding": false,
+               "groupId": "{groupId2}",
+               "id": "6746cef66f62fc3c122a3fe9",
+               "labels": [],
+               "links": [
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}",
+                 "rel": "self"
+                },
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}/backup/restoreJobs",
+                 "rel": "https://cloud.mongodb.com/restoreJobs"
+                },
+                {
+                 "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}/backup/snapshots",
+                 "rel": "https://cloud.mongodb.com/snapshots"
+                }
+               ],
+               "mongoDBMajorVersion": "8.0",
+               "mongoDBVersion": "8.0.3",
+               "name": "{clusterName}",
+               "paused": false,
+               "pitEnabled": false,
+               "redactClientLogData": false,
+               "replicationSpecs": [
+                {
+                 "id": "6746cef66f62fc3c122a3fcb",
+                 "regionConfigs": [
+                  {
+                   "backingProviderName": "AWS",
+                   "electableSpecs": {
+                    "diskSizeGB": 5,
+                    "effectiveInstanceSize": "M5",
+                    "instanceSize": "M5"
+                   },
+                   "priority": 7,
+                   "providerName": "TENANT",
+                   "regionName": "US_EAST_1"
+                  }
+                 ],
+                 "zoneId": "6746cef66f62fc3c122a3fc9",
+                 "zoneName": "ZoneName managed by Terraform"
+                }
+               ],
+               "rootCertType": "ISRGROOTX1",
+               "stateName": "IDLE",
+               "tags": [],
+               "terminationProtectionEnabled": false,
+               "versionReleaseSystem": "LTS"
+              }
+step_count: 2
