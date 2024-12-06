@@ -5,13 +5,43 @@ import (
 	"sort"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 )
 
-type statusText struct { //nolint:govet // fieldalignment error ignored, want a specific order when dumping to yaml
-	ResponseIndex      int    `yaml:"response_index"`
-	Status             int    `yaml:"status"`
-	DuplicateResponses int    `yaml:"duplicate_responses,omitempty"`
-	Text               string `yaml:"text"`
+type statusText struct {
+	Text               string
+	ResponseIndex      int
+	Status             int
+	DuplicateResponses int
+}
+
+func (s statusText) MarshalYAML() (interface{}, error) {
+	childNodes := []*yaml.Node{
+		{Kind: yaml.ScalarNode, Value: "response_index"},
+		{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%d", s.ResponseIndex)},
+
+		{Kind: yaml.ScalarNode, Value: "status"},
+		{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%d", s.Status)},
+	}
+	if s.DuplicateResponses > 0 {
+		childNodes = append(childNodes,
+			&yaml.Node{Kind: yaml.ScalarNode, Value: "duplicate_responses"},
+			&yaml.Node{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%d", s.DuplicateResponses)},
+		)
+	}
+	childNodes = append(childNodes,
+		&yaml.Node{Kind: yaml.ScalarNode, Value: "text"},
+		&yaml.Node{Kind: yaml.ScalarNode, Value: s.Text, Tag: "!!str", Style: yaml.DoubleQuotedStyle},
+	)
+	return &yaml.Node{
+		Kind:    yaml.MappingNode,
+		Content: childNodes,
+	}, nil
+}
+
+func (s *statusText) IncreaseDuplicateResponses() {
+	s.DuplicateResponses++
 }
 
 type RequestInfo struct {
@@ -20,6 +50,35 @@ type RequestInfo struct {
 	Version   string       `yaml:"version"`
 	Text      string       `yaml:"text"`
 	Responses []statusText `yaml:"responses"`
+}
+
+// Custom marshaling is necessary to use `flow` style only on response fields (text and responses.*.text)
+func (i RequestInfo) MarshalYAML() (interface{}, error) { //nolint:gocritic // Using a pointer method leads to inconsistent dump results
+	responseNode := []*yaml.Node{}
+	for _, response := range i.Responses {
+		node, err := response.MarshalYAML()
+		if err != nil {
+			return nil, err
+		}
+		responseNode = append(responseNode, node.(*yaml.Node))
+	}
+	childNodes := []*yaml.Node{
+		{Kind: yaml.ScalarNode, Value: "path"},
+		{Kind: yaml.ScalarNode, Value: i.Path},
+		{Kind: yaml.ScalarNode, Value: "method"},
+		{Kind: yaml.ScalarNode, Value: i.Method},
+		{Kind: yaml.ScalarNode, Value: "version"},
+		{Kind: yaml.ScalarNode, Value: i.Version, Tag: "!!str", Style: yaml.SingleQuotedStyle},
+		{Kind: yaml.ScalarNode, Value: "text"},
+		{Kind: yaml.ScalarNode, Value: i.Text, Tag: "!!str", Style: yaml.DoubleQuotedStyle},
+		{Kind: yaml.ScalarNode, Value: "responses"},
+		{Kind: yaml.SequenceNode, Content: responseNode},
+	}
+	return &yaml.Node{
+		Kind:    yaml.MappingNode,
+		Style:   yaml.FoldedStyle,
+		Content: childNodes,
+	}, nil
 }
 
 func (i *RequestInfo) id() string {
@@ -61,7 +120,7 @@ func (s *stepRequests) AddRequest(request *RequestInfo, isDiff bool) {
 		lastResponse := existing.Responses[len(existing.Responses)-1]
 		newResponse := request.Responses[0]
 		if lastResponse.Status == newResponse.Status && lastResponse.Text == newResponse.Text {
-			lastResponse.DuplicateResponses++
+			existing.Responses[len(existing.Responses)-1].IncreaseDuplicateResponses()
 		} else {
 			existing.Responses = append(existing.Responses, request.Responses[0])
 		}
@@ -72,8 +131,8 @@ func (s *stepRequests) AddRequest(request *RequestInfo, isDiff bool) {
 
 type RoundTrip struct {
 	Variables  map[string]string
-	Response   statusText
 	Request    RequestInfo
+	Response   statusText
 	StepNumber int
 }
 
