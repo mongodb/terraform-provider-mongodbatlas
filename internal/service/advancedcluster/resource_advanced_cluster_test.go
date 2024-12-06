@@ -54,10 +54,10 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	resource.ParallelTest(t, replicaSetAWSProviderTestCase(t))
+	resource.ParallelTest(t, replicaSetAWSProviderTestCase(t, true))
 }
 
-func replicaSetAWSProviderTestCase(t *testing.T) resource.TestCase {
+func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	// TODO: Already prepared for TPF but getting this error:
 	// unexpected new value: .retain_backups_enabled: was cty.True, but now null.
@@ -73,11 +73,11 @@ func replicaSetAWSProviderTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetAWSProvider(projectID, clusterName, 60, 3)),
+				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configReplicaSetAWSProvider(projectID, clusterName, 60, 3)),
 				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, true, true),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetAWSProvider(projectID, clusterName, 50, 5)),
+				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configReplicaSetAWSProvider(projectID, clusterName, 50, 5)),
 				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 50, 5, true, true),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
@@ -86,9 +86,9 @@ func replicaSetAWSProviderTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t))
+	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t, true))
 }
-func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
+func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	// TODO: Already prepared for TPF but getting this error:
 	// unexpected new value: .retain_backups_enabled: was cty.False, but now null.
@@ -106,11 +106,11 @@ func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetMultiCloud(orgID, projectName, clusterName)),
+				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configReplicaSetMultiCloud(orgID, projectName, clusterName)),
 				Check:  checkReplicaSetMultiCloud(clusterName, 3),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetMultiCloud(orgID, projectName, clusterNameUpdated)),
+				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configReplicaSetMultiCloud(orgID, projectName, clusterNameUpdated)),
 				Check:  checkReplicaSetMultiCloud(clusterNameUpdated, 3),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
@@ -119,10 +119,10 @@ func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
 }
 
 func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t))
+	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t, true))
 }
 
-func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
+func singleShardedMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	// TODO: Already prepared for TPF but getting this error:
 	// resource_advanced_cluster_test.go:119: Step 1/3 error: Check failed: Check 9/12 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.0.disk_iops' expected to be set
@@ -142,11 +142,11 @@ func singleShardedMultiCloudTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 1, "M10", nil)),
+				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 1, "M10", nil)),
 				Check:  checkShardedOldSchemaMultiCloud(clusterName, 1, "M10", true, nil),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M10", nil)),
+				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M10", nil)),
 				Check:  checkShardedOldSchemaMultiCloud(clusterNameUpdated, 1, "M10", true, nil),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"),
@@ -577,10 +577,10 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
-	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t))
+	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t, true))
 }
 
-func symmetricGeoShardedOldSchemaTestCase(t *testing.T) resource.TestCase {
+func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	// TODO: Already prepared for TPF but getting this error:
 	// POST: HTTP 400 Bad Request (Error code: "INVALID_ENUM_VALUE") Detail: An invalid enumeration value  was specified. Reason: Bad Request. Params: [],
@@ -597,11 +597,11 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false)),
+				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false)),
 				Check:  checkGeoShardedOldSchema(clusterName, 2, 2, true, false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 3, 3, false)),
+				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configGeoShardedOldSchema(orgID, projectName, clusterName, 3, 3, false)),
 				Check:  checkGeoShardedOldSchema(clusterName, 3, 3, true, false),
 			},
 		},
@@ -667,10 +667,10 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
-	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t))
+	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t, true))
 }
 
-func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
+func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -684,7 +684,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false)),
+				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false)),
 				Check:  checkShardedNewSchema(50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 			},
 		},

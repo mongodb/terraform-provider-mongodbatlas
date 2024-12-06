@@ -76,6 +76,14 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 	return string(content)
 }
 
+func ConvertAdvancedClusterToTPFIfEnabled(t *testing.T, enabled bool, def string) string {
+	t.Helper()
+	if enabled {
+		return ConvertAdvancedClusterToTPF(t, def)
+	}
+	return def
+}
+
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {
 	t.Helper()
 	assert.Equal(t, canonicalHCL(t, expected), canonicalHCL(t, actual), msgAndArgs...)
