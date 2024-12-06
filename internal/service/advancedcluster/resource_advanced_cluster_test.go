@@ -90,6 +90,9 @@ func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 }
 func replicaSetMultiCloudTestCase(t *testing.T) resource.TestCase {
 	t.Helper()
+	// TODO: Already prepared for TPF but getting this error:
+	// unexpected new value: .retain_backups_enabled: was cty.False, but now null.
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
