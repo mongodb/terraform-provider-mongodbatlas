@@ -119,7 +119,7 @@ func (i *RequestInfo) Match(t *testing.T, method, urlPath, version string, usedV
 			usedVars[name] = value
 		}
 	}
-	return true
+	return replaceVars(i.Path, usedVars) == urlPath && i.Version == version
 }
 
 type stepRequests struct {
