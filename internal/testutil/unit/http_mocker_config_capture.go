@@ -13,16 +13,38 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func defaultIsDiff(rt *RoundTrip) bool {
-	return rt.Request.Method != "GET" && !strings.HasSuffix(rt.Request.Path, ":validate")
+func configureIsDiff(config *MockHTTPDataConfig) func(*RoundTrip) bool {
+	return func(rt *RoundTrip) bool {
+		if rt.Request.Method == "GET" {
+			return false
+		}
+		if config == nil {
+			return true
+		}
+		if config.IsDiffSkipSuffixes != nil {
+			for _, suffix := range config.IsDiffSkipSuffixes {
+				if strings.HasSuffix(rt.Request.Path, suffix) {
+					return false
+				}
+			}
+		}
+		if config.IsDiffMustSubstrings != nil {
+			for _, substring := range config.IsDiffMustSubstrings {
+				if !strings.Contains(rt.Request.Path, substring) {
+					return false
+				}
+			}
+		}
+		return true
+	}
 }
 
-func NewCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int) *CaptureMockConfigClientModifier {
+func NewCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int, config *MockHTTPDataConfig) *CaptureMockConfigClientModifier {
 	t.Helper()
 	return &CaptureMockConfigClientModifier{
 		t:                 t,
 		expectedStepCount: expectedStepCount,
-		isDiff:            defaultIsDiff,
+		isDiff:            configureIsDiff(config),
 		capturedData:      NewMockHTTPData(expectedStepCount),
 	}
 }

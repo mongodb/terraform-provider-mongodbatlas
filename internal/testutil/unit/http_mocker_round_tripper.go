@@ -27,7 +27,6 @@ func MockRoundTripper(t *testing.T, config *MockHTTPDataConfig) (http.RoundTripp
 	tracker := newMockRoundTripper(t, data)
 	if config != nil {
 		tracker.allowMissingRequests = config.AllowMissingRequests
-		tracker.allowReReadGet = config.AllowReReadGet
 	}
 	for _, method := range []string{"GET", "POST", "PUT", "DELETE", "PATCH"} {
 		myTransport.RegisterRegexpResponder(method, regexp.MustCompile(".*"), tracker.receiveRequest(method))
@@ -70,7 +69,6 @@ type mockRoundTripper struct {
 	currentStepIndex     int
 	diffResponseIndex    int
 	allowMissingRequests bool
-	allowReReadGet       bool
 	logRequests          bool
 }
 
@@ -81,9 +79,9 @@ func (r *mockRoundTripper) IncreaseStepNumberAndInit() {
 }
 
 func (r *mockRoundTripper) allowReUse(req *RequestInfo) bool {
-	getReReadOK := r.allowReReadGet && req.Method == "GET"
+	isGet := req.Method == "GET"
 	customReReadOk := req.Method == "POST" && strings.HasSuffix(req.Path, ":validate")
-	return getReReadOK || customReReadOk
+	return isGet || customReReadOk
 }
 
 func (r *mockRoundTripper) requestFilename(requestID string, index int) string {

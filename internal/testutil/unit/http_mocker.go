@@ -24,7 +24,8 @@ const (
 type MockHTTPDataConfig struct {
 	SideEffect           func() error
 	AllowMissingRequests bool
-	AllowReReadGet       bool
+	IsDiffSkipSuffixes   []string
+	IsDiffMustSubstrings []string
 }
 
 func IsCapture() bool {
@@ -35,7 +36,7 @@ func MockTestCaseAndRun(t *testing.T, config *MockHTTPDataConfig, testCase *reso
 	t.Helper()
 	var err error
 	if IsCapture() {
-		err = enableCaptureForTestCase(t, testCase)
+		err = enableCaptureForTestCase(t, config, testCase)
 	} else {
 		err = enableMockingForTestCase(t, config, testCase)
 	}
@@ -92,10 +93,10 @@ func enableMockingForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 	return nil
 }
 
-func enableCaptureForTestCase(t *testing.T, testCase *resource.TestCase) error {
+func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
 	stepCount := len(testCase.Steps)
-	clientModifier := NewCaptureMockConfigClientModifier(t, stepCount)
+	clientModifier := NewCaptureMockConfigClientModifier(t, stepCount, config)
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier)
 	for i := range stepCount {
 		step := &testCase.Steps[i]

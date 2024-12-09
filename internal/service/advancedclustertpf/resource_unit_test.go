@@ -21,7 +21,7 @@ const (
 )
 
 var (
-	mockConfig = &unit.MockHTTPDataConfig{AllowMissingRequests: true, AllowReReadGet: true, SideEffect: shortenRetries}
+	mockConfig = &unit.MockHTTPDataConfig{AllowMissingRequests: true, SideEffect: shortenRetries, IsDiffMustSubstrings: []string{"/clusters"}}
 )
 
 func TestMockAdvancedCluster_replicaset(t *testing.T) {
