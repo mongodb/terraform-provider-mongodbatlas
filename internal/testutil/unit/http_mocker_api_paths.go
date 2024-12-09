@@ -116,17 +116,21 @@ func fullPath(relPath string) string {
 
 func init() {
 	if IsCapture() {
-		specPath := fullPath(specFileRelPath)
-		var err error
-		if !fileExist(specPath) {
-			err = DownloadOpenAPISpec(atlasAdminAPISpecURL, specPath)
-			if err != nil {
-				panic(fmt.Sprintf("error downloading OpenAPI spec: %s", err))
-			}
-		}
-		apiSpecPaths, err = parseAPISpecPaths(specPath)
+		InitializeAPISpecPaths()
+	}
+}
+
+func InitializeAPISpecPaths() {
+	specPath := fullPath(specFileRelPath)
+	var err error
+	if !fileExist(specPath) {
+		err = DownloadOpenAPISpec(atlasAdminAPISpecURL, specPath)
 		if err != nil {
-			panic(fmt.Sprintf("error parsing OpenAPI spec: %s", err))
+			panic(fmt.Sprintf("error downloading OpenAPI spec: %s", err))
 		}
+	}
+	apiSpecPaths, err = parseAPISpecPaths(specPath)
+	if err != nil {
+		panic(fmt.Sprintf("error parsing OpenAPI spec: %s", err))
 	}
 }
