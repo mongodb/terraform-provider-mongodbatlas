@@ -211,12 +211,20 @@ func (m *MockHTTPData) Normalize() {
 		step := &m.Steps[i]
 		for j := range step.RequestResponses {
 			request := &step.RequestResponses[j]
-			request.Text = useVars(m.Variables, request.Text)
-			for k := range request.Responses {
-				response := &request.Responses[k]
-				response.Text = useVars(m.Variables, response.Text)
-			}
+			m.normalizeRequest(request)
 		}
+		for j := range step.DiffRequests {
+			request := &step.DiffRequests[j]
+			m.normalizeRequest(request)
+		}
+	}
+}
+
+func (m *MockHTTPData) normalizeRequest(request *RequestInfo) {
+	request.Text = useVars(m.Variables, request.Text)
+	for k := range request.Responses {
+		response := &request.Responses[k]
+		response.Text = useVars(m.Variables, response.Text)
 	}
 }
 
