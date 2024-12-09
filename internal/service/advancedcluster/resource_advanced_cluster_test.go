@@ -636,11 +636,15 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T) resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false),
-				Check:  checkGeoShardedOldSchema(clusterName, 2, 2, true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkGeoShardedOldSchema(clusterName, 2, 2, true, false),
+					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
 			},
 			{
 				Config: configGeoShardedOldSchema(orgID, projectName, clusterName, 3, 3, false),
-				Check:  checkGeoShardedOldSchema(clusterName, 3, 3, true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkGeoShardedOldSchema(clusterName, 3, 3, true, false),
+					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
 			},
 		},
 	}
