@@ -19,9 +19,13 @@ import (
 	fwProvider "github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
+type HTTPClientModifier interface {
+	ModifyHTTPClient(*http.Client) error
+}
+
 type ProviderMocked struct {
 	OriginalProvider *provider.MongodbtlasProvider
-	MockRoundTripper http.RoundTripper
+	ClientModifier   HTTPClientModifier
 	t                *testing.T
 }
 
@@ -42,7 +46,12 @@ func (p *ProviderMocked) Configure(ctx context.Context, req fwProvider.Configure
 	if httpClient == nil {
 		p.t.Fatal("HTTPClient is nil, mocking will fail")
 	}
-	httpClient.Transport = p.MockRoundTripper
+	if p.ClientModifier != nil {
+		err := p.ClientModifier.ModifyHTTPClient(httpClient)
+		if err != nil {
+			p.t.Fatal(err)
+		}
+	}
 }
 
 func (p *ProviderMocked) DataSources(ctx context.Context) []func() datasource.DataSource {
@@ -53,7 +62,7 @@ func (p *ProviderMocked) Resources(ctx context.Context) []func() resource.Resour
 }
 
 // Similar to provider.go#muxProviderFactory
-func muxProviderFactory(t *testing.T, mockRoundTripper http.RoundTripper) func() tfprotov6.ProviderServer {
+func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() tfprotov6.ProviderServer {
 	t.Helper()
 	v2Provider := provider.NewSdkV2Provider(nil)
 	fwProviderInstance := provider.NewFrameworkProvider(nil)
@@ -63,7 +72,7 @@ func muxProviderFactory(t *testing.T, mockRoundTripper http.RoundTripper) func()
 	}
 	mockedProvider := &ProviderMocked{
 		OriginalProvider: fwProviderInstanceTyped,
-		MockRoundTripper: mockRoundTripper,
+		ClientModifier:   clientModifier,
 		t:                t,
 	}
 	ctx := context.Background()
@@ -81,11 +90,11 @@ func muxProviderFactory(t *testing.T, mockRoundTripper http.RoundTripper) func()
 	return muxServer.ProviderServer
 }
 
-func TestAccProviderV6FactoriesWithMock(t *testing.T, mockRoundTripper http.RoundTripper) map[string]func() (tfprotov6.ProviderServer, error) {
+func TestAccProviderV6FactoriesWithMock(t *testing.T, clientModifier HTTPClientModifier) map[string]func() (tfprotov6.ProviderServer, error) {
 	t.Helper()
 	return map[string]func() (tfprotov6.ProviderServer, error){
 		acc.ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return muxProviderFactory(t, mockRoundTripper)(), nil
+			return muxProviderFactory(t, clientModifier)(), nil
 		},
 	}
 }
