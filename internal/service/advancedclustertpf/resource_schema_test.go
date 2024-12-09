@@ -10,6 +10,10 @@ import (
 )
 
 func TestAdvancedCluster_ValidationErrors(t *testing.T) {
+	const (
+		projectID   = "111111111111111111111111"
+		clusterName = "test"
+	)
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -26,6 +30,10 @@ func TestAdvancedCluster_ValidationErrors(t *testing.T) {
 }
 
 func TestAdvancedCluster_PlanModifierErrors(t *testing.T) {
+	const (
+		projectID   = "111111111111111111111111"
+		clusterName = "test"
+	)
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{

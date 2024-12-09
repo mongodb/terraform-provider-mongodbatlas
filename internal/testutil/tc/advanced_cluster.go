@@ -2,6 +2,7 @@ package tc
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -22,8 +23,13 @@ var (
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 )
 
-func SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T, orgID, projectName, clusterName string) *resource.TestCase {
+func SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -98,8 +104,13 @@ func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func SymmetricShardedOldSchema(t *testing.T, orgID, projectName, clusterName string) *resource.TestCase {
+func SymmetricShardedOldSchema(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -198,8 +209,13 @@ func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize s
 		additionalChecks...)
 }
 
-func BasicTenantTestCase(t *testing.T, projectID, clusterName, clusterNameUpdated string) *resource.TestCase {
+func BasicTenantTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		projectID          = acc.ProjectIDExecution(t)
+		clusterName        = acc.RandomClusterName()
+		clusterNameUpdated = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
@@ -254,8 +270,12 @@ func checkTenant(projectID, name string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func TenantUpgrade(t *testing.T, projectID, clusterName string) *resource.TestCase {
+func TenantUpgrade(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
