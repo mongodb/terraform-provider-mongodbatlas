@@ -4,7 +4,7 @@ Example shows how to pin the FCV of a cluster making use of `pinned_fcv` block. 
 
 The unpin operation can be performed by removing the `pinned_fcv` block. **Note**: Once FCV is unpinned it will not be possible to downgrade the `mongo_db_major_version`. If FCV is unpinned past the expiration date the `pinned_fcv` attribute must be removed.
 
-The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) can be referenced for more details.
+The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) and [FCV documentation](https://www.mongodb.com/docs/atlas/tutorial/major-version-change/#manage-feature-compatibility--fcv--during-upgrades) can be referenced for more details.
 
 ## Dependencies
 
