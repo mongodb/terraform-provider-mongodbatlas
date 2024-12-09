@@ -2,22 +2,25 @@ package advancedclustertpf
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
-		Version: 1, // TODO: as in current resource
+		Version: 1,
 		Attributes: map[string]schema.Attribute{
 			"accept_data_risks_and_force_replica_set_reconfig": schema.StringAttribute{
 				Optional:            true,
@@ -30,7 +33,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/) for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.",
 			},
 			"bi_connector_config": schema.SingleNestedAttribute{
-				// TODO: MaxItems: 1
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster.",
@@ -140,16 +142,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Set this field to configure the Sharding Management Mode when creating a new Global Cluster.\n\nWhen set to false, the management mode is set to Atlas-Managed Sharding. This mode fully manages the sharding of your Global Cluster and is built to provide a seamless deployment experience.\n\nWhen set to true, the management mode is set to Self-Managed Sharding. This mode leaves the management of shards in your hands and is built to provide an advanced and flexible deployment experience.\n\nThis setting cannot be changed once the cluster is deployed.",
 			},
-			"project_id": schema.StringAttribute{ // TODO: fail if trying to update
+			"project_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
-			"cluster_id": schema.StringAttribute{ // TODO: was generated as id
+			"cluster_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the cluster.",
 			},
 			"labels": schema.SetNestedAttribute{
-				Computed:            true, // TODO: must be computed since backend returns "[]" when it is not specified using "Default" to avoid plan changes
+				Computed:            true,
 				Optional:            true,
 				Default:             setdefault.StaticValue(types.SetValueMust(LabelsObjType, nil)),
 				MarkdownDescription: "Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.",
@@ -166,16 +171,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-			"mongo_db_major_version": schema.StringAttribute{ // TODO: was generated as mongo_dbmajor_version
+			"mongo_db_major_version": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile(`^([0-9]+)\.?([0-9]+)?$`), "MongoDB major version must be in the format \"8\" or \"8.0\""),
 				},
-				// TODO: StateFunc: FormatMongoDBMajorVersion,
 				MarkdownDescription: "MongoDB major version of the cluster.\n\nOn creation: Choose from the available versions of MongoDB, or leave unspecified for the current recommended default in the MongoDB Cloud platform. The recommended version is a recent Long Term Support version. The default is not guaranteed to be the most recently released version throughout the entire release cycle. For versions available in a specific project, see the linked documentation or use the API endpoint for [project LTS versions endpoint](#tag/Projects/operation/getProjectLTSVersions).\n\n On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, the MongoDB version can be downgraded to the previous major version.",
 			},
-			"mongo_db_version": schema.StringAttribute{ // TODO: was generated as mongo_dbversion
+			"mongo_db_version": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Version of MongoDB that the cluster runs.",
 			},
@@ -207,7 +211,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Set this field to configure the replica set scaling mode for your cluster.\n\nBy default, Atlas scales under WORKLOAD_TYPE. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes.\n\nWhen configured as SEQUENTIAL, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads.\n\nWhen configured as NODE_TYPE, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads.",
 			},
 			"replication_specs": schema.ListNestedAttribute{
-				Required:            true, // TODO: wrong computability
+				Required:            true,
 				MarkdownDescription: "List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -216,25 +220,24 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. If you include existing shard replication configurations in the request, you must specify this parameter. If you add a new shard to an existing Cluster, you may specify this parameter. The request deletes any existing shards  in the Cluster that you exclude from the request. This corresponds to Shard ID displayed in the UI.",
 						},
-						"container_id": schema.MapAttribute{ // TODO: added as in current resource
+						"container_id": schema.MapAttribute{
 							ElementType:         types.StringType,
 							Computed:            true,
 							MarkdownDescription: "container_id", // TODO: add description
 						},
-						"external_id": schema.StringAttribute{ // TODO: added as in current resource
+						"external_id": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "external_id", // TODO: add description
 						},
-						"num_shards": schema.Int64Attribute{ // TODO: added as in current resource
-							DeprecationMessage: DeprecationMsgOldSchema,
-							// TODO: not sure if add valitadation here: ValidateFunc: validation.IntBetween(1, 50),
+						"num_shards": schema.Int64Attribute{
+							DeprecationMessage:  DeprecationMsgOldSchema,
 							Default:             int64default.StaticInt64(1),
-							Computed:            true, // must be computed to allow default 1
+							Computed:            true,
 							Optional:            true,
 							MarkdownDescription: "num_shards", // TODO: add description
 						},
 						"region_configs": schema.ListNestedAttribute{
-							Required:            true, // TODO: wrong computability
+							Required:            true,
 							MarkdownDescription: "Hardware specifications for nodes set for a given region. Each **regionConfigs** object describes the region's priority in elections and the number and type of MongoDB nodes that MongoDB Cloud deploys to the region. Each **regionConfigs** object must have either an **analyticsSpecs** object, **electableSpecs** object, or **readOnlySpecs** object. Tenant clusters only require **electableSpecs. Dedicated** clusters can specify any of these specifications, but must have at least one **electableSpecs** object within a **replicationSpec**.\n\n**Example:**\n\nIf you set `\"replicationSpecs[n].regionConfigs[m].analyticsSpecs.instanceSize\" : \"M30\"`, set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : `\"M30\"` if you have electable nodes and `\"replicationSpecs[n].regionConfigs[m].readOnlySpecs.instanceSize\" : `\"M30\"` if you have read-only nodes.",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
@@ -251,13 +254,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										MarkdownDescription: "Precedence is given to this region when a primary election occurs. If your **regionConfigs** has only **readOnlySpecs**, **analyticsSpecs**, or both, set this value to `0`. If you have multiple **regionConfigs** objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is `7`.\n\n**Example:** If you have three regions, their priorities would be `7`, `6`, and `5` respectively. If you added two more regions for supporting electable nodes, the priorities of those regions would be `4` and `3` respectively.",
 									},
 									"provider_name": schema.StringAttribute{
-										// TODO: probably leave validation just in the server, ValidateDiagFunc: validate.StringIsUppercase(),
 										Required:            true,
 										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisions the hosts. Set dedicated clusters to `AWS`, `GCP`, `AZURE` or `TENANT`.",
 									},
 									"read_only_specs": SpecsSchema("Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region."),
 									"region_name": schema.StringAttribute{
-										// TODO: probably leave validation just in the server, ValidateDiagFunc: validate.StringIsUppercase(),
 										Required:            true,
 										MarkdownDescription: "Physical location of your MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. The region name is only returned in the response for single-region clusters. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Cloud creates them as part of the deployment. It assigns the VPC a Classless Inter-Domain Routing (CIDR) block. To limit a new VPC peering connection to one Classless Inter-Domain Routing (CIDR) block and region, create the connection first. Deploy the cluster after the connection starts. GCP Clusters and Multi-region clusters require one VPC peering connection for each region. MongoDB nodes can use only the peering connection that resides in the same region as the nodes to communicate with the peered VPC.",
 									},
@@ -285,7 +286,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this cluster.",
 			},
-			// TODO: We want to avoid breaking changes even though it is incompatible with flex cluster and project resource
 			"tags": schema.SetNestedAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -305,27 +305,20 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"termination_protection_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
+				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.",
 			},
 			"version_release_system": schema.StringAttribute{
-				// TODO: probably leave validation just in the server, ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
-				Computed: true,
-				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify **mongoDBMajorVersion**.",
 			},
-			"retain_backups_enabled": schema.BoolAttribute{ // TODO: not exposed in API, used in Delete operation
+			"retain_backups_enabled": schema.BoolAttribute{
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster.",
 			},
-			"disk_size_gb": schema.Float64Attribute{ // TODO: not exposed in latest API, deprecated in root in current resource
+			"disk_size_gb": schema.Float64Attribute{
 				DeprecationMessage:  DeprecationMsgOldSchema,
 				Computed:            true,
 				Optional:            true,
@@ -342,34 +335,32 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 func AutoScalingSchema() schema.SingleNestedAttribute {
-	// todo: computed, analytics_auto_scaling is not returned by default, so it cannot be computed
 	return schema.SingleNestedAttribute{
-		// TODO: MaxItems: 1
 		Computed:            true,
 		Optional:            true,
 		MarkdownDescription: "Options that determine how this cluster handles resource scaling.",
 		Attributes: map[string]schema.Attribute{
-			"compute_enabled": schema.BoolAttribute{ // TODO: was nested in compute
+			"compute_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether someone enabled instance size auto-scaling.\n\n- Set to `true` to enable instance size auto-scaling. If enabled, you must specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.maxInstanceSize**.\n- Set to `false` to disable instance size automatic scaling.",
 			},
-			"compute_max_instance_size": schema.StringAttribute{ // TODO: was nested in compute
+			"compute_max_instance_size": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Minimum instance size to which your cluster can automatically scale. MongoDB Cloud requires this parameter if `\"replicationSpecs[n].regionConfigs[m].autoScaling.compute.scaleDownEnabled\" : true`.",
 			},
-			"compute_min_instance_size": schema.StringAttribute{ // TODO: was nested in compute
+			"compute_min_instance_size": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Minimum instance size to which your cluster can automatically scale. MongoDB Cloud requires this parameter if `\"replicationSpecs[n].regionConfigs[m].autoScaling.compute.scaleDownEnabled\" : true`.",
 			},
-			"compute_scale_down_enabled": schema.BoolAttribute{ // TODO: was nested in compute
+			"compute_scale_down_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether the instance size may scale down. MongoDB Cloud requires this parameter if `\"replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled\" : true`. If you enable this option, specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.minInstanceSize**.",
 			},
-			"disk_gb_enabled": schema.BoolAttribute{ // TODO: was nested in disk_gb
+			"disk_gb_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether this cluster enables disk auto-scaling. The maximum memory allowed for the selected cluster tier and the oplog size can limit storage auto-scaling.",
@@ -380,7 +371,6 @@ func AutoScalingSchema() schema.SingleNestedAttribute {
 
 func SpecsSchema(markdownDescription string) schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
-		// TODO: MaxItems: 1
 		Computed:            true,
 		Optional:            true,
 		MarkdownDescription: markdownDescription,
@@ -414,19 +404,20 @@ func SpecsSchema(markdownDescription string) schema.SingleNestedAttribute {
 	}
 }
 
-// TODO: generated from processArgs API endpoint
 func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
-		Computed: true,
-		Optional: true,
-		// TODO: MaxItems: 1,
+		Computed:            true,
+		Optional:            true,
 		MarkdownDescription: "advanced_configuration", // TODO: add description
 		Attributes: map[string]schema.Attribute{
 			"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				// Default:             int64default.StaticInt64(-1), // TODO: think if default in the server only
+				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
+				Default:             int64default.StaticInt64(-1), // in case the user removes the value, we should set it to -1, a special value used by the backend to use its default behavior
+				PlanModifiers: []planmodifier.Int64{
+					PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
+				},
 			},
 			"default_write_concern": schema.StringAttribute{
 				Computed:            true,
@@ -454,16 +445,19 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.",
 			},
 			"oplog_size_mb": schema.Int64Attribute{
-				Optional:            true,
-				Computed:            true,
+				Optional: true,
+				Computed: true,
+				Validators: []validator.Int64{
+					int64validator.AtLeast(0),
+				},
 				MarkdownDescription: "Storage limit of cluster's oplog expressed in megabytes. A value of null indicates that the cluster uses the default oplog size that MongoDB Cloud calculates.",
 			},
-			"sample_refresh_interval_bi_connector": schema.Int64Attribute{ // TODO was sample_refresh_interval_biconnector
+			"sample_refresh_interval_bi_connector": schema.Int64Attribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Interval in seconds at which the mongosqld process re-samples data to create its relational schema.",
 			},
-			"sample_size_bi_connector": schema.Int64Attribute{ // TODO was sample_size_biconnector
+			"sample_size_bi_connector": schema.Int64Attribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Number of documents per database to sample when gathering schema information.",
@@ -473,16 +467,19 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				Optional:            true,
 				MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
 			},
-			"default_read_concern": schema.StringAttribute{ // TODO: not exposed in latest API, deprecated in current resource
+			"default_read_concern": schema.StringAttribute{
 				DeprecationMessage:  DeprecationMsgOldSchema,
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "default_read_concern", // TODO: add description
 			},
-			"fail_index_key_too_long": schema.BoolAttribute{ // TODO: not exposed in latest API, deprecated in current resource
-				DeprecationMessage:  DeprecationMsgOldSchema,
-				Computed:            true,
-				Optional:            true,
+			"fail_index_key_too_long": schema.BoolAttribute{
+				DeprecationMessage: DeprecationMsgOldSchema,
+				Computed:           true,
+				Optional:           true,
+				PlanModifiers: []planmodifier.Bool{
+					PlanMustUseMongoDBVersion(4.4, EqualOrLower),
+				},
 				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 			},
 		},
