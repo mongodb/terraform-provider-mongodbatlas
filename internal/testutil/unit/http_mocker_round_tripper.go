@@ -11,21 +11,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/sebdah/goldie/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
 
-func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPDataConfig) (http.RoundTripper, func(), resource.TestCheckFunc) {
+func MockRoundTripper(t *testing.T, config *MockHTTPDataConfig) (http.RoundTripper, func(), resource.TestCheckFunc) {
 	t.Helper()
 	httpDataPath := MockConfigFilePath(t)
 	data, err := parseTestDataConfigYAML(httpDataPath)
 	require.NoError(t, err)
 	myTransport := httpmock.NewMockTransport()
 	var mockTransport http.RoundTripper = myTransport
-	tracker := newMockRoundTripper(t, data, vars)
+	tracker := newMockRoundTripper(t, data)
 	if config != nil {
 		tracker.allowMissingRequests = config.AllowMissingRequests
 		tracker.allowReReadGet = config.AllowReReadGet
@@ -48,23 +47,24 @@ func parseTestDataConfigYAML(filePath string) (*MockHTTPData, error) {
 	return &testData, nil
 }
 
-func newMockRoundTripper(t *testing.T, data *MockHTTPData, vars map[string]string) *mockRoundTripper {
+func newMockRoundTripper(t *testing.T, data *MockHTTPData) *mockRoundTripper {
 	t.Helper()
 	return &mockRoundTripper{
 		t:                t,
 		g:                goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json")),
 		data:             data,
-		vars:             vars,
+		usedVars:         map[string]string{},
 		logRequests:      os.Getenv("TF_LOG") == "DEBUG",
 		currentStepIndex: -1, // increased on the start of the test
 	}
 }
 
 type mockRoundTripper struct {
-	t                    *testing.T
-	g                    *goldie.Goldie
-	data                 *MockHTTPData
-	vars                 map[string]string
+	t    *testing.T
+	g    *goldie.Goldie
+	data *MockHTTPData
+
+	usedVars             map[string]string
 	usedResponses        map[string]int
 	foundsDiffs          map[int]string
 	currentStepIndex     int
@@ -101,9 +101,6 @@ func (r *mockRoundTripper) manualFilenameIfExist(requestID string, index int) st
 
 func (r *mockRoundTripper) initStep() error {
 	require.Len(r.t, r.data.Steps, r.data.StepCount, "step count didn't match steps")
-	usedKeys := strings.Join(acc.SortStringMapKeys(r.vars), ", ")
-	expectedKeys := strings.Join(acc.SortStringMapKeys(r.data.Variables), ", ")
-	require.Equal(r.t, expectedKeys, usedKeys, "mock variables didn't match mock data variables")
 	r.usedResponses = map[string]int{}
 	r.foundsDiffs = map[int]string{}
 	step := r.currentStep()
@@ -111,7 +108,7 @@ func (r *mockRoundTripper) initStep() error {
 		return nil
 	}
 	for index, req := range step.DiffRequests {
-		err := r.g.Update(r.t, r.requestFilename(req.idShort(), index), []byte(replaceVars(req.Text, r.vars)))
+		err := r.g.Update(r.t, r.requestFilename(req.idShort(), index), []byte(req.Text))
 		if err != nil {
 			return err
 		}
@@ -212,7 +209,7 @@ func (r *mockRoundTripper) matchRequest(method, urlPath, version, payload string
 		return "", 0, fmt.Errorf("no more steps in mock data")
 	}
 	for index, request := range step.DiffRequests {
-		if !request.Match(method, urlPath, version, r.vars) {
+		if !request.Match(r.t, method, urlPath, version, r.usedVars) {
 			continue
 		}
 		if _, ok := r.foundsDiffs[index]; ok {
@@ -225,7 +222,7 @@ func (r *mockRoundTripper) matchRequest(method, urlPath, version, payload string
 	nextDiffResponse := r.diffResponseIndex
 
 	for _, request := range step.RequestResponses {
-		if !request.Match(method, urlPath, version, r.vars) {
+		if !request.Match(r.t, method, urlPath, version, r.usedVars) {
 			continue
 		}
 		requestID := request.id()
@@ -244,12 +241,12 @@ func (r *mockRoundTripper) matchRequest(method, urlPath, version, payload string
 			if prevIndex >= 0 && r.allowReUse(&request) {
 				response = request.Responses[prevIndex]
 				r.t.Logf("re-reading %s request with response_index=%d as diff hasn't been returned yet (%d)", request.Method, response.ResponseIndex, nextDiffResponse)
-				return replaceVars(response.Text, r.vars), response.Status, nil
+				return replaceVars(response.Text, r.usedVars), response.Status, nil
 			}
 			continue
 		}
 		r.usedResponses[requestID]++
-		return replaceVars(response.Text, r.vars), response.Status, nil
+		return replaceVars(response.Text, r.usedVars), response.Status, nil
 	}
 	return "", 0, fmt.Errorf("no matching request found %s %s %s", method, urlPath, version)
 }

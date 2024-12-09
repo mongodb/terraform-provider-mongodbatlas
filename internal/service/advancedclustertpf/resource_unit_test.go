@@ -68,10 +68,6 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 	}
 		`
 		fullUpdateResumed = strings.Replace(fullUpdate, "paused = true", "paused = false", 1)
-		vars              = map[string]string{
-			"groupId":     projectID,
-			"clusterName": clusterName,
-		}
 	)
 	testCase := resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -118,7 +114,7 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 			acc.TestStepImportCluster(resourceName),
 		},
 	}
-	unit.MockTestCaseAndRun(t, vars, mockConfig, &testCase)
+	unit.MockTestCaseAndRun(t, mockConfig, &testCase)
 }
 
 func shortenRetries() error {
@@ -131,10 +127,6 @@ func shortenRetries() error {
 func TestMockAdvancedCluster_configSharded(t *testing.T) {
 	var (
 		clusterName = "sharded-multi-replication"
-		vars        = map[string]string{
-			"groupId":     projectID,
-			"clusterName": clusterName,
-		}
 	)
 	testCase := resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -150,7 +142,7 @@ func TestMockAdvancedCluster_configSharded(t *testing.T) {
 			acc.TestStepImportCluster(resourceName),
 		},
 	}
-	unit.MockTestCaseAndRun(t, vars, mockConfig, &testCase)
+	unit.MockTestCaseAndRun(t, mockConfig, &testCase)
 }
 
 func configSharded(projectID, clusterName string, withUpdate bool) string {
@@ -218,14 +210,9 @@ func TestMockClusterAdvancedCluster_basicTenant(t *testing.T) {
 	var (
 		clusterName        = "test-acc-tf-c-8049930413007488732"
 		clusterNameUpdated = "test-acc-tf-c-91771214182147246"
-		vars               = map[string]string{
-			"groupId":      projectID,
-			"clusterName":  clusterName,
-			"clusterName2": clusterNameUpdated,
-		}
 	)
 	testCase := tc.BasicTenantTestCase(t, projectID, clusterName, clusterNameUpdated)
-	unit.MockTestCaseAndRun(t, vars, mockConfig, testCase)
+	unit.MockTestCaseAndRun(t, mockConfig, testCase)
 }
 
 func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
@@ -233,13 +220,9 @@ func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtE
 		clusterName = "6746cee8aef48d1cb265882d"
 		projectName = "test-acc-tf-p-4311574251574843475"
 		orgID       = "65def6ce0f722a1507105aa5"
-		vars        = map[string]string{
-			"groupId":     projectID,
-			"clusterName": clusterName,
-		}
 	)
 	testCase := tc.SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t, orgID, projectName, clusterName)
-	unit.MockTestCaseAndRun(t, vars, mockConfig, testCase)
+	unit.MockTestCaseAndRun(t, mockConfig, testCase)
 }
 
 func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
@@ -247,23 +230,15 @@ func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T
 		clusterName = "test-acc-tf-c-6025103075771235151"
 		projectName = "test-acc-tf-p-7889034782442569766"
 		orgID       = "65def6ce0f722a1507105aa5"
-		vars        = map[string]string{
-			"groupId":     projectID,
-			"clusterName": clusterName,
-		}
 	)
 	testCase := tc.SymmetricShardedOldSchema(t, orgID, projectName, clusterName)
-	unit.MockTestCaseAndRun(t, vars, mockConfig, testCase)
+	unit.MockTestCaseAndRun(t, mockConfig, testCase)
 }
 
 func TestMockClusterAdvancedCluster_tenantUpgrade(t *testing.T) {
 	var (
 		clusterName = "test-acc-tf-c-878317177498266511"
-		vars        = map[string]string{
-			"groupId":     projectID,
-			"clusterName": clusterName,
-		}
 	)
 	testCase := tc.TenantUpgrade(t, projectID, clusterName)
-	unit.MockTestCaseAndRun(t, vars, mockConfig, testCase)
+	unit.MockTestCaseAndRun(t, mockConfig, testCase)
 }

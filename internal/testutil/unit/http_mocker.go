@@ -31,13 +31,13 @@ func IsCapture() bool {
 	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerCapture)))
 }
 
-func MockTestCaseAndRun(t *testing.T, vars map[string]string, config *MockHTTPDataConfig, testCase *resource.TestCase) {
+func MockTestCaseAndRun(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
 	var err error
 	if IsCapture() {
 		err = enableCaptureForTestCase(t, testCase)
 	} else {
-		err = enableMockingForTestCase(t, vars, config, testCase)
+		err = enableMockingForTestCase(t, config, testCase)
 	}
 	require.NoError(t, err)
 	resource.ParallelTest(t, *testCase)
@@ -64,9 +64,9 @@ func (c *mockClientModifier) ResetHTTPClient(httpClient *http.Client) {
 	}
 }
 
-func enableMockingForTestCase(t *testing.T, vars map[string]string, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
+func enableMockingForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
-	roundTripper, nextStep, checkFunc := MockRoundTripper(t, vars, config)
+	roundTripper, nextStep, checkFunc := MockRoundTripper(t, config)
 	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
 	testCase.PreCheck = func() {

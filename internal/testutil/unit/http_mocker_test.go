@@ -34,8 +34,11 @@ func TestRequestInfo_Match(t *testing.T) {
 		Method:  "GET",
 		Path:    "/v1/cluster/{cluster_id}",
 	}
-	assert.True(t, req.Match("GET", "/v1/cluster/123", "2022-06-01", map[string]string{"cluster_id": "123"}))
-	assert.False(t, req.Match("GET", "/v1/cluster/123", "2022-06-01", map[string]string{"cluster_id": "456"}))
+	usedVars := map[string]string{"cluster_id": "123"}
+	assert.True(t, req.Match(t, "GET", "/v1/cluster/123", "2022-06-01", usedVars)) // Exact match
+	usedVars2 := map[string]string{"cluster_id": "456"}
+	assert.True(t, req.Match(t, "GET", "/v1/cluster/123", "2022-06-01", usedVars2)) // API Spec match
+	assert.Equal(t, map[string]string{"cluster_id": "456", "cluster_id2": "123"}, usedVars2)
 }
 
 func request(method, path, body string) *http.Request {

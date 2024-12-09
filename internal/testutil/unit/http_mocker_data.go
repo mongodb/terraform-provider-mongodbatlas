@@ -89,12 +89,37 @@ func (i *RequestInfo) idShort() string {
 	return fmt.Sprintf("%s_%s_%s", i.Method, i.Path, i.Version)
 }
 
-func (i *RequestInfo) Match(method, urlPath, version string, vars map[string]string) bool {
+func (i *RequestInfo) Match(t *testing.T, method, urlPath, version string, usedVars map[string]string) bool {
+	t.Helper()
 	if i.Method != method {
 		return false
 	}
-	selfPath := replaceVars(i.Path, vars)
-	return selfPath == urlPath && i.Version == version
+	selfPath := replaceVars(i.Path, usedVars)
+	exactMatch := selfPath == urlPath && i.Version == version
+	if exactMatch {
+		return true
+	}
+	apiPath := APISpecPath{Path: i.Path}
+	if !apiPath.Match(urlPath) {
+		return false
+	}
+	for name, value := range apiPath.Variables(urlPath) {
+		oldValue, exists := usedVars[name]
+		if !exists {
+			t.Logf("Adding variable to %s=%s based on match of %s", name, value, i.Path)
+		}
+		if exists && oldValue != value {
+			change, err := findVariableChange(t, name, usedVars, oldValue, value)
+			if err != nil {
+				t.Error(err)
+				return false
+			}
+			usedVars[change.NewName] = change.NewValue
+		} else {
+			usedVars[name] = value
+		}
+	}
+	return true
 }
 
 type stepRequests struct {
