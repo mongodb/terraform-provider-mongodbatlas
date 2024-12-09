@@ -720,7 +720,9 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
-				Check:  checkShardedNewSchema(50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkShardedNewSchema(50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+					checkIndependentShardScalingMode(clusterName, "SHARD")),
 			},
 		},
 	}
@@ -770,11 +772,15 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false, false),
-				Check:  checkShardedTransitionOldToNewSchema(false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkShardedTransitionOldToNewSchema(false),
+					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
 			},
 			{
 				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, false),
-				Check:  checkShardedTransitionOldToNewSchema(true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkShardedTransitionOldToNewSchema(true),
+					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
 			},
 		},
 	})
@@ -927,31 +933,6 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 	})
 }
 
-func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabled(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, orgID, projectName),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false, false),
-				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
-			},
-			{
-				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, false),
-				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
-			},
-		},
-	})
-}
-
 func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 	acc.SkipIfTPFAdvancedCluster(t)
 	var (
@@ -1000,27 +981,6 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 			},
 			{
 				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, true),
-				Check:  checkIndependentShardScalingMode(clusterName, "SHARD"),
-			},
-		},
-	})
-}
-
-func TestAccAdvancedCluster_newSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, orgID, projectName),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, false),
 				Check:  checkIndependentShardScalingMode(clusterName, "SHARD"),
 			},
 		},
