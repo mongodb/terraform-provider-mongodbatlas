@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -1387,6 +1388,81 @@ func TestAccCluster_create_RedactClientLogData(t *testing.T) {
 	})
 }
 
+func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() //  Using single project to assert plural data source
+		clusterName = acc.RandomClusterName()
+	)
+
+	now := time.Now()
+	// Time 7 days from now, truncated to the beginning of the day
+	sevenDaysFromNow := now.AddDate(0, 0, 7).Truncate(24 * time.Hour)
+	firstExpirationDate := conversion.TimeToString(sevenDaysFromNow)
+	// Time 8 days from now
+	eightDaysFromNow := sevenDaysFromNow.AddDate(0, 0, 1)
+	updatedExpirationDate := conversion.TimeToString(eightDaysFromNow)
+	invalidDateFormat := "invalid"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.#":           "0",
+					"mongo_db_major_version": "7.0",
+				}),
+			},
+			{ // pins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.0.version":         "7.0",
+					"pinned_fcv.0.expiration_date": firstExpirationDate,
+					"mongo_db_major_version":       "7.0",
+				}),
+			},
+			{ // using incorrect format
+				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
+				ExpectError: regexp.MustCompile("expiration_date format is incorrect: " + invalidDateFormat),
+			},
+			{ // updates expiration date of fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.0.version":         "7.0",
+					"pinned_fcv.0.expiration_date": updatedExpirationDate,
+					"mongo_db_major_version":       "7.0",
+				}),
+			},
+			{ // upgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.0.version":         "7.0",
+					"pinned_fcv.0.expiration_date": updatedExpirationDate,
+					"mongo_db_major_version":       "8.0",
+				}, resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression("8..*"))),
+			},
+			{ // downgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.0.version":         "7.0",
+					"pinned_fcv.0.expiration_date": updatedExpirationDate,
+					"mongo_db_major_version":       "7.0",
+				}, resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression("7..*"))),
+			},
+			{ // unpins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
+					"pinned_fcv.#":           "0",
+					"mongo_db_major_version": "7.0",
+				}),
+			},
+		},
+	})
+}
+
 func configAWS(projectID, name string, backupEnabled, autoDiskGBEnabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
@@ -2381,6 +2457,54 @@ func configClusterGlobal(orgID, projectName, clusterName string) string {
 			}
 		}
 	`, orgID, projectName, clusterName)
+}
+
+func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationDate *string, mongoDBMajorVersion string) string {
+	var pinnedFCVAttr string
+	if pinningExpirationDate != nil {
+		pinnedFCVAttr = fmt.Sprintf(`
+		pinned_fcv {
+    		expiration_date = %q
+  		}
+		`, *pinningExpirationDate)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+		
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = mongodbatlas_project.test.id
+			name         = %[3]q
+			cluster_type = "REPLICASET"
+			provider_name = "AWS"
+  			provider_instance_size_name = "M10"
+
+			mongo_db_major_version = %[4]q
+
+			%[5]s
+
+			replication_specs {
+				num_shards = 1
+				regions_config {
+					region_name     = "US_WEST_2"
+					electable_nodes = 3
+					priority        = 7
+				}
+			}
+		}
+
+		data "mongodbatlas_cluster" "test" {
+			project_id = mongodbatlas_cluster.test.project_id
+			name 	     = mongodbatlas_cluster.test.name
+		}
+
+		data "mongodbatlas_clusters" "test" {
+			project_id = mongodbatlas_cluster.test.project_id
+		}
+	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)
 }
 
 func TestIsMultiRegionCluster(t *testing.T) {

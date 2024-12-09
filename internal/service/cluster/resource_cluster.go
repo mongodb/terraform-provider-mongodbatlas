@@ -354,6 +354,23 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"pinned_fcv": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"expiration_date": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 		CustomizeDiff: resourceClusterCustomizeDiff,
 		Timeouts: &schema.ResourceTimeout{
@@ -570,7 +587,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterRequest = &matlas.Cluster{
 			Paused: conversion.Pointer(v),
 		}
-
 		_, _, err = updateCluster(ctx, conn, connV2, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
@@ -579,6 +595,16 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if v, ok := d.GetOk("redact_client_log_data"); ok {
 		if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutCreate), connV2, connV220240805, projectID, clusterName, v.(bool)); err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+		}
+	}
+
+	if pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any); ok && len(pinnedFCVBlock) > 0 {
+		if diags := advancedcluster.PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
+			return diags
+		}
+		stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 	}
@@ -657,10 +683,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	if err := d.Set("encryption_at_rest_provider", cluster.EncryptionAtRestProvider); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "encryption_at_rest_provider", clusterName, err))
-	}
-
-	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_db_major_version", clusterName, err))
 	}
 
 	// Avoid Global Cluster issues. (NumShards is not present in Global Clusters)
@@ -776,15 +798,25 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(err)
 	}
 
-	redactClientLogData, err := newAtlasGet(ctx, connV2, projectID, clusterName)
+	latestClusterModel, err := newAtlasGet(ctx, connV2, projectID, clusterName)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
 	}
-	if err := d.Set("redact_client_log_data", redactClientLogData); err != nil {
+	if err := d.Set("redact_client_log_data", latestClusterModel.GetRedactClientLogData()); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "redact_client_log_data", clusterName, err))
 	}
 
-	return nil
+	if err := d.Set("mongo_db_major_version", latestClusterModel.MongoDBMajorVersion); err != nil { // uses 2024-08-05 or above as it has fix for correct value when FCV is active
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_db_major_version", clusterName, err))
+	}
+
+	warning := advancedcluster.WarningIfFCVExpiredOrUnpinnedExternally(d, latestClusterModel) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
+
+	if err := d.Set("pinned_fcv", advancedcluster.FlattenPinnedFCV(latestClusterModel)); err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "pinned_fcv", clusterName, err))
+	}
+
+	return warning
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -795,6 +827,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ids                 = conversion.DecodeStateID(d.Id())
 		projectID           = ids["project_id"]
 		clusterName         = ids["cluster_name"]
+		timeout             = d.Timeout(schema.TimeoutUpdate)
 		cluster             = new(matlas.Cluster)
 		clusterChangeDetect = &matlas.Cluster{
 			AutoScaling: &matlas.AutoScaling{
@@ -802,6 +835,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			},
 		}
 	)
+
+	// FCV update is intentionally handled before other cluster updates, and will wait for cluster to reach IDLE state before continuing
+	if diags := advancedcluster.HandlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout); diags != nil {
+		return diags
+	}
 
 	if d.HasChange("name") {
 		cluster.Name, _ = d.Get("name").(string)
@@ -932,8 +970,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.HasChange("paused") && !d.Get("paused").(bool) {
 		cluster.Paused = conversion.Pointer(d.Get("paused").(bool))
 	}
-
-	timeout := d.Timeout(schema.TimeoutUpdate)
 
 	/*
 		Check if advaced configuration option has a changes to update it

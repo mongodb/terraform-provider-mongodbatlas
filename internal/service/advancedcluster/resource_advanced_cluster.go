@@ -539,7 +539,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any); ok && len(pinnedFCVBlock) > 0 {
-		if diags := pinFCV(ctx, connV2, projectID, cluster.GetName(), pinnedFCVBlock[0]); diags.HasError() {
+		if diags := PinFCV(ctx, connV2, projectID, cluster.GetName(), pinnedFCVBlock[0]); diags.HasError() {
 			return diags
 		}
 		waitForChanges = true
@@ -642,7 +642,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		clusterResp = cluster
 	}
 
-	warning := warningIfFCVExpiredOrUnpinnedExternally(d, clusterResp) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
+	warning := WarningIfFCVExpiredOrUnpinnedExternally(d, clusterResp) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
 	diags := setRootFields(d, clusterResp, true)
 	if diags.HasError() {
 		return diags
@@ -800,14 +800,14 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "config_server_management_mode", clusterName, err))
 	}
 
-	if err := d.Set("pinned_fcv", flattenPinnedFCV(cluster)); err != nil {
+	if err := d.Set("pinned_fcv", FlattenPinnedFCV(cluster)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pinned_fcv", clusterName, err))
 	}
 
 	return nil
 }
 
-func warningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
+func WarningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
 	pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any)
 	presentInState := ok && len(pinnedFCVBlock) > 0
 	expirationDatePresent := cluster.FeatureCompatibilityVersionExpirationDate != nil
@@ -895,7 +895,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
 	// FCV update is intentionally handled before other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	if diags := handlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout); diags != nil {
+	if diags := HandlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout); diags != nil {
 		return diags
 	}
 
@@ -997,10 +997,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
-func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData, timeout time.Duration) diag.Diagnostics {
+func HandlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData, timeout time.Duration) diag.Diagnostics {
 	if d.HasChange("pinned_fcv") {
 		if pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any); ok && len(pinnedFCVBlock) > 0 {
-			if diags := pinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
+			if diags := PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
 				return diags
 			}
 		} else {
@@ -1017,7 +1017,7 @@ func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 	return nil
 }
 
-func pinFCV(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, fcvBlock any) diag.Diagnostics {
+func PinFCV(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, fcvBlock any) diag.Diagnostics {
 	req := admin.PinFCV{}
 	if nestedObj, ok := fcvBlock.(map[string]any); ok {
 		expDateStrPtr := conversion.StringPtr(cast.ToString(nestedObj["expiration_date"]))

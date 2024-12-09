@@ -14,7 +14,7 @@ func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.AP
 	if err != nil {
 		return err
 	}
-	if current == redactClientLogData {
+	if current.GetRedactClientLogData() == redactClientLogData {
 		return nil
 	}
 	req := &admin20240805.ClusterDescription20240805{
@@ -31,20 +31,20 @@ func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.AP
 	return nil
 }
 
-func newAtlasGet(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string) (redactClientLogData bool, err error) {
+func newAtlasGet(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string) (*admin.ClusterDescription20240805, error) {
 	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	return cluster.GetRedactClientLogData(), err
+	return cluster, err
 }
 
-func newAtlasList(ctx context.Context, connV2 *admin.APIClient, projectID string) (map[string]bool, error) {
+func newAtlasList(ctx context.Context, connV2 *admin.APIClient, projectID string) (map[string]*admin.ClusterDescription20240805, error) {
 	clusters, _, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
 	if err != nil {
 		return nil, err
 	}
 	results := clusters.GetResults()
-	list := make(map[string]bool)
+	list := make(map[string]*admin.ClusterDescription20240805)
 	for i := range results {
-		list[results[i].GetName()] = results[i].GetRedactClientLogData()
+		list[results[i].GetName()] = &results[i]
 	}
 	return list, nil
 }
