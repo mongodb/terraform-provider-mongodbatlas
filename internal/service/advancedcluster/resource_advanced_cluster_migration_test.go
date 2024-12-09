@@ -15,37 +15,42 @@ import (
 const versionBeforeISSRelease = "1.17.6"
 
 func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	testCase := replicaSetAWSProviderTestCase(t)
+	testCase := replicaSetAWSProviderTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	testCase := replicaSetMultiCloudTestCase(t)
+	testCase := replicaSetMultiCloudTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	testCase := singleShardedMultiCloudTestCase(t)
+	testCase := singleShardedMultiCloudTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	testCase := symmetricGeoShardedOldSchemaTestCase(t)
+	testCase := symmetricGeoShardedOldSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	testCase := asymmetricShardedNewSchemaTestCase(t)
+	// TODO: Already prepared for TPF but getting this error, note that TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema is passing though:
+	// resource_advanced_cluster_migration_test.go:39: Step 1/2 error: Check failed: Check 2/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.disk_iops' not found
+	// Check 5/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.instance_size' not found
+	// Check 6/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.instance_size' not found
+	// Check 7/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.disk_size_gb' not found
+	// Check 8/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.analytics_specs.disk_size_gb' not found
+	// Check 9/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.analytics_specs.disk_size_gb' not found
+	// Check 10/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.disk_size_gb' not found
+	// Check 11/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.disk_iops' not found
+	acc.SkipIfAdvancedClusterV2Schema(t)
+	testCase := asymmetricShardedNewSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -70,7 +75,7 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -96,7 +101,7 @@ func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -122,7 +127,7 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -148,8 +153,8 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 }
 
 func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	mig.SkipIfVersionBelow(t, "1.19.0") // version where change_stream_options_pre_and_post_images_expire_after_seconds was introduced
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
+	mig.SkipIfVersionBelow(t, "1.19.0")  // version where change_stream_options_pre_and_post_images_expire_after_seconds was introduced
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -198,7 +203,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
@@ -212,7 +217,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configUpdated,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),

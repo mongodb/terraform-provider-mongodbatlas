@@ -8,13 +8,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 )
+
+const defaultZoneName = "ZoneName managed by Terraform"
 
 func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
 	acceptDataRisksAndForceReplicaSetReconfig, ok := conversion.StringPtrToTimePtr(input.AcceptDataRisksAndForceReplicaSetReconfig.ValueStringPointer())
 	if !ok {
 		diags.AddError("error converting AcceptDataRisksAndForceReplicaSetReconfig", fmt.Sprintf("not a valid time: %s", input.AcceptDataRisksAndForceReplicaSetReconfig.ValueString()))
+	}
+	majorVersion := conversion.NilForUnknown(input.MongoDBMajorVersion, input.MongoDBMajorVersion.ValueStringPointer())
+	if majorVersion != nil {
+		majorVersionFormatted := FormatMongoDBMajorVersion(*majorVersion)
+		majorVersion = &majorVersionFormatted
 	}
 	return &admin.ClusterDescription20240805{
 		AcceptDataRisksAndForceReplicaSetReconfig: acceptDataRisksAndForceReplicaSetReconfig,
@@ -24,9 +31,8 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		ConfigServerManagementMode:       conversion.NilForUnknown(input.ConfigServerManagementMode, input.ConfigServerManagementMode.ValueStringPointer()),
 		EncryptionAtRestProvider:         conversion.NilForUnknown(input.EncryptionAtRestProvider, input.EncryptionAtRestProvider.ValueStringPointer()),
 		GlobalClusterSelfManagedSharding: conversion.NilForUnknown(input.GlobalClusterSelfManagedSharding, input.GlobalClusterSelfManagedSharding.ValueBoolPointer()),
-		GroupId:                          input.ProjectID.ValueStringPointer(),
 		Labels:                           newComponentLabel(ctx, input.Labels, diags),
-		MongoDBMajorVersion:              conversion.NilForUnknown(input.MongoDBMajorVersion, input.MongoDBMajorVersion.ValueStringPointer()),
+		MongoDBMajorVersion:              majorVersion,
 		Name:                             input.Name.ValueStringPointer(),
 		Paused:                           conversion.NilForUnknown(input.Paused, input.Paused.ValueBoolPointer()),
 		PitEnabled:                       conversion.NilForUnknown(input.PitEnabled, input.PitEnabled.ValueBoolPointer()),
@@ -89,11 +95,20 @@ func newReplicationSpec20240805(ctx context.Context, input types.List, diags *di
 			Id:            conversion.NilForUnknown(item.Id, item.Id.ValueStringPointer()),
 			ZoneId:        conversion.NilForUnknown(item.ZoneId, item.ZoneId.ValueStringPointer()),
 			RegionConfigs: newCloudRegionConfig20240805(ctx, item.RegionConfigs, diags),
-			ZoneName:      item.ZoneName.ValueStringPointer(),
+			ZoneName:      conversion.StringPtr(resolveZoneNameOrUseDefault(item)),
 		}
 	}
 	return &resp
 }
+
+func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
+	zoneName := conversion.NilForUnknown(item.ZoneName, item.ZoneName.ValueStringPointer())
+	if zoneName == nil {
+		return defaultZoneName
+	}
+	return *zoneName
+}
+
 func newResourceTag(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ResourceTag {
 	if input.IsUnknown() || input.IsNull() {
 		return nil

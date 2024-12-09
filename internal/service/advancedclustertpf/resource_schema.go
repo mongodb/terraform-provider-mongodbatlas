@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
@@ -128,10 +127,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"create_date": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud created this cluster. This parameter expresses its value in ISO 8601 format in UTC.",
 			},
 			"encryption_at_rest_provider": schema.StringAttribute{
@@ -149,10 +145,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 			},
 			"cluster_id": schema.StringAttribute{ // TODO: was generated as id
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the cluster.",
 			},
 			"labels": schema.SetNestedAttribute{
@@ -186,9 +179,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Version of MongoDB that the cluster runs.",
 			},
-			"name": schema.StringAttribute{ // TODO: fail if trying to update
+			"name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Human-readable label that identifies this cluster.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"paused": schema.BoolAttribute{
 				Computed:            true,
@@ -273,9 +269,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. This value can be used to configure Global Cluster backup policies.",
 						},
 						"zone_name": schema.StringAttribute{
-							Computed:            true, // must be computed to have a Default
+							Computed:            true,
 							Optional:            true,
-							Default:             stringdefault.StaticString("ZoneName managed by Terraform"), // TODO: as in current resource
 							MarkdownDescription: "Human-readable label that describes the zone this shard belongs to in a Global Cluster. Provide this value only if \"clusterType\" : \"GEOSHARDED\" but not \"selfManagedSharding\" : true.",
 						},
 					},
@@ -443,6 +438,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 		Attributes: map[string]schema.Attribute{
 			"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				// Default:             int64default.StaticInt64(-1), // TODO: think if default in the server only
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
 			},
@@ -467,6 +463,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				MarkdownDescription: "Flag that indicates whether the cluster disables executing any query that requires a collection scan to return results.",
 			},
 			"oplog_min_retention_hours": schema.Float64Attribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.",
 			},

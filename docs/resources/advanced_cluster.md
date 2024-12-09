@@ -56,7 +56,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
   replication_specs {
     region_configs {
       electable_specs {
-        instance_size = "M5"
+        instance_size = "M0"
       }
       provider_name         = "TENANT"
       backing_provider_name = "AWS"
@@ -66,6 +66,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }
 }
 ```
+
+**NOTE:** There can only be one M0 cluster per project.
 
 **NOTE**: Upgrading the shared tier is supported. Any change from a shared tier cluster (a tenant) to a different instance size will be considered a tenant upgrade. When upgrading from the shared tier, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below. You can upgrade a shared tier cluster only to a single provider on an M10-tier cluster or greater. 
 
