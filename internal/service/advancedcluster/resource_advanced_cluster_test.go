@@ -2,7 +2,6 @@ package advancedcluster_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -55,7 +54,7 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 			mockCluster:    &admin20240530.AdvancedClusterDescription{},
 			mockResponse:   &http.Response{StatusCode: 400},
 			mockError:      errGeneric,
-			expectedError:  errors.New("error reading advanced cluster with 2023-02-01 API (testCluster): generic"),
+			expectedError:  errGeneric,
 			expectedResult: nil,
 		},
 		"Successful": {
