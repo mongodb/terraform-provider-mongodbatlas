@@ -244,6 +244,7 @@ func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State
 	}
 	return r.convertClusterAddAdvConfig(ctx, nil, nil, readResp, model, nil, diags)
 }
+
 func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
 	var (
 		api             = r.Client.AtlasV2.ClustersApi
@@ -421,6 +422,29 @@ func (r *rs) updateAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530
 }
 
 func readUnsetAdvancedConfiguration(ctx context.Context, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, diags *diag.Diagnostics) (*admin20240530.ClusterDescriptionProcessArgs, *admin.ClusterDescriptionProcessArgs20240805) {
+	api := client.AtlasV2.ClustersApi
+	api20240530 := client.AtlasV220240530.ClustersApi
+	projectID := model.ProjectID.ValueString()
+	clusterName := model.Name.ValueString()
+	var err error
+	if legacyAdvConfig == nil {
+		legacyAdvConfig, _, err = api20240530.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			diags.AddError("errorReadAdvConfigLegacy", fmt.Sprintf(errorRead, clusterName, err.Error()))
+			return nil, nil
+		}
+	}
+	if advConfig == nil {
+		advConfig, _, err = api.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			diags.AddError("errorReadAdvConfig", fmt.Sprintf(errorRead, clusterName, err.Error()))
+			return nil, nil
+		}
+	}
+	return legacyAdvConfig, advConfig
+}
+
+func readUnsetAdvancedConfigurationDS(ctx context.Context, client *config.MongoDBClient, model *TFModelDS, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, diags *diag.Diagnostics) (*admin20240530.ClusterDescriptionProcessArgs, *admin.ClusterDescriptionProcessArgs20240805) {
 	api := client.AtlasV2.ClustersApi
 	api20240530 := client.AtlasV220240530.ClustersApi
 	projectID := model.ProjectID.ValueString()
