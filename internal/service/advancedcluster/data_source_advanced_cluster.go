@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -284,6 +285,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	zoneNameToOldReplicationSpecMeta, err := GetReplicationSpecAttributesFromOldAPI(ctx, projectID, clusterName, connV220240530.ClustersApi)
 	if err != nil {
+		if apiError, ok := admin20240530.AsError(err); ok {
+			if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" && !useReplicationSpecPerShard {
+				return diag.FromErr(fmt.Errorf("please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details. %s", err))
+			}
+			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		}
 		return diag.FromErr(err)
 	}
 	diags := setRootFields(d, clusterDesc, false)

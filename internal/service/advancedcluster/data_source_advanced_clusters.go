@@ -325,6 +325,11 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 
 		zoneNameToOldReplicationSpecMeta, err := GetReplicationSpecAttributesFromOldAPI(ctx, cluster.GetGroupId(), cluster.GetName(), connV220240530.ClustersApi)
 		if err != nil {
+			if apiError, ok := admin20240530.AsError(err); !ok {
+				return nil, diag.FromErr(err)
+			} else if !(apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" && isUsingOldShardingConfiguration(d)) {
+				return nil, diag.FromErr(fmt.Errorf(errorRead, cluster.GetName(), err))
+			}
 			return nil, diag.FromErr(err)
 		}
 
