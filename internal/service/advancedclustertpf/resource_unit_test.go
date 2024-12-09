@@ -121,7 +121,7 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 	unit.MockTestCaseAndRun(t, vars, mockConfig, &testCase)
 }
 
-func shortenRetries() error{
+func shortenRetries() error {
 	advancedclustertpf.RetryMinTimeout = 100 * time.Millisecond
 	advancedclustertpf.RetryDelay = 100 * time.Millisecond
 	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
@@ -252,7 +252,6 @@ func TestMockClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T
 			"clusterName": clusterName,
 		}
 	)
-	shortenRetries()
 	testCase := tc.SymmetricShardedOldSchema(t, orgID, projectName, clusterName)
 	unit.MockTestCaseAndRun(t, vars, mockConfig, testCase)
 }
