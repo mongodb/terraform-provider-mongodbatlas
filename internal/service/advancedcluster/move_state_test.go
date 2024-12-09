@@ -10,8 +10,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccAdvancedCluster_moveNotSupportedSdkv2(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // This is intended to be used only in the old schema
+func TestAccAdvancedCluster_moveNotSupportedLegacySchema(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
