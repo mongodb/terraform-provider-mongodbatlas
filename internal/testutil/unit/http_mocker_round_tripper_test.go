@@ -75,9 +75,10 @@ func TestMockRoundTripper(t *testing.T) {
 	require.NoError(t, err)
 	_, err = client.Do(getRequest)
 	require.NoError(t, err)
-	// Third GET request FAIL with no match as there are no more responses until after DELETE
-	_, err = client.Do(getRequest)
-	require.ErrorContains(t, err, "no matching request found")
+	// Third GET request is re-read, since we have not gotten the diff
+	require.NoError(t, err)
+	okResp, err := client.Do(getRequest)
+	require.Equal(t, 200, okResp.StatusCode)
 
 	// Test _manual diff file (set to {} instead of '')
 	validateRequest := request("DELETE", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID), reqPoliciesManualValidateDelete)

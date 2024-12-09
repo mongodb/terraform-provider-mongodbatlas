@@ -23,9 +23,9 @@ const (
 
 type MockHTTPDataConfig struct {
 	SideEffect           func() error
-	AllowMissingRequests bool
 	IsDiffSkipSuffixes   []string
 	IsDiffMustSubstrings []string
+	AllowMissingRequests bool
 }
 
 func IsCapture() bool {
@@ -114,6 +114,7 @@ func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 	}
 
 	writeCapturedData := func(s *terraform.State) error {
+		clientModifier.NormalizeCapturedData()
 		return clientModifier.WriteCapturedData(MockConfigFilePath(t))
 	}
 	testCase.CheckDestroy = wrapClientDuringCheck(testCase.CheckDestroy, clientModifier, writeCapturedData)

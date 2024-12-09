@@ -170,7 +170,8 @@ func (r *mockRoundTripper) checkStepRequests(_ *terraform.State) error {
 		diff := step.DiffRequests[index]
 		filename := r.manualFilenameIfExist(diff.idShort(), index)
 		r.t.Logf("checking diff %s", filename)
-		r.g.Assert(r.t, filename, []byte(payload))
+		payloadWithVars := useVars(r.usedVars, payload)
+		r.g.Assert(r.t, filename, []byte(payloadWithVars))
 	}
 	return nil
 }

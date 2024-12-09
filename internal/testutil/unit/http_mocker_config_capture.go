@@ -105,6 +105,10 @@ func (c *CaptureMockConfigClientModifier) RoundTrip(req *http.Request) (*http.Re
 	return resp, err
 }
 
+func (c *CaptureMockConfigClientModifier) NormalizeCapturedData() {
+	c.capturedData.Normalize()
+}
+
 func (c *CaptureMockConfigClientModifier) ConfigYaml() (string, error) {
 	initialYaml := strings.Builder{}
 	e := yaml.NewEncoder(&initialYaml)

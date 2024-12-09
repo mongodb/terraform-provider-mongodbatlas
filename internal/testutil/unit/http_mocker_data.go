@@ -207,6 +207,21 @@ type MockHTTPData struct {
 	StepCount int               `yaml:"step_count"`
 }
 
+// Normalize happens after all data is captured, as a cluster.name might only be discovered as a variable in later steps
+func (m *MockHTTPData) Normalize() {
+	for i := range m.Steps {
+		step := &m.Steps[i]
+		for j := range step.RequestResponses {
+			request := &step.RequestResponses[j]
+			request.Text = useVars(m.Variables, request.Text)
+			for k := range request.Responses {
+				response := &request.Responses[k]
+				response.Text = useVars(m.Variables, response.Text)
+			}
+		}
+	}
+}
+
 func (m *MockHTTPData) AddRoundtrip(t *testing.T, rt *RoundTrip, isDiff bool) error {
 	t.Helper()
 	rtVariables := rt.Variables
@@ -219,16 +234,16 @@ func (m *MockHTTPData) AddRoundtrip(t *testing.T, rt *RoundTrip, isDiff bool) er
 	} else if err != nil {
 		return err
 	}
-	normalizedPath := useVariables(rtVariables, rt.Request.Path)
+	normalizedPath := useVars(rtVariables, rt.Request.Path)
 	step := &m.Steps[rt.StepNumber-1]
 	requestInfo := RequestInfo{
 		Version: rt.Request.Version,
 		Method:  rt.Request.Method,
 		Path:    normalizedPath,
-		Text:    useVariables(rtVariables, rt.Request.Text),
+		Text:    useVars(rtVariables, rt.Request.Text),
 		Responses: []statusText{
 			{
-				Text:          useVariables(rtVariables, rt.Response.Text),
+				Text:          useVars(rtVariables, rt.Response.Text),
 				Status:        rt.Response.Status,
 				ResponseIndex: rt.Response.ResponseIndex,
 			},
@@ -286,7 +301,7 @@ func findVariableChange(t *testing.T, name string, vars map[string]string, oldVa
 	return nil, fmt.Errorf("too many variables with the same name and different values: %s", name)
 }
 
-func useVariables(vars map[string]string, text string) string {
+func useVars(vars map[string]string, text string) string {
 	for key, value := range vars {
 		text = strings.ReplaceAll(text, value, fmt.Sprintf("{%s}", key))
 	}
