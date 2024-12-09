@@ -21,6 +21,7 @@ import (
 
 type HTTPClientModifier interface {
 	ModifyHTTPClient(*http.Client) error
+	ResetHTTPClient(*http.Client)
 }
 
 type ProviderMocked struct {

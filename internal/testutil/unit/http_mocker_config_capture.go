@@ -50,6 +50,12 @@ func (c *CaptureMockConfigClientModifier) ModifyHTTPClient(httpClient *http.Clie
 	return nil
 }
 
+func (c *CaptureMockConfigClientModifier) ResetHTTPClient(httpClient *http.Client) {
+	if c.oldTransport != nil {
+		httpClient.Transport = c.oldTransport
+	}
+}
+
 func (c *CaptureMockConfigClientModifier) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Capture request body to avoid it being consumed
 	originalBody, normalizedBody, err := extractAndNormalizePayload(req.Body)
