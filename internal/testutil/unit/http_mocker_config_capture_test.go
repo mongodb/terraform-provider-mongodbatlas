@@ -31,7 +31,6 @@ func TestFailedFilename(t *testing.T) {
 
 func TestCaptureMockConfigClientModifier_clusterExample(t *testing.T) {
 	t.Setenv(unit.EnvNameHTTPMockerCapture, "true")
-	unit.InitializeAPISpecPaths()
 	clientModifier := unit.NewCaptureMockConfigClientModifier(t, 2)
 	transport := httpmock.NewMockTransport()
 	client := http.Client{Transport: transport}

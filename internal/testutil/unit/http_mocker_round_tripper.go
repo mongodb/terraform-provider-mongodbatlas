@@ -15,6 +15,7 @@ import (
 	"github.com/sebdah/goldie/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
 
 func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPDataConfig) (http.RoundTripper, func(), resource.TestCheckFunc) {
@@ -33,6 +34,18 @@ func MockRoundTripper(t *testing.T, vars map[string]string, config *MockHTTPData
 		myTransport.RegisterRegexpResponder(method, regexp.MustCompile(".*"), tracker.receiveRequest(method))
 	}
 	return mockTransport, tracker.IncreaseStepNumberAndInit, tracker.checkStepRequests
+}
+func parseTestDataConfigYAML(filePath string) (*MockHTTPData, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+	var testData MockHTTPData
+	err = yaml.Unmarshal(data, &testData)
+	if err != nil {
+		return nil, err
+	}
+	return &testData, nil
 }
 
 func newMockRoundTripper(t *testing.T, data *MockHTTPData, vars map[string]string) *mockRoundTripper {
