@@ -98,7 +98,6 @@ func (r *mockRoundTripper) manualFilenameIfExist(requestID string, index int) st
 }
 
 func (r *mockRoundTripper) initStep() error {
-	require.Len(r.t, r.data.Steps, r.data.StepCount, "step count didn't match steps")
 	r.usedResponses = map[string]int{}
 	r.foundsDiffs = map[int]string{}
 	step := r.currentStep()
@@ -131,7 +130,7 @@ func (r *mockRoundTripper) nextDiffResponseIndex() {
 }
 
 func (r *mockRoundTripper) currentStep() *stepRequests {
-	if r.currentStepIndex >= r.data.StepCount {
+	if r.currentStepIndex >= len(r.data.Steps) {
 		return nil
 	}
 	return &r.data.Steps[r.currentStepIndex]

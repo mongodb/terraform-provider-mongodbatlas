@@ -164,7 +164,6 @@ type RoundTrip struct {
 func NewMockHTTPData(stepCount int) MockHTTPData {
 	steps := make([]stepRequests, stepCount)
 	return MockHTTPData{
-		StepCount: stepCount,
 		Steps:     steps,
 		Variables: map[string]string{},
 	}
@@ -204,7 +203,6 @@ func (e VariablesChangedError) ChangedValuesMap() map[string]string {
 type MockHTTPData struct {
 	Variables map[string]string `yaml:"variables"`
 	Steps     []stepRequests    `yaml:"steps"`
-	StepCount int               `yaml:"step_count"`
 }
 
 // Normalize happens after all data is captured, as a cluster.name might only be discovered as a variable in later steps

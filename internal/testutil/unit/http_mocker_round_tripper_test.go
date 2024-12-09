@@ -78,6 +78,7 @@ func TestMockRoundTripper(t *testing.T) {
 	// Third GET request is re-read, since we have not gotten the diff
 	require.NoError(t, err)
 	okResp, err := client.Do(getRequest)
+	require.NoError(t, err)
 	require.Equal(t, 200, okResp.StatusCode)
 
 	// Test _manual diff file (set to {} instead of '')
