@@ -54,8 +54,8 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 			mockCluster:    &admin20240530.AdvancedClusterDescription{},
 			mockResponse:   &http.Response{StatusCode: 400},
 			mockError:      errGeneric,
-			expectedError:  nil,
-			expectedResult: map[string]advancedcluster.OldShardConfigMeta{},
+			expectedError:  errGeneric,
+			expectedResult: nil,
 		},
 		"Successful": {
 			mockCluster: &admin20240530.AdvancedClusterDescription{
