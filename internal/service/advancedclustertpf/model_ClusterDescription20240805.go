@@ -68,6 +68,46 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 	}
 }
 
+func NewTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModelDS {
+	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
+	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
+	labels := NewLabelsObjType(ctx, input.Labels, diags)
+	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, &apiInfo)
+	tags := NewTagsObjType(ctx, input.Tags, diags)
+	if diags.HasError() {
+		return nil
+	}
+	return &TFModelDS{
+		AcceptDataRisksAndForceReplicaSetReconfig: types.StringPointerValue(conversion.TimePtrToStringPtr(input.AcceptDataRisksAndForceReplicaSetReconfig)),
+		BackupEnabled:                    types.BoolPointerValue(input.BackupEnabled),
+		BiConnectorConfig:                biConnector,
+		ClusterType:                      types.StringPointerValue(input.ClusterType),
+		ConfigServerManagementMode:       types.StringPointerValue(input.ConfigServerManagementMode),
+		ConfigServerType:                 types.StringPointerValue(input.ConfigServerType),
+		ConnectionStrings:                connectionStrings,
+		CreateDate:                       types.StringPointerValue(conversion.TimePtrToStringPtr(input.CreateDate)),
+		DiskSizeGB:                       types.Float64PointerValue(findRegionRootDiskSize(input.ReplicationSpecs)),
+		EncryptionAtRestProvider:         types.StringPointerValue(input.EncryptionAtRestProvider),
+		GlobalClusterSelfManagedSharding: types.BoolPointerValue(input.GlobalClusterSelfManagedSharding),
+		ProjectID:                        types.StringPointerValue(input.GroupId),
+		ClusterID:                        types.StringPointerValue(input.Id),
+		Labels:                           labels,
+		MongoDBMajorVersion:              types.StringPointerValue(input.MongoDBMajorVersion),
+		MongoDBVersion:                   types.StringPointerValue(input.MongoDBVersion),
+		Name:                             types.StringPointerValue(input.Name),
+		Paused:                           types.BoolPointerValue(input.Paused),
+		PitEnabled:                       types.BoolPointerValue(input.PitEnabled),
+		RedactClientLogData:              types.BoolPointerValue(input.RedactClientLogData),
+		ReplicaSetScalingStrategy:        types.StringPointerValue(input.ReplicaSetScalingStrategy),
+		ReplicationSpecs:                 replicationSpecs,
+		RootCertType:                     types.StringPointerValue(input.RootCertType),
+		StateName:                        types.StringPointerValue(input.StateName),
+		Tags:                             tags,
+		TerminationProtectionEnabled:     types.BoolPointerValue(input.TerminationProtectionEnabled),
+		VersionReleaseSystem:             types.StringPointerValue(input.VersionReleaseSystem),
+	}
+}
+
 func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.Object {
 	if input == nil {
 		return types.ObjectNull(BiConnectorConfigObjType.AttrTypes)
