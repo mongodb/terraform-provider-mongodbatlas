@@ -97,7 +97,7 @@ func TestAWSRegionToMongoDBRegion(t *testing.T) {
 	}
 }
 
-func TestNilForUnknownOrEmpty(t *testing.T)	{
+func TestNilForUnknownOrEmpty(t *testing.T) {
 	assert.Nil(t, conversion.NilForUnknownOrEmpty(types.StringPointerValue(nil)))
 	emptyString := ""
 	assert.Nil(t, conversion.NilForUnknownOrEmpty(types.StringPointerValue(&emptyString)))
