@@ -1,17 +1,28 @@
 {
  "replicationSpecs": [
   {
-   "id": "6746cefbaef48d1cb2658ba6",
+   "id": "67587cae27216120d54106e0",
    "numShards": 2,
    "regionConfigs": [
     {
      "analyticsSpecs": {
       "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
       "instanceSize": "M20",
       "nodeCount": 1
      },
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": false
+      }
+     },
      "electableSpecs": {
       "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
       "instanceSize": "M10",
       "nodeCount": 3
      },
@@ -20,6 +31,15 @@
      "regionName": "EU_WEST_1"
     },
     {
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": false
+      }
+     },
      "electableSpecs": {
       "diskIOPS": 3500,
       "instanceSize": "M10",

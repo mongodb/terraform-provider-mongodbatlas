@@ -373,6 +373,7 @@ jobs:
         env:
           ACCTEST_REGEX_RUN: '^TestMock'
           ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
+          MONGODB_ATLAS_PROJECT_ID: '111111111111111111111111' # 24 chars used for skipping acc.ProjectIDExecution(t) in mocked tests
         run: make testacc
       - name: Acceptance Tests
         env:

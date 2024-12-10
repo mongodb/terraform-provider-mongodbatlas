@@ -3,7 +3,7 @@
  "configServerManagementMode": "FIXED_TO_DEDICATED",
  "labels": [],
  "mongoDBMajorVersion": "8.0",
- "name": "test-acc-tf-c-6025103075771235151",
+ "name": "{clusterName}",
  "replicationSpecs": [
   {
    "regionConfigs": [

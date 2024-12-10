@@ -22,35 +22,34 @@ var (
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 )
 
-func SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T, orgID, projectName, clusterName string) *resource.TestCase {
+func SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 50),
+				Config: configShardedOldSchemaDiskSizeGBElectableLevel(projectID, clusterName, 50),
 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(50),
 			},
 			{
-				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 55),
+				Config: configShardedOldSchemaDiskSizeGBElectableLevel(projectID, clusterName, 55),
 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(55),
 			},
 		},
 	}
 }
 
-func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name string, diskSizeGB int) string {
+func configShardedOldSchemaDiskSizeGBElectableLevel(projectID, name string, diskSizeGB int) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "cluster_project" {
-		org_id = %[1]q
-		name   = %[2]q
-	}
-
 	resource "mongodbatlas_advanced_cluster" "test" {
-		project_id = mongodbatlas_project.cluster_project.id
-		name = %[3]q
+		project_id = %[1]q
+		name = %[2]q
 		backup_enabled = false
 		mongo_db_major_version = "7.0"
 		cluster_type   = "SHARDED"
@@ -62,12 +61,12 @@ func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name str
 			electable_specs = {
 				instance_size = "M10"
 				node_count    = 3
-				disk_size_gb  = %[4]d
+				disk_size_gb  = %[3]d
 			}
 			analytics_specs = {
 				instance_size = "M10"
 				node_count    = 0
-				disk_size_gb  = %[4]d
+				disk_size_gb  = %[3]d
 			}
 			provider_name = "AWS"
 			priority      = 7
@@ -76,7 +75,7 @@ func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name str
 			]
 		}]
 	}
-	`, orgID, projectName, name, diskSizeGB)
+	`, projectID, name, diskSizeGB)
 }
 
 func checkShardedOldSchemaDiskSizeGBElectableLevel(diskSizeGB int) resource.TestCheckFunc {
@@ -98,26 +97,30 @@ func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func SymmetricShardedOldSchema(t *testing.T, orgID, projectName, clusterName string) *resource.TestCase {
+func SymmetricShardedOldSchema(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
+				Config: configShardedOldSchemaMultiCloud(projectID, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
 				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M10", false, &configServerManagementModeFixedToDedicated),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
+				Config: configShardedOldSchemaMultiCloud(projectID, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
 				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
 			},
 		},
 	}
 }
 
-func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards int, analyticsSize string, configServerManagementMode *string) string {
+func configShardedOldSchemaMultiCloud(projectID, name string, numShards int, analyticsSize string, configServerManagementMode *string) string {
 	var rootConfig string
 	if configServerManagementMode != nil {
 		// valid values: FIXED_TO_DEDICATED or ATLAS_MANAGED (default)
@@ -129,26 +132,21 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 		`, *configServerManagementMode)
 	}
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "cluster_project" {
-		org_id = %[1]q
-		name   = %[2]q
-	}	
-
 	resource "mongodbatlas_advanced_cluster" "test" {
-		project_id   = mongodbatlas_project.cluster_project.id
-		name         = %[3]q
+		project_id   = %[1]q
+		name         = %[2]q
 		cluster_type = "SHARDED"
-		%[6]s
+		%[5]s
 
 		replication_specs = [{
-			num_shards = %[4]d
+			num_shards = %[3]d
 			region_configs = [{
 				electable_specs = {
 					instance_size = "M10"
 					node_count    = 3
 				}
 				analytics_specs = {
-					instance_size = %[5]q
+					instance_size = %[4]q
 					node_count    = 1
 				}
 				provider_name = "AWS"
@@ -165,7 +163,7 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 			},]
 		},]
 	}
-	`, orgID, projectName, name, numShards, analyticsSize, rootConfig)
+	`, projectID, name, numShards, analyticsSize, rootConfig)
 }
 
 func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
@@ -198,8 +196,13 @@ func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize s
 		additionalChecks...)
 }
 
-func BasicTenantTestCase(t *testing.T, projectID, clusterName, clusterNameUpdated string) *resource.TestCase {
+func BasicTenantTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		projectID          = acc.ProjectIDExecution(t)
+		clusterName        = acc.RandomClusterName()
+		clusterNameUpdated = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
@@ -254,8 +257,12 @@ func checkTenant(projectID, name string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func TenantUpgrade(t *testing.T, projectID, clusterName string) *resource.TestCase {
+func TenantUpgrade(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,

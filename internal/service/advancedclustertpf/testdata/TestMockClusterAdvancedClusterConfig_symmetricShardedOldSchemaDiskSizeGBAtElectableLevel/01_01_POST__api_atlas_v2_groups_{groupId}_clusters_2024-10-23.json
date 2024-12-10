@@ -1,8 +1,9 @@
 {
+ "backupEnabled": false,
  "clusterType": "SHARDED",
  "labels": [],
  "mongoDBMajorVersion": "7.0",
- "name": "6746cee8aef48d1cb265882d",
+ "name": "{clusterName}",
  "replicationSpecs": [
   {
    "regionConfigs": [
