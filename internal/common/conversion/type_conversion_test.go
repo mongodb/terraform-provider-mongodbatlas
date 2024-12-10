@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -94,4 +95,12 @@ func TestAWSRegionToMongoDBRegion(t *testing.T) {
 			t.Errorf("AWSRegionToMongoDBRegion(%v) = %v; want %v", test.region, resp, test.expected)
 		}
 	}
+}
+
+func TestNilForUnknownOrEmpty(t *testing.T)	{
+	assert.Nil(t, conversion.NilForUnknownOrEmpty(types.StringPointerValue(nil)))
+	emptyString := ""
+	assert.Nil(t, conversion.NilForUnknownOrEmpty(types.StringPointerValue(&emptyString)))
+	testString := "test"
+	assert.Equal(t, "test", *conversion.NilForUnknownOrEmpty(types.StringPointerValue(&testString)))
 }
