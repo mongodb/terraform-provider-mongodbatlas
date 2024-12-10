@@ -3,6 +3,8 @@ package conversion
 import (
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func SafeValue[T any](v *T) T {
@@ -91,6 +93,14 @@ type TFPrimitiveType interface {
 
 func NilForUnknown[T any](primitiveAttr TFPrimitiveType, value *T) *T {
 	if primitiveAttr.IsUnknown() {
+		return nil
+	}
+	return value
+}
+
+func NilForUnknownOrEmpty(primitiveAttr types.String) *string {
+	value := NilForUnknown(primitiveAttr, primitiveAttr.ValueStringPointer())
+	if value == nil || *value == "" {
 		return nil
 	}
 	return value
