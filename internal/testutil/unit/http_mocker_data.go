@@ -2,6 +2,7 @@ package unit
 
 import (
 	"fmt"
+	"net/url"
 	"sort"
 	"strings"
 	"testing"
@@ -89,21 +90,39 @@ func (i *RequestInfo) idShort() string {
 	return fmt.Sprintf("%s_%s_%s", i.Method, i.Path, i.Version)
 }
 
-func (i *RequestInfo) Match(t *testing.T, method, urlPath, version string, usedVars map[string]string) bool {
+func (i *RequestInfo) NormalizePath(reqURL *url.URL) string {
+	queryVars := i.QueryVars()
+	if len(queryVars) == 0 {
+		return reqURL.Path
+	}
+	return removeQueryParamsAndTrim(reqURL.Path) + "?" + relevantQuery(queryVars, reqURL.Query())
+}
+
+func (i *RequestInfo) QueryVars() []string {
+	selfURL, _ := url.Parse("http://localhost" + i.Path)
+	query := selfURL.Query()
+	queryVars := []string{}
+	for key := range query {
+		queryVars = append(queryVars, key)
+	}
+	return queryVars
+}
+
+func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.URL, usedVars map[string]string) bool {
 	t.Helper()
-	if i.Method != method {
+	if i.Method != method || i.Version != version {
 		return false
 	}
-	selfPath := replaceVars(i.Path, usedVars)
-	exactMatch := selfPath == urlPath && i.Version == version
-	if exactMatch {
+	reqPath := i.NormalizePath(reqURL)
+	if replaceVars(i.Path, usedVars) == reqPath {
 		return true
 	}
-	apiPath := APISpecPath{Path: i.Path}
-	if !apiPath.Match(urlPath) {
+	apiPath := APISpecPath{Path: removeQueryParamsAndTrim(i.Path)}
+	if !apiPath.Match(reqURL.Path) {
 		return false
 	}
-	for name, value := range apiPath.Variables(urlPath) {
+	pathVars := apiPath.Variables(reqURL.Path)
+	for name, value := range pathVars {
 		oldValue, exists := usedVars[name]
 		if !exists {
 			t.Logf("Adding variable to %s=%s based on match of %s", name, value, i.Path)
@@ -119,7 +138,7 @@ func (i *RequestInfo) Match(t *testing.T, method, urlPath, version string, usedV
 			usedVars[name] = value
 		}
 	}
-	return replaceVars(i.Path, usedVars) == urlPath && i.Version == version
+	return replaceVars(i.Path, usedVars) == reqPath
 }
 
 type stepRequests struct {
@@ -155,10 +174,11 @@ func (s *stepRequests) AddRequest(request *RequestInfo, isDiff bool) {
 }
 
 type RoundTrip struct {
-	Variables  map[string]string
-	Request    RequestInfo
-	Response   statusText
-	StepNumber int
+	Variables   map[string]string
+	QueryString string
+	Request     RequestInfo
+	Response    statusText
+	StepNumber  int
 }
 
 func NewMockHTTPData(stepCount int) MockHTTPData {
@@ -241,6 +261,9 @@ func (m *MockHTTPData) AddRoundtrip(t *testing.T, rt *RoundTrip, isDiff bool) er
 		return err
 	}
 	normalizedPath := useVars(rtVariables, rt.Request.Path)
+	if rt.QueryString != "" {
+		normalizedPath += "?" + useVars(rtVariables, rt.QueryString)
+	}
 	step := &m.Steps[rt.StepNumber-1]
 	requestInfo := RequestInfo{
 		Version: rt.Request.Version,

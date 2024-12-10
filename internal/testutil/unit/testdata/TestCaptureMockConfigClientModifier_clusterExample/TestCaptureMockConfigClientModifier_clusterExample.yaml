@@ -2,6 +2,7 @@ variables:
   clusterName: test-acc-tf-c-7871793563057636102
   groupId: g1
   groupId2: 6746ceed6f62fc3c122a3e0e
+  groupId3: 6746cee66f62fc3c122a3b82
 steps:
   - diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters
@@ -35,3 +36,21 @@ steps:
             status: 200
             duplicate_responses: 1
             text: "{\n \"backupEnabled\": true,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"REPLICASET\",\n \"connectionStrings\": {\n  \"standard\": \"mongodb://ac-a43sbzi-shard-00-00.efwnixe.mongodb-dev.net:27017,ac-a43sbzi-shard-00-01.efwnixe.mongodb-dev.net:27017,ac-a43sbzi-shard-00-02.efwnixe.mongodb-dev.net:27017/?ssl=true\\u0026authSource=admin\\u0026replicaSet=atlas-13c9xc-shard-0\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-787179356.efwnixe.mongodb-dev.net\"\n },\n \"createDate\": \"2024-11-27T07:49:10Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"8.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId2}\",\n \"id\": \"6746cef66f62fc3c122a3fe9\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"8.0\",\n \"mongoDBVersion\": \"8.0.3\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"6746cef66f62fc3c122a3fcb\",\n   \"regionConfigs\": [\n    {\n     \"backingProviderName\": \"AWS\",\n     \"electableSpecs\": {\n      \"diskSizeGB\": 5,\n      \"effectiveInstanceSize\": \"M5\",\n      \"instanceSize\": \"M5\"\n     },\n     \"priority\": 7,\n     \"providerName\": \"TENANT\",\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"6746cef66f62fc3c122a3fc9\",\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"IDLE\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
+  - diff_requests: []
+    request_responses:
+      - path: /api/atlas/v2/groups/{groupId3}/containers?providerName=AWS
+        method: GET
+        version: '2024-08-05'
+        text: ""
+        responses:
+          - response_index: 5
+            status: 200
+            text: "{\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId3}/containers?includeCount=true\\u0026providerName=AWS\\u0026pageNum=1\\u0026itemsPerPage=100\",\n   \"rel\": \"self\"\n  }\n ],\n \"results\": [\n  {\n   \"atlasCidrBlock\": \"192.168.248.0/21\",\n   \"id\": \"6746ceedaef48d1cb265896b\",\n   \"providerName\": \"AWS\",\n   \"provisioned\": true,\n   \"regionName\": \"EU_WEST_1\",\n   \"vpcId\": \"vpc-00b20ecca20a410e2\"\n  }\n ],\n \"totalCount\": 1\n}"
+      - path: /api/atlas/v2/groups/{groupId3}/containers?providerName=AZURE
+        method: GET
+        version: '2024-08-05'
+        text: ""
+        responses:
+          - response_index: 6
+            status: 200
+            text: "{\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/6746cef5aef48d1cb2658a7f/containers?includeCount=true\\u0026providerName=AZURE\\u0026pageNum=1\\u0026itemsPerPage=100\",\n   \"rel\": \"self\"\n  }\n ],\n \"results\": [\n  {\n   \"atlasCidrBlock\": \"192.168.248.0/21\",\n   \"azureSubscriptionId\": \"591236d43d098d433845860f\",\n   \"id\": \"6746cefbaef48d1cb2658bbb\",\n   \"providerName\": \"AZURE\",\n   \"provisioned\": true,\n   \"region\": \"US_EAST_2\",\n   \"vnetName\": \"vnet_6746cefbaef48d1cb2658bbb_ykngkrlx\"\n  }\n ],\n \"totalCount\": 1\n}"

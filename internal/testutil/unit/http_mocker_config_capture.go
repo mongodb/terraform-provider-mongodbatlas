@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -39,20 +40,32 @@ func configureIsDiff(config *MockHTTPDataConfig) func(*RoundTrip) bool {
 	}
 }
 
+func configureQueryVars(config *MockHTTPDataConfig) []string {
+	if config == nil {
+		return nil
+	}
+	vars := config.QueryVars
+	sort.Strings(vars)
+	return vars
+}
+
 func NewCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int, config *MockHTTPDataConfig) *CaptureMockConfigClientModifier {
 	t.Helper()
 	return &CaptureMockConfigClientModifier{
 		t:                 t,
 		expectedStepCount: expectedStepCount,
 		isDiff:            configureIsDiff(config),
+		queryVars:         configureQueryVars(config),
 		capturedData:      NewMockHTTPData(expectedStepCount),
 	}
 }
 
 type CaptureMockConfigClientModifier struct {
-	oldTransport      http.RoundTripper
-	t                 *testing.T
-	isDiff            func(*RoundTrip) bool
+	oldTransport http.RoundTripper
+	t            *testing.T
+	isDiff       func(*RoundTrip) bool
+	queryVars    []string
+
 	capturedData      MockHTTPData
 	expectedStepCount int
 	responseIndex     int
@@ -93,7 +106,7 @@ func (c *CaptureMockConfigClientModifier) RoundTrip(req *http.Request) (*http.Re
 
 	c.responseIndex++
 	specPaths := apiSpecPaths[req.Method]
-	rt, parseError := parseRoundTrip(req, resp, c.responseIndex, c.stepNumber, &specPaths, normalizedBody)
+	rt, parseError := parseRoundTrip(req, resp, c.responseIndex, c.stepNumber, &specPaths, normalizedBody, c.queryVars)
 	if parseError != nil {
 		c.t.Logf("error parsing round trip: %s", parseError)
 		return resp, err
@@ -141,7 +154,7 @@ func FailedFilename(filePath string) string {
 	return path.Join(dirName, fmt.Sprintf("%s_failed_%s", stem, formattedTime)) + configFileExtension
 }
 
-func parseRoundTrip(req *http.Request, resp *http.Response, responseIndex, stepNumber int, specPaths *[]APISpecPath, requestPayload string) (*RoundTrip, error) {
+func parseRoundTrip(req *http.Request, resp *http.Response, responseIndex, stepNumber int, specPaths *[]APISpecPath, requestPayload string, queryVars []string) (*RoundTrip, error) {
 	version := ExtractVersionRequestResponse(req.Header.Get("Accept"), resp.Header.Get("Content-Type"))
 	if version == "" {
 		return nil, fmt.Errorf("could not find version in request or response headers for responseIndex %d", responseIndex)
@@ -157,26 +170,19 @@ func parseRoundTrip(req *http.Request, resp *http.Response, responseIndex, stepN
 	// Write back response body to support reading it again
 	resp.Body = io.NopCloser(strings.NewReader(originalResponsePayload))
 	return &RoundTrip{
-		Request:    parseRequestInfo(req, version, requestPayload),
-		Response:   parseStatusText(resp, responsePayload, responseIndex),
-		Variables:  normalizedPath.Variables(req.URL.Path),
-		StepNumber: stepNumber,
+		QueryString: relevantQuery(queryVars, req.URL.Query()),
+		Variables:   normalizedPath.Variables(req.URL.Path),
+		StepNumber:  stepNumber,
+		Request: RequestInfo{
+			Version: version,
+			Path:    removeQueryParamsAndTrim(req.URL.Path),
+			Method:  req.Method,
+			Text:    requestPayload,
+		},
+		Response: statusText{
+			Text:          responsePayload,
+			Status:        resp.StatusCode,
+			ResponseIndex: responseIndex,
+		},
 	}, nil
-}
-
-func parseRequestInfo(req *http.Request, version, payload string) RequestInfo {
-	return RequestInfo{
-		Version: version,
-		Path:    req.URL.Path,
-		Method:  req.Method,
-		Text:    payload,
-	}
-}
-
-func parseStatusText(resp *http.Response, payload string, responseIndex int) statusText {
-	return statusText{
-		Text:          payload,
-		Status:        resp.StatusCode,
-		ResponseIndex: responseIndex,
-	}
 }

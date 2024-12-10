@@ -3,6 +3,7 @@ package unit
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -189,7 +190,7 @@ func (r *mockRoundTripper) receiveRequest(method string) func(req *http.Request)
 		if err != nil {
 			return nil, err
 		}
-		text, status, err := r.matchRequest(method, req.URL.Path, version, payload)
+		text, status, err := r.matchRequest(method, version, payload, req.URL)
 		if err != nil {
 			return nil, err
 		}
@@ -201,13 +202,13 @@ func (r *mockRoundTripper) receiveRequest(method string) func(req *http.Request)
 		return response, nil
 	}
 }
-func (r *mockRoundTripper) matchRequest(method, urlPath, version, payload string) (response string, statusCode int, err error) {
+func (r *mockRoundTripper) matchRequest(method, version, payload string, reqURL *url.URL) (response string, statusCode int, err error) {
 	step := r.currentStep()
 	if step == nil {
 		return "", 0, fmt.Errorf("no more steps in mock data")
 	}
 	for index, request := range step.DiffRequests {
-		if !request.Match(r.t, method, urlPath, version, r.usedVars) {
+		if !request.Match(r.t, method, version, reqURL, r.usedVars) {
 			continue
 		}
 		if _, ok := r.foundsDiffs[index]; ok {
@@ -220,7 +221,7 @@ func (r *mockRoundTripper) matchRequest(method, urlPath, version, payload string
 	nextDiffResponse := r.diffResponseIndex
 
 	for _, request := range step.RequestResponses {
-		if !request.Match(r.t, method, urlPath, version, r.usedVars) {
+		if !request.Match(r.t, method, version, reqURL, r.usedVars) {
 			continue
 		}
 		requestID := request.id()
@@ -246,5 +247,5 @@ func (r *mockRoundTripper) matchRequest(method, urlPath, version, payload string
 		r.usedResponses[requestID]++
 		return replaceVars(response.Text, r.usedVars), response.Status, nil
 	}
-	return "", 0, fmt.Errorf("no matching request found %s %s %s", method, urlPath, version)
+	return "", 0, fmt.Errorf("no matching request found %s %s?%s %s", method, reqURL.Path, reqURL.RawQuery, version)
 }

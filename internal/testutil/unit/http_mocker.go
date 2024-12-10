@@ -25,6 +25,7 @@ type MockHTTPDataConfig struct {
 	SideEffect           func() error
 	IsDiffSkipSuffixes   []string
 	IsDiffMustSubstrings []string
+	QueryVars            []string
 	AllowMissingRequests bool
 }
 

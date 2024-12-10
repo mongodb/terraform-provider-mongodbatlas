@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"regexp"
 	"strings"
 )
@@ -43,11 +44,15 @@ func (a *APISpecPath) Match(path string) bool {
 	return true
 }
 
-func FindNormalizedPath(path string, apiSpecPaths *[]APISpecPath) (APISpecPath, error) {
+func removeQueryParamsAndTrim(path string) string {
 	if strings.Contains(path, "?") {
 		path = strings.Split(path, "?")[0]
 	}
-	path = strings.TrimRight(path, "/")
+	return strings.TrimRight(path, "/")
+}
+
+func FindNormalizedPath(path string, apiSpecPaths *[]APISpecPath) (APISpecPath, error) {
+	path = removeQueryParamsAndTrim(path)
 	for _, apiSpecPath := range *apiSpecPaths {
 		if apiSpecPath.Match(path) {
 			return apiSpecPath, nil
@@ -113,4 +118,15 @@ func normalizePayload(payload string) (string, error) {
 		return "", err
 	}
 	return strings.TrimSuffix(sb.String(), "\n"), nil
+}
+
+func relevantQuery(queryVars []string, queryValues url.Values) string {
+	queryStrings := []string{}
+	for _, queryVar := range queryVars {
+		foundValue := queryValues.Get(queryVar)
+		if foundValue != "" {
+			queryStrings = append(queryStrings, fmt.Sprintf("%s=%s", queryVar, foundValue))
+		}
+	}
+	return strings.Join(queryStrings, "&")
 }
