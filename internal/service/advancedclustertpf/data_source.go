@@ -6,13 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 var _ datasource.DataSource = &ds{}
@@ -43,57 +39,27 @@ func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *dat
 }
 
 func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state TFModelDS
+	stateDS := new(TFModelDS)
 	diags := &resp.Diagnostics
-	diags.Append(req.Config.Get(ctx, &state)...)
+	diags.Append(req.Config.Get(ctx, stateDS)...)
 	if diags.HasError() {
 		return
 	}
-	model := readClusterDS(ctx, d.Client, &state, &resp.State, diags, true)
-
-	if model != nil {
-		model.UseReplicationSpecPerShard = state.UseReplicationSpecPerShard // input params
-		diags.Append(resp.State.Set(ctx, model)...)
-	}
-}
-
-func readClusterDS(ctx context.Context, client *config.MongoDBClient, model *TFModelDS, state *tfsdk.State, diags *diag.Diagnostics, allowNotFound bool) *TFModelDS {
-	clusterName := model.Name.ValueString()
-	projectID := model.ProjectID.ValueString()
-	api := client.AtlasV2.ClustersApi
-	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
+	state, err := conversion.CopyModel[TFModel](stateDS)
 	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && allowNotFound {
-			state.RemoveResource(ctx)
-			return nil
+		diags.AddError(errorRead, fmt.Sprintf("error retrieving model: %s", err.Error()))
+		return
+	}
+	model := readCluster(ctx, d.Client, state, &resp.State, diags, true)
+	if model != nil {
+		modelDS, err := conversion.CopyModel[TFModelDS](model)
+		if err != nil {
+			diags.AddError(errorRead, fmt.Sprintf("error setting model: %s", err.Error()))
+			return
 		}
-		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
-		return nil
+		modelDS.UseReplicationSpecPerShard = stateDS.UseReplicationSpecPerShard // attrs not in resource model
+		diags.Append(resp.State.Set(ctx, modelDS)...)
 	}
-	return convertClusterAddAdvConfigDS(ctx, client, nil, nil, readResp, model, nil, diags)
-}
-
-func convertClusterAddAdvConfigDS(ctx context.Context, client *config.MongoDBClient, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModelDS, oldAdvConfig *types.Object, diags *diag.Diagnostics) *TFModelDS {
-	apiInfo := resolveAPIInfoDS(ctx, modelIn, diags, cluster, client)
-	if diags.HasError() {
-		return nil
-	}
-	modelOut := NewTFModelDS(ctx, cluster, diags, *apiInfo)
-	if diags.HasError() {
-		return nil
-	}
-
-	if oldAdvConfig != nil {
-		modelOut.AdvancedConfiguration = *oldAdvConfig
-	} else {
-		legacyAdvConfig, advConfig = readUnsetAdvancedConfigurationDS(ctx, client, modelOut, legacyAdvConfig, advConfig, diags)
-		AddAdvancedConfigDS(ctx, modelOut, advConfig, legacyAdvConfig, diags)
-		if diags.HasError() {
-			return nil
-		}
-	}
-	overrideKnowTPFIssueFieldsDS(modelIn, modelOut)
-	return modelOut
 }
 
 // TODO: difference with TFModel: misses timeouts, adds use_replication_spec_per_shard.

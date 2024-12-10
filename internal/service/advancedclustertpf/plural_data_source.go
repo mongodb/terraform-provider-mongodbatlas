@@ -76,15 +76,27 @@ func (d *pluralDS) readClusters(ctx context.Context, model *TFModelPluralDS, sta
 		UseReplicationSpecPerShard:        model.UseReplicationSpecPerShard,
 		IncludeDeletedWithRetainedBackups: model.IncludeDeletedWithRetainedBackups,
 	}
+
 	for i := range list.GetResults() {
-		clusterModel := &TFModelDS{
+		modelDS := &TFModelDS{
 			ProjectID: model.ProjectID,
 			Name:      types.StringPointerValue(list.GetResults()[i].Name),
 		}
+		model, err := conversion.CopyModel[TFModel](modelDS)
+		if err != nil {
+			diags.AddError(errorRead, fmt.Sprintf("error retrieving model: %s", err.Error()))
+			return nil
+		}
+
 		// TODO: temporary one call per cluster
-		out := readClusterDS(ctx, d.Client, clusterModel, state, diags, allowNotFound)
+		out := readCluster(ctx, d.Client, model, state, diags, allowNotFound)
+		outDS, err := conversion.CopyModel[TFModelDS](out)
+		if err != nil {
+			diags.AddError(errorRead, fmt.Sprintf("error setting model: %s", err.Error()))
+			return nil
+		}
 		if out != nil {
-			outs.Results = append(outs.Results, out)
+			outs.Results = append(outs.Results, outDS)
 		}
 	}
 	return outs

@@ -18,13 +18,6 @@ func overrideKnowTPFIssueFields(modelIn, modelOut *TFModel) {
 	}
 }
 
-func overrideKnowTPFIssueFieldsDS(modelIn, modelOut *TFModelDS) {
-	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
-	if beforeVersion != nil && !modelIn.MongoDBMajorVersion.Equal(modelOut.MongoDBMajorVersion) {
-		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
-	}
-}
-
 func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) map[string]int64 {
 	if !usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
 		return nil
@@ -41,31 +34,6 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 }
 
 func resolveAPIInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnostics, clusterLatest *admin.ClusterDescription20240805, client *config.MongoDBClient) *ExtraAPIInfo {
-	rootDiskSize := conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
-	projectID := plan.ProjectID.ValueString()
-	zoneNameSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, plan.Name.ValueString(), client.AtlasV220240530.ClustersApi)
-	if err != nil {
-		diags.AddError("getReplicationSpecIDsFromOldAPI", err.Error())
-		return nil
-	}
-	if rootDiskSize == nil {
-		rootDiskSize = findRegionRootDiskSize(clusterLatest.ReplicationSpecs)
-	}
-	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterLatest, client.AtlasV2.NetworkPeeringApi)
-	if err != nil {
-		diags.AddError("resolveContainerIDs failed", err.Error())
-		return nil
-	}
-	return &ExtraAPIInfo{
-		ContainerIDs:               containerIDs,
-		UsingLegacySchema:          usingLegacySchema(ctx, plan.ReplicationSpecs, diags),
-		ZoneNameNumShards:          numShardsMap(ctx, plan.ReplicationSpecs, diags),
-		RootDiskSize:               rootDiskSize,
-		ZoneNameReplicationSpecIDs: zoneNameSpecIDs,
-	}
-}
-
-func resolveAPIInfoDS(ctx context.Context, plan *TFModelDS, diags *diag.Diagnostics, clusterLatest *admin.ClusterDescription20240805, client *config.MongoDBClient) *ExtraAPIInfo {
 	rootDiskSize := conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
 	projectID := plan.ProjectID.ValueString()
 	zoneNameSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, plan.Name.ValueString(), client.AtlasV220240530.ClustersApi)

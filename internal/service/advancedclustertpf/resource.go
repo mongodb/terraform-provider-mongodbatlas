@@ -89,7 +89,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if diags.HasError() {
 		return
 	}
-	model := r.readCluster(ctx, &state, &resp.State, diags, true)
+	model := readCluster(ctx, r.Client, &state, &resp.State, diags, true)
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
@@ -142,7 +142,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if !advConfigChanged {
 			stateAdvConfig = state.AdvancedConfiguration
 		}
-		model = r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, &plan, &stateAdvConfig, diags)
+		model = convertClusterAddAdvConfig(ctx, r.Client, legacyAdvConfig, advConfig, cluster, &plan, &stateAdvConfig, diags)
 	}
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
@@ -227,13 +227,13 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 			return nil
 		}
 	}
-	return r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan, nil, diags)
+	return convertClusterAddAdvConfig(ctx, r.Client, legacyAdvConfig, advConfig, cluster, plan, nil, diags)
 }
 
-func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State, diags *diag.Diagnostics, allowNotFound bool) *TFModel {
+func readCluster(ctx context.Context, client *config.MongoDBClient, model *TFModel, state *tfsdk.State, diags *diag.Diagnostics, allowNotFound bool) *TFModel {
 	clusterName := model.Name.ValueString()
 	projectID := model.ProjectID.ValueString()
-	api := r.Client.AtlasV2.ClustersApi
+	api := client.AtlasV2.ClustersApi
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && allowNotFound {
@@ -243,7 +243,7 @@ func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State
 		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
 		return nil
 	}
-	return r.convertClusterAddAdvConfig(ctx, nil, nil, readResp, model, nil, diags)
+	return convertClusterAddAdvConfig(ctx, client, nil, nil, readResp, model, nil, diags)
 }
 
 func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
@@ -392,8 +392,8 @@ func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeReque
 	return AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
-func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModel, oldAdvConfig *types.Object, diags *diag.Diagnostics) *TFModel {
-	apiInfo := resolveAPIInfo(ctx, modelIn, diags, cluster, r.Client)
+func convertClusterAddAdvConfig(ctx context.Context, client *config.MongoDBClient, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModel, oldAdvConfig *types.Object, diags *diag.Diagnostics) *TFModel {
+	apiInfo := resolveAPIInfo(ctx, modelIn, diags, cluster, client)
 	if diags.HasError() {
 		return nil
 	}
@@ -404,7 +404,7 @@ func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *ad
 	if oldAdvConfig != nil {
 		modelOut.AdvancedConfiguration = *oldAdvConfig
 	} else {
-		legacyAdvConfig, advConfig = readUnsetAdvancedConfiguration(ctx, r.Client, modelOut, legacyAdvConfig, advConfig, diags)
+		legacyAdvConfig, advConfig = readUnsetAdvancedConfiguration(ctx, client, modelOut, legacyAdvConfig, advConfig, diags)
 		AddAdvancedConfig(ctx, modelOut, advConfig, legacyAdvConfig, diags)
 		if diags.HasError() {
 			return nil
@@ -423,29 +423,6 @@ func (r *rs) updateAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530
 }
 
 func readUnsetAdvancedConfiguration(ctx context.Context, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, diags *diag.Diagnostics) (*admin20240530.ClusterDescriptionProcessArgs, *admin.ClusterDescriptionProcessArgs20240805) {
-	api := client.AtlasV2.ClustersApi
-	api20240530 := client.AtlasV220240530.ClustersApi
-	projectID := model.ProjectID.ValueString()
-	clusterName := model.Name.ValueString()
-	var err error
-	if legacyAdvConfig == nil {
-		legacyAdvConfig, _, err = api20240530.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			diags.AddError("errorReadAdvConfigLegacy", fmt.Sprintf(errorRead, clusterName, err.Error()))
-			return nil, nil
-		}
-	}
-	if advConfig == nil {
-		advConfig, _, err = api.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			diags.AddError("errorReadAdvConfig", fmt.Sprintf(errorRead, clusterName, err.Error()))
-			return nil, nil
-		}
-	}
-	return legacyAdvConfig, advConfig
-}
-
-func readUnsetAdvancedConfigurationDS(ctx context.Context, client *config.MongoDBClient, model *TFModelDS, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, diags *diag.Diagnostics) (*admin20240530.ClusterDescriptionProcessArgs, *admin.ClusterDescriptionProcessArgs20240805) {
 	api := client.AtlasV2.ClustersApi
 	api20240530 := client.AtlasV220240530.ClustersApi
 	projectID := model.ProjectID.ValueString()
