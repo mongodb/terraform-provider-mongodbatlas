@@ -88,9 +88,14 @@ func enableMockingForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 			}
 			return shouldSkip, err
 		}
-		step.Check = wrapClientDuringCheck(step.Check, &httpClientModifier, checkFunc)
+		if i == len(testCase.Steps)-1 {
+			// Last check done in checkDestroy to support checking DELETE calls
+			step.Check = wrapClientDuringCheck(step.Check, &httpClientModifier)
+		} else {
+			step.Check = wrapClientDuringCheck(step.Check, &httpClientModifier, checkFunc)
+		}
 	}
-	testCase.CheckDestroy = wrapClientDuringCheck(testCase.CheckDestroy, &httpClientModifier)
+	testCase.CheckDestroy = wrapClientDuringCheck(testCase.CheckDestroy, &httpClientModifier, checkFunc)
 	return nil
 }
 

@@ -166,7 +166,7 @@ func (s *stepRequests) AddRequest(request *RequestInfo, isDiff bool) {
 		if lastResponse.Status == newResponse.Status && lastResponse.Text == newResponse.Text {
 			existing.Responses[len(existing.Responses)-1].IncreaseDuplicateResponses()
 		} else {
-			existing.Responses = append(existing.Responses, request.Responses[0])
+			existing.Responses = append(existing.Responses, newResponse)
 		}
 	} else {
 		s.RequestResponses = append(s.RequestResponses, *request)
