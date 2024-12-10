@@ -605,7 +605,7 @@ To prevent disk scaling use a lifecycle ignore customization, as in the followin
 }`.
 To explicitly change `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb`, comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
 
-* `compute_enabled` - (Optional) Flag that indicates whether instance size auto-scaling is enabled. This parameter defaults to false.
+* `compute_enabled` - (Optional) Flag that indicates whether instance size auto-scaling is enabled. This parameter defaults to false. If a sharded cluster is making use of the [New Sharding Configuration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), auto-scaling of the instance size will be independent for each individual shard. On the contrary, if a sharded cluster makes use of deprecated `num_shards` attribute (with values > 1), instance size auto-scaling will be performed uniformily across all shards in the cluster.
 
 ~> **IMPORTANT:** If `compute_enabled` is true, Atlas automatically scales the cluster instance size considering the boundaries specified in `compute_min_instance_size` and `compute_max_instance_size`.
 This will cause the value of `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).instance_size` returned to potentially be different than what is specified in the Terraform config. If you then apply a plan, not noting this, Terraform will scale the cluster back to the original `instance_size` value.
