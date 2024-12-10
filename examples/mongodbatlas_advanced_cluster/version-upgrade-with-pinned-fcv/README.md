@@ -20,7 +20,7 @@ Terraform >= 0.13
 ## Usage
 **1\. Ensure your MongoDB Atlas credentials are set up.**
 
-Following `variables.tf` file create **terraform.tfvars** file with all the variable values, ex:
+Following `variables.tf` file create **terraform.tfvars** file with all the variable values, as demonstrated below:
 ```
 public_key           = "<MONGODB_ATLAS_PUBLIC_KEY>"
 private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
@@ -30,18 +30,18 @@ fcv_expiration_date  = "<FCV pin expiration date, e.g. 2024-11-22T10:50:00Z>"
 
 **2\. Review the Terraform plan.**
 
-Execute the below command and ensure you are happy with the plan.
+Execute the following command.
 
 ``` bash
 $ terraform plan
 ```
-This project currently supports the below deployments:
+This project currently supports the following deployments:
 
 - A Cluster with pinned FCV configured.
 
 **3\. Execute the Terraform apply.**
 
-Now execute the plan to provision the Atlas Project and Cluster resources.
+Execute the following plan to provision the Atlas Project and Cluster resources.
 
 ``` bash
 $ terraform apply
