@@ -538,7 +538,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		waitForChanges = true
 	}
 
-	if pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any); ok && len(pinnedFCVBlock) > 0 {
+	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
 		if diags := pinFCV(ctx, connV2, projectID, cluster.GetName(), pinnedFCVBlock[0]); diags.HasError() {
 			return diags
 		}
@@ -808,10 +808,10 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 }
 
 func warningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
-	pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any)
-	presentInState := ok && len(pinnedFCVBlock) > 0
-	expirationDatePresent := cluster.FeatureCompatibilityVersionExpirationDate != nil
-	if presentInState && !expirationDatePresent { // pin is not active but present in state (and potentially in config file)
+	pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
+	presentInState := len(pinnedFCVBlock) > 0
+	pinIsActive := cluster.FeatureCompatibilityVersionExpirationDate != nil
+	if presentInState && !pinIsActive { // pin is not active but present in state (and potentially in config file)
 		return diag.Diagnostics{
 			diag.Diagnostic{
 				Severity: diag.Warning,
@@ -820,8 +820,8 @@ func warningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *ad
 			},
 		}
 	}
-	if presentInState && expirationDatePresent {
-		expirationDate := *cluster.FeatureCompatibilityVersionExpirationDate
+	if presentInState && pinIsActive {
+		expirationDate := cluster.GetFeatureCompatibilityVersionExpirationDate()
 		if time.Now().After(expirationDate) { // pin is active, present in state, but its expiration date has passed
 			return diag.Diagnostics{
 				diag.Diagnostic{
@@ -831,7 +831,6 @@ func warningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *ad
 				},
 			}
 		}
-		return nil
 	}
 	return nil
 }
@@ -999,7 +998,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData, timeout time.Duration) diag.Diagnostics {
 	if d.HasChange("pinned_fcv") {
-		if pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any); ok && len(pinnedFCVBlock) > 0 {
+		pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
+		FCVPresentInConfig := len(pinnedFCVBlock) > 0
+		if FCVPresentInConfig {
+			// pinned_fcv has been defined or updated expiration date
 			if diags := pinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
 				return diags
 			}

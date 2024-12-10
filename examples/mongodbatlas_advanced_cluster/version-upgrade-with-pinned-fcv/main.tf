@@ -11,7 +11,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   mongo_db_major_version = "7.0"
 
   pinned_fcv {
-    expiration_date = var.fcv_expiration_date # e.g. format: "2024-11-22T10:50:00Z"  
+    expiration_date = var.fcv_expiration_date # e.g. format: "2024-11-22T10:50:00Z". Hashicorp time provider https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/offset can be used to compute this string value.
   }
 
   replication_specs {

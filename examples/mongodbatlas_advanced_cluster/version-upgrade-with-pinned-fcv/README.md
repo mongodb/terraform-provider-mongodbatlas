@@ -8,12 +8,12 @@ The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.22.0
+* Terraform MongoDB Atlas Provider v1.23.0
 * A MongoDB Atlas account 
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.22.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v1.23.0
 ```
 
 

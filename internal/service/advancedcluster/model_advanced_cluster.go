@@ -432,7 +432,7 @@ func flattenPinnedFCV(cluster *admin.ClusterDescription20240805) []map[string]st
 	}
 	nestedObj := map[string]string{}
 	nestedObj["version"] = cluster.GetFeatureCompatibilityVersion()
-	nestedObj["expiration_date"] = *conversion.TimePtrToStringPtr(cluster.FeatureCompatibilityVersionExpirationDate)
+	nestedObj["expiration_date"] = conversion.TimeToString(cluster.GetFeatureCompatibilityVersionExpirationDate())
 	return []map[string]string{nestedObj}
 }
 
