@@ -2,31 +2,49 @@ package advancedclustertpf_test
 
 import (
 	"testing"
+	"time"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/tc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
-const (
-	resourceName = "mongodbatlas_advanced_cluster.test"
+var (
+	mockConfig = &unit.MockHTTPDataConfig{AllowMissingRequests: true, SideEffect: shortenRetries, IsDiffMustSubstrings: []string{"/clusters"}}
 )
+
+func shortenRetries() error {
+	advancedclustertpf.RetryMinTimeout = 100 * time.Millisecond
+	advancedclustertpf.RetryDelay = 100 * time.Millisecond
+	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
+	return nil
+}
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
-	testCase := tc.BasicTenantTestCase(t)
-	resource.ParallelTest(t, *testCase)
+	testCase := BasicTenantTestCase(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
-	testCase := tc.SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t)
-	resource.ParallelTest(t, *testCase)
+	testCase := SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
-	testCase := tc.SymmetricShardedOldSchema(t)
-	resource.ParallelTest(t, *testCase)
+	testCase := SymmetricShardedOldSchema(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }
 
 func TestAccClusterAdvancedCluster_tenantUpgrade(t *testing.T) {
-	testCase := tc.TenantUpgrade(t)
-	resource.ParallelTest(t, *testCase)
+	testCase := TenantUpgrade(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
+}
+
+func TestAccAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
+	testCase := ReplicasetAdvConfigUpdate(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
+}
+
+func TestAccAdvancedCluster_shardedBasic(t *testing.T) {
+	testCase := shardedBasic(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }

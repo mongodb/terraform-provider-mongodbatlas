@@ -33,7 +33,7 @@ func IsCapture() bool {
 	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerCapture)))
 }
 
-func MockTestCaseAndRun(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) {
+func CaptureOrMockTestCaseAndRun(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
 	var err error
 	if IsCapture() {
