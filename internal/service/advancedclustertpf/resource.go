@@ -29,6 +29,7 @@ const (
 	errorRead                      = "error reading  advanced cluster (%s): %s"
 	errorDelete                    = "error deleting advanced cluster (%s): %s"
 	errorUpdate                    = "error updating advanced cluster (%s): %s"
+	errorList                      = "error reading  advanced cluster list for project %s: %s"
 	errorConfigUpdate              = "error updating advanced cluster configuration options (%s): %s"
 	errorConfigRead                = "error reading advanced cluster configuration options (%s): %s"
 	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"

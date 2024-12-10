@@ -49,16 +49,18 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	if diags.HasError() {
 		return
 	}
-	model := d.readCluster(ctx, &state, &resp.State, diags, true)
+	model := readClusterDS(ctx, d.Client, &state, &resp.State, diags, true)
+
 	if model != nil {
+		model.UseReplicationSpecPerShard = state.UseReplicationSpecPerShard // input params
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
 
-func (d *ds) readCluster(ctx context.Context, model *TFModelDS, state *tfsdk.State, diags *diag.Diagnostics, allowNotFound bool) *TFModelDS {
+func readClusterDS(ctx context.Context, client *config.MongoDBClient, model *TFModelDS, state *tfsdk.State, diags *diag.Diagnostics, allowNotFound bool) *TFModelDS {
 	clusterName := model.Name.ValueString()
 	projectID := model.ProjectID.ValueString()
-	api := d.Client.AtlasV2.ClustersApi
+	api := client.AtlasV2.ClustersApi
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && allowNotFound {
@@ -68,11 +70,11 @@ func (d *ds) readCluster(ctx context.Context, model *TFModelDS, state *tfsdk.Sta
 		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
 		return nil
 	}
-	return d.convertClusterAddAdvConfig(ctx, nil, nil, readResp, model, nil, diags)
+	return convertClusterAddAdvConfigDS(ctx, client, nil, nil, readResp, model, nil, diags)
 }
 
-func (d *ds) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModelDS, oldAdvConfig *types.Object, diags *diag.Diagnostics) *TFModelDS {
-	apiInfo := resolveAPIInfoDS(ctx, modelIn, diags, cluster, d.Client)
+func convertClusterAddAdvConfigDS(ctx context.Context, client *config.MongoDBClient, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModelDS, oldAdvConfig *types.Object, diags *diag.Diagnostics) *TFModelDS {
+	apiInfo := resolveAPIInfoDS(ctx, modelIn, diags, cluster, client)
 	if diags.HasError() {
 		return nil
 	}
@@ -80,12 +82,11 @@ func (d *ds) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *ad
 	if diags.HasError() {
 		return nil
 	}
-	modelOut.UseReplicationSpecPerShard = modelIn.UseReplicationSpecPerShard // input param
 
 	if oldAdvConfig != nil {
 		modelOut.AdvancedConfiguration = *oldAdvConfig
 	} else {
-		legacyAdvConfig, advConfig = readUnsetAdvancedConfigurationDS(ctx, d.Client, modelOut, legacyAdvConfig, advConfig, diags)
+		legacyAdvConfig, advConfig = readUnsetAdvancedConfigurationDS(ctx, client, modelOut, legacyAdvConfig, advConfig, diags)
 		AddAdvancedConfigDS(ctx, modelOut, advConfig, legacyAdvConfig, diags)
 		if diags.HasError() {
 			return nil

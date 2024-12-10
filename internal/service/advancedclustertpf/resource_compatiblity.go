@@ -168,6 +168,9 @@ func repSpecNoIDs(repspec admin.ReplicationSpec20240805) *admin.ReplicationSpec2
 
 func numShardsCounts(ctx context.Context, input types.List, diags *diag.Diagnostics) []int64 {
 	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
+	if len(elements) == 0 {
+		return nil
+	}
 	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
 		diags.Append(localDiags...)
 		return nil
@@ -190,6 +193,9 @@ func usingLegacySchema(ctx context.Context, input types.List, diags *diag.Diagno
 
 func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]int64 {
 	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
+	if len(elements) == 0 {
+		return nil
+	}
 	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
 		diags.Append(localDiags...)
 		return nil
