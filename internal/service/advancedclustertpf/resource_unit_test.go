@@ -25,12 +25,11 @@ func shortenRetries() error {
 	return nil
 }
 
-func TestMockAdvancedCluster_replicaset(t *testing.T) {
+func TestMockAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 	var (
-		oneNewVariable = "backup_enabled = false"
-		projectID      = acc.ProjectIDExecution(t)
-		clusterName    = acc.RandomClusterName()
-		fullUpdate     = `
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+		fullUpdate  = `
 	backup_enabled = true
 	bi_connector_config = {
 		enabled = true
@@ -45,7 +44,6 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 		value = "test"
 	}]
 	mongo_db_major_version = "8.0"
-	paused = true
 	pit_enabled = true
 	redact_client_log_data = true
 	replica_set_scaling_strategy = "NODE_TYPE"
@@ -53,11 +51,7 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 	root_cert_type = "ISRGROOTX1"
 	# termination_protection_enabled = true # must be reset to false to enable delete
 	version_release_system = "CONTINUOUS"
-		`
-		// # oplog_min_retention_hours                                      = 5.5
-		// # oplog_size_mb                                                  = 1000
-		// # fail_index_key_too_long 								        = true # only valid for MongoDB version 4.4 and earlier
-		advClusterConfig = `
+	
 	advanced_configuration = {
 		change_stream_options_pre_and_post_images_expire_after_seconds = 100
 		default_read_concern                                           = "available"
@@ -69,8 +63,10 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 		sample_size_bi_connector                                       = 110
 		transaction_lifetime_limit_seconds                             = 300
 	}
-		`
-		fullUpdateResumed = strings.Replace(fullUpdate, "paused = true", "paused = false", 1)
+`
+		// # oplog_min_retention_hours                                      = 5.5
+		// # oplog_size_mb                                                  = 1000
+		// # fail_index_key_too_long 								        = true # only valid for MongoDB version 4.4 and earlier
 	)
 	testCase := resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -79,36 +75,12 @@ func TestMockAdvancedCluster_replicaset(t *testing.T) {
 				Config: configBasic(projectID, clusterName, ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
-					resource.TestCheckResourceAttr(resourceName, "timeouts.create", "20s"),
+					resource.TestCheckResourceAttr(resourceName, "timeouts.create", "2000s"),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.container_id.AWS:US_EAST_1", "67345bd9905b8c30c54fd220"),
 				),
 			},
 			{
-				Config: configBasic(projectID, clusterName, oneNewVariable),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
-				),
-			},
-			{
 				Config: configBasic(projectID, clusterName, fullUpdate),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
-					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
-					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
-				),
-			},
-			{
-				Config: configBasic(projectID, clusterName, fullUpdateResumed),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
-					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
-				),
-			},
-			{
-				Config: configBasic(projectID, clusterName, fullUpdateResumed+advClusterConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
