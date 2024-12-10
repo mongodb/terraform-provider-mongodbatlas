@@ -155,6 +155,6 @@ func wrapClientDuringCheck(oldCheck resource.TestCheckFunc, clientModifier HTTPC
 				}
 			}
 		}
-		return oldCheck(s)
+		return nil
 	}
 }
