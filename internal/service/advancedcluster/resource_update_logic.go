@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113002/admin"
+
+	// "go.mongodb.org/atlas-sdk/v20241113002/admin"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func noIDsPopulatedInReplicationSpecs(replicationSpecs *[]admin20240805.ReplicationSpec20240805) bool {

@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func DataSource() *schema.Resource {
@@ -325,7 +327,7 @@ func DataSource() *schema.Resource {
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview // TODO: replace with AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
 

@@ -1,10 +1,11 @@
 package conversion
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113002/admin"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	adminPreview "github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
 )
 
 func FlattenLinks(links []admin.Link) []map[string]string {
@@ -19,6 +20,18 @@ func FlattenLinks(links []admin.Link) []map[string]string {
 }
 
 func FlattenTags(tags []admin.ResourceTag) []map[string]string {
+	ret := make([]map[string]string, len(tags))
+	for i, tag := range tags {
+		ret[i] = map[string]string{
+			"key":   tag.GetKey(),
+			"value": tag.GetValue(),
+		}
+	}
+	return ret
+}
+
+// TODO: remove once new SDK is available with cipher config changes
+func FlattenTagsPreview(tags []adminPreview.ResourceTag) []map[string]string {
 	ret := make([]map[string]string, len(tags))
 	for i, tag := range tags {
 		ret[i] = map[string]string{

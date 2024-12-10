@@ -266,7 +266,8 @@ func DataSource() *schema.Resource {
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	// TODO: replace SDK once cipher config changes are in prod
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)

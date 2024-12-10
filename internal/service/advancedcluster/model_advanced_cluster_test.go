@@ -9,10 +9,12 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113002/admin"
-	"go.mongodb.org/atlas-sdk/v20241113002/mockadmin"
 
+	// "go.mongodb.org/atlas-sdk/v20241113002/admin"
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
+	// "go.mongodb.org/atlas-sdk/v20241113002/mockadmin"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/atlas-sdk-go/mockadmin" // TODO: replace usage with latest once cipher config changes are in prod
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

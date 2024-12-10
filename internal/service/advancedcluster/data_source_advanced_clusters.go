@@ -7,11 +7,12 @@ import (
 	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 
+	// "go.mongodb.org/atlas-sdk/v20241113002/admin"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -282,7 +283,8 @@ func PluralDataSource() *schema.Resource {
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	// TODO: replace SDK once cipher config changes are in prod
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	projectID := d.Get("project_id").(string)
 	useReplicationSpecPerShard := false
 
@@ -359,7 +361,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"disk_size_gb":                         GetDiskSizeGBFromReplicationSpec(cluster),
 			"encryption_at_rest_provider":          cluster.GetEncryptionAtRestProvider(),
 			"labels":                               flattenLabels(cluster.GetLabels()),
-			"tags":                                 conversion.FlattenTags(cluster.GetTags()),
+			"tags":                                 conversion.FlattenTagsPreview(cluster.GetTags()), // TODO: undo
 			"mongo_db_major_version":               cluster.GetMongoDBMajorVersion(),
 			"mongo_db_version":                     cluster.GetMongoDBVersion(),
 			"name":                                 cluster.GetName(),
@@ -418,7 +420,7 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"disk_size_gb":                         cluster.GetDiskSizeGB(),
 			"encryption_at_rest_provider":          cluster.GetEncryptionAtRestProvider(),
 			"labels":                               flattenLabels(*convertLabelsToLatest(cluster.Labels)),
-			"tags":                                 conversion.FlattenTags(convertTagsToLatest(cluster.GetTags())),
+			"tags":                                 conversion.FlattenTagsPreview(convertTagsToLatest(cluster.GetTags())), // TODO: undo
 			"mongo_db_major_version":               cluster.GetMongoDBMajorVersion(),
 			"mongo_db_version":                     cluster.GetMongoDBVersion(),
 			"name":                                 cluster.GetName(),
