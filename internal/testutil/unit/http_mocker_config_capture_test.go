@@ -1,0 +1,95 @@
+package unit_test
+
+import (
+	_ "embed"
+	"net/http"
+	"regexp"
+	"testing"
+
+	"github.com/jarcoal/httpmock"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
+	"github.com/sebdah/goldie/v2"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+var (
+	//go:embed testdata/CaptureTest/createCluster.json
+	createClusterReqBody string
+	//go:embed testdata/CaptureTest/createClusterResponse.json
+	createClusterRespBody string
+	//go:embed testdata/CaptureTest/getClusterIdle.json
+	getClusterIdleRespBody string
+	//go:embed testdata/CaptureTest/getContainersAws.json
+	getContainersAws string
+	//go:embed testdata/CaptureTest/getContainersAzure.json
+	getContainersAzure string
+)
+
+func TestFailedFilename(t *testing.T) {
+	normalName := unit.MockConfigFilePath(t)
+	assert.Equal(t, "testdata/TestFailedFilename.yaml", normalName)
+	failedName := unit.FailedFilename(normalName)
+	assert.Contains(t, failedName, "testdata/TestFailedFilename_failed")
+}
+
+func TestCaptureMockConfigClientModifier_clusterExample(t *testing.T) {
+	t.Setenv(unit.EnvNameHTTPMockerCapture, "true")
+	clientModifier := unit.NewCaptureMockConfigClientModifier(t, 3, &unit.MockHTTPDataConfig{QueryVars: []string{"providerName"}})
+	transport := httpmock.NewMockTransport()
+	client := http.Client{Transport: transport}
+	err := clientModifier.ModifyHTTPClient(&client)
+	require.NoError(t, err)
+
+	// Step 1: Create a cluster
+	clientModifier.IncreaseStepNumber()
+	responder1 := httpmock.NewStringResponder(201, createClusterRespBody)
+	transport.RegisterRegexpResponder("POST", regexp.MustCompile(".*"), responder1)
+	createRequest := request("POST", "/api/atlas/v2/groups/g1/clusters", createClusterReqBody)
+	resp, err := client.Do(createRequest)
+	require.NoError(t, err)
+	assert.Equal(t, 201, resp.StatusCode)
+	createResponse := parseMapStringAny(t, resp)
+	assert.Equal(t, "test-acc-tf-c-7871793563057636102", createResponse["name"])
+
+	// Step 2: Read cluster
+	clientModifier.IncreaseStepNumber()
+	getResponses := []string{createClusterRespBody, getClusterIdleRespBody, getClusterIdleRespBody}
+	expectedState := []string{"CREATING", "IDLE", "IDLE"}
+	for i := range getResponses {
+		transport.Reset()
+		responder2 := httpmock.NewStringResponder(200, getResponses[i])
+		transport.RegisterRegexpResponder("GET", regexp.MustCompile(".*"), responder2)
+		getRequest := request("GET", "/api/atlas/v2/groups/6746ceed6f62fc3c122a3e0e/clusters/test-acc-tf-c-7871793563057636102", "")
+		resp, err = client.Do(getRequest)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+		getResponse := parseMapStringAny(t, resp)
+		assert.Equal(t, expectedState[i], getResponse["stateName"])
+	}
+
+	// Step 3: Read containers, capture query args
+	clientModifier.IncreaseStepNumber()
+	containersGetResponses := []string{getContainersAws, getContainersAzure}
+	containersExpectedIDs := []string{"6746ceedaef48d1cb265896b", "6746cefbaef48d1cb2658bbb"}
+	containersGetPaths := []string{
+		"/api/atlas/v2/groups/6746cee66f62fc3c122a3b82/containers?includeCount=true&itemsPerPage=100&pageNum=1&providerName=AWS",
+		"/api/atlas/v2/groups/6746cee66f62fc3c122a3b82/containers?includeCount=true&itemsPerPage=100&pageNum=1&providerName=AZURE",
+	}
+	for i := range containersGetResponses {
+		transport.Reset()
+		responder3 := httpmock.NewStringResponder(200, containersGetResponses[i])
+		transport.RegisterRegexpResponder("GET", regexp.MustCompile(".*"), responder3)
+		getRequest := request("GET", containersGetPaths[i], "")
+		resp, err = client.Do(getRequest)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+		getResponse := parseMapStringAny(t, resp)
+		assert.Equal(t, containersExpectedIDs[i], getResponse["results"].([]any)[0].(map[string]any)["id"])
+	}
+
+	g := goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".yaml"))
+	configYaml, err := clientModifier.ConfigYaml()
+	require.NoError(t, err)
+	g.Assert(t, t.Name(), []byte(configYaml))
+}
