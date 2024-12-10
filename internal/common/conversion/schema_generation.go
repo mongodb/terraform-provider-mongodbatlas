@@ -8,17 +8,60 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-func DataSourceSchemaFromResource(rs schema.Schema, requiredFields []string, overridenFields map[string]dsschema.Attribute) dsschema.Schema {
-	blocks := convertBlocks(rs.Blocks, requiredFields)
-	attrs := convertAttrs(rs.Attributes, requiredFields)
-	for name, attr := range overridenFields {
-		if attr == nil {
-			delete(attrs, name)
-		} else {
-			attrs[name] = attr
+type DataSourceSchemaRequest struct {
+	OverridenFields map[string]dsschema.Attribute
+	RequiredFields  []string
+}
+
+type PluralDataSourceSchemaRequest struct {
+	OverridenFields     map[string]dsschema.Attribute
+	OverridenRootFields map[string]dsschema.Attribute
+	OverrideResultsDoc  string
+	RequiredFields      []string
+	HasLegacyFields     bool
+}
+
+func DataSourceSchemaFromResource(rs schema.Schema, req *DataSourceSchemaRequest) dsschema.Schema {
+	blocks := convertBlocks(rs.Blocks, req.RequiredFields)
+	attrs := convertAttrs(rs.Attributes, req.RequiredFields)
+	overrideFields(attrs, req.OverridenFields)
+	ds := dsschema.Schema{Attributes: attrs, Blocks: blocks}
+	UpdateSchemaDescription(&ds)
+	return ds
+}
+
+func PluralDataSourceSchemaFromResource(rs schema.Schema, req *PluralDataSourceSchemaRequest) dsschema.Schema {
+	blocks := convertBlocks(rs.Blocks, nil)
+	if len(blocks) > 0 {
+		panic("blocks not supported yet in auto-generated plural data source schema as they can't go in ListNestedAttribute")
+	}
+	attrs := convertAttrs(rs.Attributes, nil)
+	overrideFields(attrs, req.OverridenFields)
+	rootAttrs := convertAttrs(rs.Attributes, req.RequiredFields)
+	for name := range rootAttrs {
+		if !slices.Contains(req.RequiredFields, name) {
+			delete(rootAttrs, name)
 		}
 	}
-	ds := dsschema.Schema{Attributes: attrs, Blocks: blocks}
+	overrideFields(rootAttrs, req.OverridenRootFields)
+	resultsDoc := "List of documents that MongoDB Cloud returns for this request."
+	if req.OverrideResultsDoc != "" {
+		resultsDoc = req.OverrideResultsDoc
+	}
+	rootAttrs["results"] = dsschema.ListNestedAttribute{
+		Computed: true,
+		NestedObject: dsschema.NestedAttributeObject{
+			Attributes: attrs,
+		},
+		MarkdownDescription: resultsDoc,
+	}
+	if req.HasLegacyFields {
+		rootAttrs["id"] = dsschema.StringAttribute{Computed: true}
+		rootAttrs["total_count"] = dsschema.Int64Attribute{Computed: true}
+		rootAttrs["page_num"] = dsschema.Int64Attribute{Optional: true}
+		rootAttrs["items_per_page"] = dsschema.Int64Attribute{Optional: true}
+	}
+	ds := dsschema.Schema{Attributes: rootAttrs}
 	UpdateSchemaDescription(&ds)
 	return ds
 }
@@ -115,6 +158,16 @@ func convertElement(name string, element any, requiredFields []string) any {
 		fNested.Set(vNested)
 	}
 	return vDest.Interface()
+}
+
+func overrideFields(attrs, overridenFields map[string]dsschema.Attribute) {
+	for name, attr := range overridenFields {
+		if attr == nil {
+			delete(attrs, name)
+		} else {
+			attrs[name] = attr
+		}
+	}
 }
 
 // UpdateAttr is exported for testing purposes only and should not be used directly.

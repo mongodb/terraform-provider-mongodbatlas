@@ -8,7 +8,7 @@ on:
     inputs:
       terraform_matrix:
         description: 'Terraform version matrix (JSON array)'
-        default: '["1.9.x","1.8.x","1.7.x","1.6.x","1.5.x","1.4.x"]'
+        default: '["1.10.x","1.9.x","1.8.x","1.7.x","1.6.x","1.5.x","1.4.x"]'
       provider_matrix:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version
@@ -43,7 +43,7 @@ concurrency:
 jobs:
   variables:
     env:
-      schedule_terraform_matrix: '["1.9.x"]'
+      schedule_terraform_matrix: '["1.10.x"]'
       schedule_provider_matrix: '[""]' # "" for latest version    
     runs-on: ubuntu-latest
     outputs:
@@ -91,8 +91,10 @@ jobs:
     steps:
       - name: Send Slack message
         id: slack
-        uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0
+        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d
         with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
             {
               "text": ":red_circle: Test Suite failed (reminder to log failures)",
@@ -119,6 +121,3 @@ jobs:
                 }
               ]
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

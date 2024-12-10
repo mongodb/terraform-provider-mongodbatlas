@@ -18,7 +18,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v1.61.0 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v1.62.2 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -167,10 +167,7 @@ jira-release-version:
 
 .PHONY: enable-advancedclustertpf
 enable-advancedclustertpf:
-	make delete-lines filename="./internal/provider/provider_sdk2.go" delete="mongodbatlas_advanced_cluster"
-	make add-lines filename=./internal/provider/provider.go find="project.Resource," add="advancedclustertpf.Resource,"
-	make add-lines filename=./internal/provider/provider.go find="project.DataSource," add="advancedclustertpf.DataSource,"
-	make add-lines filename=./internal/provider/provider.go find="project.PluralDataSource," add="advancedclustertpf.PluralDataSource,"
+	make change-lines filename=./internal/config/advanced_cluster_v2_schema.go find="allowAdvancedClusterV2Schema = false" new="allowAdvancedClusterV2Schema = true"
 
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:
@@ -183,5 +180,12 @@ delete-lines:
 add-lines:
 	rm -f file.tmp
 	sed 's/${find}/${find}${add}/' "${filename}" > "file.tmp"
+	mv file.tmp ${filename}
+	goimports -w ${filename}
+
+.PHONY: change-lines ${filename} ${find} ${new}
+change-lines:
+	rm -f file.tmp
+	sed 's/${find}/${new}/' "${filename}" > "file.tmp"
 	mv file.tmp ${filename}
 	goimports -w ${filename}

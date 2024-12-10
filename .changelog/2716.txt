@@ -1,0 +1,3 @@
+```release-note:new-resource
+mongodbatlas_flex_cluster
+```

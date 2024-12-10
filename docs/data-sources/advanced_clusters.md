@@ -19,7 +19,7 @@ resource "mongodbatlas_advanced_cluster" "example" {
   replication_specs {
     region_configs {
       electable_specs {
-        instance_size = "M5"
+        instance_size = "M0"
       }
       provider_name         = "TENANT"
       backing_provider_name = "AWS"
@@ -33,6 +33,8 @@ data "mongodbatlas_advanced_clusters" "example" {
   project_id = mongodbatlas_advanced_cluster.example.project_id
 }
 ```
+
+**NOTE:** There can only be one M0 cluster per project.
 
 ## Example using latest sharding configurations with independent shard scaling in the cluster
 

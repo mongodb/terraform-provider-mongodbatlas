@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -66,13 +66,12 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	tags := NewResourceTags(ctx, projectPlan.Tags)
 	projectGroup := &admin.Group{
 		OrgId:                     projectPlan.OrgID.ValueString(),
 		Name:                      projectPlan.Name.ValueString(),
 		WithDefaultAlertsSettings: projectPlan.WithDefaultAlertsSettings.ValueBoolPointer(),
 		RegionUsageRestrictions:   conversion.StringNullIfEmpty(projectPlan.RegionUsageRestrictions.ValueString()).ValueStringPointer(),
-		Tags:                      &tags,
+		Tags:                      conversion.NewResourceTags(ctx, projectPlan.Tags),
 	}
 
 	projectAPIParams := &admin.CreateProjectApiParams{
@@ -584,15 +583,15 @@ func hasLimitsChanged(planLimits, stateLimits []TFLimitModel) bool {
 }
 
 func UpdateProject(ctx context.Context, projectsAPI admin.ProjectsApi, projectState, projectPlan *TFProjectRSModel) error {
-	tagsBefore := NewResourceTags(ctx, projectState.Tags)
-	tagsAfter := NewResourceTags(ctx, projectPlan.Tags)
+	tagsBefore := conversion.NewResourceTags(ctx, projectState.Tags)
+	tagsAfter := conversion.NewResourceTags(ctx, projectPlan.Tags)
 	if projectPlan.Name.Equal(projectState.Name) && reflect.DeepEqual(tagsBefore, tagsAfter) {
 		return nil
 	}
 
 	projectID := projectState.ID.ValueString()
 
-	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan, &tagsAfter)).Execute(); err != nil {
+	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan, tagsAfter)).Execute(); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
 

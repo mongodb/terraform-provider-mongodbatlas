@@ -7,18 +7,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 )
 
 func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.ClusterDescriptionProcessArgs20240805, inputLegacy *admin20240530.ClusterDescriptionProcessArgs, diags *diag.Diagnostics) {
 	var advancedConfig TFAdvancedConfigurationModel
 	if input != nil && inputLegacy != nil {
 		// Using the new API as source of Truth, only use `inputLegacy` for fields not in `input`
+		changeStreamOptionsPreAndPostImagesExpireAfterSeconds := input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
+		if changeStreamOptionsPreAndPostImagesExpireAfterSeconds == nil {
+			// special behavior using -1 when it is unset by the user
+			changeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(-1)
+		}
 		advancedConfig = TFAdvancedConfigurationModel{
-			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)),
+			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(changeStreamOptionsPreAndPostImagesExpireAfterSeconds)),
 			DefaultWriteConcern:              types.StringPointerValue(input.DefaultWriteConcern),
-			DefaultReadConcern:               types.StringPointerValue(inputLegacy.DefaultReadConcern), // Legacy
-			FailIndexKeyTooLong:              types.BoolPointerValue(inputLegacy.FailIndexKeyTooLong),  // TODO: Legacy and not set by the API if version higher than 4.4
+			DefaultReadConcern:               types.StringPointerValue(inputLegacy.DefaultReadConcern),
+			FailIndexKeyTooLong:              types.BoolPointerValue(inputLegacy.FailIndexKeyTooLong),
 			JavascriptEnabled:                types.BoolPointerValue(input.JavascriptEnabled),
 			MinimumEnabledTlsProtocol:        types.StringPointerValue(input.MinimumEnabledTlsProtocol),
 			NoTableScan:                      types.BoolPointerValue(input.NoTableScan),
