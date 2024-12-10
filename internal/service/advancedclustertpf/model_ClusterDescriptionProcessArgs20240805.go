@@ -38,32 +38,3 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 	diags.Append(diagsLocal...)
 	tfModel.AdvancedConfiguration = objType
 }
-
-func AddAdvancedConfigDS(ctx context.Context, tfModel *TFModelDS, input *admin.ClusterDescriptionProcessArgs20240805, inputLegacy *admin20240530.ClusterDescriptionProcessArgs, diags *diag.Diagnostics) {
-	var advancedConfig TFAdvancedConfigurationModel
-	if input != nil && inputLegacy != nil {
-		// Using the new API as source of Truth, only use `inputLegacy` for fields not in `input`
-		changeStreamOptionsPreAndPostImagesExpireAfterSeconds := input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
-		if changeStreamOptionsPreAndPostImagesExpireAfterSeconds == nil {
-			// special behavior using -1 when it is unset by the user
-			changeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(-1)
-		}
-		advancedConfig = TFAdvancedConfigurationModel{
-			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(changeStreamOptionsPreAndPostImagesExpireAfterSeconds)),
-			DefaultWriteConcern:              types.StringPointerValue(input.DefaultWriteConcern),
-			DefaultReadConcern:               types.StringPointerValue(inputLegacy.DefaultReadConcern),
-			FailIndexKeyTooLong:              types.BoolPointerValue(inputLegacy.FailIndexKeyTooLong),
-			JavascriptEnabled:                types.BoolPointerValue(input.JavascriptEnabled),
-			MinimumEnabledTlsProtocol:        types.StringPointerValue(input.MinimumEnabledTlsProtocol),
-			NoTableScan:                      types.BoolPointerValue(input.NoTableScan),
-			OplogMinRetentionHours:           types.Float64PointerValue(input.OplogMinRetentionHours),
-			OplogSizeMb:                      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.OplogSizeMB)),
-			SampleSizeBiconnector:            types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.SampleSizeBIConnector)),
-			SampleRefreshIntervalBiconnector: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.SampleRefreshIntervalBIConnector)),
-			TransactionLifetimeLimitSeconds:  types.Int64PointerValue(input.TransactionLifetimeLimitSeconds),
-		}
-	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)
-	diags.Append(diagsLocal...)
-	tfModel.AdvancedConfiguration = objType
-}
