@@ -1,4 +1,0 @@
-{
- "changeStreamOptionsPreAndPostImagesExpireAfterSeconds": 100,
- "javascriptEnabled": true
-}
