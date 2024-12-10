@@ -545,8 +545,8 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
 ### region_configs
 
 * `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#specs)
-* `auto_scaling` - (Optional) Configuration for the Collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` parameter must be the same for all `region_configs` in all `replication_specs`. See [below](#auto_scaling)
-* `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` parameter must be the same for all `region_configs` in all `replication_specs`. See [below](#analytics_auto_scaling)
+* `auto_scaling` - (Optional) Configuration for the collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#auto_scaling)
+* `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#analytics_auto_scaling)
 * `backing_provider_name` - (Optional) Cloud service provider on which you provision the host for a multi-tenant cluster. Use this only when a `provider_name` is `TENANT` and `instance_size` of a specs is `M2` or `M5`.
 * `electable_specs` - (Optional) Hardware specifications for electable nodes in the region. Electable nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you do not specify this option, no electable nodes are deployed to the region. See [below](#specs)
 * `priority` - (Optional)  Election priority of the region. For regions with only read-only nodes, set this value to 0.
@@ -596,38 +596,24 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
 ### auto_scaling
 
 * `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. This parameter defaults to false.
-    - Set to `true` to enable disk auto-scaling.
-    - Set to `false` to disable disk auto-scaling.
 
 ~> **IMPORTANT:** If `disk_gb_enabled` is true, Atlas automatically scales the cluster up or down.
-This will cause the value of `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` returned to potentially be different than what is specified in the Terraform config and if you use, and then apply, not noting this, Terraform will scale the cluster disk size back to the original `disk_size_gb` value.
-To prevent disk scaling use a lifecycle customization:
+This will cause the value of `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` returned to potentially be different than what is specified in the Terraform config. If you then apply a plan, not noting this, Terraform will scale the cluster disk size back to the original `disk_size_gb` value.
+To prevent disk scaling use a lifecycle ignore customization, as in the following example:
 `lifecycle {
-  ignore_changes = [replication_specs.#.region_config.#.electable_specs.disk_size_gb]
-}`
-After adding the `lifecycle` block to explicitly change `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
-
-```terraform
-// Example: ignore disk_size_gb and instance_size changes in a replica set
-lifecycle {
-  ignore_changes = [
-    replication_specs[0].region_configs[0].electable_specs[0].disk_size_gb,
-    replication_specs[0].region_configs[0].electable_specs[0].instance_size,
-    replication_specs[0].region_configs[1].electable_specs[0].instance_size,
-    replication_specs[0].region_configs[2].electable_specs[0].instance_size,
-  ]
-}
-```
+  ignore_changes = [[replication_specs[0].region_configs[0].electable_specs[0].disk_size_gb]
+}`.
+To explicitly change `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb`, comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
 
 * `compute_enabled` - (Optional) Flag that indicates whether instance size auto-scaling is enabled. This parameter defaults to false.
 
-~> **IMPORTANT:** If `compute_enabled` is true, Atlas automatically scales the cluster to the maximum provided and down to the minimum, if provided.
-This will cause the value of `instance_size` returned to potentially be different than what is specified in the Terraform config and if you then apply a plan, not noting this, Terraform will scale the cluster back to the original `instance_size` value.
-To prevent disk scaling, use a lifecycle customization, as in the following example:
+~> **IMPORTANT:** If `compute_enabled` is true, Atlas automatically scales the cluster instance size considering the boundaries specified in `compute_min_instance_size` and `compute_max_instance_size`.
+This will cause the value of `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).instance_size` returned to potentially be different than what is specified in the Terraform config. If you then apply a plan, not noting this, Terraform will scale the cluster back to the original `instance_size` value.
+To prevent instance size scaling use a lifecycle customization, as in the following example:
 `lifecycle {
-  ignore_changes = [instance_size]
-}`
-After adding the `lifecycle` block to explicitly change `instance_size` comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
+  ignore_changes = [replication_specs[0].region_configs[0].electable_specs[0].instance_size]
+}`.
+To explicitly change `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).instance_size`, comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
 
 * `compute_scale_down_enabled` - (Optional) Flag that indicates whether the instance size may scale down. Atlas requires this parameter if `replication_specs.#.region_configs.#.auto_scaling.0.compute_enabled` : true. If you enable this option, specify a value for `replication_specs.#.region_configs.#.auto_scaling.0.compute_min_instance_size`.
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs.#.region_configs.#.auto_scaling.0.compute_scale_down_enabled` is true.
