@@ -219,15 +219,15 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 	})
 }
 
-func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
+func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T) {
 	// TODO: Already prepared for TPF but getting this error:
 	// unexpected new value: .advanced_configuration.fail_index_key_too_long: was cty.False, but now null
 	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
-		projectID          = acc.ProjectIDExecution(t)
-		clusterName        = acc.RandomClusterName()
-		clusterNameUpdated = acc.RandomClusterName()
-		processArgs        = &admin20240530.ClusterDescriptionProcessArgs{
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+
+		processArgs20240530 = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
@@ -239,7 +239,52 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
-		processArgsUpdated = &admin20240530.ClusterDescriptionProcessArgs{
+		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
+			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
+			DefaultMaxTimeMS: conversion.IntPtr(65),
+		}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:      configAdvanced(projectID, clusterName, "6.0", processArgs20240530, processArgs),
+				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
+			},
+			{
+				Config: configAdvanced(projectID, clusterName, "6.0", processArgs20240530, &admin.ClusterDescriptionProcessArgs20240805{}),
+				Check:  checkAdvanced(clusterName, "TLS1_1", &admin.ClusterDescriptionProcessArgs20240805{}),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t)
+	var (
+		projectID           = acc.ProjectIDExecution(t)
+		clusterName         = acc.RandomClusterName()
+		clusterNameUpdated  = acc.RandomClusterName()
+		processArgs20240530 = &admin20240530.ClusterDescriptionProcessArgs{
+			DefaultReadConcern:               conversion.StringPtr("available"),
+			DefaultWriteConcern:              conversion.StringPtr("1"),
+			FailIndexKeyTooLong:              conversion.Pointer(false),
+			JavascriptEnabled:                conversion.Pointer(true),
+			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+			NoTableScan:                      conversion.Pointer(false),
+			OplogSizeMB:                      conversion.Pointer(1000),
+			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
+			SampleSizeBIConnector:            conversion.Pointer(110),
+			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+		}
+		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
+			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
+		}
+
+		processArgs20240530Updated = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("0"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
@@ -251,6 +296,10 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
+		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
+			DefaultMaxTimeMS: conversion.IntPtr(65),
+			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
+		}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -259,12 +308,12 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvanced(projectID, clusterName, processArgs, nil)),
-				Check:  checkAdvanced(clusterName, "TLS1_1", "-1"),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvanced(projectID, clusterName, "", processArgs20240530, processArgs)),
+				Check:  checkAdvanced(clusterName, "TLS1_1", processArgs),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvanced(projectID, clusterNameUpdated, processArgsUpdated, conversion.IntPtr(100))),
-				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", "100"),
+				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvanced(projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdated)),
+				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", processArgsUpdated),
 			},
 		},
 	})
@@ -1396,16 +1445,29 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 			"paused": strconv.FormatBool(paused)})
 }
 
-func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs, changeStreamOptions *int) string {
+func configAdvanced(projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	changeStreamOptionsString := ""
-	if changeStreamOptions != nil {
-		changeStreamOptionsString = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *changeStreamOptions)
+	defaultMaxTimeString := ""
+	mongoDBMajorVersionString := ""
+
+	if p != nil {
+		if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
+			changeStreamOptionsString = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
+		}
+		if p.DefaultMaxTimeMS != nil {
+			defaultMaxTimeString = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
+		}
 	}
+	if mongoDBMajorVersion != "" {
+		mongoDBMajorVersionString = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
+	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
 			cluster_type           = "REPLICASET"
+			%[13]s
 
 			replication_specs {
 				region_configs {
@@ -1433,6 +1495,7 @@ func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescr
 				sample_refresh_interval_bi_connector = %[9]d
 			    transaction_lifetime_limit_seconds   = %[10]d
 			    %[11]s
+				%[12]s
 			}
 		}
 
@@ -1445,11 +1508,32 @@ func configAdvanced(projectID, clusterName string, p *admin20240530.ClusterDescr
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
 	`, projectID, clusterName,
-		p.GetFailIndexKeyTooLong(), p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
-		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds(), changeStreamOptionsString)
+		p20240530.GetFailIndexKeyTooLong(), p20240530.GetJavascriptEnabled(), p20240530.GetMinimumEnabledTlsProtocol(), p20240530.GetNoTableScan(),
+		p20240530.GetOplogSizeMB(), p20240530.GetSampleSizeBIConnector(), p20240530.GetSampleRefreshIntervalBIConnector(), p20240530.GetTransactionLifetimeLimitSeconds(),
+		changeStreamOptionsString, defaultMaxTimeString, mongoDBMajorVersionString)
 }
 
-func checkAdvanced(name, tls, changeStreamOptions string) resource.TestCheckFunc {
+func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
+	advancedConfig := map[string]string{
+		"name": name,
+		"advanced_configuration.0.minimum_enabled_tls_protocol":         tls,
+		"advanced_configuration.0.fail_index_key_too_long":              "false",
+		"advanced_configuration.0.javascript_enabled":                   "true",
+		"advanced_configuration.0.no_table_scan":                        "false",
+		"advanced_configuration.0.oplog_size_mb":                        "1000",
+		"advanced_configuration.0.sample_refresh_interval_bi_connector": "310",
+		"advanced_configuration.0.sample_size_bi_connector":             "110",
+		"advanced_configuration.0.transaction_lifetime_limit_seconds":   "300",
+	}
+
+	if processArgs.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil {
+		advancedConfig["advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"] = strconv.Itoa(*processArgs.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
+	}
+
+	if processArgs.DefaultMaxTimeMS != nil {
+		advancedConfig["advanced_configuration.0.default_max_time_ms"] = strconv.Itoa(*processArgs.DefaultMaxTimeMS)
+	}
+
 	pluralChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
@@ -1458,20 +1542,12 @@ func checkAdvanced(name, tls, changeStreamOptions string) resource.TestCheckFunc
 	if config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 		pluralChecks = nil
 	}
+
 	return checkAggr(
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
-		map[string]string{
-			"name": name,
-			"advanced_configuration.0.minimum_enabled_tls_protocol":                                   tls,
-			"advanced_configuration.0.fail_index_key_too_long":                                        "false",
-			"advanced_configuration.0.javascript_enabled":                                             "true",
-			"advanced_configuration.0.no_table_scan":                                                  "false",
-			"advanced_configuration.0.oplog_size_mb":                                                  "1000",
-			"advanced_configuration.0.sample_refresh_interval_bi_connector":                           "310",
-			"advanced_configuration.0.sample_size_bi_connector":                                       "110",
-			"advanced_configuration.0.transaction_lifetime_limit_seconds":                             "300",
-			"advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds": changeStreamOptions},
-		pluralChecks...)
+		advancedConfig,
+		pluralChecks...,
+	)
 }
 
 func configAdvancedDefaultWrite(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {

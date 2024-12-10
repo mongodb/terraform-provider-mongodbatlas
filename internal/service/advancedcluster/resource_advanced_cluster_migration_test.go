@@ -154,7 +154,7 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 
 func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
-	mig.SkipIfVersionBelow(t, "1.19.0")  // version where change_stream_options_pre_and_post_images_expire_after_seconds was introduced
+	mig.SkipIfVersionBelow(t, "1.22.1")  // version where default_max_time_ms was introduced
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -184,7 +184,8 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 				no_table_scan                        = false
 				default_read_concern                 = "available"
 				sample_size_bi_connector			 = 110
-					sample_refresh_interval_bi_connector = 310
+				sample_refresh_interval_bi_connector = 310
+				default_max_time_ms = 65
 				}
 				
 				bi_connector_config {
@@ -224,6 +225,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_max_time_ms", "65"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
 				),
