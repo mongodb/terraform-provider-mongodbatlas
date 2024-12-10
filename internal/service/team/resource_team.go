@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 const (
@@ -75,7 +75,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	teamsResp, _, err := connV2.TeamsApi.CreateTeam(ctx, orgID,
 		&admin.Team{
 			Name:      d.Get("name").(string),
-			Usernames: &usernames,
+			Usernames: usernames,
 		}).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamCreate, err))

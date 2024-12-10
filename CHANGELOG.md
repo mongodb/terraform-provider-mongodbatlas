@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+NOTES:
+
+* data-source/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
+* data-source/mongodbatlas_advanced_clusters: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
+* resource/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
+
 ## 1.22.0 (November 26, 2024)
 
 NOTES:
