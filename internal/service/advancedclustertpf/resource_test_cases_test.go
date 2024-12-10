@@ -327,6 +327,7 @@ func checksTenantUpgraded(projectID, name string) resource.TestCheckFunc {
 }
 
 func ReplicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -393,6 +394,7 @@ func ReplicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 }
 
 func shardedBasic(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()

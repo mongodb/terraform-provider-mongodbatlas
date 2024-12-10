@@ -18,6 +18,7 @@ import (
 
 const (
 	EnvNameHTTPMockerCapture = "HTTP_MOCKER_CAPTURE"
+	EnvNameHTTPMockerReplay  = "HTTP_MOCKER_REPLAY"
 	configFileExtension      = ".yaml"
 )
 
@@ -33,12 +34,21 @@ func IsCapture() bool {
 	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerCapture)))
 }
 
+func IsReplay() bool {
+	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerReplay)))
+}
+
 func CaptureOrMockTestCaseAndRun(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
 	var err error
-	if IsCapture() {
+	noneSet := !IsCapture() && !IsReplay()
+	switch {
+	case noneSet:
+		t.Logf("Neither %s nor %s is set, defaulting to capture mode", EnvNameHTTPMockerCapture, EnvNameHTTPMockerReplay)
 		err = enableCaptureForTestCase(t, config, testCase)
-	} else {
+	case IsCapture():
+		err = enableCaptureForTestCase(t, config, testCase)
+	case IsReplay():
 		err = enableMockingForTestCase(t, config, testCase)
 	}
 	require.NoError(t, err)
