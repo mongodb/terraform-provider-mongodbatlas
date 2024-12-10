@@ -137,11 +137,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		}
 		model = &state
 	} else {
-		var stateAdvConfig types.Object
+		var stateAdvConfig *types.Object
 		if !advConfigChanged {
-			stateAdvConfig = state.AdvancedConfiguration
+			stateAdvConfig = &state.AdvancedConfiguration
 		}
-		model = r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, &plan, &stateAdvConfig, diags)
+		model = r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, &plan, stateAdvConfig, diags)
 	}
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
@@ -399,14 +399,14 @@ func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *ad
 	if diags.HasError() {
 		return nil
 	}
-	if oldAdvConfig != nil {
-		modelOut.AdvancedConfiguration = *oldAdvConfig
-	} else {
+	if admin.IsNil(oldAdvConfig) {
 		legacyAdvConfig, advConfig = readUnsetAdvancedConfiguration(ctx, r.Client, modelOut, legacyAdvConfig, advConfig, diags)
 		AddAdvancedConfig(ctx, modelOut, advConfig, legacyAdvConfig, diags)
 		if diags.HasError() {
 			return nil
 		}
+	} else {
+		modelOut.AdvancedConfiguration = *oldAdvConfig
 	}
 	overrideKnowTPFIssueFields(modelIn, modelOut)
 	return modelOut
