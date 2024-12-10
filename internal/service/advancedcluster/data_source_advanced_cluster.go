@@ -287,10 +287,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		if apiError, ok := admin20240530.AsError(err); !ok {
 			return diag.FromErr(err)
-		} else if apiError.GetErrorCode() != "ASYMMETRIC_SHARD_UNSUPPORTED" || (apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" && useReplicationSpecPerShard) {
+		} else if apiError.GetErrorCode() != "ASYMMETRIC_SHARD_UNSUPPORTED" {
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		} else if !useReplicationSpecPerShard {
-			return diag.FromErr(fmt.Errorf("please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details. %s", err))
+		} else if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
+			if !useReplicationSpecPerShard {
+				return diag.FromErr(fmt.Errorf("please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details. %s", err))
+			}
 		}
 	}
 	diags := setRootFields(d, clusterDesc, false)

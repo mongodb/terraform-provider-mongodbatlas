@@ -580,12 +580,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err != nil {
 		if apiError, ok := admin20240530.AsError(err); !ok {
 			return diag.FromErr(err)
-		} else if !(apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" && isUsingOldShardingConfiguration(d)) {
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		}
-
-		if apiError, ok := admin20240530.AsError(err); !ok {
-			return diag.FromErr(err)
 		} else if apiError.GetErrorCode() != "ASYMMETRIC_SHARD_UNSUPPORTED" || (apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" && isUsingOldShardingConfiguration(d)) {
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
