@@ -1316,5 +1316,6 @@ func waitForUpdateToFinish(ctx context.Context, connV2 *admin.APIClient, project
 	}
 
 	_, err := stateConf.WaitForStateContext(ctx)
+
 	return err
 }
