@@ -719,7 +719,9 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
-				Check:  checkShardedNewSchema(50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkShardedNewSchema(50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_cluster.test-replication-specs-per-shard-false", "results.#", "0")),
 			},
 		},
 	}
@@ -1941,6 +1943,11 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 			use_replication_spec_per_shard = true
+		}
+
+		data "mongodbatlas_advanced_cluster" "test-replication-specs-per-shard-false" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
 
 		data "mongodbatlas_advanced_clusters" "test" {
