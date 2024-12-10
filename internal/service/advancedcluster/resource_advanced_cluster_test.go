@@ -2538,7 +2538,9 @@ func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationD
 }
 
 func checkFCVPinningConfig(mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
-	mapChecks := map[string]string{}
+	mapChecks := map[string]string{
+		"mongo_db_major_version": fmt.Sprintf("%d.0", mongoDBMajorVersion),
+	}
 
 	if pinningExpirationDate != nil {
 		mapChecks["pinned_fcv.0.expiration_date"] = *pinningExpirationDate
@@ -2550,7 +2552,6 @@ func checkFCVPinningConfig(mongoDBMajorVersion int, pinningExpirationDate *strin
 		mapChecks["pinned_fcv.0.version"] = fmt.Sprintf("%d.0", *fcvVersion)
 	}
 
-	mapChecks["mongo_db_major_version"] = fmt.Sprintf("%d.0", mongoDBMajorVersion)
 	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
 
 	return acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), []string{}, mapChecks, additionalCheck)

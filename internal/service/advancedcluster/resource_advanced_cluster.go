@@ -999,8 +999,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData, timeout time.Duration) diag.Diagnostics {
 	if d.HasChange("pinned_fcv") {
 		pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
-		FCVPresentInConfig := len(pinnedFCVBlock) > 0
-		if FCVPresentInConfig {
+		isFCVPresentInConfig := len(pinnedFCVBlock) > 0
+		if isFCVPresentInConfig {
 			// pinned_fcv has been defined or updated expiration date
 			if diags := pinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
 				return diags
