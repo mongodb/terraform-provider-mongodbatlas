@@ -84,18 +84,18 @@ func (d *pluralDS) readClusters(ctx context.Context, model *TFModelPluralDS, sta
 		}
 		model, err := conversion.CopyModel[TFModel](modelDS)
 		if err != nil {
-			diags.AddError(errorRead, fmt.Sprintf("error retrieving model: %s", err.Error()))
+			diags.AddError(errorList, fmt.Sprintf("error retrieving model: %s", err.Error()))
 			return nil
 		}
 
 		// TODO: temporary one call per cluster
 		out := readCluster(ctx, d.Client, model, state, diags, allowNotFound)
-		outDS, err := conversion.CopyModel[TFModelDS](out)
-		if err != nil {
-			diags.AddError(errorRead, fmt.Sprintf("error setting model: %s", err.Error()))
-			return nil
-		}
 		if out != nil {
+			outDS, err := conversion.CopyModel[TFModelDS](out)
+			if err != nil {
+				diags.AddError(errorList, fmt.Sprintf("error setting model: %s", err.Error()))
+				return nil
+			}
 			outs.Results = append(outs.Results, outDS)
 		}
 	}
