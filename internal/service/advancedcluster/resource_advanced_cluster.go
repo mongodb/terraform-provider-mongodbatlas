@@ -14,7 +14,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -40,6 +40,7 @@ const (
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
+	ErrorDefaultMaxTimeMinVersion  = "default_max_time_ms can not be set for mongo_db_major_version lower than 8.0"
 	ignoreLabel                    = "Infrastructure Tool"
 	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 )
@@ -472,10 +473,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.ConfigServerManagementMode = conversion.StringPtr(v.(string))
 	}
 
-	// Validate oplog_size_mb to show the error before the cluster is created.
+	// Validate advanced configuration params to show the error before the cluster is created.
 	if oplogSizeMB, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
 		if cast.ToInt64(oplogSizeMB) < 0 {
 			return diag.FromErr(fmt.Errorf("`advanced_configuration.oplog_size_mb` cannot be < 0"))
+		}
+	}
+	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok {
+		if !IsDefaultMaxTimeMinRequiredMajorVersion(params.MongoDBMajorVersion) {
+			return diag.FromErr(errors.New(ErrorDefaultMaxTimeMinVersion))
 		}
 	}
 
@@ -498,7 +504,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
 			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), params.MongoDBMajorVersion)
-			_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params20240530).Execute()
+			_, _, err = connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params20240530).Execute()
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
 			}
