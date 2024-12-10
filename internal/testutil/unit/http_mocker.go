@@ -114,11 +114,17 @@ func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 		step.Check = wrapClientDuringCheck(step.Check, clientModifier)
 	}
 
-	writeCapturedData := func(s *terraform.State) error {
+	writeCapturedData := func() {
 		clientModifier.NormalizeCapturedData()
-		return clientModifier.WriteCapturedData(MockConfigFilePath(t))
+		filePath := MockConfigFilePath(t)
+		if t.Failed() {
+			filePath = FailedFilename(filePath)
+		}
+		err := clientModifier.WriteCapturedData(filePath)
+		require.NoError(t, err)
 	}
-	testCase.CheckDestroy = wrapClientDuringCheck(testCase.CheckDestroy, clientModifier, writeCapturedData)
+	t.Cleanup(writeCapturedData)
+	testCase.CheckDestroy = wrapClientDuringCheck(testCase.CheckDestroy, clientModifier)
 	return nil
 }
 

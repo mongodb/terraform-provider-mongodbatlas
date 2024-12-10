@@ -131,10 +131,6 @@ func (c *CaptureMockConfigClientModifier) ConfigYaml() (string, error) {
 }
 
 func (c *CaptureMockConfigClientModifier) WriteCapturedData(filePath string) error {
-	if c.stepNumber != c.expectedStepCount {
-		filePath = FailedFilename(filePath)
-		c.t.Logf("expected %d steps, but got %d, skipping config dump", c.expectedStepCount, c.stepNumber)
-	}
 	configYaml, err := c.ConfigYaml()
 	if err != nil {
 		return err
