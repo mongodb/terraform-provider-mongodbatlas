@@ -6,7 +6,7 @@ import (
 
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 
-	// "go.mongodb.org/atlas-sdk/v20241113002/admin"
+	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
 	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
