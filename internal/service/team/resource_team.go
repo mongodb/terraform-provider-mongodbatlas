@@ -75,7 +75,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	teamsResp, _, err := connV2.TeamsApi.CreateTeam(ctx, orgID,
 		&admin.Team{
 			Name:      d.Get("name").(string),
-			Usernames: &usernames,
+			Usernames: usernames,
 		}).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamCreate, err))
