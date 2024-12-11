@@ -1101,16 +1101,15 @@ func checkReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountEle
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 	}
+	diskIopsPath := "replication_specs.0.region_configs.0.electable_specs.0.disk_iops"
 	if config.AdvancedClusterV2Schema() {
-		// Manual test fix to remove electable_specs.0 for TPF
 		additionalChecks = append(additionalChecks,
-			resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.disk_iops", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(resourceName, acc.AttrNameToSchemaV2(diskIopsPath), acc.IntGreatThan(0)),
 		)
-	}
-	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
+	} else { // TODO: data sources not implemented for TPF yet
 		additionalChecks = append(additionalChecks,
-			resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(resourceName, diskIopsPath, acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(dataSourceName, diskIopsPath, acc.IntGreatThan(0)),
 		)
 	}
 	if checkDiskSizeGBInnerLevel {
