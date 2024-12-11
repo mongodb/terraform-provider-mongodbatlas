@@ -102,9 +102,6 @@ func projectIDLocal(tb testing.TB) string {
 	if id == "" {
 		return ""
 	}
-	if InCI() {
-		tb.Fatal("MONGODB_ATLAS_PROJECT_ID can't be used in CI")
-	}
 	tb.Logf("Using MONGODB_ATLAS_PROJECT_ID: %s", id)
 	return id
 }

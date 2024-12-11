@@ -10,7 +10,6 @@
    "value": "test"
   }
  ],
- "mongoDBMajorVersion": "8.0",
  "pitEnabled": true,
  "redactClientLogData": true,
  "replicaSetScalingStrategy": "NODE_TYPE",

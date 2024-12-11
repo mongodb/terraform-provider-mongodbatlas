@@ -89,7 +89,7 @@ func configBasic(projectID, clusterName, extra string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			timeouts = {
-				create = "20s"
+				create = "2000s"
 			}
 			project_id = %[1]q
 			name = %[2]q

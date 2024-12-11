@@ -1,7 +1,7 @@
 {
  "clusterType": "SHARDED",
  "labels": [],
- "name": "sharded-multi-replication",
+ "name": "{clusterName}",
  "replicationSpecs": [
   {
    "regionConfigs": [

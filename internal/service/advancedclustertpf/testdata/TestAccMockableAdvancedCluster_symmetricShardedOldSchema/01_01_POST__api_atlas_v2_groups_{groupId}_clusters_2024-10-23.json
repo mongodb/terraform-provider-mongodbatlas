@@ -1,25 +1,33 @@
 {
  "clusterType": "SHARDED",
+ "configServerManagementMode": "FIXED_TO_DEDICATED",
  "labels": [],
- "mongoDBMajorVersion": "7.0",
- "name": "6746cee8aef48d1cb265882d",
+ "mongoDBMajorVersion": "8.0",
+ "name": "{clusterName}",
  "replicationSpecs": [
   {
    "regionConfigs": [
     {
      "analyticsSpecs": {
-      "diskSizeGB": 50,
       "instanceSize": "M10",
-      "nodeCount": 0
+      "nodeCount": 1
      },
      "electableSpecs": {
-      "diskSizeGB": 50,
       "instanceSize": "M10",
       "nodeCount": 3
      },
      "priority": 7,
      "providerName": "AWS",
-     "regionName": "US_EAST_1"
+     "regionName": "EU_WEST_1"
+    },
+    {
+     "electableSpecs": {
+      "instanceSize": "M10",
+      "nodeCount": 2
+     },
+     "priority": 6,
+     "providerName": "AZURE",
+     "regionName": "US_EAST_2"
     }
    ],
    "zoneName": "ZoneName managed by Terraform"
@@ -28,18 +36,25 @@
    "regionConfigs": [
     {
      "analyticsSpecs": {
-      "diskSizeGB": 50,
       "instanceSize": "M10",
-      "nodeCount": 0
+      "nodeCount": 1
      },
      "electableSpecs": {
-      "diskSizeGB": 50,
       "instanceSize": "M10",
       "nodeCount": 3
      },
      "priority": 7,
      "providerName": "AWS",
-     "regionName": "US_EAST_1"
+     "regionName": "EU_WEST_1"
+    },
+    {
+     "electableSpecs": {
+      "instanceSize": "M10",
+      "nodeCount": 2
+     },
+     "priority": 6,
+     "providerName": "AZURE",
+     "regionName": "US_EAST_2"
     }
    ],
    "zoneName": "ZoneName managed by Terraform"

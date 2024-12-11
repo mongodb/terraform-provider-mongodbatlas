@@ -1,7 +1,7 @@
 {
  "clusterType": "REPLICASET",
  "labels": [],
- "name": "test-acc-tf-c-878317177498266511",
+ "name": "{clusterName2}",
  "replicationSpecs": [
   {
    "regionConfigs": [

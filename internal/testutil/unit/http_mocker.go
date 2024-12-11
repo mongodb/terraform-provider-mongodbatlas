@@ -1,7 +1,6 @@
 package unit
 
 import (
-	"errors"
 	"net/http"
 	"os"
 	"path"
@@ -18,6 +17,7 @@ import (
 
 const (
 	EnvNameHTTPMockerCapture = "HTTP_MOCKER_CAPTURE"
+	EnvNameHTTPMockerReplay  = "HTTP_MOCKER_REPLAY"
 	configFileExtension      = ".yaml"
 )
 
@@ -33,13 +33,22 @@ func IsCapture() bool {
 	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerCapture)))
 }
 
-func MockTestCaseAndRun(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) {
+func IsReplay() bool {
+	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerReplay)))
+}
+
+func CaptureOrMockTestCaseAndRun(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
 	var err error
-	if IsCapture() {
+	noneSet := !IsCapture() && !IsReplay()
+	switch {
+	case noneSet:
+		t.Logf("Neither %s nor %s is set, defaulting to capture mode", EnvNameHTTPMockerCapture, EnvNameHTTPMockerReplay)
 		err = enableCaptureForTestCase(t, config, testCase)
-	} else {
+	case IsReplay():
 		err = enableMockingForTestCase(t, config, testCase)
+	case IsCapture():
+		err = enableCaptureForTestCase(t, config, testCase)
 	}
 	require.NoError(t, err)
 	resource.ParallelTest(t, *testCase)
@@ -52,9 +61,6 @@ type mockClientModifier struct {
 }
 
 func (c *mockClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
-	if IsCapture() {
-		return errors.New("cannot capture requests when using MockTestCaseAndRun")
-	}
 	c.oldRoundTripper = httpClient.Transport
 	httpClient.Transport = c.mockRoundTripper
 	return nil

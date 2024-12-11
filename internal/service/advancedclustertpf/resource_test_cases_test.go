@@ -1,4 +1,4 @@
-package tc
+package advancedclustertpf_test
 
 import (
 	"fmt"
@@ -22,35 +22,34 @@ var (
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 )
 
-func SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T, orgID, projectName, clusterName string) *resource.TestCase {
+func symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 50),
+				Config: configShardedOldSchemaDiskSizeGBElectableLevel(projectID, clusterName, 50),
 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(50),
 			},
 			{
-				Config: configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 55),
+				Config: configShardedOldSchemaDiskSizeGBElectableLevel(projectID, clusterName, 55),
 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(55),
 			},
 		},
 	}
 }
 
-func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name string, diskSizeGB int) string {
+func configShardedOldSchemaDiskSizeGBElectableLevel(projectID, name string, diskSizeGB int) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "cluster_project" {
-		org_id = %[1]q
-		name   = %[2]q
-	}
-
 	resource "mongodbatlas_advanced_cluster" "test" {
-		project_id = mongodbatlas_project.cluster_project.id
-		name = %[3]q
+		project_id = %[1]q
+		name = %[2]q
 		backup_enabled = false
 		mongo_db_major_version = "7.0"
 		cluster_type   = "SHARDED"
@@ -62,12 +61,12 @@ func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name str
 			electable_specs = {
 				instance_size = "M10"
 				node_count    = 3
-				disk_size_gb  = %[4]d
+				disk_size_gb  = %[3]d
 			}
 			analytics_specs = {
 				instance_size = "M10"
 				node_count    = 0
-				disk_size_gb  = %[4]d
+				disk_size_gb  = %[3]d
 			}
 			provider_name = "AWS"
 			priority      = 7
@@ -76,7 +75,7 @@ func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name str
 			]
 		}]
 	}
-	`, orgID, projectName, name, diskSizeGB)
+	`, projectID, name, diskSizeGB)
 }
 
 func checkShardedOldSchemaDiskSizeGBElectableLevel(diskSizeGB int) resource.TestCheckFunc {
@@ -98,26 +97,30 @@ func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func SymmetricShardedOldSchema(t *testing.T, orgID, projectName, clusterName string) *resource.TestCase {
+func symmetricShardedOldSchema(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
+				Config: configShardedOldSchemaMultiCloud(projectID, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
 				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M10", false, &configServerManagementModeFixedToDedicated),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
+				Config: configShardedOldSchemaMultiCloud(projectID, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
 				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
 			},
 		},
 	}
 }
 
-func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards int, analyticsSize string, configServerManagementMode *string) string {
+func configShardedOldSchemaMultiCloud(projectID, name string, numShards int, analyticsSize string, configServerManagementMode *string) string {
 	var rootConfig string
 	if configServerManagementMode != nil {
 		// valid values: FIXED_TO_DEDICATED or ATLAS_MANAGED (default)
@@ -129,26 +132,21 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 		`, *configServerManagementMode)
 	}
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "cluster_project" {
-		org_id = %[1]q
-		name   = %[2]q
-	}	
-
 	resource "mongodbatlas_advanced_cluster" "test" {
-		project_id   = mongodbatlas_project.cluster_project.id
-		name         = %[3]q
+		project_id   = %[1]q
+		name         = %[2]q
 		cluster_type = "SHARDED"
-		%[6]s
+		%[5]s
 
 		replication_specs = [{
-			num_shards = %[4]d
+			num_shards = %[3]d
 			region_configs = [{
 				electable_specs = {
 					instance_size = "M10"
 					node_count    = 3
 				}
 				analytics_specs = {
-					instance_size = %[5]q
+					instance_size = %[4]q
 					node_count    = 1
 				}
 				provider_name = "AWS"
@@ -165,7 +163,7 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 			},]
 		},]
 	}
-	`, orgID, projectName, name, numShards, analyticsSize, rootConfig)
+	`, projectID, name, numShards, analyticsSize, rootConfig)
 }
 
 func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
@@ -198,8 +196,13 @@ func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize s
 		additionalChecks...)
 }
 
-func BasicTenantTestCase(t *testing.T, projectID, clusterName, clusterNameUpdated string) *resource.TestCase {
+func basicTenantTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		projectID          = acc.ProjectIDExecution(t)
+		clusterName        = acc.RandomClusterName()
+		clusterNameUpdated = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
@@ -254,8 +257,12 @@ func checkTenant(projectID, name string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func TenantUpgrade(t *testing.T, projectID, clusterName string) *resource.TestCase {
+func tenantUpgrade(t *testing.T) *resource.TestCase {
 	t.Helper()
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
 	return &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -317,4 +324,154 @@ func checksTenantUpgraded(projectID, name string) resource.TestCheckFunc {
 	}
 	checks = acc.AddAttrChecks(resourceName, checks, checkMap)
 	return resource.ComposeAggregateTestCheckFunc(originalChecks, resource.ComposeAggregateTestCheckFunc(checks...))
+}
+
+func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
+	t.Helper()
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+		fullUpdate  = `
+	backup_enabled = true
+	bi_connector_config = {
+		enabled = true
+	}
+	# config_server_management_mode = "ATLAS_MANAGED" UNSTABLE: After applying this test step, the non-refresh plan was not empty
+	labels = [{
+		key   = "env"
+		value = "test"
+	}]
+	tags = [{
+		key   = "env"
+		value = "test"
+	}]
+	mongo_db_major_version = "8.0"
+	pit_enabled = true
+	redact_client_log_data = true
+	replica_set_scaling_strategy = "NODE_TYPE"
+	# retain_backups_enabled = true # only set on delete
+	root_cert_type = "ISRGROOTX1"
+	# termination_protection_enabled = true # must be reset to false to enable delete
+	version_release_system = "CONTINUOUS"
+	
+	advanced_configuration = {
+		change_stream_options_pre_and_post_images_expire_after_seconds = 100
+		default_read_concern                                           = "available"
+		default_write_concern                                          = "majority"
+		javascript_enabled                                             = true
+		minimum_enabled_tls_protocol                                   = "TLS1_0"
+		no_table_scan                                                  = true
+		sample_refresh_interval_bi_connector                           = 310
+		sample_size_bi_connector                                       = 110
+		transaction_lifetime_limit_seconds                             = 300
+	}
+`
+	// # oplog_min_retention_hours                                      = 5.5
+	// # oplog_size_mb                                                  = 1000
+	// # fail_index_key_too_long 								        = true # only valid for MongoDB version 4.4 and earlier
+	)
+	return &resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, clusterName, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
+					resource.TestCheckResourceAttr(resourceName, "timeouts.create", "2000s"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.container_id.AWS:US_EAST_1"),
+				),
+			},
+			{
+				Config: configBasic(projectID, clusterName, fullUpdate),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
+				),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	}
+}
+
+func shardedBasic(t *testing.T) *resource.TestCase {
+	t.Helper()
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
+	return &resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configSharded(projectID, clusterName, false),
+				Check:  resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+			},
+			{
+				Config: configSharded(projectID, clusterName, true),
+				Check:  resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	}
+}
+
+func configSharded(projectID, clusterName string, withUpdate bool) string {
+	var autoScaling, analyticsSpecs string
+	if withUpdate {
+		autoScaling = `
+			auto_scaling = {
+				disk_gb_enabled = true
+			}`
+		analyticsSpecs = `
+			analytics_specs = {
+				instance_size   = "M30"
+				node_count      = 1
+				ebs_volume_type = "PROVISIONED"
+				disk_iops       = 2000
+			}`
+	}
+	// SDK v2 Implementation receives many warnings, one of them: `.replication_specs[1].region_configs[0].analytics_specs[0].disk_iops: was cty.NumberIntVal(2000), but now cty.NumberIntVal(1000)`
+	// Therefore, in TPF we are forced to set the value that will be returned by the API (1000)
+	// The rule is: For any replication spec, the `(analytics|electable|read_only)_spec.disk_iops` must be the same across all region_configs
+	// The API raises no errors, but the response reflects this rule
+	analyticsSpecsForSpec2 := strings.ReplaceAll(analyticsSpecs, "2000", "1000")
+	return fmt.Sprintf(`
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id   = %[1]q
+		name         = %[2]q
+		cluster_type = "SHARDED"
+
+		replication_specs = [
+			{ # shard 1
+			region_configs = [{
+				electable_specs = {
+					instance_size   = "M30"
+					disk_iops       = 2000
+					node_count      = 3
+					ebs_volume_type = "PROVISIONED"
+				}
+				%[3]s
+				%[4]s
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+				}]
+				},
+				{ # shard 2
+			region_configs = [{
+				electable_specs = {
+					instance_size   = "M30"
+					ebs_volume_type = "PROVISIONED"
+					disk_iops       = 1000
+					node_count      = 3
+				}
+				%[3]s
+				%[5]s
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+			}]
+		}]
+	}
+	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)
 }

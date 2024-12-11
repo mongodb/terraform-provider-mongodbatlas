@@ -77,9 +77,6 @@ func (c *CaptureMockConfigClientModifier) IncreaseStepNumber() {
 }
 
 func (c *CaptureMockConfigClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
-	if !IsCapture() {
-		return fmt.Errorf("cannot use capture modifier without %s='yes|true|1'", EnvNameHTTPMockerCapture)
-	}
 	c.oldTransport = httpClient.Transport
 	httpClient.Transport = c
 	return nil
