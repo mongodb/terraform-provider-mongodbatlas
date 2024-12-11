@@ -61,12 +61,11 @@ func NewCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int, con
 }
 
 type CaptureMockConfigClientModifier struct {
-	oldTransport http.RoundTripper
-	t            *testing.T
-	isDiff       func(*RoundTrip) bool
-	queryVars    []string
-
-	capturedData      MockHTTPData
+	oldTransport      http.RoundTripper
+	t                 *testing.T
+	isDiff            func(*RoundTrip) bool
+	capturedData      *MockHTTPData
+	queryVars         []string
 	expectedStepCount int
 	responseIndex     int
 	stepNumber        int

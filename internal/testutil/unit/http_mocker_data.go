@@ -182,12 +182,12 @@ type RoundTrip struct {
 	StepNumber  int
 }
 
-func NewMockHTTPData(stepCount int, tfConfigs []string) MockHTTPData {
+func NewMockHTTPData(stepCount int, tfConfigs []string) *MockHTTPData {
 	steps := make([]stepRequests, stepCount)
 	for i := range steps {
 		steps[i].Config = tfConfigs[i]
 	}
-	return MockHTTPData{
+	return &MockHTTPData{
 		Steps:     steps,
 		Variables: map[string]string{},
 	}
@@ -268,7 +268,7 @@ func (m *MockHTTPData) AddRoundtrip(t *testing.T, rt *RoundTrip, isDiff bool) er
 	if rt.QueryString != "" {
 		normalizedPath += "?" + useVars(rtVariables, rt.QueryString)
 	}
-	if rt.StepNumber >= len(m.Steps) {
+	if rt.StepNumber > len(m.Steps) {
 		return fmt.Errorf("step number %d is out of bounds, are you re-running the same test case?", rt.StepNumber)
 	}
 	step := &m.Steps[rt.StepNumber-1]

@@ -45,18 +45,20 @@ func SkipInReplayMode(t *testing.T) {
 	}
 }
 
-func CaptureOrMockTestCaseAndRun(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) {
+func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
 	var err error
 	noneSet := !IsCapture() && !IsReplay()
+	bothSet := IsCapture() && IsReplay()
 	switch {
+	case bothSet:
+		t.Fatalf("Both %s and %s are set, only one of them should be set", EnvNameHTTPMockerCapture, EnvNameHTTPMockerReplay)
 	case noneSet:
-		t.Logf("Neither %s nor %s is set, defaulting to capture mode", EnvNameHTTPMockerCapture, EnvNameHTTPMockerReplay)
-		err = enableCaptureForTestCase(t, config, testCase)
+		t.Logf("Neither %s nor %s is set, running test case without modifications", EnvNameHTTPMockerCapture, EnvNameHTTPMockerReplay)
 	case IsReplay():
-		err = enableMockingForTestCase(t, config, testCase)
+		err = enableMockingForTestCase(t, &config, testCase)
 	case IsCapture():
-		err = enableCaptureForTestCase(t, config, testCase)
+		err = enableCaptureForTestCase(t, &config, testCase)
 	}
 	require.NoError(t, err)
 	resource.ParallelTest(t, *testCase)
