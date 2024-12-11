@@ -725,7 +725,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
 				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkShardedNewSchema(50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
-					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_cluster.test-replication-specs-per-shard-false", "results.#", "0"),
+					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_clusters.test-replication-specs-per-shard-false", "results.#", "0"),
 					checkIndependentShardScalingMode(clusterName, "SHARD")),
 			},
 		},
