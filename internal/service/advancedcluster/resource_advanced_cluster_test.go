@@ -1908,9 +1908,9 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 			use_replication_spec_per_shard = true
 		}
 
-		data "mongodbatlas_advanced_cluster" "test-replication-specs-per-shard-false" {
+		data "mongodbatlas_advanced_clusterS" "test-replication-specs-per-shard-false" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
-			name 	     = mongodbatlas_advanced_cluster.test.name
+			use_replication_spec_per_shard = false
 		}
 
 		data "mongodbatlas_advanced_clusters" "test" {
