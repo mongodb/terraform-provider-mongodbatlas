@@ -35,7 +35,8 @@ const reqPoliciesManualValidateDelete = `{}`
 func TestMockRoundTripper(t *testing.T) {
 	orgID := "123"
 	resourcePolicyID := "456"
-	mockTransport, nextStep, checkFunc := unit.MockRoundTripper(t, &unit.MockHTTPDataConfig{AllowMissingRequests: true})
+	data := unit.ReadMockData(t)
+	mockTransport, nextStep, checkFunc := unit.MockRoundTripper(t, &unit.MockHTTPDataConfig{AllowMissingRequests: true}, data)
 	client := &http.Client{
 		Transport: mockTransport,
 	}
@@ -105,7 +106,8 @@ func parseMapStringAny(t *testing.T, resp *http.Response) map[string]any {
 
 func TestMockRoundTripperAllowReRead(t *testing.T) {
 	orgID := "123"
-	mockTransport, nextStep, checkFunc := unit.MockRoundTripper(t, &unit.MockHTTPDataConfig{AllowMissingRequests: true})
+	data := unit.ReadMockData(t)
+	mockTransport, nextStep, checkFunc := unit.MockRoundTripper(t, &unit.MockHTTPDataConfig{AllowMissingRequests: true}, data)
 	client := &http.Client{
 		Transport: mockTransport,
 	}

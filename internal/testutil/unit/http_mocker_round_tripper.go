@@ -18,11 +18,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func MockRoundTripper(t *testing.T, config *MockHTTPDataConfig) (http.RoundTripper, func(), resource.TestCheckFunc) {
+func MockRoundTripper(t *testing.T, config *MockHTTPDataConfig, data *MockHTTPData) (http.RoundTripper, func(), resource.TestCheckFunc) {
 	t.Helper()
-	httpDataPath := MockConfigFilePath(t)
-	data, err := parseTestDataConfigYAML(httpDataPath)
-	require.NoError(t, err)
 	myTransport := httpmock.NewMockTransport()
 	var mockTransport http.RoundTripper = myTransport
 	tracker := newMockRoundTripper(t, data)

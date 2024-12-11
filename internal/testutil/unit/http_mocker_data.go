@@ -142,9 +142,9 @@ func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.UR
 }
 
 type stepRequests struct {
+	Config           string        `yaml:"config,omitempty"`
 	DiffRequests     []RequestInfo `yaml:"diff_requests"`
 	RequestResponses []RequestInfo `yaml:"request_responses"`
-	Config           string        `yaml:"config,omitempty"`
 }
 
 func (s *stepRequests) findRequest(request *RequestInfo) (*RequestInfo, bool) {

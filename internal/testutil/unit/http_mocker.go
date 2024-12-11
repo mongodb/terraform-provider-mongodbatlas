@@ -23,6 +23,7 @@ const (
 
 type MockHTTPDataConfig struct {
 	SideEffect           func() error
+	ConfigModifiers      []TFConfigReplacement
 	IsDiffSkipSuffixes   []string
 	IsDiffMustSubstrings []string
 	QueryVars            []string
@@ -81,7 +82,8 @@ func (c *mockClientModifier) ResetHTTPClient(httpClient *http.Client) {
 
 func enableMockingForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
-	roundTripper, nextStep, checkFunc := MockRoundTripper(t, config)
+	data := ReadMockData(t)
+	roundTripper, nextStep, checkFunc := MockRoundTripper(t, config, data)
 	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
 	testCase.PreCheck = func() {
@@ -89,8 +91,11 @@ func enableMockingForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 			require.NoError(t, config.SideEffect())
 		}
 	}
+	require.Equal(t, len(testCase.Steps), len(data.Steps), "Number of steps in test case and mock data should match")
 	for i := range testCase.Steps {
 		step := &testCase.Steps[i]
+		oldConfig := data.Steps[i].Config
+		step.Config = ApplyConfigModifiers(t, oldConfig, step.Config, config.ConfigModifiers)
 		oldSkip := step.SkipFunc
 		step.SkipFunc = func() (bool, error) {
 			nextStep()
@@ -112,13 +117,18 @@ func enableMockingForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 	return nil
 }
 
+func ReadMockData(t *testing.T) *MockHTTPData {
+	t.Helper()
+	httpDataPath := MockConfigFilePath(t)
+	data, err := parseTestDataConfigYAML(httpDataPath)
+	require.NoError(t, err)
+	return data
+}
+
 func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
 	stepCount := len(testCase.Steps)
-	tfConfigs := make([]string, stepCount)
-	for i, step := range testCase.Steps {
-		tfConfigs[i] = step.Config
-	}
+	tfConfigs := extractConfigs(stepCount, testCase)
 	clientModifier := NewCaptureMockConfigClientModifier(t, stepCount, config, tfConfigs)
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier)
 	for i := range stepCount {
@@ -148,6 +158,14 @@ func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 	t.Cleanup(writeCapturedData)
 	testCase.CheckDestroy = wrapClientDuringCheck(testCase.CheckDestroy, clientModifier)
 	return nil
+}
+
+func extractConfigs(stepCount int, testCase *resource.TestCase) []string {
+	tfConfigs := make([]string, stepCount)
+	for i := range testCase.Steps {
+		tfConfigs[i] = testCase.Steps[i].Config
+	}
+	return tfConfigs
 }
 
 func MockConfigFilePath(t *testing.T) string {
