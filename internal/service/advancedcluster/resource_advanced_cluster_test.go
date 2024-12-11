@@ -1100,10 +1100,16 @@ func configReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountEl
 func checkReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
-		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+	}
+	if config.AdvancedClusterV2Schema() {
+		// Manual test fix to remove electable_specs.0 for TPF
+		additionalChecks = append(additionalChecks,
+			resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.disk_iops", acc.IntGreatThan(0)),
+		)
 	}
 	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
 		additionalChecks = append(additionalChecks,
+			resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 		)
 	}
