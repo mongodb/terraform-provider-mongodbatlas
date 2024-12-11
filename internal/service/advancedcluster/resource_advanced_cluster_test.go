@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -1190,17 +1189,11 @@ func checkReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountEle
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 	}
-	diskIopsPath := "replication_specs.0.region_configs.0.electable_specs.0.disk_iops"
-	if config.AdvancedClusterV2Schema() {
-		additionalChecks = append(additionalChecks,
-			resource.TestCheckResourceAttrWith(resourceName, acc.AttrNameToSchemaV2(diskIopsPath), acc.IntGreatThan(0)),
-		)
-	} else { // TODO: data sources not implemented for TPF yet
-		additionalChecks = append(additionalChecks,
-			resource.TestCheckResourceAttrWith(resourceName, diskIopsPath, acc.IntGreatThan(0)),
-			resource.TestCheckResourceAttrWith(dataSourceName, diskIopsPath, acc.IntGreatThan(0)),
-		)
-	}
+	diskIopsPath := acc.AttrNameToSchemaV2("replication_specs.0.region_configs.0.electable_specs.0.disk_iops")
+	additionalChecks = append(additionalChecks,
+		resource.TestCheckResourceAttrWith(resourceName, diskIopsPath, acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrWith(dataSourceName, diskIopsPath, acc.IntGreatThan(0)),
+	)
 	if checkDiskSizeGBInnerLevel {
 		additionalChecks = append(additionalChecks,
 			checkAggr([]string{}, map[string]string{
@@ -1209,11 +1202,9 @@ func checkReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountEle
 			}),
 		)
 	}
-
 	if checkExternalID {
 		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
 	}
-
 	return checkAggr(
 		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
