@@ -47,6 +47,9 @@ var tpfSingleNestedAttrs = []string{
 }
 
 func AttrNameToSchemaV2(name string) string {
+     if !config.AdvancedClusterV2Schema() {
+		return name
+	}
 	for _, singleAttrName := range tpfSingleNestedAttrs {
 		name = strings.ReplaceAll(name, singleAttrName+".0", singleAttrName)
 	}
