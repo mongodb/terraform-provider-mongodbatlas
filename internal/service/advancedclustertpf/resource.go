@@ -413,7 +413,7 @@ func convertClusterAddAdvConfig(ctx context.Context, diags *diag.Diagnostics, cl
 			return nil
 		}
 	}
-	overrideKnowTPFIssueFields(modelIn, modelOut)
+	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut
 }
 

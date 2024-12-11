@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"testing"
+	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -58,9 +60,6 @@ func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 
 func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
-	// TODO: Already prepared for TPF but getting this error:
-	// unexpected new value: .retain_backups_enabled: was cty.True, but now null.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -89,9 +88,6 @@ func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 }
 func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
-	// TODO: Already prepared for TPF but getting this error:
-	// unexpected new value: .retain_backups_enabled: was cty.False, but now null.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -184,9 +180,6 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// POST: HTTP 400 Bad Request (Error code: "CANNOT_CREATE_PAUSED_CLUSTER"). Detail: Cluster test-acc-tf-c-5570724607982544726 cannot be created in a paused state.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID    = acc.ProjectIDExecution(t)
 		clusterName  = acc.RandomClusterName()
@@ -973,6 +966,60 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 	})
 }
 
+func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // Using single project to assert plural data source
+		clusterName = acc.RandomClusterName()
+	)
+
+	now := time.Now()
+	// Time 7 days from now, truncated to the beginning of the day
+	sevenDaysFromNow := now.AddDate(0, 0, 7).Truncate(24 * time.Hour)
+	firstExpirationDate := conversion.TimeToString(sevenDaysFromNow)
+	// Time 8 days from now
+	eightDaysFromNow := sevenDaysFromNow.AddDate(0, 0, 1)
+	updatedExpirationDate := conversion.TimeToString(eightDaysFromNow)
+	invalidDateFormat := "invalid"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+			},
+			{ // pins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(firstExpirationDate), admin.PtrInt(7)),
+			},
+			{ // using incorrect format
+				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
+				ExpectError: regexp.MustCompile("expiration_date format is incorrect: " + invalidDateFormat),
+			},
+			{ // updates expiration date of fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+			},
+			{ // upgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+			},
+			{ // downgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+			},
+			{ // unpins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+			},
+		},
+	})
+}
+
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	attrsMap = acc.ConvertToTPFAttrsMap(attrsMap)
 	attrsSet = acc.ConvertToTPFAttrsSet(attrsSet)
@@ -1142,8 +1189,17 @@ func configReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountEl
 func checkReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
-		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+	}
+	diskIopsPath := "replication_specs.0.region_configs.0.electable_specs.0.disk_iops"
+	if config.AdvancedClusterV2Schema() {
+		additionalChecks = append(additionalChecks,
+			resource.TestCheckResourceAttrWith(resourceName, acc.AttrNameToSchemaV2(diskIopsPath), acc.IntGreatThan(0)),
+		)
+	} else { // TODO: data sources not implemented for TPF yet
+		additionalChecks = append(additionalChecks,
+			resource.TestCheckResourceAttrWith(resourceName, diskIopsPath, acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(dataSourceName, diskIopsPath, acc.IntGreatThan(0)),
+		)
 	}
 	if checkDiskSizeGBInnerLevel {
 		additionalChecks = append(additionalChecks,
@@ -2460,4 +2516,54 @@ func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource
 		attrsMap["bi_connector_config.0.enabled"] = "false"
 	}
 	return checkAggr(nil, attrsMap)
+}
+
+func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationDate *string, mongoDBMajorVersion string) string {
+	var pinnedFCVAttr string
+	if pinningExpirationDate != nil {
+		pinnedFCVAttr = fmt.Sprintf(`
+		pinned_fcv {
+    		expiration_date = %q
+  		}
+		`, *pinningExpirationDate)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+		
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = mongodbatlas_project.test.id
+			name         = %[3]q
+
+			cluster_type = "REPLICASET"
+
+			mongo_db_major_version = %[4]q
+
+			%[5]s
+
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+				}
+			}
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
+	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)
 }

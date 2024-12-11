@@ -11,10 +11,14 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
-func overrideKnowTPFIssueFields(modelIn, modelOut *TFModel) {
+func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
 	if beforeVersion != nil && !modelIn.MongoDBMajorVersion.Equal(modelOut.MongoDBMajorVersion) {
 		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
+	}
+	retainBackups := conversion.NilForUnknown(modelIn.RetainBackupsEnabled, modelIn.RetainBackupsEnabled.ValueBoolPointer())
+	if retainBackups != nil && !modelIn.RetainBackupsEnabled.Equal(modelOut.RetainBackupsEnabled) {
+		modelOut.RetainBackupsEnabled = types.BoolPointerValue(retainBackups)
 	}
 }
 

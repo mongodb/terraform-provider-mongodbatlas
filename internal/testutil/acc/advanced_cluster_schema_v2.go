@@ -21,7 +21,7 @@ func ConvertToTPFAttrsMap(attrsMap map[string]string) map[string]string {
 	}
 	ret := make(map[string]string, len(attrsMap))
 	for name, value := range attrsMap {
-		ret[attrNameToSchemaV2(name)] = value
+		ret[AttrNameToSchemaV2(name)] = value
 	}
 	return ret
 }
@@ -32,7 +32,7 @@ func ConvertToTPFAttrsSet(attrsSet []string) []string {
 	}
 	ret := make([]string, 0, len(attrsSet))
 	for _, name := range attrsSet {
-		ret = append(ret, attrNameToSchemaV2(name))
+		ret = append(ret, AttrNameToSchemaV2(name))
 	}
 	return ret
 }
@@ -46,7 +46,10 @@ var tpfSingleNestedAttrs = []string{
 	"bi_connector_config",
 }
 
-func attrNameToSchemaV2(name string) string {
+func AttrNameToSchemaV2(name string) string {
+	if !config.AdvancedClusterV2Schema() {
+		return name
+	}
 	for _, singleAttrName := range tpfSingleNestedAttrs {
 		name = strings.ReplaceAll(name, singleAttrName+".0", singleAttrName)
 	}
