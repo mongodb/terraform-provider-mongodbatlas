@@ -60,9 +60,6 @@ func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 
 func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
-	// TODO: Already prepared for TPF but getting this error:
-	// unexpected new value: .retain_backups_enabled: was cty.True, but now null.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -91,9 +88,6 @@ func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 }
 func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
-	// TODO: Already prepared for TPF but getting this error:
-	// unexpected new value: .retain_backups_enabled: was cty.False, but now null.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -1207,11 +1201,16 @@ func configReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountEl
 func checkReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
-		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 	}
-	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
+	diskIopsPath := "replication_specs.0.region_configs.0.electable_specs.0.disk_iops"
+	if config.AdvancedClusterV2Schema() {
 		additionalChecks = append(additionalChecks,
-			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(resourceName, acc.AttrNameToSchemaV2(diskIopsPath), acc.IntGreatThan(0)),
+		)
+	} else { // TODO: data sources not implemented for TPF yet
+		additionalChecks = append(additionalChecks,
+			resource.TestCheckResourceAttrWith(resourceName, diskIopsPath, acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(dataSourceName, diskIopsPath, acc.IntGreatThan(0)),
 		)
 	}
 	if checkDiskSizeGBInnerLevel {
