@@ -132,6 +132,13 @@ func (c *CaptureMockConfigClientModifier) WriteCapturedData(filePath string) err
 	if err != nil {
 		return err
 	}
+	dirPath := path.Dir(filePath)
+	if !fileExist(dirPath) {
+		err := os.Mkdir(dirPath, 0o755)
+		if err != nil {
+			return err
+		}
+	}
 	// will override content if file exists
 	err = os.WriteFile(filePath, []byte(configYaml), 0o600)
 	if err != nil {
