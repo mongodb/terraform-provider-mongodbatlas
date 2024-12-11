@@ -510,7 +510,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	// cannot call latest API (2024-10-23 or newer) as it can enable ISS autoscaling
 	cluster, _, err := connV220240805.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
-	// cluster, _, err := connV220240805.ClustersApi.GetCluster(ctx, projectID, "b6s-replicasetMultiCloudOldCreate2").Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
