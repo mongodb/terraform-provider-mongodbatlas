@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113002/admin"
 )
 
-func overrideKnowTPFIssueFields(modelIn, modelOut *TFModel) {
+func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
 	if beforeVersion != nil && !modelIn.MongoDBMajorVersion.Equal(modelOut.MongoDBMajorVersion) {
 		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
