@@ -44,6 +44,7 @@ var tpfSingleNestedAttrs = []string{
 	"auto_scaling", // includes analytics_auto_scaling
 	"advanced_configuration",
 	"bi_connector_config",
+	"pinned_fcv",
 }
 
 func AttrNameToSchemaV2(name string) string {

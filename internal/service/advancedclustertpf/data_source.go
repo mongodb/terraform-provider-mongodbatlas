@@ -87,6 +87,7 @@ type TFModelDS struct {
 	ProjectID                                 types.String  `tfsdk:"project_id"`
 	ClusterID                                 types.String  `tfsdk:"cluster_id"`
 	ConfigServerManagementMode                types.String  `tfsdk:"config_server_management_mode"`
+	PinnedFCV                                 types.Object  `tfsdk:"pinned_fcv"`
 	UseReplicationSpecPerShard                types.Bool    `tfsdk:"use_replication_spec_per_shard"`
 	RedactClientLogData                       types.Bool    `tfsdk:"redact_client_log_data"`
 	GlobalClusterSelfManagedSharding          types.Bool    `tfsdk:"global_cluster_self_managed_sharding"`
