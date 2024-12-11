@@ -297,6 +297,8 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultMaxTimeMS: conversion.IntPtr(65),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
 		}
 	)
 
@@ -1584,6 +1586,13 @@ func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProces
 
 	if processArgs.DefaultMaxTimeMS != nil {
 		advancedConfig["advanced_configuration.0.default_max_time_ms"] = strconv.Itoa(*processArgs.DefaultMaxTimeMS)
+	}
+
+	if processArgs.TlsCipherConfigMode != nil && processArgs.CustomOpensslCipherConfigTls12 != nil {
+		advancedConfig["advanced_configuration.0.tls_cipher_config_mode"] = "CUSTOM"
+		advancedConfig["advanced_configuration.0.custom_openssl_cipher_config_tls12.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls12))
+	} else {
+		advancedConfig["advanced_configuration.0.tls_cipher_config_mode"] = "DEFAULT"
 	}
 
 	pluralChecks := []resource.TestCheckFunc{
