@@ -34,7 +34,7 @@ func ApplyConfigModifiers(t *testing.T, oldConfig, newConfig string, modifiers [
 			t.Fatalf("unsupported config modifier type: %d", modifier.Type)
 		}
 	}
-	return newConfig
+	return hcl.PrettyHCL(t, newConfig)
 }
 
 func fullResourceName(resourceName string) string {

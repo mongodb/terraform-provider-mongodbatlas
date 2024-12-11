@@ -26,15 +26,16 @@ resource "mongodbatlas_cluster" "test" {
 }`,
 			newConfig: `
 resource "mongodbatlas_cluster" "test" {
-  name = "new_name"
-  untouched = "yes"
+    name = "new_name"
+    untouched         = "yes"
 }`,
 			modifiers: []unit.TFConfigReplacement{nameReplacement},
 			expected: `
 resource "mongodbatlas_cluster" "test" {
-  name = "old_name"
+  name      = "old_name"
   untouched = "yes"
-}`,
+}
+`,
 		},
 		"No changes when oldConfig is empty": {
 			oldConfig: ``,

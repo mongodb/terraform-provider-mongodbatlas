@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 	"github.com/stretchr/testify/require"
 )
 
@@ -61,7 +62,7 @@ func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCa
 	case noneSet:
 		t.Logf("Neither %s nor %s is set, running test case without modifications", EnvNameHTTPMockerCapture, EnvNameHTTPMockerReplay)
 	case IsReplay():
-		err = enableMockingForTestCase(t, &config, testCase)
+		err = enableReplayForTestCase(t, &config, testCase)
 	case IsCapture():
 		err = enableCaptureForTestCase(t, &config, testCase)
 	}
@@ -87,7 +88,7 @@ func (c *mockClientModifier) ResetHTTPClient(httpClient *http.Client) {
 	}
 }
 
-func enableMockingForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
+func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
 	data := ReadMockData(t)
 	roundTripper, nextStep, checkFunc := MockRoundTripper(t, config, data)
@@ -135,7 +136,7 @@ func ReadMockData(t *testing.T) *MockHTTPData {
 func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
 	stepCount := len(testCase.Steps)
-	tfConfigs := extractConfigs(stepCount, testCase)
+	tfConfigs := extractAndNormalizeConfig(t, testCase)
 	clientModifier := NewCaptureMockConfigClientModifier(t, stepCount, config, tfConfigs)
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier)
 	for i := range stepCount {
@@ -167,10 +168,12 @@ func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 	return nil
 }
 
-func extractConfigs(stepCount int, testCase *resource.TestCase) []string {
+func extractAndNormalizeConfig(t *testing.T, testCase *resource.TestCase) []string {
+	t.Helper()
+	stepCount := len(testCase.Steps)
 	tfConfigs := make([]string, stepCount)
 	for i := range testCase.Steps {
-		tfConfigs[i] = testCase.Steps[i].Config
+		tfConfigs[i] = hcl.PrettyHCL(t, testCase.Steps[i].Config)
 	}
 	return tfConfigs
 }
