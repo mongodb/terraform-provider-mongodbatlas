@@ -57,14 +57,14 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	if diags.HasError() {
 		return
 	}
-	model := d.readClusters(ctx, &state, &resp.State, diags, true)
+	model := d.readClusters(ctx, &state, &resp.State, diags)
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
 
-func (d *pluralDS) readClusters(ctx context.Context, model *TFModelPluralDS, state *tfsdk.State, diags *diag.Diagnostics, allowNotFound bool) *TFModelPluralDS {
-	projectID := model.ProjectID.ValueString()
+func (d *pluralDS) readClusters(ctx context.Context, pluralModel *TFModelPluralDS, state *tfsdk.State, diags *diag.Diagnostics) *TFModelPluralDS {
+	projectID := pluralModel.ProjectID.ValueString()
 	api := d.Client.AtlasV2.ClustersApi
 	list, _, err := api.ListClusters(ctx, projectID).Execute()
 	if err != nil {
@@ -72,14 +72,14 @@ func (d *pluralDS) readClusters(ctx context.Context, model *TFModelPluralDS, sta
 		return nil
 	}
 	outs := &TFModelPluralDS{
-		ProjectID:                         model.ProjectID,
-		UseReplicationSpecPerShard:        model.UseReplicationSpecPerShard,
-		IncludeDeletedWithRetainedBackups: model.IncludeDeletedWithRetainedBackups,
+		ProjectID:                         pluralModel.ProjectID,
+		UseReplicationSpecPerShard:        pluralModel.UseReplicationSpecPerShard,
+		IncludeDeletedWithRetainedBackups: pluralModel.IncludeDeletedWithRetainedBackups,
 	}
 
 	for i := range list.GetResults() {
 		modelDS := &TFModelDS{
-			ProjectID: model.ProjectID,
+			ProjectID: pluralModel.ProjectID,
 			Name:      types.StringPointerValue(list.GetResults()[i].Name),
 		}
 		model, err := conversion.CopyModel[TFModel](modelDS)
@@ -89,13 +89,14 @@ func (d *pluralDS) readClusters(ctx context.Context, model *TFModelPluralDS, sta
 		}
 
 		// TODO: temporary one call per cluster
-		out := readCluster(ctx, d.Client, model, state, diags, allowNotFound)
+		out := readCluster(ctx, d.Client, model, state, diags, true)
 		if out != nil {
 			outDS, err := conversion.CopyModel[TFModelDS](out)
 			if err != nil {
 				diags.AddError(errorList, fmt.Sprintf("error setting model: %s", err.Error()))
 				return nil
 			}
+			outDS.UseReplicationSpecPerShard = pluralModel.UseReplicationSpecPerShard // attrs not in resource model
 			outs.Results = append(outs.Results, outDS)
 		}
 	}
