@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"testing"
+	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
@@ -968,6 +969,60 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configBiConnectorConfig(projectID, clusterName, true))),
 				Check:  checkTenantBiConnectorConfig(projectID, clusterName, true),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // Using single project to assert plural data source
+		clusterName = acc.RandomClusterName()
+	)
+
+	now := time.Now()
+	// Time 7 days from now, truncated to the beginning of the day
+	sevenDaysFromNow := now.AddDate(0, 0, 7).Truncate(24 * time.Hour)
+	firstExpirationDate := conversion.TimeToString(sevenDaysFromNow)
+	// Time 8 days from now
+	eightDaysFromNow := sevenDaysFromNow.AddDate(0, 0, 1)
+	updatedExpirationDate := conversion.TimeToString(eightDaysFromNow)
+	invalidDateFormat := "invalid"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check:  checkFCVPinningConfig(7, nil, nil),
+			},
+			{ // pins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
+				Check:  checkFCVPinningConfig(7, admin.PtrString(firstExpirationDate), admin.PtrInt(7)),
+			},
+			{ // using incorrect format
+				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
+				ExpectError: regexp.MustCompile("expiration_date format is incorrect: " + invalidDateFormat),
+			},
+			{ // updates expiration date of fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check:  checkFCVPinningConfig(7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+			},
+			{ // upgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
+				Check:  checkFCVPinningConfig(8, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+			},
+			{ // downgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check:  checkFCVPinningConfig(7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+			},
+			{ // unpins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check:  checkFCVPinningConfig(7, nil, nil),
 			},
 		},
 	})
@@ -2503,4 +2558,74 @@ func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource
 		attrsMap["bi_connector_config.0.enabled"] = "false"
 	}
 	return checkAggr(nil, attrsMap)
+}
+
+func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationDate *string, mongoDBMajorVersion string) string {
+	var pinnedFCVAttr string
+	if pinningExpirationDate != nil {
+		pinnedFCVAttr = fmt.Sprintf(`
+		pinned_fcv {
+    		expiration_date = %q
+  		}
+		`, *pinningExpirationDate)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+		
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = mongodbatlas_project.test.id
+			name         = %[3]q
+
+			cluster_type = "REPLICASET"
+
+			mongo_db_major_version = %[4]q
+
+			%[5]s
+
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+				}
+			}
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
+	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)
+}
+
+func checkFCVPinningConfig(mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
+	mapChecks := map[string]string{
+		"mongo_db_major_version": fmt.Sprintf("%d.0", mongoDBMajorVersion),
+	}
+
+	if pinningExpirationDate != nil {
+		mapChecks["pinned_fcv.0.expiration_date"] = *pinningExpirationDate
+	} else {
+		mapChecks["pinned_fcv.#"] = "0"
+	}
+
+	if fcvVersion != nil {
+		mapChecks["pinned_fcv.0.version"] = fmt.Sprintf("%d.0", *fcvVersion)
+	}
+
+	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
+
+	return acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), []string{}, mapChecks, additionalCheck)
 }
