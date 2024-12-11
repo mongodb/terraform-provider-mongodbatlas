@@ -325,6 +325,20 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 			},
 			"advanced_configuration": AdvancedConfigurationSchema(ctx),
+			"pinned_fcv": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed. This operation can take several minutes as the request processes through the MongoDB data plane. Once FCV is unpinned it will not be possible to downgrade the `mongo_db_major_version`. It is advised that updates to `pinned_fcv` are done isolated from other cluster changes. If a plan contains multiple changes, the FCV change will be applied first. If FCV is unpinned past the expiration date the `pinned_fcv` attribute must be removed. The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) and [FCV documentation](https://www.mongodb.com/docs/atlas/tutorial/major-version-change/#manage-feature-compatibility--fcv--during-upgrades) can be referenced for more details.",
+				Attributes: map[string]schema.Attribute{
+					"version": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "Feature compatibility version of the cluster.",
+					},
+					"expiration_date": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "Expiration date of the fixed FCV. This value is in the ISO 8601 timestamp format (e.g. 2024-12-04T16:25:00Z). Note that this field cannot exceed 4 weeks from the pinned date.",
+					},
+				},
+			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Update: true,
@@ -491,8 +505,8 @@ type TFModel struct {
 	Labels                                    types.Set      `tfsdk:"labels"`
 	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
 	Tags                                      types.Set      `tfsdk:"tags"`
-	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
-	BiConnectorConfig                         types.Object   `tfsdk:"bi_connector_config"`
+	StateName                                 types.String   `tfsdk:"state_name"`
+	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
 	CreateDate                                types.String   `tfsdk:"create_date"`
 	AcceptDataRisksAndForceReplicaSetReconfig types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	EncryptionAtRestProvider                  types.String   `tfsdk:"encryption_at_rest_provider"`
@@ -501,22 +515,23 @@ type TFModel struct {
 	ClusterID                                 types.String   `tfsdk:"cluster_id"`
 	ConfigServerManagementMode                types.String   `tfsdk:"config_server_management_mode"`
 	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
-	StateName                                 types.String   `tfsdk:"state_name"`
+	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
 	Name                                      types.String   `tfsdk:"name"`
 	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
-	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
+	BiConnectorConfig                         types.Object   `tfsdk:"bi_connector_config"`
 	ConfigServerType                          types.String   `tfsdk:"config_server_type"`
 	ReplicaSetScalingStrategy                 types.String   `tfsdk:"replica_set_scaling_strategy"`
 	ClusterType                               types.String   `tfsdk:"cluster_type"`
 	RootCertType                              types.String   `tfsdk:"root_cert_type"`
 	AdvancedConfiguration                     types.Object   `tfsdk:"advanced_configuration"`
-	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
+	PinnedFCV                                 types.Object   `tfsdk:"pinned_fcv"`
 	TerminationProtectionEnabled              types.Bool     `tfsdk:"termination_protection_enabled"`
 	Paused                                    types.Bool     `tfsdk:"paused"`
 	RetainBackupsEnabled                      types.Bool     `tfsdk:"retain_backups_enabled"`
 	BackupEnabled                             types.Bool     `tfsdk:"backup_enabled"`
 	GlobalClusterSelfManagedSharding          types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
 	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
+	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
 }
 
 type TFBiConnectorModel struct {
@@ -697,4 +712,14 @@ var AdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.T
 	"sample_refresh_interval_bi_connector": types.Int64Type,
 	"sample_size_bi_connector":             types.Int64Type,
 	"transaction_lifetime_limit_seconds":   types.Int64Type,
+}}
+
+type TFPinnedFCVModel struct {
+	Version        types.String `tfsdk:"version"`
+	ExpirationDate types.String `tfsdk:"expiration_date"`
+}
+
+var PinnedFCVObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"version":         types.StringType,
+	"expiration_date": types.StringType,
 }}

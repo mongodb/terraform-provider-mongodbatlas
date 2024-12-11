@@ -274,6 +274,22 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"pinned_fcv": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"expiration_date": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -377,6 +393,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"redact_client_log_data":               cluster.GetRedactClientLogData(),
 			"config_server_management_mode":        cluster.GetConfigServerManagementMode(),
 			"config_server_type":                   cluster.GetConfigServerType(),
+			"pinned_fcv":                           flattenPinnedFCV(cluster),
 		}
 		results = append(results, result)
 	}
@@ -421,7 +438,6 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"encryption_at_rest_provider":          cluster.GetEncryptionAtRestProvider(),
 			"labels":                               flattenLabels(*convertLabelsToLatest(cluster.Labels)),
 			"tags":                                 conversion.FlattenTagsPreview(convertTagsToLatest(cluster.GetTags())), // TODO: undo
-			"mongo_db_major_version":               cluster.GetMongoDBMajorVersion(),
 			"mongo_db_version":                     cluster.GetMongoDBVersion(),
 			"name":                                 cluster.GetName(),
 			"paused":                               cluster.GetPaused(),
@@ -432,10 +448,12 @@ func flattenAdvancedClustersOldSDK(ctx context.Context, connV20240530 *admin2024
 			"termination_protection_enabled":       cluster.GetTerminationProtectionEnabled(),
 			"version_release_system":               cluster.GetVersionReleaseSystem(),
 			"global_cluster_self_managed_sharding": cluster.GetGlobalClusterSelfManagedSharding(),
+			"mongo_db_major_version":               clusterDescNew.GetMongoDBMajorVersion(), // uses 2024-08-05 as it has fix for correct value when FCV is active
 			"replica_set_scaling_strategy":         clusterDescNew.GetReplicaSetScalingStrategy(),
 			"redact_client_log_data":               clusterDescNew.GetRedactClientLogData(),
 			"config_server_management_mode":        clusterDescNew.GetConfigServerManagementMode(),
 			"config_server_type":                   clusterDescNew.GetConfigServerType(),
+			"pinned_fcv":                           flattenPinnedFCV(clusterDescNew),
 		}
 		results = append(results, result)
 	}

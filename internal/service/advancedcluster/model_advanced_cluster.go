@@ -436,6 +436,16 @@ func CheckRegionConfigsPriorityOrderOld(regionConfigs []admin20240530.Replicatio
 	return nil
 }
 
+func flattenPinnedFCV(cluster *admin.ClusterDescription20240805) []map[string]string {
+	if cluster.FeatureCompatibilityVersionExpirationDate == nil { // pinned_fcv is defined in state only if featureCompatibilityVersionExpirationDate is present in cluster response
+		return nil
+	}
+	nestedObj := map[string]string{}
+	nestedObj["version"] = cluster.GetFeatureCompatibilityVersion()
+	nestedObj["expiration_date"] = conversion.TimeToString(cluster.GetFeatureCompatibilityVersionExpirationDate())
+	return []map[string]string{nestedObj}
+}
+
 func flattenConnectionStrings(str admin.ClusterConnectionStrings) []map[string]any {
 	return []map[string]any{
 		{

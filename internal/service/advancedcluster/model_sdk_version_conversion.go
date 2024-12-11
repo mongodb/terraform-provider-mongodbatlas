@@ -13,14 +13,6 @@ import (
 // - These functions must not contain any business logic.
 // - All will be removed once we rely on a single API version.
 
-func convertTagsPtrToLatest(tags *[]admin20240530.ResourceTag) *[]admin.ResourceTag {
-	if tags == nil {
-		return nil
-	}
-	result := convertTagsToLatest(*tags)
-	return &result
-}
-
 func convertTagsPtrToOldSDK(tags *[]admin20240805.ResourceTag) *[]admin20240530.ResourceTag {
 	if tags == nil {
 		return nil
@@ -298,31 +290,4 @@ func convertRegionConfigSliceToLatest(slice *[]admin20240530.CloudRegionConfig, 
 		}
 	}
 	return &results
-}
-
-func convertClusterDescToLatestExcludeRepSpecs(oldClusterDesc *admin20240530.AdvancedClusterDescription) *admin.ClusterDescription20240805 {
-	return &admin.ClusterDescription20240805{
-		BackupEnabled: oldClusterDesc.BackupEnabled,
-		AcceptDataRisksAndForceReplicaSetReconfig: oldClusterDesc.AcceptDataRisksAndForceReplicaSetReconfig,
-		ClusterType:                      oldClusterDesc.ClusterType,
-		CreateDate:                       oldClusterDesc.CreateDate,
-		DiskWarmingMode:                  oldClusterDesc.DiskWarmingMode,
-		EncryptionAtRestProvider:         oldClusterDesc.EncryptionAtRestProvider,
-		GlobalClusterSelfManagedSharding: oldClusterDesc.GlobalClusterSelfManagedSharding,
-		GroupId:                          oldClusterDesc.GroupId,
-		Id:                               oldClusterDesc.Id,
-		MongoDBMajorVersion:              oldClusterDesc.MongoDBMajorVersion,
-		MongoDBVersion:                   oldClusterDesc.MongoDBVersion,
-		Name:                             oldClusterDesc.Name,
-		Paused:                           oldClusterDesc.Paused,
-		PitEnabled:                       oldClusterDesc.PitEnabled,
-		RootCertType:                     oldClusterDesc.RootCertType,
-		StateName:                        oldClusterDesc.StateName,
-		TerminationProtectionEnabled:     oldClusterDesc.TerminationProtectionEnabled,
-		VersionReleaseSystem:             oldClusterDesc.VersionReleaseSystem,
-		Tags:                             convertTagsPtrToLatest(oldClusterDesc.Tags),
-		BiConnector:                      convertBiConnectToLatest(oldClusterDesc.BiConnector),
-		ConnectionStrings:                convertConnectionStringToLatest(oldClusterDesc.ConnectionStrings),
-		Labels:                           convertLabelsToLatest(oldClusterDesc.Labels),
-	}
 }
