@@ -14,7 +14,7 @@ import (
 )
 
 type OpenapiSchema struct {
-	Paths map[string]map[string]interface{} `yaml:"paths"`
+	Paths map[string]map[string]any `yaml:"paths"`
 }
 
 func parseModel(apiSpecPath string) (OpenapiSchema, error) {
@@ -115,9 +115,7 @@ func fullPath(relPath string) string {
 }
 
 func init() {
-	if IsCapture() {
-		InitializeAPISpecPaths()
-	}
+	InitializeAPISpecPaths()
 }
 
 func InitializeAPISpecPaths() {

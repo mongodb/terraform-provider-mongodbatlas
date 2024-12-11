@@ -17,7 +17,7 @@ type statusText struct {
 	DuplicateResponses int    `yaml:"duplicate_responses"`
 }
 
-func (s statusText) MarshalYAML() (interface{}, error) {
+func (s statusText) MarshalYAML() (any, error) {
 	childNodes := []*yaml.Node{
 		{Kind: yaml.ScalarNode, Value: "response_index"},
 		{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%d", s.ResponseIndex)},
@@ -54,7 +54,7 @@ type RequestInfo struct {
 }
 
 // Custom marshaling is necessary to use `flow` style only on response fields (text and responses.*.text)
-func (i RequestInfo) MarshalYAML() (interface{}, error) { //nolint:gocritic // Using a pointer method leads to inconsistent dump results
+func (i RequestInfo) MarshalYAML() (any, error) { //nolint:gocritic // Using a pointer method leads to inconsistent dump results
 	responseNode := []*yaml.Node{}
 	for _, response := range i.Responses {
 		node, err := response.MarshalYAML()
@@ -83,7 +83,7 @@ func (i RequestInfo) MarshalYAML() (interface{}, error) { //nolint:gocritic // U
 }
 
 func (i *RequestInfo) id() string {
-	return fmt.Sprintf("%s_%s_%s_%s", i.Method, i.Path, i.Version, i.Text)
+	return fmt.Sprintf("%s_%s", i.idShort(), i.Text)
 }
 
 func (i *RequestInfo) idShort() string {
