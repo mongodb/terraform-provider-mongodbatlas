@@ -8,6 +8,8 @@ import (
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
+	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace SDK once cipher config changes are in prod
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -324,6 +326,22 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"pinned_fcv": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"expiration_date": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -345,7 +363,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(fmt.Errorf("error reading cluster list for project(%s): %s", projectID, err))
 	}
 
-	redactClientLogDataMap, err := newAtlasList(ctx, connV2, projectID)
+	latestClusterModels, err := newAtlasList(ctx, connV2, projectID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
@@ -353,14 +371,14 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(fmt.Errorf("error reading new cluster list for project(%s): %s", projectID, err))
 	}
 
-	if err := d.Set("results", flattenClusters(ctx, d, conn, clusters, redactClientLogDataMap)); err != nil {
+	if err := d.Set("results", flattenClusters(ctx, d, conn, clusters, latestClusterModels)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "results", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, clusters []matlas.Cluster, redactClientLogDataMap map[string]bool) []map[string]any {
+func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, clusters []matlas.Cluster, latestClusterModels map[string]*admin.ClusterDescription20240805) []map[string]any {
 	results := make([]map[string]any, 0)
 
 	for i := range clusters {
@@ -393,7 +411,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"connection_strings":                      flattenConnectionStrings(clusters[i].ConnectionStrings),
 			"disk_size_gb":                            clusters[i].DiskSizeGB,
 			"encryption_at_rest_provider":             clusters[i].EncryptionAtRestProvider,
-			"mongo_db_major_version":                  clusters[i].MongoDBMajorVersion,
+			"mongo_db_major_version":                  latestClusterModels[clusters[i].Name].MongoDBMajorVersion, // uses 2024-08-05 or above as it has fix for correct value when FCV is active
 			"name":                                    clusters[i].Name,
 			"num_shards":                              clusters[i].NumShards,
 			"mongo_db_version":                        clusters[i].MongoDBVersion,
@@ -422,7 +440,8 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"termination_protection_enabled":                  clusters[i].TerminationProtectionEnabled,
 			"version_release_system":                          clusters[i].VersionReleaseSystem,
 			"container_id":                                    containerID,
-			"redact_client_log_data":                          redactClientLogDataMap[clusters[i].Name],
+			"redact_client_log_data":                          latestClusterModels[clusters[i].Name].GetRedactClientLogData(),
+			"pinned_fcv":                                      advancedcluster.FlattenPinnedFCV(latestClusterModels[clusters[i].Name]),
 		}
 		results = append(results, result)
 	}

@@ -60,9 +60,6 @@ func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 
 func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
-	// TODO: Already prepared for TPF but getting this error:
-	// unexpected new value: .retain_backups_enabled: was cty.True, but now null.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -91,9 +88,6 @@ func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 }
 func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
-	// TODO: Already prepared for TPF but getting this error:
-	// unexpected new value: .retain_backups_enabled: was cty.False, but now null.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -1000,11 +994,11 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 		Steps: []resource.TestStep{
 			{
 				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  checkFCVPinningConfig(7, nil, nil),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 			{ // pins fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(7, admin.PtrString(firstExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(firstExpirationDate), admin.PtrInt(7)),
 			},
 			{ // using incorrect format
 				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
@@ -1012,19 +1006,19 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 			},
 			{ // updates expiration date of fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
 			},
 			{ // upgrade mongodb version with fcv pinned
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
-				Check:  checkFCVPinningConfig(8, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
 			},
 			{ // downgrade mongodb version with fcv pinned
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
 			},
 			{ // unpins fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  checkFCVPinningConfig(7, nil, nil),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 		},
 	})
@@ -1209,11 +1203,16 @@ func configReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountEl
 func checkReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
-		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 	}
-	if !config.AdvancedClusterV2Schema() { // TODO: data sources not implemented for TPF yet
+	diskIopsPath := "replication_specs.0.region_configs.0.electable_specs.0.disk_iops"
+	if config.AdvancedClusterV2Schema() {
 		additionalChecks = append(additionalChecks,
-			resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(resourceName, acc.AttrNameToSchemaV2(diskIopsPath), acc.IntGreatThan(0)),
+		)
+	} else { // TODO: data sources not implemented for TPF yet
+		additionalChecks = append(additionalChecks,
+			resource.TestCheckResourceAttrWith(resourceName, diskIopsPath, acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrWith(dataSourceName, diskIopsPath, acc.IntGreatThan(0)),
 		)
 	}
 	if checkDiskSizeGBInnerLevel {
@@ -2617,24 +2616,4 @@ func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationD
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
 	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)
-}
-
-func checkFCVPinningConfig(mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
-	mapChecks := map[string]string{
-		"mongo_db_major_version": fmt.Sprintf("%d.0", mongoDBMajorVersion),
-	}
-
-	if pinningExpirationDate != nil {
-		mapChecks["pinned_fcv.0.expiration_date"] = *pinningExpirationDate
-	} else {
-		mapChecks["pinned_fcv.#"] = "0"
-	}
-
-	if fcvVersion != nil {
-		mapChecks["pinned_fcv.0.version"] = fmt.Sprintf("%d.0", *fcvVersion)
-	}
-
-	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
-
-	return acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), []string{}, mapChecks, additionalCheck)
 }
