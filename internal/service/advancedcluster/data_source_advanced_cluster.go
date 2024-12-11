@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -272,94 +271,42 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterName := d.Get("name").(string)
 	useReplicationSpecPerShard := false
 	var replicationSpecs []map[string]any
-	var clusterID string
 
 	if v, ok := d.GetOk("use_replication_spec_per_shard"); ok {
 		useReplicationSpecPerShard = v.(bool)
 	}
 
-	if !useReplicationSpecPerShard {
-		clusterDescOld, resp, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			if resp != nil {
-				if resp.StatusCode == http.StatusNotFound {
-					return nil
-				}
-				if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
-					return diag.FromErr(fmt.Errorf("please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details. %s", err))
-				}
-			}
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+	clusterDesc, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return nil
 		}
-
-		clusterID = clusterDescOld.GetId()
-
-		if err := d.Set("disk_size_gb", clusterDescOld.GetDiskSizeGB()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
-		}
-		clusterDescNew, _, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		}
-		if err := d.Set("replica_set_scaling_strategy", clusterDescNew.GetReplicaSetScalingStrategy()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
-		}
-		if err := d.Set("redact_client_log_data", clusterDescNew.GetRedactClientLogData()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
-		}
-
-		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(clusterDescNew)
-		if err != nil {
+		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+	}
+	zoneNameToOldReplicationSpecMeta, err := GetReplicationSpecAttributesFromOldAPI(ctx, projectID, clusterName, connV220240530.ClustersApi)
+	if err != nil {
+		if apiError, ok := admin20240530.AsError(err); !ok {
 			return diag.FromErr(err)
+		} else if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" && !useReplicationSpecPerShard {
+			return diag.FromErr(fmt.Errorf("please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details. %s", err))
+		} else if apiError.GetErrorCode() != "ASYMMETRIC_SHARD_UNSUPPORTED" {
+			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
+	}
+	diags := setRootFields(d, clusterDesc, false)
+	if diags.HasError() {
+		return diags
+	}
 
-		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterDescOld.GetReplicationSpecs(), zoneNameToZoneIDs, clusterDescOld.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connV2)
+	if !useReplicationSpecPerShard {
+		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldShardingConfig(ctx, clusterDesc.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
-		}
-
-		clusterDesc := convertClusterDescToLatestExcludeRepSpecs(clusterDescOld)
-		clusterDesc.ConfigServerManagementMode = clusterDescNew.ConfigServerManagementMode
-		clusterDesc.ConfigServerType = clusterDescNew.ConfigServerType
-		diags := setRootFields(d, clusterDesc, false)
-		if diags.HasError() {
-			return diags
 		}
 	} else {
-		clusterDescLatest, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		}
-
-		clusterID = clusterDescLatest.GetId()
-
-		// root disk_size_gb defined for backwards compatibility avoiding breaking changes
-		if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(clusterDescLatest)); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
-		}
-		if err := d.Set("replica_set_scaling_strategy", clusterDescLatest.GetReplicaSetScalingStrategy()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
-		}
-		if err := d.Set("redact_client_log_data", clusterDescLatest.GetRedactClientLogData()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
-		}
-
-		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-
-		replicationSpecs, err = flattenAdvancedReplicationSpecsDS(ctx, clusterDescLatest.GetReplicationSpecs(), zoneNameToOldReplicationSpecIDs, d, connV2)
+		replicationSpecs, err = flattenAdvancedReplicationSpecsDS(ctx, clusterDesc.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d, connV2)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
-		}
-
-		diags := setRootFields(d, clusterDescLatest, false)
-		if diags.HasError() {
-			return diags
 		}
 	}
 
@@ -380,6 +327,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 
-	d.SetId(clusterID)
+	d.SetId(clusterDesc.GetId())
 	return nil
 }

@@ -40,6 +40,7 @@ func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
 
 func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
 	acc.SkipIfTPFAdvancedCluster(t)
+	mig.SkipIfVersionBelow(t, "1.23.0") // version where sharded cluster tier auto-scaling was introduced
 	testCase := asymmetricShardedNewSchemaTestCase(t)
 	mig.CreateAndRunTest(t, &testCase)
 }

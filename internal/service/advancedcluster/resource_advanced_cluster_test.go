@@ -2,7 +2,6 @@ package advancedcluster_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -55,7 +54,7 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 			mockCluster:    &admin20240530.AdvancedClusterDescription{},
 			mockResponse:   &http.Response{StatusCode: 400},
 			mockError:      errGeneric,
-			expectedError:  errors.New("error reading advanced cluster with 2023-02-01 API (testCluster): generic"),
+			expectedError:  errGeneric,
 			expectedResult: nil,
 		},
 		"Successful": {
@@ -726,6 +725,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T) resource.TestCase {
 				Config: configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkShardedNewSchema(50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_clusters.test-replication-specs-per-shard-false", "results.#", "0"),
 					checkIndependentShardScalingMode(clusterName, "SHARD")),
 			},
 		},
@@ -1906,6 +1906,11 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 			use_replication_spec_per_shard = true
+		}
+
+		data "mongodbatlas_advanced_clusters" "test-replication-specs-per-shard-false" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			use_replication_spec_per_shard = false
 		}
 
 		data "mongodbatlas_advanced_clusters" "test" {
