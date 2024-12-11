@@ -367,7 +367,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 As of version 1.23.0, enabled `compute` auto-scaling (either `auto_scaling` or `analytics_auto_scaling`) will scale the `instance_size` of each shard independently. Each shard must be represented with a unique `replication_specs` element and `num_shards` must not be used. On the contrary, if using deprecated `num_shards` or a lower version, enabled compute auto-scaling will scale uniformily across all shards in the cluster. 
 
-The following example illustrates a configuration which will has compute auto-scaling per shard for electable and analytic nodes.
+The following example illustrates a configuration which has compute auto-scaling per shard for electable and analytic nodes.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -435,6 +435,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 While the example initially defines 2 symmetric shards, auto-scaling of `electable_specs` or `analytic_specs` can lead to asymmetric shards due to changes in `instance_size`.
 
--> **NOTE:** Once updated to 1.23.0, an update must be performed in the cluster configuration for new auto-scaling per shard feature to activate. 
+-> **NOTE:** Once upgraded to version 1.23.0 of the provider, an update must be performed in the cluster configuration for new auto-scaling per shard feature to activate.
 
 -> **NOTE:** When making use of Auto-Scaling Per Shard, it is possible that the cluster will transition to having asymmetric shards. This will impact the computed attribute `replication_specs.#.id` which is not populated when shards are scaled independently. Please make sure to update corresponding `mongodbatlas_cloud_backup_schedule` resource & data sources. This involves updating any existing Terraform configurations of the resource to use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id`. To learn more, review the [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
