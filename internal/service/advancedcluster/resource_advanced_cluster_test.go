@@ -31,7 +31,16 @@ var (
 )
 
 var (
-	mockConfig = unit.MockHTTPDataConfig{AllowMissingRequests: true, IsDiffMustSubstrings: []string{"/clusters"}}
+	projectNameModifier = unit.TFConfigReplacement{
+		Type:          unit.TFConfigReplacementString,
+		ResourceName:  "project",
+		AttributeName: "name",
+	}
+	mockConfig = unit.MockHTTPDataConfig{
+		AllowMissingRequests: true,
+		IsDiffMustSubstrings: []string{"/clusters"},
+	}
+	mockConfigWithProjectNameModifier = mockConfig.WithConfigModifiers(projectNameModifier)
 )
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
@@ -125,7 +134,7 @@ func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 
 func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 	tc := singleShardedMultiCloudTestCase(t, true)
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 func singleShardedMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
@@ -488,7 +497,7 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 			},
 		},
 	}
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
@@ -580,7 +589,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 			},
 		},
 	}
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *testing.T) {
@@ -630,12 +639,12 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 			},
 		},
 	}
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
 	tc := symmetricGeoShardedOldSchemaTestCase(t, true)
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isAcc bool) resource.TestCase {
@@ -691,7 +700,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 			},
 		},
 	}
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAddingRemovingShard(t *testing.T) {
@@ -723,7 +732,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 			},
 		},
 	}
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
@@ -780,7 +789,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 			},
 		},
 	}
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *testing.T) {
@@ -808,7 +817,7 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 			},
 		},
 	}
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(t *testing.T) {
@@ -836,7 +845,7 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 			},
 		},
 	}
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *testing.T) {
@@ -934,7 +943,7 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 			},
 		},
 	}
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 // TestAccClusterAdvancedCluster_priorityNewSchema will be able to be simplied or deleted in CLOUDP-275825
@@ -967,7 +976,7 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 			},
 		},
 	}
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &tc)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfigWithProjectNameModifier, &tc)
 }
 
 func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {

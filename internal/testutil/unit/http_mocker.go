@@ -30,6 +30,11 @@ type MockHTTPDataConfig struct {
 	AllowMissingRequests bool
 }
 
+func (c MockHTTPDataConfig) WithConfigModifiers(modifiers ...TFConfigReplacement) MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: config is heavy (112 bytes); consider passing it by pointer)
+	c.ConfigModifiers = append(c.ConfigModifiers, modifiers...)
+	return c
+}
+
 func IsCapture() bool {
 	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerCapture)))
 }
