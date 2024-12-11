@@ -45,7 +45,7 @@ func SkipInReplayMode(t *testing.T) {
 	}
 }
 
-func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCase *resource.TestCase) {
+func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCase *resource.TestCase) { //nolint: gocritic // Want each test run to have its own config (hugeParam: config is heavy (112 bytes); consider passing it by pointer)
 	t.Helper()
 	var err error
 	noneSet := !IsCapture() && !IsReplay()
