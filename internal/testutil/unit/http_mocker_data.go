@@ -144,6 +144,7 @@ func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.UR
 type stepRequests struct {
 	DiffRequests     []RequestInfo `yaml:"diff_requests"`
 	RequestResponses []RequestInfo `yaml:"request_responses"`
+	Config           string        `yaml:"config,omitempty"`
 }
 
 func (s *stepRequests) findRequest(request *RequestInfo) (*RequestInfo, bool) {
@@ -181,8 +182,11 @@ type RoundTrip struct {
 	StepNumber  int
 }
 
-func NewMockHTTPData(stepCount int) MockHTTPData {
+func NewMockHTTPData(stepCount int, tfConfigs []string) MockHTTPData {
 	steps := make([]stepRequests, stepCount)
+	for i := range steps {
+		steps[i].Config = tfConfigs[i]
+	}
 	return MockHTTPData{
 		Steps:     steps,
 		Variables: map[string]string{},

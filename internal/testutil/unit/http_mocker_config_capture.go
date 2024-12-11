@@ -49,14 +49,14 @@ func configureQueryVars(config *MockHTTPDataConfig) []string {
 	return vars
 }
 
-func NewCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int, config *MockHTTPDataConfig) *CaptureMockConfigClientModifier {
+func NewCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int, config *MockHTTPDataConfig, tfConfigs []string) *CaptureMockConfigClientModifier {
 	t.Helper()
 	return &CaptureMockConfigClientModifier{
 		t:                 t,
 		expectedStepCount: expectedStepCount,
 		isDiff:            configureIsDiff(config),
 		queryVars:         configureQueryVars(config),
-		capturedData:      NewMockHTTPData(expectedStepCount),
+		capturedData:      NewMockHTTPData(expectedStepCount, tfConfigs),
 	}
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 func TestMockHTTPData_UpdateVariables(t *testing.T) {
-	mockData := unit.NewMockHTTPData(1)
+	mockData := unit.NewMockHTTPData(1, []string{""})
 	err := mockData.UpdateVariables(t, map[string]string{"groupId": "g1", "clusterName": "c1"})
 	require.NoError(t, err)
 	require.Equal(t, "g1", mockData.Variables["groupId"])
@@ -24,7 +24,7 @@ func TestMockHTTPData_UpdateVariables(t *testing.T) {
 }
 
 func TestMockHTTPData_AddRoundtrip(t *testing.T) {
-	mockData := unit.NewMockHTTPData(1)
+	mockData := unit.NewMockHTTPData(1, []string{""})
 	rt := &unit.RoundTrip{
 		Variables:  map[string]string{"groupId": "g1", "clusterName": "c1"},
 		StepNumber: 1,

@@ -115,7 +115,11 @@ func enableMockingForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
 	stepCount := len(testCase.Steps)
-	clientModifier := NewCaptureMockConfigClientModifier(t, stepCount, config)
+	tfConfigs := make([]string, stepCount)
+	for i, step := range testCase.Steps {
+		tfConfigs[i] = step.Config
+	}
+	clientModifier := NewCaptureMockConfigClientModifier(t, stepCount, config, tfConfigs)
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier)
 	for i := range stepCount {
 		step := &testCase.Steps[i]
