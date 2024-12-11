@@ -268,6 +268,9 @@ func (m *MockHTTPData) AddRoundtrip(t *testing.T, rt *RoundTrip, isDiff bool) er
 	if rt.QueryString != "" {
 		normalizedPath += "?" + useVars(rtVariables, rt.QueryString)
 	}
+	if rt.StepNumber >= len(m.Steps) {
+		return fmt.Errorf("step number %d is out of bounds, are you re-running the same test case?", rt.StepNumber)
+	}
 	step := &m.Steps[rt.StepNumber-1]
 	requestInfo := RequestInfo{
 		Version: rt.Request.Version,
