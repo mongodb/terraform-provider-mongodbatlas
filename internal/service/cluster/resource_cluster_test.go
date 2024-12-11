@@ -1411,18 +1411,11 @@ func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
-					"pinned_fcv.#":           "0",
-					"mongo_db_major_version": "7.0",
-				}),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 			{ // pins fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
-				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
-					"pinned_fcv.0.version":         "7.0",
-					"pinned_fcv.0.expiration_date": firstExpirationDate,
-					"mongo_db_major_version":       "7.0",
-				}),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(firstExpirationDate), conversion.Pointer(7)),
 			},
 			{ // using incorrect format
 				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
@@ -1430,34 +1423,19 @@ func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
 			},
 			{ // updates expiration date of fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
-					"pinned_fcv.0.version":         "7.0",
-					"pinned_fcv.0.expiration_date": updatedExpirationDate,
-					"mongo_db_major_version":       "7.0",
-				}),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
 			},
 			{ // upgrade mongodb version with fcv pinned
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
-				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
-					"pinned_fcv.0.version":         "7.0",
-					"pinned_fcv.0.expiration_date": updatedExpirationDate,
-					"mongo_db_major_version":       "8.0",
-				}, resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression("8..*"))),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
 			},
 			{ // downgrade mongodb version with fcv pinned
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
-					"pinned_fcv.0.version":         "7.0",
-					"pinned_fcv.0.expiration_date": updatedExpirationDate,
-					"mongo_db_major_version":       "7.0",
-				}, resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression("7..*"))),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
 			},
 			{ // unpins fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName), []string{}, map[string]string{
-					"pinned_fcv.#":           "0",
-					"mongo_db_major_version": "7.0",
-				}),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 		},
 	})

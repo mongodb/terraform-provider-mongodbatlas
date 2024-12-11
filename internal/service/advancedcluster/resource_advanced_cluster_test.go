@@ -998,11 +998,11 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 		Steps: []resource.TestStep{
 			{
 				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  checkFCVPinningConfig(7, nil, nil),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 			{ // pins fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(7, admin.PtrString(firstExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(firstExpirationDate), admin.PtrInt(7)),
 			},
 			{ // using incorrect format
 				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
@@ -1010,19 +1010,19 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 			},
 			{ // updates expiration date of fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
 			},
 			{ // upgrade mongodb version with fcv pinned
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
-				Check:  checkFCVPinningConfig(8, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
 			},
 			{ // downgrade mongodb version with fcv pinned
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
 			},
 			{ // unpins fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  checkFCVPinningConfig(7, nil, nil),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 		},
 	})
@@ -2608,24 +2608,4 @@ func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationD
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
 	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)
-}
-
-func checkFCVPinningConfig(mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
-	mapChecks := map[string]string{
-		"mongo_db_major_version": fmt.Sprintf("%d.0", mongoDBMajorVersion),
-	}
-
-	if pinningExpirationDate != nil {
-		mapChecks["pinned_fcv.0.expiration_date"] = *pinningExpirationDate
-	} else {
-		mapChecks["pinned_fcv.#"] = "0"
-	}
-
-	if fcvVersion != nil {
-		mapChecks["pinned_fcv.0.version"] = fmt.Sprintf("%d.0", *fcvVersion)
-	}
-
-	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
-
-	return acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), []string{}, mapChecks, additionalCheck)
 }
