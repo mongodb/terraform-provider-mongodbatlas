@@ -31,7 +31,7 @@ var (
 )
 
 var (
-	mockConfig = &unit.MockHTTPDataConfig{AllowMissingRequests: true, IsDiffMustSubstrings: []string{"/clusters"}}
+	mockConfig = unit.MockHTTPDataConfig{AllowMissingRequests: true, IsDiffMustSubstrings: []string{"/clusters"}}
 )
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
