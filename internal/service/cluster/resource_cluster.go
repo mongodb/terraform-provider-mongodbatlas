@@ -599,7 +599,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	if pinnedFCVBlock, ok := d.Get("pinned_fcv").([]any); ok && len(pinnedFCVBlock) > 0 {
+	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
 		if diags := advancedcluster.PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
 			return diags
 		}
