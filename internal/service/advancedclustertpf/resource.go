@@ -89,7 +89,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if diags.HasError() {
 		return
 	}
-	model := readCluster(ctx, r.Client, &state, &resp.State, diags, true)
+	model := readCluster(ctx, diags, r.Client, &state, &resp.State, true, false)
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
@@ -142,7 +142,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if !advConfigChanged {
 			stateAdvConfig = state.AdvancedConfiguration
 		}
-		model = convertClusterAddAdvConfig(ctx, r.Client, legacyAdvConfig, advConfig, cluster, &plan, &stateAdvConfig, diags)
+		model = convertClusterAddAdvConfig(ctx, diags, r.Client, legacyAdvConfig, advConfig, cluster, &plan, &stateAdvConfig, false)
 	}
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
@@ -227,10 +227,10 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 			return nil
 		}
 	}
-	return convertClusterAddAdvConfig(ctx, r.Client, legacyAdvConfig, advConfig, cluster, plan, nil, diags)
+	return convertClusterAddAdvConfig(ctx, diags, r.Client, legacyAdvConfig, advConfig, cluster, plan, nil, false)
 }
 
-func readCluster(ctx context.Context, client *config.MongoDBClient, model *TFModel, state *tfsdk.State, diags *diag.Diagnostics, allowNotFound bool) *TFModel {
+func readCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, state *tfsdk.State, allowNotFound, overrideUsingLegacySchema bool) *TFModel {
 	clusterName := model.Name.ValueString()
 	projectID := model.ProjectID.ValueString()
 	api := client.AtlasV2.ClustersApi
@@ -243,7 +243,7 @@ func readCluster(ctx context.Context, client *config.MongoDBClient, model *TFMod
 		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
 		return nil
 	}
-	return convertClusterAddAdvConfig(ctx, client, nil, nil, readResp, model, nil, diags)
+	return convertClusterAddAdvConfig(ctx, diags, client, nil, nil, readResp, model, nil, overrideUsingLegacySchema)
 }
 
 func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
@@ -392,10 +392,13 @@ func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeReque
 	return AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
-func convertClusterAddAdvConfig(ctx context.Context, client *config.MongoDBClient, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModel, oldAdvConfig *types.Object, diags *diag.Diagnostics) *TFModel {
+func convertClusterAddAdvConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModel, oldAdvConfig *types.Object, overrideUsingLegacySchema bool) *TFModel {
 	apiInfo := resolveAPIInfo(ctx, modelIn, diags, cluster, client)
 	if diags.HasError() {
 		return nil
+	}
+	if overrideUsingLegacySchema {
+		apiInfo.UsingLegacySchema = true
 	}
 	modelOut := NewTFModel(ctx, cluster, modelIn.Timeouts, diags, *apiInfo)
 	if diags.HasError() {

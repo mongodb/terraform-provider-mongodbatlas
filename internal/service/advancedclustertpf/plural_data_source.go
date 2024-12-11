@@ -76,6 +76,7 @@ func (d *pluralDS) readClusters(ctx context.Context, pluralModel *TFModelPluralD
 		UseReplicationSpecPerShard:        pluralModel.UseReplicationSpecPerShard,
 		IncludeDeletedWithRetainedBackups: pluralModel.IncludeDeletedWithRetainedBackups,
 	}
+	useReplicationSpecPerShard := pluralModel.UseReplicationSpecPerShard
 
 	for i := range list.GetResults() {
 		modelDS := &TFModelDS{
@@ -89,14 +90,14 @@ func (d *pluralDS) readClusters(ctx context.Context, pluralModel *TFModelPluralD
 		}
 
 		// TODO: temporary one call per cluster
-		out := readCluster(ctx, d.Client, model, state, diags, true)
+		out := readCluster(ctx, diags, d.Client, model, state, true, useReplicationSpecPerShard.ValueBool())
 		if out != nil {
 			outDS, err := conversion.CopyModel[TFModelDS](out)
 			if err != nil {
 				diags.AddError(errorList, fmt.Sprintf("error setting model: %s", err.Error()))
 				return nil
 			}
-			outDS.UseReplicationSpecPerShard = pluralModel.UseReplicationSpecPerShard // attrs not in resource model
+			outDS.UseReplicationSpecPerShard = useReplicationSpecPerShard // attrs not in resource model
 			outs.Results = append(outs.Results, outDS)
 		}
 	}

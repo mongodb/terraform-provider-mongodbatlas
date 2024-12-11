@@ -45,19 +45,20 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	if diags.HasError() {
 		return
 	}
+	useReplicationSpecPerShard := stateDS.UseReplicationSpecPerShard
 	state, err := conversion.CopyModel[TFModel](stateDS)
 	if err != nil {
 		diags.AddError(errorRead, fmt.Sprintf("error retrieving model: %s", err.Error()))
 		return
 	}
-	model := readCluster(ctx, d.Client, state, &resp.State, diags, true)
+	model := readCluster(ctx, diags, d.Client, state, &resp.State, true, useReplicationSpecPerShard.ValueBool())
 	if model != nil {
 		modelDS, err := conversion.CopyModel[TFModelDS](model)
 		if err != nil {
 			diags.AddError(errorRead, fmt.Sprintf("error setting model: %s", err.Error()))
 			return
 		}
-		modelDS.UseReplicationSpecPerShard = stateDS.UseReplicationSpecPerShard // attrs not in resource model
+		modelDS.UseReplicationSpecPerShard = useReplicationSpecPerShard // attrs not in resource model
 		diags.Append(resp.State.Set(ctx, modelDS)...)
 	}
 }
