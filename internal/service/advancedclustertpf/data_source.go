@@ -51,7 +51,7 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 		diags.AddError(errorRead, fmt.Sprintf("error retrieving model: %s", err.Error()))
 		return
 	}
-	model := readCluster(ctx, diags, d.Client, state, &resp.State, true, useReplicationSpecPerShard.ValueBool())
+	model := readCluster(ctx, diags, d.Client, state, &resp.State, true, !useReplicationSpecPerShard.ValueBool())
 	if model != nil {
 		modelDS, err := conversion.CopyModel[TFModelDS](model)
 		if err != nil {

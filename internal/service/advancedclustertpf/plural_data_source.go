@@ -79,18 +79,11 @@ func (d *pluralDS) readClusters(ctx context.Context, pluralModel *TFModelPluralD
 	useReplicationSpecPerShard := pluralModel.UseReplicationSpecPerShard
 
 	for i := range list.GetResults() {
-		modelDS := &TFModelDS{
+		model := &TFModel{
 			ProjectID: pluralModel.ProjectID,
 			Name:      types.StringPointerValue(list.GetResults()[i].Name),
 		}
-		model, err := conversion.CopyModel[TFModel](modelDS)
-		if err != nil {
-			diags.AddError(errorList, fmt.Sprintf("error retrieving model: %s", err.Error()))
-			return nil
-		}
-
-		// TODO: temporary one call per cluster
-		out := readCluster(ctx, diags, d.Client, model, state, true, useReplicationSpecPerShard.ValueBool())
+		out := readCluster(ctx, diags, d.Client, model, state, true, !useReplicationSpecPerShard.ValueBool())
 		if out != nil {
 			outDS, err := conversion.CopyModel[TFModelDS](out)
 			if err != nil {
