@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -22,8 +23,14 @@ import (
 )
 
 var tf *tfexec.Terraform
+var tfMutex sync.Mutex
 
-func init() {
+func getTF() *tfexec.Terraform {
+	tfMutex.Lock()
+	defer tfMutex.Unlock()
+	if tf != nil {
+		return tf
+	}
 	installer := &releases.ExactVersion{
 		Product: product.Terraform,
 		Version: version.Must(version.NewVersion("1.10.1")),
@@ -40,6 +47,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	return tf
 }
 
 func GetAttrVal(t *testing.T, body *hclsyntax.Body) cty.Value {
@@ -59,7 +67,7 @@ func GetAttrVal(t *testing.T, body *hclsyntax.Body) cty.Value {
 func PrettyHCL(t *testing.T, content string) string {
 	t.Helper()
 	builder := strings.Builder{}
-	fmt := tf.Format(context.Background(), io.NopCloser(strings.NewReader(content)), &builder)
+	fmt := getTF().Format(context.Background(), io.NopCloser(strings.NewReader(content)), &builder)
 	require.NoError(t, fmt)
 	formatted := builder.String()
 	return formatted
