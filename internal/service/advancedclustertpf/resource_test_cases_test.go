@@ -22,7 +22,7 @@ var (
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 )
 
-func SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) *resource.TestCase {
+func symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID   = acc.ProjectIDExecution(t)
@@ -97,7 +97,7 @@ func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func SymmetricShardedOldSchema(t *testing.T) *resource.TestCase {
+func symmetricShardedOldSchema(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID   = acc.ProjectIDExecution(t)
@@ -196,7 +196,7 @@ func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize s
 		additionalChecks...)
 }
 
-func BasicTenantTestCase(t *testing.T) *resource.TestCase {
+func basicTenantTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID          = acc.ProjectIDExecution(t)
@@ -257,7 +257,7 @@ func checkTenant(projectID, name string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func TenantUpgrade(t *testing.T) *resource.TestCase {
+func tenantUpgrade(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID   = acc.ProjectIDExecution(t)
@@ -326,7 +326,7 @@ func checksTenantUpgraded(projectID, name string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(originalChecks, resource.ComposeAggregateTestCheckFunc(checks...))
 }
 
-func ReplicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
+func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID   = acc.ProjectIDExecution(t)
