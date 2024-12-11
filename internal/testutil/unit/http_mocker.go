@@ -1,7 +1,6 @@
 package unit
 
 import (
-	"errors"
 	"net/http"
 	"os"
 	"path"
@@ -46,10 +45,10 @@ func CaptureOrMockTestCaseAndRun(t *testing.T, config *MockHTTPDataConfig, testC
 	case noneSet:
 		t.Logf("Neither %s nor %s is set, defaulting to capture mode", EnvNameHTTPMockerCapture, EnvNameHTTPMockerReplay)
 		err = enableCaptureForTestCase(t, config, testCase)
-	case IsCapture():
-		err = enableCaptureForTestCase(t, config, testCase)
 	case IsReplay():
 		err = enableMockingForTestCase(t, config, testCase)
+	case IsCapture():
+		err = enableCaptureForTestCase(t, config, testCase)
 	}
 	require.NoError(t, err)
 	resource.ParallelTest(t, *testCase)
@@ -62,9 +61,6 @@ type mockClientModifier struct {
 }
 
 func (c *mockClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
-	if IsCapture() {
-		return errors.New("cannot capture requests when using MockTestCaseAndRun")
-	}
 	c.oldRoundTripper = httpClient.Transport
 	httpClient.Transport = c.mockRoundTripper
 	return nil

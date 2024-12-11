@@ -115,9 +115,7 @@ func fullPath(relPath string) string {
 }
 
 func init() {
-	if IsCapture() {
-		InitializeAPISpecPaths()
-	}
+	InitializeAPISpecPaths()
 }
 
 func InitializeAPISpecPaths() {
