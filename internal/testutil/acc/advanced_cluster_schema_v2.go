@@ -47,7 +47,7 @@ var tpfSingleNestedAttrs = []string{
 }
 
 func AttrNameToSchemaV2(name string) string {
-     if !config.AdvancedClusterV2Schema() {
+	if !config.AdvancedClusterV2Schema() {
 		return name
 	}
 	for _, singleAttrName := range tpfSingleNestedAttrs {
