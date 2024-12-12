@@ -1,0 +1,22 @@
+{
+ "clusterType": "REPLICASET",
+ "labels": [],
+ "name": "test-acc-tf-c-8049930413007488732",
+ "replicationSpecs": [
+  {
+   "regionConfigs": [
+    {
+     "backingProviderName": "AWS",
+     "electableSpecs": {
+      "instanceSize": "M5"
+     },
+     "priority": 7,
+     "providerName": "TENANT",
+     "regionName": "US_EAST_1"
+    }
+   ],
+   "zoneName": "ZoneName managed by Terraform"
+  }
+ ],
+ "tags": []
+}

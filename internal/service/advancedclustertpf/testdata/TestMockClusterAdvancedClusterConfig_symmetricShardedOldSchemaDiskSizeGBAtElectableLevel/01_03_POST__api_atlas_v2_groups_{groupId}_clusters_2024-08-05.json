@@ -1,0 +1,47 @@
+{
+ "clusterType": "SHARDED",
+ "mongoDBMajorVersion": "7.0",
+ "name": "6746cee8aef48d1cb265882d",
+ "replicationSpecs": [
+  {
+   "regionConfigs": [
+    {
+     "analyticsSpecs": {
+      "diskSizeGB": 50,
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
+     "electableSpecs": {
+      "diskSizeGB": 50,
+      "instanceSize": "M10",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "regionName": "US_EAST_1"
+    }
+   ],
+   "zoneName": "ZoneName managed by Terraform"
+  },
+  {
+   "regionConfigs": [
+    {
+     "analyticsSpecs": {
+      "diskSizeGB": 50,
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
+     "electableSpecs": {
+      "diskSizeGB": 50,
+      "instanceSize": "M10",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "regionName": "US_EAST_1"
+    }
+   ],
+   "zoneName": "ZoneName managed by Terraform"
+  }
+ ]
+}

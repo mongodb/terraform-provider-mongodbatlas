@@ -22,7 +22,7 @@ func FormatToHCLMap(m map[string]string, indent, varName string) string {
 	}
 	indentKeyValues := indent + "\t"
 
-	for _, k := range sortStringMapKeys(m) {
+	for _, k := range SortStringMapKeys(m) {
 		v := m[k]
 		lines = append(lines, fmt.Sprintf("%s%s = %[3]q", indentKeyValues, k, v))
 	}
@@ -48,14 +48,6 @@ func FormatToHCLLifecycleIgnore(keys ...string) string {
 	return strings.Join(lines, "\n")
 }
 
-func sortStringMapKeys(m map[string]string) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
-}
 func sortStringMapKeysAny(m map[string]any) []string {
 	keys := make([]string, 0, len(m))
 	for k := range m {

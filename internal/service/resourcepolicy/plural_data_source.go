@@ -2,8 +2,12 @@ package resourcepolicy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -29,7 +33,16 @@ type resourcePolicysDS struct {
 }
 
 func (d *resourcePolicysDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = DataSourcePluralSchema(ctx)
+	reqSchema := &conversion.PluralDataSourceSchemaRequest{
+		RequiredFields: []string{"org_id"},
+	}
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), reqSchema)
+	clone := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), reqSchema)
+	resourcePolicies := clone.Attributes["results"].(schema.ListNestedAttribute)
+	resourcePolicies.DeprecationMessage = fmt.Sprintf(constant.DeprecationParamWithReplacement, "`results`")
+	resourcePolicies.Description = ""
+	resourcePolicies.MarkdownDescription = ""
+	resp.Schema.Attributes["resource_policies"] = resourcePolicies
 }
 
 func (d *resourcePolicysDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

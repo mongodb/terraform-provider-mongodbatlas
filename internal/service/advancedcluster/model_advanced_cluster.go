@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -24,6 +24,7 @@ import (
 )
 
 const minVersionForChangeStreamOptions = 6.0
+const minVersionForDefaultMaxTimeMS = 8.0
 
 type OldShardConfigMeta struct {
 	ID       string
@@ -118,6 +119,10 @@ func SchemaAdvancedConfigDS() *schema.Schema {
 					Computed: true,
 				},
 				"change_stream_options_pre_and_post_images_expire_after_seconds": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"default_max_time_ms": {
 					Type:     schema.TypeInt,
 					Computed: true,
 				},
@@ -265,6 +270,10 @@ func SchemaAdvancedConfig() *schema.Schema {
 					Type:     schema.TypeInt,
 					Optional: true,
 					Default:  -1,
+				},
+				"default_max_time_ms": {
+					Type:     schema.TypeInt,
+					Optional: true,
 				},
 			},
 		},
@@ -430,6 +439,16 @@ func CheckRegionConfigsPriorityOrderOld(regionConfigs []admin20240530.Replicatio
 	return nil
 }
 
+func FlattenPinnedFCV(cluster *admin.ClusterDescription20240805) []map[string]string {
+	if cluster.FeatureCompatibilityVersionExpirationDate == nil { // pinned_fcv is defined in state only if featureCompatibilityVersionExpirationDate is present in cluster response
+		return nil
+	}
+	nestedObj := map[string]string{}
+	nestedObj["version"] = cluster.GetFeatureCompatibilityVersion()
+	nestedObj["expiration_date"] = conversion.TimeToString(cluster.GetFeatureCompatibilityVersionExpirationDate())
+	return []map[string]string{nestedObj}
+}
+
 func flattenConnectionStrings(str admin.ClusterConnectionStrings) []map[string]any {
 	return []map[string]any{
 		{
@@ -515,7 +534,12 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 		} else {
 			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
 		}
+
+		if v := p.DefaultMaxTimeMS; v != nil {
+			flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
+		}
 	}
+
 	return flattenedProcessArgs
 }
 
@@ -879,10 +903,19 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 
 		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.IntPtr(tmpInt)
 	}
+
+	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok {
+		if IsDefaultMaxTimeMinRequiredMajorVersion(mongodbMajorVersion) {
+			res.DefaultMaxTimeMS = conversion.Pointer(cast.ToInt(p["default_max_time_ms"]))
+		} else {
+			log.Print(ErrorDefaultMaxTimeMinVersion)
+		}
+	}
+
 	return res20240530, res
 }
 
-func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
+func isMinRequiredMajorVersion(input *string, minVersion float64) bool {
 	if input == nil || *input == "" {
 		return true
 	}
@@ -896,7 +929,15 @@ func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
 		return false
 	}
 
-	return value >= minVersionForChangeStreamOptions
+	return value >= minVersion
+}
+
+func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
+	return isMinRequiredMajorVersion(input, minVersionForChangeStreamOptions)
+}
+
+func IsDefaultMaxTimeMinRequiredMajorVersion(input *string) bool {
+	return isMinRequiredMajorVersion(input, minVersionForDefaultMaxTimeMS)
 }
 
 func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLabel, diag.Diagnostics) {

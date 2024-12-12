@@ -1,0 +1,8 @@
+{
+ "name": "updated-policy",
+ "policies": [
+  {
+   "body": "\t\t\t\n\tforbid (\n\tprincipal,\n\taction == cloud::Action::\"cluster.createEdit\",\n\tresource\n\t) when {\n\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\"aws\"])\n\t};\n"
+  }
+ ]
+}

@@ -14,7 +14,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -40,6 +40,7 @@ const (
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
+	ErrorDefaultMaxTimeMinVersion  = "default_max_time_ms can not be set for mongo_db_major_version lower than 8.0"
 	ignoreLabel                    = "Infrastructure Tool"
 	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 )
@@ -355,6 +356,23 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"pinned_fcv": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"expiration_date": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),
@@ -472,10 +490,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.ConfigServerManagementMode = conversion.StringPtr(v.(string))
 	}
 
-	// Validate oplog_size_mb to show the error before the cluster is created.
+	// Validate advanced configuration params to show the error before the cluster is created.
 	if oplogSizeMB, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
 		if cast.ToInt64(oplogSizeMB) < 0 {
 			return diag.FromErr(fmt.Errorf("`advanced_configuration.oplog_size_mb` cannot be < 0"))
+		}
+	}
+	if _, ok := d.GetOkExists("advanced_configuration.0.default_max_time_ms"); ok {
+		if !IsDefaultMaxTimeMinRequiredMajorVersion(params.MongoDBMajorVersion) {
+			return diag.FromErr(errors.New(ErrorDefaultMaxTimeMinVersion))
 		}
 	}
 
@@ -525,6 +548,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
+	var waitForChanges bool
 	if v := d.Get("paused").(bool); v {
 		request := &admin20240805.ClusterDescription20240805{
 			Paused: conversion.Pointer(v),
@@ -533,6 +557,17 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if _, _, err := connV220240805.ClustersApi.UpdateCluster(ctx, projectID, d.Get("name").(string), request).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
+		waitForChanges = true
+	}
+
+	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
+		if diags := PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
+			return diags
+		}
+		waitForChanges = true
+	}
+
+	if waitForChanges {
 		if err = waitForUpdateToFinish(ctx, connV2, projectID, d.Get("name").(string), timeout); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
@@ -595,6 +630,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 		}
 	}
+
+	warning := WarningIfFCVExpiredOrUnpinnedExternally(d, cluster) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
 	diags := setRootFields(d, cluster, true)
 	if diags.HasError() {
 		return diags
@@ -617,7 +654,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 
-	return nil
+	return warning
 }
 
 // GetReplicationSpecAttributesFromOldAPI returns the id and num shard values of replication specs coming from old API. This is used to populate replication_specs.*.id and replication_specs.*.num_shard attributes for old sharding confirgurations.
@@ -739,6 +776,39 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 	if err := d.Set("config_server_management_mode", cluster.GetConfigServerManagementMode()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "config_server_management_mode", clusterName, err))
 	}
+
+	if err := d.Set("pinned_fcv", FlattenPinnedFCV(cluster)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pinned_fcv", clusterName, err))
+	}
+
+	return nil
+}
+
+func WarningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
+	pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
+	presentInState := len(pinnedFCVBlock) > 0
+	pinIsActive := cluster.FeatureCompatibilityVersionExpirationDate != nil
+	if presentInState && !pinIsActive { // pin is not active but present in state (and potentially in config file)
+		return diag.Diagnostics{
+			diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "FCV pin is no longer active",
+				Detail:   "Please remove `pinned_fcv` from the configuration and apply changes to avoid re-pinning the FCV. Warning can be ignored if `pinned_fcv` block has been removed from the configuration.",
+			},
+		}
+	}
+	if presentInState && pinIsActive {
+		expirationDate := cluster.GetFeatureCompatibilityVersionExpirationDate()
+		if time.Now().After(expirationDate) { // pin is active, present in state, but its expiration date has passed
+			return diag.Diagnostics{
+				diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "FCV pin expiration date has expired",
+					Detail:   "During the next maintenance window FCV will be unpinned. FCV expiration date can be extended, or `pinned_fcv` block can be removed to trigger the unpin immediately.",
+				},
+			}
+		}
+	}
 	return nil
 }
 
@@ -798,6 +868,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
+
+	// FCV update is intentionally handled before other cluster updates, and will wait for cluster to reach IDLE state before continuing
+	if diags := HandlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout); diags != nil {
+		return diags
+	}
 
 	if isUsingOldShardingConfiguration(d) {
 		req, diags := updateRequestOldAPI(d, clusterName)
@@ -893,6 +968,45 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	return resourceRead(ctx, d, meta)
+}
+
+func HandlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData, timeout time.Duration) diag.Diagnostics {
+	if d.HasChange("pinned_fcv") {
+		pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
+		isFCVPresentInConfig := len(pinnedFCVBlock) > 0
+		if isFCVPresentInConfig {
+			// pinned_fcv has been defined or updated expiration date
+			if diags := PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
+				return diags
+			}
+		} else {
+			// pinned_fcv has been removed from the config so unpin method is called
+			if _, _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			}
+		}
+		// ensures cluster is in IDLE state before continuing with other changes
+		if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+		}
+	}
+	return nil
+}
+
+func PinFCV(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, fcvBlock any) diag.Diagnostics {
+	req := admin.PinFCV{}
+	if nestedObj, ok := fcvBlock.(map[string]any); ok {
+		expDateStrPtr := conversion.StringPtr(cast.ToString(nestedObj["expiration_date"]))
+		expirationTime, ok := conversion.StringPtrToTimePtr(expDateStrPtr)
+		if !ok {
+			return diag.FromErr(fmt.Errorf("expiration_date format is incorrect: %s", *expDateStrPtr))
+		}
+		req.ExpirationDate = expirationTime
+	}
+	if _, _, err := connV2.ClustersApi.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
+		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+	}
+	return nil
 }
 
 func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clusterName string, connV2 *admin.APIClient) (*admin.ClusterDescription20240805, diag.Diagnostics) {

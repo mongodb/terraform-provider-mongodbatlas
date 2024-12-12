@@ -10,8 +10,8 @@ import (
 )
 
 func TestMigAdvancedCluster_empty_advancedConfig(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	acc.SkipInUnitTest(t) // needed because TF test infra is not used
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
+	acc.SkipInUnitTest(t)                // needed because TF test infra is not used
 	v0State := map[string]any{
 		"project_id":   "test-id",
 		"name":         "test-cluster",
@@ -64,8 +64,8 @@ func TestMigAdvancedCluster_empty_advancedConfig(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_v0StateUpgrade_ReplicationSpecs(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	acc.SkipInUnitTest(t) // needed because TF test infra is not used
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
+	acc.SkipInUnitTest(t)                // needed because TF test infra is not used
 	v0State := map[string]any{
 		"project_id":     "test-id",
 		"name":           "test-cluster",

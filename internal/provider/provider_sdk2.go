@@ -136,8 +136,6 @@ func NewSdkV2Provider(proxyPort *int) *schema.Provider {
 
 func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  advancedcluster.DataSource(),
-		"mongodbatlas_advanced_clusters":                 advancedcluster.PluralDataSource(),
 		"mongodbatlas_custom_db_role":                    customdbrole.DataSource(),
 		"mongodbatlas_custom_db_roles":                   customdbrole.PluralDataSource(),
 		"mongodbatlas_api_key":                           apikey.DataSource(),
@@ -215,12 +213,15 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_shared_tier_snapshot":                                         sharedtier.DataSourceSnapshot(),
 		"mongodbatlas_shared_tier_snapshots":                                        sharedtier.PluralDataSourceSnapshot(),
 	}
+	if !config.AdvancedClusterV2Schema() {
+		dataSourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.DataSource()
+		dataSourcesMap["mongodbatlas_advanced_clusters"] = advancedcluster.PluralDataSource()
+	}
 	return dataSourcesMap
 }
 
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  advancedcluster.Resource(),
 		"mongodbatlas_api_key":                           apikey.Resource(),
 		"mongodbatlas_access_list_api_key":               accesslistapikey.Resource(),
 		"mongodbatlas_project_api_key":                   projectapikey.Resource(),
@@ -266,6 +267,9 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_query_limit":                                       federatedquerylimit.Resource(),
 		"mongodbatlas_serverless_instance":                                         serverlessinstance.Resource(),
 		"mongodbatlas_cluster_outage_simulation":                                   clusteroutagesimulation.Resource(),
+	}
+	if !config.AdvancedClusterV2Schema() {
+		resourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.Resource()
 	}
 	return resourcesMap
 }

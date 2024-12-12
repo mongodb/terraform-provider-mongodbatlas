@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func ClusterDatasourceHcl(req *ClusterRequest) (configStr, clusterName, resourceName string, err error) {
@@ -98,7 +98,7 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 		}
 	}
 	if len(req.Tags) > 0 {
-		for _, key := range sortStringMapKeys(req.Tags) {
+		for _, key := range SortStringMapKeys(req.Tags) {
 			value := req.Tags[key]
 			tagBlock := cluster.AppendNewBlock("tags", nil).Body()
 			tagBlock.SetAttributeValue("key", cty.StringVal(key))

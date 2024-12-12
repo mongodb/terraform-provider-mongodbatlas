@@ -5,12 +5,10 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 var _ datasource.DataSource = &streamConnectionsDS{}
@@ -28,27 +26,11 @@ type streamConnectionsDS struct {
 	config.DSCommon
 }
 
-type TFStreamConnectionsDSModel struct {
-	ID           types.String              `tfsdk:"id"`
-	ProjectID    types.String              `tfsdk:"project_id"`
-	InstanceName types.String              `tfsdk:"instance_name"`
-	Results      []TFStreamConnectionModel `tfsdk:"results"`
-	PageNum      types.Int64               `tfsdk:"page_num"`
-	ItemsPerPage types.Int64               `tfsdk:"items_per_page"`
-	TotalCount   types.Int64               `tfsdk:"total_count"`
-}
-
 func (d *streamConnectionsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = dsschema.PaginatedDSSchema(
-		map[string]schema.Attribute{
-			"project_id": schema.StringAttribute{
-				Required: true,
-			},
-			"instance_name": schema.StringAttribute{
-				Required: true,
-			},
-		},
-		DSAttributes(false))
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
+		RequiredFields:  []string{"project_id", "instance_name"},
+		HasLegacyFields: true,
+	})
 }
 
 func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -82,4 +64,14 @@ func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamConnectionsModel)...)
+}
+
+type TFStreamConnectionsDSModel struct {
+	ID           types.String              `tfsdk:"id"`
+	ProjectID    types.String              `tfsdk:"project_id"`
+	InstanceName types.String              `tfsdk:"instance_name"`
+	Results      []TFStreamConnectionModel `tfsdk:"results"`
+	PageNum      types.Int64               `tfsdk:"page_num"`
+	ItemsPerPage types.Int64               `tfsdk:"items_per_page"`
+	TotalCount   types.Int64               `tfsdk:"total_count"`
 }

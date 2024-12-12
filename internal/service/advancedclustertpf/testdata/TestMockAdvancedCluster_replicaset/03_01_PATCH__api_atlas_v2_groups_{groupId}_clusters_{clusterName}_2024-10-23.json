@@ -1,0 +1,24 @@
+{
+ "backupEnabled": true,
+ "biConnector": {
+  "enabled": true,
+  "readPreference": "secondary"
+ },
+ "labels": [
+  {
+   "key": "env",
+   "value": "test"
+  }
+ ],
+ "mongoDBMajorVersion": "8.0",
+ "pitEnabled": true,
+ "redactClientLogData": true,
+ "replicaSetScalingStrategy": "NODE_TYPE",
+ "tags": [
+  {
+   "key": "env",
+   "value": "test"
+  }
+ ],
+ "versionReleaseSystem": "CONTINUOUS"
+}

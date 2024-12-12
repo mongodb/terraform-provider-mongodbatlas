@@ -6,7 +6,7 @@ on:
   workflow_call:
     inputs:
       terraform_version:
-        description: 'Terraform version to use, e.g. 1.6.x, empty for latest'     
+        description: 'Terraform version to use, e.g. 1.6.x'     
         type: string
         required: true
       provider_version:
@@ -93,6 +93,9 @@ on:
         type: string
         required: true
       azure_private_endpoint_region:
+        type: string
+        required: true
+      mongodb_atlas_flex_project_id:
         type: string
         required: true
     secrets: # all secrets are passed explicitly in this workflow
@@ -213,6 +216,7 @@ jobs:
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
+      flex_cluster: ${{ steps.filter.outputs.flex_cluster == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
       global_cluster_config: ${{ steps.filter.outputs.global_cluster_config == 'true' || env.mustTrigger == 'true' }}
       ldap: ${{ steps.filter.outputs.ldap == 'true' || env.mustTrigger == 'true' }}
@@ -278,6 +282,8 @@ jobs:
             - 'internal/service/federatedsettingsidentityprovider/*.go'
             - 'internal/service/federatedsettingsorgconfig/*.go'
             - 'internal/service/federatedsettingsorgrolemapping/*.go'
+          flex_cluster:
+            - 'internal/service/flexcluster/*.go'
           generic:
             - 'internal/service/auditing/*.go'
             - 'internal/service/backupcompliancepolicy/*.go'
@@ -344,6 +350,8 @@ jobs:
   advanced_cluster_tpf:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf' }}
+    env:
+      MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -359,15 +367,53 @@ jobs:
           terraform_wrapper: false  
       - name: Prepare new advanced_cluster
         run: make tools enable-advancedclustertpf  
+      - name: Unit tests # delete after allowAdvancedClusterV2Schema is removed
+        run: go test -v ./internal/testutil/acc/advanced_cluster_schema_v2_test.go
+      - name: Mocked Acceptance Tests
+        env:
+          ACCTEST_REGEX_RUN: '^TestMock'
+          ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
+        run: make testacc
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS: "true"
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
         run: make testacc
 
+  advanced_cluster_tpf_move:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' }}
+    env:
+      MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
+    strategy:
+      max-parallel: 2
+      fail-fast: false
+      matrix:
+        terraform_version: ['1.8.x', '1.9.x'] # TF supported versions for MoveState apart from latest one, 1.10.x
+    name: advanced_cluster_tpf_move-${{ matrix.terraform_version }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ matrix.terraform_version }}
+          terraform_wrapper: false  
+      - name: Prepare new advanced_cluster
+        run: make tools enable-advancedclustertpf  
+      - name: Acceptance Tests
+        env:
+          ACCTEST_REGEX_RUN: '^TestAccAdvancedCluster_move'
+          ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
+        run: make testacc
+      
   assume_role:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' }}
@@ -652,6 +698,30 @@ jobs:
             ./internal/service/federatedsettingsidentityprovider
             ./internal/service/federatedsettingsorgconfig
             ./internal/service/federatedsettingsorgrolemapping
+        run: make testacc
+
+  flex_cluster:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.flex_cluster == 'true' || inputs.test_group == 'flex_cluster' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false    
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_FLEX_PROJECT_ID: ${{ inputs.mongodb_atlas_flex_project_id }}
+          MONGODB_ATLAS_ENABLE_PREVIEW: "true"
+          ACCTEST_PACKAGES: ./internal/service/flexcluster
         run: make testacc
 
   generic:

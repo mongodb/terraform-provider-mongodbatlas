@@ -83,7 +83,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
-	_, httpResp, err := connV2.ClustersApi.RevokeMongoDBEmployeeAccess(ctx, projectID, clusterName).Execute()
+	_, httpResp, err := connV2.ClustersApi.RevokeMongoDbEmployeeAccess(ctx, projectID, clusterName).Execute()
 	if err != nil && httpResp.StatusCode != http.StatusNotFound {
 		resp.Diagnostics.AddError(errorDelete, err.Error())
 		return
@@ -108,7 +108,7 @@ func (r *rs) createOrUpdate(ctx context.Context, tfModelFunc func(context.Contex
 	connV2 := r.Client.AtlasV2
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
-	if _, _, err := connV2.ClustersApi.GrantMongoDBEmployeeAccess(ctx, projectID, clusterName, atlasReq).Execute(); err != nil {
+	if _, _, err := connV2.ClustersApi.GrantMongoDbEmployeeAccess(ctx, projectID, clusterName, atlasReq).Execute(); err != nil {
 		diagnostics.AddError(errorCreateUpdate, err.Error())
 		return
 	}

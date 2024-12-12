@@ -98,7 +98,7 @@ output "policy_ids" {
 ### Read-Only
 
 - `resource_policies` (Attributes List, Deprecated) (see [below for nested schema](#nestedatt--resource_policies))
-- `results` (Attributes List) (see [below for nested schema](#nestedatt--results))
+- `results` (Attributes List) List of documents that MongoDB Cloud returns for this request. (see [below for nested schema](#nestedatt--results))
 
 <a id="nestedatt--resource_policies"></a>
 ### Nested Schema for `resource_policies`

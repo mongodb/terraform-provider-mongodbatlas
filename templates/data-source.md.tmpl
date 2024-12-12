@@ -9,9 +9,7 @@
     {{ else if eq .Name "mongodbatlas_privatelink_endpoint" }}
         {{ tffile (printf "examples/%s/aws/cluster/main.tf" .Name )}}
     {{ else if eq .Name "mongodbatlas_privatelink_endpoint_service_serverless" }}
-        {{ tffile (printf "examples/%s/aws/main.tf" .Name )}}
     {{ else if eq .Name "mongodbatlas_privatelink_endpoint_serverless" }}
-        {{ tffile "examples/mongodbatlas_privatelink_endpoint_service_serverless/aws/main.tf" }}
     {{ else if eq .Name "mongodbatlas_cluster" }}
         {{ tffile (printf "examples/%s/tenant-upgrade/main.tf" .Name )}}
     {{ else if eq .Name "mongodbatlas_cluster" }}
