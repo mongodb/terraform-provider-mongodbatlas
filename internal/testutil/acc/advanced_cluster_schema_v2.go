@@ -49,7 +49,7 @@ func AddAttrChecksSchemaV2(isAcc bool, name string, checks []resource.TestCheckF
 	if skipChecks(name) {
 		return nil
 	}
-	return AddAttrChecks(name, checks, ConvertToTPFAttrsMap(mapChecks))
+	return AddAttrChecks(name, checks, ConvertToSchemaV2AttrsMap(mapChecks))
 }
 
 // AddAttrChecksSchemaV2 is like AddAttrSetChecks but adding V2 schema support
@@ -57,7 +57,7 @@ func AddAttrSetChecksSchemaV2(isAcc bool, name string, checks []resource.TestChe
 	if skipChecks(name) {
 		return nil
 	}
-	return AddAttrSetChecks(name, checks, ConvertToTPFAttrsSet(attrNames)...)
+	return AddAttrSetChecks(name, checks, ConvertToSchemaV2AttrsSet(attrNames)...)
 }
 
 // AddAttrChecksPrefixSchemaV2 is like AddAttrChecksPrefix but adding V2 schema support
@@ -65,7 +65,7 @@ func AddAttrChecksPrefixSchemaV2(isAcc bool, name string, checks []resource.Test
 	if skipChecks(name) {
 		return nil
 	}
-	return AddAttrChecksPrefix(name, checks, ConvertToTPFAttrsMap(mapChecks), prefix, skipNames...)
+	return AddAttrChecksPrefix(name, checks, ConvertToSchemaV2AttrsMap(mapChecks), prefix, skipNames...)
 }
 
 // skipChecks temporarily returns if checks are for data sources in schema v2 as they are not implemented yet
@@ -76,7 +76,7 @@ func skipChecks(name string) bool {
 	return strings.HasPrefix(name, "data.mongodbatlas_advanced_cluster")
 }
 
-func ConvertToTPFAttrsMap(attrsMap map[string]string) map[string]string {
+func ConvertToSchemaV2AttrsMap(attrsMap map[string]string) map[string]string {
 	if !config.AdvancedClusterV2Schema() {
 		return attrsMap
 	}
@@ -87,7 +87,7 @@ func ConvertToTPFAttrsMap(attrsMap map[string]string) map[string]string {
 	return ret
 }
 
-func ConvertToTPFAttrsSet(attrsSet []string) []string {
+func ConvertToSchemaV2AttrsSet(attrsSet []string) []string {
 	if !config.AdvancedClusterV2Schema() {
 		return attrsSet
 	}
@@ -117,7 +117,7 @@ func AttrNameToSchemaV2(name string) string {
 	return name
 }
 
-func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
+func ConvertAdvancedClusterToSchemaV2(t *testing.T, def string) string {
 	t.Helper()
 	if !config.AdvancedClusterV2Schema() {
 		return def
@@ -140,10 +140,10 @@ func ConvertAdvancedClusterToTPF(t *testing.T, def string) string {
 	return string(content)
 }
 
-func ConvertAdvancedClusterToTPFIfEnabled(t *testing.T, enabled bool, def string) string {
+func ConvertAdvancedClusterToSchemaV2IfAcc(t *testing.T, isAcc bool, def string) string {
 	t.Helper()
-	if enabled {
-		return ConvertAdvancedClusterToTPF(t, def)
+	if isAcc {
+		return ConvertAdvancedClusterToSchemaV2(t, def)
 	}
 	return def
 }
