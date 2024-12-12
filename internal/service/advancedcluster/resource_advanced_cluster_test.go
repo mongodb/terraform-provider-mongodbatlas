@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -1499,20 +1500,30 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 }
 
 func configAdvanced(projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
-	changeStreamOptionsString := ""
-	defaultMaxTimeString := ""
-	mongoDBMajorVersionString := ""
+	changeStreamOptionsStr := ""
+	defaultMaxTimeStr := ""
+	tlsCipherConfigModeStr := ""
+	customOpensslCipherConfigTLS12Str := ""
+	mongoDBMajorVersionStr := ""
 
 	if p != nil {
 		if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
-			changeStreamOptionsString = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
+			changeStreamOptionsStr = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
 		}
 		if p.DefaultMaxTimeMS != nil {
-			defaultMaxTimeString = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
+			defaultMaxTimeStr = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
+		}
+		if p.TlsCipherConfigMode != nil {
+			tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
+			if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+				customOpensslCipherConfigTLS12Str = fmt.Sprintf(
+					`custom_openssl_cipher_config_tls12 = [%s]`,
+					strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`))
+			}
 		}
 	}
 	if mongoDBMajorVersion != "" {
-		mongoDBMajorVersionString = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
+		mongoDBMajorVersionStr = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
 	}
 
 	return fmt.Sprintf(`
@@ -1549,6 +1560,8 @@ func configAdvanced(projectID, clusterName, mongoDBMajorVersion string, p2024053
 			    transaction_lifetime_limit_seconds   = %[10]d
 			    %[11]s
 				%[12]s
+				%[14]s
+				%[15]s
 			}
 		}
 
@@ -1563,7 +1576,7 @@ func configAdvanced(projectID, clusterName, mongoDBMajorVersion string, p2024053
 	`, projectID, clusterName,
 		p20240530.GetFailIndexKeyTooLong(), p20240530.GetJavascriptEnabled(), p20240530.GetMinimumEnabledTlsProtocol(), p20240530.GetNoTableScan(),
 		p20240530.GetOplogSizeMB(), p20240530.GetSampleSizeBIConnector(), p20240530.GetSampleRefreshIntervalBIConnector(), p20240530.GetTransactionLifetimeLimitSeconds(),
-		changeStreamOptionsString, defaultMaxTimeString, mongoDBMajorVersionString)
+		changeStreamOptionsStr, defaultMaxTimeStr, mongoDBMajorVersionStr, tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str)
 }
 
 func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
