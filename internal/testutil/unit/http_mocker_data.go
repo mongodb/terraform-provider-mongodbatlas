@@ -3,10 +3,13 @@ package unit
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
 
@@ -182,15 +185,26 @@ type RoundTrip struct {
 	StepNumber  int
 }
 
-func NewMockHTTPData(stepCount int, tfConfigs []string) *MockHTTPData {
+func NewMockHTTPData(t *testing.T, stepCount int, tfConfigs []string) *MockHTTPData {
 	steps := make([]stepRequests, stepCount)
-	for i := range steps {
-		steps[i].Config = tfConfigs[i]
-	}
-	return &MockHTTPData{
+	data := MockHTTPData{
 		Steps:     steps,
 		Variables: map[string]string{},
 	}
+	for i := range steps {
+		tfConfig := tfConfigs[i]
+		tfConfig = hcl.PrettyHCL(t, tfConfig)
+		configVars := ExtractConfigVariables(t, tfConfig)
+		err := data.UpdateVariables(t, configVars)
+		if err == nil {
+			continue
+		}
+		if _, ok := err.(*VariablesChangedError); ok {
+			continue
+		}
+		require.NoError(t, err)
+	}
+	return &data
 }
 
 type VariableChange struct {
@@ -339,6 +353,8 @@ func findVariableChange(t *testing.T, name string, vars map[string]string, oldVa
 
 func useVars(vars map[string]string, text string) string {
 	for key, value := range vars {
+		replaceInRegex := regexp.MustCompile(fmt.Sprintf(`\W(%s)\W`, key))
+		text = replaceInRegex.ReplaceAllString(text, fmt.Sprintf("{%s}", key))
 		text = strings.ReplaceAll(text, value, fmt.Sprintf("{%s}", key))
 	}
 	return text

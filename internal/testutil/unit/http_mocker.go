@@ -24,16 +24,10 @@ const (
 
 type MockHTTPDataConfig struct {
 	SideEffect           func() error
-	ConfigModifiers      []TFConfigReplacement
 	IsDiffSkipSuffixes   []string
 	IsDiffMustSubstrings []string
 	QueryVars            []string
 	AllowMissingRequests bool
-}
-
-func (c MockHTTPDataConfig) WithConfigModifiers(modifiers ...TFConfigReplacement) MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: config is heavy (112 bytes); consider passing it by pointer)
-	c.ConfigModifiers = append(c.ConfigModifiers, modifiers...)
-	return c
 }
 
 func IsCapture() bool {
@@ -103,13 +97,12 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 	checkFunc := mockRoundTripper.CheckStepRequests
 	for i := range testCase.Steps {
 		step := &testCase.Steps[i]
-		oldConfig := data.Steps[i].Config
-		step.Config = ApplyConfigModifiers(t, oldConfig, step.Config, config.ConfigModifiers, mockRoundTripper.usedVars)
 		oldSkip := step.SkipFunc
+		tfConfig := step.Config
 		step.SkipFunc = func() (bool, error) {
 			mockRoundTripper.IncreaseStepNumberAndInit()
-			if os.Getenv("TF_LOG") == "DEBUG" {
-				t.Logf("Step %d: %s", i, step.Config)
+			if os.Getenv("TF_LOG") == "DEBUG" && tfConfig != "" {
+				t.Logf("Step %d:\n%s\n", i, hcl.PrettyHCL(t, tfConfig))
 			}
 			var shouldSkip bool
 			var err error

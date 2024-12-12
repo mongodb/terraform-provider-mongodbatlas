@@ -56,7 +56,7 @@ func NewCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int, con
 		expectedStepCount: expectedStepCount,
 		isDiff:            configureIsDiff(config),
 		queryVars:         configureQueryVars(config),
-		capturedData:      NewMockHTTPData(expectedStepCount, tfConfigs),
+		capturedData:      NewMockHTTPData(t, expectedStepCount, tfConfigs),
 	}
 }
 

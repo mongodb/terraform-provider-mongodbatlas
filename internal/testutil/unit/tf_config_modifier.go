@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
-	"github.com/stretchr/testify/require"
 )
 
 type TFConfigReplacementType int
@@ -15,26 +15,43 @@ const (
 	TFConfigReplacementString TFConfigReplacementType = iota
 )
 
-type TFConfigReplacement struct {
-	ResourceName  string
-	AttributeName string
-	Type          TFConfigReplacementType
+// Current assumption, variable name must match API Spec Path Param name
+var variableAttributes = map[string]func(string, string) string{
+	"name": func(resourceName string, attrName string) string {
+		return shortName(resourceName) + "Name"
+	},
+	"org_id": func(resourceName string, attrName string) string {
+		return "orgId"
+	},
+	"project_id": func(resourceName string, attrName string) string {
+		return "groupId"
+	},
 }
 
-func ApplyConfigModifiers(t *testing.T, oldConfig, newConfig string, modifiers []TFConfigReplacement) string {
+func ExtractConfigVariables(t *testing.T, config string) map[string]string {
 	t.Helper()
-	if oldConfig == "" || newConfig == "" {
-		return ""
+	if config == "" {
+		return nil
 	}
-	for _, modifier := range modifiers {
-		switch modifier.Type {
-		case TFConfigReplacementString:
-			newConfig = stringModifier(t, oldConfig, newConfig, modifier)
-		default:
-			t.Fatalf("unsupported config modifier type: %d", modifier.Type)
+	vars := map[string]string{}
+	parse := hcl.GetDefParser(t, config)
+	for _, resource := range parse.Body().Blocks() {
+		if resource.Type() != "resource" {
+			continue
+		}
+		for name, attr := range resource.Body().Attributes() {
+			varNameFunc, ok := variableAttributes[name]
+			if !ok {
+				continue
+			}
+			varName := varNameFunc(resource.Labels()[0], name)
+			varValue := extractStringValue(attr.BuildTokens(nil))
+			if varValue != "" {
+				vars[varName] = varValue
+			}
 		}
 	}
-	return hcl.PrettyHCL(t, newConfig)
+	return vars
 }
 
 func fullResourceName(resourceName string) string {
@@ -44,30 +61,18 @@ func fullResourceName(resourceName string) string {
 	return "mongodbatlas_" + resourceName
 }
 
-func stringModifier(t *testing.T, oldConfig, newConfig string, modifier TFConfigReplacement) string {
-	t.Helper()
-	resourceName := fullResourceName(modifier.ResourceName)
-	oldAttribute := findAttribute(t, oldConfig, resourceName, modifier.AttributeName)
-	require.NotNil(t, oldAttribute, "attribute %s not found in old config for resource %s\n%s", modifier.AttributeName, resourceName, oldConfig)
-	newAttribute := findAttribute(t, newConfig, resourceName, modifier.AttributeName)
-	require.NotNil(t, newAttribute, "attribute %s not found in new config for resource %s\n%s", modifier.AttributeName, resourceName, newConfig)
-	oldStatement := string(oldAttribute.BuildTokens(nil).Bytes())
-	newStatement := string(newAttribute.BuildTokens(nil).Bytes())
-	newConfig = strings.Replace(newConfig, newStatement, oldStatement, 1)
-	return newConfig
+func shortName(resourceName string) string {
+	parts := strings.Split(resourceName, "_")
+	return parts[len(parts)-1]
 }
 
-func findAttribute(t *testing.T, config, resourceName, attributeName string) *hclwrite.Attribute {
-	t.Helper()
-	parse := hcl.GetDefParser(t, config)
-	for _, resource := range parse.Body().Blocks() {
-		isResource := resource.Type() == "resource"
-		iResourceName := resource.Labels()[0]
-		if !isResource || iResourceName != resourceName {
-			continue
+func extractStringValue(tokens hclwrite.Tokens) string {
+	var str string
+	for _, token := range tokens {
+		if token.Type == hclsyntax.TokenQuotedLit {
+			str = string(token.Bytes)
+			break
 		}
-		writeBody := resource.Body()
-		return writeBody.GetAttribute(attributeName)
 	}
-	return nil
+	return str
 }
