@@ -1153,8 +1153,8 @@ func checkIndependentShardScalingMode(clusterName, expectedMode string) resource
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		issMode, _, err := acc.GetIndependentShardScalingMode(context.Background(), ids["project_id"], clusterName)
+		projectID := rs.Primary.Attributes["project_id"]
+		issMode, _, err := acc.GetIndependentShardScalingMode(context.Background(), projectID, clusterName)
 		if err != nil {
 			return fmt.Errorf("error getting independent shard scaling mode: %w", err)
 		}
