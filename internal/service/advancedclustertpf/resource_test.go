@@ -19,32 +19,32 @@ func shortenRetries() error {
 	return nil
 }
 
-func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
-	testCase := BasicTenantTestCase(t)
+func TestAccMockableAdvancedCluster_basicTenant(t *testing.T) {
+	testCase := basicTenantTestCase(t)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }
 
-func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
-	testCase := SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t)
+func TestAccMockableAdvancedCluster_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
+	testCase := symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }
 
-func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
-	testCase := SymmetricShardedOldSchema(t)
+func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
+	testCase := symmetricShardedOldSchema(t)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }
 
-func TestAccClusterAdvancedCluster_tenantUpgrade(t *testing.T) {
-	testCase := TenantUpgrade(t)
+func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
+	testCase := tenantUpgrade(t)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }
 
-func TestAccAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
-	testCase := ReplicasetAdvConfigUpdate(t)
+func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
+	testCase := replicasetAdvConfigUpdate(t)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }
 
-func TestAccAdvancedCluster_shardedBasic(t *testing.T) {
+func TestAccMockableAdvancedCluster_shardedBasic(t *testing.T) {
 	testCase := shardedBasic(t)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }

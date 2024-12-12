@@ -8,11 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
 func TestAccAdvancedCluster_moveBasic(t *testing.T) {
-	unit.SkipInReplayMode(t)
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -39,7 +37,6 @@ func TestAccAdvancedCluster_moveBasic(t *testing.T) {
 }
 
 func TestAccAdvancedCluster_moveInvalid(t *testing.T) {
-	unit.SkipInReplayMode(t)
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()

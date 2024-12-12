@@ -38,13 +38,6 @@ func IsReplay() bool {
 	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerReplay)))
 }
 
-func SkipInReplayMode(t *testing.T) {
-	t.Helper()
-	if IsReplay() {
-		t.Skipf("Skipping test in replay mode (%s is set)", EnvNameHTTPMockerReplay)
-	}
-}
-
 func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCase *resource.TestCase) { //nolint: gocritic // Want each test run to have its own config (hugeParam: config is heavy (112 bytes); consider passing it by pointer)
 	t.Helper()
 	var err error
