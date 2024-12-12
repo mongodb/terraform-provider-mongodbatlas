@@ -67,3 +67,8 @@ type TFModel struct {
 	State               types.String `tfsdk:"state"`
 	Vendor              types.String `tfsdk:"vendor"`
 }
+
+type TFModelDSP struct {
+	ProjectId types.String `tfsdk:"project_id"`
+	Results   []TFModel    `tfsdk:"results"`
+}

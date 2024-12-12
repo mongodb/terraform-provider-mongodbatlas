@@ -12,12 +12,12 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections
       method: POST
 
-# data_sources:
-#   stream_privatelink_endpoint:
-#     read:
-#       path: /api/atlas/v2/*
-#       method: GET
-#   stream_privatelink_endpoints:
-#     read:
-#       path: /api/atlas/v2/*
-#       method: GET
+data_sources:
+  stream_privatelink_endpoint:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections/{connectionId}
+      method: GET
+  stream_privatelink_endpoints:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections
+      method: GET

@@ -27,3 +27,24 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 	// }
 	return &admin.StreamsPrivateLinkConnection{}, nil
 }
+
+func NewTFModelPluralDS(ctx context.Context, projectID string, input []admin.StreamsPrivateLinkConnection) (*TFModelDSP, diag.Diagnostics) {
+	// diags := &diag.Diagnostics{}
+	// tfModels := make([]TFModel, len(input))
+	// for i := range input {
+	// 	item := &input[i]
+	// 	tfModel, diagsLocal := NewTFModel(ctx, item)
+	// 	diags.Append(diagsLocal...)
+	// 	if tfModel != nil {
+	// 		tfModels[i] = *tfModel
+	// 	}
+	// }
+	// if diags.HasError() {
+	// 	return nil, *diags
+	// }
+	// return &TFModelDSP{
+	// 	ProjectId: types.StringValue(projectID),
+	// 	Results:   tfModels,
+	// }, *diags
+	return nil, nil
+}
