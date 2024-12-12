@@ -1469,7 +1469,7 @@ func checkSingleProviderPaused(isAcc bool, name string, paused bool) resource.Te
 			"paused": strconv.FormatBool(paused)})
 }
 
-func configAdvanced(projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
+func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	t.Helper()
 	changeStreamOptionsStr := ""
 	defaultMaxTimeStr := ""
