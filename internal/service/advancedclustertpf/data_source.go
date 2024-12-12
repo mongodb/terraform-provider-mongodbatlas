@@ -6,6 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -45,22 +47,30 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	if diags.HasError() {
 		return
 	}
+	modelDS := readClusterDS(ctx, diags, d.Client, stateDS, &resp.State)
+	if modelDS != nil {
+		diags.Append(resp.State.Set(ctx, modelDS)...)
+	}
+}
+
+func readClusterDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, stateDS *TFModelDS, stateObj *tfsdk.State) *TFModelDS {
 	useReplicationSpecPerShard := stateDS.UseReplicationSpecPerShard
 	state, err := conversion.CopyModel[TFModel](stateDS)
 	if err != nil {
 		diags.AddError(errorRead, fmt.Sprintf("error retrieving model: %s", err.Error()))
-		return
+		return nil
 	}
-	model := readCluster(ctx, diags, d.Client, state, &resp.State, true, !useReplicationSpecPerShard.ValueBool())
+	model := readCluster(ctx, diags, client, state, stateObj, true, !useReplicationSpecPerShard.ValueBool())
 	if model != nil {
 		modelDS, err := conversion.CopyModel[TFModelDS](model)
 		if err != nil {
 			diags.AddError(errorRead, fmt.Sprintf("error setting model: %s", err.Error()))
-			return
+			return nil
 		}
 		modelDS.UseReplicationSpecPerShard = useReplicationSpecPerShard // attrs not in resource model
-		diags.Append(resp.State.Set(ctx, modelDS)...)
+		return modelDS
 	}
+	return nil
 }
 
 // TODO: difference with TFModel: misses timeouts, adds use_replication_spec_per_shard.

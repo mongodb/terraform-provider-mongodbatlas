@@ -57,15 +57,15 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	if diags.HasError() {
 		return
 	}
-	model := d.readClusters(ctx, &state, &resp.State, diags)
+	model := readClustersDS(ctx, diags, d.Client, &state, &resp.State)
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
 
-func (d *pluralDS) readClusters(ctx context.Context, pluralModel *TFModelPluralDS, state *tfsdk.State, diags *diag.Diagnostics) *TFModelPluralDS {
+func readClustersDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, pluralModel *TFModelPluralDS, stateObj *tfsdk.State) *TFModelPluralDS {
 	projectID := pluralModel.ProjectID.ValueString()
-	api := d.Client.AtlasV2.ClustersApi
+	api := client.AtlasV2.ClustersApi
 	list, _, err := api.ListClusters(ctx, projectID).Execute()
 	if err != nil {
 		diags.AddError("errorList", fmt.Sprintf(errorList, projectID, err.Error()))
@@ -76,22 +76,15 @@ func (d *pluralDS) readClusters(ctx context.Context, pluralModel *TFModelPluralD
 		UseReplicationSpecPerShard:        pluralModel.UseReplicationSpecPerShard,
 		IncludeDeletedWithRetainedBackups: pluralModel.IncludeDeletedWithRetainedBackups,
 	}
-	useReplicationSpecPerShard := pluralModel.UseReplicationSpecPerShard
-
+	// TODO: use result cluster info to avoid extra API calls
 	for i := range list.GetResults() {
-		model := &TFModel{
-			ProjectID: pluralModel.ProjectID,
-			Name:      types.StringPointerValue(list.GetResults()[i].Name),
+		stateDS := &TFModelDS{
+			ProjectID:                  pluralModel.ProjectID,
+			Name:                       types.StringPointerValue(list.GetResults()[i].Name),
+			UseReplicationSpecPerShard: pluralModel.UseReplicationSpecPerShard,
 		}
-		out := readCluster(ctx, diags, d.Client, model, state, true, !useReplicationSpecPerShard.ValueBool())
-		if out != nil {
-			outDS, err := conversion.CopyModel[TFModelDS](out)
-			if err != nil {
-				diags.AddError(errorList, fmt.Sprintf("error setting model: %s", err.Error()))
-				return nil
-			}
-			outDS.UseReplicationSpecPerShard = useReplicationSpecPerShard // attrs not in resource model
-			outs.Results = append(outs.Results, outDS)
+		if modelDS := readClusterDS(ctx, diags, client, stateDS, stateObj); modelDS != nil {
+			outs.Results = append(outs.Results, modelDS)
 		}
 	}
 	return outs
