@@ -49,26 +49,24 @@ func configureQueryVars(config *MockHTTPDataConfig) []string {
 	return vars
 }
 
-func NewCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int, config *MockHTTPDataConfig, tfConfigs []string) *CaptureMockConfigClientModifier {
+func NewCaptureMockConfigClientModifier(t *testing.T, config *MockHTTPDataConfig, data *MockHTTPData) *CaptureMockConfigClientModifier {
 	t.Helper()
 	return &CaptureMockConfigClientModifier{
-		t:                 t,
-		expectedStepCount: expectedStepCount,
-		isDiff:            configureIsDiff(config),
-		queryVars:         configureQueryVars(config),
-		capturedData:      NewMockHTTPData(t, expectedStepCount, tfConfigs),
+		t:            t,
+		isDiff:       configureIsDiff(config),
+		queryVars:    configureQueryVars(config),
+		capturedData: data,
 	}
 }
 
 type CaptureMockConfigClientModifier struct {
-	oldTransport      http.RoundTripper
-	t                 *testing.T
-	isDiff            func(*RoundTrip) bool
-	capturedData      *MockHTTPData
-	queryVars         []string
-	expectedStepCount int
-	responseIndex     int
-	stepNumber        int
+	oldTransport  http.RoundTripper
+	t             *testing.T
+	isDiff        func(*RoundTrip) bool
+	capturedData  *MockHTTPData
+	queryVars     []string
+	responseIndex int
+	stepNumber    int
 }
 
 func (c *CaptureMockConfigClientModifier) IncreaseStepNumber() {

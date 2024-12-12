@@ -4,7 +4,10 @@ variables:
   groupId2: 6746ceed6f62fc3c122a3e0e
   groupId3: 6746cee66f62fc3c122a3b82
 steps:
-  - config: c1
+  - config: |-
+      resource "dummy" "test"{
+        step = 1
+      }
     diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters
         method: POST
@@ -37,7 +40,10 @@ steps:
             status: 200
             duplicate_responses: 1
             text: "{\n \"backupEnabled\": true,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"REPLICASET\",\n \"connectionStrings\": {\n  \"standard\": \"mongodb://ac-a43sbzi-shard-00-00.efwnixe.mongodb-dev.net:27017,ac-a43sbzi-shard-00-01.efwnixe.mongodb-dev.net:27017,ac-a43sbzi-shard-00-02.efwnixe.mongodb-dev.net:27017/?ssl=true\\u0026authSource=admin\\u0026replicaSet=atlas-13c9xc-shard-0\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-787179356.efwnixe.mongodb-dev.net\"\n },\n \"createDate\": \"2024-11-27T07:49:10Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"8.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId2}\",\n \"id\": \"6746cef66f62fc3c122a3fe9\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId2}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"8.0\",\n \"mongoDBVersion\": \"8.0.3\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"6746cef66f62fc3c122a3fcb\",\n   \"regionConfigs\": [\n    {\n     \"backingProviderName\": \"AWS\",\n     \"electableSpecs\": {\n      \"diskSizeGB\": 5,\n      \"effectiveInstanceSize\": \"M5\",\n      \"instanceSize\": \"M5\"\n     },\n     \"priority\": 7,\n     \"providerName\": \"TENANT\",\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"6746cef66f62fc3c122a3fc9\",\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"IDLE\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
-  - config: c3
+  - config: |-
+      resource "dummy" "test"{
+        step = 3
+      }
     diff_requests: []
     request_responses:
       - path: /api/atlas/v2/groups/{groupId3}/containers?providerName=AWS

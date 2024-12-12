@@ -5,10 +5,8 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
-	"strings"
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
@@ -111,13 +109,13 @@ func (i *RequestInfo) QueryVars() []string {
 	return queryVars
 }
 
-func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.URL, usedVars map[string]string) bool {
+func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.URL, mockData *MockHTTPData) bool {
 	t.Helper()
 	if i.Method != method || i.Version != version {
 		return false
 	}
 	reqPath := i.NormalizePath(reqURL)
-	if replaceVars(i.Path, usedVars) == reqPath {
+	if replaceVars(i.Path, mockData.Variables) == reqPath {
 		return true
 	}
 	apiPath := APISpecPath{Path: removeQueryParamsAndTrim(i.Path)}
@@ -125,23 +123,12 @@ func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.UR
 		return false
 	}
 	pathVars := apiPath.Variables(reqURL.Path)
-	for name, value := range pathVars {
-		oldValue, exists := usedVars[name]
-		if !exists {
-			t.Logf("Adding variable to %s=%s based on match of %s", name, value, i.Path)
-		}
-		if exists && oldValue != value {
-			change, err := findVariableChange(t, name, usedVars, oldValue, value)
-			if err != nil {
-				t.Error(err)
-				return false
-			}
-			usedVars[change.NewName] = change.NewValue
-		} else {
-			usedVars[name] = value
-		}
+	err := mockData.UpdateVariablesIgnoreChanges(t, pathVars)
+	if err != nil {
+		t.Error(err)
+		return false
 	}
-	return replaceVars(i.Path, usedVars) == reqPath
+	return replaceVars(i.Path, mockData.Variables) == reqPath
 }
 
 type stepRequests struct {
@@ -186,24 +173,13 @@ type RoundTrip struct {
 }
 
 func NewMockHTTPData(t *testing.T, stepCount int, tfConfigs []string) *MockHTTPData {
+	t.Helper()
 	steps := make([]stepRequests, stepCount)
 	data := MockHTTPData{
 		Steps:     steps,
 		Variables: map[string]string{},
 	}
-	for i := range steps {
-		tfConfig := tfConfigs[i]
-		tfConfig = hcl.PrettyHCL(t, tfConfig)
-		configVars := ExtractConfigVariables(t, tfConfig)
-		err := data.UpdateVariables(t, configVars)
-		if err == nil {
-			continue
-		}
-		if _, ok := err.(*VariablesChangedError); ok {
-			continue
-		}
-		require.NoError(t, err)
-	}
+	data.useTFConfigs(t, tfConfigs)
 	return &data
 }
 
@@ -241,6 +217,18 @@ func (e VariablesChangedError) ChangedValuesMap() map[string]string {
 type MockHTTPData struct {
 	Variables map[string]string `yaml:"variables"`
 	Steps     []stepRequests    `yaml:"steps"`
+}
+
+func (m *MockHTTPData) useTFConfigs(t *testing.T, tfConfigs []string) {
+	t.Helper()
+	require.Equal(t, len(tfConfigs), len(m.Steps), "Number of steps in test case and mock data should match")
+	for i := range tfConfigs {
+		tfConfig := tfConfigs[i]
+		configVars := ExtractConfigVariables(t, tfConfig)
+		err := m.UpdateVariablesIgnoreChanges(t, configVars)
+		require.NoError(t, err)
+		m.Steps[i].Config = tfConfig
+	}
 }
 
 // Normalize happens after all data is captured, as a cluster.name might only be discovered as a variable in later steps
@@ -303,6 +291,14 @@ func (m *MockHTTPData) AddRoundtrip(t *testing.T, rt *RoundTrip, isDiff bool) er
 	return nil
 }
 
+func (m *MockHTTPData) UpdateVariablesIgnoreChanges(t *testing.T, variables map[string]string) error {
+	t.Helper()
+	err := m.UpdateVariables(t, variables)
+	if _, ok := err.(*VariablesChangedError); ok {
+		return nil
+	}
+	return err
+}
 func (m *MockHTTPData) UpdateVariables(t *testing.T, variables map[string]string) error {
 	t.Helper()
 	var missingValue []string
@@ -353,9 +349,14 @@ func findVariableChange(t *testing.T, name string, vars map[string]string, oldVa
 
 func useVars(vars map[string]string, text string) string {
 	for key, value := range vars {
-		replaceInRegex := regexp.MustCompile(fmt.Sprintf(`\W(%s)\W`, key))
-		text = replaceInRegex.ReplaceAllString(text, fmt.Sprintf("{%s}", key))
-		text = strings.ReplaceAll(text, value, fmt.Sprintf("{%s}", key))
+		replaceInRegex := regexp.MustCompile(fmt.Sprintf(`\W(%s)\W?`, value))
+		text = replaceInRegex.ReplaceAllStringFunc(text, func (old string) string {
+			lastChar := old[len(old)-1]
+			if lastChar == value[len(value)-1] {
+				return fmt.Sprintf("%c{%s}", old[0], key)
+			}
+			return fmt.Sprintf("%c{%s}%c", old[0], key, lastChar)
+		})
 	}
 	return text
 }

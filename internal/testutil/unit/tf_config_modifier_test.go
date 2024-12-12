@@ -44,8 +44,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 func TestExtractConfigVariables(t *testing.T) {
 	tests := map[string]struct {
-		config   string
 		expected map[string]string
+		config   string
 	}{
 		"Extract variables from a long example": {
 			config: projectAdvClusterExample,
@@ -68,4 +68,3 @@ func TestExtractConfigVariables(t *testing.T) {
 		})
 	}
 }
-

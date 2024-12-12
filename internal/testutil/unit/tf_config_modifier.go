@@ -54,13 +54,6 @@ func ExtractConfigVariables(t *testing.T, config string) map[string]string {
 	return vars
 }
 
-func fullResourceName(resourceName string) string {
-	if strings.HasPrefix(resourceName, "mongodbatlas_") {
-		return resourceName
-	}
-	return "mongodbatlas_" + resourceName
-}
-
 func shortName(resourceName string) string {
 	parts := strings.Split(resourceName, "_")
 	return parts[len(parts)-1]

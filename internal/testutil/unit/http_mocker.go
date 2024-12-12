@@ -84,8 +84,9 @@ func (c *mockClientModifier) ResetHTTPClient(httpClient *http.Client) {
 
 func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
-	data := ReadMockData(t)
-	roundTripper, mockRoundTripper := MockRoundTripper(t, config, data)
+	tfConfigs := extractAndNormalizeConfig(t, testCase)
+	data := ReadMockData(t, tfConfigs)
+	roundTripper, mockRoundTripper := NewMockRoundTripper(t, config, data)
 	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
 	testCase.PreCheck = func() {
@@ -98,11 +99,10 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 	for i := range testCase.Steps {
 		step := &testCase.Steps[i]
 		oldSkip := step.SkipFunc
-		tfConfig := step.Config
 		step.SkipFunc = func() (bool, error) {
 			mockRoundTripper.IncreaseStepNumberAndInit()
-			if os.Getenv("TF_LOG") == "DEBUG" && tfConfig != "" {
-				t.Logf("Step %d:\n%s\n", i, hcl.PrettyHCL(t, tfConfig))
+			if os.Getenv("TF_LOG") == "DEBUG" && tfConfigs[i] != "" {
+				t.Logf("Step %d:\n%s\n", i, tfConfigs[i])
 			}
 			var shouldSkip bool
 			var err error
@@ -122,11 +122,12 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 	return nil
 }
 
-func ReadMockData(t *testing.T) *MockHTTPData {
+func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
 	t.Helper()
 	httpDataPath := MockConfigFilePath(t)
 	data, err := parseTestDataConfigYAML(httpDataPath)
 	require.NoError(t, err)
+	data.useTFConfigs(t, tfConfigs)
 	return data
 }
 
@@ -134,7 +135,8 @@ func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 	t.Helper()
 	stepCount := len(testCase.Steps)
 	tfConfigs := extractAndNormalizeConfig(t, testCase)
-	clientModifier := NewCaptureMockConfigClientModifier(t, stepCount, config, tfConfigs)
+	capturedData := NewMockHTTPData(t, stepCount, tfConfigs)
+	clientModifier := NewCaptureMockConfigClientModifier(t, config, capturedData)
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier)
 	for i := range stepCount {
 		step := &testCase.Steps[i]
