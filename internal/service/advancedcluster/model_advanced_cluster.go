@@ -13,11 +13,12 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
+	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace SDK once cipher config changes are in prod
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
@@ -121,6 +122,17 @@ func SchemaAdvancedConfigDS() *schema.Schema {
 				"default_max_time_ms": {
 					Type:     schema.TypeInt,
 					Computed: true,
+				},
+				"tls_cipher_config_mode": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"custom_openssl_cipher_config_tls12": {
+					Type:     schema.TypeSet,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 			},
 		},
@@ -270,6 +282,18 @@ func SchemaAdvancedConfig() *schema.Schema {
 				"default_max_time_ms": {
 					Type:     schema.TypeInt,
 					Optional: true,
+				},
+				"custom_openssl_cipher_config_tls12": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"tls_cipher_config_mode": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
 				},
 			},
 		},
@@ -534,6 +558,8 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 		if v := p.DefaultMaxTimeMS; v != nil {
 			flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
 		}
+		flattenedProcessArgs[0]["tls_cipher_config_mode"] = p.GetTlsCipherConfigMode()
+		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = p.GetCustomOpensslCipherConfigTls12()
 	}
 
 	return flattenedProcessArgs
@@ -885,6 +911,14 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		}
 	}
 
+	if _, ok := d.GetOkExists("advanced_configuration.0.tls_cipher_config_mode"); ok {
+		res.TlsCipherConfigMode = conversion.StringPtr(cast.ToString(p["tls_cipher_config_mode"]))
+	}
+
+	if _, ok := d.GetOkExists("advanced_configuration.0.custom_openssl_cipher_config_tls12"); ok {
+		tmp := conversion.ExpandStringListFromSetSchema(d.Get("advanced_configuration.0.custom_openssl_cipher_config_tls12").(*schema.Set))
+		res.CustomOpensslCipherConfigTls12 = &tmp
+	}
 	return res20240530, res
 }
 

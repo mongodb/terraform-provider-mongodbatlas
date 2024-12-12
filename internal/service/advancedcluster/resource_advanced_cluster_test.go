@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -291,6 +292,8 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultMaxTimeMS: conversion.IntPtr(65),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
 		}
 	)
 
@@ -1468,20 +1471,30 @@ func checkSingleProviderPaused(isAcc bool, name string, paused bool) resource.Te
 
 func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	t.Helper()
-	changeStreamOptionsString := ""
-	defaultMaxTimeString := ""
-	mongoDBMajorVersionString := ""
+	changeStreamOptionsStr := ""
+	defaultMaxTimeStr := ""
+	tlsCipherConfigModeStr := ""
+	customOpensslCipherConfigTLS12Str := ""
+	mongoDBMajorVersionStr := ""
 
 	if p != nil {
 		if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
-			changeStreamOptionsString = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
+			changeStreamOptionsStr = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
 		}
 		if p.DefaultMaxTimeMS != nil {
-			defaultMaxTimeString = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
+			defaultMaxTimeStr = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
+		}
+		if p.TlsCipherConfigMode != nil {
+			tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
+			if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+				customOpensslCipherConfigTLS12Str = fmt.Sprintf(
+					`custom_openssl_cipher_config_tls12 = [%s]`,
+					strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`))
+			}
 		}
 	}
 	if mongoDBMajorVersion != "" {
-		mongoDBMajorVersionString = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
+		mongoDBMajorVersionStr = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
 	}
 
 	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
@@ -1518,6 +1531,8 @@ func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMaj
 			    transaction_lifetime_limit_seconds   = %[10]d
 			    %[11]s
 				%[12]s
+				%[14]s
+				%[15]s
 			}
 		}
 
@@ -1532,7 +1547,7 @@ func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMaj
 	`, projectID, clusterName,
 		p20240530.GetFailIndexKeyTooLong(), p20240530.GetJavascriptEnabled(), p20240530.GetMinimumEnabledTlsProtocol(), p20240530.GetNoTableScan(),
 		p20240530.GetOplogSizeMB(), p20240530.GetSampleSizeBIConnector(), p20240530.GetSampleRefreshIntervalBIConnector(), p20240530.GetTransactionLifetimeLimitSeconds(),
-		changeStreamOptionsString, defaultMaxTimeString, mongoDBMajorVersionString))
+		changeStreamOptionsStr, defaultMaxTimeStr, mongoDBMajorVersionStr, tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str))
 }
 
 func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
@@ -1554,6 +1569,13 @@ func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescr
 
 	if processArgs.DefaultMaxTimeMS != nil {
 		advancedConfig["advanced_configuration.0.default_max_time_ms"] = strconv.Itoa(*processArgs.DefaultMaxTimeMS)
+	}
+
+	if processArgs.TlsCipherConfigMode != nil && processArgs.CustomOpensslCipherConfigTls12 != nil {
+		advancedConfig["advanced_configuration.0.tls_cipher_config_mode"] = "CUSTOM"
+		advancedConfig["advanced_configuration.0.custom_openssl_cipher_config_tls12.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls12))
+	} else {
+		advancedConfig["advanced_configuration.0.tls_cipher_config_mode"] = "DEFAULT"
 	}
 
 	pluralChecks := []resource.TestCheckFunc{
