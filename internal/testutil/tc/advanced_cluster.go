@@ -206,11 +206,11 @@ func BasicTenantTestCase(t *testing.T, projectID, clusterName, clusterNameUpdate
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(projectID, clusterName),
+				Config: configTenant(t, true, projectID, clusterName),
 				Check:  checkTenant(projectID, clusterName),
 			},
 			{
-				Config: configTenant(projectID, clusterNameUpdated),
+				Config: configTenant(t, true, projectID, clusterNameUpdated),
 				Check:  checkTenant(projectID, clusterNameUpdated),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -218,8 +218,9 @@ func BasicTenantTestCase(t *testing.T, projectID, clusterName, clusterNameUpdate
 	}
 }
 
-func configTenant(projectID, name string) string {
-	return fmt.Sprintf(`
+func configTenant(t *testing.T, isAcc bool, projectID, name string) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -237,7 +238,7 @@ func configTenant(projectID, name string) string {
 				}]
 			}]
 		}
-	`, projectID, name)
+	`, projectID, name))
 }
 
 func checkTenant(projectID, name string) resource.TestCheckFunc {
@@ -262,19 +263,20 @@ func TenantUpgrade(t *testing.T, projectID, clusterName string) *resource.TestCa
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configTenant(projectID, clusterName)),
+				Config: configTenant(t, true, projectID, clusterName),
 				Check:  checkTenant(projectID, clusterName),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configTenantUpgraded(projectID, clusterName)),
+				Config: configTenantUpgraded(t, true, projectID, clusterName),
 				Check:  checksTenantUpgraded(projectID, clusterName),
 			},
 		},
 	}
 }
 
-func configTenantUpgraded(projectID, name string) string {
-	return fmt.Sprintf(`
+func configTenantUpgraded(t *testing.T, isAcc bool, projectID, name string) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 	resource "mongodbatlas_advanced_cluster" "test" {
 		project_id   = %[1]q
 		name         = %[2]q
@@ -292,7 +294,7 @@ func configTenantUpgraded(projectID, name string) string {
 			}
 		}
 	}
-	`, projectID, name)
+	`, projectID, name))
 }
 
 func enableChecksLatestTpf(checkMap map[string]string) map[string]string {

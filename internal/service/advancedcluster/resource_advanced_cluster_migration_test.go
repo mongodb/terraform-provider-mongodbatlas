@@ -64,13 +64,13 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configReplicaSetAWSProvider(projectID, clusterName, 60, 3),
-				Check:             checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, false, false),
+				Config:            configReplicaSetAWSProvider(t, false, projectID, clusterName, 60, 3),
+				Check:             checkReplicaSetAWSProvider(false, projectID, clusterName, 60, 3, false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configReplicaSetAWSProvider(projectID, clusterName, 60, 5),
-				Check:                    checkReplicaSetAWSProvider(projectID, clusterName, 60, 5, true, true),
+				Config:                   configReplicaSetAWSProvider(t, false, projectID, clusterName, 60, 5),
+				Check:                    checkReplicaSetAWSProvider(false, projectID, clusterName, 60, 5, true, true),
 			},
 		},
 	})
@@ -90,13 +90,13 @@ func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false),
-				Check:             checkGeoShardedOldSchema(clusterName, 2, 2, false, false),
+				Config:            configGeoShardedOldSchema(t, false, orgID, projectName, clusterName, 2, 2, false),
+				Check:             checkGeoShardedOldSchema(false, clusterName, 2, 2, false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 1, false),
-				Check:                    checkGeoShardedOldSchema(clusterName, 2, 1, true, false),
+				Config:                   configGeoShardedOldSchema(t, false, orgID, projectName, clusterName, 2, 1, false),
+				Check:                    checkGeoShardedOldSchema(false, clusterName, 2, 1, true, false),
 			},
 		},
 	})
@@ -116,13 +116,13 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
-				Check:             checkShardedTransitionOldToNewSchema(false),
+				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, false),
+				Check:             checkShardedTransitionOldToNewSchema(false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
-				Check:                    checkShardedTransitionOldToNewSchema(true),
+				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true),
+				Check:                    checkShardedTransitionOldToNewSchema(false, true),
 			},
 		},
 	})
@@ -142,13 +142,13 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
-				Check:             checkGeoShardedTransitionOldToNewSchema(false),
+				Config:            configGeoShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, false),
+				Check:             checkGeoShardedTransitionOldToNewSchema(false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
-				Check:                    checkGeoShardedTransitionOldToNewSchema(true),
+				Config:                   configGeoShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true),
+				Check:                    checkGeoShardedTransitionOldToNewSchema(false, true),
 			},
 		},
 	})
