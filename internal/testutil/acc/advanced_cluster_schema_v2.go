@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/zclconf/go-cty/cty"
 
@@ -18,67 +17,35 @@ import (
 )
 
 func TestCheckResourceAttrSchemaV2(isAcc bool, name, key, value string) resource.TestCheckFunc {
-	if skipChecks(isAcc, name) {
-		return testCheckFuncAlwaysPass
-	}
 	return resource.TestCheckResourceAttr(name, AttrNameToSchemaV2(isAcc, key), value)
 }
 
 func TestCheckResourceAttrSetSchemaV2(isAcc bool, name, key string) resource.TestCheckFunc {
-	if skipChecks(isAcc, name) {
-		return testCheckFuncAlwaysPass
-	}
 	return resource.TestCheckResourceAttrSet(name, AttrNameToSchemaV2(isAcc, key))
 }
 
 func TestCheckResourceAttrWithSchemaV2(isAcc bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
-	if skipChecks(isAcc, name) {
-		return testCheckFuncAlwaysPass
-	}
 	return resource.TestCheckResourceAttrWith(name, AttrNameToSchemaV2(isAcc, key), checkValueFunc)
 }
 
 func TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc bool, name, key string, values map[string]string) resource.TestCheckFunc {
-	if skipChecks(isAcc, name) {
-		return testCheckFuncAlwaysPass
-	}
 	return resource.TestCheckTypeSetElemNestedAttrs(name, AttrNameToSchemaV2(isAcc, key), values)
 }
 
-func testCheckFuncAlwaysPass(*terraform.State) error {
-	return nil
-}
-
 func AddAttrChecksSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
-	if skipChecks(isAcc, name) {
-		return []resource.TestCheckFunc{}
-	}
 	return AddAttrChecks(name, checks, ConvertToSchemaV2AttrsMap(isAcc, mapChecks))
 }
 
 func AddAttrSetChecksSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
-	if skipChecks(isAcc, name) {
-		return []resource.TestCheckFunc{}
-	}
 	return AddAttrSetChecks(name, checks, ConvertToSchemaV2AttrsSet(isAcc, attrNames)...)
 }
 
 func AddAttrChecksPrefixSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string, prefix string, skipNames ...string) []resource.TestCheckFunc {
-	if skipChecks(isAcc, name) {
-		return []resource.TestCheckFunc{}
-	}
 	return AddAttrChecksPrefix(name, checks, ConvertToSchemaV2AttrsMap(isAcc, mapChecks), prefix, skipNames...)
 }
 
-func skipChecks(isAcc bool, name string) bool {
-	if !config.AdvancedClusterV2Schema() || !isAcc {
-		return false
-	}
-	return strings.HasPrefix(name, "data.mongodbatlas_advanced_cluster")
-}
-
 func ConvertToSchemaV2AttrsMap(isAcc bool, attrsMap map[string]string) map[string]string {
-	if !config.AdvancedClusterV2Schema() || !isAcc {
+	if skipSchemaV2Work(isAcc) {
 		return attrsMap
 	}
 	ret := make(map[string]string, len(attrsMap))
@@ -89,7 +56,7 @@ func ConvertToSchemaV2AttrsMap(isAcc bool, attrsMap map[string]string) map[strin
 }
 
 func ConvertToSchemaV2AttrsSet(isAcc bool, attrsSet []string) []string {
-	if !config.AdvancedClusterV2Schema() || !isAcc {
+	if skipSchemaV2Work(isAcc) {
 		return attrsSet
 	}
 	ret := make([]string, 0, len(attrsSet))
@@ -110,7 +77,7 @@ var tpfSingleNestedAttrs = []string{
 }
 
 func AttrNameToSchemaV2(isAcc bool, name string) string {
-	if !config.AdvancedClusterV2Schema() || !isAcc {
+	if skipSchemaV2Work(isAcc) {
 		return name
 	}
 	for _, singleAttrName := range tpfSingleNestedAttrs {
@@ -121,7 +88,7 @@ func AttrNameToSchemaV2(isAcc bool, name string) string {
 
 func ConvertAdvancedClusterToSchemaV2(t *testing.T, isAcc bool, def string) string {
 	t.Helper()
-	if !config.AdvancedClusterV2Schema() || !isAcc {
+	if skipSchemaV2Work(isAcc) {
 		return def
 	}
 	parse := getDefParser(t, def)
@@ -140,6 +107,10 @@ func ConvertAdvancedClusterToSchemaV2(t *testing.T, isAcc bool, def string) stri
 	}
 	content := parse.Bytes()
 	return string(content)
+}
+
+func skipSchemaV2Work(isAcc bool) bool {
+	return !config.AdvancedClusterV2Schema() || !isAcc
 }
 
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {
