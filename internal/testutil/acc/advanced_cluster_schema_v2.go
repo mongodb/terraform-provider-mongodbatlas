@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/zclconf/go-cty/cty"
 
@@ -18,57 +19,57 @@ import (
 
 func TestCheckResourceAttrSchemaV2(isAcc bool, name, key, value string) resource.TestCheckFunc {
 	if skipChecks(isAcc, name) {
-		return nil
+		return testCheckFuncAlwaysPass
 	}
 	return resource.TestCheckResourceAttr(name, AttrNameToSchemaV2(isAcc, key), value)
 }
 
 func TestCheckResourceAttrSetSchemaV2(isAcc bool, name, key string) resource.TestCheckFunc {
 	if skipChecks(isAcc, name) {
-		return nil
+		return testCheckFuncAlwaysPass
 	}
 	return resource.TestCheckResourceAttrSet(name, AttrNameToSchemaV2(isAcc, key))
 }
 
 func TestCheckResourceAttrWithSchemaV2(isAcc bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
 	if skipChecks(isAcc, name) {
-		return nil
+		return testCheckFuncAlwaysPass
 	}
 	return resource.TestCheckResourceAttrWith(name, AttrNameToSchemaV2(isAcc, key), checkValueFunc)
 }
 
 func TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc bool, name, key string, values map[string]string) resource.TestCheckFunc {
 	if skipChecks(isAcc, name) {
-		return nil
+		return testCheckFuncAlwaysPass
 	}
 	return resource.TestCheckTypeSetElemNestedAttrs(name, AttrNameToSchemaV2(isAcc, key), values)
 }
 
-// AddAttrChecksSchemaV2 is like AddAttrChecks but adding V2 schema support
+func testCheckFuncAlwaysPass(*terraform.State) error {
+	return nil
+}
+
 func AddAttrChecksSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
 	if skipChecks(isAcc, name) {
-		return nil
+		return []resource.TestCheckFunc{}
 	}
 	return AddAttrChecks(name, checks, ConvertToSchemaV2AttrsMap(isAcc, mapChecks))
 }
 
-// AddAttrChecksSchemaV2 is like AddAttrSetChecks but adding V2 schema support
 func AddAttrSetChecksSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
 	if skipChecks(isAcc, name) {
-		return nil
+		return []resource.TestCheckFunc{}
 	}
 	return AddAttrSetChecks(name, checks, ConvertToSchemaV2AttrsSet(isAcc, attrNames)...)
 }
 
-// AddAttrChecksPrefixSchemaV2 is like AddAttrChecksPrefix but adding V2 schema support
 func AddAttrChecksPrefixSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string, prefix string, skipNames ...string) []resource.TestCheckFunc {
 	if skipChecks(isAcc, name) {
-		return nil
+		return []resource.TestCheckFunc{}
 	}
 	return AddAttrChecksPrefix(name, checks, ConvertToSchemaV2AttrsMap(isAcc, mapChecks), prefix, skipNames...)
 }
 
-// skipChecks temporarily returns if checks are for data sources in schema v2 as they are not implemented yet
 func skipChecks(isAcc bool, name string) bool {
 	if !config.AdvancedClusterV2Schema() || !isAcc {
 		return false
