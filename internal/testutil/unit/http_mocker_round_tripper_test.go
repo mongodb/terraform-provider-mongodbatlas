@@ -35,12 +35,13 @@ const reqPoliciesManualValidateDelete = `{}`
 func TestMockRoundTripper(t *testing.T) {
 	orgID := "123"
 	resourcePolicyID := "456"
-	mockTransport, nextStep, checkFunc := unit.MockRoundTripper(t, &unit.MockHTTPDataConfig{AllowMissingRequests: true})
+	data := unit.ReadMockData(t, []string{"", "", ""})
+	mockTransport, tracker := unit.NewMockRoundTripper(t, &unit.MockHTTPDataConfig{AllowMissingRequests: true}, data)
 	client := &http.Client{
 		Transport: mockTransport,
 	}
 	// Error check
-	nextStep()
+	tracker.IncreaseStepNumberAndInit()
 	unknownRequest := request("GET", "/v1/cluster/123", "")
 	resp, err := client.Do(unknownRequest)
 	require.ErrorContains(t, err, "no matching request found")
@@ -52,14 +53,14 @@ func TestMockRoundTripper(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, 201, resp.StatusCode)
-	err = checkFunc(nil)
+	err = tracker.CheckStepRequests(nil)
 	require.NoError(t, err)
 	// Step 2
-	nextStep()
+	tracker.IncreaseStepNumberAndInit()
 	patchRequest := request("PATCH", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID), reqPoliciesUpdateBody)
 	resp, err = client.Do(patchRequest)
 	require.NoError(t, err)
-	err = checkFunc(nil)
+	err = tracker.CheckStepRequests(nil)
 	require.NoError(t, err)
 	var policyResp admin.ApiAtlasResourcePolicy
 	err = json.NewDecoder(resp.Body).Decode(&policyResp)
@@ -67,7 +68,7 @@ func TestMockRoundTripper(t *testing.T) {
 	assert.Equal(t, resourcePolicyID, policyResp.GetId())
 
 	// Step 3
-	nextStep()
+	tracker.IncreaseStepNumberAndInit()
 	// First GET request OK
 	// Second GET request OK
 	getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID), "")
@@ -91,7 +92,7 @@ func TestMockRoundTripper(t *testing.T) {
 	notFoundMap := parseMapStringAny(t, notFoundResp)
 	assert.Equal(t, "RESOURCE_POLICY_NOT_FOUND", notFoundMap["errorCode"])
 
-	err = checkFunc(nil)
+	err = tracker.CheckStepRequests(nil)
 	require.NoError(t, err)
 }
 
@@ -105,11 +106,12 @@ func parseMapStringAny(t *testing.T, resp *http.Response) map[string]any {
 
 func TestMockRoundTripperAllowReRead(t *testing.T) {
 	orgID := "123"
-	mockTransport, nextStep, checkFunc := unit.MockRoundTripper(t, &unit.MockHTTPDataConfig{AllowMissingRequests: true})
+	data := unit.ReadMockData(t, []string{""})
+	mockTransport, tracker := unit.NewMockRoundTripper(t, &unit.MockHTTPDataConfig{AllowMissingRequests: true}, data)
 	client := &http.Client{
 		Transport: mockTransport,
 	}
-	nextStep()
+	tracker.IncreaseStepNumberAndInit()
 	for range []int{0, 1, 2} {
 		getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID), "")
 		resp, err := client.Do(getRequest)
@@ -121,6 +123,6 @@ func TestMockRoundTripperAllowReRead(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, 201, resp.StatusCode)
-	err = checkFunc(nil)
+	err = tracker.CheckStepRequests(nil)
 	require.NoError(t, err)
 }

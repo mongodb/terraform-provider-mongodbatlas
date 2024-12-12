@@ -16,6 +16,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	fwProvider "github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
@@ -66,6 +69,20 @@ func (p *ProviderMocked) Resources(ctx context.Context) []func() resource.Resour
 func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() tfprotov6.ProviderServer {
 	t.Helper()
 	v2Provider := provider.NewSdkV2Provider(nil)
+	v2ProviderConfigureContextFunc := v2Provider.ConfigureContextFunc
+	v2Provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
+		resp, diags := v2ProviderConfigureContextFunc(ctx, d)
+		client, ok := resp.(*config.MongoDBClient)
+		if !ok {
+			t.Fatalf("Failed to cast response to MongoDBClient, Got type %T", resp)
+		}
+		httpClient := client.AtlasV2.GetConfig().HTTPClient
+		err := clientModifier.ModifyHTTPClient(httpClient)
+		if err != nil {
+			t.Fatalf("Failed to modify HTTPClient: %s", err)
+		}
+		return resp, diags
+	}
 	fwProviderInstance := provider.NewFrameworkProvider(nil)
 	fwProviderInstanceTyped, ok := fwProviderInstance.(*provider.MongodbtlasProvider)
 	if !ok {

@@ -49,27 +49,24 @@ func configureQueryVars(config *MockHTTPDataConfig) []string {
 	return vars
 }
 
-func NewCaptureMockConfigClientModifier(t *testing.T, expectedStepCount int, config *MockHTTPDataConfig) *CaptureMockConfigClientModifier {
+func NewCaptureMockConfigClientModifier(t *testing.T, config *MockHTTPDataConfig, data *MockHTTPData) *CaptureMockConfigClientModifier {
 	t.Helper()
 	return &CaptureMockConfigClientModifier{
-		t:                 t,
-		expectedStepCount: expectedStepCount,
-		isDiff:            configureIsDiff(config),
-		queryVars:         configureQueryVars(config),
-		capturedData:      NewMockHTTPData(expectedStepCount),
+		t:            t,
+		isDiff:       configureIsDiff(config),
+		queryVars:    configureQueryVars(config),
+		capturedData: data,
 	}
 }
 
 type CaptureMockConfigClientModifier struct {
-	oldTransport http.RoundTripper
-	t            *testing.T
-	isDiff       func(*RoundTrip) bool
-	queryVars    []string
-
-	capturedData      MockHTTPData
-	expectedStepCount int
-	responseIndex     int
-	stepNumber        int
+	oldTransport  http.RoundTripper
+	t             *testing.T
+	isDiff        func(*RoundTrip) bool
+	capturedData  *MockHTTPData
+	queryVars     []string
+	responseIndex int
+	stepNumber    int
 }
 
 func (c *CaptureMockConfigClientModifier) IncreaseStepNumber() {
@@ -131,6 +128,13 @@ func (c *CaptureMockConfigClientModifier) WriteCapturedData(filePath string) err
 	configYaml, err := c.ConfigYaml()
 	if err != nil {
 		return err
+	}
+	dirPath := path.Dir(filePath)
+	if !fileExist(dirPath) {
+		err := os.Mkdir(dirPath, 0o755)
+		if err != nil {
+			return err
+		}
 	}
 	// will override content if file exists
 	err = os.WriteFile(filePath, []byte(configYaml), 0o600)

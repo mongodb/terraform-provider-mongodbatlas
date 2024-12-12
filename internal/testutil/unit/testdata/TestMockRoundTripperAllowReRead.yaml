@@ -1,4 +1,3 @@
-step_count: 1
 steps:
 - diff_requests:
   - version: '2024-08-05'
