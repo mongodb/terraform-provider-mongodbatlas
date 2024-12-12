@@ -7,10 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 var _ datasource.DataSource = &ds{}
@@ -41,36 +41,43 @@ func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *dat
 }
 
 func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	stateDS := new(TFModelDS)
+	var state TFModelDS
 	diags := &resp.Diagnostics
-	diags.Append(req.Config.Get(ctx, stateDS)...)
+	diags.Append(req.Config.Get(ctx, &state)...)
 	if diags.HasError() {
 		return
 	}
-	modelDS := readClusterDS(ctx, diags, d.Client, stateDS, &resp.State)
-	if modelDS != nil {
-		diags.Append(resp.State.Set(ctx, modelDS)...)
+	model := d.readCluster(ctx, diags, &state)
+	if model != nil {
+		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
 
-func readClusterDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, stateDS *TFModelDS, stateObj *tfsdk.State) *TFModelDS {
-	useReplicationSpecPerShard := stateDS.UseReplicationSpecPerShard
-	state, err := conversion.CopyModel[TFModel](stateDS)
+func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *TFModelDS) *TFModelDS {
+	clusterName := modelDS.Name.ValueString()
+	projectID := modelDS.ProjectID.ValueString()
+	api := d.Client.AtlasV2.ClustersApi
+	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		diags.AddError(errorRead, fmt.Sprintf("error retrieving model: %s", err.Error()))
-		return nil
-	}
-	model := readCluster(ctx, diags, client, state, stateObj, true, !useReplicationSpecPerShard.ValueBool())
-	if model != nil {
-		modelDS, err := conversion.CopyModel[TFModelDS](model)
-		if err != nil {
-			diags.AddError(errorRead, fmt.Sprintf("error setting model: %s", err.Error()))
+		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
 			return nil
 		}
-		modelDS.UseReplicationSpecPerShard = useReplicationSpecPerShard // attrs not in resource model
-		return modelDS
+		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
+		return nil
 	}
-	return nil
+	modelIn := &TFModel{
+		ProjectID: modelDS.ProjectID,
+		Name:      modelDS.Name,
+	}
+	// TODO: pass !UseReplicationSpecPerShard to overrideUsingLegacySchema
+	modelOut := convertClusterAddAdvConfig(ctx, diags, d.Client, nil, nil, readResp, modelIn, nil, false)
+	modelOutDS, err := conversion.CopyModel[TFModelDS](modelOut)
+	if err != nil {
+		diags.AddError(errorRead, fmt.Sprintf("error setting model: %s", err.Error()))
+		return nil
+	}
+	modelOutDS.UseReplicationSpecPerShard = modelDS.UseReplicationSpecPerShard // attrs not in resource model
+	return modelOutDS
 }
 
 // TODO: difference with TFModel: misses timeouts, adds use_replication_spec_per_shard.

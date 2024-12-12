@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -57,15 +56,15 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	if diags.HasError() {
 		return
 	}
-	model := readClustersDS(ctx, diags, d.Client, &state, &resp.State)
+	model := d.readClusters(ctx, diags, &state)
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
 
-func readClustersDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, pluralModel *TFModelPluralDS, stateObj *tfsdk.State) *TFModelPluralDS {
+func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pluralModel *TFModelPluralDS) *TFModelPluralDS {
 	projectID := pluralModel.ProjectID.ValueString()
-	api := client.AtlasV2.ClustersApi
+	api := d.Client.AtlasV2.ClustersApi
 	list, _, err := api.ListClusters(ctx, projectID).Execute()
 	if err != nil {
 		diags.AddError("errorList", fmt.Sprintf(errorList, projectID, err.Error()))
@@ -78,14 +77,20 @@ func readClustersDS(ctx context.Context, diags *diag.Diagnostics, client *config
 	}
 	// TODO: use result cluster info to avoid extra API calls
 	for i := range list.GetResults() {
-		stateDS := &TFModelDS{
-			ProjectID:                  pluralModel.ProjectID,
-			Name:                       types.StringPointerValue(list.GetResults()[i].Name),
-			UseReplicationSpecPerShard: pluralModel.UseReplicationSpecPerShard,
+		modelIn := &TFModel{
+			ProjectID: pluralModel.ProjectID,
+			Name:      types.StringPointerValue(list.GetResults()[i].Name),
 		}
-		if modelDS := readClusterDS(ctx, diags, client, stateDS, stateObj); modelDS != nil {
-			outs.Results = append(outs.Results, modelDS)
+		readResp := &list.GetResults()[i]
+		// TODO: pass !UseReplicationSpecPerShard to overrideUsingLegacySchema
+		modelOut := convertClusterAddAdvConfig(ctx, diags, d.Client, nil, nil, readResp, modelIn, nil, false)
+		modelOutDS, err := conversion.CopyModel[TFModelDS](modelOut)
+		if err != nil {
+			diags.AddError(errorList, fmt.Sprintf("error setting model: %s", err.Error()))
+			return nil
 		}
+		modelOutDS.UseReplicationSpecPerShard = pluralModel.UseReplicationSpecPerShard // attrs not in resource model
+		outs.Results = append(outs.Results, modelOutDS)
 	}
 	return outs
 }

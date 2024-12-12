@@ -89,7 +89,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if diags.HasError() {
 		return
 	}
-	model := readCluster(ctx, diags, r.Client, &state, &resp.State, true, false)
+	model := r.readCluster(ctx, diags, &state, &resp.State)
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
@@ -230,20 +230,20 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	return convertClusterAddAdvConfig(ctx, diags, r.Client, legacyAdvConfig, advConfig, cluster, plan, nil, false)
 }
 
-func readCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, state *tfsdk.State, allowNotFound, overrideUsingLegacySchema bool) *TFModel {
+func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, model *TFModel, state *tfsdk.State) *TFModel {
 	clusterName := model.Name.ValueString()
 	projectID := model.ProjectID.ValueString()
-	api := client.AtlasV2.ClustersApi
+	api := r.Client.AtlasV2.ClustersApi
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && allowNotFound {
+		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
 			state.RemoveResource(ctx)
 			return nil
 		}
 		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
 		return nil
 	}
-	return convertClusterAddAdvConfig(ctx, diags, client, nil, nil, readResp, model, nil, overrideUsingLegacySchema)
+	return convertClusterAddAdvConfig(ctx, diags, r.Client, nil, nil, readResp, model, nil, false)
 }
 
 func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
