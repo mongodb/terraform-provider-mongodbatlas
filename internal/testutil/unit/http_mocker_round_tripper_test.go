@@ -106,7 +106,7 @@ func parseMapStringAny(t *testing.T, resp *http.Response) map[string]any {
 
 func TestMockRoundTripperAllowReRead(t *testing.T) {
 	orgID := "123"
-	data := unit.ReadMockData(t, []string{"", "", ""})
+	data := unit.ReadMockData(t, []string{""})
 	mockTransport, tracker := unit.NewMockRoundTripper(t, &unit.MockHTTPDataConfig{AllowMissingRequests: true}, data)
 	client := &http.Client{
 		Transport: mockTransport,

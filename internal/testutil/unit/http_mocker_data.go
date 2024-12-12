@@ -96,7 +96,11 @@ func (i *RequestInfo) NormalizePath(reqURL *url.URL) string {
 	if len(queryVars) == 0 {
 		return reqURL.Path
 	}
-	return removeQueryParamsAndTrim(reqURL.Path) + "?" + relevantQuery(queryVars, reqURL.Query())
+	queryString := relevantQuery(queryVars, reqURL.Query())
+	if queryString == "" {
+		return removeQueryParamsAndTrim(reqURL.Path)
+	}
+	return removeQueryParamsAndTrim(reqURL.Path) + "?" + queryString
 }
 
 func (i *RequestInfo) QueryVars() []string {
@@ -314,6 +318,9 @@ func (m *MockHTTPData) UpdateVariables(t *testing.T, variables map[string]string
 	changes := []VariableChange{}
 	for name, value := range variables {
 		oldValue, exists := m.Variables[name]
+		if !exists {
+			t.Logf("Adding variable %s=%s", name, value)
+		}
 		if exists && oldValue != value {
 			change, err := findVariableChange(t, name, m.Variables, oldValue, value)
 			if err != nil {
@@ -350,7 +357,7 @@ func findVariableChange(t *testing.T, name string, vars map[string]string, oldVa
 func useVars(vars map[string]string, text string) string {
 	for key, value := range vars {
 		replaceInRegex := regexp.MustCompile(fmt.Sprintf(`\W(%s)\W?`, value))
-		text = replaceInRegex.ReplaceAllStringFunc(text, func (old string) string {
+		text = replaceInRegex.ReplaceAllStringFunc(text, func(old string) string {
 			lastChar := old[len(old)-1]
 			if lastChar == value[len(value)-1] {
 				return fmt.Sprintf("%c{%s}", old[0], key)

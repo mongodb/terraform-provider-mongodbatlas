@@ -127,7 +127,20 @@ func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
 	httpDataPath := MockConfigFilePath(t)
 	data, err := parseTestDataConfigYAML(httpDataPath)
 	require.NoError(t, err)
+	oldVariables := data.Variables
+	data.Variables = map[string]string{}
 	data.useTFConfigs(t, tfConfigs)
+	newVariables := data.Variables
+	for key, value := range oldVariables {
+		if _, ok := newVariables[key]; !ok {
+			t.Logf("Variable %s=%s not found from TF Config, probably discovered in request path", key, value)
+		}
+	}
+	for key, value := range newVariables {
+		if _, ok := oldVariables[key]; !ok {
+			t.Logf("Variable %s=%s not found in Mock Data, has the TF Config updated?", key, value)
+		}
+	}
 	return data
 }
 

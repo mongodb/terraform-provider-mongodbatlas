@@ -241,5 +241,5 @@ func (r *MockRoundTripper) matchRequest(method, version, payload string, reqURL 
 		r.usedResponses[requestID]++
 		return replaceVars(response.Text, r.data.Variables), response.Status, nil
 	}
-	return "", 0, fmt.Errorf("no matching request found %s %s?%s %s", method, reqURL.Path, reqURL.RawQuery, version)
+	return "", 0, fmt.Errorf("no matching request found %s %s %s", method, reqURL.Path, version)
 }
