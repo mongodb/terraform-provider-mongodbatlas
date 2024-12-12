@@ -91,7 +91,7 @@ func (c *mockClientModifier) ResetHTTPClient(httpClient *http.Client) {
 func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
 	data := ReadMockData(t)
-	roundTripper, nextStep, checkFunc := MockRoundTripper(t, config, data)
+	roundTripper, mockRoundTripper := MockRoundTripper(t, config, data)
 	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
 	testCase.PreCheck = func() {
@@ -100,13 +100,17 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 		}
 	}
 	require.Equal(t, len(testCase.Steps), len(data.Steps), "Number of steps in test case and mock data should match")
+	checkFunc := mockRoundTripper.CheckStepRequests
 	for i := range testCase.Steps {
 		step := &testCase.Steps[i]
 		oldConfig := data.Steps[i].Config
-		step.Config = ApplyConfigModifiers(t, oldConfig, step.Config, config.ConfigModifiers)
+		step.Config = ApplyConfigModifiers(t, oldConfig, step.Config, config.ConfigModifiers, mockRoundTripper.usedVars)
 		oldSkip := step.SkipFunc
 		step.SkipFunc = func() (bool, error) {
-			nextStep()
+			mockRoundTripper.IncreaseStepNumberAndInit()
+			if os.Getenv("TF_LOG") == "DEBUG" {
+				t.Logf("Step %d: %s", i, step.Config)
+			}
 			var shouldSkip bool
 			var err error
 			if oldSkip != nil {

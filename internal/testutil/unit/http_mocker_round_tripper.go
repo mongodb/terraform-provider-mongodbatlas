@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 	"github.com/sebdah/goldie/v2"
@@ -18,7 +17,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func MockRoundTripper(t *testing.T, config *MockHTTPDataConfig, data *MockHTTPData) (http.RoundTripper, func(), resource.TestCheckFunc) {
+func MockRoundTripper(t *testing.T, config *MockHTTPDataConfig, data *MockHTTPData) (http.RoundTripper, *mockRoundTripper) {
 	t.Helper()
 	myTransport := httpmock.NewMockTransport()
 	var mockTransport http.RoundTripper = myTransport
@@ -29,7 +28,7 @@ func MockRoundTripper(t *testing.T, config *MockHTTPDataConfig, data *MockHTTPDa
 	for _, method := range []string{"GET", "POST", "PUT", "DELETE", "PATCH"} {
 		myTransport.RegisterRegexpResponder(method, regexp.MustCompile(".*"), tracker.receiveRequest(method))
 	}
-	return mockTransport, tracker.IncreaseStepNumberAndInit, tracker.checkStepRequests
+	return mockTransport, tracker
 }
 func parseTestDataConfigYAML(filePath string) (*MockHTTPData, error) {
 	data, err := os.ReadFile(filePath)
@@ -134,7 +133,7 @@ func (r *mockRoundTripper) currentStep() *stepRequests {
 	return &r.data.Steps[r.currentStepIndex]
 }
 
-func (r *mockRoundTripper) checkStepRequests(_ *terraform.State) error {
+func (r *mockRoundTripper) CheckStepRequests(_ *terraform.State) error {
 	missingRequests := []string{}
 	step := r.currentStep()
 	for _, req := range step.RequestResponses {
