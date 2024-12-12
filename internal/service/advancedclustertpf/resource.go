@@ -29,6 +29,7 @@ const (
 	errorRead                      = "error reading  advanced cluster (%s): %s"
 	errorDelete                    = "error deleting advanced cluster (%s): %s"
 	errorUpdate                    = "error updating advanced cluster (%s): %s"
+	errorList                      = "error reading  advanced cluster list for project %s: %s"
 	errorConfigUpdate              = "error updating advanced cluster configuration options (%s): %s"
 	errorConfigRead                = "error reading advanced cluster configuration options (%s): %s"
 	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"
@@ -88,7 +89,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if diags.HasError() {
 		return
 	}
-	model := r.readCluster(ctx, &state, &resp.State, diags, true)
+	model := r.readCluster(ctx, diags, &state, &resp.State)
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
@@ -141,7 +142,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if !advConfigChanged {
 			stateAdvConfig = state.AdvancedConfiguration
 		}
-		model = r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, &plan, &stateAdvConfig, diags)
+		model = convertClusterAddAdvConfig(ctx, diags, r.Client, legacyAdvConfig, advConfig, cluster, &plan, &stateAdvConfig, false)
 	}
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
@@ -226,24 +227,25 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 			return nil
 		}
 	}
-	return r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, plan, nil, diags)
+	return convertClusterAddAdvConfig(ctx, diags, r.Client, legacyAdvConfig, advConfig, cluster, plan, nil, false)
 }
 
-func (r *rs) readCluster(ctx context.Context, model *TFModel, state *tfsdk.State, diags *diag.Diagnostics, allowNotFound bool) *TFModel {
+func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, model *TFModel, state *tfsdk.State) *TFModel {
 	clusterName := model.Name.ValueString()
 	projectID := model.ProjectID.ValueString()
 	api := r.Client.AtlasV2.ClustersApi
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && allowNotFound {
+		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
 			state.RemoveResource(ctx)
 			return nil
 		}
 		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
 		return nil
 	}
-	return r.convertClusterAddAdvConfig(ctx, nil, nil, readResp, model, nil, diags)
+	return convertClusterAddAdvConfig(ctx, diags, r.Client, nil, nil, readResp, model, nil, false)
 }
+
 func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
 	var (
 		api             = r.Client.AtlasV2.ClustersApi
@@ -390,10 +392,13 @@ func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeReque
 	return AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
-func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModel, oldAdvConfig *types.Object, diags *diag.Diagnostics) *TFModel {
-	apiInfo := resolveAPIInfo(ctx, modelIn, diags, cluster, r.Client)
+func convertClusterAddAdvConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModel, oldAdvConfig *types.Object, overrideUsingLegacySchema bool) *TFModel {
+	apiInfo := resolveAPIInfo(ctx, modelIn, diags, cluster, client)
 	if diags.HasError() {
 		return nil
+	}
+	if overrideUsingLegacySchema {
+		apiInfo.UsingLegacySchema = true
 	}
 	modelOut := NewTFModel(ctx, cluster, modelIn.Timeouts, diags, *apiInfo)
 	if diags.HasError() {
@@ -402,7 +407,7 @@ func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *ad
 	if oldAdvConfig != nil {
 		modelOut.AdvancedConfiguration = *oldAdvConfig
 	} else {
-		legacyAdvConfig, advConfig = readUnsetAdvancedConfiguration(ctx, r.Client, modelOut, legacyAdvConfig, advConfig, diags)
+		legacyAdvConfig, advConfig = readUnsetAdvancedConfiguration(ctx, client, modelOut, legacyAdvConfig, advConfig, diags)
 		AddAdvancedConfig(ctx, modelOut, advConfig, legacyAdvConfig, diags)
 		if diags.HasError() {
 			return nil
