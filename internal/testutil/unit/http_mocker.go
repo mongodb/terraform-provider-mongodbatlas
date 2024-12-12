@@ -102,7 +102,7 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 		step.SkipFunc = func() (bool, error) {
 			mockRoundTripper.IncreaseStepNumberAndInit()
 			if os.Getenv("TF_LOG") == "DEBUG" && tfConfigs[i] != "" {
-				t.Logf("Step %d:\n%s\n", i, tfConfigs[i])
+				t.Logf("Step %d:\n%s\n", i+1, tfConfigs[i])
 			}
 			var shouldSkip bool
 			var err error
