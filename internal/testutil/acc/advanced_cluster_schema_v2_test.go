@@ -234,7 +234,7 @@ func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
 			}
  		`
 	)
-	actual := acc.ConvertAdvancedClusterToSchemaV2(t, input)
+	actual := acc.ConvertAdvancedClusterToSchemaV2(t, true, input)
 	acc.AssertEqualHCL(t, expected, actual)
 }
 

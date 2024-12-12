@@ -118,9 +118,9 @@ func AttrNameToSchemaV2(isAcc bool, name string) string {
 	return name
 }
 
-func ConvertAdvancedClusterToSchemaV2(t *testing.T, def string) string {
+func ConvertAdvancedClusterToSchemaV2(t *testing.T, isAcc bool, def string) string {
 	t.Helper()
-	if !config.AdvancedClusterV2Schema() {
+	if !config.AdvancedClusterV2Schema() || !isAcc {
 		return def
 	}
 	parse := getDefParser(t, def)
@@ -139,14 +139,6 @@ func ConvertAdvancedClusterToSchemaV2(t *testing.T, def string) string {
 	}
 	content := parse.Bytes()
 	return string(content)
-}
-
-func ConvertAdvancedClusterToSchemaV2IfAcc(t *testing.T, isAcc bool, def string) string {
-	t.Helper()
-	if isAcc {
-		return ConvertAdvancedClusterToSchemaV2(t, def)
-	}
-	return def
 }
 
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {

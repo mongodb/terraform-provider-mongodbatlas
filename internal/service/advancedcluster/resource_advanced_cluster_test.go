@@ -41,11 +41,11 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configTenant(projectID, clusterName)),
+				Config: configTenant(t, true, projectID, clusterName),
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configTenant(projectID, clusterNameUpdated)),
+				Config: configTenant(t, true, projectID, clusterNameUpdated),
 				Check:  checkTenant(true, projectID, clusterNameUpdated),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -70,11 +70,11 @@ func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2IfAcc(t, isAcc, configReplicaSetAWSProvider(projectID, clusterName, 60, 3)),
+				Config: configReplicaSetAWSProvider(t, isAcc, projectID, clusterName, 60, 3),
 				Check:  checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 60, 3, true, true),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2IfAcc(t, isAcc, configReplicaSetAWSProvider(projectID, clusterName, 50, 5)),
+				Config: configReplicaSetAWSProvider(t, isAcc, projectID, clusterName, 50, 5),
 				Check:  checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 50, 5, true, true),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
@@ -85,6 +85,7 @@ func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t, true))
 }
+
 func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	var (
@@ -100,11 +101,11 @@ func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2IfAcc(t, isAcc, configReplicaSetMultiCloud(orgID, projectName, clusterName)),
+				Config: configReplicaSetMultiCloud(t, isAcc, orgID, projectName, clusterName),
 				Check:  checkReplicaSetMultiCloud(isAcc, clusterName, 3),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2IfAcc(t, isAcc, configReplicaSetMultiCloud(orgID, projectName, clusterNameUpdated)),
+				Config: configReplicaSetMultiCloud(t, isAcc, orgID, projectName, clusterNameUpdated),
 				Check:  checkReplicaSetMultiCloud(isAcc, clusterNameUpdated, 3),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
@@ -136,11 +137,11 @@ func singleShardedMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2IfAcc(t, isAcc, configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 1, "M10", nil)),
+				Config: configShardedOldSchemaMultiCloud(t, isAcc, orgID, projectName, clusterName, 1, "M10", nil),
 				Check:  checkShardedOldSchemaMultiCloud(isAcc, clusterName, 1, "M10", true, nil),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2IfAcc(t, isAcc, configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M10", nil)),
+				Config: configShardedOldSchemaMultiCloud(t, isAcc, orgID, projectName, clusterNameUpdated, 1, "M10", nil),
 				Check:  checkShardedOldSchemaMultiCloud(isAcc, clusterNameUpdated, 1, "M10", true, nil),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"),
@@ -162,15 +163,15 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configSingleProviderPaused(projectID, clusterName, false, instanceSize)),
+				Config: configSingleProviderPaused(t, true, projectID, clusterName, false, instanceSize),
 				Check:  checkSingleProviderPaused(true, clusterName, false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configSingleProviderPaused(projectID, clusterName, true, instanceSize)),
+				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize),
 				Check:  checkSingleProviderPaused(true, clusterName, true),
 			},
 			{
-				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, configSingleProviderPaused(projectID, clusterName, true, anotherInstanceSize)),
+				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"),
@@ -191,19 +192,19 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configSingleProviderPaused(projectID, clusterName, true, instanceSize)),
+				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize),
 				Check:  checkSingleProviderPaused(true, clusterName, true),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configSingleProviderPaused(projectID, clusterName, false, instanceSize)),
+				Config: configSingleProviderPaused(t, true, projectID, clusterName, false, instanceSize),
 				Check:  checkSingleProviderPaused(true, clusterName, false),
 			},
 			{
-				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, configSingleProviderPaused(projectID, clusterName, true, instanceSize)),
+				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_PAUSE_RECENTLY_RESUMED_CLUSTER"),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configSingleProviderPaused(projectID, clusterName, false, instanceSize)),
+				Config: configSingleProviderPaused(t, true, projectID, clusterName, false, instanceSize),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"),
 		},
@@ -242,11 +243,11 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configAdvanced(projectID, clusterName, "6.0", processArgs20240530, processArgs),
+				Config:      configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgs),
 				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
 			},
 			{
-				Config: configAdvanced(projectID, clusterName, "6.0", processArgs20240530, &admin.ClusterDescriptionProcessArgs20240805{}),
+				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, &admin.ClusterDescriptionProcessArgs20240805{}),
 				Check:  checkAdvanced(true, clusterName, "TLS1_1", &admin.ClusterDescriptionProcessArgs20240805{}),
 			},
 		},
@@ -299,11 +300,11 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configAdvanced(projectID, clusterName, "", processArgs20240530, processArgs)),
+				Config: configAdvanced(t, true, projectID, clusterName, "", processArgs20240530, processArgs),
 				Check:  checkAdvanced(true, clusterName, "TLS1_1", processArgs),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configAdvanced(projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdated)),
+				Config: configAdvanced(t, true, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdated),
 				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_2", processArgsUpdated),
 			},
 		},
@@ -347,11 +348,11 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configAdvancedDefaultWrite(projectID, clusterName, processArgs)),
+				Config: configAdvancedDefaultWrite(t, true, projectID, clusterName, processArgs),
 				Check:  checkAdvancedDefaultWrite(true, clusterName, "1", "TLS1_1"),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configAdvancedDefaultWrite(projectID, clusterNameUpdated, processArgsUpdated)),
+				Config: configAdvancedDefaultWrite(t, true, projectID, clusterNameUpdated, processArgsUpdated),
 				Check:  checkAdvancedDefaultWrite(true, clusterNameUpdated, "majority", "TLS1_2"),
 			},
 		},
@@ -382,7 +383,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configReplicationSpecsAutoScaling(projectID, clusterName, autoScaling)),
+				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, autoScaling),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "name", clusterName),
@@ -392,7 +393,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 				),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configReplicationSpecsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated)),
+				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "name", clusterNameUpdated),
@@ -428,7 +429,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName, autoScaling)),
+				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterName, autoScaling),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "name", clusterName),
@@ -437,7 +438,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 				),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configReplicationSpecsAnalyticsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated)),
+				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "name", clusterNameUpdated),
@@ -465,11 +466,11 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false)),
+				Config: configGeoShardedOldSchema(t, true, orgID, projectName, clusterName, 1, 1, false),
 				Check:  checkGeoShardedOldSchema(true, clusterName, 1, 1, true, true),
 			},
 			{
-				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 2, false)),
+				Config:      configGeoShardedOldSchema(t, true, orgID, projectName, clusterName, 1, 2, false),
 				ExpectError: regexp.MustCompile(advancedcluster.ErrorOperationNotPermitted),
 			},
 		},
@@ -489,15 +490,15 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, acc.ConvertAdvancedClusterToSchemaV2(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags"))),
+				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "tags"),
 				Check:  checkKeyValueBlocks(true, clusterName, "tags"),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, acc.ConvertAdvancedClusterToSchemaV2(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2))),
+				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2),
 				Check:  checkKeyValueBlocks(true, clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, acc.ConvertAdvancedClusterToSchemaV2(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap3))),
+				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "tags", acc.ClusterTagsMap3),
 				Check:  checkKeyValueBlocks(true, clusterName, "tags", acc.ClusterTagsMap3),
 			},
 		},
@@ -517,15 +518,15 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, acc.ConvertAdvancedClusterToSchemaV2(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels"))),
+				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "labels"),
 				Check:  checkKeyValueBlocks(true, clusterName, "labels"),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, acc.ConvertAdvancedClusterToSchemaV2(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2))),
+				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2),
 				Check:  checkKeyValueBlocks(true, clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, acc.ConvertAdvancedClusterToSchemaV2(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap3))),
+				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap3),
 				Check:  checkKeyValueBlocks(true, clusterName, "labels", acc.ClusterLabelsMap3),
 			},
 		},
@@ -553,12 +554,12 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, true)),
+				Config: configGeoShardedOldSchema(t, true, orgID, projectName, clusterName, 1, 1, true),
 				Check: resource.ComposeAggregateTestCheckFunc(checks...,
 				),
 			},
 			{
-				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false)),
+				Config:      configGeoShardedOldSchema(t, true, orgID, projectName, clusterName, 1, 1, false),
 				ExpectError: regexp.MustCompile("CANNOT_MODIFY_GLOBAL_CLUSTER_MANAGEMENT_SETTING"),
 			},
 		},
@@ -577,7 +578,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, configIncorrectTypeGobalClusterSelfManagedSharding(projectID, clusterName)),
+				Config:      configIncorrectTypeGobalClusterSelfManagedSharding(t, true, projectID, clusterName),
 				ExpectError: regexp.MustCompile("CANNOT_SET_SELF_MANAGED_SHARDING_FOR_NON_GLOBAL_CLUSTER"),
 			},
 		},
@@ -603,11 +604,11 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated)),
+				Config: configShardedOldSchemaMultiCloud(t, true, orgID, projectName, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
 				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M10", false, &configServerManagementModeFixedToDedicated),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M20", &configServerManagementModeAtlasManaged)),
+				Config: configShardedOldSchemaMultiCloud(t, true, orgID, projectName, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
 				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
 			},
 		},
@@ -635,11 +636,11 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isAcc bool) resource.Tes
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2IfAcc(t, isAcc, configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false)),
+				Config: configGeoShardedOldSchema(t, isAcc, orgID, projectName, clusterName, 2, 2, false),
 				Check:  checkGeoShardedOldSchema(isAcc, clusterName, 2, 2, true, false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2IfAcc(t, isAcc, configGeoShardedOldSchema(orgID, projectName, clusterName, 3, 3, false)),
+				Config: configGeoShardedOldSchema(t, isAcc, orgID, projectName, clusterName, 3, 3, false),
 				Check:  checkGeoShardedOldSchema(isAcc, clusterName, 3, 3, true, false),
 			},
 		},
@@ -662,11 +663,11 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 50)),
+				Config: configShardedOldSchemaDiskSizeGBElectableLevel(t, true, orgID, projectName, clusterName, 50),
 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(true, 50),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 55)),
+				Config: configShardedOldSchemaDiskSizeGBElectableLevel(t, true, orgID, projectName, clusterName, 55),
 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(true, 55),
 			},
 		},
@@ -689,15 +690,15 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configShardedNewSchema(orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false)),
+				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false),
 				Check:  checkShardedNewSchema(true, 50, "M10", "M10", nil, nil, false, false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true)), // add middle replication spec and transition to asymmetric
+				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true), // add middle replication spec and transition to asymmetric
 				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, true),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false)), // removes middle replication spec
+				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false), // removes middle replication spec
 				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, false),
 			},
 		},
@@ -722,7 +723,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestC
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2IfAcc(t, isAcc, configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false)),
+				Config: configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
 				Check:  checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 			},
 		},
@@ -745,15 +746,15 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configGeoShardedNewSchema(orgID, projectName, clusterName, false)),
+				Config: configGeoShardedNewSchema(t, true, orgID, projectName, clusterName, false),
 				Check:  checkGeoShardedNewSchema(true, false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configGeoShardedNewSchema(orgID, projectName, clusterName, true)),
+				Config: configGeoShardedNewSchema(t, true, orgID, projectName, clusterName, true),
 				Check:  checkGeoShardedNewSchema(true, true),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configGeoShardedNewSchema(orgID, projectName, clusterName, false)),
+				Config: configGeoShardedNewSchema(t, true, orgID, projectName, clusterName, false),
 				Check:  checkGeoShardedNewSchema(true, false),
 			},
 		},
@@ -776,11 +777,11 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false)),
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false),
 				Check:  checkShardedTransitionOldToNewSchema(true, false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true)),
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true),
 				Check:  checkShardedTransitionOldToNewSchema(true, true),
 			},
 		},
@@ -803,11 +804,11 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false)),
+				Config: configGeoShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false),
 				Check:  checkGeoShardedTransitionOldToNewSchema(true, false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true)),
+				Config: configGeoShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true),
 				Check:  checkGeoShardedTransitionOldToNewSchema(true, true),
 			},
 		},
@@ -827,19 +828,19 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *t
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "WORKLOAD_TYPE", true)),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, orgID, projectName, clusterName, "WORKLOAD_TYPE", true),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "WORKLOAD_TYPE", true),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "SEQUENTIAL", false)),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, orgID, projectName, clusterName, "SEQUENTIAL", false),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "SEQUENTIAL", false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "NODE_TYPE", true)),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, orgID, projectName, clusterName, "NODE_TYPE", true),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "NODE_TYPE", true),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "NODE_TYPE", false)),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, orgID, projectName, clusterName, "NODE_TYPE", false),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "NODE_TYPE", false),
 			},
 		},
@@ -859,15 +860,15 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "WORKLOAD_TYPE", false)),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, true, orgID, projectName, clusterName, "WORKLOAD_TYPE", false),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "WORKLOAD_TYPE", false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "SEQUENTIAL", true)),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, true, orgID, projectName, clusterName, "SEQUENTIAL", true),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "SEQUENTIAL", true),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "NODE_TYPE", false)),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, true, orgID, projectName, clusterName, "NODE_TYPE", false),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "NODE_TYPE", false),
 			},
 		},
@@ -896,15 +897,15 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, configPriority(orgID, projectName, clusterName, true, true)),
+				Config:      configPriority(t, true, orgID, projectName, clusterName, true, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configPriority(orgID, projectName, clusterName, true, false)),
+				Config: configPriority(t, true, orgID, projectName, clusterName, true, false),
 				Check:  acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 			{
-				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, configPriority(orgID, projectName, clusterName, true, true)),
+				Config:      configPriority(t, true, orgID, projectName, clusterName, true, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 		},
@@ -928,15 +929,15 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, configPriority(orgID, projectName, clusterName, false, true)),
+				Config:      configPriority(t, true, orgID, projectName, clusterName, false, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, configPriority(orgID, projectName, clusterName, false, false)),
+				Config: configPriority(t, true, orgID, projectName, clusterName, false, false),
 				Check:  acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 			{
-				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, configPriority(orgID, projectName, clusterName, false, true)),
+				Config:      configPriority(t, true, orgID, projectName, clusterName, false, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 		},
@@ -954,11 +955,11 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, acc.ConvertAdvancedClusterToSchemaV2(t, configBiConnectorConfig(projectID, clusterName, false))),
+				Config: configBiConnectorConfig(t, true, projectID, clusterName, false),
 				Check:  checkTenantBiConnectorConfig(true, projectID, clusterName, false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, acc.ConvertAdvancedClusterToSchemaV2(t, configBiConnectorConfig(projectID, clusterName, true))),
+				Config: configBiConnectorConfig(t, true, projectID, clusterName, true),
 				Check:  checkTenantBiConnectorConfig(true, projectID, clusterName, true),
 			},
 		},
@@ -1029,8 +1030,9 @@ func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra 
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func configTenant(projectID, name string) string {
-	return fmt.Sprintf(`
+func configTenant(t *testing.T, isAcc bool, projectID, name string) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -1057,7 +1059,7 @@ func configTenant(projectID, name string) string {
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, projectID, name)
+	`, projectID, name))
 }
 
 func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
@@ -1073,7 +1075,8 @@ func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
 		pluralChecks...)
 }
 
-func configWithKeyValueBlocks(orgID, projectName, clusterName, blockName string, blocks ...map[string]string) string {
+func configWithKeyValueBlocks(t *testing.T, isAcc bool, orgID, projectName, clusterName, blockName string, blocks ...map[string]string) string {
+	t.Helper()
 	var extraConfig string
 	for _, block := range blocks {
 		extraConfig += fmt.Sprintf(`
@@ -1084,7 +1087,7 @@ func configWithKeyValueBlocks(orgID, projectName, clusterName, blockName string,
 		`, blockName, block["key"], block["value"])
 	}
 
-	return fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -1122,7 +1125,7 @@ func configWithKeyValueBlocks(orgID, projectName, clusterName, blockName string,
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, orgID, projectName, clusterName, extraConfig)
+	`, orgID, projectName, clusterName, extraConfig))
 }
 
 func checkKeyValueBlocks(isAcc bool, clusterName, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
@@ -1149,8 +1152,9 @@ func checkKeyValueBlocks(isAcc bool, clusterName, blockName string, blocks ...ma
 		checks...)
 }
 
-func configReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountElectable int) string {
-	return fmt.Sprintf(`
+func configReplicaSetAWSProvider(t *testing.T, isAcc bool, projectID, name string, diskSizeGB, nodeCountElectable int) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -1179,7 +1183,7 @@ func configReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountEl
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
-	`, projectID, name, diskSizeGB, nodeCountElectable)
+	`, projectID, name, diskSizeGB, nodeCountElectable))
 }
 
 func checkReplicaSetAWSProvider(isAcc bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
@@ -1214,8 +1218,9 @@ func checkReplicaSetAWSProvider(isAcc bool, projectID, name string, diskSizeGB, 
 	)
 }
 
-func configIncorrectTypeGobalClusterSelfManagedSharding(projectID, name string) string {
-	return fmt.Sprintf(`
+func configIncorrectTypeGobalClusterSelfManagedSharding(t *testing.T, isAcc bool, projectID, name string) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -1239,11 +1244,12 @@ func configIncorrectTypeGobalClusterSelfManagedSharding(projectID, name string) 
 				}
 			}
 		}
-	`, projectID, name)
+	`, projectID, name))
 }
 
-func configReplicaSetMultiCloud(orgID, projectName, name string) string {
-	return fmt.Sprintf(`
+func configReplicaSetMultiCloud(t *testing.T, isAcc bool, orgID, projectName, name string) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -1300,7 +1306,7 @@ func configReplicaSetMultiCloud(orgID, projectName, name string) string {
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, orgID, projectName, name)
+	`, orgID, projectName, name))
 }
 
 func checkReplicaSetMultiCloud(isAcc bool, name string, regionConfigs int) resource.TestCheckFunc {
@@ -1322,7 +1328,8 @@ func checkReplicaSetMultiCloud(isAcc bool, name string, regionConfigs int) resou
 	)
 }
 
-func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards int, analyticsSize string, configServerManagementMode *string) string {
+func configShardedOldSchemaMultiCloud(t *testing.T, isAcc bool, orgID, projectName, name string, numShards int, analyticsSize string, configServerManagementMode *string) string {
+	t.Helper()
 	var rootConfig string
 	if configServerManagementMode != nil {
 		// valid values: FIXED_TO_DEDICATED or ATLAS_MANAGED (default)
@@ -1333,7 +1340,7 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 		  config_server_management_mode = %[1]q
 		`, *configServerManagementMode)
 	}
-	return fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -1381,7 +1388,7 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			depends_on = [mongodbatlas_advanced_cluster.test]
 		}
-	`, orgID, projectName, name, numShards, analyticsSize, rootConfig)
+	`, orgID, projectName, name, numShards, analyticsSize, rootConfig))
 }
 
 func checkShardedOldSchemaMultiCloud(isAcc bool, name string, numShards int, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
@@ -1418,8 +1425,9 @@ func checkShardedOldSchemaMultiCloud(isAcc bool, name string, numShards int, ana
 		additionalChecks...)
 }
 
-func configSingleProviderPaused(projectID, clusterName string, paused bool, instanceSize string) string {
-	return fmt.Sprintf(`
+func configSingleProviderPaused(t *testing.T, isAcc bool, projectID, clusterName string, paused bool, instanceSize string) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -1447,7 +1455,7 @@ func configSingleProviderPaused(projectID, clusterName string, paused bool, inst
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
-	`, projectID, clusterName, paused, instanceSize)
+	`, projectID, clusterName, paused, instanceSize))
 }
 
 func checkSingleProviderPaused(isAcc bool, name string, paused bool) resource.TestCheckFunc {
@@ -1458,7 +1466,8 @@ func checkSingleProviderPaused(isAcc bool, name string, paused bool) resource.Te
 			"paused": strconv.FormatBool(paused)})
 }
 
-func configAdvanced(projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
+func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
+	t.Helper()
 	changeStreamOptionsString := ""
 	defaultMaxTimeString := ""
 	mongoDBMajorVersionString := ""
@@ -1475,7 +1484,7 @@ func configAdvanced(projectID, clusterName, mongoDBMajorVersion string, p2024053
 		mongoDBMajorVersionString = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
 	}
 
-	return fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
@@ -1523,7 +1532,7 @@ func configAdvanced(projectID, clusterName, mongoDBMajorVersion string, p2024053
 	`, projectID, clusterName,
 		p20240530.GetFailIndexKeyTooLong(), p20240530.GetJavascriptEnabled(), p20240530.GetMinimumEnabledTlsProtocol(), p20240530.GetNoTableScan(),
 		p20240530.GetOplogSizeMB(), p20240530.GetSampleSizeBIConnector(), p20240530.GetSampleRefreshIntervalBIConnector(), p20240530.GetTransactionLifetimeLimitSeconds(),
-		changeStreamOptionsString, defaultMaxTimeString, mongoDBMajorVersionString)
+		changeStreamOptionsString, defaultMaxTimeString, mongoDBMajorVersionString))
 }
 
 func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
@@ -1560,8 +1569,9 @@ func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescr
 	)
 }
 
-func configAdvancedDefaultWrite(projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
-	return fmt.Sprintf(`
+func configAdvancedDefaultWrite(t *testing.T, isAcc bool, projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
@@ -1604,7 +1614,7 @@ func configAdvancedDefaultWrite(projectID, clusterName string, p *admin20240530.
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
 	`, projectID, clusterName, p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
-		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetDefaultReadConcern(), p.GetDefaultWriteConcern())
+		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetDefaultReadConcern(), p.GetDefaultWriteConcern()))
 }
 
 func checkAdvancedDefaultWrite(isAcc bool, name, writeConcern, tls string) resource.TestCheckFunc {
@@ -1629,8 +1639,9 @@ func checkAdvancedDefaultWrite(isAcc bool, name, writeConcern, tls string) resou
 		pluralChecks...)
 }
 
-func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
-	return fmt.Sprintf(`
+func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
@@ -1660,11 +1671,12 @@ func configReplicationSpecsAutoScaling(projectID, clusterName string, p *admin.A
 			    oplog_min_retention_hours = 5.5
 			}
 		}
-	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
+	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize()))
 }
 
-func configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
-	return fmt.Sprintf(`
+func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
@@ -1691,11 +1703,12 @@ func configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName string, p
 				}
 			}
 		}
-	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize())
+	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize()))
 }
 
-func configGeoShardedOldSchema(orgID, projectName, name string, numShardsFirstZone, numShardsSecondZone int, selfManagedSharding bool) string {
-	return fmt.Sprintf(`
+func configGeoShardedOldSchema(t *testing.T, isAcc bool, orgID, projectName, name string, numShardsFirstZone, numShardsSecondZone int, selfManagedSharding bool) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -1753,7 +1766,7 @@ func configGeoShardedOldSchema(orgID, projectName, name string, numShardsFirstZo
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
-	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
+	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding))
 }
 
 func checkGeoShardedOldSchema(isAcc bool, name string, numShardsFirstZone, numShardsSecondZone int, isLatestProviderVersion, verifyExternalID bool) resource.TestCheckFunc {
@@ -1784,8 +1797,9 @@ func checkGeoShardedOldSchema(isAcc bool, name string, numShardsFirstZone, numSh
 	)
 }
 
-func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name string, diskSizeGB int) string {
-	return fmt.Sprintf(`
+func configShardedOldSchemaDiskSizeGBElectableLevel(t *testing.T, isAcc bool, orgID, projectName, name string, diskSizeGB int) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -1823,7 +1837,7 @@ func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name str
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			name 	     = mongodbatlas_advanced_cluster.test.name
 		}
-	`, orgID, projectName, name, diskSizeGB)
+	`, orgID, projectName, name, diskSizeGB))
 }
 
 func checkShardedOldSchemaDiskSizeGBElectableLevel(isAcc bool, diskSizeGB int) resource.TestCheckFunc {
@@ -1837,7 +1851,8 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel(isAcc bool, diskSizeGB int) r
 		})
 }
 
-func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec bool) string {
+func configShardedNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec bool) string {
+	t.Helper()
 	var thirdReplicationSpec string
 	if includeMiddleSpec {
 		thirdReplicationSpec = fmt.Sprintf(`
@@ -1874,7 +1889,7 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 			ebs_volume_type = "PROVISIONED"
 		`, *lastDiskIOPS)
 	}
-	return fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -1937,7 +1952,7 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
 		}
-	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB)
+	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB))
 }
 
 func checkShardedNewSchema(isAcc bool, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops *int, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
@@ -1996,7 +2011,8 @@ func checkShardedNewSchema(isAcc bool, diskSizeGB int, firstInstanceSize, lastIn
 	)
 }
 
-func configGeoShardedNewSchema(orgID, projectName, name string, includeThirdShardInFirstZone bool) string {
+func configGeoShardedNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, includeThirdShardInFirstZone bool) string {
+	t.Helper()
 	var thirdReplicationSpec string
 	if includeThirdShardInFirstZone {
 		thirdReplicationSpec = `
@@ -2014,7 +2030,7 @@ func configGeoShardedNewSchema(orgID, projectName, name string, includeThirdShar
 			}
 		`
 	}
-	return fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -2060,7 +2076,7 @@ func configGeoShardedNewSchema(orgID, projectName, name string, includeThirdShar
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
 		}
-	`, orgID, projectName, name, thirdReplicationSpec)
+	`, orgID, projectName, name, thirdReplicationSpec))
 }
 
 func checkGeoShardedNewSchema(isAcc, includeThirdShardInFirstZone bool) resource.TestCheckFunc {
@@ -2077,7 +2093,8 @@ func checkGeoShardedNewSchema(isAcc, includeThirdShardInFirstZone bool) resource
 	return checkAggr(isAcc, []string{}, clusterChecks)
 }
 
-func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useNewSchema bool) string {
+func configShardedTransitionOldToNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, useNewSchema bool) string {
+	t.Helper()
 	var numShardsStr string
 	if !useNewSchema {
 		numShardsStr = `num_shards = 2`
@@ -2116,7 +2133,7 @@ func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useN
 		dataSourceFlag = `use_replication_spec_per_shard = true`
 	}
 
-	return fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -2141,7 +2158,7 @@ func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useN
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			%[5]s
 		}
-	`, orgID, projectName, name, replicationSpecs, dataSourceFlag)
+	`, orgID, projectName, name, replicationSpecs, dataSourceFlag))
 }
 
 func checkShardedTransitionOldToNewSchema(isAcc, useNewSchema bool) resource.TestCheckFunc {
@@ -2174,7 +2191,8 @@ func checkShardedTransitionOldToNewSchema(isAcc, useNewSchema bool) resource.Tes
 	)
 }
 
-func configGeoShardedTransitionOldToNewSchema(orgID, projectName, name string, useNewSchema bool) string {
+func configGeoShardedTransitionOldToNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, useNewSchema bool) string {
+	t.Helper()
 	var numShardsStr string
 	if !useNewSchema {
 		numShardsStr = `num_shards = 2`
@@ -2220,7 +2238,7 @@ func configGeoShardedTransitionOldToNewSchema(orgID, projectName, name string, u
 		dataSourceFlag = `use_replication_spec_per_shard = true`
 	}
 
-	return fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -2245,7 +2263,7 @@ func configGeoShardedTransitionOldToNewSchema(orgID, projectName, name string, u
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			%[5]s
 		}
-	`, orgID, projectName, name, replicationSpecs, dataSourceFlag)
+	`, orgID, projectName, name, replicationSpecs, dataSourceFlag))
 }
 
 func checkGeoShardedTransitionOldToNewSchema(isAcc, useNewSchema bool) resource.TestCheckFunc {
@@ -2273,8 +2291,9 @@ func checkGeoShardedTransitionOldToNewSchema(isAcc, useNewSchema bool) resource.
 	)
 }
 
-func configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
-	return fmt.Sprintf(`
+func configReplicaSetScalingStrategyAndRedactClientLogData(t *testing.T, isAcc bool, orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -2317,11 +2336,12 @@ func configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, n
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
 		}
-	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData)
+	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData))
 }
 
-func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
-	return fmt.Sprintf(`
+func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T, isAcc bool, orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
+	t.Helper()
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -2363,7 +2383,7 @@ func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, proje
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 		}
-	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData)
+	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData))
 }
 
 func checkReplicaSetScalingStrategyAndRedactClientLogData(isAcc bool, replicaSetScalingStrategy string, redactClientLogData bool) resource.TestCheckFunc {
@@ -2383,7 +2403,8 @@ func checkReplicaSetScalingStrategyAndRedactClientLogData(isAcc bool, replicaSet
 	)
 }
 
-func configPriority(orgID, projectName, clusterName string, oldSchema, swapPriorities bool) string {
+func configPriority(t *testing.T, isAcc bool, orgID, projectName, clusterName string, oldSchema, swapPriorities bool) string {
+	t.Helper()
 	const (
 		config7 = `
 			region_configs {
@@ -2417,7 +2438,7 @@ func configPriority(orgID, projectName, clusterName string, oldSchema, swapPrior
 		strConfigs = config6 + config7
 	}
 
-	return fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -2434,10 +2455,11 @@ func configPriority(orgID, projectName, clusterName string, oldSchema, swapPrior
  					%[6]s
 			}
 		}
-	`, orgID, projectName, clusterName, strType, strNumShards, strConfigs)
+	`, orgID, projectName, clusterName, strType, strNumShards, strConfigs))
 }
 
-func configBiConnectorConfig(projectID, name string, enabled bool) string {
+func configBiConnectorConfig(t *testing.T, isAcc bool, projectID, name string, enabled bool) string {
+	t.Helper()
 	additionalConfig := `
 		bi_connector_config {
 			enabled = false
@@ -2452,7 +2474,7 @@ func configBiConnectorConfig(projectID, name string, enabled bool) string {
 		`
 	}
 
-	return fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -2487,7 +2509,7 @@ func configBiConnectorConfig(projectID, name string, enabled bool) string {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			depends_on = [mongodbatlas_advanced_cluster.test]
 		}
-	`, projectID, name, additionalConfig)
+	`, projectID, name, additionalConfig))
 }
 
 func checkTenantBiConnectorConfig(isAcc bool, projectID, name string, enabled bool) resource.TestCheckFunc {
