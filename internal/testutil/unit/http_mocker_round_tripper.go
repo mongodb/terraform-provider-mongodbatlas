@@ -201,6 +201,7 @@ func (r *MockRoundTripper) matchRequest(method, version, payload string, reqURL 
 	if step == nil {
 		return "", 0, fmt.Errorf("no more steps in mock data")
 	}
+	isDiff := false
 	for index, request := range step.DiffRequests {
 		if !request.Match(r.t, method, version, reqURL, r.data) {
 			continue
@@ -210,6 +211,7 @@ func (r *MockRoundTripper) matchRequest(method, version, payload string, reqURL 
 		}
 		r.foundsDiffs[index] = payload
 		r.nextDiffResponseIndex()
+		isDiff = true
 		break
 	}
 	nextDiffResponse := r.diffResponseIndex
@@ -228,8 +230,8 @@ func (r *MockRoundTripper) matchRequest(method, version, payload string, reqURL 
 			}
 		}
 		response := request.Responses[nextIndex]
-		// cannot return a response that is sent after a diff response
-		if response.ResponseIndex > nextDiffResponse {
+		// cannot return a response that is sent after a diff response, unless it is a diff
+		if response.ResponseIndex > nextDiffResponse && !isDiff {
 			prevIndex := nextIndex - 1
 			if prevIndex >= 0 && r.allowReUse(&request) {
 				response = request.Responses[prevIndex]
@@ -241,5 +243,5 @@ func (r *MockRoundTripper) matchRequest(method, version, payload string, reqURL 
 		r.usedResponses[requestID]++
 		return replaceVars(response.Text, r.data.Variables), response.Status, nil
 	}
-	return "", 0, fmt.Errorf("no matching request found %s %s %s", method, reqURL.Path, version)
+	return "", 0, fmt.Errorf("no matching request found %s %s\n%s\nnextDiffResponse=%d", method, version, reqURL.Path, nextDiffResponse)
 }
