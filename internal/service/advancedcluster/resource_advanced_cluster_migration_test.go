@@ -15,38 +15,45 @@ import (
 const versionBeforeISSRelease = "1.17.6"
 
 func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	testCase := replicaSetAWSProviderTestCase(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // AttributeName("advanced_configuration"): invalid JSON, expected "{", got "["
+	testCase := replicaSetAWSProviderTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	testCase := replicaSetMultiCloudTestCase(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // AttributeName("advanced_configuration"): invalid JSON, expected "{", got "["
+	testCase := replicaSetMultiCloudTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	testCase := singleShardedMultiCloudTestCase(t)
+	testCase := singleShardedMultiCloudTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	testCase := symmetricGeoShardedOldSchemaTestCase(t)
+	testCase := symmetricGeoShardedOldSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	// TODO: Already prepared for TPF but getting this error, note that TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema is passing though:
+	// resource_advanced_cluster_migration_test.go:39: Step 1/2 error: Check failed: Check 2/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.disk_iops' not found
+	// Check 5/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.instance_size' not found
+	// Check 6/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.instance_size' not found
+	// Check 7/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.disk_size_gb' not found
+	// Check 8/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.analytics_specs.disk_size_gb' not found
+	// Check 9/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.analytics_specs.disk_size_gb' not found
+	// Check 10/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.disk_size_gb' not found
+	// Check 11/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.disk_iops' not found
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	mig.SkipIfVersionBelow(t, "1.23.0") // version where sharded cluster tier auto-scaling was introduced
-	testCase := asymmetricShardedNewSchemaTestCase(t)
+	testCase := asymmetricShardedNewSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -58,20 +65,20 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configReplicaSetAWSProvider(projectID, clusterName, 60, 3),
-				Check:             checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, false, false),
+				Config:            configReplicaSetAWSProvider(t, false, projectID, clusterName, 60, 3),
+				Check:             checkReplicaSetAWSProvider(false, projectID, clusterName, 60, 3, false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configReplicaSetAWSProvider(projectID, clusterName, 60, 5),
-				Check:                    checkReplicaSetAWSProvider(projectID, clusterName, 60, 5, true, true),
+				Config:                   configReplicaSetAWSProvider(t, false, projectID, clusterName, 60, 5),
+				Check:                    checkReplicaSetAWSProvider(false, projectID, clusterName, 60, 5, true, true),
 			},
 		},
 	})
 }
 
 func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -84,20 +91,20 @@ func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false),
-				Check:             checkGeoShardedOldSchema(clusterName, 2, 2, false, false),
+				Config:            configGeoShardedOldSchema(t, false, orgID, projectName, clusterName, 2, 2, false),
+				Check:             checkGeoShardedOldSchema(false, clusterName, 2, 2, false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 1, false),
-				Check:                    checkGeoShardedOldSchema(clusterName, 2, 1, true, false),
+				Config:                   configGeoShardedOldSchema(t, false, orgID, projectName, clusterName, 2, 1, false),
+				Check:                    checkGeoShardedOldSchema(false, clusterName, 2, 1, true, false),
 			},
 		},
 	})
 }
 
 func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -110,20 +117,20 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false, false),
-				Check:             checkShardedTransitionOldToNewSchema(false),
+				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, false, false),
+				Check:             checkShardedTransitionOldToNewSchema(false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, false),
-				Check:                    checkShardedTransitionOldToNewSchema(true),
+				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, false),
+				Check:                    checkShardedTransitionOldToNewSchema(false, true),
 			},
 		},
 	})
 }
 
 func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -136,21 +143,21 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false),
-				Check:             checkGeoShardedTransitionOldToNewSchema(false),
+				Config:            configGeoShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, false),
+				Check:             checkGeoShardedTransitionOldToNewSchema(false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true),
-				Check:                    checkGeoShardedTransitionOldToNewSchema(true),
+				Config:                   configGeoShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true),
+				Check:                    checkGeoShardedTransitionOldToNewSchema(false, true),
 			},
 		},
 	})
 }
 
 func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
-	mig.SkipIfVersionBelow(t, "1.19.0") // version where change_stream_options_pre_and_post_images_expire_after_seconds was introduced
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
+	mig.SkipIfVersionBelow(t, "1.22.1")  // version where default_max_time_ms was introduced
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -180,7 +187,8 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 				no_table_scan                        = false
 				default_read_concern                 = "available"
 				sample_size_bi_connector			 = 110
-					sample_refresh_interval_bi_connector = 310
+				sample_refresh_interval_bi_connector = 310
+				default_max_time_ms = 65
 				}
 				
 				bi_connector_config {
@@ -199,7 +207,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
@@ -213,13 +221,14 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configUpdated,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_max_time_ms", "65"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
 				),
@@ -230,7 +239,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_newSchemaFromAutoscalingDisabledToEnabled(t *testing.T) {
-	acc.SkipIfTPFAdvancedCluster(t)
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -243,12 +252,12 @@ func TestMigAdvancedCluster_newSchemaFromAutoscalingDisabledToEnabled(t *testing
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders("1.22.0"), // last version before cluster tier auto-scaling per shard was introduced
-				Config:            configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, false),
+				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, false),
 				Check:             checkIndependentShardScalingMode(clusterName, "CLUSTER"),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true, true),
+				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, true),
 				Check:                    checkIndependentShardScalingMode(clusterName, "SHARD"),
 			},
 		},

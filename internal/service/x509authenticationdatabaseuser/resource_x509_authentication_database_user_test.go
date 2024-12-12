@@ -136,7 +136,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			}
 			return fmt.Errorf("the X509 Authentication Database User(%s) does not exist in the project(%s)", ids["username"], ids["project_id"])
 		}
-		if _, _, err := acc.ConnV2().LDAPConfigurationApi.GetLDAPConfiguration(context.Background(), ids["project_id"]).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().LDAPConfigurationApi.GetLdapConfiguration(context.Background(), ids["project_id"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("the Customer X509 Authentication does not exist in the project(%s)", ids["project_id"])

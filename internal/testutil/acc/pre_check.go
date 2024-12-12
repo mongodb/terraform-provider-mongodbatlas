@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func PreCheckBasic(tb testing.TB) {
@@ -18,10 +19,10 @@ func PreCheckBasic(tb testing.TB) {
 	}
 }
 
-func SkipIfTPFAdvancedCluster(tb testing.TB) {
+func SkipIfAdvancedClusterV2Schema(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_TPF_ADV_CLUSTER_TESTS") == "true" {
-		tb.Skip("Skipping tests as resource is TPF Advanced Cluster and implementation is pending")
+	if config.AdvancedClusterV2Schema() {
+		tb.Skip("Skipping test in AdvancedClusterV2Schema as implementation is pending or test is not applicable")
 	}
 }
 

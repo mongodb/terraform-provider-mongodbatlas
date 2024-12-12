@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -273,6 +273,22 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"pinned_fcv": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"expiration_date": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -374,6 +390,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"redact_client_log_data":               cluster.GetRedactClientLogData(),
 			"config_server_management_mode":        cluster.GetConfigServerManagementMode(),
 			"config_server_type":                   cluster.GetConfigServerType(),
+			"pinned_fcv":                           FlattenPinnedFCV(cluster),
 		}
 		results = append(results, result)
 	}

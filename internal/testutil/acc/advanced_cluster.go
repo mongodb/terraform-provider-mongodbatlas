@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 var (
@@ -26,7 +26,32 @@ var (
 		"key":   "key 3",
 		"value": "value 3",
 	}
+	ClusterLabelsMap1 = map[string]string{
+		"key":   "label key 1",
+		"value": "label value 1",
+	}
+
+	ClusterLabelsMap2 = map[string]string{
+		"key":   "label key 2",
+		"value": "label value 2",
+	}
+
+	ClusterLabelsMap3 = map[string]string{
+		"key":   "label key 3",
+		"value": "label value 3",
+	}
 )
+
+func TestStepImportCluster(resourceName string, ignoredFields ...string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:                         resourceName,
+		ImportStateIdFunc:                    ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
+		ImportState:                          true,
+		ImportStateVerify:                    true,
+		ImportStateVerifyIdentifierAttribute: "name",
+		ImportStateVerifyIgnore:              ignoredFields,
+	}
+}
 
 func CheckDestroyCluster(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
@@ -34,7 +59,10 @@ func CheckDestroyCluster(s *terraform.State) error {
 			continue
 		}
 		projectID := rs.Primary.Attributes["project_id"]
-		clusterName := rs.Primary.Attributes["cluster_name"]
+		clusterName := rs.Primary.Attributes["name"]
+		if projectID == "" || clusterName == "" {
+			return fmt.Errorf("projectID or clusterName is empty: %s, %s", projectID, clusterName)
+		}
 		resp, _, _ := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
 		if resp.GetId() != "" {
 			return fmt.Errorf("cluster (%s:%s) still exists", clusterName, rs.Primary.ID)
@@ -43,22 +71,28 @@ func CheckDestroyCluster(s *terraform.State) error {
 	return nil
 }
 
-func ImportStateClusterIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
+func CheckExistsCluster(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
-
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"]), nil
+		projectID := rs.Primary.Attributes["project_id"]
+		clusterName := rs.Primary.Attributes["name"]
+		if projectID == "" || clusterName == "" {
+			return fmt.Errorf("projectID or clusterName is empty: %s, %s", projectID, clusterName)
+		}
+		if err := CheckExistsClusterHandlingRetry(projectID, clusterName); err != nil {
+			return fmt.Errorf("cluster(%s:%s) does not exist: %w", projectID, clusterName, err)
+		}
+		return nil
 	}
 }
 
-func CheckClusterExistsHandlingRetry(projectID, clusterName string) error {
+func CheckExistsClusterHandlingRetry(projectID, clusterName string) error {
 	return retry.RetryContext(context.Background(), 3*time.Minute, func() *retry.RetryError {
-		_, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
-		if apiError, ok := admin.AsError(err); ok {
-			if apiError.GetErrorCode() == "SERVICE_UNAVAILABLE" {
+		if _, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute(); err != nil {
+			if admin.IsErrorCode(err, "SERVICE_UNAVAILABLE") {
 				// retrying get operation because for migration test it can be the first time new API is called for a cluster so API responds with temporary error as it transition to enabling ISS FF
 				return retry.RetryableError(err)
 			}
@@ -66,4 +100,24 @@ func CheckClusterExistsHandlingRetry(projectID, clusterName string) error {
 		}
 		return nil
 	})
+}
+
+func CheckFCVPinningConfig(resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
+	mapChecks := map[string]string{
+		"mongo_db_major_version": fmt.Sprintf("%d.0", mongoDBMajorVersion),
+	}
+
+	if pinningExpirationDate != nil {
+		mapChecks["pinned_fcv.0.expiration_date"] = *pinningExpirationDate
+	} else {
+		mapChecks["pinned_fcv.#"] = "0"
+	}
+
+	if fcvVersion != nil {
+		mapChecks["pinned_fcv.0.version"] = fmt.Sprintf("%d.0", *fcvVersion)
+	}
+
+	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
+
+	return CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
 }
