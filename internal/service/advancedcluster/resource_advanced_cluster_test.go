@@ -1186,10 +1186,9 @@ func checkReplicaSetAWSProvider(isAcc bool, projectID, name string, diskSizeGB, 
 	additionalChecks := []resource.TestCheckFunc{
 		acc.TestCheckResourceAttrSchemaV2(isAcc, resourceName, "retain_backups_enabled", "true"),
 	}
-	diskIopsPath := acc.AttrNameToSchemaV2("replication_specs.0.region_configs.0.electable_specs.0.disk_iops")
 	additionalChecks = append(additionalChecks,
-		acc.TestCheckResourceAttrWithSchemaV2(isAcc, resourceName, diskIopsPath, acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithSchemaV2(isAcc, dataSourceName, diskIopsPath, acc.IntGreatThan(0)))
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
 
 	if checkDiskSizeGBInnerLevel {
 		additionalChecks = append(additionalChecks,

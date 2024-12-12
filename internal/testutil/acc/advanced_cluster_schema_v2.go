@@ -17,83 +17,83 @@ import (
 )
 
 func TestCheckResourceAttrSchemaV2(isAcc bool, name, key, value string) resource.TestCheckFunc {
-	if skipChecks(name) {
+	if skipChecks(isAcc, name) {
 		return nil
 	}
-	return resource.TestCheckResourceAttr(name, key, value)
+	return resource.TestCheckResourceAttr(name, AttrNameToSchemaV2(isAcc, key), value)
 }
 
 func TestCheckResourceAttrSetSchemaV2(isAcc bool, name, key string) resource.TestCheckFunc {
-	if skipChecks(name) {
+	if skipChecks(isAcc, name) {
 		return nil
 	}
-	return resource.TestCheckResourceAttrSet(name, key)
+	return resource.TestCheckResourceAttrSet(name, AttrNameToSchemaV2(isAcc, key))
 }
 
 func TestCheckResourceAttrWithSchemaV2(isAcc bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
-	if skipChecks(name) {
+	if skipChecks(isAcc, name) {
 		return nil
 	}
-	return resource.TestCheckResourceAttrWith(name, key, checkValueFunc)
+	return resource.TestCheckResourceAttrWith(name, AttrNameToSchemaV2(isAcc, key), checkValueFunc)
 }
 
-func TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc bool, name, attr string, values map[string]string) resource.TestCheckFunc {
-	if skipChecks(name) {
+func TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc bool, name, key string, values map[string]string) resource.TestCheckFunc {
+	if skipChecks(isAcc, name) {
 		return nil
 	}
-	return resource.TestCheckTypeSetElemNestedAttrs(name, attr, values)
+	return resource.TestCheckTypeSetElemNestedAttrs(name, AttrNameToSchemaV2(isAcc, key), values)
 }
 
 // AddAttrChecksSchemaV2 is like AddAttrChecks but adding V2 schema support
 func AddAttrChecksSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
-	if skipChecks(name) {
+	if skipChecks(isAcc, name) {
 		return nil
 	}
-	return AddAttrChecks(name, checks, ConvertToSchemaV2AttrsMap(mapChecks))
+	return AddAttrChecks(name, checks, ConvertToSchemaV2AttrsMap(isAcc, mapChecks))
 }
 
 // AddAttrChecksSchemaV2 is like AddAttrSetChecks but adding V2 schema support
 func AddAttrSetChecksSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
-	if skipChecks(name) {
+	if skipChecks(isAcc, name) {
 		return nil
 	}
-	return AddAttrSetChecks(name, checks, ConvertToSchemaV2AttrsSet(attrNames)...)
+	return AddAttrSetChecks(name, checks, ConvertToSchemaV2AttrsSet(isAcc, attrNames)...)
 }
 
 // AddAttrChecksPrefixSchemaV2 is like AddAttrChecksPrefix but adding V2 schema support
 func AddAttrChecksPrefixSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string, prefix string, skipNames ...string) []resource.TestCheckFunc {
-	if skipChecks(name) {
+	if skipChecks(isAcc, name) {
 		return nil
 	}
-	return AddAttrChecksPrefix(name, checks, ConvertToSchemaV2AttrsMap(mapChecks), prefix, skipNames...)
+	return AddAttrChecksPrefix(name, checks, ConvertToSchemaV2AttrsMap(isAcc, mapChecks), prefix, skipNames...)
 }
 
 // skipChecks temporarily returns if checks are for data sources in schema v2 as they are not implemented yet
-func skipChecks(name string) bool {
-	if !config.AdvancedClusterV2Schema() {
+func skipChecks(isAcc bool, name string) bool {
+	if !config.AdvancedClusterV2Schema() || !isAcc {
 		return false
 	}
 	return strings.HasPrefix(name, "data.mongodbatlas_advanced_cluster")
 }
 
-func ConvertToSchemaV2AttrsMap(attrsMap map[string]string) map[string]string {
-	if !config.AdvancedClusterV2Schema() {
+func ConvertToSchemaV2AttrsMap(isAcc bool, attrsMap map[string]string) map[string]string {
+	if !config.AdvancedClusterV2Schema() || !isAcc {
 		return attrsMap
 	}
 	ret := make(map[string]string, len(attrsMap))
 	for name, value := range attrsMap {
-		ret[AttrNameToSchemaV2(name)] = value
+		ret[AttrNameToSchemaV2(isAcc, name)] = value
 	}
 	return ret
 }
 
-func ConvertToSchemaV2AttrsSet(attrsSet []string) []string {
-	if !config.AdvancedClusterV2Schema() {
+func ConvertToSchemaV2AttrsSet(isAcc bool, attrsSet []string) []string {
+	if !config.AdvancedClusterV2Schema() || !isAcc {
 		return attrsSet
 	}
 	ret := make([]string, 0, len(attrsSet))
 	for _, name := range attrsSet {
-		ret = append(ret, AttrNameToSchemaV2(name))
+		ret = append(ret, AttrNameToSchemaV2(isAcc, name))
 	}
 	return ret
 }
@@ -107,8 +107,8 @@ var tpfSingleNestedAttrs = []string{
 	"bi_connector_config",
 }
 
-func AttrNameToSchemaV2(name string) string {
-	if !config.AdvancedClusterV2Schema() {
+func AttrNameToSchemaV2(isAcc bool, name string) string {
+	if !config.AdvancedClusterV2Schema() || !isAcc {
 		return name
 	}
 	for _, singleAttrName := range tpfSingleNestedAttrs {

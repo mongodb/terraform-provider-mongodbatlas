@@ -27,7 +27,7 @@ func TestConvertToSchemaV2AttrsMapAndAttrsSet(t *testing.T) {
 		"advanced_configurationpostfix": "val4",
 		"electable_specsadvanced_configurationbi_connector_config": "val5",
 	}
-	actualMap := acc.ConvertToSchemaV2AttrsMap(attrsMap)
+	actualMap := acc.ConvertToSchemaV2AttrsMap(true, attrsMap)
 	assert.Equal(t, expectedMap, actualMap)
 
 	attrsSet := make([]string, 0, len(attrsMap))
@@ -38,7 +38,7 @@ func TestConvertToSchemaV2AttrsMapAndAttrsSet(t *testing.T) {
 	for name := range expectedMap {
 		expectedSet = append(expectedSet, name)
 	}
-	actualSet := acc.ConvertToSchemaV2AttrsSet(attrsSet)
+	actualSet := acc.ConvertToSchemaV2AttrsSet(true, attrsSet)
 	sort.Strings(expectedSet)
 	sort.Strings(actualSet)
 	assert.Equal(t, expectedSet, actualSet)
