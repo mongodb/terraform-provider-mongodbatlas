@@ -4,7 +4,7 @@ page_title: "Migration Guide: Advanced Cluster New Sharding Configurations"
 
 # Migration Guide: Advanced Cluster New Sharding Configurations
 
-**Objective**: Use this guide to migrate your existing `advanced_cluster` resources to support new sharding configurations introduced in version 1.18.0. The new sharding configurations allow you to scale shards independently. Additionally, as of version 1.23.0 compute auto-scaling feature supports scaling instance sizes independently for each shard when using the new sharding configuration. Existing sharding configurations continue to work, but you will receive deprecation messages if you continue to use them.
+**Objective**: Use this guide to migrate your existing `advanced_cluster` resources to support new sharding configurations introduced in version 1.18.0. The new sharding configurations allow you to scale shards independently. Additionally, as of version 1.23.0, compute auto-scaling supports scaling instance sizes independently for each shard when using the new sharding configuration. Existing sharding configurations continue to work, but you will receive deprecation messages if you continue to use them.
 
 Note: Once applied, the `advanced_cluster` resource making use of the new sharding configuration will not be able to transition back to the old sharding configuration.
 
@@ -324,7 +324,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-With each shard's `replication_specs` defined independently, we can now define distinct `instance_size` and `disk_iops` values for each shard in the cluster. Note that independent `disk_iops` values is only supported for AWS provisioned IOPS, or Azure regions that supports Extended IOPS. In the following example, we define an upgraded instance size of M40 only for the first shard in the cluster.
+With each shard's `replication_specs` defined independently, we can now define distinct `instance_size` and `disk_iops` values for each shard in the cluster. Note that independent `disk_iops` values are only supported for AWS provisioned IOPS, or Azure regions that support Extended IOPS. In the following example, we define an upgraded instance size of M40 only for the first shard in the cluster.
 
 Consider reviewing the Metrics Dashboard in the MongoDB Atlas UI (e.g. https://cloud.mongodb.com/v2/<PROJECT-ID>#/clusters/detail/ShardedCluster) for insight into how each shard within your cluster is currently performing, which will inform any shard-specific resource allocation changes you might require.
 
@@ -367,7 +367,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 As of version 1.23.0, enabled `compute` auto-scaling (either `auto_scaling` or `analytics_auto_scaling`) will scale the `instance_size` of each shard independently. Each shard must be represented with a unique `replication_specs` element and `num_shards` must not be used. On the contrary, if using deprecated `num_shards` or a lower version, enabled compute auto-scaling will scale uniformily across all shards in the cluster. 
 
-The following example illustrates a configuration which has compute auto-scaling per shard for electable and analytic nodes.
+The following example illustrates a configuration that has compute auto-scaling per shard for electable and analytic nodes.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -435,6 +435,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 While the example initially defines 2 symmetric shards, auto-scaling of `electable_specs` or `analytic_specs` can lead to asymmetric shards due to changes in `instance_size`.
 
--> **NOTE:** Once upgraded to version 1.23.0 of the provider, an update must be performed in the cluster configuration for new auto-scaling per shard feature to activate.
+-> **NOTE:** After you upgrade to version 1.23.0 of the provider, you must update the cluster configuration to activate the auto-scaling per shard feature.
 
--> **NOTE:** When making use of Auto-Scaling Per Shard, it is possible that the cluster will transition to having asymmetric shards. This will impact the computed attribute `replication_specs.#.id` which is not populated when shards are scaled independently. Please make sure to update corresponding `mongodbatlas_cloud_backup_schedule` resource & data sources. This involves updating any existing Terraform configurations of the resource to use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id`. To learn more, review the [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
+-> **NOTE:** When auto-scaling per shard, it is possible that the cluster will transition to having asymmetric shards. This will impact the computed attribute `replication_specs.#.id`, which is not populated when shards are scaled independently. Please make sure to update the corresponding `mongodbatlas_cloud_backup_schedule` resource & data sources. This involves updating any existing Terraform configurations of the resource to use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id`. To learn more, review the [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).

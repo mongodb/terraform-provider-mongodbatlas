@@ -1,6 +1,6 @@
 # MongoDB Atlas Provider -- Sharded Cluster with Independent Shard Auto-scaling
 
-This example creates a Sharded Cluster with 2 shards defining electable and analytics nodes. Compute auto-scaling is enabled for both `electable_specs` and `analytics_specs`, while also leveraging the [New Sharding Configuration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema) by defining each shard with its individual `replication_specs`. This enables scaling of each shard to be independent. Please reference [Use Auto-Scaling Per Shard](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema#use-auto-scaling-per-shard) section for more details.
+This example creates a Sharded Cluster with 2 shards defining electable and analytics nodes. Compute auto-scaling is enabled for both `electable_specs` and `analytics_specs`, while also leveraging the [New Sharding Configuration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema) by defining each shard with its individual `replication_specs`. This enables scaling of each shard to be independent. Please reference the [Use Auto-Scaling Per Shard](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema#use-auto-scaling-per-shard) section for more details.
 
 
 ## Dependencies
@@ -15,7 +15,7 @@ Terraform >= 0.13
 
 
 ## Usage
-**1\. Ensure your MongoDB Atlas credentials are set up.**
+**1\. If you haven't already, set up your MongoDB Atlas credentials.**
 
 This can be done using environment variables:
 
@@ -31,7 +31,7 @@ private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
 atlas_org_id         = "<MONGODB_ATLAS_ORG_ID>"
 ```
 
-... or use [AWS Secrets Manager](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/index.html.markdown#aws-secrets-manager)
+Alternatively, you can use [AWS Secrets Manager](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/index.html.markdown#aws-secrets-manager).
 
 **2\. Review the Terraform plan.**
 
@@ -45,7 +45,7 @@ This project currently supports the below deployments:
 - An Atlas Project
 - A Sharded Cluster with independent shards with varying cluster tiers
 
-**3\. Execute the Terraform apply.**
+**3\. Apply your changes.**
 
 Now execute the plan to provision the Atlas Project and Cluster resources.
 
