@@ -8,12 +8,44 @@ import (
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/zclconf/go-cty/cty"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestCheckResourceAttrSchemaV2(isAcc bool, name, key, value string) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttr(name, key, value)
+}
+
+func TestCheckResourceAttrSetSchemaV2(isAcc bool, name, key string) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttrSet(name, key)
+}
+
+func TestCheckResourceAttrWithSchemaV2(isAcc bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttrWith(name, key, checkValueFunc)
+}
+
+func TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc bool, name, attr string, values map[string]string) resource.TestCheckFunc {
+	return resource.TestCheckTypeSetElemNestedAttrs(name, attr, values)
+}
+
+// AddAttrChecksSchemaV2 is like AddAttrChecks but adding V2 schema support
+func AddAttrChecksSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
+	return AddAttrChecks(name, checks, ConvertToTPFAttrsMap(mapChecks))
+}
+
+// AddAttrChecksSchemaV2 is like AddAttrSetChecks but adding V2 schema support
+func AddAttrSetChecksSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
+	return AddAttrSetChecks(name, checks, ConvertToTPFAttrsSet(attrNames)...)
+}
+
+// AddAttrChecksPrefixSchemaV2 is like AddAttrChecksPrefix but adding V2 schema support
+func AddAttrChecksPrefixSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string, prefix string, skipNames ...string) []resource.TestCheckFunc {
+	return AddAttrChecksPrefix(name, checks, ConvertToTPFAttrsMap(mapChecks), prefix, skipNames...)
+}
 
 func ConvertToTPFAttrsMap(attrsMap map[string]string) map[string]string {
 	if !config.AdvancedClusterV2Schema() {

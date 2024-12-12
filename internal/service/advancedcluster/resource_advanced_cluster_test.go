@@ -42,11 +42,11 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configTenant(projectID, clusterName)),
-				Check:  checkTenant(projectID, clusterName),
+				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configTenant(projectID, clusterNameUpdated)),
-				Check:  checkTenant(projectID, clusterNameUpdated),
+				Check:  checkTenant(true, projectID, clusterNameUpdated),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -71,11 +71,11 @@ func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configReplicaSetAWSProvider(projectID, clusterName, 60, 3)),
-				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 60, 3, true, true),
+				Check:  checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 60, 3, true, true),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configReplicaSetAWSProvider(projectID, clusterName, 50, 5)),
-				Check:  checkReplicaSetAWSProvider(projectID, clusterName, 50, 5, true, true),
+				Check:  checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 50, 5, true, true),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
 		},
@@ -101,11 +101,11 @@ func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configReplicaSetMultiCloud(orgID, projectName, clusterName)),
-				Check:  checkReplicaSetMultiCloud(clusterName, 3),
+				Check:  checkReplicaSetMultiCloud(isAcc, clusterName, 3),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configReplicaSetMultiCloud(orgID, projectName, clusterNameUpdated)),
-				Check:  checkReplicaSetMultiCloud(clusterNameUpdated, 3),
+				Check:  checkReplicaSetMultiCloud(isAcc, clusterNameUpdated, 3),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
 		},
@@ -137,11 +137,11 @@ func singleShardedMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 1, "M10", nil)),
-				Check:  checkShardedOldSchemaMultiCloud(clusterName, 1, "M10", true, nil),
+				Check:  checkShardedOldSchemaMultiCloud(isAcc, clusterName, 1, "M10", true, nil),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configShardedOldSchemaMultiCloud(orgID, projectName, clusterNameUpdated, 1, "M10", nil)),
-				Check:  checkShardedOldSchemaMultiCloud(clusterNameUpdated, 1, "M10", true, nil),
+				Check:  checkShardedOldSchemaMultiCloud(isAcc, clusterNameUpdated, 1, "M10", true, nil),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"),
 		},
@@ -163,11 +163,11 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, false, instanceSize)),
-				Check:  checkSingleProviderPaused(clusterName, false),
+				Check:  checkSingleProviderPaused(true, clusterName, false),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, true, instanceSize)),
-				Check:  checkSingleProviderPaused(clusterName, true),
+				Check:  checkSingleProviderPaused(true, clusterName, true),
 			},
 			{
 				Config:      acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, true, anotherInstanceSize)),
@@ -192,11 +192,11 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, true, instanceSize)),
-				Check:  checkSingleProviderPaused(clusterName, true),
+				Check:  checkSingleProviderPaused(true, clusterName, true),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, false, instanceSize)),
-				Check:  checkSingleProviderPaused(clusterName, false),
+				Check:  checkSingleProviderPaused(true, clusterName, false),
 			},
 			{
 				Config:      acc.ConvertAdvancedClusterToTPF(t, configSingleProviderPaused(projectID, clusterName, true, instanceSize)),
@@ -247,7 +247,7 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 			},
 			{
 				Config: configAdvanced(projectID, clusterName, "6.0", processArgs20240530, &admin.ClusterDescriptionProcessArgs20240805{}),
-				Check:  checkAdvanced(clusterName, "TLS1_1", &admin.ClusterDescriptionProcessArgs20240805{}),
+				Check:  checkAdvanced(true, clusterName, "TLS1_1", &admin.ClusterDescriptionProcessArgs20240805{}),
 			},
 		},
 	})
@@ -300,11 +300,11 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvanced(projectID, clusterName, "", processArgs20240530, processArgs)),
-				Check:  checkAdvanced(clusterName, "TLS1_1", processArgs),
+				Check:  checkAdvanced(true, clusterName, "TLS1_1", processArgs),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvanced(projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdated)),
-				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", processArgsUpdated),
+				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_2", processArgsUpdated),
 			},
 		},
 	})
@@ -348,11 +348,11 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvancedDefaultWrite(projectID, clusterName, processArgs)),
-				Check:  checkAdvancedDefaultWrite(clusterName, "1", "TLS1_1"),
+				Check:  checkAdvancedDefaultWrite(true, clusterName, "1", "TLS1_1"),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configAdvancedDefaultWrite(projectID, clusterNameUpdated, processArgsUpdated)),
-				Check:  checkAdvancedDefaultWrite(clusterNameUpdated, "majority", "TLS1_2"),
+				Check:  checkAdvancedDefaultWrite(true, clusterNameUpdated, "majority", "TLS1_2"),
 			},
 		},
 	})
@@ -385,19 +385,19 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicationSpecsAutoScaling(projectID, clusterName, autoScaling)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_min_retention_hours", "5.5"),
+					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "name", clusterName),
+					acc.TestCheckResourceAttrSetSchemaV2(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "false"),
+					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "advanced_configuration.0.oplog_min_retention_hours", "5.5"),
 				),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicationSpecsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"),
+					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "name", clusterNameUpdated),
+					acc.TestCheckResourceAttrSetSchemaV2(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"),
 				),
 			},
 		},
@@ -431,18 +431,18 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicationSpecsAnalyticsAutoScaling(projectID, clusterName, autoScaling)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "false"),
+					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "name", clusterName),
+					acc.TestCheckResourceAttrSetSchemaV2(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "false"),
 				),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicationSpecsAnalyticsAutoScaling(projectID, clusterNameUpdated, autoScalingUpdated)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterNameUpdated),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
+					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "name", clusterNameUpdated),
+					acc.TestCheckResourceAttrSetSchemaV2(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
 				),
 			},
 		},
@@ -466,7 +466,7 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 1, false)),
-				Check:  checkGeoShardedOldSchema(clusterName, 1, 1, true, true),
+				Check:  checkGeoShardedOldSchema(true, clusterName, 1, 1, true, true),
 			},
 			{
 				Config:      acc.ConvertAdvancedClusterToTPF(t, configGeoShardedOldSchema(orgID, projectName, clusterName, 1, 2, false)),
@@ -490,15 +490,15 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags"))),
-				Check:  checkKeyValueBlocks(clusterName, "tags"),
+				Check:  checkKeyValueBlocks(true, clusterName, "tags"),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2))),
-				Check:  checkKeyValueBlocks(clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2),
+				Check:  checkKeyValueBlocks(true, clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "tags", acc.ClusterTagsMap3))),
-				Check:  checkKeyValueBlocks(clusterName, "tags", acc.ClusterTagsMap3),
+				Check:  checkKeyValueBlocks(true, clusterName, "tags", acc.ClusterTagsMap3),
 			},
 		},
 	})
@@ -518,15 +518,15 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels"))),
-				Check:  checkKeyValueBlocks(clusterName, "labels"),
+				Check:  checkKeyValueBlocks(true, clusterName, "labels"),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2))),
-				Check:  checkKeyValueBlocks(clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2),
+				Check:  checkKeyValueBlocks(true, clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configWithKeyValueBlocks(orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap3))),
-				Check:  checkKeyValueBlocks(clusterName, "labels", acc.ClusterLabelsMap3),
+				Check:  checkKeyValueBlocks(true, clusterName, "labels", acc.ClusterLabelsMap3),
 			},
 		},
 	})
@@ -542,8 +542,8 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 		clusterName = acc.RandomClusterName()
 		checks      = []resource.TestCheckFunc{
 			acc.CheckExistsCluster(resourceName),
-			resource.TestCheckResourceAttr(resourceName, "global_cluster_self_managed_sharding", "true"),
-			resource.TestCheckResourceAttr(dataSourceName, "global_cluster_self_managed_sharding", "true"),
+			acc.TestCheckResourceAttrSchemaV2(true, resourceName, "global_cluster_self_managed_sharding", "true"),
+			acc.TestCheckResourceAttrSchemaV2(true, dataSourceName, "global_cluster_self_managed_sharding", "true"),
 		}
 	)
 
@@ -604,11 +604,11 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T)
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated)),
-				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M10", false, &configServerManagementModeFixedToDedicated),
+				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M10", false, &configServerManagementModeFixedToDedicated),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaMultiCloud(orgID, projectName, clusterName, 2, "M20", &configServerManagementModeAtlasManaged)),
-				Check:  checkShardedOldSchemaMultiCloud(clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
+				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
 			},
 		},
 	})
@@ -636,11 +636,11 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isAcc bool) resource.Tes
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configGeoShardedOldSchema(orgID, projectName, clusterName, 2, 2, false)),
-				Check:  checkGeoShardedOldSchema(clusterName, 2, 2, true, false),
+				Check:  checkGeoShardedOldSchema(isAcc, clusterName, 2, 2, true, false),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configGeoShardedOldSchema(orgID, projectName, clusterName, 3, 3, false)),
-				Check:  checkGeoShardedOldSchema(clusterName, 3, 3, true, false),
+				Check:  checkGeoShardedOldSchema(isAcc, clusterName, 3, 3, true, false),
 			},
 		},
 	}
@@ -663,11 +663,11 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 50)),
-				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(50),
+				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(true, 50),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, clusterName, 55)),
-				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(55),
+				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(true, 55),
 			},
 		},
 	})
@@ -690,15 +690,15 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedNewSchema(orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false)),
-				Check:  checkShardedNewSchema(50, "M10", "M10", nil, nil, false, false),
+				Check:  checkShardedNewSchema(true, 50, "M10", "M10", nil, nil, false, false),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true)), // add middle replication spec and transition to asymmetric
-				Check:  checkShardedNewSchema(55, "M10", "M20", nil, nil, true, true),
+				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, true),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedNewSchema(orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false)), // removes middle replication spec
-				Check:  checkShardedNewSchema(55, "M10", "M20", nil, nil, true, false),
+				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, false),
 			},
 		},
 	})
@@ -723,7 +723,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestC
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPFIfEnabled(t, isAcc, configShardedNewSchema(orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false)),
-				Check:  checkShardedNewSchema(50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+				Check:  checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 			},
 		},
 	}
@@ -746,15 +746,15 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedNewSchema(orgID, projectName, clusterName, false)),
-				Check:  checkGeoShardedNewSchema(false),
+				Check:  checkGeoShardedNewSchema(true, false),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedNewSchema(orgID, projectName, clusterName, true)),
-				Check:  checkGeoShardedNewSchema(true),
+				Check:  checkGeoShardedNewSchema(true, true),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedNewSchema(orgID, projectName, clusterName, false)),
-				Check:  checkGeoShardedNewSchema(false),
+				Check:  checkGeoShardedNewSchema(true, false),
 			},
 		},
 	})
@@ -777,11 +777,11 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false)),
-				Check:  checkShardedTransitionOldToNewSchema(false),
+				Check:  checkShardedTransitionOldToNewSchema(true, false),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true)),
-				Check:  checkShardedTransitionOldToNewSchema(true),
+				Check:  checkShardedTransitionOldToNewSchema(true, true),
 			},
 		},
 	})
@@ -804,11 +804,11 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, false)),
-				Check:  checkGeoShardedTransitionOldToNewSchema(false),
+				Check:  checkGeoShardedTransitionOldToNewSchema(true, false),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configGeoShardedTransitionOldToNewSchema(orgID, projectName, clusterName, true)),
-				Check:  checkGeoShardedTransitionOldToNewSchema(true),
+				Check:  checkGeoShardedTransitionOldToNewSchema(true, true),
 			},
 		},
 	})
@@ -828,19 +828,19 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *t
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "WORKLOAD_TYPE", true)),
-				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("WORKLOAD_TYPE", true),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "WORKLOAD_TYPE", true),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "SEQUENTIAL", false)),
-				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("SEQUENTIAL", false),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "SEQUENTIAL", false),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "NODE_TYPE", true)),
-				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("NODE_TYPE", true),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "NODE_TYPE", true),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogData(orgID, projectName, clusterName, "NODE_TYPE", false)),
-				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("NODE_TYPE", false),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "NODE_TYPE", false),
 			},
 		},
 	})
@@ -860,15 +860,15 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "WORKLOAD_TYPE", false)),
-				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("WORKLOAD_TYPE", false),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "WORKLOAD_TYPE", false),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "SEQUENTIAL", true)),
-				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("SEQUENTIAL", true),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "SEQUENTIAL", true),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, projectName, clusterName, "NODE_TYPE", false)),
-				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("NODE_TYPE", false),
+				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "NODE_TYPE", false),
 			},
 		},
 	})
@@ -901,7 +901,7 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configPriority(orgID, projectName, clusterName, true, false)),
-				Check:  resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.#", "2"),
+				Check:  acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 			{
 				Config:      acc.ConvertAdvancedClusterToTPF(t, configPriority(orgID, projectName, clusterName, true, true)),
@@ -933,7 +933,7 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, configPriority(orgID, projectName, clusterName, false, false)),
-				Check:  resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.#", "2"),
+				Check:  acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 			{
 				Config:      acc.ConvertAdvancedClusterToTPF(t, configPriority(orgID, projectName, clusterName, false, true)),
@@ -955,11 +955,11 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configBiConnectorConfig(projectID, clusterName, false))),
-				Check:  checkTenantBiConnectorConfig(projectID, clusterName, false),
+				Check:  checkTenantBiConnectorConfig(true, projectID, clusterName, false),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToTPF(t, acc.ConvertAdvancedClusterToTPF(t, configBiConnectorConfig(projectID, clusterName, true))),
-				Check:  checkTenantBiConnectorConfig(projectID, clusterName, true),
+				Check:  checkTenantBiConnectorConfig(true, projectID, clusterName, true),
 			},
 		},
 	})
@@ -1019,14 +1019,12 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 	})
 }
 
-func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
-	attrsMap = acc.ConvertToTPFAttrsMap(attrsMap)
-	attrsSet = acc.ConvertToTPFAttrsSet(attrsSet)
+func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
-	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
-	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
-	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
-	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecksSchemaV2(isAcc, resourceName, checks, attrsMap)
+	checks = acc.AddAttrSetChecksSchemaV2(isAcc, resourceName, checks, attrsSet...)
+	checks = acc.AddAttrChecksSchemaV2(isAcc, dataSourceName, checks, attrsMap)
+	checks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourceName, checks, attrsSet...)
 	checks = append(checks, extra...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
@@ -1062,10 +1060,10 @@ func configTenant(projectID, name string) string {
 	`, projectID, name)
 }
 
-func checkTenant(projectID, name string) resource.TestCheckFunc {
-	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
+func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
+	pluralChecks := acc.AddAttrSetChecksSchemaV2(isAcc, dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":                           projectID,
@@ -1127,23 +1125,23 @@ func configWithKeyValueBlocks(orgID, projectName, clusterName, blockName string,
 	`, orgID, projectName, clusterName, extraConfig)
 }
 
-func checkKeyValueBlocks(clusterName, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
+func checkKeyValueBlocks(isAcc bool, clusterName, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
 	const pluralPrefix = "results.0."
 	lenStr := strconv.Itoa(len(blocks))
 	keyHash := fmt.Sprintf("%s.#", blockName)
 	keyStar := fmt.Sprintf("%s.*", blockName)
 	checks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(resourceName, keyHash, lenStr),
-		resource.TestCheckResourceAttr(dataSourceName, keyHash, lenStr),
-		resource.TestCheckResourceAttr(dataSourcePluralName, pluralPrefix+keyHash, lenStr),
+		acc.TestCheckResourceAttrSchemaV2(isAcc, resourceName, keyHash, lenStr),
+		acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourceName, keyHash, lenStr),
+		acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourcePluralName, pluralPrefix+keyHash, lenStr),
 	}
 	for _, block := range blocks {
 		checks = append(checks,
-			resource.TestCheckTypeSetElemNestedAttrs(resourceName, keyStar, block),
-			resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, keyStar, block),
-			resource.TestCheckTypeSetElemNestedAttrs(dataSourcePluralName, pluralPrefix+keyStar, block))
+			acc.TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc, resourceName, keyStar, block),
+			acc.TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc, dataSourceName, keyStar, block),
+			acc.TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc, dataSourcePluralName, pluralPrefix+keyStar, block))
 	}
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{"project_id"},
 		map[string]string{
 			"name": clusterName,
@@ -1184,18 +1182,18 @@ func configReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountEl
 	`, projectID, name, diskSizeGB, nodeCountElectable)
 }
 
-func checkReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
+func checkReplicaSetAWSProvider(isAcc bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
+		acc.TestCheckResourceAttrSchemaV2(isAcc, resourceName, "retain_backups_enabled", "true"),
 	}
 	diskIopsPath := acc.AttrNameToSchemaV2("replication_specs.0.region_configs.0.electable_specs.0.disk_iops")
 	additionalChecks = append(additionalChecks,
-		resource.TestCheckResourceAttrWith(resourceName, diskIopsPath, acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(dataSourceName, diskIopsPath, acc.IntGreatThan(0)))
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, resourceName, diskIopsPath, acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, dataSourceName, diskIopsPath, acc.IntGreatThan(0)))
 
 	if checkDiskSizeGBInnerLevel {
 		additionalChecks = append(additionalChecks,
-			checkAggr([]string{}, map[string]string{
+			checkAggr(isAcc, []string{}, map[string]string{
 				"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 				"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 			}),
@@ -1203,10 +1201,10 @@ func checkReplicaSetAWSProvider(projectID, name string, diskSizeGB, nodeCountEle
 	}
 
 	if checkExternalID {
-		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
+		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetSchemaV2(isAcc, resourceName, "replication_specs.0.external_id"))
 	}
 
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":   projectID,
@@ -1306,18 +1304,18 @@ func configReplicaSetMultiCloud(orgID, projectName, name string) string {
 	`, orgID, projectName, name)
 }
 
-func checkReplicaSetMultiCloud(name string, regionConfigs int) resource.TestCheckFunc {
+func checkReplicaSetMultiCloud(isAcc bool, name string, regionConfigs int) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
-		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+		acc.TestCheckResourceAttrSchemaV2(isAcc, resourceName, "retain_backups_enabled", "false"),
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrSetSchemaV2(isAcc, resourceName, "replication_specs.0.external_id"),
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourcePluralName, "results.#"),
+		acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourcePluralName, "results.0.replication_specs.#"),
+		acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourcePluralName, "results.0.name"),
 	}
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.id"},
 		map[string]string{
 			"name": name},
@@ -1387,31 +1385,31 @@ func configShardedOldSchemaMultiCloud(orgID, projectName, name string, numShards
 	`, orgID, projectName, name, numShards, analyticsSize, rootConfig)
 }
 
-func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
+func checkShardedOldSchemaMultiCloud(isAcc bool, name string, numShards int, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithSchemaV2(isAcc, dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 	}
 	if verifyExternalID {
 		additionalChecks = append(
 			additionalChecks,
-			resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
+			acc.TestCheckResourceAttrSetSchemaV2(isAcc, resourceName, "replication_specs.0.external_id"))
 	}
 	if configServerManagementMode != nil {
 		additionalChecks = append(additionalChecks,
-			resource.TestCheckResourceAttr(resourceName, "config_server_management_mode", *configServerManagementMode),
-			resource.TestCheckResourceAttrSet(resourceName, "config_server_type"),
-			resource.TestCheckResourceAttr(dataSourceName, "config_server_management_mode", *configServerManagementMode),
-			resource.TestCheckResourceAttrSet(dataSourceName, "config_server_type"),
-			resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.config_server_management_mode", *configServerManagementMode),
-			resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.config_server_type"))
+			acc.TestCheckResourceAttrSchemaV2(isAcc, resourceName, "config_server_management_mode", *configServerManagementMode),
+			acc.TestCheckResourceAttrSetSchemaV2(isAcc, resourceName, "config_server_type"),
+			acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourceName, "config_server_management_mode", *configServerManagementMode),
+			acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourceName, "config_server_type"),
+			acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourcePluralName, "results.0.config_server_management_mode", *configServerManagementMode),
+			acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourcePluralName, "results.0.config_server_type"))
 	}
 
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"name":                           name,
@@ -1453,8 +1451,8 @@ func configSingleProviderPaused(projectID, clusterName string, paused bool, inst
 	`, projectID, clusterName, paused, instanceSize)
 }
 
-func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc {
-	return checkAggr(
+func checkSingleProviderPaused(isAcc bool, name string, paused bool) resource.TestCheckFunc {
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"name":   name,
@@ -1529,7 +1527,7 @@ func configAdvanced(projectID, clusterName, mongoDBMajorVersion string, p2024053
 		changeStreamOptionsString, defaultMaxTimeString, mongoDBMajorVersionString)
 }
 
-func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
+func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
 	advancedConfig := map[string]string{
 		"name": name,
 		"advanced_configuration.0.minimum_enabled_tls_protocol":         tls,
@@ -1551,12 +1549,12 @@ func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProces
 	}
 
 	pluralChecks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+		acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourcePluralName, "results.#"),
+		acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourcePluralName, "results.0.replication_specs.#"),
+		acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourcePluralName, "results.0.name"),
 	}
 
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		advancedConfig,
 		pluralChecks...,
@@ -1610,13 +1608,13 @@ func configAdvancedDefaultWrite(projectID, clusterName string, p *admin20240530.
 		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetDefaultReadConcern(), p.GetDefaultWriteConcern())
 }
 
-func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestCheckFunc {
+func checkAdvancedDefaultWrite(isAcc bool, name, writeConcern, tls string) resource.TestCheckFunc {
 	pluralChecks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+		acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourcePluralName, "results.#"),
+		acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourcePluralName, "results.0.replication_specs.#"),
+		acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourcePluralName, "results.0.name"),
 	}
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"name": name,
@@ -1759,15 +1757,15 @@ func configGeoShardedOldSchema(orgID, projectName, name string, numShardsFirstZo
 	`, orgID, projectName, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
 }
 
-func checkGeoShardedOldSchema(name string, numShardsFirstZone, numShardsSecondZone int, isLatestProviderVersion, verifyExternalID bool) resource.TestCheckFunc {
+func checkGeoShardedOldSchema(isAcc bool, name string, numShardsFirstZone, numShardsSecondZone int, isLatestProviderVersion, verifyExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{}
 
 	if verifyExternalID {
-		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.external_id"))
+		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetSchemaV2(isAcc, resourceName, "replication_specs.0.external_id"))
 	}
 
 	if isLatestProviderVersion { // checks that will not apply if doing migration test with older version
-		additionalChecks = append(additionalChecks, checkAggr(
+		additionalChecks = append(additionalChecks, checkAggr(isAcc,
 			[]string{"replication_specs.0.zone_id", "replication_specs.0.zone_id"},
 			map[string]string{
 				"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
@@ -1775,7 +1773,7 @@ func checkGeoShardedOldSchema(name string, numShardsFirstZone, numShardsSecondZo
 			}))
 	}
 
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.0.id", "replication_specs.1.id"},
 		map[string]string{
 			"name":                           name,
@@ -1829,8 +1827,8 @@ func configShardedOldSchemaDiskSizeGBElectableLevel(orgID, projectName, name str
 	`, orgID, projectName, name, diskSizeGB)
 }
 
-func checkShardedOldSchemaDiskSizeGBElectableLevel(diskSizeGB int) resource.TestCheckFunc {
-	return checkAggr(
+func checkShardedOldSchemaDiskSizeGBElectableLevel(isAcc bool, diskSizeGB int) resource.TestCheckFunc {
+	return checkAggr(isAcc,
 		[]string{},
 		map[string]string{
 			"replication_specs.0.num_shards": "2",
@@ -1943,7 +1941,7 @@ func configShardedNewSchema(orgID, projectName, name string, diskSizeGB int, fir
 	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB)
 }
 
-func checkShardedNewSchema(diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops *int, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
+func checkShardedNewSchema(isAcc bool, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops *int, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
 	amtOfReplicationSpecs := 2
 	if includeMiddleSpec {
 		amtOfReplicationSpecs = 3
@@ -1972,27 +1970,27 @@ func checkShardedNewSchema(diskSizeGB int, firstInstanceSize, lastInstanceSize s
 	}
 
 	// plural data source checks
-	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
+	pluralChecks := acc.AddAttrSetChecksSchemaV2(isAcc, dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
 
-	pluralChecks = acc.AddAttrChecksPrefix(dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
+	pluralChecks = acc.AddAttrChecksPrefixSchemaV2(isAcc, dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
 
 	// expected id attribute only if cluster is symmetric
 	if isAsymmetricCluster {
-		pluralChecks = append(pluralChecks, checkAggr([]string{}, map[string]string{
+		pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{}, map[string]string{
 			"replication_specs.0.id": "",
 			"replication_specs.1.id": "",
 		}))
-		pluralChecks = acc.AddAttrChecks(dataSourcePluralName, pluralChecks, map[string]string{
+		pluralChecks = acc.AddAttrChecksSchemaV2(isAcc, dataSourcePluralName, pluralChecks, map[string]string{
 			"results.0.replication_specs.0.id": "",
 			"results.0.replication_specs.1.id": "",
 		})
 	} else {
-		pluralChecks = append(pluralChecks, checkAggr([]string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
-		pluralChecks = acc.AddAttrSetChecks(dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+		pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
+		pluralChecks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
 	}
 
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
 		clusterChecks,
 		pluralChecks...,
@@ -2066,7 +2064,7 @@ func configGeoShardedNewSchema(orgID, projectName, name string, includeThirdShar
 	`, orgID, projectName, name, thirdReplicationSpec)
 }
 
-func checkGeoShardedNewSchema(includeThirdShardInFirstZone bool) resource.TestCheckFunc {
+func checkGeoShardedNewSchema(isAcc, includeThirdShardInFirstZone bool) resource.TestCheckFunc {
 	var amtOfReplicationSpecs int
 	if includeThirdShardInFirstZone {
 		amtOfReplicationSpecs = 3
@@ -2077,10 +2075,7 @@ func checkGeoShardedNewSchema(includeThirdShardInFirstZone bool) resource.TestCh
 		"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
 	}
 
-	return checkAggr(
-		[]string{},
-		clusterChecks,
-	)
+	return checkAggr(isAcc, []string{}, clusterChecks)
 }
 
 func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useNewSchema bool) string {
@@ -2150,7 +2145,7 @@ func configShardedTransitionOldToNewSchema(orgID, projectName, name string, useN
 	`, orgID, projectName, name, replicationSpecs, dataSourceFlag)
 }
 
-func checkShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestCheckFunc {
+func checkShardedTransitionOldToNewSchema(isAcc, useNewSchema bool) resource.TestCheckFunc {
 	var amtOfReplicationSpecs int
 	if useNewSchema {
 		amtOfReplicationSpecs = 2
@@ -2160,7 +2155,7 @@ func checkShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestCheckF
 	var checksForNewSchema []resource.TestCheckFunc
 	if useNewSchema {
 		checksForNewSchema = []resource.TestCheckFunc{
-			checkAggr([]string{"replication_specs.1.id", "replication_specs.0.external_id", "replication_specs.1.external_id"},
+			checkAggr(isAcc, []string{"replication_specs.1.id", "replication_specs.0.external_id", "replication_specs.1.external_id"},
 				map[string]string{
 					"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
 					"replication_specs.1.region_configs.0.electable_specs.0.instance_size": "M10",
@@ -2169,7 +2164,7 @@ func checkShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestCheckF
 		}
 	}
 
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{"replication_specs.0.id"},
 		map[string]string{
 			"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
@@ -2254,9 +2249,9 @@ func configGeoShardedTransitionOldToNewSchema(orgID, projectName, name string, u
 	`, orgID, projectName, name, replicationSpecs, dataSourceFlag)
 }
 
-func checkGeoShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestCheckFunc {
+func checkGeoShardedTransitionOldToNewSchema(isAcc, useNewSchema bool) resource.TestCheckFunc {
 	if useNewSchema {
-		return checkAggr(
+		return checkAggr(isAcc,
 			[]string{"replication_specs.0.id", "replication_specs.1.id", "replication_specs.2.id", "replication_specs.3.id",
 				"replication_specs.0.external_id", "replication_specs.1.external_id", "replication_specs.2.external_id", "replication_specs.3.external_id",
 			},
@@ -2269,7 +2264,7 @@ func checkGeoShardedTransitionOldToNewSchema(useNewSchema bool) resource.TestChe
 			},
 		)
 	}
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{"replication_specs.0.id", "replication_specs.1.id"},
 		map[string]string{
 			"replication_specs.#":           "2",
@@ -2372,17 +2367,17 @@ func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(orgID, proje
 	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData)
 }
 
-func checkReplicaSetScalingStrategyAndRedactClientLogData(replicaSetScalingStrategy string, redactClientLogData bool) resource.TestCheckFunc {
+func checkReplicaSetScalingStrategyAndRedactClientLogData(isAcc bool, replicaSetScalingStrategy string, redactClientLogData bool) resource.TestCheckFunc {
 	clusterChecks := map[string]string{
 		"replica_set_scaling_strategy": replicaSetScalingStrategy,
 		"redact_client_log_data":       strconv.FormatBool(redactClientLogData),
 	}
 
 	// plural data source checks
-	pluralChecks := acc.AddAttrSetChecks(dataSourcePluralName, nil,
+	pluralChecks := acc.AddAttrSetChecksSchemaV2(isAcc, dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replica_set_scaling_strategy", "results.0.redact_client_log_data"}...)
 
-	return checkAggr(
+	return checkAggr(isAcc,
 		[]string{},
 		clusterChecks,
 		pluralChecks...,
@@ -2496,7 +2491,7 @@ func configBiConnectorConfig(projectID, name string, enabled bool) string {
 	`, projectID, name, additionalConfig)
 }
 
-func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource.TestCheckFunc {
+func checkTenantBiConnectorConfig(isAcc bool, projectID, name string, enabled bool) resource.TestCheckFunc {
 	attrsMap := map[string]string{
 		"project_id": projectID,
 		"name":       name,
@@ -2507,7 +2502,7 @@ func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource
 	} else {
 		attrsMap["bi_connector_config.0.enabled"] = "false"
 	}
-	return checkAggr(nil, attrsMap)
+	return checkAggr(isAcc, nil, attrsMap)
 }
 
 func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationDate *string, mongoDBMajorVersion string) string {
