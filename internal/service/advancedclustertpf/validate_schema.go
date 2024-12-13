@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -80,5 +81,27 @@ func performValidation(ctx context.Context, state *tfsdk.State, plan *tfsdk.Plan
 	}
 	if !*isCompatible {
 		diags.AddError(fmt.Sprintf("`%s` %s", validationPath, v.Description(ctx)), "")
+	}
+}
+
+type RegionSpecPriorityOrderDecreasingValidator struct{}
+
+func (v RegionSpecPriorityOrderDecreasingValidator) Description(ctx context.Context) string {
+	return v.MarkdownDescription(ctx)
+}
+func (v RegionSpecPriorityOrderDecreasingValidator) MarkdownDescription(_ context.Context) string {
+	return "must be a list with priority in descending order"
+}
+func (v RegionSpecPriorityOrderDecreasingValidator) ValidateList(ctx context.Context, req validator.ListRequest, resp *validator.ListResponse) {
+	diags := &resp.Diagnostics
+	regionConfigs := newCloudRegionConfig20240805(ctx, req.ConfigValue, diags)
+	if diags.HasError() {
+		return
+	}
+	configs := *regionConfigs
+	for i := range configs[:len(configs)-1] {
+		if configs[i].GetPriority() < configs[i+1].GetPriority() {
+			diags.AddError("priority values in region_configs must be in descending order", fmt.Sprintf("priority value at index %d is %d and priority value at index %d is %d", i, configs[i].GetPriority(), i+1, configs[i+1].GetPriority()))
+		}
 	}
 }
