@@ -1,15 +1,22 @@
-//nolint:gocritic
 package streamprivatelinkendpoint
 
 import (
 	"context"
+	"errors"
+	"net/http"
+	"regexp"
+
+	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const resourceName = "stream_privatelink_endpoint"
+const (
+	resourceName             = "stream_privatelink_endpoint"
+	warnUnsupportedOperation = "Operation not supported"
+)
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
@@ -27,125 +34,112 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	// TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = ResourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var tfModel TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
+	var plan TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// streamPrivatelinkEndpointReq, diags := NewAtlasReq(ctx, &tfModel)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
+	streamPrivatelinkEndpointReq, diags := NewAtlasReq(ctx, &plan)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
 
-	// TODO: make POST request to Atlas API and handle error in response
+	projectID := plan.ProjectId.ValueString()
 
-	// connV2 := r.Client.AtlasV2
-	// if err != nil {
-	//	resp.Diagnostics.AddError("error creating resource", err.Error())
-	//	return
-	//}
+	connV2 := r.Client.AtlasV2
+	streamsPrivateLinkConnection, _, err := connV2.StreamsApi.CreatePrivateLinkConnection(ctx, projectID, streamPrivatelinkEndpointReq).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("error creating resource", err.Error())
+		return
+	}
 
-	// TODO: process response into new terraform state
-	// newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, apiResp)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
-	// resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointModel)...)
+	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, streamsPrivateLinkConnection)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointModel)...)
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var streamPrivatelinkEndpointState TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &streamPrivatelinkEndpointState)...)
+	var state TFModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// TODO: make get request to resource
+	projectID := state.ProjectId.ValueString()
+	connectionID := state.Id.ValueString()
 
-	// connV2 := r.Client.AtlasV2
-	// if err != nil {
-	//	if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
-	//		resp.State.RemoveResource(ctx)
-	//		return
-	//	}
-	//	resp.Diagnostics.AddError("error fetching resource", err.Error())
-	//	return
-	//}
+	connV2 := r.Client.AtlasV2
+	streamsPrivateLinkConnection, apiResp, err := connV2.StreamsApi.GetPrivateLinkConnection(ctx, projectID, connectionID).Execute()
+	if err != nil {
+		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		return
+	}
 
-	// TODO: process response into new terraform state
-	// newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, apiResp)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
-	// resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointModel)...)
+	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, streamsPrivateLinkConnection)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointModel)...)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var tfModel TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// streamPrivatelinkEndpointReq, diags := NewAtlasReq(ctx, &tfModel)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
-
-	// TODO: make PATCH request to Atlas API and handle error in response
-	// connV2 := r.Client.AtlasV2
-	// if err != nil {
-	//	resp.Diagnostics.AddError("error updating resource", err.Error())
-	//	return
-	//}
-
-	// TODO: process response into new terraform state
-
-	// newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, apiResp)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
-	// resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointModel)...)
+	resp.Diagnostics.AddWarning(warnUnsupportedOperation, "Updating the private endpoint for streams is not supported. To modify your infrastructure, please delete the existing mongodbatlas_stream_privatelink_endpoint resource and create a new one with the necessary updates")
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var streamPrivatelinkEndpointState *TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &streamPrivatelinkEndpointState)...)
+	var state *TFModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// TODO: make Delete request to Atlas API
+	projectID := state.ProjectId.ValueString()
+	connectionID := state.Id.ValueString()
 
-	// connV2 := r.Client.AtlasV2
-	// if _, _, err := connV2.Api.Delete().Execute(); err != nil {
-	// 	 resp.Diagnostics.AddError("error deleting resource", err.Error())
-	// 	 return
-	// }
+	connV2 := r.Client.AtlasV2
+	if _, _, err := connV2.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, connectionID).Execute(); err != nil {
+		resp.Diagnostics.AddError("error deleting resource", err.Error())
+		return
+	}
+	//TODO: state transition like encryptionatrestprivateendpoint
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// TODO: parse req.ID string taking into account documented format. Example:
+	projectID, connectionID, err := splitStreamPrivatelinkEndpointImportID(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError("error splitting import ID", err.Error())
+		return
+	}
 
-	// projectID, other, err := splitStreamPrivatelinkEndpointImportID(req.ID)
-	// if err != nil {
-	//	resp.Diagnostics.AddError("error splitting import ID", err.Error())
-	//	return
-	//}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), connectionID)...)
+}
 
-	// TODO: define attributes that are required for read operation to work correctly. Example:
+func splitStreamPrivatelinkEndpointImportID(id string) (projectID, connectionID string, err error) {
+	re := regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-([0-9a-fA-F]{24})$`)
+	parts := re.FindStringSubmatch(id)
 
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
+	if len(parts) != 3 {
+		err = errors.New("import format error: to import a stream private link endpoint, use the format {project_id}-{connection_id}")
+		return
+	}
+
+	projectID = parts[1]
+	connectionID = parts[2]
+	return
 }
