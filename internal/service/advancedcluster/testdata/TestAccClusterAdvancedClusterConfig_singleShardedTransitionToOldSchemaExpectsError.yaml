@@ -1,66 +1,68 @@
 variables:
-  clusterName: test-acc-tf-c-3209407631271730009
-  groupId: 67599c05eaac772450d9109f
+  clusterName: test-acc-tf-c-2213298524088977531
+  groupId: 675b0362abd8e244b8809837
+  orgId: 65def6ce0f722a1507105aa5
+  projectName: test-acc-tf-p-1596377185987515344
 steps:
-  - config: |2-
-      		resource "mongodbatlas_project" "cluster_project" {
-      			org_id = "65def6ce0f722a1507105aa5"
-      			name   = "test-acc-tf-p-578651241246656244"
-      		}
+  - config: |+
+      resource "mongodbatlas_project" "cluster_project" {
+        org_id = "65def6ce0f722a1507105aa5"
+        name   = "test-acc-tf-p-1596377185987515344"
+      }
 
-      		resource "mongodbatlas_advanced_cluster" "test" {
-      			project_id = mongodbatlas_project.cluster_project.id
-      			name = "test-acc-tf-c-3209407631271730009"
-      			backup_enabled = false
-      			mongo_db_major_version = "7.0"
-      			cluster_type   = "GEOSHARDED"
-      			global_cluster_self_managed_sharding = false
-      			disk_size_gb  = 60
+      resource "mongodbatlas_advanced_cluster" "test" {
+        project_id                           = mongodbatlas_project.cluster_project.id
+        name                                 = "test-acc-tf-c-2213298524088977531"
+        backup_enabled                       = false
+        mongo_db_major_version               = "7.0"
+        cluster_type                         = "GEOSHARDED"
+        global_cluster_self_managed_sharding = false
+        disk_size_gb                         = 60
 
-      			replication_specs {
-      				zone_name  = "zone n1"
-      				num_shards = 1
+        replication_specs {
+          zone_name  = "zone n1"
+          num_shards = 1
 
-      				region_configs {
-      				electable_specs {
-      					instance_size = "M10"
-      					node_count    = 3
-      				}
-      				analytics_specs {
-      					instance_size = "M10"
-      					node_count    = 0
-      				}
-      				provider_name = "AWS"
-      				priority      = 7
-      				region_name   = "US_EAST_1"
-      				}
-      			}
+          region_configs {
+            electable_specs {
+              instance_size = "M10"
+              node_count    = 3
+            }
+            analytics_specs {
+              instance_size = "M10"
+              node_count    = 0
+            }
+            provider_name = "AWS"
+            priority      = 7
+            region_name   = "US_EAST_1"
+          }
+        }
 
-      			replication_specs {
-      				zone_name  = "zone n2"
-      				num_shards = 1
+        replication_specs {
+          zone_name  = "zone n2"
+          num_shards = 1
 
-      				region_configs {
-      				electable_specs {
-      					instance_size = "M10"
-      					node_count    = 3
-      				}
-      				analytics_specs {
-      					instance_size = "M10"
-      					node_count    = 0
-      				}
-      				provider_name = "AWS"
-      				priority      = 7
-      				region_name   = "EU_WEST_1"
-      				}
-      			}
-      		}
+          region_configs {
+            electable_specs {
+              instance_size = "M10"
+              node_count    = 3
+            }
+            analytics_specs {
+              instance_size = "M10"
+              node_count    = 0
+            }
+            provider_name = "AWS"
+            priority      = 7
+            region_name   = "EU_WEST_1"
+          }
+        }
+      }
 
-      		data "mongodbatlas_advanced_cluster" "test" {
-      			project_id = mongodbatlas_advanced_cluster.test.project_id
-      			name 	     = mongodbatlas_advanced_cluster.test.name
-      		}
-      	
+      data "mongodbatlas_advanced_cluster" "test" {
+        project_id = mongodbatlas_advanced_cluster.test.project_id
+        name       = mongodbatlas_advanced_cluster.test.name
+      }
+
     diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters
         method: POST
@@ -69,16 +71,16 @@ steps:
         responses:
           - response_index: 10
             status: 201
-            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": []\n },\n \"createDate\": \"2024-12-11T14:05:01Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"7.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"67599c0deaac772450d912a8\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"67599c0deaac772450d91290\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128d\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"67599c0deaac772450d91292\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128e\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"CREATING\",\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
+            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": []\n },\n \"createDate\": \"2024-12-12T15:38:19Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"7.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"675b036bb6a225579492e292\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"675b036bb6a225579492e27a\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e277\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"675b036bb6a225579492e27c\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e278\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"CREATING\",\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
     request_responses:
       - path: /api/atlas/v2/groups
         method: POST
         version: '2023-01-01'
-        text: "{\n \"clusterCount\": 0,\n \"created\": \"0001-01-01T00:00:00Z\",\n \"name\": \"test-acc-tf-p-578651241246656244\",\n \"orgId\": \"65def6ce0f722a1507105aa5\",\n \"tags\": [],\n \"withDefaultAlertsSettings\": true\n}"
+        text: "{\n \"clusterCount\": 0,\n \"created\": \"0001-01-01T00:00:00Z\",\n \"name\": \"{projectName}\",\n \"orgId\": \"{orgId}\",\n \"tags\": [],\n \"withDefaultAlertsSettings\": true\n}"
         responses:
           - response_index: 1
             status: 201
-            text: "{\n \"clusterCount\": 0,\n \"created\": \"2024-12-11T14:04:56Z\",\n \"id\": \"{groupId}\",\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers\",\n   \"rel\": \"https://cloud.mongodb.com/containers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters\",\n   \"rel\": \"https://cloud.mongodb.com/clusters\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/databaseUsers\",\n   \"rel\": \"https://cloud.mongodb.com/databaseUsers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/peers\",\n   \"rel\": \"https://cloud.mongodb.com/peers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/processes\",\n   \"rel\": \"https://cloud.mongodb.com/processes\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/whitelist\",\n   \"rel\": \"https://cloud.mongodb.com/whitelist\"\n  }\n ],\n \"name\": \"test-acc-tf-p-578651241246656244\",\n \"orgId\": \"65def6ce0f722a1507105aa5\",\n \"tags\": []\n}"
+            text: "{\n \"clusterCount\": 0,\n \"created\": \"2024-12-12T15:38:14Z\",\n \"id\": \"{groupId}\",\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers\",\n   \"rel\": \"https://cloud.mongodb.com/containers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters\",\n   \"rel\": \"https://cloud.mongodb.com/clusters\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/databaseUsers\",\n   \"rel\": \"https://cloud.mongodb.com/databaseUsers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/peers\",\n   \"rel\": \"https://cloud.mongodb.com/peers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/processes\",\n   \"rel\": \"https://cloud.mongodb.com/processes\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/whitelist\",\n   \"rel\": \"https://cloud.mongodb.com/whitelist\"\n  }\n ],\n \"name\": \"{projectName}\",\n \"orgId\": \"{orgId}\",\n \"tags\": []\n}"
       - path: /api/atlas/v2/groups/{groupId}/settings
         method: GET
         version: '2023-01-01'
@@ -103,10 +105,10 @@ steps:
         responses:
           - response_index: 4
             status: 200
-            text: "{\n \"clusterCount\": 0,\n \"created\": \"2024-12-11T14:04:56Z\",\n \"id\": \"{groupId}\",\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers\",\n   \"rel\": \"https://cloud.mongodb.com/containers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters\",\n   \"rel\": \"https://cloud.mongodb.com/clusters\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/databaseUsers\",\n   \"rel\": \"https://cloud.mongodb.com/databaseUsers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/peers\",\n   \"rel\": \"https://cloud.mongodb.com/peers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/processes\",\n   \"rel\": \"https://cloud.mongodb.com/processes\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/whitelist\",\n   \"rel\": \"https://cloud.mongodb.com/whitelist\"\n  }\n ],\n \"name\": \"test-acc-tf-p-578651241246656244\",\n \"orgId\": \"65def6ce0f722a1507105aa5\",\n \"tags\": []\n}"
-          - response_index: 49
+            text: "{\n \"clusterCount\": 0,\n \"created\": \"2024-12-12T15:38:14Z\",\n \"id\": \"{groupId}\",\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers\",\n   \"rel\": \"https://cloud.mongodb.com/containers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters\",\n   \"rel\": \"https://cloud.mongodb.com/clusters\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/databaseUsers\",\n   \"rel\": \"https://cloud.mongodb.com/databaseUsers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/peers\",\n   \"rel\": \"https://cloud.mongodb.com/peers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/processes\",\n   \"rel\": \"https://cloud.mongodb.com/processes\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/whitelist\",\n   \"rel\": \"https://cloud.mongodb.com/whitelist\"\n  }\n ],\n \"name\": \"{projectName}\",\n \"orgId\": \"{orgId}\",\n \"tags\": []\n}"
+          - response_index: 32
             status: 200
-            text: "{\n \"clusterCount\": 1,\n \"created\": \"2024-12-11T14:04:56Z\",\n \"id\": \"{groupId}\",\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers\",\n   \"rel\": \"https://cloud.mongodb.com/containers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters\",\n   \"rel\": \"https://cloud.mongodb.com/clusters\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/databaseUsers\",\n   \"rel\": \"https://cloud.mongodb.com/databaseUsers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/peers\",\n   \"rel\": \"https://cloud.mongodb.com/peers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/processes\",\n   \"rel\": \"https://cloud.mongodb.com/processes\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/whitelist\",\n   \"rel\": \"https://cloud.mongodb.com/whitelist\"\n  }\n ],\n \"name\": \"test-acc-tf-p-578651241246656244\",\n \"orgId\": \"65def6ce0f722a1507105aa5\",\n \"tags\": []\n}"
+            text: "{\n \"clusterCount\": 1,\n \"created\": \"2024-12-12T15:38:14Z\",\n \"id\": \"{groupId}\",\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers\",\n   \"rel\": \"https://cloud.mongodb.com/containers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters\",\n   \"rel\": \"https://cloud.mongodb.com/clusters\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/databaseUsers\",\n   \"rel\": \"https://cloud.mongodb.com/databaseUsers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/peers\",\n   \"rel\": \"https://cloud.mongodb.com/peers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/processes\",\n   \"rel\": \"https://cloud.mongodb.com/processes\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/whitelist\",\n   \"rel\": \"https://cloud.mongodb.com/whitelist\"\n  }\n ],\n \"name\": \"{projectName}\",\n \"orgId\": \"{orgId}\",\n \"tags\": []\n}"
       - path: /api/atlas/v2/groups/{groupId}/teams
         method: GET
         version: '2023-01-01'
@@ -124,7 +126,7 @@ steps:
           - response_index: 6
             status: 200
             text: "[\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 900,\n  \"name\": \"atlas.project.security.databaseAccess.users\",\n  \"value\": 100\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 25,\n  \"maximumLimit\": 90,\n  \"name\": \"atlas.project.deployment.clusters\",\n  \"value\": 25\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 100,\n  \"name\": \"atlas.project.deployment.serverlessMTMs\",\n  \"value\": 100\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 1400,\n  \"name\": \"atlas.project.security.databaseAccess.customRoles\",\n  \"value\": 100\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 200,\n  \"maximumLimit\": 220,\n  \"name\": \"atlas.project.security.networkAccess.entries\",\n  \"value\": 200\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 40,\n  \"maximumLimit\": 220,\n  \"name\": \"atlas.project.security.networkAccess.crossRegionEntries\",\n  \"value\": 40\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 50,\n  \"maximumLimit\": 90,\n  \"name\": \"atlas.project.deployment.nodesPerPrivateLinkRegion\",\n  \"value\": 50\n },\n {\n  \"defaultLimit\": 50,\n  \"maximumLimit\": 100,\n  \"name\": \"atlas.project.deployment.privateServiceConnectionsPerRegionGroup\",\n  \"value\": 6\n },\n {\n  \"defaultLimit\": 27,\n  \"maximumLimit\": 27,\n  \"name\": \"atlas.project.deployment.privateServiceConnectionsSubnetMask\",\n  \"value\": 27\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 100,\n  \"name\": \"atlas.project.deployment.salesSoldM0s\",\n  \"value\": 100\n }\n]"
-          - response_index: 51
+          - response_index: 34
             status: 200
             text: "[\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 900,\n  \"name\": \"atlas.project.security.databaseAccess.users\",\n  \"value\": 100\n },\n {\n  \"currentUsage\": 1,\n  \"defaultLimit\": 25,\n  \"maximumLimit\": 90,\n  \"name\": \"atlas.project.deployment.clusters\",\n  \"value\": 25\n },\n {\n  \"currentUsage\": 1,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 100,\n  \"name\": \"atlas.project.deployment.serverlessMTMs\",\n  \"value\": 100\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 1400,\n  \"name\": \"atlas.project.security.databaseAccess.customRoles\",\n  \"value\": 100\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 200,\n  \"maximumLimit\": 220,\n  \"name\": \"atlas.project.security.networkAccess.entries\",\n  \"value\": 200\n },\n {\n  \"currentUsage\": 5,\n  \"defaultLimit\": 40,\n  \"maximumLimit\": 220,\n  \"name\": \"atlas.project.security.networkAccess.crossRegionEntries\",\n  \"value\": 40\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 50,\n  \"maximumLimit\": 90,\n  \"name\": \"atlas.project.deployment.nodesPerPrivateLinkRegion\",\n  \"value\": 50\n },\n {\n  \"defaultLimit\": 50,\n  \"maximumLimit\": 100,\n  \"name\": \"atlas.project.deployment.privateServiceConnectionsPerRegionGroup\",\n  \"value\": 6\n },\n {\n  \"defaultLimit\": 27,\n  \"maximumLimit\": 27,\n  \"name\": \"atlas.project.deployment.privateServiceConnectionsSubnetMask\",\n  \"value\": 27\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 100,\n  \"name\": \"atlas.project.deployment.salesSoldM0s\",\n  \"value\": 100\n }\n]"
       - path: /api/atlas/v2/groups/{groupId}/ipAddresses
@@ -135,9 +137,9 @@ steps:
           - response_index: 8
             status: 200
             text: "{\n \"groupId\": \"{groupId}\",\n \"services\": {\n  \"clusters\": []\n }\n}"
-          - response_index: 53
+          - response_index: 36
             status: 200
-            text: "{\n \"groupId\": \"{groupId}\",\n \"services\": {\n  \"clusters\": [\n   {\n    \"clusterName\": \"{clusterName}\",\n    \"inbound\": [\n     \"3.210.241.193\",\n     \"52.207.105.63\",\n     \"52.7.56.225\",\n     \"54.220.177.130\",\n     \"52.212.28.55\",\n     \"52.212.103.251\",\n     \"54.146.127.32\",\n     \"52.73.66.168\",\n     \"54.154.57.119\"\n    ],\n    \"outbound\": [\n     \"3.210.241.193\",\n     \"52.207.105.63\",\n     \"52.7.56.225\",\n     \"54.220.177.130\",\n     \"52.212.28.55\",\n     \"52.212.103.251\",\n     \"54.146.127.32\",\n     \"52.73.66.168\",\n     \"54.154.57.119\"\n    ]\n   }\n  ]\n }\n}"
+            text: "{\n \"groupId\": \"{groupId}\",\n \"services\": {\n  \"clusters\": [\n   {\n    \"clusterName\": \"{clusterName}\",\n    \"inbound\": [\n     \"100.27.99.215\",\n     \"3.93.130.70\",\n     \"100.26.125.169\",\n     \"54.77.175.10\",\n     \"54.76.152.220\",\n     \"34.246.78.191\",\n     \"3.214.159.188\",\n     \"3.213.196.19\",\n     \"52.215.139.54\"\n    ],\n    \"outbound\": [\n     \"100.27.99.215\",\n     \"3.93.130.70\",\n     \"100.26.125.169\",\n     \"54.77.175.10\",\n     \"54.76.152.220\",\n     \"34.246.78.191\",\n     \"3.214.159.188\",\n     \"3.213.196.19\",\n     \"52.215.139.54\"\n    ]\n   }\n  ]\n }\n}"
       - path: /api/atlas/v2/groups/{groupId}/managedSlowMs
         method: GET
         version: '2023-01-01'
@@ -154,7 +156,7 @@ steps:
         responses:
           - response_index: 10
             status: 201
-            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": []\n },\n \"createDate\": \"2024-12-11T14:05:01Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"7.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"67599c0deaac772450d912a8\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"67599c0deaac772450d91290\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128d\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"67599c0deaac772450d91292\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128e\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"CREATING\",\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
+            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": []\n },\n \"createDate\": \"2024-12-12T15:38:19Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"7.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"675b036bb6a225579492e292\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"675b036bb6a225579492e27a\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e277\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"675b036bb6a225579492e27c\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e278\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"CREATING\",\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
         method: GET
         version: '2024-08-05'
@@ -162,36 +164,32 @@ steps:
         responses:
           - response_index: 11
             status: 200
-            duplicate_responses: 16
-            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": []\n },\n \"createDate\": \"2024-12-11T14:05:01Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"7.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"67599c0deaac772450d912a8\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"67599c0deaac772450d91290\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128d\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"67599c0deaac772450d91292\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128e\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"CREATING\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
-          - response_index: 28
-            status: 200
             duplicate_responses: 7
-            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": [],\n  \"standard\": \"mongodb://test-acc-tf-c-320940763-shard-00-00.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-00-01.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-00-02.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-00.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-01.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-02.jxqj9.mongodb-dev.net:27016/?ssl=true\\u0026authSource=admin\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-320940763.jxqj9.mongodb-dev.net\"\n },\n \"createDate\": \"2024-12-11T14:05:01Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"7.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"67599c0deaac772450d912a8\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"67599c0deaac772450d91290\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128d\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"67599c0deaac772450d91292\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128e\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"IDLE\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
+            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": [],\n  \"standard\": \"mongodb://test-acc-tf-c-221329852-shard-00-00.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-00-01.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-00-02.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-00.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-01.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-02.ngflk.mongodb-dev.net:27016/?ssl=true\\u0026authSource=admin\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-221329852.ngflk.mongodb-dev.net\"\n },\n \"createDate\": \"2024-12-12T15:38:19Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"7.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"675b036bb6a225579492e292\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"675b036bb6a225579492e27a\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e277\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"675b036bb6a225579492e27c\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e278\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"IDLE\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
         method: GET
         version: '2023-02-01'
         text: ""
         responses:
-          - response_index: 30
+          - response_index: 13
             status: 200
             duplicate_responses: 4
-            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": [],\n  \"standard\": \"mongodb://test-acc-tf-c-320940763-shard-00-00.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-00-01.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-00-02.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-00.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-01.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-02.jxqj9.mongodb-dev.net:27016/?ssl=true\\u0026authSource=admin\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-320940763.jxqj9.mongodb-dev.net\"\n },\n \"createDate\": \"2024-12-11T14:05:01Z\",\n \"diskSizeGB\": 60,\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"67599c0deaac772450d912a8\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"67599c0deaac772450d9128f\",\n   \"numShards\": 1,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128d\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"67599c0deaac772450d91291\",\n   \"numShards\": 1,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128e\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"IDLE\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
+            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": [],\n  \"standard\": \"mongodb://test-acc-tf-c-221329852-shard-00-00.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-00-01.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-00-02.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-00.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-01.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-02.ngflk.mongodb-dev.net:27016/?ssl=true\\u0026authSource=admin\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-221329852.ngflk.mongodb-dev.net\"\n },\n \"createDate\": \"2024-12-12T15:38:19Z\",\n \"diskSizeGB\": 60,\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"675b036bb6a225579492e292\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"675b036bb6a225579492e279\",\n   \"numShards\": 1,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e277\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"675b036bb6a225579492e27b\",\n   \"numShards\": 1,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e278\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"IDLE\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
       - path: /api/atlas/v2/groups/{groupId}/containers
         method: GET
         version: '2023-01-01'
         text: ""
         responses:
-          - response_index: 31
+          - response_index: 14
             status: 200
             duplicate_responses: 9
-            text: "{\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers?includeCount=true\\u0026providerName=AWS\\u0026pageNum=1\\u0026itemsPerPage=100\",\n   \"rel\": \"self\"\n  }\n ],\n \"results\": [\n  {\n   \"atlasCidrBlock\": \"192.168.248.0/21\",\n   \"id\": \"67599c0deaac772450d912a6\",\n   \"providerName\": \"AWS\",\n   \"provisioned\": true,\n   \"regionName\": \"US_EAST_1\",\n   \"vpcId\": \"vpc-031855b9d3fb7f8a1\"\n  },\n  {\n   \"atlasCidrBlock\": \"192.168.240.0/21\",\n   \"id\": \"67599c0deaac772450d912a7\",\n   \"providerName\": \"AWS\",\n   \"provisioned\": true,\n   \"regionName\": \"EU_WEST_1\",\n   \"vpcId\": \"vpc-08888d86b846a2a9c\"\n  }\n ],\n \"totalCount\": 2\n}"
+            text: "{\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers?includeCount=true\\u0026providerName=AWS\\u0026pageNum=1\\u0026itemsPerPage=100\",\n   \"rel\": \"self\"\n  }\n ],\n \"results\": [\n  {\n   \"atlasCidrBlock\": \"192.168.248.0/21\",\n   \"id\": \"675b036bb6a225579492e290\",\n   \"providerName\": \"AWS\",\n   \"provisioned\": true,\n   \"regionName\": \"US_EAST_1\",\n   \"vpcId\": \"vpc-026bbf3ed94d732b8\"\n  },\n  {\n   \"atlasCidrBlock\": \"192.168.240.0/21\",\n   \"id\": \"675b036bb6a225579492e291\",\n   \"providerName\": \"AWS\",\n   \"provisioned\": true,\n   \"regionName\": \"EU_WEST_1\",\n   \"vpcId\": \"vpc-070522474dbd47912\"\n  }\n ],\n \"totalCount\": 2\n}"
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
         method: GET
         version: '2023-01-01'
         text: ""
         responses:
-          - response_index: 33
+          - response_index: 16
             status: 200
             duplicate_responses: 4
             text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": null,\n \"defaultWriteConcern\": null,\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": false,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": null,\n \"sampleSizeBIConnector\": null,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": null\n}"
@@ -200,76 +198,76 @@ steps:
         version: '2024-08-05'
         text: ""
         responses:
-          - response_index: 34
+          - response_index: 17
             status: 200
             duplicate_responses: 4
             text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": null,\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": false,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": null,\n \"sampleSizeBIConnector\": null,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": null\n}"
-  - config: |2-
-      		resource "mongodbatlas_project" "cluster_project" {
-      			org_id = "65def6ce0f722a1507105aa5"
-      			name   = "test-acc-tf-p-578651241246656244"
-      		}
+  - config: |+
+      resource "mongodbatlas_project" "cluster_project" {
+        org_id = "65def6ce0f722a1507105aa5"
+        name   = "test-acc-tf-p-1596377185987515344"
+      }
 
-      		resource "mongodbatlas_advanced_cluster" "test" {
-      			project_id = mongodbatlas_project.cluster_project.id
-      			name = "test-acc-tf-c-3209407631271730009"
-      			backup_enabled = false
-      			mongo_db_major_version = "7.0"
-      			cluster_type   = "GEOSHARDED"
-      			global_cluster_self_managed_sharding = false
-      			disk_size_gb  = 60
+      resource "mongodbatlas_advanced_cluster" "test" {
+        project_id                           = mongodbatlas_project.cluster_project.id
+        name                                 = "test-acc-tf-c-2213298524088977531"
+        backup_enabled                       = false
+        mongo_db_major_version               = "7.0"
+        cluster_type                         = "GEOSHARDED"
+        global_cluster_self_managed_sharding = false
+        disk_size_gb                         = 60
 
-      			replication_specs {
-      				zone_name  = "zone n1"
-      				num_shards = 1
+        replication_specs {
+          zone_name  = "zone n1"
+          num_shards = 1
 
-      				region_configs {
-      				electable_specs {
-      					instance_size = "M10"
-      					node_count    = 3
-      				}
-      				analytics_specs {
-      					instance_size = "M10"
-      					node_count    = 0
-      				}
-      				provider_name = "AWS"
-      				priority      = 7
-      				region_name   = "US_EAST_1"
-      				}
-      			}
+          region_configs {
+            electable_specs {
+              instance_size = "M10"
+              node_count    = 3
+            }
+            analytics_specs {
+              instance_size = "M10"
+              node_count    = 0
+            }
+            provider_name = "AWS"
+            priority      = 7
+            region_name   = "US_EAST_1"
+          }
+        }
 
-      			replication_specs {
-      				zone_name  = "zone n2"
-      				num_shards = 2
+        replication_specs {
+          zone_name  = "zone n2"
+          num_shards = 2
 
-      				region_configs {
-      				electable_specs {
-      					instance_size = "M10"
-      					node_count    = 3
-      				}
-      				analytics_specs {
-      					instance_size = "M10"
-      					node_count    = 0
-      				}
-      				provider_name = "AWS"
-      				priority      = 7
-      				region_name   = "EU_WEST_1"
-      				}
-      			}
-      		}
+          region_configs {
+            electable_specs {
+              instance_size = "M10"
+              node_count    = 3
+            }
+            analytics_specs {
+              instance_size = "M10"
+              node_count    = 0
+            }
+            provider_name = "AWS"
+            priority      = 7
+            region_name   = "EU_WEST_1"
+          }
+        }
+      }
 
-      		data "mongodbatlas_advanced_cluster" "test" {
-      			project_id = mongodbatlas_advanced_cluster.test.project_id
-      			name 	     = mongodbatlas_advanced_cluster.test.name
-      		}
-      	
+      data "mongodbatlas_advanced_cluster" "test" {
+        project_id = mongodbatlas_advanced_cluster.test.project_id
+        name       = mongodbatlas_advanced_cluster.test.name
+      }
+
     diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
         method: DELETE
         version: '2023-02-01'
         text: ""
         responses:
-          - response_index: 79
+          - response_index: 62
             status: 202
             text: "{}"
     request_responses:
@@ -278,15 +276,15 @@ steps:
         version: '2023-01-01'
         text: ""
         responses:
-          - response_index: 67
+          - response_index: 50
             status: 200
-            text: "{\n \"clusterCount\": 1,\n \"created\": \"2024-12-11T14:04:56Z\",\n \"id\": \"{groupId}\",\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers\",\n   \"rel\": \"https://cloud.mongodb.com/containers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters\",\n   \"rel\": \"https://cloud.mongodb.com/clusters\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/databaseUsers\",\n   \"rel\": \"https://cloud.mongodb.com/databaseUsers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/peers\",\n   \"rel\": \"https://cloud.mongodb.com/peers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/processes\",\n   \"rel\": \"https://cloud.mongodb.com/processes\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/whitelist\",\n   \"rel\": \"https://cloud.mongodb.com/whitelist\"\n  }\n ],\n \"name\": \"test-acc-tf-p-578651241246656244\",\n \"orgId\": \"65def6ce0f722a1507105aa5\",\n \"tags\": []\n}"
+            text: "{\n \"clusterCount\": 1,\n \"created\": \"2024-12-12T15:38:14Z\",\n \"id\": \"{groupId}\",\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers\",\n   \"rel\": \"https://cloud.mongodb.com/containers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters\",\n   \"rel\": \"https://cloud.mongodb.com/clusters\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/databaseUsers\",\n   \"rel\": \"https://cloud.mongodb.com/databaseUsers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/peers\",\n   \"rel\": \"https://cloud.mongodb.com/peers\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/processes\",\n   \"rel\": \"https://cloud.mongodb.com/processes\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/whitelist\",\n   \"rel\": \"https://cloud.mongodb.com/whitelist\"\n  }\n ],\n \"name\": \"{projectName}\",\n \"orgId\": \"{orgId}\",\n \"tags\": []\n}"
       - path: /api/atlas/v2/groups/{groupId}/teams
         method: GET
         version: '2023-01-01'
         text: ""
         responses:
-          - response_index: 68
+          - response_index: 51
             status: 200
             text: "{\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/teams?includeCount=true\\u0026pageNum=1\\u0026itemsPerPage=100\",\n   \"rel\": \"self\"\n  }\n ],\n \"results\": [],\n \"totalCount\": 0\n}"
       - path: /api/atlas/v2/groups/{groupId}/limits
@@ -294,7 +292,7 @@ steps:
         version: '2023-01-01'
         text: ""
         responses:
-          - response_index: 69
+          - response_index: 52
             status: 200
             text: "[\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 900,\n  \"name\": \"atlas.project.security.databaseAccess.users\",\n  \"value\": 100\n },\n {\n  \"currentUsage\": 1,\n  \"defaultLimit\": 25,\n  \"maximumLimit\": 90,\n  \"name\": \"atlas.project.deployment.clusters\",\n  \"value\": 25\n },\n {\n  \"currentUsage\": 1,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 100,\n  \"name\": \"atlas.project.deployment.serverlessMTMs\",\n  \"value\": 100\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 1400,\n  \"name\": \"atlas.project.security.databaseAccess.customRoles\",\n  \"value\": 100\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 200,\n  \"maximumLimit\": 220,\n  \"name\": \"atlas.project.security.networkAccess.entries\",\n  \"value\": 200\n },\n {\n  \"currentUsage\": 5,\n  \"defaultLimit\": 40,\n  \"maximumLimit\": 220,\n  \"name\": \"atlas.project.security.networkAccess.crossRegionEntries\",\n  \"value\": 40\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 50,\n  \"maximumLimit\": 90,\n  \"name\": \"atlas.project.deployment.nodesPerPrivateLinkRegion\",\n  \"value\": 50\n },\n {\n  \"defaultLimit\": 50,\n  \"maximumLimit\": 100,\n  \"name\": \"atlas.project.deployment.privateServiceConnectionsPerRegionGroup\",\n  \"value\": 6\n },\n {\n  \"defaultLimit\": 27,\n  \"maximumLimit\": 27,\n  \"name\": \"atlas.project.deployment.privateServiceConnectionsSubnetMask\",\n  \"value\": 27\n },\n {\n  \"currentUsage\": 0,\n  \"defaultLimit\": 100,\n  \"maximumLimit\": 100,\n  \"name\": \"atlas.project.deployment.salesSoldM0s\",\n  \"value\": 100\n }\n]"
       - path: /api/atlas/v2/groups/{groupId}/settings
@@ -302,7 +300,7 @@ steps:
         version: '2023-01-01'
         text: ""
         responses:
-          - response_index: 70
+          - response_index: 53
             status: 200
             text: "{\n \"isCollectDatabaseSpecificsStatisticsEnabled\": true,\n \"isDataExplorerEnabled\": true,\n \"isExtendedStorageSizesEnabled\": false,\n \"isPerformanceAdvisorEnabled\": true,\n \"isRealtimePerformancePanelEnabled\": true,\n \"isSchemaAdvisorEnabled\": true\n}"
       - path: /api/atlas/v2/groups/{groupId}/ipAddresses
@@ -310,15 +308,15 @@ steps:
         version: '2023-01-01'
         text: ""
         responses:
-          - response_index: 71
+          - response_index: 54
             status: 200
-            text: "{\n \"groupId\": \"{groupId}\",\n \"services\": {\n  \"clusters\": [\n   {\n    \"clusterName\": \"{clusterName}\",\n    \"inbound\": [\n     \"3.210.241.193\",\n     \"52.207.105.63\",\n     \"52.7.56.225\",\n     \"54.220.177.130\",\n     \"52.212.28.55\",\n     \"52.212.103.251\",\n     \"54.146.127.32\",\n     \"52.73.66.168\",\n     \"54.154.57.119\"\n    ],\n    \"outbound\": [\n     \"3.210.241.193\",\n     \"52.207.105.63\",\n     \"52.7.56.225\",\n     \"54.220.177.130\",\n     \"52.212.28.55\",\n     \"52.212.103.251\",\n     \"54.146.127.32\",\n     \"52.73.66.168\",\n     \"54.154.57.119\"\n    ]\n   }\n  ]\n }\n}"
+            text: "{\n \"groupId\": \"{groupId}\",\n \"services\": {\n  \"clusters\": [\n   {\n    \"clusterName\": \"{clusterName}\",\n    \"inbound\": [\n     \"100.27.99.215\",\n     \"3.93.130.70\",\n     \"100.26.125.169\",\n     \"54.77.175.10\",\n     \"54.76.152.220\",\n     \"34.246.78.191\",\n     \"3.214.159.188\",\n     \"3.213.196.19\",\n     \"52.215.139.54\"\n    ],\n    \"outbound\": [\n     \"100.27.99.215\",\n     \"3.93.130.70\",\n     \"100.26.125.169\",\n     \"54.77.175.10\",\n     \"54.76.152.220\",\n     \"34.246.78.191\",\n     \"3.214.159.188\",\n     \"3.213.196.19\",\n     \"52.215.139.54\"\n    ]\n   }\n  ]\n }\n}"
       - path: /api/atlas/v2/groups/{groupId}/managedSlowMs
         method: GET
         version: '2023-01-01'
         text: ""
         responses:
-          - response_index: 72
+          - response_index: 55
             status: 200
             text: "true"
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
@@ -326,17 +324,17 @@ steps:
         version: '2024-08-05'
         text: ""
         responses:
-          - response_index: 73
+          - response_index: 56
             status: 200
-            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": [],\n  \"standard\": \"mongodb://test-acc-tf-c-320940763-shard-00-00.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-00-01.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-00-02.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-00.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-01.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-02.jxqj9.mongodb-dev.net:27016/?ssl=true\\u0026authSource=admin\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-320940763.jxqj9.mongodb-dev.net\"\n },\n \"createDate\": \"2024-12-11T14:05:01Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"7.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"67599c0deaac772450d912a8\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"67599c0deaac772450d91290\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128d\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"67599c0deaac772450d91292\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128e\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"IDLE\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
-          - response_index: 80
+            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": [],\n  \"standard\": \"mongodb://test-acc-tf-c-221329852-shard-00-00.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-00-01.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-00-02.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-00.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-01.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-02.ngflk.mongodb-dev.net:27016/?ssl=true\\u0026authSource=admin\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-221329852.ngflk.mongodb-dev.net\"\n },\n \"createDate\": \"2024-12-12T15:38:19Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"7.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"675b036bb6a225579492e292\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"675b036bb6a225579492e27a\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e277\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"675b036bb6a225579492e27c\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e278\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"IDLE\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
+          - response_index: 63
             status: 200
             duplicate_responses: 6
-            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": [],\n  \"standard\": \"mongodb://test-acc-tf-c-320940763-shard-00-00.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-00-01.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-00-02.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-00.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-01.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-02.jxqj9.mongodb-dev.net:27016/?ssl=true\\u0026authSource=admin\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-320940763.jxqj9.mongodb-dev.net\"\n },\n \"createDate\": \"2024-12-11T14:05:01Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"7.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"67599c0deaac772450d912a8\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"67599c0deaac772450d91290\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128d\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"67599c0deaac772450d91292\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128e\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"DELETING\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
-          - response_index: 87
+            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": [],\n  \"standard\": \"mongodb://test-acc-tf-c-221329852-shard-00-00.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-00-01.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-00-02.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-00.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-01.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-02.ngflk.mongodb-dev.net:27016/?ssl=true\\u0026authSource=admin\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-221329852.ngflk.mongodb-dev.net\"\n },\n \"createDate\": \"2024-12-12T15:38:19Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"7.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"675b036bb6a225579492e292\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"675b036bb6a225579492e27a\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e277\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"675b036bb6a225579492e27c\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"diskSizeGB\": 60,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e278\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"DELETING\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
+          - response_index: 70
             status: 404
             text: "{\n \"detail\": \"No cluster named {clusterName} exists in group {groupId}.\",\n \"error\": 404,\n \"errorCode\": \"CLUSTER_NOT_FOUND\",\n \"parameters\": [\n  \"{clusterName}\",\n  \"{groupId}\"\n ],\n \"reason\": \"Not Found\"\n}"
-          - response_index: 90
+          - response_index: 73
             status: 404
             text: "{\n \"detail\": \"No group with ID {groupId} exists.\",\n \"error\": 404,\n \"errorCode\": \"GROUP_NOT_FOUND\",\n \"parameters\": [\n  \"{groupId}\"\n ],\n \"reason\": \"Not Found\"\n}"
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
@@ -344,24 +342,24 @@ steps:
         version: '2023-02-01'
         text: ""
         responses:
-          - response_index: 74
+          - response_index: 57
             status: 200
-            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": [],\n  \"standard\": \"mongodb://test-acc-tf-c-320940763-shard-00-00.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-00-01.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-00-02.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-00.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-01.jxqj9.mongodb-dev.net:27016,test-acc-tf-c-320940763-shard-01-02.jxqj9.mongodb-dev.net:27016/?ssl=true\\u0026authSource=admin\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-320940763.jxqj9.mongodb-dev.net\"\n },\n \"createDate\": \"2024-12-11T14:05:01Z\",\n \"diskSizeGB\": 60,\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"67599c0deaac772450d912a8\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"67599c0deaac772450d9128f\",\n   \"numShards\": 1,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128d\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"67599c0deaac772450d91291\",\n   \"numShards\": 1,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"67599c0deaac772450d9128e\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"IDLE\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
+            text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"GEOSHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"DEDICATED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": [],\n  \"standard\": \"mongodb://test-acc-tf-c-221329852-shard-00-00.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-00-01.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-00-02.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-00.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-01.ngflk.mongodb-dev.net:27016,test-acc-tf-c-221329852-shard-01-02.ngflk.mongodb-dev.net:27016/?ssl=true\\u0026authSource=admin\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-221329852.ngflk.mongodb-dev.net\"\n },\n \"createDate\": \"2024-12-12T15:38:19Z\",\n \"diskSizeGB\": 60,\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"675b036bb6a225579492e292\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"7.0\",\n \"mongoDBVersion\": \"7.0.15\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"675b036bb6a225579492e279\",\n   \"numShards\": 1,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e277\",\n   \"zoneName\": \"zone n1\"\n  },\n  {\n   \"id\": \"675b036bb6a225579492e27b\",\n   \"numShards\": 1,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"675b036bb6a225579492e278\",\n   \"zoneName\": \"zone n2\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"IDLE\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
       - path: /api/atlas/v2/groups/{groupId}/containers
         method: GET
         version: '2023-01-01'
         text: ""
         responses:
-          - response_index: 75
+          - response_index: 58
             status: 200
             duplicate_responses: 1
-            text: "{\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers?includeCount=true\\u0026providerName=AWS\\u0026pageNum=1\\u0026itemsPerPage=100\",\n   \"rel\": \"self\"\n  }\n ],\n \"results\": [\n  {\n   \"atlasCidrBlock\": \"192.168.248.0/21\",\n   \"id\": \"67599c0deaac772450d912a6\",\n   \"providerName\": \"AWS\",\n   \"provisioned\": true,\n   \"regionName\": \"US_EAST_1\",\n   \"vpcId\": \"vpc-031855b9d3fb7f8a1\"\n  },\n  {\n   \"atlasCidrBlock\": \"192.168.240.0/21\",\n   \"id\": \"67599c0deaac772450d912a7\",\n   \"providerName\": \"AWS\",\n   \"provisioned\": true,\n   \"regionName\": \"EU_WEST_1\",\n   \"vpcId\": \"vpc-08888d86b846a2a9c\"\n  }\n ],\n \"totalCount\": 2\n}"
+            text: "{\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/containers?includeCount=true\\u0026providerName=AWS\\u0026pageNum=1\\u0026itemsPerPage=100\",\n   \"rel\": \"self\"\n  }\n ],\n \"results\": [\n  {\n   \"atlasCidrBlock\": \"192.168.248.0/21\",\n   \"id\": \"675b036bb6a225579492e290\",\n   \"providerName\": \"AWS\",\n   \"provisioned\": true,\n   \"regionName\": \"US_EAST_1\",\n   \"vpcId\": \"vpc-026bbf3ed94d732b8\"\n  },\n  {\n   \"atlasCidrBlock\": \"192.168.240.0/21\",\n   \"id\": \"675b036bb6a225579492e291\",\n   \"providerName\": \"AWS\",\n   \"provisioned\": true,\n   \"regionName\": \"EU_WEST_1\",\n   \"vpcId\": \"vpc-070522474dbd47912\"\n  }\n ],\n \"totalCount\": 2\n}"
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
         method: GET
         version: '2023-01-01'
         text: ""
         responses:
-          - response_index: 77
+          - response_index: 60
             status: 200
             text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": null,\n \"defaultWriteConcern\": null,\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": false,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": null,\n \"sampleSizeBIConnector\": null,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": null\n}"
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
@@ -369,7 +367,7 @@ steps:
         version: '2024-08-05'
         text: ""
         responses:
-          - response_index: 78
+          - response_index: 61
             status: 200
             text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": null,\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": false,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": null,\n \"sampleRefreshIntervalBIConnector\": null,\n \"sampleSizeBIConnector\": null,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": null\n}"
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
@@ -377,7 +375,7 @@ steps:
         version: '2023-02-01'
         text: ""
         responses:
-          - response_index: 79
+          - response_index: 62
             status: 202
             text: "{}"
       - path: /api/atlas/v2/groups/{groupId}/clusters
@@ -385,7 +383,7 @@ steps:
         version: '2024-08-05'
         text: ""
         responses:
-          - response_index: 88
+          - response_index: 71
             status: 200
             text: "{\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters?includeCount=true\\u0026includeDeletedWithRetainedBackups=false\\u0026pageNum=1\\u0026itemsPerPage=100\",\n   \"rel\": \"self\"\n  }\n ],\n \"results\": [],\n \"totalCount\": 0\n}"
       - path: /api/atlas/v2/groups/{groupId}
@@ -393,6 +391,6 @@ steps:
         version: '2023-01-01'
         text: ""
         responses:
-          - response_index: 89
+          - response_index: 72
             status: 202
             text: "{}"
