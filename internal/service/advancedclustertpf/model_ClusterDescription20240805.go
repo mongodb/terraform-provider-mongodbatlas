@@ -38,32 +38,32 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 	}
 	return &TFModel{
 		AcceptDataRisksAndForceReplicaSetReconfig: types.StringPointerValue(conversion.TimePtrToStringPtr(input.AcceptDataRisksAndForceReplicaSetReconfig)),
-		BackupEnabled:                    types.BoolPointerValue(input.BackupEnabled),
+		BackupEnabled:                    types.BoolValue(conversion.SafeValue(input.BackupEnabled)),
 		BiConnectorConfig:                biConnector,
-		ClusterType:                      types.StringPointerValue(input.ClusterType),
-		ConfigServerManagementMode:       types.StringPointerValue(input.ConfigServerManagementMode),
-		ConfigServerType:                 types.StringPointerValue(input.ConfigServerType),
+		ClusterType:                      types.StringValue(conversion.SafeValue(input.ClusterType)),
+		ConfigServerManagementMode:       types.StringValue(conversion.SafeValue(input.ConfigServerManagementMode)),
+		ConfigServerType:                 types.StringValue(conversion.SafeValue(input.ConfigServerType)),
 		ConnectionStrings:                connectionStrings,
-		CreateDate:                       types.StringPointerValue(conversion.TimePtrToStringPtr(input.CreateDate)),
+		CreateDate:                       types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
 		DiskSizeGB:                       types.Float64PointerValue(findRegionRootDiskSize(input.ReplicationSpecs)),
-		EncryptionAtRestProvider:         types.StringPointerValue(input.EncryptionAtRestProvider),
-		GlobalClusterSelfManagedSharding: types.BoolPointerValue(input.GlobalClusterSelfManagedSharding),
-		ProjectID:                        types.StringPointerValue(input.GroupId),
-		ClusterID:                        types.StringPointerValue(input.Id),
+		EncryptionAtRestProvider:         types.StringValue(conversion.SafeValue(input.EncryptionAtRestProvider)),
+		GlobalClusterSelfManagedSharding: types.BoolValue(conversion.SafeValue(input.GlobalClusterSelfManagedSharding)),
+		ProjectID:                        types.StringValue(conversion.SafeValue(input.GroupId)),
+		ClusterID:                        types.StringValue(conversion.SafeValue(input.Id)),
 		Labels:                           labels,
-		MongoDBMajorVersion:              types.StringPointerValue(input.MongoDBMajorVersion),
-		MongoDBVersion:                   types.StringPointerValue(input.MongoDBVersion),
-		Name:                             types.StringPointerValue(input.Name),
-		Paused:                           types.BoolPointerValue(input.Paused),
-		PitEnabled:                       types.BoolPointerValue(input.PitEnabled),
-		RedactClientLogData:              types.BoolPointerValue(input.RedactClientLogData),
-		ReplicaSetScalingStrategy:        types.StringPointerValue(input.ReplicaSetScalingStrategy),
+		MongoDBMajorVersion:              types.StringValue(conversion.SafeValue(input.MongoDBMajorVersion)),
+		MongoDBVersion:                   types.StringValue(conversion.SafeValue(input.MongoDBVersion)),
+		Name:                             types.StringValue(conversion.SafeValue(input.Name)),
+		Paused:                           types.BoolValue(conversion.SafeValue(input.Paused)),
+		PitEnabled:                       types.BoolValue(conversion.SafeValue(input.PitEnabled)),
+		RedactClientLogData:              types.BoolValue(conversion.SafeValue(input.RedactClientLogData)),
+		ReplicaSetScalingStrategy:        types.StringValue(conversion.SafeValue(input.ReplicaSetScalingStrategy)),
 		ReplicationSpecs:                 replicationSpecs,
-		RootCertType:                     types.StringPointerValue(input.RootCertType),
-		StateName:                        types.StringPointerValue(input.StateName),
+		RootCertType:                     types.StringValue(conversion.SafeValue(input.RootCertType)),
+		StateName:                        types.StringValue(conversion.SafeValue(input.StateName)),
 		Tags:                             tags,
-		TerminationProtectionEnabled:     types.BoolPointerValue(input.TerminationProtectionEnabled),
-		VersionReleaseSystem:             types.StringPointerValue(input.VersionReleaseSystem),
+		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
+		VersionReleaseSystem:             types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
 		Timeouts:                         timeout,
 	}
 }
@@ -73,8 +73,8 @@ func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, 
 		return types.ObjectNull(BiConnectorConfigObjType.AttrTypes)
 	}
 	tfModel := TFBiConnectorModel{
-		Enabled:        types.BoolPointerValue(input.Enabled),
-		ReadPreference: types.StringPointerValue(input.ReadPreference),
+		Enabled:        types.BoolValue(conversion.SafeValue(input.Enabled)),
+		ReadPreference: types.StringValue(conversion.SafeValue(input.ReadPreference)),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, BiConnectorConfigObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
@@ -87,11 +87,11 @@ func NewConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnec
 	}
 	privateEndpoint := NewPrivateEndpointObjType(ctx, input.PrivateEndpoint, diags)
 	tfModel := TFConnectionStringsModel{
-		Private:         types.StringPointerValue(input.Private),
+		Private:         types.StringValue(conversion.SafeValue(input.Private)),
 		PrivateEndpoint: privateEndpoint,
-		PrivateSrv:      types.StringPointerValue(input.PrivateSrv),
-		Standard:        types.StringPointerValue(input.Standard),
-		StandardSrv:     types.StringPointerValue(input.StandardSrv),
+		PrivateSrv:      types.StringValue(conversion.SafeValue(input.PrivateSrv)),
+		Standard:        types.StringValue(conversion.SafeValue(input.Standard)),
+		StandardSrv:     types.StringValue(conversion.SafeValue(input.StandardSrv)),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, ConnectionStringsObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
@@ -105,8 +105,8 @@ func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags 
 	tfModels := make([]TFLabelsModel, len(*input))
 	for i, item := range *input {
 		tfModels[i] = TFLabelsModel{
-			Key:   types.StringPointerValue(item.Key),
-			Value: types.StringPointerValue(item.Value),
+			Key:   types.StringValue(conversion.SafeValue(item.Key)),
+			Value: types.StringValue(conversion.SafeValue(item.Value)),
 		}
 	}
 	setType, diagsLocal := types.SetValueFrom(ctx, LabelsObjType, tfModels)
@@ -144,12 +144,12 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 		legacyID := apiInfo.ZoneNameReplicationSpecIDs[zoneName]
 		tfModels[i] = TFReplicationSpecsModel{
 			Id:            conversion.StringNullIfEmpty(legacyID),
-			ExternalId:    types.StringPointerValue(item.Id),
+			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
 			NumShards:     types.Int64Value(1),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &apiInfo.ContainerIDs),
 			RegionConfigs: regionConfigs,
-			ZoneId:        types.StringPointerValue(item.ZoneId),
-			ZoneName:      types.StringPointerValue(item.ZoneName),
+			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
+			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
 		}
 	}
 	return &tfModels
@@ -188,12 +188,12 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 		}
 		tfModels = append(tfModels, TFReplicationSpecsModel{
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &apiInfo.ContainerIDs),
-			ExternalId:    types.StringPointerValue(item.Id),
+			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
 			Id:            types.StringValue(legacyID),
 			RegionConfigs: regionConfigs,
 			NumShards:     types.Int64Value(numShards),
-			ZoneId:        types.StringPointerValue(item.ZoneId),
-			ZoneName:      types.StringPointerValue(item.ZoneName),
+			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
+			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
 		})
 	}
 	return &tfModels
@@ -224,11 +224,11 @@ func NewPrivateEndpointObjType(ctx context.Context, input *[]admin.ClusterDescri
 	for i, item := range *input {
 		endpoints := NewEndpointsObjType(ctx, item.Endpoints, diags)
 		tfModels[i] = TFPrivateEndpointModel{
-			ConnectionString:                  types.StringPointerValue(item.ConnectionString),
+			ConnectionString:                  types.StringValue(conversion.SafeValue(item.ConnectionString)),
 			Endpoints:                         endpoints,
-			SrvConnectionString:               types.StringPointerValue(item.SrvConnectionString),
-			SrvShardOptimizedConnectionString: types.StringPointerValue(item.SrvShardOptimizedConnectionString),
-			Type:                              types.StringPointerValue(item.Type),
+			SrvConnectionString:               types.StringValue(conversion.SafeValue(item.SrvConnectionString)),
+			SrvShardOptimizedConnectionString: types.StringValue(conversion.SafeValue(item.SrvShardOptimizedConnectionString)),
+			Type:                              types.StringValue(conversion.SafeValue(item.Type)),
 		}
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, PrivateEndpointObjType, tfModels)
@@ -254,9 +254,9 @@ func NewRegionConfigsObjType(ctx context.Context, input *[]admin.CloudRegionConf
 			BackingProviderName:  types.StringPointerValue(item.BackingProviderName),
 			ElectableSpecs:       electableSpecs,
 			Priority:             types.Int64PointerValue(conversion.IntPtrToInt64Ptr(item.Priority)),
-			ProviderName:         types.StringPointerValue(item.ProviderName),
+			ProviderName:         types.StringValue(conversion.SafeValue(item.ProviderName)),
 			ReadOnlySpecs:        readOnlySpecs,
-			RegionName:           types.StringPointerValue(item.RegionName),
+			RegionName:           types.StringValue(conversion.SafeValue(item.RegionName)),
 		}
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, tfModels)
@@ -271,9 +271,9 @@ func NewEndpointsObjType(ctx context.Context, input *[]admin.ClusterDescriptionC
 	tfModels := make([]TFEndpointsModel, len(*input))
 	for i, item := range *input {
 		tfModels[i] = TFEndpointsModel{
-			EndpointId:   types.StringPointerValue(item.EndpointId),
-			ProviderName: types.StringPointerValue(item.ProviderName),
-			Region:       types.StringPointerValue(item.Region),
+			EndpointId:   types.StringValue(conversion.SafeValue(item.EndpointId)),
+			ProviderName: types.StringValue(conversion.SafeValue(item.ProviderName)),
+			Region:       types.StringValue(conversion.SafeValue(item.Region)),
 		}
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, EndpointsObjType, tfModels)
@@ -288,8 +288,8 @@ func NewSpecsObjType(ctx context.Context, input *admin.DedicatedHardwareSpec2024
 	tfModel := TFSpecsModel{
 		DiskIops:      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DiskIOPS)),
 		DiskSizeGb:    types.Float64PointerValue(input.DiskSizeGB),
-		EbsVolumeType: types.StringPointerValue(input.EbsVolumeType),
-		InstanceSize:  types.StringPointerValue(input.InstanceSize),
+		EbsVolumeType: types.StringValue(conversion.SafeValue(input.EbsVolumeType)),
+		InstanceSize:  types.StringValue(conversion.SafeValue(input.InstanceSize)),
 		NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.NodeCount)),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, tfModel)
@@ -304,8 +304,8 @@ func NewSpecsFromHwObjType(ctx context.Context, input *admin.HardwareSpec2024080
 	tfModel := TFSpecsModel{
 		DiskIops:      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DiskIOPS)),
 		DiskSizeGb:    types.Float64PointerValue(input.DiskSizeGB),
-		EbsVolumeType: types.StringPointerValue(input.EbsVolumeType),
-		InstanceSize:  types.StringPointerValue(input.InstanceSize),
+		EbsVolumeType: types.StringValue(conversion.SafeValue(input.EbsVolumeType)),
+		InstanceSize:  types.StringValue(conversion.SafeValue(input.InstanceSize)),
 		NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.NodeCount)),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, tfModel)
@@ -320,14 +320,14 @@ func NewAutoScalingObjType(ctx context.Context, input *admin.AdvancedAutoScaling
 	compute := input.Compute
 	tfModel := TFAutoScalingModel{}
 	if compute != nil {
-		tfModel.ComputeMaxInstanceSize = types.StringPointerValue(compute.MaxInstanceSize)
-		tfModel.ComputeMinInstanceSize = types.StringPointerValue(compute.MinInstanceSize)
-		tfModel.ComputeEnabled = types.BoolPointerValue(compute.Enabled)
-		tfModel.ComputeScaleDownEnabled = types.BoolPointerValue(compute.ScaleDownEnabled)
+		tfModel.ComputeMaxInstanceSize = types.StringValue(conversion.SafeValue(compute.MaxInstanceSize))
+		tfModel.ComputeMinInstanceSize = types.StringValue(conversion.SafeValue(compute.MinInstanceSize))
+		tfModel.ComputeEnabled = types.BoolValue(conversion.SafeValue(compute.Enabled))
+		tfModel.ComputeScaleDownEnabled = types.BoolValue(conversion.SafeValue(compute.ScaleDownEnabled))
 	}
 	diskGB := input.DiskGB
 	if diskGB != nil {
-		tfModel.DiskGBEnabled = types.BoolPointerValue(diskGB.Enabled)
+		tfModel.DiskGBEnabled = types.BoolValue(conversion.SafeValue(diskGB.Enabled))
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, AutoScalingObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)

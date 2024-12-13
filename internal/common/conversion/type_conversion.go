@@ -5,6 +5,15 @@ import (
 	"time"
 )
 
+func SafeValue[T any](v *T) T {
+	if v != nil {
+		return *v
+	}
+	emptyValue := new(T)
+	return *emptyValue
+}
+
+
 func SafeString(s *string) string {
 	if s != nil {
 		return *s

@@ -95,3 +95,14 @@ func TestAWSRegionToMongoDBRegion(t *testing.T) {
 		}
 	}
 }
+
+func TestSafeValue(t *testing.T) {
+	var boolPointer *bool
+	assert.False(t, conversion.SafeValue(boolPointer))
+	trueBool := true
+	assert.True(t, conversion.SafeValue(&trueBool))
+	var intPointer *int
+	assert.Equal(t, 0, conversion.SafeValue(intPointer))
+	var stringPointer *string
+	assert.Equal(t, "", conversion.SafeValue(stringPointer))
+}
