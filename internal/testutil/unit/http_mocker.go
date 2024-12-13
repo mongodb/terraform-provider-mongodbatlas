@@ -118,7 +118,7 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
 	t.Helper()
 	httpDataPath := MockConfigFilePath(t)
-	data, err := parseTestDataConfigYAML(httpDataPath)
+	data, err := ParseTestDataConfigYAML(httpDataPath)
 	require.NoError(t, err)
 	oldVariables := data.Variables
 	data.Variables = map[string]string{}

@@ -7,6 +7,7 @@ steps:
   - config: |-
       resource "dummy" "test"{
         step = 1
+        someString = "my-string"
       }
     diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters

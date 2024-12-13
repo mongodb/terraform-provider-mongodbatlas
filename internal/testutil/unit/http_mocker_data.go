@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -135,8 +136,20 @@ func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.UR
 	return replaceVars(i.Path, mockData.Variables) == reqPath
 }
 
+// There is an issue when dumping the yaml, if the \n \n sequence is found it will always dump using the DoubleQuotedStyle, workaround by using this custom dumping.
+type Literal string
+
+func (l Literal) MarshalYAML() (any, error) {
+	return &yaml.Node{
+		Kind:  yaml.ScalarNode,
+		Value: strings.ReplaceAll(string(l), "\n \n", "\n\n"),
+		Style: yaml.LiteralStyle,
+		Tag:   "!!str",
+	}, nil
+}
+
 type stepRequests struct {
-	Config           string        `yaml:"config,omitempty"`
+	Config           Literal       `yaml:"config,omitempty"`
 	DiffRequests     []RequestInfo `yaml:"diff_requests"`
 	RequestResponses []RequestInfo `yaml:"request_responses"`
 }
@@ -231,7 +244,7 @@ func (m *MockHTTPData) useTFConfigs(t *testing.T, tfConfigs []string) {
 		configVars := ExtractConfigVariables(t, tfConfig)
 		err := m.UpdateVariablesIgnoreChanges(t, configVars)
 		require.NoError(t, err)
-		m.Steps[i].Config = tfConfig
+		m.Steps[i].Config = Literal(tfConfig)
 	}
 }
 

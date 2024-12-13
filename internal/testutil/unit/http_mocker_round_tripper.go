@@ -30,7 +30,7 @@ func NewMockRoundTripper(t *testing.T, config *MockHTTPDataConfig, data *MockHTT
 	}
 	return mockTransport, tracker
 }
-func parseTestDataConfigYAML(filePath string) (*MockHTTPData, error) {
+func ParseTestDataConfigYAML(filePath string) (*MockHTTPData, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err

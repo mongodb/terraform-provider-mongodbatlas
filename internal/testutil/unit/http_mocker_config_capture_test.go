@@ -34,7 +34,7 @@ func TestFailedFilename(t *testing.T) {
 }
 
 func TestCaptureMockConfigClientModifier_clusterExample(t *testing.T) {
-	capturedData := unit.NewMockHTTPData(t, 3, []string{"resource \"dummy\" \"test\"{\n  step = 1\n}", "", "resource \"dummy\" \"test\"{\n  step = 3\n}"})
+	capturedData := unit.NewMockHTTPData(t, 3, []string{"resource \"dummy\" \"test\"{\n  step = 1\n  someString = \"my-string\"\n}", "", "resource \"dummy\" \"test\"{\n  step = 3\n}"})
 	clientModifier := unit.NewCaptureMockConfigClientModifier(t, &unit.MockHTTPDataConfig{QueryVars: []string{"providerName"}}, capturedData)
 	transport := httpmock.NewMockTransport()
 	client := http.Client{Transport: transport}
