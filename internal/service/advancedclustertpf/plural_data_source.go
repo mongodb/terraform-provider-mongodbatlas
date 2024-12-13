@@ -75,7 +75,6 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		UseReplicationSpecPerShard:        pluralModel.UseReplicationSpecPerShard,
 		IncludeDeletedWithRetainedBackups: pluralModel.IncludeDeletedWithRetainedBackups,
 	}
-	// TODO: use result cluster info to avoid extra API calls
 	for i := range list.GetResults() {
 		modelIn := &TFModel{
 			ProjectID: pluralModel.ProjectID,
