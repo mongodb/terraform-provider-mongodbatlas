@@ -11,14 +11,9 @@ import (
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
-	subdomain, diag := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
-	if diag.HasError() {
-		return nil, diag
-	}
-	return &TFModel{
+	result := &TFModel{
 		Id:                  types.StringPointerValue(apiResp.Id),
 		DnsDomain:           types.StringPointerValue(apiResp.DnsDomain),
-		DnsSubDomain:        subdomain,
 		ProjectId:           types.StringPointerValue(&projectID),
 		InterfaceEndpointId: types.StringPointerValue(apiResp.InterfaceEndpointId),
 		Provider:            types.StringPointerValue(apiResp.Provider),
@@ -26,7 +21,16 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 		ServiceEndpointId:   types.StringPointerValue(apiResp.ServiceEndpointId),
 		State:               types.StringPointerValue(apiResp.State),
 		Vendor:              types.StringPointerValue(apiResp.Vendor),
-	}, nil
+	}
+	if apiResp.DnsSubDomain != nil {
+		subdomain, diag := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
+		if diag.HasError() {
+			return nil, diag
+		}
+		result.DnsSubDomain = subdomain
+	}
+
+	return result, nil
 }
 
 func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkConnection, diag.Diagnostics) {

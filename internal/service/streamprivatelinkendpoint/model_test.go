@@ -63,11 +63,34 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				Vendor:              types.StringValue(vendor),
 			},
 		},
+		"SDK response without dns subdomains": {
+			SDKResp: &admin.StreamsPrivateLinkConnection{
+				Id:                  &id,
+				DnsDomain:           &dnsDomain,
+				InterfaceEndpointId: &interfaceEndpointID,
+				Provider:            &provider,
+				Region:              &region,
+				ServiceEndpointId:   &serviceEndpointID,
+				State:               &state,
+				Vendor:              &vendor,
+			},
+			projectID: projectID,
+			expectedTFModel: &streamprivatelinkendpoint.TFModel{
+				Id:                  types.StringValue(id),
+				DnsDomain:           types.StringValue(dnsDomain),
+				ProjectId:           types.StringValue(projectID),
+				InterfaceEndpointId: types.StringValue(interfaceEndpointID),
+				Provider:            types.StringValue(provider),
+				Region:              types.StringValue(region),
+				ServiceEndpointId:   types.StringValue(serviceEndpointID),
+				State:               types.StringValue(state),
+				Vendor:              types.StringValue(vendor),
+			},
+		},
 		"Empty SDK response": {
 			SDKResp: &admin.StreamsPrivateLinkConnection{},
 			expectedTFModel: &streamprivatelinkendpoint.TFModel{
-				ProjectId:    types.StringValue(""),
-				DnsSubDomain: types.ListNull(types.StringType),
+				ProjectId: types.StringValue(""),
 			},
 		},
 	}

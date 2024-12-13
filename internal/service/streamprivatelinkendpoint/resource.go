@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -65,6 +66,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
+
+	if plan.DnsSubDomain.IsNull() && len(newStreamPrivatelinkEndpointModel.DnsSubDomain.Elements()) == 0 {
+		newStreamPrivatelinkEndpointModel.DnsSubDomain = types.ListNull(types.StringType)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointModel)...)
 }
 
@@ -94,6 +100,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.Diagnostics.Append(diags...)
 		return
 	}
+
+	if state.DnsSubDomain.IsNull() && len(newStreamPrivatelinkEndpointModel.DnsSubDomain.Elements()) == 0 {
+		newStreamPrivatelinkEndpointModel.DnsSubDomain = types.ListNull(types.StringType)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointModel)...)
 }
 
