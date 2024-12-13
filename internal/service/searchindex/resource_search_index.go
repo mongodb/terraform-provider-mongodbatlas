@@ -276,7 +276,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		timeout := d.Timeout(schema.TimeoutUpdate)
 		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"IN_PROGRESS", "MIGRATING"},
-			Target:     []string{"STEADY"},
+			Target:     []string{"READY", "STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
 			MinTimeout: 1 * time.Minute,
@@ -450,7 +450,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		timeout := d.Timeout(schema.TimeoutCreate)
 		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"IN_PROGRESS", "MIGRATING"},
-			Target:     []string{"STEADY"},
+			Target:     []string{"READY", "STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
 			MinTimeout: 1 * time.Minute,
