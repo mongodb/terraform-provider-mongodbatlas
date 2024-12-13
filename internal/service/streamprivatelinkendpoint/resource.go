@@ -60,7 +60,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, streamsPrivateLinkConnection)
+	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, projectID, streamsPrivateLinkConnection)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -89,7 +89,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, streamsPrivateLinkConnection)
+	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, projectID, streamsPrivateLinkConnection)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
