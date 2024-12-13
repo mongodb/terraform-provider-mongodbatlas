@@ -16,25 +16,6 @@ func TestAccSearchIndex_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
 }
 
-func TestAccSearchIndex_withWaitForIndexBuildCompletion(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
-		indexName              = acc.RandomName()
-		databaseName           = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroySearchIndex,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(projectID, clusterName, indexName, "", databaseName, "", true),
-				Check:  checkBasic(projectID, clusterName, indexName, "", databaseName, ""),
-			},
-		},
-	})
-}
-
 func TestAccSearchIndex_withSearchType(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t)
@@ -47,7 +28,7 @@ func TestAccSearchIndex_withSearchType(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, "", false),
+				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, ""),
 				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, ""),
 			},
 		},
@@ -182,11 +163,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, indexName, "", databaseName, "", false),
+				Config: configBasic(projectID, clusterName, indexName, "", databaseName, ""),
 				Check:  checkBasic(projectID, clusterName, indexName, "", databaseName, ""),
 			},
 			{
-				Config:            configBasic(projectID, clusterName, indexName, "", databaseName, "", false),
+				Config:            configBasic(projectID, clusterName, indexName, "", databaseName, ""),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -233,7 +214,7 @@ func storedSourceTestCase(tb testing.TB, storedSource string) *resource.TestCase
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, storedSource, false),
+				Config: configBasic(projectID, clusterName, indexName, "search", databaseName, storedSource),
 				Check:  checkBasic(projectID, clusterName, indexName, "search", databaseName, storedSource),
 			},
 		},
@@ -253,11 +234,11 @@ func storedSourceTestCaseUpdate(tb testing.TB, searchType string) *resource.Test
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, indexName, searchType, databaseName, "false", false),
+				Config: configBasic(projectID, clusterName, indexName, searchType, databaseName, "false"),
 				Check:  checkBasic(projectID, clusterName, indexName, searchType, databaseName, "false"),
 			},
 			{
-				Config: configBasic(projectID, clusterName, indexName, searchType, databaseName, "true", false),
+				Config: configBasic(projectID, clusterName, indexName, searchType, databaseName, "true"),
 				Check:  checkBasic(projectID, clusterName, indexName, searchType, databaseName, "true"),
 			},
 		},
@@ -325,7 +306,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func configBasic(projectID, clusterName, indexName, indexType, databaseName, storedSource string, waitForIndexBuildCompletion bool) string {
+func configBasic(projectID, clusterName, indexName, indexType, databaseName, storedSource string) string {
 	var extra string
 	if indexType != "" {
 		extra += fmt.Sprintf("type=%q\n", indexType)
@@ -336,9 +317,6 @@ func configBasic(projectID, clusterName, indexName, indexType, databaseName, sto
 		} else {
 			extra += fmt.Sprintf("stored_source= <<-EOF\n%s\nEOF\n", storedSource)
 		}
-	}
-	if waitForIndexBuildCompletion {
-		extra += "wait_for_index_build_completion=true\n"
 	}
 
 	return fmt.Sprintf(`
