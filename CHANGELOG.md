@@ -1,5 +1,29 @@
 ## (Unreleased)
 
+NOTES:
+
+* data-source/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
+* data-source/mongodbatlas_advanced_clusters: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
+* resource/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Adds `pinned_fcv` attribute ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
+* data-source/mongodbatlas_advanced_clusters: Adds `pinned_fcv` attribute ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
+* data-source/mongodbatlas_cluster: Adds `pinned_fcv` attribute ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
+* data-source/mongodbatlas_clusters: Adds `pinned_fcv` attribute ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
+* resource/mongodbatlas_advanced_cluster: Adds `pinned_fcv` attribute ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
+* resource/mongodbatlas_cluster: Adds `pinned_fcv` attribute ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_advanced_cluster: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
+* data-source/mongodbatlas_advanced_clusters: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
+* data-source/mongodbatlas_cluster: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
+* data-source/mongodbatlas_clusters: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
+* resource/mongodbatlas_advanced_cluster: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
+* resource/mongodbatlas_cluster: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
+
 ## 1.22.0 (November 26, 2024)
 
 NOTES:

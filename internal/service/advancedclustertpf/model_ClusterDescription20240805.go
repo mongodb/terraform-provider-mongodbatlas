@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 const (
@@ -64,6 +64,7 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 		Tags:                             tags,
 		TerminationProtectionEnabled:     types.BoolPointerValue(input.TerminationProtectionEnabled),
 		VersionReleaseSystem:             types.StringPointerValue(input.VersionReleaseSystem),
+		PinnedFCV:                        types.ObjectNull(PinnedFCVObjType.AttrTypes), // TODO static object
 		Timeouts:                         timeout,
 	}
 }
