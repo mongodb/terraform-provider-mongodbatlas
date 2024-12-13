@@ -6,17 +6,21 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 const (
-	resourceName             = "stream_privatelink_endpoint"
-	warnUnsupportedOperation = "Operation not supported"
+	resourceName                     = "stream_privatelink_endpoint"
+	warnUnsupportedOperation         = "Operation not supported"
+	FailedStatusErrorMessageSummary  = "Private endpoint is in a failed status"
+	NonEmptyErrorMessageFieldSummary = "Something went wrong. Please review the `status` field of this resource"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -127,7 +131,16 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}
-	//TODO: state transition like encryptionatrestprivateendpoint
+
+	model, err := WaitDeleteStateTransition(ctx, projectID, connectionID, connV2.StreamsApi)
+	if err != nil {
+		resp.Diagnostics.AddError("error waiting for state transition", err.Error())
+		return
+	}
+
+	if model.GetState() == retrystrategy.RetryStrategyFailedState {
+		resp.Diagnostics.Append(diag.NewErrorDiagnostic(FailedStatusErrorMessageSummary, ""))
+	}
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
