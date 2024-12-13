@@ -16,6 +16,18 @@ const (
 	defaultMinTimeout = 30 * time.Second // Smallest time to wait before refreshes
 )
 
+func waitStateTransition(ctx context.Context, projectID, endpointID string, client admin.StreamsApi) (*admin.StreamsPrivateLinkConnection, error) {
+	return WaitStateTransitionWithMinTimeout(ctx, defaultMinTimeout, projectID, endpointID, client)
+}
+
+func WaitStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, endpointID string, client admin.StreamsApi) (*admin.StreamsPrivateLinkConnection, error) {
+	return waitStateTransitionForStates(
+		ctx,
+		[]string{retrystrategy.RetryStrategyInitiatingState},
+		[]string{retrystrategy.RetryStrategyIdleState, retrystrategy.RetryStrategyFailedState},
+		minTimeout, projectID, endpointID, client)
+}
+
 func WaitDeleteStateTransition(ctx context.Context, projectID, endpointID string, client admin.StreamsApi) (*admin.StreamsPrivateLinkConnection, error) {
 	return WaitDeleteStateTransitionWithMinTimeout(ctx, defaultMinTimeout, projectID, endpointID, client)
 }
@@ -23,7 +35,7 @@ func WaitDeleteStateTransition(ctx context.Context, projectID, endpointID string
 func WaitDeleteStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, connectionID string, client admin.StreamsApi) (*admin.StreamsPrivateLinkConnection, error) {
 	return waitStateTransitionForStates(
 		ctx,
-		[]string{retrystrategy.RetryStrategyDeletingState},
+		[]string{retrystrategy.RetryStrategyDeleteRequestedState, retrystrategy.RetryStrategyDeletingState},
 		[]string{retrystrategy.RetryStrategyDeletedState, retrystrategy.RetryStrategyFailedState},
 		minTimeout, projectID, connectionID, client)
 }

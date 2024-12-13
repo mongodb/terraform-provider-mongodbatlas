@@ -65,7 +65,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, projectID, streamsPrivateLinkConnection)
+	finalResp, err := waitStateTransition(ctx, projectID, *streamsPrivateLinkConnection.Id, connV2.StreamsApi)
+	if err != nil {
+		resp.Diagnostics.AddError("error when waiting for status transition in creation", err.Error())
+		return
+	}
+
+	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, projectID, finalResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
