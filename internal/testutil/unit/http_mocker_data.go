@@ -3,10 +3,12 @@ package unit
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
 
@@ -17,7 +19,7 @@ type statusText struct {
 	DuplicateResponses int    `yaml:"duplicate_responses"`
 }
 
-func (s statusText) MarshalYAML() (any, error) {
+func (s statusText) MarshalYAML() (interface{}, error) {
 	childNodes := []*yaml.Node{
 		{Kind: yaml.ScalarNode, Value: "response_index"},
 		{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%d", s.ResponseIndex)},
@@ -95,7 +97,11 @@ func (i *RequestInfo) NormalizePath(reqURL *url.URL) string {
 	if len(queryVars) == 0 {
 		return reqURL.Path
 	}
-	return removeQueryParamsAndTrim(reqURL.Path) + "?" + relevantQuery(queryVars, reqURL.Query())
+	queryString := relevantQuery(queryVars, reqURL.Query())
+	if queryString == "" {
+		return removeQueryParamsAndTrim(reqURL.Path)
+	}
+	return removeQueryParamsAndTrim(reqURL.Path) + "?" + queryString
 }
 
 func (i *RequestInfo) QueryVars() []string {
@@ -108,13 +114,13 @@ func (i *RequestInfo) QueryVars() []string {
 	return queryVars
 }
 
-func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.URL, usedVars map[string]string) bool {
+func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.URL, mockData *MockHTTPData) bool {
 	t.Helper()
 	if i.Method != method || i.Version != version {
 		return false
 	}
 	reqPath := i.NormalizePath(reqURL)
-	if replaceVars(i.Path, usedVars) == reqPath {
+	if replaceVars(i.Path, mockData.Variables) == reqPath {
 		return true
 	}
 	apiPath := APISpecPath{Path: removeQueryParamsAndTrim(i.Path)}
@@ -122,26 +128,31 @@ func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.UR
 		return false
 	}
 	pathVars := apiPath.Variables(reqURL.Path)
-	for name, value := range pathVars {
-		oldValue, exists := usedVars[name]
-		if !exists {
-			t.Logf("Adding variable to %s=%s based on match of %s", name, value, i.Path)
-		}
-		if exists && oldValue != value {
-			change, err := findVariableChange(t, name, usedVars, oldValue, value)
-			if err != nil {
-				t.Error(err)
-				return false
-			}
-			usedVars[change.NewName] = change.NewValue
-		} else {
-			usedVars[name] = value
-		}
+	err := mockData.UpdateVariablesIgnoreChanges(t, pathVars)
+	if err != nil {
+		t.Error(err)
+		return false
 	}
-	return replaceVars(i.Path, usedVars) == reqPath
+	return replaceVars(i.Path, mockData.Variables) == reqPath
+}
+
+// There is an issue when dumping the yaml, if the \n \n sequence is found it will always dump using the DoubleQuotedStyle, workaround by using this custom dumping.
+type Literal string
+
+func (l Literal) MarshalYAML() (any, error) {
+	if l == "" {
+		return "", nil
+	}
+	return &yaml.Node{
+		Kind:  yaml.ScalarNode,
+		Value: strings.ReplaceAll(string(l), "\n \n", "\n\n"),
+		Style: yaml.LiteralStyle,
+		Tag:   "!!str",
+	}, nil
 }
 
 type stepRequests struct {
+	Config           Literal       `yaml:"config,omitempty"`
 	DiffRequests     []RequestInfo `yaml:"diff_requests"`
 	RequestResponses []RequestInfo `yaml:"request_responses"`
 }
@@ -181,12 +192,15 @@ type RoundTrip struct {
 	StepNumber  int
 }
 
-func NewMockHTTPData(stepCount int) MockHTTPData {
+func NewMockHTTPData(t *testing.T, stepCount int, tfConfigs []string) *MockHTTPData {
+	t.Helper()
 	steps := make([]stepRequests, stepCount)
-	return MockHTTPData{
+	data := MockHTTPData{
 		Steps:     steps,
 		Variables: map[string]string{},
 	}
+	data.useTFConfigs(t, tfConfigs)
+	return &data
 }
 
 type VariableChange struct {
@@ -223,6 +237,18 @@ func (e VariablesChangedError) ChangedValuesMap() map[string]string {
 type MockHTTPData struct {
 	Variables map[string]string `yaml:"variables"`
 	Steps     []stepRequests    `yaml:"steps"`
+}
+
+func (m *MockHTTPData) useTFConfigs(t *testing.T, tfConfigs []string) {
+	t.Helper()
+	require.Equal(t, len(tfConfigs), len(m.Steps), "Number of steps in test case and mock data should match")
+	for i := range tfConfigs {
+		tfConfig := tfConfigs[i]
+		configVars := ExtractConfigVariables(t, tfConfig)
+		err := m.UpdateVariablesIgnoreChanges(t, configVars)
+		require.NoError(t, err)
+		m.Steps[i].Config = Literal(tfConfig)
+	}
 }
 
 // Normalize happens after all data is captured, as a cluster.name might only be discovered as a variable in later steps
@@ -264,6 +290,9 @@ func (m *MockHTTPData) AddRoundtrip(t *testing.T, rt *RoundTrip, isDiff bool) er
 	if rt.QueryString != "" {
 		normalizedPath += "?" + useVars(rtVariables, rt.QueryString)
 	}
+	if rt.StepNumber > len(m.Steps) {
+		return fmt.Errorf("step number %d is out of bounds, are you re-running the same test case?", rt.StepNumber)
+	}
 	step := &m.Steps[rt.StepNumber-1]
 	requestInfo := RequestInfo{
 		Version: rt.Request.Version,
@@ -282,6 +311,14 @@ func (m *MockHTTPData) AddRoundtrip(t *testing.T, rt *RoundTrip, isDiff bool) er
 	return nil
 }
 
+func (m *MockHTTPData) UpdateVariablesIgnoreChanges(t *testing.T, variables map[string]string) error {
+	t.Helper()
+	err := m.UpdateVariables(t, variables)
+	if _, ok := err.(*VariablesChangedError); ok {
+		return nil
+	}
+	return err
+}
 func (m *MockHTTPData) UpdateVariables(t *testing.T, variables map[string]string) error {
 	t.Helper()
 	var missingValue []string
@@ -297,6 +334,9 @@ func (m *MockHTTPData) UpdateVariables(t *testing.T, variables map[string]string
 	changes := []VariableChange{}
 	for name, value := range variables {
 		oldValue, exists := m.Variables[name]
+		if !exists {
+			t.Logf("Adding variable %s=%s", name, value)
+		}
 		if exists && oldValue != value {
 			change, err := findVariableChange(t, name, m.Variables, oldValue, value)
 			if err != nil {
@@ -332,7 +372,14 @@ func findVariableChange(t *testing.T, name string, vars map[string]string, oldVa
 
 func useVars(vars map[string]string, text string) string {
 	for key, value := range vars {
-		text = strings.ReplaceAll(text, value, fmt.Sprintf("{%s}", key))
+		replaceInRegex := regexp.MustCompile(fmt.Sprintf(`\W(%s)\W?`, value))
+		text = replaceInRegex.ReplaceAllStringFunc(text, func(old string) string {
+			lastChar := old[len(old)-1]
+			if lastChar == value[len(value)-1] {
+				return fmt.Sprintf("%c{%s}", old[0], key)
+			}
+			return fmt.Sprintf("%c{%s}%c", old[0], key, lastChar)
+		})
 	}
 	return text
 }

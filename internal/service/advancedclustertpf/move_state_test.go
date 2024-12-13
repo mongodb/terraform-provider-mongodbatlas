@@ -10,6 +10,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+const (
+	resourceName = "mongodbatlas_advanced_cluster.test"
+)
+
 func TestAccAdvancedCluster_moveBasic(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
