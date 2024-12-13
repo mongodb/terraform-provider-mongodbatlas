@@ -389,18 +389,13 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			log.Printf("[WARN] Error setting `snapshot_backup_policy` for the cluster(%s): %s", clusters[i].ID, err)
 		}
 
-		// processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name)
 		processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, clusters[i].GroupID, clusters[i].Name).Execute()
 		if err != nil {
-			// return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
-
 		}
 		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, clusters[i].GroupID, clusters[i].Name).Execute()
 		if err != nil {
-			// return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
-
 		}
 
 		var containerID string
