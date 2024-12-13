@@ -1487,8 +1487,9 @@ func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMaj
 		if p.TlsCipherConfigMode != nil {
 			tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
 			if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+				//nolint:gocritic // reason: simplifying string array construction
 				customOpensslCipherConfigTLS12Str = fmt.Sprintf(
-					`custom_openssl_cipher_config_tls12 = [%q]`,
+					`custom_openssl_cipher_config_tls12 = ["%s"]`,
 					strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
 				)
 			}

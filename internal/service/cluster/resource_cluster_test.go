@@ -104,6 +104,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config: configAdvancedConf(projectID, clusterName, "false", &admin20240530.ClusterDescriptionProcessArgs{
 					FailIndexKeyTooLong: conversion.Pointer(false),
+					DefaultReadConcern:  conversion.StringPtr("available"),
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
 						JavascriptEnabled:                conversion.Pointer(true),
@@ -1494,8 +1495,9 @@ func configAdvancedConf(projectID, name, autoscalingEnabled string,
 	if p.TlsCipherConfigMode != nil {
 		tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
 		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+			//nolint:gocritic // reason: simplifying string array construction
 			customOpensslCipherConfigTLS12Str = fmt.Sprintf(
-				`custom_openssl_cipher_config_tls12 = [%q]`,
+				`custom_openssl_cipher_config_tls12 = ["%s"]`,
 				strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
 			)
 		}
