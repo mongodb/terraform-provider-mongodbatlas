@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"time"
 
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -391,6 +392,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var (
 		conn             = meta.(*config.MongoDBClient).Atlas
 		connV2           = meta.(*config.MongoDBClient).AtlasPreview // TODO: replace with AtlasV2
+		connV220240530   = meta.(*config.MongoDBClient).AtlasV220240530
 		connV220240805   = meta.(*config.MongoDBClient).AtlasV220240805
 		projectID        = d.Get("project_id").(string)
 		clusterName      = d.Get("name").(string)
@@ -572,10 +574,14 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	*/
 	ac, ok := d.GetOk("advanced_configuration")
 	if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any), &clusterRequest.MongoDBMajorVersion)
+		params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), &clusterRequest.MongoDBMajorVersion)
 
 		if ok {
-			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
+			_, _, err = connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.Name, &params20240530).Execute()
+			if err != nil {
+				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, cluster.Name, err))
+			}
+			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.Name, &params).Execute()
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, cluster.Name, err))
 			}
@@ -622,6 +628,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasPreview // TODO: replace with AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -779,12 +786,20 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	/*
 		Get the advaced configuration options and set up to the terraform state
 	*/
-	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	// processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	// if err != nil {
+	// 	return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
+	// }
+	processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
+	}
+	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
 	}
 
@@ -824,6 +839,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		conn                = meta.(*config.MongoDBClient).Atlas
 		connV2              = meta.(*config.MongoDBClient).AtlasPreview // TODO: replace with AtlasV2
 		connV220240805      = meta.(*config.MongoDBClient).AtlasV220240805
+		connV220240530      = meta.(*config.MongoDBClient).AtlasV220240530
 		ids                 = conversion.DecodeStateID(d.Id())
 		projectID           = ids["project_id"]
 		clusterName         = ids["cluster_name"]
@@ -982,11 +998,17 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		ac := d.Get("advanced_configuration")
 		if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any), &mongoDBMajorVersion)
-			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
-				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
+			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), &mongoDBMajorVersion)
+			if !reflect.DeepEqual(params20240530, admin20240530.ClusterDescriptionProcessArgs{}) {
+				_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params20240530).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, clusterName, err))
+				}
+			}
+			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
+				_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.Name, &params).Execute()
+				if err != nil {
+					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, cluster.Name, err))
 				}
 			}
 		}

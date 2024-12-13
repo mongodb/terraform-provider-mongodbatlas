@@ -8,9 +8,11 @@ import (
 	"reflect"
 	"strings"
 
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace SDK once cipher config changes are in prod
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -71,27 +73,46 @@ func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
 	return policyItems
 }
 
-func flattenProcessArgs(p *matlas.ProcessArgs) []map[string]any {
+func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) []map[string]any {
+	if p20240530 == nil {
+		return nil
+	}
 	flattenedProcessArgs := []map[string]any{
 		{
-			"default_read_concern":                 p.DefaultReadConcern,
-			"default_write_concern":                p.DefaultWriteConcern,
-			"fail_index_key_too_long":              cast.ToBool(p.FailIndexKeyTooLong),
-			"javascript_enabled":                   cast.ToBool(p.JavascriptEnabled),
-			"minimum_enabled_tls_protocol":         p.MinimumEnabledTLSProtocol,
-			"no_table_scan":                        cast.ToBool(p.NoTableScan),
-			"oplog_size_mb":                        p.OplogSizeMB,
-			"oplog_min_retention_hours":            p.OplogMinRetentionHours,
-			"sample_size_bi_connector":             p.SampleSizeBIConnector,
-			"sample_refresh_interval_bi_connector": p.SampleRefreshIntervalBIConnector,
-			"transaction_lifetime_limit_seconds":   p.TransactionLifetimeLimitSeconds,
+			"default_read_concern":    p20240530.GetDefaultReadConcern(),
+			"fail_index_key_too_long": p20240530.GetFailIndexKeyTooLong(),
+
+			"default_write_concern":                p.GetDefaultWriteConcern(),
+			"javascript_enabled":                   p20240530.GetJavascriptEnabled(),
+			"minimum_enabled_tls_protocol":         p20240530.GetMinimumEnabledTlsProtocol(),
+			"no_table_scan":                        p20240530.GetNoTableScan(),
+			"oplog_size_mb":                        p20240530.GetOplogSizeMB(),
+			"oplog_min_retention_hours":            p20240530.GetOplogMinRetentionHours(),
+			"sample_size_bi_connector":             p20240530.GetSampleSizeBIConnector(),
+			"sample_refresh_interval_bi_connector": p20240530.GetSampleRefreshIntervalBIConnector(),
+			"transaction_lifetime_limit_seconds":   p20240530.GetTransactionLifetimeLimitSeconds(),
 		},
 	}
-	if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil {
-		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
-	} else {
-		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
+	// if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil {
+	// 	flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
+	// } else {
+	// 	flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
+	// }
+
+	if p != nil {
+		if v := p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds; v == nil {
+			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
+		} else {
+			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
+		}
+
+		if v := p.DefaultMaxTimeMS; v != nil {
+			flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
+		}
+		flattenedProcessArgs[0]["tls_cipher_config_mode"] = p.GetTlsCipherConfigMode()
+		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = p.GetCustomOpensslCipherConfigTls12()
 	}
+
 	return flattenedProcessArgs
 }
 
@@ -221,19 +242,19 @@ func expandTagSliceFromSetSchema(d *schema.ResourceData) []*matlas.Tag {
 	return res
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) *matlas.ProcessArgs {
-	res := &matlas.ProcessArgs{}
+func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
+	res20240530 := admin20240530.ClusterDescriptionProcessArgs{}
+	res := admin.ClusterDescriptionProcessArgs20240805{}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {
-		res.DefaultReadConcern = cast.ToString(p["default_read_concern"])
+		res20240530.DefaultReadConcern = conversion.StringPtr(cast.ToString(p["default_read_concern"]))
+	}
+	if _, ok := d.GetOkExists("advanced_configuration.0.fail_index_key_too_long"); ok {
+		res20240530.FailIndexKeyTooLong = conversion.Pointer(cast.ToBool(p["fail_index_key_too_long"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_write_concern"); ok {
-		res.DefaultWriteConcern = cast.ToString(p["default_write_concern"])
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.fail_index_key_too_long"); ok {
-		res.FailIndexKeyTooLong = conversion.Pointer(cast.ToBool(p["fail_index_key_too_long"]))
+		res.DefaultWriteConcern = conversion.StringPtr(cast.ToString(p["default_write_concern"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.javascript_enabled"); ok {
@@ -241,7 +262,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
-		res.MinimumEnabledTLSProtocol = cast.ToString(p["minimum_enabled_tls_protocol"])
+		res.MinimumEnabledTlsProtocol = conversion.StringPtr(cast.ToString(p["minimum_enabled_tls_protocol"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.no_table_scan"); ok {
@@ -249,16 +270,16 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.sample_size_bi_connector"); ok {
-		res.SampleSizeBIConnector = conversion.Pointer(cast.ToInt64(p["sample_size_bi_connector"]))
+		res.SampleSizeBIConnector = conversion.Pointer(cast.ToInt(p["sample_size_bi_connector"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.sample_refresh_interval_bi_connector"); ok {
-		res.SampleRefreshIntervalBIConnector = conversion.Pointer(cast.ToInt64(p["sample_refresh_interval_bi_connector"]))
+		res.SampleRefreshIntervalBIConnector = conversion.Pointer(cast.ToInt(p["sample_refresh_interval_bi_connector"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
 		if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
-			res.OplogSizeMB = conversion.Pointer(cast.ToInt64(p["oplog_size_mb"]))
+			res.OplogSizeMB = conversion.Pointer(cast.ToInt(p["oplog_size_mb"]))
 		} else {
 			log.Printf(advancedcluster.ErrorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
 		}
@@ -281,10 +302,19 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && advancedcluster.IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
-		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(cast.ToInt64(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
+		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 	}
 
-	return res
+	if _, ok := d.GetOkExists("advanced_configuration.0.tls_cipher_config_mode"); ok {
+		res.TlsCipherConfigMode = conversion.StringPtr(cast.ToString(p["tls_cipher_config_mode"]))
+	}
+
+	if _, ok := d.GetOkExists("advanced_configuration.0.custom_openssl_cipher_config_tls12"); ok {
+		tmp := conversion.ExpandStringListFromSetSchema(d.Get("advanced_configuration.0.custom_openssl_cipher_config_tls12").(*schema.Set))
+		res.CustomOpensslCipherConfigTls12 = &tmp
+	}
+
+	return res20240530, res
 }
 
 func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {

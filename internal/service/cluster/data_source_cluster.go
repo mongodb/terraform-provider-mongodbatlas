@@ -344,6 +344,7 @@ func DataSource() *schema.Resource {
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasPreview // TODO: replace with AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
 
@@ -486,12 +487,24 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	/*
 		Get the advaced configuration options and set up to the terraform state
 	*/
-	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	// processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	// if err != nil {
+	// 	return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
+	// }
+
+	// if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+	// 	return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
+	// }
+	processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
+	}
+	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
 	}
 
