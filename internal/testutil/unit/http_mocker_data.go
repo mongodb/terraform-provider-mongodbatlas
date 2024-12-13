@@ -140,6 +140,9 @@ func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.UR
 type Literal string
 
 func (l Literal) MarshalYAML() (any, error) {
+	if l == "" {
+		return "", nil
+	}
 	return &yaml.Node{
 		Kind:  yaml.ScalarNode,
 		Value: strings.ReplaceAll(string(l), "\n \n", "\n\n"),
