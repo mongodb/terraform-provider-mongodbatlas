@@ -108,7 +108,7 @@ func TestSafeValue(t *testing.T) {
 	assert.Equal(t, "", conversion.SafeValue(stringPointer))
 }
 
-func TestNilForUnknownOrEmpty(t *testing.T)	{
+func TestNilForUnknownOrEmpty(t *testing.T) {
 	assert.Nil(t, conversion.NilForUnknownOrEmpty(types.StringPointerValue(nil)))
 	emptyString := ""
 	assert.Nil(t, conversion.NilForUnknownOrEmpty(types.StringPointerValue(&emptyString)))

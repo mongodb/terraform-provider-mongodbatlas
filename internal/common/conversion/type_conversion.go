@@ -15,7 +15,6 @@ func SafeValue[T any](v *T) T {
 	return *emptyValue
 }
 
-
 func SafeString(s *string) string {
 	if s != nil {
 		return *s

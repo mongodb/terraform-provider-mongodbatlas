@@ -183,7 +183,7 @@ func newHardwareSpec20240805(ctx context.Context, input types.Object, diags *dia
 	return &admin.HardwareSpec20240805{
 		DiskIOPS:      conversion.NilForUnknown(item.DiskIops, conversion.Int64PtrToIntPtr(item.DiskIops.ValueInt64Pointer())),
 		DiskSizeGB:    conversion.NilForUnknown(item.DiskSizeGb, item.DiskSizeGb.ValueFloat64Pointer()),
-		EbsVolumeType: conversion.NilForUnknown(item.EbsVolumeType, item.EbsVolumeType.ValueStringPointer()),
+		EbsVolumeType: conversion.NilForUnknownOrEmpty(item.EbsVolumeType),
 		InstanceSize:  conversion.NilForUnknown(item.InstanceSize, item.InstanceSize.ValueStringPointer()),
 		NodeCount:     conversion.NilForUnknown(item.NodeCount, conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
 	}
