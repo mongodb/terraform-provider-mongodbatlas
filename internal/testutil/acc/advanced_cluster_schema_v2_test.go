@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConvertToTPFAttrsMapAndAttrsSet(t *testing.T) {
+func TestConvertToSchemaV2AttrsMapAndAttrsSet(t *testing.T) {
 	if !config.AdvancedClusterV2Schema() {
 		t.Skip("Skipping test as not in AdvancedClusterV2Schema")
 	}
@@ -27,7 +27,7 @@ func TestConvertToTPFAttrsMapAndAttrsSet(t *testing.T) {
 		"advanced_configurationpostfix": "val4",
 		"electable_specsadvanced_configurationbi_connector_config": "val5",
 	}
-	actualMap := acc.ConvertToTPFAttrsMap(attrsMap)
+	actualMap := acc.ConvertToSchemaV2AttrsMap(true, attrsMap)
 	assert.Equal(t, expectedMap, actualMap)
 
 	attrsSet := make([]string, 0, len(attrsMap))
@@ -38,13 +38,13 @@ func TestConvertToTPFAttrsMapAndAttrsSet(t *testing.T) {
 	for name := range expectedMap {
 		expectedSet = append(expectedSet, name)
 	}
-	actualSet := acc.ConvertToTPFAttrsSet(attrsSet)
+	actualSet := acc.ConvertToSchemaV2AttrsSet(true, attrsSet)
 	sort.Strings(expectedSet)
 	sort.Strings(actualSet)
 	assert.Equal(t, expectedSet, actualSet)
 }
 
-func TestConvertAdvancedClusterToTPF(t *testing.T) {
+func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
 	if !config.AdvancedClusterV2Schema() {
 		t.Skip("Skipping test as not in AdvancedClusterV2Schema")
 	}
@@ -143,7 +143,7 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 				}
 			}	
  		`
-		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToTPF
+		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToSchemaV2
 		expected = `
 			resource "mongodbatlas_advanced_cluster" "cluster2" {
 				project_id   = "MY-PROJECT-ID"
@@ -234,7 +234,7 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 			}
  		`
 	)
-	actual := acc.ConvertAdvancedClusterToTPF(t, input)
+	actual := acc.ConvertAdvancedClusterToSchemaV2(t, true, input)
 	acc.AssertEqualHCL(t, expected, actual)
 }
 

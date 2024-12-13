@@ -3,7 +3,7 @@ package advancedcluster
 import (
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 )
@@ -11,14 +11,6 @@ import (
 // Conversions from one SDK model version to another are used to avoid duplicating our flatten/expand conversion functions.
 // - These functions must not contain any business logic.
 // - All will be removed once we rely on a single API version.
-
-func convertTagsPtrToLatest(tags *[]admin20240530.ResourceTag) *[]admin.ResourceTag {
-	if tags == nil {
-		return nil
-	}
-	result := convertTagsToLatest(*tags)
-	return &result
-}
 
 func convertTagsPtrToOldSDK(tags *[]admin20240805.ResourceTag) *[]admin20240530.ResourceTag {
 	if tags == nil {
@@ -297,31 +289,4 @@ func convertRegionConfigSliceToLatest(slice *[]admin20240530.CloudRegionConfig, 
 		}
 	}
 	return &results
-}
-
-func convertClusterDescToLatestExcludeRepSpecs(oldClusterDesc *admin20240530.AdvancedClusterDescription) *admin.ClusterDescription20240805 {
-	return &admin.ClusterDescription20240805{
-		BackupEnabled: oldClusterDesc.BackupEnabled,
-		AcceptDataRisksAndForceReplicaSetReconfig: oldClusterDesc.AcceptDataRisksAndForceReplicaSetReconfig,
-		ClusterType:                      oldClusterDesc.ClusterType,
-		CreateDate:                       oldClusterDesc.CreateDate,
-		DiskWarmingMode:                  oldClusterDesc.DiskWarmingMode,
-		EncryptionAtRestProvider:         oldClusterDesc.EncryptionAtRestProvider,
-		GlobalClusterSelfManagedSharding: oldClusterDesc.GlobalClusterSelfManagedSharding,
-		GroupId:                          oldClusterDesc.GroupId,
-		Id:                               oldClusterDesc.Id,
-		MongoDBMajorVersion:              oldClusterDesc.MongoDBMajorVersion,
-		MongoDBVersion:                   oldClusterDesc.MongoDBVersion,
-		Name:                             oldClusterDesc.Name,
-		Paused:                           oldClusterDesc.Paused,
-		PitEnabled:                       oldClusterDesc.PitEnabled,
-		RootCertType:                     oldClusterDesc.RootCertType,
-		StateName:                        oldClusterDesc.StateName,
-		TerminationProtectionEnabled:     oldClusterDesc.TerminationProtectionEnabled,
-		VersionReleaseSystem:             oldClusterDesc.VersionReleaseSystem,
-		Tags:                             convertTagsPtrToLatest(oldClusterDesc.Tags),
-		BiConnector:                      convertBiConnectToLatest(oldClusterDesc.BiConnector),
-		ConnectionStrings:                convertConnectionStringToLatest(oldClusterDesc.ConnectionStrings),
-		Labels:                           convertLabelsToLatest(oldClusterDesc.Labels),
-	}
 }
