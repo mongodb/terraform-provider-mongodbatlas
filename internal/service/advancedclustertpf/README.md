@@ -9,3 +9,4 @@ This package contains the WIP for `mongodbatlas_advanced_cluster` in TPF. Curren
 - [PR #2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825) Add new `advanced_configuration.0.default_max_time_ms` attribute to mongodbatlas_advanced_cluster resource and data sources.
 
 
+- `pinned_fcv` attribute was a recently added attribute in `advanced_cluster`. It has been defined in the new tpf schema but we need to make sure that the implementation is also present.
