@@ -786,10 +786,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	/*
 		Get the advaced configuration options and set up to the terraform state
 	*/
-	// processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
-	// }
 	processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
