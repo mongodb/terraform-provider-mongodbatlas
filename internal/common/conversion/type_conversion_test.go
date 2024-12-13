@@ -109,9 +109,9 @@ func TestSafeValue(t *testing.T) {
 }
 
 func TestNilForUnknownOrEmpty(t *testing.T) {
-	assert.Nil(t, conversion.NilForUnknownOrEmpty(types.StringPointerValue(nil)))
+	assert.Nil(t, conversion.NilForUnknownOrEmptyString(types.StringPointerValue(nil)))
 	emptyString := ""
-	assert.Nil(t, conversion.NilForUnknownOrEmpty(types.StringPointerValue(&emptyString)))
+	assert.Nil(t, conversion.NilForUnknownOrEmptyString(types.StringPointerValue(&emptyString)))
 	testString := "test"
-	assert.Equal(t, "test", *conversion.NilForUnknownOrEmpty(types.StringPointerValue(&testString)))
+	assert.Equal(t, "test", *conversion.NilForUnknownOrEmptyString(types.StringPointerValue(&testString)))
 }

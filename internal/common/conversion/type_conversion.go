@@ -11,8 +11,8 @@ func SafeValue[T any](v *T) T {
 	if v != nil {
 		return *v
 	}
-	emptyValue := new(T)
-	return *emptyValue
+	var emptyValue T
+	return emptyValue
 }
 
 func SafeString(s *string) string {
@@ -97,7 +97,7 @@ func NilForUnknown[T any](primitiveAttr TFPrimitiveType, value *T) *T {
 	return value
 }
 
-func NilForUnknownOrEmpty(primitiveAttr types.String) *string {
+func NilForUnknownOrEmptyString(primitiveAttr types.String) *string {
 	value := NilForUnknown(primitiveAttr, primitiveAttr.ValueStringPointer())
 	if value == nil || *value == "" {
 		return nil

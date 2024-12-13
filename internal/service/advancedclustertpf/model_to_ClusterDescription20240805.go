@@ -183,7 +183,7 @@ func newHardwareSpec20240805(ctx context.Context, input types.Object, diags *dia
 	return &admin.HardwareSpec20240805{
 		DiskIOPS:      conversion.NilForUnknown(item.DiskIops, conversion.Int64PtrToIntPtr(item.DiskIops.ValueInt64Pointer())),
 		DiskSizeGB:    conversion.NilForUnknown(item.DiskSizeGb, item.DiskSizeGb.ValueFloat64Pointer()),
-		EbsVolumeType: conversion.NilForUnknownOrEmpty(item.EbsVolumeType),
+		EbsVolumeType: conversion.NilForUnknownOrEmptyString(item.EbsVolumeType),
 		InstanceSize:  conversion.NilForUnknown(item.InstanceSize, item.InstanceSize.ValueStringPointer()),
 		NodeCount:     conversion.NilForUnknown(item.NodeCount, conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
 	}
@@ -202,7 +202,7 @@ func newDedicatedHardwareSpec20240805(ctx context.Context, input types.Object, d
 		DiskIOPS:      conversion.NilForUnknown(item.DiskIops, conversion.Int64PtrToIntPtr(item.DiskIops.ValueInt64Pointer())),
 		DiskSizeGB:    conversion.NilForUnknown(item.DiskSizeGb, item.DiskSizeGb.ValueFloat64Pointer()),
 		EbsVolumeType: conversion.NilForUnknown(item.EbsVolumeType, item.EbsVolumeType.ValueStringPointer()),
-		InstanceSize:  conversion.NilForUnknownOrEmpty(item.InstanceSize),
+		InstanceSize:  conversion.NilForUnknownOrEmptyString(item.InstanceSize),
 		NodeCount:     conversion.NilForUnknown(item.NodeCount, conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
 	}
 }
@@ -220,8 +220,8 @@ func newAdvancedComputeAutoScaling(ctx context.Context, input types.Object, diag
 	return &admin.AdvancedComputeAutoScaling{
 		Enabled:          conversion.NilForUnknown(item.ComputeEnabled, item.ComputeEnabled.ValueBoolPointer()),
 		ScaleDownEnabled: conversion.NilForUnknown(item.ComputeScaleDownEnabled, item.ComputeScaleDownEnabled.ValueBoolPointer()),
-		MaxInstanceSize:  conversion.NilForUnknownOrEmpty(item.ComputeMaxInstanceSize),
-		MinInstanceSize:  conversion.NilForUnknownOrEmpty(item.ComputeMinInstanceSize),
+		MaxInstanceSize:  conversion.NilForUnknownOrEmptyString(item.ComputeMaxInstanceSize),
+		MinInstanceSize:  conversion.NilForUnknownOrEmptyString(item.ComputeMinInstanceSize),
 	}
 }
 func newDiskGBAutoScaling(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.DiskGBAutoScaling {
