@@ -1,0 +1,28 @@
+```release-note:note
+resource/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_advanced_clusters: Adds new `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute
+```
+
+```release-note:note
+resource/mongodbatlas_cluster: Adds new `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_cluster: Adds new `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_cluster: Adds new `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute
+```
+
+
+
+
+
