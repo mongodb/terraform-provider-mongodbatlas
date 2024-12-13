@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,18 +38,20 @@ func IsReplay() bool {
 	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerReplay)))
 }
 
-func CaptureOrMockTestCaseAndRun(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) {
+func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCase *resource.TestCase) { //nolint: gocritic // Want each test run to have its own config (hugeParam: config is heavy (112 bytes); consider passing it by pointer)
 	t.Helper()
 	var err error
 	noneSet := !IsCapture() && !IsReplay()
+	bothSet := IsCapture() && IsReplay()
 	switch {
+	case bothSet:
+		t.Fatalf("Both %s and %s are set, only one of them should be set", EnvNameHTTPMockerCapture, EnvNameHTTPMockerReplay)
 	case noneSet:
-		t.Logf("Neither %s nor %s is set, defaulting to capture mode", EnvNameHTTPMockerCapture, EnvNameHTTPMockerReplay)
-		err = enableCaptureForTestCase(t, config, testCase)
+		t.Logf("Neither %s nor %s is set, running test case without modifications", EnvNameHTTPMockerCapture, EnvNameHTTPMockerReplay)
 	case IsReplay():
-		err = enableMockingForTestCase(t, config, testCase)
+		err = enableReplayForTestCase(t, &config, testCase)
 	case IsCapture():
-		err = enableCaptureForTestCase(t, config, testCase)
+		err = enableCaptureForTestCase(t, &config, testCase)
 	}
 	require.NoError(t, err)
 	resource.ParallelTest(t, *testCase)
@@ -72,9 +75,11 @@ func (c *mockClientModifier) ResetHTTPClient(httpClient *http.Client) {
 	}
 }
 
-func enableMockingForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
+func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
-	roundTripper, nextStep, checkFunc := MockRoundTripper(t, config)
+	tfConfigs := extractAndNormalizeConfig(t, testCase)
+	data := ReadMockData(t, tfConfigs)
+	roundTripper, mockRoundTripper := NewMockRoundTripper(t, config, data)
 	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
 	testCase.PreCheck = func() {
@@ -82,11 +87,16 @@ func enableMockingForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 			require.NoError(t, config.SideEffect())
 		}
 	}
+	require.Equal(t, len(testCase.Steps), len(data.Steps), "Number of steps in test case and mock data should match")
+	checkFunc := mockRoundTripper.CheckStepRequests
 	for i := range testCase.Steps {
 		step := &testCase.Steps[i]
 		oldSkip := step.SkipFunc
 		step.SkipFunc = func() (bool, error) {
-			nextStep()
+			mockRoundTripper.IncreaseStepNumberAndInit()
+			if os.Getenv("TF_LOG") == "DEBUG" && tfConfigs[i] != "" {
+				t.Logf("Step %d:\n%s\n", i+1, tfConfigs[i])
+			}
 			var shouldSkip bool
 			var err error
 			if oldSkip != nil {
@@ -105,10 +115,34 @@ func enableMockingForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 	return nil
 }
 
+func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
+	t.Helper()
+	httpDataPath := MockConfigFilePath(t)
+	data, err := ParseTestDataConfigYAML(httpDataPath)
+	require.NoError(t, err)
+	oldVariables := data.Variables
+	data.Variables = map[string]string{}
+	data.useTFConfigs(t, tfConfigs)
+	newVariables := data.Variables
+	for key, value := range oldVariables {
+		if _, ok := newVariables[key]; !ok {
+			t.Logf("Variable %s=%s not found from TF Config, probably discovered in request path", key, value)
+		}
+	}
+	for key, value := range newVariables {
+		if _, ok := oldVariables[key]; !ok {
+			t.Logf("Variable %s=%s not found in Mock Data, has the TF Config updated?", key, value)
+		}
+	}
+	return data
+}
+
 func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
 	stepCount := len(testCase.Steps)
-	clientModifier := NewCaptureMockConfigClientModifier(t, stepCount, config)
+	tfConfigs := extractAndNormalizeConfig(t, testCase)
+	capturedData := NewMockHTTPData(t, stepCount, tfConfigs)
+	clientModifier := NewCaptureMockConfigClientModifier(t, config, capturedData)
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier)
 	for i := range stepCount {
 		step := &testCase.Steps[i]
@@ -137,6 +171,16 @@ func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 	t.Cleanup(writeCapturedData)
 	testCase.CheckDestroy = wrapClientDuringCheck(testCase.CheckDestroy, clientModifier)
 	return nil
+}
+
+func extractAndNormalizeConfig(t *testing.T, testCase *resource.TestCase) []string {
+	t.Helper()
+	stepCount := len(testCase.Steps)
+	tfConfigs := make([]string, stepCount)
+	for i := range testCase.Steps {
+		tfConfigs[i] = hcl.PrettyHCL(t, testCase.Steps[i].Config)
+	}
+	return tfConfigs
 }
 
 func MockConfigFilePath(t *testing.T) string {

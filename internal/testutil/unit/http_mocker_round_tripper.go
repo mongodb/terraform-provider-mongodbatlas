@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 	"github.com/sebdah/goldie/v2"
@@ -18,11 +17,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func MockRoundTripper(t *testing.T, config *MockHTTPDataConfig) (http.RoundTripper, func(), resource.TestCheckFunc) {
+func NewMockRoundTripper(t *testing.T, config *MockHTTPDataConfig, data *MockHTTPData) (http.RoundTripper, *MockRoundTripper) {
 	t.Helper()
-	httpDataPath := MockConfigFilePath(t)
-	data, err := parseTestDataConfigYAML(httpDataPath)
-	require.NoError(t, err)
 	myTransport := httpmock.NewMockTransport()
 	var mockTransport http.RoundTripper = myTransport
 	tracker := newMockRoundTripper(t, data)
@@ -32,9 +28,9 @@ func MockRoundTripper(t *testing.T, config *MockHTTPDataConfig) (http.RoundTripp
 	for _, method := range []string{"GET", "POST", "PUT", "DELETE", "PATCH"} {
 		myTransport.RegisterRegexpResponder(method, regexp.MustCompile(".*"), tracker.receiveRequest(method))
 	}
-	return mockTransport, tracker.IncreaseStepNumberAndInit, tracker.checkStepRequests
+	return mockTransport, tracker
 }
-func parseTestDataConfigYAML(filePath string) (*MockHTTPData, error) {
+func ParseTestDataConfigYAML(filePath string) (*MockHTTPData, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -47,24 +43,22 @@ func parseTestDataConfigYAML(filePath string) (*MockHTTPData, error) {
 	return &testData, nil
 }
 
-func newMockRoundTripper(t *testing.T, data *MockHTTPData) *mockRoundTripper {
+func newMockRoundTripper(t *testing.T, data *MockHTTPData) *MockRoundTripper {
 	t.Helper()
-	return &mockRoundTripper{
+	return &MockRoundTripper{
 		t:                t,
 		g:                goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json")),
 		data:             data,
-		usedVars:         map[string]string{},
 		logRequests:      os.Getenv("TF_LOG") == "DEBUG",
 		currentStepIndex: -1, // increased on the start of the test
 	}
 }
 
-type mockRoundTripper struct {
+type MockRoundTripper struct {
 	t    *testing.T
 	g    *goldie.Goldie
 	data *MockHTTPData
 
-	usedVars             map[string]string
 	usedResponses        map[string]int
 	foundsDiffs          map[int]string
 	currentStepIndex     int
@@ -73,23 +67,23 @@ type mockRoundTripper struct {
 	logRequests          bool
 }
 
-func (r *mockRoundTripper) IncreaseStepNumberAndInit() {
+func (r *MockRoundTripper) IncreaseStepNumberAndInit() {
 	r.currentStepIndex++
 	err := r.initStep()
 	require.NoError(r.t, err)
 }
 
-func (r *mockRoundTripper) allowReUse(req *RequestInfo) bool {
+func (r *MockRoundTripper) allowReUse(req *RequestInfo) bool {
 	isGet := req.Method == "GET"
 	customReReadOk := req.Method == "POST" && strings.HasSuffix(req.Path, ":validate")
 	return isGet || customReReadOk
 }
 
-func (r *mockRoundTripper) requestFilename(requestID string, index int) string {
+func (r *MockRoundTripper) requestFilename(requestID string, index int) string {
 	return strings.ReplaceAll(fmt.Sprintf("%02d_%02d_%s", r.currentStepIndex+1, index+1, requestID), "/", "_")
 }
 
-func (r *mockRoundTripper) manualFilenameIfExist(requestID string, index int) string {
+func (r *MockRoundTripper) manualFilenameIfExist(requestID string, index int) string {
 	defaultFilestem := strings.ReplaceAll(fmt.Sprintf("%02d_%02d_%s", r.currentStepIndex+1, index+1, requestID), "/", "_")
 	manualFilestem := defaultFilestem + "_manual"
 	if _, err := os.Stat("testdata" + "/" + r.t.Name() + "/" + manualFilestem + ".json"); err == nil {
@@ -98,7 +92,7 @@ func (r *mockRoundTripper) manualFilenameIfExist(requestID string, index int) st
 	return defaultFilestem
 }
 
-func (r *mockRoundTripper) initStep() error {
+func (r *MockRoundTripper) initStep() error {
 	r.usedResponses = map[string]int{}
 	r.foundsDiffs = map[int]string{}
 	step := r.currentStep()
@@ -115,7 +109,7 @@ func (r *mockRoundTripper) initStep() error {
 	return nil
 }
 
-func (r *mockRoundTripper) nextDiffResponseIndex() {
+func (r *MockRoundTripper) nextDiffResponseIndex() {
 	step := r.currentStep()
 	if step == nil {
 		r.t.Fatal("no more steps, in testCase")
@@ -130,14 +124,14 @@ func (r *mockRoundTripper) nextDiffResponseIndex() {
 	r.diffResponseIndex = 99999
 }
 
-func (r *mockRoundTripper) currentStep() *stepRequests {
+func (r *MockRoundTripper) currentStep() *stepRequests {
 	if r.currentStepIndex >= len(r.data.Steps) {
 		return nil
 	}
 	return &r.data.Steps[r.currentStepIndex]
 }
 
-func (r *mockRoundTripper) checkStepRequests(_ *terraform.State) error {
+func (r *MockRoundTripper) CheckStepRequests(_ *terraform.State) error {
 	missingRequests := []string{}
 	step := r.currentStep()
 	for _, req := range step.RequestResponses {
@@ -170,13 +164,13 @@ func (r *mockRoundTripper) checkStepRequests(_ *terraform.State) error {
 		diff := step.DiffRequests[index]
 		filename := r.manualFilenameIfExist(diff.idShort(), index)
 		r.t.Logf("checking diff %s", filename)
-		payloadWithVars := useVars(r.usedVars, payload)
+		payloadWithVars := useVars(r.data.Variables, payload)
 		r.g.Assert(r.t, filename, []byte(payloadWithVars))
 	}
 	return nil
 }
 
-func (r *mockRoundTripper) receiveRequest(method string) func(req *http.Request) (*http.Response, error) {
+func (r *MockRoundTripper) receiveRequest(method string) func(req *http.Request) (*http.Response, error) {
 	return func(req *http.Request) (*http.Response, error) {
 		acceptHeader := req.Header.Get("Accept")
 		version, err := ExtractVersion(acceptHeader)
@@ -202,13 +196,14 @@ func (r *mockRoundTripper) receiveRequest(method string) func(req *http.Request)
 		return response, nil
 	}
 }
-func (r *mockRoundTripper) matchRequest(method, version, payload string, reqURL *url.URL) (response string, statusCode int, err error) {
+func (r *MockRoundTripper) matchRequest(method, version, payload string, reqURL *url.URL) (response string, statusCode int, err error) {
 	step := r.currentStep()
 	if step == nil {
 		return "", 0, fmt.Errorf("no more steps in mock data")
 	}
+	isDiff := false
 	for index, request := range step.DiffRequests {
-		if !request.Match(r.t, method, version, reqURL, r.usedVars) {
+		if !request.Match(r.t, method, version, reqURL, r.data) {
 			continue
 		}
 		if _, ok := r.foundsDiffs[index]; ok {
@@ -216,12 +211,13 @@ func (r *mockRoundTripper) matchRequest(method, version, payload string, reqURL 
 		}
 		r.foundsDiffs[index] = payload
 		r.nextDiffResponseIndex()
+		isDiff = true
 		break
 	}
 	nextDiffResponse := r.diffResponseIndex
 
 	for _, request := range step.RequestResponses {
-		if !request.Match(r.t, method, version, reqURL, r.usedVars) {
+		if !request.Match(r.t, method, version, reqURL, r.data) {
 			continue
 		}
 		requestID := request.id()
@@ -234,18 +230,18 @@ func (r *mockRoundTripper) matchRequest(method, version, payload string, reqURL 
 			}
 		}
 		response := request.Responses[nextIndex]
-		// cannot return a response that is sent after a diff response
-		if response.ResponseIndex > nextDiffResponse {
+		// cannot return a response that is sent after a diff response, unless it is a diff
+		if response.ResponseIndex > nextDiffResponse && !isDiff {
 			prevIndex := nextIndex - 1
 			if prevIndex >= 0 && r.allowReUse(&request) {
 				response = request.Responses[prevIndex]
 				r.t.Logf("re-reading %s request with response_index=%d as diff hasn't been returned yet (%d)", request.Method, response.ResponseIndex, nextDiffResponse)
-				return replaceVars(response.Text, r.usedVars), response.Status, nil
+				return replaceVars(response.Text, r.data.Variables), response.Status, nil
 			}
 			continue
 		}
 		r.usedResponses[requestID]++
-		return replaceVars(response.Text, r.usedVars), response.Status, nil
+		return replaceVars(response.Text, r.data.Variables), response.Status, nil
 	}
-	return "", 0, fmt.Errorf("no matching request found %s %s?%s %s", method, reqURL.Path, reqURL.RawQuery, version)
+	return "", 0, fmt.Errorf("no matching request found %s %s\n%s\nnextDiffResponse=%d", method, version, reqURL.Path, nextDiffResponse)
 }
