@@ -74,43 +74,33 @@ func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
 }
 
 func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) []map[string]any {
-	if p20240530 == nil {
-		return nil
-	}
 	flattenedProcessArgs := []map[string]any{
 		{
 			"default_read_concern":    p20240530.GetDefaultReadConcern(),
 			"fail_index_key_too_long": p20240530.GetFailIndexKeyTooLong(),
 
 			"default_write_concern":                p.GetDefaultWriteConcern(),
-			"javascript_enabled":                   p20240530.GetJavascriptEnabled(),
-			"minimum_enabled_tls_protocol":         p20240530.GetMinimumEnabledTlsProtocol(),
-			"no_table_scan":                        p20240530.GetNoTableScan(),
-			"oplog_size_mb":                        p20240530.GetOplogSizeMB(),
-			"oplog_min_retention_hours":            p20240530.GetOplogMinRetentionHours(),
-			"sample_size_bi_connector":             p20240530.GetSampleSizeBIConnector(),
-			"sample_refresh_interval_bi_connector": p20240530.GetSampleRefreshIntervalBIConnector(),
-			"transaction_lifetime_limit_seconds":   p20240530.GetTransactionLifetimeLimitSeconds(),
+			"javascript_enabled":                   p.GetJavascriptEnabled(),
+			"minimum_enabled_tls_protocol":         p.GetMinimumEnabledTlsProtocol(),
+			"no_table_scan":                        p.GetNoTableScan(),
+			"oplog_size_mb":                        p.GetOplogSizeMB(),
+			"oplog_min_retention_hours":            p.GetOplogMinRetentionHours(),
+			"sample_size_bi_connector":             p.GetSampleSizeBIConnector(),
+			"sample_refresh_interval_bi_connector": p.GetSampleRefreshIntervalBIConnector(),
+			"transaction_lifetime_limit_seconds":   p.GetTransactionLifetimeLimitSeconds(),
+			"tls_cipher_config_mode":               p.GetTlsCipherConfigMode(),
+			"custom_openssl_cipher_config_tls12":   p.GetCustomOpensslCipherConfigTls12(),
 		},
 	}
-	// if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil {
-	// 	flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
-	// } else {
-	// 	flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
-	// }
 
-	if p != nil {
-		if v := p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds; v == nil {
-			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
-		} else {
-			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
-		}
+	if v := p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds; v == nil {
+		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
+	} else {
+		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
+	}
 
-		if v := p.DefaultMaxTimeMS; v != nil {
-			flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
-		}
-		flattenedProcessArgs[0]["tls_cipher_config_mode"] = p.GetTlsCipherConfigMode()
-		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = p.GetCustomOpensslCipherConfigTls12()
+	if v := p.DefaultMaxTimeMS; v != nil {
+		flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
 	}
 
 	return flattenedProcessArgs
