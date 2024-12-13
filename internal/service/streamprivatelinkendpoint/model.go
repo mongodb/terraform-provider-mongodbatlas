@@ -36,6 +36,7 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkConnection, diag.Diagnostics) {
 	result := &admin.StreamsPrivateLinkConnection{
 		DnsDomain:         plan.DnsDomain.ValueStringPointer(),
+		DnsSubDomain:      &[]string{},
 		Provider:          plan.Provider.ValueStringPointer(),
 		Region:            plan.Region.ValueStringPointer(),
 		ServiceEndpointId: plan.ServiceEndpointId.ValueStringPointer(),
