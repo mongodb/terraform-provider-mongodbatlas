@@ -1,0 +1,12 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes a flex cluster.
+
+**NOTE:** Flex Cluster is in Public Preview. In order to use the resource and data sources you need to set the environment variable MONGODB_ATLAS_ENABLE_PREVIEW to true.
+
+## Example Usages
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Flex Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Flex-Clusters/operation/getFlexCluster) Documentation.

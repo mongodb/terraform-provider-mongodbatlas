@@ -1,4 +1,0 @@
-{
-    "defaultReadConcern": "available",
-    "failIndexKeyTooLong": true
-}

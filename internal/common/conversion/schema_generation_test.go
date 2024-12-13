@@ -5,8 +5,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/stretchr/testify/assert"
@@ -39,10 +42,29 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				Computed:            true,
 				MarkdownDescription: "desc attrBool",
 			},
+			"attrDelete": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrDelete",
+			},
+			"attrSensitive": schema.StringAttribute{
+				Computed:            true,
+				Sensitive:           true,
+				MarkdownDescription: "desc attrSensitive",
+			},
 			"mapAttr": schema.MapAttribute{
 				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "desc mapAttr",
+			},
+			"listAttr": schema.ListAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "desc listAttr",
+			},
+			"setAttr": schema.SetAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "desc setAttr",
 			},
 			"nestSingle": schema.SingleNestedAttribute{
 				Computed:            true,
@@ -88,6 +110,18 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				Delete: true,
 			}),
 		},
+		Blocks: map[string]schema.Block{
+			"nestBlock": schema.SetNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"nestBlockAttr": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc nestBlockAttr",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	expected := dsschema.Schema{
@@ -122,11 +156,29 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				MarkdownDescription: "desc attrBool",
 				Description:         "desc attrBool",
 			},
+			"attrSensitive": dsschema.StringAttribute{
+				Computed:            true,
+				Sensitive:           true,
+				MarkdownDescription: "desc attrSensitive",
+				Description:         "desc attrSensitive",
+			},
 			"mapAttr": dsschema.MapAttribute{
 				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "desc mapAttr",
 				Description:         "desc mapAttr",
+			},
+			"listAttr": dsschema.ListAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "desc listAttr",
+				Description:         "desc listAttr",
+			},
+			"setAttr": dsschema.SetAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "desc setAttr",
+				Description:         "desc setAttr",
 			},
 			"nestSingle": dsschema.SingleNestedAttribute{
 				Computed:            true,
@@ -173,9 +225,236 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 					},
 				},
 			},
+			"overridenString": dsschema.StringAttribute{
+				Computed:            true,
+				Description:         "desc overridenString",
+				MarkdownDescription: "desc overridenString",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+				},
+			},
+		},
+		Blocks: map[string]dsschema.Block{
+			"nestBlock": dsschema.SetNestedBlock{
+				NestedObject: dsschema.NestedBlockObject{
+					Attributes: map[string]dsschema.Attribute{
+						"nestBlockAttr": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc nestBlockAttr",
+							Description:         "desc nestBlockAttr",
+						},
+					},
+				},
+			},
 		},
 	}
-	ds := conversion.DataSourceSchemaFromResource(s, "requiredAttrString", "requiredAttrInt64")
+
+	ds := conversion.DataSourceSchemaFromResource(s, &conversion.DataSourceSchemaRequest{
+		RequiredFields: []string{"requiredAttrString", "requiredAttrInt64"},
+		OverridenFields: map[string]dsschema.Attribute{
+			"overridenString": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc overridenString",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+				},
+			},
+			"attrDelete": nil,
+		},
+	})
+	assert.Equal(t, expected, ds)
+}
+
+func TestPluralDataSourceSchemaFromResource(t *testing.T) {
+	s := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"requiredAttrString": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttrString",
+			},
+			"attrString": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrString",
+			},
+			"attrDelete": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrDelete",
+			},
+			"overridenString": dsschema.StringAttribute{
+				Computed:            true,
+				Description:         "desc overridenString",
+				MarkdownDescription: "desc overridenString",
+			},
+		},
+	}
+
+	expected := dsschema.Schema{
+		Attributes: map[string]dsschema.Attribute{
+			"requiredAttrString": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttrString",
+				Description:         "desc requiredAttrString",
+			},
+			"overridenRootStringOptional": dsschema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "desc overridenRootStringOptional",
+				Description:         "desc overridenRootStringOptional",
+			},
+			"overridenRootStringRequired": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc overridenRootStringRequired",
+				Description:         "desc overridenRootStringRequired",
+			},
+			"results": dsschema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: map[string]dsschema.Attribute{
+						"requiredAttrString": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc requiredAttrString",
+							Description:         "desc requiredAttrString",
+						},
+						"attrString": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc attrString",
+							Description:         "desc attrString",
+						},
+						"overridenString": dsschema.StringAttribute{
+							Computed:            true,
+							Description:         "desc overridenString",
+							MarkdownDescription: "desc overridenString",
+							Validators: []validator.String{
+								stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+							},
+						},
+					},
+				},
+				Description:         "List of documents that MongoDB Cloud returns for this request.",
+				MarkdownDescription: "List of documents that MongoDB Cloud returns for this request.",
+			},
+		},
+	}
+
+	ds := conversion.PluralDataSourceSchemaFromResource(s, &conversion.PluralDataSourceSchemaRequest{
+		RequiredFields: []string{"requiredAttrString"},
+		OverridenFields: map[string]dsschema.Attribute{
+			"overridenString": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc overridenString",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+				},
+			},
+			"attrDelete": nil,
+		},
+		OverridenRootFields: map[string]dsschema.Attribute{
+			"overridenRootStringOptional": dsschema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "desc overridenRootStringOptional",
+			},
+			"overridenRootStringRequired": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc overridenRootStringRequired",
+			},
+		},
+	})
+	assert.Equal(t, expected, ds)
+}
+
+func TestPluralDataSourceSchemaFromResource_legacyFields(t *testing.T) {
+	s := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"requiredAttrString": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttrString",
+			},
+			"attrString": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrString",
+			},
+		},
+	}
+
+	expected := dsschema.Schema{
+		Attributes: map[string]dsschema.Attribute{
+			"requiredAttrString": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttrString",
+				Description:         "desc requiredAttrString",
+			},
+			"id": dsschema.StringAttribute{
+				Computed: true,
+			},
+			"page_num": dsschema.Int64Attribute{
+				Optional: true,
+			},
+			"items_per_page": dsschema.Int64Attribute{
+				Optional: true,
+			},
+			"total_count": dsschema.Int64Attribute{
+				Computed: true,
+			},
+			"results": dsschema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: map[string]dsschema.Attribute{
+						"requiredAttrString": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc requiredAttrString",
+							Description:         "desc requiredAttrString",
+						},
+						"attrString": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc attrString",
+							Description:         "desc attrString",
+						},
+					},
+				},
+				Description:         "List of documents that MongoDB Cloud returns for this request.",
+				MarkdownDescription: "List of documents that MongoDB Cloud returns for this request.",
+			},
+		},
+	}
+	ds := conversion.PluralDataSourceSchemaFromResource(s, &conversion.PluralDataSourceSchemaRequest{
+		RequiredFields:  []string{"requiredAttrString"},
+		HasLegacyFields: true,
+	})
+	assert.Equal(t, expected, ds)
+}
+
+func TestPluralDataSourceSchemaFromResource_overrideResultsDoc(t *testing.T) {
+	doc := "results doc"
+
+	s := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"attrString": dsschema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "desc attrString",
+			},
+		},
+	}
+
+	expected := dsschema.Schema{
+		Attributes: map[string]dsschema.Attribute{
+			"results": dsschema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: doc,
+				Description:         doc,
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: map[string]dsschema.Attribute{
+						"attrString": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc attrString",
+							Description:         "desc attrString",
+						},
+					},
+				},
+			},
+		},
+	}
+	ds := conversion.PluralDataSourceSchemaFromResource(s, &conversion.PluralDataSourceSchemaRequest{
+		OverrideResultsDoc: doc,
+	})
 	assert.Equal(t, expected, ds)
 }
 

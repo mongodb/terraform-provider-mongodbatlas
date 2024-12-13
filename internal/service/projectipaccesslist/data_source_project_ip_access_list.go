@@ -45,14 +45,9 @@ type TfProjectIPAccessListDSModel struct {
 }
 
 func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"project_id": schema.StringAttribute{
-				Required: true,
-			},
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+		RequiredFields: []string{"project_id"},
+		OverridenFields: map[string]schema.Attribute{
 			"cidr_block": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -85,12 +80,8 @@ func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 					}...),
 				},
 			},
-			"comment": schema.StringAttribute{
-				Computed: true,
-			},
 		},
-	}
-	conversion.UpdateSchemaDescription(&resp.Schema)
+	})
 }
 
 func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

@@ -1,15 +1,13 @@
 package cluster_test
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	clustersvc "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -42,7 +40,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config: configAWS(projectID, clusterName, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -64,7 +62,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config: configAWS(projectID, clusterName, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -77,13 +75,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_disk_gb_enabled", "false"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"cloud_backup", "retain_backups_enabled"},
-			},
+			acc.TestStepImportCluster(resourceName, "cloud_backup", "retain_backups_enabled"),
 		},
 	}
 }
@@ -116,7 +108,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
@@ -141,7 +133,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 					MinimumEnabledTLSProtocol: "TLS1_2",
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
@@ -181,7 +173,7 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 					ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.Pointer[int64](113),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
@@ -198,7 +190,7 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 					MinimumEnabledTLSProtocol: "TLS1_2",
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
@@ -279,7 +271,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
@@ -302,7 +294,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](60),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
@@ -333,7 +325,7 @@ func TestAccCluster_basicAzure(t *testing.T) {
 			{
 				Config: configAzure(orgID, projectName, clusterName, "true", "M30", true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
@@ -344,7 +336,7 @@ func TestAccCluster_basicAzure(t *testing.T) {
 			{
 				Config: configAzure(orgID, projectName, clusterName, "false", "M30", true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
@@ -372,7 +364,7 @@ func TestAccCluster_basicGCP(t *testing.T) {
 			{
 				Config: configGCP(orgID, projectName, clusterName, "true"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "40"),
@@ -384,7 +376,7 @@ func TestAccCluster_basicGCP(t *testing.T) {
 			{
 				Config: configGCP(orgID, projectName, clusterName, "false"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "40"),
@@ -413,7 +405,7 @@ func TestAccCluster_WithBiConnectorGCP(t *testing.T) {
 			{
 				Config: configGCPWithBiConnector(orgID, projectName, clusterName, "true", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "40"),
@@ -426,7 +418,7 @@ func TestAccCluster_WithBiConnectorGCP(t *testing.T) {
 			{
 				Config: configGCPWithBiConnector(orgID, projectName, clusterName, "false", true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "40"),
@@ -482,7 +474,7 @@ func TestAccCluster_MultiRegion(t *testing.T) {
 			{
 				Config: configMultiRegion(orgID, projectName, clusterName, "true", createRegionsConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -497,7 +489,7 @@ func TestAccCluster_MultiRegion(t *testing.T) {
 			{
 				Config: configMultiRegion(orgID, projectName, clusterName, "false", updatedRegionsConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -552,7 +544,7 @@ func TestAccCluster_ProviderRegionName(t *testing.T) {
 			{
 				Config: configSingleRegionWithProviderRegionName(orgID, projectName, clusterName, "false"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -567,7 +559,7 @@ func TestAccCluster_ProviderRegionName(t *testing.T) {
 			{
 				Config: configMultiRegion(orgID, projectName, clusterName, "false", updatedRegionsConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -598,7 +590,7 @@ func TestAccCluster_Global(t *testing.T) {
 			{
 				Config: configClusterGlobal(orgID, projectName, clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -631,7 +623,7 @@ func TestAccCluster_AWSWithLabels(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, clusterName, "false", "M10", "US_WEST_2", []matlas.Label{}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
@@ -657,7 +649,7 @@ func TestAccCluster_AWSWithLabels(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
@@ -679,7 +671,7 @@ func TestAccCluster_AWSWithLabels(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
@@ -706,7 +698,7 @@ func TestAccCluster_WithTags(t *testing.T) {
 			{
 				Config: configWithTags(orgID, projectName, clusterName, "false", "M10", "US_WEST_2", []matlas.Tag{}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
@@ -729,7 +721,7 @@ func TestAccCluster_WithTags(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
@@ -754,7 +746,7 @@ func TestAccCluster_WithTags(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
@@ -798,7 +790,7 @@ func TestAccCluster_withPrivateEndpointLink(t *testing.T) {
 				Config: configWithPrivateEndpointLink(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
@@ -832,7 +824,7 @@ func TestAccCluster_withAzureNetworkPeering(t *testing.T) {
 			{
 				Config: configAzureWithNetworkPeering(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName, clusterName, atlasCidrBlock, region),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 				),
@@ -862,7 +854,7 @@ func TestAccCluster_withGCPNetworkPeering(t *testing.T) {
 			{
 				Config: configGCPWithNetworkPeering(gcpProjectID, gcpRegion, projectID, providerName, gcpPeeringName, clusterName, gcpClusterRegion),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "5"),
@@ -992,7 +984,7 @@ func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 			{
 				Config: configAWSWithAutoscaling(projectID, clusterName, "true", "false", "true", "false", minSize, maxSize, instanceSize),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_compute_enabled", "true"),
@@ -1011,7 +1003,7 @@ func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 			{
 				Config: configAWSWithAutoscaling(projectID, clusterName, "false", "true", "true", "true", minSizeUpdated, maxSizeUpdated, instanceSizeUpdated),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_compute_enabled", "true"),
@@ -1040,7 +1032,7 @@ func TestAccCluster_tenant(t *testing.T) {
 			{
 				Config: configTenant(orgID, projectName, clusterName, "M2", "2"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "2"),
@@ -1050,7 +1042,7 @@ func TestAccCluster_tenant(t *testing.T) {
 			{
 				Config: configTenantUpdated(orgID, projectName, clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
@@ -1077,7 +1069,7 @@ func TestAccCluster_tenant_m5(t *testing.T) {
 			{
 				Config: configTenant(orgID, projectName, clusterName, "M5", "5"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "5"),
@@ -1270,7 +1262,7 @@ func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 			{
 				Config: configAWSPaused(projectID, clusterName, true, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -1283,7 +1275,7 @@ func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 			{
 				Config: configAWSPaused(projectID, clusterName, false, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -1293,13 +1285,7 @@ func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"cloud_backup", "backup_enabled"},
-			},
+			acc.TestStepImportCluster(resourceName, "cloud_backup", "backup_enabled"),
 		},
 	})
 }
@@ -1318,7 +1304,7 @@ func TestAccCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 			{
 				Config: configAWSPaused(projectID, clusterName, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -1331,7 +1317,7 @@ func TestAccCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 			{
 				Config: configAWSPaused(projectID, clusterName, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -1402,22 +1388,57 @@ func TestAccCluster_create_RedactClientLogData(t *testing.T) {
 	})
 }
 
-func checkExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		log.Printf("[DEBUG] projectID: %s, name %s", ids["project_id"], ids["cluster_name"])
-		if _, _, err := acc.Conn().Clusters.Get(context.Background(), ids["project_id"], ids["cluster_name"]); err == nil {
-			return nil
-		}
-		return fmt.Errorf("cluster(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.ID)
-	}
+func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() //  Using single project to assert plural data source
+		clusterName = acc.RandomClusterName()
+	)
+
+	now := time.Now()
+	// Time 7 days from now, truncated to the beginning of the day
+	sevenDaysFromNow := now.AddDate(0, 0, 7).Truncate(24 * time.Hour)
+	firstExpirationDate := conversion.TimeToString(sevenDaysFromNow)
+	// Time 8 days from now
+	eightDaysFromNow := sevenDaysFromNow.AddDate(0, 0, 1)
+	updatedExpirationDate := conversion.TimeToString(eightDaysFromNow)
+	invalidDateFormat := "invalid"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+			},
+			{ // pins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(firstExpirationDate), conversion.Pointer(7)),
+			},
+			{ // using incorrect format
+				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
+				ExpectError: regexp.MustCompile("expiration_date format is incorrect: " + invalidDateFormat),
+			},
+			{ // updates expiration date of fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+			},
+			{ // upgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+			},
+			{ // downgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+			},
+			{ // unpins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+			},
+		},
+	})
 }
 
 func configAWS(projectID, name string, backupEnabled, autoDiskGBEnabled bool) string {
@@ -2414,6 +2435,54 @@ func configClusterGlobal(orgID, projectName, clusterName string) string {
 			}
 		}
 	`, orgID, projectName, clusterName)
+}
+
+func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationDate *string, mongoDBMajorVersion string) string {
+	var pinnedFCVAttr string
+	if pinningExpirationDate != nil {
+		pinnedFCVAttr = fmt.Sprintf(`
+		pinned_fcv {
+    		expiration_date = %q
+  		}
+		`, *pinningExpirationDate)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+		
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = mongodbatlas_project.test.id
+			name         = %[3]q
+			cluster_type = "REPLICASET"
+			provider_name = "AWS"
+  			provider_instance_size_name = "M10"
+
+			mongo_db_major_version = %[4]q
+
+			%[5]s
+
+			replication_specs {
+				num_shards = 1
+				regions_config {
+					region_name     = "US_WEST_2"
+					electable_nodes = 3
+					priority        = 7
+				}
+			}
+		}
+
+		data "mongodbatlas_cluster" "test" {
+			project_id = mongodbatlas_cluster.test.project_id
+			name 	     = mongodbatlas_cluster.test.name
+		}
+
+		data "mongodbatlas_clusters" "test" {
+			project_id = mongodbatlas_cluster.test.project_id
+		}
+	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)
 }
 
 func TestIsMultiRegionCluster(t *testing.T) {

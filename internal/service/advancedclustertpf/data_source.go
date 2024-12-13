@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
-
-const resourceName = "advanced_cluster" // TODO: if resource exists this can be deleted
 
 var _ datasource.DataSource = &ds{}
 var _ datasource.DataSourceWithConfigure = &ds{}
@@ -26,8 +26,22 @@ type ds struct {
 }
 
 func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), "project_id", "name")
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+		RequiredFields: []string{"project_id", "name"},
+		OverridenFields: map[string]schema.Attribute{
+			"use_replication_spec_per_shard": schema.BoolAttribute{ // TODO: added as in current resource
+				Optional:            true,
+				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
+			},
+		},
+	})
 }
 
 func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+}
+
+// TODO: see if resource model can be used instead, probably different only in timeouts
+type ModelDS struct {
+	ProjectID types.String `tfsdk:"project_id"`
+	Name      types.String `tfsdk:"name"`
 }

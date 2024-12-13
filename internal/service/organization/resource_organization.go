@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20241023002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -215,7 +215,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	updateRequest := new(admin.AtlasOrganization)
 	if d.HasChange("name") {
 		updateRequest.Name = d.Get("name").(string)
-		_, _, err := conn.OrganizationsApi.RenameOrganization(ctx, orgID, updateRequest).Execute()
+		_, _, err := conn.OrganizationsApi.UpdateOrganization(ctx, orgID, updateRequest).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization name: %s", err))
 		}
