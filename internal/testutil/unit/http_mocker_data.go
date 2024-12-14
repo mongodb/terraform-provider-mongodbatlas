@@ -140,12 +140,13 @@ func (i *RequestInfo) Match(t *testing.T, method, version string, reqURL *url.UR
 type Literal string
 
 func (l Literal) MarshalYAML() (any, error) {
-	if l == "" {
+	trimmed := strings.Trim(string(l), "\n ")
+	if trimmed == "" {
 		return "", nil
 	}
 	return &yaml.Node{
 		Kind:  yaml.ScalarNode,
-		Value: strings.ReplaceAll(string(l), "\n \n", "\n\n"),
+		Value: strings.ReplaceAll(trimmed, "\n \n", "\n\n"),
 		Style: yaml.LiteralStyle,
 		Tag:   "!!str",
 	}, nil

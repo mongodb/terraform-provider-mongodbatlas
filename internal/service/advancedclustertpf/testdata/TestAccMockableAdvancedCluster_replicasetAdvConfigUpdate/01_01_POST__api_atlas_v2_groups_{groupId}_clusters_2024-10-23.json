@@ -1,7 +1,7 @@
 {
  "clusterType": "REPLICASET",
  "labels": [],
- "name": "test",
+ "name": "{clusterName}",
  "replicationSpecs": [
   {
    "regionConfigs": [

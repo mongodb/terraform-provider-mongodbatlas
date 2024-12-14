@@ -1,7 +1,7 @@
 {
  "replicationSpecs": [
   {
-   "id": "673cd6d2fb19da739ae2d4a8",
+   "id": "675bf94c216ed3746c09fc5d",
    "regionConfigs": [
     {
      "analyticsSpecs": {
@@ -31,10 +31,11 @@
      "regionName": "EU_WEST_1"
     }
    ],
+   "zoneId": "675bf94c216ed3746c09fc5b",
    "zoneName": "ZoneName managed by Terraform"
   },
   {
-   "id": "673cd6d2fb19da739ae2d4aa",
+   "id": "675bf94c216ed3746c09fc5f",
    "regionConfigs": [
     {
      "analyticsSpecs": {
@@ -64,6 +65,7 @@
      "regionName": "EU_WEST_1"
     }
    ],
+   "zoneId": "675bf94c216ed3746c09fc5b",
    "zoneName": "ZoneName managed by Terraform"
   }
  ]

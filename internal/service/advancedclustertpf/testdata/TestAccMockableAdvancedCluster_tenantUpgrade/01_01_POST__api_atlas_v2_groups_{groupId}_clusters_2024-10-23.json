@@ -1,15 +1,14 @@
 {
  "clusterType": "REPLICASET",
  "labels": [],
- "name": "test-acc-tf-c-91771214182147246",
+ "name": "{clusterName}",
  "replicationSpecs": [
   {
    "regionConfigs": [
     {
      "backingProviderName": "AWS",
      "electableSpecs": {
-      "instanceSize": "M5",
-      "nodeCount": 0
+      "instanceSize": "M5"
      },
      "priority": 7,
      "providerName": "TENANT",

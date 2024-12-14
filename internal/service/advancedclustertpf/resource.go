@@ -129,20 +129,17 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	var model *TFModel
-	if cluster == nil {
-		r.updateAdvConfig(ctx, legacyAdvConfig, advConfig, &state, diags)
+	var stateAdvConfig *types.Object
+	if advConfigChanged || cluster == nil {
+		// Cluster changes to UPDATING state after updating advanced configuration
+		cluster = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, plan.ProjectID.ValueString(), plan.Name.ValueString(), changeReasonUpdate)
 		if diags.HasError() {
 			return
 		}
-		model = &state
 	} else {
-		var stateAdvConfig types.Object
-		if !advConfigChanged {
-			stateAdvConfig = state.AdvancedConfiguration
-		}
-		model = r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, &plan, &stateAdvConfig, diags)
+		stateAdvConfig = &state.AdvancedConfiguration
 	}
+	model := r.convertClusterAddAdvConfig(ctx, legacyAdvConfig, advConfig, cluster, &plan, stateAdvConfig, diags)
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
@@ -399,25 +396,17 @@ func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *ad
 	if diags.HasError() {
 		return nil
 	}
-	if oldAdvConfig != nil {
-		modelOut.AdvancedConfiguration = *oldAdvConfig
-	} else {
+	if admin.IsNil(oldAdvConfig) {
 		legacyAdvConfig, advConfig = readUnsetAdvancedConfiguration(ctx, r.Client, modelOut, legacyAdvConfig, advConfig, diags)
 		AddAdvancedConfig(ctx, modelOut, advConfig, legacyAdvConfig, diags)
 		if diags.HasError() {
 			return nil
 		}
+	} else {
+		modelOut.AdvancedConfiguration = *oldAdvConfig
 	}
 	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut
-}
-
-func (r *rs) updateAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, state *TFModel, diags *diag.Diagnostics) {
-	legacyAdvConfig, advConfig = readUnsetAdvancedConfiguration(ctx, r.Client, state, legacyAdvConfig, advConfig, diags)
-	if diags.HasError() {
-		return
-	}
-	AddAdvancedConfig(ctx, state, advConfig, legacyAdvConfig, diags)
 }
 
 func readUnsetAdvancedConfiguration(ctx context.Context, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, diags *diag.Diagnostics) (*admin20240530.ClusterDescriptionProcessArgs, *admin.ClusterDescriptionProcessArgs20240805) {
