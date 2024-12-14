@@ -119,11 +119,6 @@ func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 
 func singleShardedMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
-	// TODO: Already prepared for TPF but getting this error:
-	// resource_advanced_cluster_test.go:119: Step 1/3 error: Check failed: Check 9/12 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.0.disk_iops' expected to be set
-	// Check 10/12 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.analytics_specs.0.disk_iops' expected to be set
-	// Check 11/12 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.1.electable_specs.0.disk_iops' expected to be set
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
