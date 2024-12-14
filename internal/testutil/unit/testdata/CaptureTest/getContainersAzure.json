@@ -1,0 +1,20 @@
+{
+ "links": [
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/6746cef5aef48d1cb2658a7f/containers?includeCount=true&providerName=AZURE&pageNum=1&itemsPerPage=100",
+   "rel": "self"
+  }
+ ],
+ "results": [
+  {
+   "atlasCidrBlock": "192.168.248.0/21",
+   "azureSubscriptionId": "591236d43d098d433845860f",
+   "id": "6746cefbaef48d1cb2658bbb",
+   "providerName": "AZURE",
+   "provisioned": true,
+   "region": "US_EAST_2",
+   "vnetName": "vnet_6746cefbaef48d1cb2658bbb_ykngkrlx"
+  }
+ ],
+ "totalCount": 1
+}
