@@ -102,6 +102,10 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+	if usingLegacySchema(ctx, plan.ReplicationSpecs, diags) && !usingLegacySchema(ctx, state.ReplicationSpecs, diags) {
+		diags.AddError("error operation not permitted, nums_shards from 1 -> > 1", fmt.Sprintf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; %s", DeprecationOldSchemaAction))
+		return
+	}
 	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
 	planReq := normalizeFromTFModel(ctx, &plan, diags, false)
 	if diags.HasError() {
