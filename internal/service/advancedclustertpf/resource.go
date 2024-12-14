@@ -111,7 +111,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	normalizePatchState(stateReq)
 	patchReq, err := update.PatchPayload(stateReq, planReq)
 	if err != nil {
 		diags.AddError("errorPatchPayload", err.Error())
