@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-// TODO: Add comment and tests
+// CopyModel creates a new struct with the same values as the source struct. Fields in destination struct that are not in source are left with zero value.
 func CopyModel[T any](src any) (*T, error) {
 	dest := new(T)
 	valSrc := reflect.ValueOf(src)
@@ -20,15 +20,22 @@ func CopyModel[T any](src any) (*T, error) {
 	}
 	typeSrc := valSrc.Type()
 	typeDest := valDest.Type()
-	for i := 0; i < typeSrc.NumField(); i++ {
-		fieldSrc := typeSrc.Field(i)
-		fieldDest, found := typeDest.FieldByName(fieldSrc.Name)
-		if found {
-			if fieldSrc.Type != fieldDest.Type {
-				return nil, fmt.Errorf("field %s has different type in source and destination", fieldSrc.Name)
+	for i := 0; i < typeDest.NumField(); i++ {
+		fieldDest := typeDest.Field(i)
+		name := fieldDest.Name
+		{
+			fieldSrc, found := typeSrc.FieldByName(name)
+			if !found {
+				continue
 			}
-			valDest.FieldByName(fieldDest.Name).Set(valSrc.Field(i))
+			if fieldDest.Type != fieldSrc.Type {
+				return nil, fmt.Errorf("field has different type: %s", name)
+			}
 		}
+		if !valDest.Field(i).CanSet() {
+			return nil, fmt.Errorf("field can't be set, probably unexported: %s", name)
+		}
+		valDest.Field(i).Set(valSrc.FieldByName(name))
 	}
 	return dest, nil
 }
