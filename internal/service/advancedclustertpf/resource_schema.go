@@ -491,9 +491,9 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				MarkdownDescription: "default_read_concern", // TODO: add description
 			},
 			"fail_index_key_too_long": schema.BoolAttribute{
-				DeprecationMessage: DeprecationMsgOldSchema,
-				Computed:           true,
-				Optional:           true,
+				DeprecationMessage:  DeprecationMsgOldSchema,
+				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 			},
 		},
