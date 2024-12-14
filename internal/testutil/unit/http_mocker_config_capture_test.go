@@ -3,7 +3,11 @@ package unit_test
 import (
 	_ "embed"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
@@ -11,6 +15,7 @@ import (
 	"github.com/sebdah/goldie/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -92,4 +97,31 @@ func TestCaptureMockConfigClientModifier_clusterExample(t *testing.T) {
 	configYaml, err := clientModifier.ConfigYaml()
 	require.NoError(t, err)
 	g.Assert(t, t.Name(), []byte(configYaml))
+}
+
+func Reformat(t *testing.T, filePath string) string {
+	t.Helper()
+	data, err := unit.ParseTestDataConfigYAML(filePath)
+	require.NoError(t, err)
+	initialYaml := strings.Builder{}
+	e := yaml.NewEncoder(&initialYaml)
+	e.SetIndent(1)
+	err = e.Encode(data)
+	require.NoError(t, err)
+	return initialYaml.String()
+}
+
+// Manual test used to test reformatting of all yaml files in the testdata directory
+func TestReformatConfigs(t *testing.T) {
+	testDataPath := os.Getenv("TEST_DATA_PATH")
+	if testDataPath == "" {
+		t.Skip("TEST_DATA_PATH is not set")
+	}
+	matches, err := filepath.Glob(path.Join(testDataPath, "*.yaml"))
+	require.NoError(t, err)
+	for _, p := range matches {
+		formatted := Reformat(t, p)
+		err = os.WriteFile(p, []byte(formatted), 0o600)
+		require.NoError(t, err)
+	}
 }

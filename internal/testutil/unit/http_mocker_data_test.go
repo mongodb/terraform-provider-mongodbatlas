@@ -63,7 +63,7 @@ var expectedDump = `variables: {}
 steps:
   - diff_requests: []
     request_responses: []
-  - config: |2+
+  - config: |-
       data "mongodbatlas_advanced_cluster" "test" {
         project_id                     = mongodbatlas_advanced_cluster.test.project_id
         name                           = mongodbatlas_advanced_cluster.test.name
@@ -73,7 +73,6 @@ steps:
         project_id                     = mongodbatlas_advanced_cluster.test.project_id
         use_replication_spec_per_shard = true
       }
-
     diff_requests: []
     request_responses: []
 `

@@ -2,7 +2,7 @@ variables:
   clusterName: test-acc-tf-c-6727593058295022052
   groupId: 664619d870c247237f4b86a6
 steps:
-  - config: |2+
+  - config: |-
       resource "mongodbatlas_advanced_cluster" "test" {
         project_id   = "664619d870c247237f4b86a6"
         name         = "test-acc-tf-c-6727593058295022052"
@@ -20,7 +20,6 @@ steps:
           }]
         }]
       }
-
     diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters
         method: POST
@@ -75,7 +74,7 @@ steps:
             status: 200
             duplicate_responses: 1
             text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": null,\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": false,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": null,\n \"sampleSizeBIConnector\": null,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": null\n}"
-  - config: |2+
+  - config: |-
       resource "mongodbatlas_advanced_cluster" "test" {
         project_id   = "664619d870c247237f4b86a6"
         name         = "test-acc-tf-c-6727593058295022052"
@@ -93,7 +92,6 @@ steps:
           }]
         }]
       }
-
     diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters/tenantUpgrade
         method: POST

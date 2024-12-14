@@ -2,7 +2,7 @@ variables:
   clusterName: test-acc-tf-c-5896643684689749998
   groupId: 664619d870c247237f4b86a6
 steps:
-  - config: |2+
+  - config: |-
       resource "mongodbatlas_advanced_cluster" "test" {
         project_id   = "664619d870c247237f4b86a6"
         name         = "test-acc-tf-c-5896643684689749998"
@@ -40,7 +40,6 @@ steps:
             }]
         }]
       }
-
     diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters
         method: POST
@@ -108,7 +107,7 @@ steps:
             status: 200
             duplicate_responses: 1
             text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": null,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": null,\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": false,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": null,\n \"sampleSizeBIConnector\": null,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": null\n}"
-  - config: |2+
+  - config: |-
       resource "mongodbatlas_advanced_cluster" "test" {
         project_id   = "664619d870c247237f4b86a6"
         name         = "test-acc-tf-c-5896643684689749998"
@@ -164,7 +163,6 @@ steps:
             }]
         }]
       }
-
     diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
         method: PATCH
@@ -238,8 +236,7 @@ steps:
           - response_index: 30
             status: 200
             text: "{\n \"backupEnabled\": false,\n \"biConnector\": {\n  \"enabled\": false,\n  \"readPreference\": \"secondary\"\n },\n \"clusterType\": \"SHARDED\",\n \"configServerManagementMode\": \"ATLAS_MANAGED\",\n \"configServerType\": \"EMBEDDED\",\n \"connectionStrings\": {\n  \"awsPrivateLinkSrv\": {},\n  \"privateEndpoint\": [],\n  \"standard\": \"mongodb://test-acc-tf-c-589664368-config-00-00.jciib.mongodb-dev.net:27016,test-acc-tf-c-589664368-config-00-01.jciib.mongodb-dev.net:27016,test-acc-tf-c-589664368-config-00-02.jciib.mongodb-dev.net:27016,test-acc-tf-c-589664368-shard-00-00.jciib.mongodb-dev.net:27016,test-acc-tf-c-589664368-shard-00-01.jciib.mongodb-dev.net:27016,test-acc-tf-c-589664368-shard-00-02.jciib.mongodb-dev.net:27016/?ssl=true\\u0026authSource=admin\",\n  \"standardSrv\": \"mongodb+srv://test-acc-tf-c-589664368.jciib.mongodb-dev.net\"\n },\n \"createDate\": \"2024-12-13T09:07:24Z\",\n \"diskWarmingMode\": \"FULLY_WARMED\",\n \"encryptionAtRestProvider\": \"NONE\",\n \"featureCompatibilityVersion\": \"8.0\",\n \"globalClusterSelfManagedSharding\": false,\n \"groupId\": \"{groupId}\",\n \"id\": \"675bf94c216ed3746c09fc8d\",\n \"labels\": [],\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}\",\n   \"rel\": \"self\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs\",\n   \"rel\": \"https://cloud.mongodb.com/restoreJobs\"\n  },\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots\",\n   \"rel\": \"https://cloud.mongodb.com/snapshots\"\n  }\n ],\n \"mongoDBMajorVersion\": \"8.0\",\n \"mongoDBVersion\": \"8.0.4\",\n \"name\": \"{clusterName}\",\n \"paused\": false,\n \"pitEnabled\": false,\n \"redactClientLogData\": false,\n \"replicationSpecs\": [\n  {\n   \"id\": \"675bf94c216ed3746c09fc5d\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 2000,\n      \"diskSizeGB\": 40,\n      \"ebsVolumeType\": \"PROVISIONED\",\n      \"instanceSize\": \"M30\",\n      \"nodeCount\": 1\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": true\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 2000,\n      \"diskSizeGB\": 40,\n      \"ebsVolumeType\": \"PROVISIONED\",\n      \"instanceSize\": \"M30\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 2000,\n      \"diskSizeGB\": 40,\n      \"ebsVolumeType\": \"PROVISIONED\",\n      \"instanceSize\": \"M30\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"675bf94c216ed3746c09fc5b\",\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  },\n  {\n   \"id\": \"675bf94c216ed3746c09fc5f\",\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 1000,\n      \"diskSizeGB\": 40,\n      \"ebsVolumeType\": \"PROVISIONED\",\n      \"instanceSize\": \"M30\",\n      \"nodeCount\": 1\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": true\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 1000,\n      \"diskSizeGB\": 40,\n      \"ebsVolumeType\": \"PROVISIONED\",\n      \"instanceSize\": \"M30\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 1000,\n      \"diskSizeGB\": 40,\n      \"ebsVolumeType\": \"PROVISIONED\",\n      \"instanceSize\": \"M30\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"EU_WEST_1\"\n    }\n   ],\n   \"zoneId\": \"675bf94c216ed3746c09fc5b\",\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ],\n \"rootCertType\": \"ISRGROOTX1\",\n \"stateName\": \"UPDATING\",\n \"tags\": [],\n \"terminationProtectionEnabled\": false,\n \"versionReleaseSystem\": \"LTS\"\n}"
-  - config: |2+
-    diff_requests:
+  - diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
         method: DELETE
         version: '2023-02-01'
