@@ -75,6 +75,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		UseReplicationSpecPerShard:        pluralModel.UseReplicationSpecPerShard,
 		IncludeDeletedWithRetainedBackups: pluralModel.IncludeDeletedWithRetainedBackups,
 	}
+	// TODO: get full results doing pagination if needed
 	for i := range list.GetResults() {
 		modelIn := &TFModel{
 			ProjectID: pluralModel.ProjectID,
