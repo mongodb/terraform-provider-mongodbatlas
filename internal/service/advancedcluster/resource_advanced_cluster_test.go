@@ -355,9 +355,6 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// POST: HTTP 400 Bad Request (Error code: "INVALID_ENUM_VALUE") Detail: An invalid enumeration value  was specified. Reason: Bad Request. Params: [],
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
