@@ -198,12 +198,23 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				patchExpected: nil,
 			},
 			"diskSizeGb ignored in state": {
-				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0),
-				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0),
-				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0),
+				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500)),
+				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, nil),
+				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, conversion.Pointer(3500)),
 				options: []update.PatchOptions{
 					{
-						IgnoreInState: []string{"diskSizeGB"},
+						IgnoreInStateSuffix: []string{"diskSizeGB"},
+					},
+				},
+			},
+			"regionConfigs ignored in state but diskIOPS included": {
+				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500)),
+				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, nil),
+				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, conversion.Pointer(3500)),
+				options: []update.PatchOptions{
+					{
+						IgnoreInStatePrefix:  []string{"regionConfigs"},
+						IncludeInStateSuffix: []string{"diskIOPS"},
 					},
 				},
 			},
@@ -280,7 +291,7 @@ func TestIsEmpty(t *testing.T) {
 	assert.False(t, update.IsZeroValues(&admin.ClusterDescription20240805{Name: conversion.Pointer("my-cluster")}))
 }
 
-func clusterDescriptionDiskSizeNodeCount(diskSizeGBElectable float64, nodeCountElectable int, diskSizeGBReadOnly *float64, nodeCountReadOnly int) *admin.ClusterDescription20240805 {
+func clusterDescriptionDiskSizeNodeCount(diskSizeGBElectable float64, nodeCountElectable int, diskSizeGBReadOnly *float64, nodeCountReadOnly int, diskIopsState *int) *admin.ClusterDescription20240805 {
 	return &admin.ClusterDescription20240805{
 		ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 			{
@@ -289,10 +300,12 @@ func clusterDescriptionDiskSizeNodeCount(diskSizeGBElectable float64, nodeCountE
 						ElectableSpecs: &admin.HardwareSpec20240805{
 							NodeCount:  &nodeCountElectable,
 							DiskSizeGB: &diskSizeGBElectable,
+							DiskIOPS:   diskIopsState,
 						},
 						ReadOnlySpecs: &admin.DedicatedHardwareSpec20240805{
 							NodeCount:  &nodeCountReadOnly,
 							DiskSizeGB: diskSizeGBReadOnly,
+							DiskIOPS:   diskIopsState,
 						},
 					},
 				},

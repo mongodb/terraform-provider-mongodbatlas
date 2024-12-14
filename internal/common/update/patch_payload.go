@@ -12,28 +12,49 @@ import (
 )
 
 type attrPatchOperations struct {
-	data          map[string][]jsondiff.Operation
-	ignoreInState []string
+	data                 map[string][]jsondiff.Operation
+	ignoreInStateSuffix  []string
+	ignoreInStatePrefix  []string
+	includeInStateSuffix []string
 }
 
 func (m *attrPatchOperations) ignoreInStatePath(path string) bool {
-	for _, ignore := range m.ignoreInState {
+	for _, include := range m.includeInStateSuffix {
+		suffix := "/" + include
+		if strings.HasSuffix(path, suffix) {
+			return false
+		}
+	}
+	for _, ignore := range m.ignoreInStateSuffix {
 		suffix := "/" + ignore
 		if strings.HasSuffix(path, suffix) {
 			return true
+		}
+	}
+	for _, ignore := range m.ignoreInStatePrefix {
+		for _, part := range strings.Split(path, "/") {
+			if ignore == part {
+				return true
+			}
 		}
 	}
 	return false
 }
 
 func newAttrPatchOperations(patch jsondiff.Patch, options []PatchOptions) *attrPatchOperations {
-	ignoreInState := []string{}
+	ignoreSuffixInState := []string{}
+	ignorePrefixInState := []string{}
+	includeSuffixInState := []string{}
 	for _, option := range options {
-		ignoreInState = append(ignoreInState, option.IgnoreInState...)
+		ignoreSuffixInState = append(ignoreSuffixInState, option.IgnoreInStateSuffix...)
+		ignorePrefixInState = append(ignorePrefixInState, option.IgnoreInStatePrefix...)
+		includeSuffixInState = append(includeSuffixInState, option.IncludeInStateSuffix...)
 	}
 	self := &attrPatchOperations{
-		data:          map[string][]jsondiff.Operation{},
-		ignoreInState: ignoreInState,
+		data:                 map[string][]jsondiff.Operation{},
+		ignoreInStateSuffix:  ignoreSuffixInState,
+		ignoreInStatePrefix:  ignorePrefixInState,
+		includeInStateSuffix: includeSuffixInState,
 	}
 	for _, op := range patch {
 		if op.Path == "" {
@@ -136,7 +157,9 @@ func convertJSONDiffToJSONPatch(patch jsondiff.Patch) (jsonpatch.Patch, error) {
 
 // Current limitation if the field is set as part of a nested attribute in a map
 type PatchOptions struct {
-	IgnoreInState []string
+	IgnoreInStateSuffix  []string
+	IgnoreInStatePrefix  []string
+	IncludeInStateSuffix []string
 }
 
 // PatchPayload uses the state and plan to changes to find the patch request, including changes only when:
