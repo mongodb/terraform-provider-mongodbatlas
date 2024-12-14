@@ -24,6 +24,7 @@ func NewMockRoundTripper(t *testing.T, config *MockHTTPDataConfig, data *MockHTT
 	tracker := newMockRoundTripper(t, data)
 	if config != nil {
 		tracker.allowMissingRequests = config.AllowMissingRequests
+		tracker.allowOutOfOrder = config.AllowOutOfOrder
 	}
 	for _, method := range []string{"GET", "POST", "PUT", "DELETE", "PATCH"} {
 		myTransport.RegisterRegexpResponder(method, regexp.MustCompile(".*"), tracker.receiveRequest(method))
@@ -64,6 +65,7 @@ type MockRoundTripper struct {
 	currentStepIndex     int
 	diffResponseIndex    int
 	allowMissingRequests bool
+	allowOutOfOrder      bool
 	logRequests          bool
 	reReadCounter        int
 }
@@ -72,6 +74,14 @@ func (r *MockRoundTripper) IncreaseStepNumberAndInit() {
 	r.currentStepIndex++
 	err := r.initStep()
 	require.NoError(r.t, err)
+}
+
+func (r *MockRoundTripper) canReturnResponse(responseIndex int) bool {
+	isAfter := responseIndex > r.diffResponseIndex
+	if r.allowOutOfOrder && isAfter {
+		r.t.Logf("allowwingOutOfOrder: response_index=%d is after nextDiffResponse=%d", responseIndex, r.diffResponseIndex)
+	}
+	return r.allowOutOfOrder || !isAfter
 }
 
 func (r *MockRoundTripper) allowReUse(req *RequestInfo) bool {
@@ -236,8 +246,8 @@ func (r *MockRoundTripper) matchRequest(method, version, payload string, reqURL 
 			}
 		}
 		response := request.Responses[nextIndex]
-		// cannot return a response that is sent after a diff response, unless it is a diff
-		if response.ResponseIndex > nextDiffResponse && !isDiff {
+		// cannot return a response that is sent after a diff response, unless it is a diff or we ignore order with allowOutOfOrder
+		if !isDiff && !r.canReturnResponse(response.ResponseIndex) {
 			prevIndex := nextIndex - 1
 			if prevIndex >= 0 && r.allowReUse(&request) {
 				r.reReadCounter++
