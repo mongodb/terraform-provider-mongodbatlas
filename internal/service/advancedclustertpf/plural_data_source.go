@@ -3,13 +3,16 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 var _ datasource.DataSource = &pluralDS{}
@@ -66,7 +69,14 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	projectID := pluralModel.ProjectID.ValueString()
 	useReplicationSpecPerShard := pluralModel.UseReplicationSpecPerShard.ValueBool()
 	api := d.Client.AtlasV2.ClustersApi
-	list, _, err := api.ListClusters(ctx, projectID).Execute()
+	params := admin.ListClustersApiParams{
+		GroupId: projectID,
+	}
+	list, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ClusterDescription20240805], *http.Response, error) {
+		request := api.ListClustersWithParams(ctx, &params)
+		request = request.PageNum(pageNum)
+		return request.Execute()
+	})
 	if err != nil {
 		diags.AddError("errorList", fmt.Sprintf(errorList, projectID, err.Error()))
 		return nil
@@ -76,13 +86,12 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		UseReplicationSpecPerShard:        pluralModel.UseReplicationSpecPerShard,
 		IncludeDeletedWithRetainedBackups: pluralModel.IncludeDeletedWithRetainedBackups,
 	}
-	// TODO: get full results doing pagination if needed
-	for i := range list.GetResults() {
+	for i := range list {
+		clusterResp := &list[i]
 		modelIn := &TFModel{
 			ProjectID: pluralModel.ProjectID,
-			Name:      types.StringPointerValue(list.GetResults()[i].Name),
+			Name:      types.StringValue(clusterResp.GetName()),
 		}
-		clusterResp := &list.GetResults()[i]
 		// TODO: pass !UseReplicationSpecPerShard to overrideUsingLegacySchema
 		modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn)
 		if diags.HasError() {
