@@ -27,7 +27,7 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 			if diags.HasError() {
 				return
 			}
-			if conversion.SafeValue(stateConfigSDK.FailIndexKeyTooLong) != conversion.SafeValue(failIndexKeyTooLong) {
+			if stateConfigSDK != nil && conversion.SafeValue(stateConfigSDK.FailIndexKeyTooLong) != conversion.SafeValue(failIndexKeyTooLong) {
 				failIndexKeyTooLong = stateConfigSDK.FailIndexKeyTooLong
 			}
 		}
