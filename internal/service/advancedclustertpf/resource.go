@@ -131,7 +131,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	modelOut := &state
 	if clusterResp != nil {
-		modelOut = getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan)
+		modelOut, _ = getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan)
 		if diags.HasError() {
 			return
 		}
@@ -225,7 +225,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 			return nil
 		}
 	}
-	modelOut := getBasicClusterModel(ctx, diags, r.Client, clusterResp, plan)
+	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, clusterResp, plan)
 	if diags.HasError() {
 		return nil
 	}
@@ -249,7 +249,7 @@ func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, modelIn *
 		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
 		return nil
 	}
-	modelOut := getBasicClusterModel(ctx, diags, r.Client, readResp, modelIn)
+	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, modelIn)
 	if diags.HasError() {
 		return nil
 	}
@@ -406,17 +406,17 @@ func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeReque
 	return AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
-func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) (*TFModel, *ExtraAPIInfo) {
 	apiInfo := resolveAPIInfo(ctx, modelIn, diags, clusterResp, client)
 	if diags.HasError() {
-		return nil
+		return nil, nil
 	}
 	modelOut := NewTFModel(ctx, clusterResp, modelIn.Timeouts, diags, *apiInfo)
 	if diags.HasError() {
-		return nil
+		return nil, nil
 	}
 	overrideAttributesWithPrevStateValue(modelIn, modelOut)
-	return modelOut
+	return modelOut, apiInfo
 }
 
 func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805) {

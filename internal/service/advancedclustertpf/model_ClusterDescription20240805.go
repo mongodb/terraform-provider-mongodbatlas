@@ -20,11 +20,12 @@ const (
 )
 
 type ExtraAPIInfo struct {
-	ZoneNameNumShards          map[string]int64
-	ZoneNameReplicationSpecIDs map[string]string
-	RootDiskSize               *float64
-	ContainerIDs               map[string]string
-	UsingLegacySchema          bool
+	ZoneNameNumShards               map[string]int64
+	ZoneNameReplicationSpecIDs      map[string]string
+	RootDiskSize                    *float64
+	ContainerIDs                    map[string]string
+	UsingLegacySchema               bool
+	AsymmetricShardUnsupportedError bool
 }
 
 func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {

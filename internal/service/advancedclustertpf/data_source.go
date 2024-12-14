@@ -56,6 +56,7 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *TFModelDS) *TFModelDS {
 	clusterName := modelDS.Name.ValueString()
 	projectID := modelDS.ProjectID.ValueString()
+	useReplicationSpecPerShard := modelDS.UseReplicationSpecPerShard.ValueBool()
 	api := d.Client.AtlasV2.ClustersApi
 	clusterResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
@@ -70,8 +71,12 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		Name:      modelDS.Name,
 	}
 	// TODO: pass !UseReplicationSpecPerShard to overrideUsingLegacySchema
-	modelOut := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn)
+	modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn)
 	if diags.HasError() {
+		return nil
+	}
+	if extraInfo.AsymmetricShardUnsupportedError && !useReplicationSpecPerShard {
+		diags.AddError("errorRead", "Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details.")
 		return nil
 	}
 	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)

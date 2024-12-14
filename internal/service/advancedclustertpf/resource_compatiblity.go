@@ -40,7 +40,7 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 func resolveAPIInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnostics, clusterLatest *admin.ClusterDescription20240805, client *config.MongoDBClient) *ExtraAPIInfo {
 	rootDiskSize := conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
 	projectID := plan.ProjectID.ValueString()
-	zoneNameSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, plan.Name.ValueString(), client.AtlasV220240530.ClustersApi)
+	zoneNameSpecIDs, asymmetricShardUnsupportedError, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, plan.Name.ValueString(), client.AtlasV220240530.ClustersApi)
 	if err != nil {
 		diags.AddError("getReplicationSpecIDsFromOldAPI", err.Error())
 		return nil
@@ -54,11 +54,12 @@ func resolveAPIInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnostics,
 		return nil
 	}
 	return &ExtraAPIInfo{
-		ContainerIDs:               containerIDs,
-		UsingLegacySchema:          usingLegacySchema(ctx, plan.ReplicationSpecs, diags),
-		ZoneNameNumShards:          numShardsMap(ctx, plan.ReplicationSpecs, diags),
-		RootDiskSize:               rootDiskSize,
-		ZoneNameReplicationSpecIDs: zoneNameSpecIDs,
+		ContainerIDs:                    containerIDs,
+		UsingLegacySchema:               usingLegacySchema(ctx, plan.ReplicationSpecs, diags),
+		ZoneNameNumShards:               numShardsMap(ctx, plan.ReplicationSpecs, diags),
+		RootDiskSize:                    rootDiskSize,
+		ZoneNameReplicationSpecIDs:      zoneNameSpecIDs,
+		AsymmetricShardUnsupportedError: asymmetricShardUnsupportedError,
 	}
 }
 

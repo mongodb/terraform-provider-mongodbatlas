@@ -64,6 +64,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 
 func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pluralModel *TFModelPluralDS) *TFModelPluralDS {
 	projectID := pluralModel.ProjectID.ValueString()
+	useReplicationSpecPerShard := pluralModel.UseReplicationSpecPerShard.ValueBool()
 	api := d.Client.AtlasV2.ClustersApi
 	list, _, err := api.ListClusters(ctx, projectID).Execute()
 	if err != nil {
@@ -83,9 +84,12 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		}
 		clusterResp := &list.GetResults()[i]
 		// TODO: pass !UseReplicationSpecPerShard to overrideUsingLegacySchema
-		modelOut := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn)
+		modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn)
 		if diags.HasError() {
 			return nil
+		}
+		if extraInfo.AsymmetricShardUnsupportedError && !useReplicationSpecPerShard {
+			continue
 		}
 		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
 		if diags.HasError() {
