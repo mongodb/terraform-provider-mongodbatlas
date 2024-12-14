@@ -405,7 +405,7 @@ func (r *rs) convertClusterAddAdvConfig(ctx context.Context, legacyAdvConfig *ad
 	} else {
 		modelOut.AdvancedConfiguration = *oldAdvConfig
 	}
-	overrideKnowTPFIssueFields(modelIn, modelOut)
+	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut
 }
 

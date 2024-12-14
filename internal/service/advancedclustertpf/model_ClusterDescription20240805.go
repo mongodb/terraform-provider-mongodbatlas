@@ -64,6 +64,7 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 		Tags:                             tags,
 		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
 		VersionReleaseSystem:             types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
+		PinnedFCV:                        types.ObjectNull(PinnedFCVObjType.AttrTypes), // TODO static object
 		Timeouts:                         timeout,
 	}
 }

@@ -101,3 +101,23 @@ func CheckExistsClusterHandlingRetry(projectID, clusterName string) error {
 		return nil
 	})
 }
+
+func CheckFCVPinningConfig(resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
+	mapChecks := map[string]string{
+		"mongo_db_major_version": fmt.Sprintf("%d.0", mongoDBMajorVersion),
+	}
+
+	if pinningExpirationDate != nil {
+		mapChecks["pinned_fcv.0.expiration_date"] = *pinningExpirationDate
+	} else {
+		mapChecks["pinned_fcv.#"] = "0"
+	}
+
+	if fcvVersion != nil {
+		mapChecks["pinned_fcv.0.version"] = fmt.Sprintf("%d.0", *fcvVersion)
+	}
+
+	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
+
+	return CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
+}
