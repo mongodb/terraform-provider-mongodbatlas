@@ -137,10 +137,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		}
 	}
 	if advConfigChanged {
-		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, plan.ProjectID.ValueString(), plan.Name.ValueString(), changeReasonUpdate)
-		if diags.HasError() {
-			return
-		}
 		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
 		if diags.HasError() {
 			return
@@ -285,7 +281,7 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgs).Execute()
 		if err != nil {
 			diags.AddError("errorUpdateAdvancedConfig", fmt.Sprintf(errorConfigUpdate, clusterName, err.Error()))
-			return legacyAdvConfig, advConfig, changed
+			return nil, nil, false
 		}
 	}
 	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
@@ -294,6 +290,13 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 		legacyAdvConfig, _, err = r.Client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgsLegacy).Execute()
 		if err != nil {
 			diags.AddError("errorUpdateAdvancedConfigLegacy", fmt.Sprintf(errorConfigUpdate, clusterName, err.Error()))
+			return nil, nil, false
+		}
+	}
+	if changed {
+		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+		if diags.HasError() {
+			return nil, nil, false
 		}
 	}
 	return legacyAdvConfig, advConfig, changed
@@ -391,6 +394,7 @@ func (r *rs) updateAndWait(ctx context.Context, patchReq *admin.ClusterDescripti
 	}
 	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
+
 func (r *rs) updateAndWaitLegacy(ctx context.Context, patchReq *admin20240805.ClusterDescription20240805, diags *diag.Diagnostics, plan *TFModel) *admin.ClusterDescription20240805 {
 	api20240805 := r.Client.AtlasV220240805.ClustersApi
 	projectID := plan.ProjectID.ValueString()
