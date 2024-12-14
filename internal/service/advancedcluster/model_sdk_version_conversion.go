@@ -6,7 +6,7 @@ import (
 
 	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace SDK once cipher config changes are in prod
 )
 
 // Conversions from one SDK model version to another are used to avoid duplicating our flatten/expand conversion functions.

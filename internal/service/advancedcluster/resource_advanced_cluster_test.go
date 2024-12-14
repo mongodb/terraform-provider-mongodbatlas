@@ -236,6 +236,11 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
 			DefaultMaxTimeMS: conversion.IntPtr(65),
 		}
+
+		processArgsCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
+		}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -248,8 +253,8 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
 			},
 			{
-				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, &admin.ClusterDescriptionProcessArgs20240805{}),
-				Check:  checkAdvanced(true, clusterName, "TLS1_1", &admin.ClusterDescriptionProcessArgs20240805{}),
+				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgsCipherConfig),
+				Check:  checkAdvanced(true, clusterName, "TLS1_1", processArgsCipherConfig),
 			},
 		},
 	})

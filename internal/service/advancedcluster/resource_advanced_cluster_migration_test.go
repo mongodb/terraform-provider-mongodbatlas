@@ -188,6 +188,8 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 				sample_size_bi_connector			 = 110
 				sample_refresh_interval_bi_connector = 310
 				default_max_time_ms = 65
+				tls_cipher_config_mode               = "CUSTOM"
+			    custom_openssl_cipher_config_tls12   = ["TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"]
 				}
 				
 				bi_connector_config {
@@ -212,6 +214,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_min_retention_hours", "4"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "DEFAULT"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "true"),
 				),
 			},
@@ -228,6 +231,8 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_max_time_ms", "65"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "CUSTOM"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.custom_openssl_cipher_config_tls12.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
 				),
