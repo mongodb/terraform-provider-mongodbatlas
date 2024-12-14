@@ -144,8 +144,8 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 				),
 			},
 			{
-				Config: configAdvancedConfPartial(projectID, clusterName, "false", &matlas.ProcessArgs{
-					MinimumEnabledTLSProtocol: "TLS1_2",
+				Config: configAdvancedConfPartial(projectID, clusterName, "false", &admin.ClusterDescriptionProcessArgs20240805{
+					MinimumEnabledTlsProtocol: conversion.StringPtr("TLS1_2"),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
@@ -174,19 +174,22 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvancedConfDefaultWriteRead(projectID, clusterName, "false", &matlas.ProcessArgs{
-					DefaultReadConcern:               "available",
-					DefaultWriteConcern:              "1",
-					FailIndexKeyTooLong:              conversion.Pointer(false),
-					JavascriptEnabled:                conversion.Pointer(true),
-					MinimumEnabledTLSProtocol:        "TLS1_1",
-					NoTableScan:                      conversion.Pointer(false),
-					OplogSizeMB:                      conversion.Pointer[int64](1000),
-					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
-					SampleSizeBIConnector:            conversion.Pointer[int64](110),
-					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
-					ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.Pointer[int64](113),
-				}),
+				Config: configAdvancedConfDefaultWriteRead(projectID, clusterName, "false",
+					&admin20240530.ClusterDescriptionProcessArgs{
+						FailIndexKeyTooLong: conversion.Pointer(false),
+						DefaultReadConcern:  conversion.StringPtr("available"),
+					},
+					&admin.ClusterDescriptionProcessArgs20240805{
+						DefaultWriteConcern:              conversion.StringPtr("1"),
+						JavascriptEnabled:                conversion.Pointer(true),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						NoTableScan:                      conversion.Pointer(false),
+						OplogSizeMB:                      conversion.Pointer(1000),
+						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
+						SampleSizeBIConnector:            conversion.Pointer(110),
+						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+						ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.Pointer(113),
+					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
@@ -198,11 +201,12 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds", "113"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "DEFAULT"),
 				),
 			},
 			{
-				Config: configAdvancedConfPartialDefault(projectID, clusterName, "false", &matlas.ProcessArgs{
-					MinimumEnabledTLSProtocol: "TLS1_2",
+				Config: configAdvancedConfPartialDefault(projectID, clusterName, "false", &admin.ClusterDescriptionProcessArgs20240805{
+					MinimumEnabledTlsProtocol: conversion.StringPtr("TLS1_2"),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
@@ -215,6 +219,7 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds", "-1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "DEFAULT"),
 				),
 			},
 		},
@@ -233,8 +238,8 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvancedConfPartial(projectID, clusterName, "false", &matlas.ProcessArgs{
-					MinimumEnabledTLSProtocol: "TLS1_2",
+				Config: configAdvancedConfPartial(projectID, clusterName, "false", &admin.ClusterDescriptionProcessArgs20240805{
+					MinimumEnabledTlsProtocol: conversion.StringPtr("TLS1_2"),
 				}),
 			},
 			{
@@ -279,6 +284,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 			{
 				Config: configAdvancedConf(projectID, clusterName, "false", &admin20240530.ClusterDescriptionProcessArgs{
 					FailIndexKeyTooLong: conversion.Pointer(false),
+					DefaultReadConcern:  conversion.StringPtr("available"),
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
 						JavascriptEnabled:                conversion.Pointer(true),
@@ -292,6 +298,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "true"),
@@ -313,6 +320,8 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 						SampleRefreshIntervalBIConnector: conversion.Pointer(0),
 						SampleSizeBIConnector:            conversion.Pointer(0),
 						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](60),
+						TlsCipherConfigMode:              conversion.StringPtr("CUSTOM"),
+						CustomOpensslCipherConfigTls12:   &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"},
 					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
@@ -324,6 +333,8 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "60"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "CUSTOM"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.custom_openssl_cipher_config_tls12.#", "1"),
 				),
 			},
 		},
@@ -1490,8 +1501,14 @@ func configAWS(projectID, name string, backupEnabled, autoDiskGBEnabled bool) st
 
 func configAdvancedConf(projectID, name, autoscalingEnabled string,
 	p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
+	defaultReadConcernStr := ""
 	tlsCipherConfigModeStr := ""
 	customOpensslCipherConfigTLS12Str := ""
+
+	if p20240530.DefaultReadConcern != nil {
+		defaultReadConcernStr = fmt.Sprintf("default_read_concern = %[1]q", *p20240530.DefaultReadConcern)
+	}
+
 	if p.TlsCipherConfigMode != nil {
 		tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
 		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
@@ -1529,7 +1546,7 @@ func configAdvancedConf(projectID, name, autoscalingEnabled string,
 
 			advanced_configuration  {
 				fail_index_key_too_long              = %[4]t
-				default_read_concern                 = %[5]q
+				%[5]s
 				javascript_enabled                   = %[6]t
 				minimum_enabled_tls_protocol         = %[7]q
 				no_table_scan                        = %[8]t
@@ -1548,11 +1565,11 @@ func configAdvancedConf(projectID, name, autoscalingEnabled string,
 			name 	     = mongodbatlas_cluster.test.name
 		}
 	`, projectID, name, autoscalingEnabled,
-		*p20240530.FailIndexKeyTooLong, *p20240530.DefaultReadConcern, *p.JavascriptEnabled, *p.MinimumEnabledTlsProtocol, *p.NoTableScan,
-		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, *p.TransactionLifetimeLimitSeconds, tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str)
+		p20240530.GetFailIndexKeyTooLong(), defaultReadConcernStr, p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
+		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds(), tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str)
 }
 
-func configAdvancedConfDefaultWriteRead(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
+func configAdvancedConfDefaultWriteRead(projectID, name, autoscalingEnabled string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = %[1]q
@@ -1589,11 +1606,11 @@ func configAdvancedConfDefaultWriteRead(projectID, name, autoscalingEnabled stri
 			}
 		}
 	`, projectID, name, autoscalingEnabled,
-		*p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
-		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, p.DefaultReadConcern, p.DefaultWriteConcern, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
+		p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
+		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p20240530.GetDefaultReadConcern(), p.GetDefaultWriteConcern(), p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds())
 }
 
-func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
+func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = %[1]q
@@ -1623,10 +1640,10 @@ func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *ma
 				minimum_enabled_tls_protocol         = %[4]q
 			}
 		}
-	`, projectID, name, autoscalingEnabled, p.MinimumEnabledTLSProtocol)
+	`, projectID, name, autoscalingEnabled, p.GetMinimumEnabledTlsProtocol())
 }
 
-func configAdvancedConfPartialDefault(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
+func configAdvancedConfPartialDefault(projectID, name, autoscalingEnabled string, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = %[1]q
@@ -1656,7 +1673,7 @@ func configAdvancedConfPartialDefault(projectID, name, autoscalingEnabled string
 				minimum_enabled_tls_protocol = %[4]q
 			}
 		}
-	`, projectID, name, autoscalingEnabled, p.MinimumEnabledTLSProtocol)
+	`, projectID, name, autoscalingEnabled, p.GetMinimumEnabledTlsProtocol())
 }
 
 func configAzure(orgID, projectName, name, backupEnabled, instanceSizeName string, includeDiskType bool) string {

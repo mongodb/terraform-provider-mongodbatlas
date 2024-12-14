@@ -76,19 +76,19 @@ func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
 func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) []map[string]any {
 	flattenedProcessArgs := []map[string]any{
 		{
-			"default_read_concern":    p20240530.GetDefaultReadConcern(),
-			"fail_index_key_too_long": p20240530.GetFailIndexKeyTooLong(),
-
-			"default_write_concern":                p.GetDefaultWriteConcern(),
-			"javascript_enabled":                   p.GetJavascriptEnabled(),
-			"minimum_enabled_tls_protocol":         p.GetMinimumEnabledTlsProtocol(),
-			"no_table_scan":                        p.GetNoTableScan(),
-			"oplog_size_mb":                        p.GetOplogSizeMB(),
-			"oplog_min_retention_hours":            p.GetOplogMinRetentionHours(),
-			"sample_size_bi_connector":             p.GetSampleSizeBIConnector(),
-			"sample_refresh_interval_bi_connector": p.GetSampleRefreshIntervalBIConnector(),
-			"transaction_lifetime_limit_seconds":   p.GetTransactionLifetimeLimitSeconds(),
-			"tls_cipher_config_mode":               p.GetTlsCipherConfigMode(),
+			// default_read_concern and fail_index_key_too_long have been deprecated, hence using the older SDK
+			"default_read_concern":                 p20240530.DefaultReadConcern,
+			"fail_index_key_too_long":              p20240530.FailIndexKeyTooLong,
+			"default_write_concern":                p.DefaultWriteConcern,
+			"javascript_enabled":                   p.JavascriptEnabled,
+			"minimum_enabled_tls_protocol":         p.MinimumEnabledTlsProtocol,
+			"no_table_scan":                        p.NoTableScan,
+			"oplog_size_mb":                        p.OplogSizeMB,
+			"oplog_min_retention_hours":            p.OplogMinRetentionHours,
+			"sample_size_bi_connector":             p.SampleSizeBIConnector,
+			"sample_refresh_interval_bi_connector": p.SampleRefreshIntervalBIConnector,
+			"transaction_lifetime_limit_seconds":   p.TransactionLifetimeLimitSeconds,
+			"tls_cipher_config_mode":               p.TlsCipherConfigMode,
 			"custom_openssl_cipher_config_tls12":   p.GetCustomOpensslCipherConfigTls12(),
 		},
 	}
@@ -236,6 +236,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 	res20240530 := admin20240530.ClusterDescriptionProcessArgs{}
 	res := admin.ClusterDescriptionProcessArgs20240805{}
 
+	// default_read_concern and fail_index_key_too_long have been deprecated, hence using the older SDK
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {
 		res20240530.DefaultReadConcern = conversion.StringPtr(cast.ToString(p["default_read_concern"]))
 	}
