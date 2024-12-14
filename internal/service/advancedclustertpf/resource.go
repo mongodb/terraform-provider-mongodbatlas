@@ -182,6 +182,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	var (
 		projectID   = plan.ProjectID.ValueString()
 		clusterName = plan.Name.ValueString()
+		api20240805 = r.Client.AtlasV220240805.ClustersApi
 		api20240530 = r.Client.AtlasV220240530.ClustersApi
 		api         = r.Client.AtlasV2.ClustersApi
 		err         error
@@ -190,7 +191,12 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if pauseAfter {
 		latestReq.Paused = nil
 	}
-	_, _, err = api.CreateCluster(ctx, projectID, latestReq).Execute()
+	if usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
+		legacyReq := newLegacyModel(latestReq)
+		_, _, err = api20240805.CreateCluster(ctx, projectID, legacyReq).Execute()
+	} else {
+		_, _, err = api.CreateCluster(ctx, projectID, latestReq).Execute()
+	}
 	if err != nil {
 		diags.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
 		return nil
