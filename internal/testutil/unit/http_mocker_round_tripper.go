@@ -65,6 +65,7 @@ type MockRoundTripper struct {
 	diffResponseIndex    int
 	allowMissingRequests bool
 	logRequests          bool
+	reReadCounter        int
 }
 
 func (r *MockRoundTripper) IncreaseStepNumberAndInit() {
@@ -95,6 +96,7 @@ func (r *MockRoundTripper) manualFilenameIfExist(requestID string, index int) st
 func (r *MockRoundTripper) initStep() error {
 	r.usedResponses = map[string]int{}
 	r.foundsDiffs = map[int]string{}
+	r.reReadCounter = 0
 	step := r.currentStep()
 	if step == nil {
 		return nil
@@ -234,6 +236,10 @@ func (r *MockRoundTripper) matchRequest(method, version, payload string, reqURL 
 		if response.ResponseIndex > nextDiffResponse && !isDiff {
 			prevIndex := nextIndex - 1
 			if prevIndex >= 0 && r.allowReUse(&request) {
+				r.reReadCounter++
+				if r.reReadCounter > 20 {
+					return "", 0, fmt.Errorf("stuck in a loop trying to re-read the same request: %s %s %s", method, version, reqURL.Path)
+				}
 				response = request.Responses[prevIndex]
 				r.t.Logf("re-reading %s request with response_index=%d as diff hasn't been returned yet (%d)", request.Method, response.ResponseIndex, nextDiffResponse)
 				return replaceVars(response.Text, r.data.Variables), response.Status, nil
