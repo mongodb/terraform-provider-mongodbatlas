@@ -70,7 +70,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		Name:      modelDS.Name,
 	}
 	// TODO: pass !UseReplicationSpecPerShard to overrideUsingLegacySchema
-	modelOut := convertClusterAddAdvConfig(ctx, diags, d.Client, nil, nil, readResp, modelIn, nil, false)
+	modelOut := convertClusterAddAdvConfig(ctx, diags, d.Client, nil, nil, readResp, modelIn, nil)
 	modelOutDS, err := conversion.CopyModel[TFModelDS](modelOut)
 	if err != nil {
 		diags.AddError(errorRead, fmt.Sprintf("error setting model: %s", err.Error()))
