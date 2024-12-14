@@ -19,19 +19,31 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 			// special behavior using -1 when it is unset by the user
 			changeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(-1)
 		}
+		// When MongoDBMajorVersion is not 4.4 or lower, the API response for fail_index_key_too_long will always be null, to ensure no consistency issues, we need to match the config
+		failIndexKeyTooLong := inputLegacy.FailIndexKeyTooLong
+		if tfModel != nil {
+			stateConfig := tfModel.AdvancedConfiguration
+			stateConfigSDK := NewAtlasReqAdvancedConfigurationLegacy(ctx, &stateConfig, diags)
+			if diags.HasError() {
+				return
+			}
+			if conversion.SafeValue(stateConfigSDK.FailIndexKeyTooLong) != conversion.SafeValue(failIndexKeyTooLong) {
+				failIndexKeyTooLong = stateConfigSDK.FailIndexKeyTooLong
+			}
+		}
 		advancedConfig = TFAdvancedConfigurationModel{
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(changeStreamOptionsPreAndPostImagesExpireAfterSeconds)),
-			DefaultWriteConcern:              types.StringPointerValue(input.DefaultWriteConcern),
-			DefaultReadConcern:               types.StringPointerValue(inputLegacy.DefaultReadConcern),
-			FailIndexKeyTooLong:              types.BoolPointerValue(inputLegacy.FailIndexKeyTooLong),
-			JavascriptEnabled:                types.BoolPointerValue(input.JavascriptEnabled),
-			MinimumEnabledTlsProtocol:        types.StringPointerValue(input.MinimumEnabledTlsProtocol),
-			NoTableScan:                      types.BoolPointerValue(input.NoTableScan),
-			OplogMinRetentionHours:           types.Float64PointerValue(input.OplogMinRetentionHours),
-			OplogSizeMb:                      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.OplogSizeMB)),
-			SampleSizeBiconnector:            types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.SampleSizeBIConnector)),
-			SampleRefreshIntervalBiconnector: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.SampleRefreshIntervalBIConnector)),
-			TransactionLifetimeLimitSeconds:  types.Int64PointerValue(input.TransactionLifetimeLimitSeconds),
+			DefaultWriteConcern:              types.StringValue(conversion.SafeValue(input.DefaultWriteConcern)),
+			DefaultReadConcern:               types.StringValue(conversion.SafeValue(inputLegacy.DefaultReadConcern)),
+			FailIndexKeyTooLong:              types.BoolValue(conversion.SafeValue(failIndexKeyTooLong)),
+			JavascriptEnabled:                types.BoolValue(conversion.SafeValue(input.JavascriptEnabled)),
+			MinimumEnabledTlsProtocol:        types.StringValue(conversion.SafeValue(input.MinimumEnabledTlsProtocol)),
+			NoTableScan:                      types.BoolValue(conversion.SafeValue(input.NoTableScan)),
+			OplogMinRetentionHours:           types.Float64Value(conversion.SafeValue(input.OplogMinRetentionHours)),
+			OplogSizeMb:                      types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.OplogSizeMB))),
+			SampleSizeBiconnector:            types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.SampleSizeBIConnector))),
+			SampleRefreshIntervalBiconnector: types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.SampleRefreshIntervalBIConnector))),
+			TransactionLifetimeLimitSeconds:  types.Int64Value(conversion.SafeValue(input.TransactionLifetimeLimitSeconds)),
 		}
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)

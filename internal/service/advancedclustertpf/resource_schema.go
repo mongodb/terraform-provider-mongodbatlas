@@ -494,9 +494,6 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				DeprecationMessage: DeprecationMsgOldSchema,
 				Computed:           true,
 				Optional:           true,
-				PlanModifiers: []planmodifier.Bool{
-					PlanMustUseMongoDBVersion(4.4, EqualOrLower),
-				},
 				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 			},
 		},
