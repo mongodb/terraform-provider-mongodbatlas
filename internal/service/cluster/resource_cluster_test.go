@@ -162,14 +162,16 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 	}
 }
 
-func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
+func basicDefaultWriteReadAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		projectID   = acc.ProjectIDExecution(tb)
 		clusterName = acc.RandomClusterName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+	return &resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(tb, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
@@ -223,7 +225,11 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 				),
 			},
 		},
-	})
+	}
+}
+
+func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
+	resource.ParallelTest(t, *basicDefaultWriteReadAdvancedConfTestCase(t))
 }
 
 func TestAccCluster_emptyAdvancedConf(t *testing.T) {
