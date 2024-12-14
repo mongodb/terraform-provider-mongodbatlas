@@ -23,6 +23,7 @@ BUG FIXES:
 * data-source/mongodbatlas_clusters: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
 * resource/mongodbatlas_advanced_cluster: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
 * resource/mongodbatlas_cluster: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
+* resource/mongodbatlas_search_index: Fixes resource create and update when `wait_for_index_build_completion` attribute is used ([#2887](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2887))
 
 ## 1.22.0 (November 26, 2024)
 
