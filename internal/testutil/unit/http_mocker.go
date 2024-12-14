@@ -131,7 +131,8 @@ func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
 	newVariables := data.Variables
 	for key, value := range oldVariables {
 		if _, ok := newVariables[key]; !ok {
-			t.Logf("Variable %s=%s not found from TF Config, probably discovered in request path", key, value)
+			t.Logf("Variable %s not found from TF Config, will use variable from the mock data with value %s", key, value)
+			data.Variables[key] = value
 		}
 	}
 	for key, value := range newVariables {
