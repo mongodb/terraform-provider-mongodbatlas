@@ -105,7 +105,7 @@ func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 	return ""
 }
 
-func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName string, api admin20240530.ClustersApi) (zoneNameSpecIDs map[string]string, asymmetricShardUnsupportedError bool, err error) {
+func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName string, api admin20240530.ClustersApi) (zoneNameSpecIDs map[string]string, asymmetricShardUnsupported bool, err error) {
 	var clusterOldAPI *admin20240530.AdvancedClusterDescription
 	clusterOldAPI, _, err = api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {

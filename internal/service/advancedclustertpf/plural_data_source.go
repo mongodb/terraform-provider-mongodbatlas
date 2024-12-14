@@ -88,7 +88,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		if diags.HasError() {
 			return nil
 		}
-		if extraInfo.AsymmetricShardUnsupportedError && !useReplicationSpecPerShard {
+		if extraInfo.AsymmetricShardUnsupported && !useReplicationSpecPerShard {
 			continue
 		}
 		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
