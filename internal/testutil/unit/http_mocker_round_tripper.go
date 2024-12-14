@@ -168,6 +168,10 @@ func (r *MockRoundTripper) CheckStepRequests(_ *terraform.State) error {
 		r.t.Logf("checking diff %s", filename)
 		payloadWithVars := useVars(r.data.Variables, payload)
 		r.g.Assert(r.t, filename, []byte(payloadWithVars))
+		if IsDataUpdate() {
+			r.t.Logf("updating diff %s", filename)
+			UpdateMockDataDiffRequest(r.t, r.currentStepIndex, index, payloadWithVars)
+		}
 	}
 	return nil
 }

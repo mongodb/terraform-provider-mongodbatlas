@@ -17,9 +17,10 @@ import (
 )
 
 const (
-	EnvNameHTTPMockerCapture = "HTTP_MOCKER_CAPTURE"
-	EnvNameHTTPMockerReplay  = "HTTP_MOCKER_REPLAY"
-	configFileExtension      = ".yaml"
+	EnvNameHTTPMockerCapture    = "HTTP_MOCKER_CAPTURE"
+	EnvNameHTTPMockerReplay     = "HTTP_MOCKER_REPLAY"
+	EnvNameHTTPMockerDataUpdate = "HTTP_MOCKER_DATA_UPDATE"
+	configFileExtension         = ".yaml"
 )
 
 type MockHTTPDataConfig struct {
@@ -36,6 +37,10 @@ func IsCapture() bool {
 
 func IsReplay() bool {
 	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerReplay)))
+}
+
+func IsDataUpdate() bool {
+	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerDataUpdate)))
 }
 
 func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCase *resource.TestCase) { //nolint: gocritic // Want each test run to have its own config (hugeParam: config is heavy (112 bytes); consider passing it by pointer)
@@ -135,6 +140,18 @@ func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
 		}
 	}
 	return data
+}
+
+func UpdateMockDataDiffRequest(t *testing.T, stepIndex, diffRequestIndex int, newText string) {
+	t.Helper()
+	httpDataPath := MockConfigFilePath(t)
+	data, err := ParseTestDataConfigYAML(httpDataPath)
+	require.NoError(t, err)
+	data.Steps[stepIndex].DiffRequests[diffRequestIndex].Text = newText
+	configYaml, err := ConfigYaml(data)
+	require.NoError(t, err)
+	err = WriteConfigYaml(httpDataPath, configYaml)
+	require.NoError(t, err)
 }
 
 func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
