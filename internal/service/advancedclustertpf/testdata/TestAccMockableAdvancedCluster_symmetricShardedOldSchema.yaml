@@ -5,7 +5,7 @@ steps:
   - diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters
         method: POST
-        version: '2024-10-23'
+        version: '2024-08-05'
         text: "{\n \"clusterType\": \"SHARDED\",\n \"configServerManagementMode\": \"FIXED_TO_DEDICATED\",\n \"labels\": [],\n \"mongoDBMajorVersion\": \"8.0\",\n \"name\": \"{clusterName}\",\n \"replicationSpecs\": [\n  {\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 1\n     },\n     \"electableSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"regionName\": \"EU_WEST_1\"\n    },\n    {\n     \"electableSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 2\n     },\n     \"priority\": 6,\n     \"providerName\": \"AZURE\",\n     \"regionName\": \"US_EAST_2\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  },\n  {\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 1\n     },\n     \"electableSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"regionName\": \"EU_WEST_1\"\n    },\n    {\n     \"electableSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 2\n     },\n     \"priority\": 6,\n     \"providerName\": \"AZURE\",\n     \"regionName\": \"US_EAST_2\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ],\n \"tags\": []\n}"
         responses:
           - response_index: 10
@@ -90,7 +90,7 @@ steps:
             text: "true"
       - path: /api/atlas/v2/groups/{groupId}/clusters
         method: POST
-        version: '2024-10-23'
+        version: '2024-08-05'
         text: "{\n \"clusterType\": \"SHARDED\",\n \"configServerManagementMode\": \"FIXED_TO_DEDICATED\",\n \"labels\": [],\n \"mongoDBMajorVersion\": \"8.0\",\n \"name\": \"{clusterName}\",\n \"replicationSpecs\": [\n  {\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 1\n     },\n     \"electableSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"regionName\": \"EU_WEST_1\"\n    },\n    {\n     \"electableSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 2\n     },\n     \"priority\": 6,\n     \"providerName\": \"AZURE\",\n     \"regionName\": \"US_EAST_2\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  },\n  {\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 1\n     },\n     \"electableSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"regionName\": \"EU_WEST_1\"\n    },\n    {\n     \"electableSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 2\n     },\n     \"priority\": 6,\n     \"providerName\": \"AZURE\",\n     \"regionName\": \"US_EAST_2\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ],\n \"tags\": []\n}"
         responses:
           - response_index: 10
