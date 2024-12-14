@@ -10,9 +10,17 @@ import (
 )
 
 func TestAdvancedCluster_ValidationErrors(t *testing.T) {
+	const (
+		projectID   = "111111111111111111111111"
+		clusterName = "test"
+	)
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
+			{
+				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, true, invalidRegionConfigsPriorities),
+				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
+			},
 			{
 				Config:      configBasic(projectID, clusterName, "mongo_db_major_version = \"8a\""),
 				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
@@ -26,6 +34,10 @@ func TestAdvancedCluster_ValidationErrors(t *testing.T) {
 }
 
 func TestAdvancedCluster_PlanModifierErrors(t *testing.T) {
+	const (
+		projectID   = "111111111111111111111111"
+		clusterName = "test"
+	)
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -81,7 +93,7 @@ func configBasic(projectID, clusterName, extra string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			timeouts = {
-				create = "20s"
+				create = "2000s"
 			}
 			project_id = %[1]q
 			name = %[2]q
@@ -107,3 +119,33 @@ func configBasic(projectID, clusterName, extra string) string {
 		}
 	`, projectID, clusterName, extra)
 }
+
+var invalidRegionConfigsPriorities = `
+resource "mongodbatlas_advanced_cluster" "test" {
+	project_id     = "111111111111111111111111"
+	name           = "test-acc-tf-c-2670522663699021050"
+	cluster_type   = "REPLICASET"
+	backup_enabled = false
+
+	replication_specs {
+		region_configs {
+			provider_name = "AWS"
+			priority      = 6
+			region_name   = "US_WEST_2"
+			electable_specs {
+				node_count    = 1
+				instance_size = "M10"
+			}
+		}
+		region_configs {
+			provider_name = "AWS"
+			priority      = 7
+			region_name   = "US_EAST_1"
+			electable_specs {
+				node_count    = 2
+				instance_size = "M10"
+			}
+		}
+	}
+}
+`

@@ -1,53 +1,50 @@
 package advancedclustertpf_test
 
 import (
-	"os"
 	"testing"
+	"time"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/tc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
-const (
-	resourceName = "mongodbatlas_advanced_cluster.test"
+var (
+	mockConfig = unit.MockHTTPDataConfig{AllowMissingRequests: true, SideEffect: shortenRetries, IsDiffMustSubstrings: []string{"/clusters"}}
 )
 
-func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
-	var (
-		projectID          = acc.ProjectIDExecution(t)
-		clusterName        = acc.RandomClusterName()
-		clusterNameUpdated = acc.RandomClusterName()
-	)
-	testCase := tc.BasicTenantTestCase(t, projectID, clusterName, clusterNameUpdated)
-	resource.ParallelTest(t, *testCase)
+func shortenRetries() error {
+	advancedclustertpf.RetryMinTimeout = 100 * time.Millisecond
+	advancedclustertpf.RetryDelay = 100 * time.Millisecond
+	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
+	return nil
 }
 
-func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-	)
-	testCase := tc.SymmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t, orgID, projectName, clusterName)
-	resource.ParallelTest(t, *testCase)
+func TestAccMockableAdvancedCluster_basicTenant(t *testing.T) {
+	testCase := basicTenantTestCase(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }
 
-func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-	)
-	testCase := tc.SymmetricShardedOldSchema(t, orgID, projectName, clusterName)
-	resource.ParallelTest(t, *testCase)
+func TestAccMockableAdvancedCluster_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
+	testCase := symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }
 
-func TestAccClusterAdvancedCluster_tenantUpgrade(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-	)
-	testCase := tc.TenantUpgrade(t, projectID, clusterName)
-	resource.ParallelTest(t, *testCase)
+func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
+	testCase := symmetricShardedOldSchema(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
+}
+
+func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
+	testCase := tenantUpgrade(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
+}
+
+func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
+	testCase := replicasetAdvConfigUpdate(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
+}
+
+func TestAccMockableAdvancedCluster_shardedBasic(t *testing.T) {
+	testCase := shardedBasic(t)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }

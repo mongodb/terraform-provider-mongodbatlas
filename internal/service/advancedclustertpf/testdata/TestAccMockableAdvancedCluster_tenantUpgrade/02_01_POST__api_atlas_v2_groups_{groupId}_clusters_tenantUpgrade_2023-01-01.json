@@ -1,0 +1,8 @@
+{
+ "name": "{clusterName}",
+ "providerSettings": {
+  "instanceSizeName": "M10",
+  "providerName": "AWS",
+  "regionName": "US_EAST_1"
+ }
+}
