@@ -53,15 +53,20 @@ func getTF() *tfexec.Terraform {
 func GetAttrVal(t *testing.T, body *hclsyntax.Body) cty.Value {
 	t.Helper()
 	ret := make(map[string]cty.Value)
+	AddAttributes(t, body, ret)
+	for _, block := range body.Blocks {
+		ret[block.Type] = GetAttrVal(t, block.Body)
+	}
+	return cty.ObjectVal(ret)
+}
+
+func AddAttributes(t *testing.T, body *hclsyntax.Body, ret map[string]cty.Value) {
+	t.Helper()
 	for name, attr := range body.Attributes {
 		val, diags := attr.Expr.Value(nil)
 		require.False(t, diags.HasErrors(), "failed to parse attribute %s: %s", name, diags.Error())
 		ret[name] = val
 	}
-	for _, block := range body.Blocks {
-		ret[block.Type] = GetAttrVal(t, block.Body)
-	}
-	return cty.ObjectVal(ret)
 }
 
 func PrettyHCL(t *testing.T, content string) string {
