@@ -283,6 +283,10 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 			diags.AddError("errorUpdateAdvancedConfig", fmt.Sprintf(errorConfigUpdate, clusterName, err.Error()))
 			return nil, nil, false
 		}
+		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+		if diags.HasError() {
+			return nil, nil, false
+		}
 	}
 	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if !update.IsZeroValues(patchReqProcessArgsLegacy) {
@@ -292,8 +296,6 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 			diags.AddError("errorUpdateAdvancedConfigLegacy", fmt.Sprintf(errorConfigUpdate, clusterName, err.Error()))
 			return nil, nil, false
 		}
-	}
-	if changed {
 		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 		if diags.HasError() {
 			return nil, nil, false
