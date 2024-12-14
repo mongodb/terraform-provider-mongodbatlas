@@ -111,7 +111,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	patchReq, err := update.PatchPayload(stateReq, planReq)
+	patchOptions := update.PatchOptions{
+		IgnoreInStatePrefix:  []string{"regionConfigs"},
+		IncludeInStateSuffix: []string{"diskIOPS"},
+	}
+	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
 		diags.AddError("errorPatchPayload", err.Error())
 		return
