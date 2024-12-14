@@ -6,6 +6,7 @@
     {
      "analyticsSpecs": {
       "diskIOPS": 2000,
+      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 1
@@ -28,6 +29,13 @@
      },
      "priority": 7,
      "providerName": "AWS",
+     "readOnlySpecs": {
+      "diskIOPS": 2000,
+      "diskSizeGB": 40,
+      "ebsVolumeType": "PROVISIONED",
+      "instanceSize": "M30",
+      "nodeCount": 0
+     },
      "regionName": "EU_WEST_1"
     }
    ],
@@ -40,6 +48,7 @@
     {
      "analyticsSpecs": {
       "diskIOPS": 1000,
+      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 1
@@ -62,6 +71,13 @@
      },
      "priority": 7,
      "providerName": "AWS",
+     "readOnlySpecs": {
+      "diskIOPS": 1000,
+      "diskSizeGB": 40,
+      "ebsVolumeType": "PROVISIONED",
+      "instanceSize": "M30",
+      "nodeCount": 0
+     },
      "regionName": "EU_WEST_1"
     }
    ],
