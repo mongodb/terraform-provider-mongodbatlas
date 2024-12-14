@@ -57,7 +57,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 	clusterName := modelDS.Name.ValueString()
 	projectID := modelDS.ProjectID.ValueString()
 	api := d.Client.AtlasV2.ClustersApi
-	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
+	clusterResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
 			return nil
@@ -70,7 +70,14 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		Name:      modelDS.Name,
 	}
 	// TODO: pass !UseReplicationSpecPerShard to overrideUsingLegacySchema
-	modelOut := convertClusterAddAdvConfig(ctx, diags, d.Client, nil, nil, readResp, modelIn, nil)
+	modelOut := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn)
+	if diags.HasError() {
+		return nil
+	}
+	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
+	if diags.HasError() {
+		return nil
+	}
 	modelOutDS, err := conversion.CopyModel[TFModelDS](modelOut)
 	if err != nil {
 		diags.AddError(errorRead, fmt.Sprintf("error setting model: %s", err.Error()))

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
@@ -114,13 +113,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		diags.AddError("errorPatchPayload", err.Error())
 		return
 	}
-	var cluster *admin.ClusterDescription20240805
+	var clusterResp *admin.ClusterDescription20240805
 	if !update.IsZeroValues(patchReq) {
 		upgradeRequest := getTenantUpgradeRequest(stateReq, patchReq)
 		if upgradeRequest != nil {
-			cluster = r.applyTenantUpgrade(ctx, &plan, upgradeRequest, diags)
+			clusterResp = r.applyTenantUpgrade(ctx, &plan, upgradeRequest, diags)
 		} else {
-			cluster = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq)
+			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq)
 		}
 		if diags.HasError() {
 			return
@@ -130,23 +129,22 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	var model *TFModel
-	if cluster == nil {
-		r.updateAdvConfig(ctx, legacyAdvConfig, advConfig, &state, diags)
+	modelOut := &state
+	if clusterResp != nil {
+		modelOut = getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan)
 		if diags.HasError() {
 			return
 		}
-		model = &state
-	} else {
-		var stateAdvConfig types.Object
-		if !advConfigChanged {
-			stateAdvConfig = state.AdvancedConfiguration
+	}
+	if advConfigChanged {
+		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
+		if diags.HasError() {
+			return
 		}
-		model = convertClusterAddAdvConfig(ctx, diags, r.Client, legacyAdvConfig, advConfig, cluster, &plan, &stateAdvConfig)
+	} else {
+		modelOut.AdvancedConfiguration = state.AdvancedConfiguration
 	}
-	if model != nil {
-		diags.Append(resp.State.Set(ctx, model)...)
-	}
+	diags.Append(resp.State.Set(ctx, modelOut)...)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -199,12 +197,12 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		diags.AddError("errorCreate", fmt.Sprintf(errorCreate, err.Error()))
 		return nil
 	}
-	cluster := AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
+	clusterResp := AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
 	if diags.HasError() {
 		return nil
 	}
 	if pauseAfter {
-		cluster = r.updateAndWait(ctx, &pauseRequest, diags, plan)
+		clusterResp = r.updateAndWait(ctx, &pauseRequest, diags, plan)
 	}
 	var legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
 	legacyAdvConfigUpdate := NewAtlasReqAdvancedConfigurationLegacy(ctx, &plan.AdvancedConfiguration, diags)
@@ -227,12 +225,20 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 			return nil
 		}
 	}
-	return convertClusterAddAdvConfig(ctx, diags, r.Client, legacyAdvConfig, advConfig, cluster, plan, nil)
+	modelOut := getBasicClusterModel(ctx, diags, r.Client, clusterResp, plan)
+	if diags.HasError() {
+		return nil
+	}
+	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
+	if diags.HasError() {
+		return nil
+	}
+	return modelOut
 }
 
-func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, model *TFModel, state *tfsdk.State) *TFModel {
-	clusterName := model.Name.ValueString()
-	projectID := model.ProjectID.ValueString()
+func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, modelIn *TFModel, state *tfsdk.State) *TFModel {
+	clusterName := modelIn.Name.ValueString()
+	projectID := modelIn.ProjectID.ValueString()
 	api := r.Client.AtlasV2.ClustersApi
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
@@ -243,7 +249,15 @@ func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, model *TF
 		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
 		return nil
 	}
-	return convertClusterAddAdvConfig(ctx, diags, r.Client, nil, nil, readResp, model, nil)
+	modelOut := getBasicClusterModel(ctx, diags, r.Client, readResp, modelIn)
+	if diags.HasError() {
+		return nil
+	}
+	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, nil, nil)
+	if diags.HasError() {
+		return nil
+	}
+	return modelOut
 }
 
 func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
@@ -392,37 +406,20 @@ func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeReque
 	return AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
-func convertClusterAddAdvConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, cluster *admin.ClusterDescription20240805, modelIn *TFModel, oldAdvConfig *types.Object) *TFModel {
-	apiInfo := resolveAPIInfo(ctx, modelIn, diags, cluster, client)
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
+	apiInfo := resolveAPIInfo(ctx, modelIn, diags, clusterResp, client)
 	if diags.HasError() {
 		return nil
 	}
-	modelOut := NewTFModel(ctx, cluster, modelIn.Timeouts, diags, *apiInfo)
+	modelOut := NewTFModel(ctx, clusterResp, modelIn.Timeouts, diags, *apiInfo)
 	if diags.HasError() {
 		return nil
-	}
-	if oldAdvConfig != nil {
-		modelOut.AdvancedConfiguration = *oldAdvConfig
-	} else {
-		legacyAdvConfig, advConfig = readUnsetAdvancedConfiguration(ctx, client, modelOut, legacyAdvConfig, advConfig, diags)
-		AddAdvancedConfig(ctx, modelOut, advConfig, legacyAdvConfig, diags)
-		if diags.HasError() {
-			return nil
-		}
 	}
 	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut
 }
 
-func (r *rs) updateAdvConfig(ctx context.Context, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, state *TFModel, diags *diag.Diagnostics) {
-	legacyAdvConfig, advConfig = readUnsetAdvancedConfiguration(ctx, r.Client, state, legacyAdvConfig, advConfig, diags)
-	if diags.HasError() {
-		return
-	}
-	AddAdvancedConfig(ctx, state, advConfig, legacyAdvConfig, diags)
-}
-
-func readUnsetAdvancedConfiguration(ctx context.Context, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805, diags *diag.Diagnostics) (*admin20240530.ClusterDescriptionProcessArgs, *admin.ClusterDescriptionProcessArgs20240805) {
+func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805) {
 	api := client.AtlasV2.ClustersApi
 	api20240530 := client.AtlasV220240530.ClustersApi
 	projectID := model.ProjectID.ValueString()
@@ -432,15 +429,15 @@ func readUnsetAdvancedConfiguration(ctx context.Context, client *config.MongoDBC
 		legacyAdvConfig, _, err = api20240530.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			diags.AddError("errorReadAdvConfigLegacy", fmt.Sprintf(errorRead, clusterName, err.Error()))
-			return nil, nil
+			return
 		}
 	}
 	if advConfig == nil {
 		advConfig, _, err = api.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			diags.AddError("errorReadAdvConfig", fmt.Sprintf(errorRead, clusterName, err.Error()))
-			return nil, nil
+			return
 		}
 	}
-	return legacyAdvConfig, advConfig
+	AddAdvancedConfig(ctx, model, advConfig, legacyAdvConfig, diags)
 }
