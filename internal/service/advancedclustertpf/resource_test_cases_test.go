@@ -269,11 +269,11 @@ func tenantUpgrade(t *testing.T) *resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configTenant(projectID, clusterName)),
+				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenant(projectID, clusterName)),
 				Check:  checkTenant(projectID, clusterName),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToTPF(t, configTenantUpgraded(projectID, clusterName)),
+				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenantUpgraded(projectID, clusterName)),
 				Check:  checksTenantUpgraded(projectID, clusterName),
 			},
 		},

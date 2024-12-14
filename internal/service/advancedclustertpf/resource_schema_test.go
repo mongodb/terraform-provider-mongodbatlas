@@ -18,7 +18,7 @@ func TestAdvancedCluster_ValidationErrors(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      acc.ConvertAdvancedClusterToTPF(t, invalidRegionConfigsPriorities),
+				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, true, invalidRegionConfigsPriorities),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 			{
