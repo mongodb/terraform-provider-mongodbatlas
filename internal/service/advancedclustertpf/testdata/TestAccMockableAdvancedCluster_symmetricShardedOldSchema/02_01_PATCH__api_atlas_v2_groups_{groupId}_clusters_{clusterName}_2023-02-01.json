@@ -7,50 +7,19 @@
     {
      "analyticsSpecs": {
       "diskIOPS": 3000,
-      "ebsVolumeType": "STANDARD",
       "instanceSize": "M20",
       "nodeCount": 1
      },
-     "autoScaling": {
-      "compute": {
-       "enabled": false,
-       "scaleDownEnabled": false
-      },
-      "diskGB": {
-       "enabled": false
-      }
-     },
      "electableSpecs": {
       "diskIOPS": 3000,
-      "ebsVolumeType": "STANDARD",
       "instanceSize": "M10",
       "nodeCount": 3
      },
      "priority": 7,
      "providerName": "AWS",
-     "readOnlySpecs": {
-      "diskIOPS": 3000,
-      "ebsVolumeType": "STANDARD",
-      "instanceSize": "M10",
-      "nodeCount": 0
-     },
      "regionName": "EU_WEST_1"
     },
     {
-     "analyticsSpecs": {
-      "diskIOPS": 3500,
-      "instanceSize": "M10",
-      "nodeCount": 0
-     },
-     "autoScaling": {
-      "compute": {
-       "enabled": false,
-       "scaleDownEnabled": false
-      },
-      "diskGB": {
-       "enabled": false
-      }
-     },
      "electableSpecs": {
       "diskIOPS": 3500,
       "instanceSize": "M10",
@@ -58,11 +27,6 @@
      },
      "priority": 6,
      "providerName": "AZURE",
-     "readOnlySpecs": {
-      "diskIOPS": 3500,
-      "instanceSize": "M10",
-      "nodeCount": 0
-     },
      "regionName": "US_EAST_2"
     }
    ],
