@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -31,26 +30,7 @@ type pluralDS struct {
 }
 
 func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
-		RequiredFields: []string{"project_id"},
-		OverridenRootFields: map[string]schema.Attribute{
-			"use_replication_spec_per_shard": schema.BoolAttribute{ // TODO: added as in current resource
-				Optional:            true,
-				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
-			},
-			"include_deleted_with_retained_backups": schema.BoolAttribute{ // TODO: not in current resource, decide if keep
-				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether to return Clusters with retain backups.",
-			},
-		},
-		OverridenFields: map[string]schema.Attribute{
-			"use_replication_spec_per_shard": schema.BoolAttribute{
-				Optional:            true,
-				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
-			},
-			"accept_data_risks_and_force_replica_set_reconfig": nil,
-		},
-	})
+	resp.Schema = pluralDataSourceSchema(ctx)
 }
 
 func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -114,11 +94,4 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		outs.Results = append(outs.Results, modelOutDS)
 	}
 	return outs
-}
-
-type TFModelPluralDS struct {
-	ProjectID                         types.String `tfsdk:"project_id"`
-	Results                           []*TFModelDS `tfsdk:"results"`
-	UseReplicationSpecPerShard        types.Bool   `tfsdk:"use_replication_spec_per_shard"`        // TODO: added as in current resource
-	IncludeDeletedWithRetainedBackups types.Bool   `tfsdk:"include_deleted_with_retained_backups"` // TODO: not in current resource, decide if keep
 }

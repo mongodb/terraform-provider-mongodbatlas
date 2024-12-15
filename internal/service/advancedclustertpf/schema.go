@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -15,10 +16,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
-func ResourceSchema(ctx context.Context) schema.Schema {
+func resourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Version: 1,
 		Attributes: map[string]schema.Attribute{
@@ -351,6 +353,40 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
+func dataSourceSchema(ctx context.Context) dsschema.Schema {
+	return conversion.DataSourceSchemaFromResource(resourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+		RequiredFields:  []string{"project_id", "name"},
+		OverridenFields: dataSourceOverridenFields(),
+	})
+}
+
+func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
+	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
+		RequiredFields: []string{"project_id"},
+		OverridenRootFields: map[string]dsschema.Attribute{
+			"use_replication_spec_per_shard": dsschema.BoolAttribute{ // TODO: added as in current resource
+				Optional:            true,
+				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
+			},
+			"include_deleted_with_retained_backups": dsschema.BoolAttribute{ // TODO: not in current resource, decide if keep
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether to return Clusters with retain backups.",
+			},
+		},
+		OverridenFields: dataSourceOverridenFields(),
+	})
+}
+
+func dataSourceOverridenFields() map[string]dsschema.Attribute {
+	return map[string]dsschema.Attribute{
+		"use_replication_spec_per_shard": dsschema.BoolAttribute{ // TODO: added as in current resource
+			Optional:            true,
+			MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
+		},
+		"accept_data_risks_and_force_replica_set_reconfig": nil,
+	}
+}
+
 func AutoScalingSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Computed:            true,
@@ -569,6 +605,13 @@ type TFModelDS struct {
 	Paused                           types.Bool    `tfsdk:"paused"`
 	TerminationProtectionEnabled     types.Bool    `tfsdk:"termination_protection_enabled"`
 	PitEnabled                       types.Bool    `tfsdk:"pit_enabled"`
+}
+
+type TFModelPluralDS struct {
+	ProjectID                         types.String `tfsdk:"project_id"`
+	Results                           []*TFModelDS `tfsdk:"results"`
+	UseReplicationSpecPerShard        types.Bool   `tfsdk:"use_replication_spec_per_shard"`        // TODO: added as in current resource
+	IncludeDeletedWithRetainedBackups types.Bool   `tfsdk:"include_deleted_with_retained_backups"` // TODO: not in current resource, decide if keep
 }
 
 type TFBiConnectorModel struct {
