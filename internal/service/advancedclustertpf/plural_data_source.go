@@ -48,6 +48,7 @@ func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, res
 				Optional:            true,
 				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
 			},
+			"accept_data_risks_and_force_replica_set_reconfig": nil,
 		},
 	})
 }
