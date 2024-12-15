@@ -1,0 +1,56 @@
+{
+ "replicationSpecs": [
+  {
+   "id": "67587cae27216120d54106e0",
+   "numShards": 2,
+   "regionConfigs": [
+    {
+     "analyticsSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M20",
+      "nodeCount": 1
+     },
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": false
+      }
+     },
+     "electableSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "regionName": "EU_WEST_1"
+    },
+    {
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": false
+      }
+     },
+     "electableSpecs": {
+      "diskIOPS": 3500,
+      "instanceSize": "M10",
+      "nodeCount": 2
+     },
+     "priority": 6,
+     "providerName": "AZURE",
+     "regionName": "US_EAST_2"
+    }
+   ],
+   "zoneName": "ZoneName managed by Terraform"
+  }
+ ]
+}
