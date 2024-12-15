@@ -384,7 +384,6 @@ func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFMo
 		return false
 	}
 	api20240530 := r.Client.AtlasV220240530.ClustersApi
-	api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch)
 	_, _, err := api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch).Execute()
 	if err != nil {
 		diags.AddError("errorUpdateLegacy", fmt.Sprintf(errorUpdate, plan.Name.ValueString(), err.Error()))
