@@ -219,6 +219,10 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 			diags.AddError("errorUpdateeAdvConfigLegacy", fmt.Sprintf(errorCreate, err.Error()))
 			return nil
 		}
+		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
+		if diags.HasError() {
+			return nil
+		}
 	}
 
 	advConfigUpdate := NewAtlasReqAdvancedConfiguration(ctx, &plan.AdvancedConfiguration, diags)
@@ -228,6 +232,10 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		if err != nil {
 			// Maybe should be warning instead of error to avoid having to re-create the cluster
 			diags.AddError("errorUpdateAdvConfig", fmt.Sprintf(errorCreate, err.Error()))
+			return nil
+		}
+		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
+		if diags.HasError() {
 			return nil
 		}
 	}
@@ -427,6 +435,7 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 	if diags.HasError() {
 		return nil, nil
 	}
+	apiInfo.UsingLegacySchema = true
 	modelOut := NewTFModel(ctx, clusterResp, modelIn.Timeouts, diags, *apiInfo)
 	if diags.HasError() {
 		return nil, nil
