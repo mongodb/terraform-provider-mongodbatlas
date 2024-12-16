@@ -253,7 +253,7 @@ func NewRegionConfigsObjType(ctx context.Context, input *[]admin.CloudRegionConf
 			AnalyticsAutoScaling: analyticsAutoScaling,
 			AnalyticsSpecs:       analyticsSpecs,
 			AutoScaling:          autoScaling,
-			BackingProviderName:  types.StringPointerValue(item.BackingProviderName),
+			BackingProviderName:  types.StringValue(conversion.SafeValue(item.BackingProviderName)),
 			ElectableSpecs:       electableSpecs,
 			Priority:             types.Int64PointerValue(conversion.IntPtrToInt64Ptr(item.Priority)),
 			ProviderName:         types.StringValue(conversion.SafeValue(item.ProviderName)),

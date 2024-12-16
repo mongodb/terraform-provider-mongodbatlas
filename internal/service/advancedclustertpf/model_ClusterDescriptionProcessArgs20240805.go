@@ -21,17 +21,17 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 		}
 		advancedConfig = TFAdvancedConfigurationModel{
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(changeStreamOptionsPreAndPostImagesExpireAfterSeconds)),
-			DefaultWriteConcern:              types.StringPointerValue(input.DefaultWriteConcern),
-			DefaultReadConcern:               types.StringPointerValue(inputLegacy.DefaultReadConcern),
-			FailIndexKeyTooLong:              types.BoolPointerValue(inputLegacy.FailIndexKeyTooLong),
+			DefaultWriteConcern:              types.StringValue(conversion.SafeValue(input.DefaultWriteConcern)),
+			DefaultReadConcern:               types.StringValue(conversion.SafeValue(inputLegacy.DefaultReadConcern)),
+			FailIndexKeyTooLong:              types.BoolValue(conversion.SafeValue(inputLegacy.FailIndexKeyTooLong)),
 			JavascriptEnabled:                types.BoolPointerValue(input.JavascriptEnabled),
 			MinimumEnabledTlsProtocol:        types.StringPointerValue(input.MinimumEnabledTlsProtocol),
 			NoTableScan:                      types.BoolPointerValue(input.NoTableScan),
-			OplogMinRetentionHours:           types.Float64PointerValue(input.OplogMinRetentionHours),
-			OplogSizeMb:                      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.OplogSizeMB)),
-			SampleSizeBiconnector:            types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.SampleSizeBIConnector)),
-			SampleRefreshIntervalBiconnector: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.SampleRefreshIntervalBIConnector)),
-			TransactionLifetimeLimitSeconds:  types.Int64PointerValue(input.TransactionLifetimeLimitSeconds),
+			OplogMinRetentionHours:           types.Float64Value(conversion.SafeValue(input.OplogMinRetentionHours)),
+			OplogSizeMb:                      types.Int64Value(int64(conversion.SafeValue(input.OplogSizeMB))),
+			SampleSizeBiconnector:            types.Int64Value(int64(conversion.SafeValue(input.SampleSizeBIConnector))),
+			SampleRefreshIntervalBiconnector: types.Int64Value(int64(conversion.SafeValue(input.SampleRefreshIntervalBIConnector))),
+			TransactionLifetimeLimitSeconds:  types.Int64Value(conversion.SafeValue(input.TransactionLifetimeLimitSeconds)),
 		}
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)
