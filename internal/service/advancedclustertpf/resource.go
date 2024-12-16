@@ -434,6 +434,9 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 	if diags.HasError() {
 		return nil, nil
 	}
+	if forceLegacySchema && apiInfo.AsymmetricShardUnsupported { // can't create a model if legacy is forced but cluster does not support it
+		return nil, apiInfo
+	}
 	modelOut := NewTFModel(ctx, clusterResp, modelIn.Timeouts, diags, *apiInfo)
 	if diags.HasError() {
 		return nil, nil
