@@ -42,9 +42,11 @@ func (m *attrPatchOperations) ignoreInStatePath(path string) bool {
 }
 
 func newAttrPatchOperations(patch jsondiff.Patch, options []PatchOptions) *attrPatchOperations {
-	ignoreSuffixInState := []string{}
-	ignorePrefixInState := []string{}
-	includeSuffixInState := []string{}
+	var (
+		ignoreSuffixInState  []string
+		ignorePrefixInState  []string
+		includeSuffixInState []string
+	)
 	for _, option := range options {
 		ignoreSuffixInState = append(ignoreSuffixInState, option.IgnoreInStateSuffix...)
 		ignorePrefixInState = append(ignorePrefixInState, option.IgnoreInStatePrefix...)
