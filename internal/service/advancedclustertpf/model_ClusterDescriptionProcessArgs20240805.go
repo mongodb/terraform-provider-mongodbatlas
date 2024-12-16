@@ -20,22 +20,22 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 			changeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(-1)
 		}
 		// When MongoDBMajorVersion is not 4.4 or lower, the API response for fail_index_key_too_long will always be null, to ensure no consistency issues, we need to match the config
-		failIndexKeyTooLong := inputLegacy.FailIndexKeyTooLong
+		failIndexKeyTooLong := inputLegacy.GetFailIndexKeyTooLong()
 		if tfModel != nil {
 			stateConfig := tfModel.AdvancedConfiguration
 			stateConfigSDK := NewAtlasReqAdvancedConfigurationLegacy(ctx, &stateConfig, diags)
 			if diags.HasError() {
 				return
 			}
-			if stateConfigSDK != nil && conversion.SafeValue(stateConfigSDK.FailIndexKeyTooLong) != conversion.SafeValue(failIndexKeyTooLong) {
-				failIndexKeyTooLong = stateConfigSDK.FailIndexKeyTooLong
+			if stateConfigSDK != nil && stateConfigSDK.GetFailIndexKeyTooLong() != failIndexKeyTooLong {
+				failIndexKeyTooLong = stateConfigSDK.GetFailIndexKeyTooLong()
 			}
 		}
 		advancedConfig = TFAdvancedConfigurationModel{
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(changeStreamOptionsPreAndPostImagesExpireAfterSeconds)),
 			DefaultWriteConcern:              types.StringValue(conversion.SafeValue(input.DefaultWriteConcern)),
 			DefaultReadConcern:               types.StringValue(conversion.SafeValue(inputLegacy.DefaultReadConcern)),
-			FailIndexKeyTooLong:              types.BoolValue(conversion.SafeValue(failIndexKeyTooLong)),
+			FailIndexKeyTooLong:              types.BoolValue(failIndexKeyTooLong),
 			JavascriptEnabled:                types.BoolValue(conversion.SafeValue(input.JavascriptEnabled)),
 			MinimumEnabledTlsProtocol:        types.StringValue(conversion.SafeValue(input.MinimumEnabledTlsProtocol)),
 			NoTableScan:                      types.BoolValue(conversion.SafeValue(input.NoTableScan)),
