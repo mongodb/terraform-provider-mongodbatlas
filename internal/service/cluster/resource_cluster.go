@@ -34,7 +34,6 @@ const (
 	errorClusterUpdate            = "error updating MongoDB Cluster (%s): %s"
 	errorAdvancedConfUpdate       = "error updating Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
 	ErrorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
-	v220240530                    = "(v20240530)"
 )
 
 var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
@@ -580,7 +579,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if ok {
 			_, _, err = connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.Name, &params20240530).Execute()
 			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, v220240530, cluster.Name, err))
+				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, advancedcluster.V20240530, cluster.Name, err))
 			}
 			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.Name, &params).Execute()
 			if err != nil {
@@ -789,7 +788,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	*/
 	processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, v220240530, clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, advancedcluster.V20240530, clusterName, err))
 	}
 	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
@@ -999,7 +998,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if !reflect.DeepEqual(params20240530, admin20240530.ClusterDescriptionProcessArgs{}) {
 				_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params20240530).Execute()
 				if err != nil {
-					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, v220240530, clusterName, err))
+					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, advancedcluster.V20240530, clusterName, err))
 				}
 			}
 			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
