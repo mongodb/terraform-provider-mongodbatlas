@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -15,10 +16,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
-func ResourceSchema(ctx context.Context) schema.Schema {
+func resourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Version: 1,
 		Attributes: map[string]schema.Attribute{
@@ -351,6 +353,40 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
+func dataSourceSchema(ctx context.Context) dsschema.Schema {
+	return conversion.DataSourceSchemaFromResource(resourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+		RequiredFields:  []string{"project_id", "name"},
+		OverridenFields: dataSourceOverridenFields(),
+	})
+}
+
+func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
+	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
+		RequiredFields: []string{"project_id"},
+		OverridenRootFields: map[string]dsschema.Attribute{
+			"use_replication_spec_per_shard": dsschema.BoolAttribute{ // TODO: added as in current resource
+				Optional:            true,
+				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
+			},
+			"include_deleted_with_retained_backups": dsschema.BoolAttribute{ // TODO: not in current resource, decide if keep
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether to return Clusters with retain backups.",
+			},
+		},
+		OverridenFields: dataSourceOverridenFields(),
+	})
+}
+
+func dataSourceOverridenFields() map[string]dsschema.Attribute {
+	return map[string]dsschema.Attribute{
+		"use_replication_spec_per_shard": dsschema.BoolAttribute{ // TODO: added as in current resource
+			Optional:            true,
+			MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
+		},
+		"accept_data_risks_and_force_replica_set_reconfig": nil,
+	}
+}
+
 func AutoScalingSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Computed:            true,
@@ -532,6 +568,47 @@ type TFModel struct {
 	GlobalClusterSelfManagedSharding          types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
 	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
 	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
+}
+
+// TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig; adds use_replication_spec_per_shard.
+type TFModelDS struct {
+	DiskSizeGB                       types.Float64 `tfsdk:"disk_size_gb"`
+	Labels                           types.Set     `tfsdk:"labels"`
+	ReplicationSpecs                 types.List    `tfsdk:"replication_specs"`
+	Tags                             types.Set     `tfsdk:"tags"`
+	ReplicaSetScalingStrategy        types.String  `tfsdk:"replica_set_scaling_strategy"`
+	Name                             types.String  `tfsdk:"name"`
+	AdvancedConfiguration            types.Object  `tfsdk:"advanced_configuration"`
+	BiConnectorConfig                types.Object  `tfsdk:"bi_connector_config"`
+	RootCertType                     types.String  `tfsdk:"root_cert_type"`
+	ClusterType                      types.String  `tfsdk:"cluster_type"`
+	MongoDBMajorVersion              types.String  `tfsdk:"mongo_db_major_version"`
+	ConfigServerType                 types.String  `tfsdk:"config_server_type"`
+	VersionReleaseSystem             types.String  `tfsdk:"version_release_system"`
+	ConnectionStrings                types.Object  `tfsdk:"connection_strings"`
+	StateName                        types.String  `tfsdk:"state_name"`
+	MongoDBVersion                   types.String  `tfsdk:"mongo_db_version"`
+	CreateDate                       types.String  `tfsdk:"create_date"`
+	EncryptionAtRestProvider         types.String  `tfsdk:"encryption_at_rest_provider"`
+	ProjectID                        types.String  `tfsdk:"project_id"`
+	ClusterID                        types.String  `tfsdk:"cluster_id"`
+	ConfigServerManagementMode       types.String  `tfsdk:"config_server_management_mode"`
+	PinnedFCV                        types.Object  `tfsdk:"pinned_fcv"`
+	UseReplicationSpecPerShard       types.Bool    `tfsdk:"use_replication_spec_per_shard"`
+	RedactClientLogData              types.Bool    `tfsdk:"redact_client_log_data"`
+	GlobalClusterSelfManagedSharding types.Bool    `tfsdk:"global_cluster_self_managed_sharding"`
+	BackupEnabled                    types.Bool    `tfsdk:"backup_enabled"`
+	RetainBackupsEnabled             types.Bool    `tfsdk:"retain_backups_enabled"`
+	Paused                           types.Bool    `tfsdk:"paused"`
+	TerminationProtectionEnabled     types.Bool    `tfsdk:"termination_protection_enabled"`
+	PitEnabled                       types.Bool    `tfsdk:"pit_enabled"`
+}
+
+type TFModelPluralDS struct {
+	ProjectID                         types.String `tfsdk:"project_id"`
+	Results                           []*TFModelDS `tfsdk:"results"`
+	UseReplicationSpecPerShard        types.Bool   `tfsdk:"use_replication_spec_per_shard"`        // TODO: added as in current resource
+	IncludeDeletedWithRetainedBackups types.Bool   `tfsdk:"include_deleted_with_retained_backups"` // TODO: not in current resource, decide if keep
 }
 
 type TFBiConnectorModel struct {
