@@ -1,0 +1,72 @@
+{
+ "replicationSpecs": [
+  {
+   "id": "675bf94c216ed3746c09fc5d",
+   "regionConfigs": [
+    {
+     "analyticsSpecs": {
+      "diskIOPS": 2000,
+      "ebsVolumeType": "PROVISIONED",
+      "instanceSize": "M30",
+      "nodeCount": 1
+     },
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "electableSpecs": {
+      "diskIOPS": 2000,
+      "diskSizeGB": 40,
+      "ebsVolumeType": "PROVISIONED",
+      "instanceSize": "M30",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "regionName": "EU_WEST_1"
+    }
+   ],
+   "zoneId": "675bf94c216ed3746c09fc5b",
+   "zoneName": "ZoneName managed by Terraform"
+  },
+  {
+   "id": "675bf94c216ed3746c09fc5f",
+   "regionConfigs": [
+    {
+     "analyticsSpecs": {
+      "diskIOPS": 1000,
+      "ebsVolumeType": "PROVISIONED",
+      "instanceSize": "M30",
+      "nodeCount": 1
+     },
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "electableSpecs": {
+      "diskIOPS": 1000,
+      "diskSizeGB": 40,
+      "ebsVolumeType": "PROVISIONED",
+      "instanceSize": "M30",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "regionName": "EU_WEST_1"
+    }
+   ],
+   "zoneId": "675bf94c216ed3746c09fc5b",
+   "zoneName": "ZoneName managed by Terraform"
+  }
+ ]
+}

@@ -40,7 +40,7 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 func resolveAPIInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnostics, clusterLatest *admin.ClusterDescription20240805, client *config.MongoDBClient) *ExtraAPIInfo {
 	rootDiskSize := conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
 	projectID := plan.ProjectID.ValueString()
-	zoneNameSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, plan.Name.ValueString(), client.AtlasV220240530.ClustersApi)
+	zoneNameSpecIDs, asymmetricShardUnsupported, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, plan.Name.ValueString(), client.AtlasV220240530.ClustersApi)
 	if err != nil {
 		diags.AddError("getReplicationSpecIDsFromOldAPI", err.Error())
 		return nil
@@ -59,6 +59,7 @@ func resolveAPIInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnostics,
 		ZoneNameNumShards:          numShardsMap(ctx, plan.ReplicationSpecs, diags),
 		RootDiskSize:               rootDiskSize,
 		ZoneNameReplicationSpecIDs: zoneNameSpecIDs,
+		AsymmetricShardUnsupported: asymmetricShardUnsupported,
 	}
 }
 
@@ -140,6 +141,9 @@ func repSpecNoIDs(repspec admin.ReplicationSpec20240805) *admin.ReplicationSpec2
 
 func numShardsCounts(ctx context.Context, input types.List, diags *diag.Diagnostics) []int64 {
 	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
+	if len(elements) == 0 {
+		return nil
+	}
 	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
 		diags.Append(localDiags...)
 		return nil
@@ -162,6 +166,9 @@ func usingLegacySchema(ctx context.Context, input types.List, diags *diag.Diagno
 
 func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]int64 {
 	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
+	if len(elements) == 0 {
+		return nil
+	}
 	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
 		diags.Append(localDiags...)
 		return nil

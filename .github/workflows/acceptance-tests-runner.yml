@@ -371,12 +371,15 @@ jobs:
         run: go test -v ./internal/testutil/acc/advanced_cluster_schema_v2_test.go
       - name: Mocked Acceptance Tests
         env:
-          ACCTEST_REGEX_RUN: '^TestMock'
+          ACCTEST_REGEX_RUN: '^TestAccMockable'
           ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
+          MONGODB_ATLAS_PROJECT_ID: '111111111111111111111111' # 24 chars used for skipping acc.ProjectIDExecution(t) in mocked tests
+          HTTP_MOCKER_REPLAY: 'true'
         run: make testacc
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          HTTP_MOCKER_CAPTURE: 'true'
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
