@@ -1,7 +1,9 @@
 package advancedcluster_test
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -9,9 +11,13 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -28,6 +34,61 @@ var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 )
+
+func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
+	var (
+		projectID   = "11111"
+		clusterName = "testCluster"
+		ID          = "111111"
+		numShard    = 2
+		zoneName    = "ZoneName managed by Terraform"
+	)
+
+	testCases := map[string]struct {
+		mockCluster    *admin20240530.AdvancedClusterDescription
+		mockResponse   *http.Response
+		mockError      error
+		expectedResult map[string]advancedcluster.OldShardConfigMeta
+		expectedError  error
+	}{
+		"Error in the API call": {
+			mockCluster:    &admin20240530.AdvancedClusterDescription{},
+			mockResponse:   &http.Response{StatusCode: 400},
+			mockError:      errGeneric,
+			expectedError:  errGeneric,
+			expectedResult: nil,
+		},
+		"Successful": {
+			mockCluster: &admin20240530.AdvancedClusterDescription{
+				ReplicationSpecs: &[]admin20240530.ReplicationSpec{
+					{
+						NumShards: &numShard,
+						Id:        &ID,
+						ZoneName:  &zoneName,
+					},
+				},
+			},
+			mockResponse:  &http.Response{},
+			mockError:     nil,
+			expectedError: nil,
+			expectedResult: map[string]advancedcluster.OldShardConfigMeta{
+				zoneName: {ID: ID, NumShard: numShard},
+			},
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			testObject := mockadmin20240530.NewClustersApi(t)
+
+			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin20240530.GetClusterApiRequest{ApiService: testObject}).Once()
+			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
+
+			result, err := advancedcluster.GetReplicationSpecAttributesFromOldAPI(context.Background(), projectID, clusterName, testObject)
+			assert.Equal(t, tc.expectedError, err)
+			assert.Equal(t, tc.expectedResult, result)
+		})
+	}
+}
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	var (
@@ -637,11 +698,15 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isAcc bool) resource.Tes
 		Steps: []resource.TestStep{
 			{
 				Config: configGeoShardedOldSchema(t, isAcc, orgID, projectName, clusterName, 2, 2, false),
-				Check:  checkGeoShardedOldSchema(isAcc, clusterName, 2, 2, true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkGeoShardedOldSchema(isAcc, clusterName, 2, 2, true, false),
+					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
 			},
 			{
 				Config: configGeoShardedOldSchema(t, isAcc, orgID, projectName, clusterName, 3, 3, false),
-				Check:  checkGeoShardedOldSchema(isAcc, clusterName, 3, 3, true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkGeoShardedOldSchema(isAcc, clusterName, 3, 3, true, false),
+					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
 			},
 		},
 	}
@@ -726,7 +791,10 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestC
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
-				Check:  checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_clusters.test-replication-specs-per-shard-false", "results.#", "0"),
+					checkIndependentShardScalingMode(clusterName, "SHARD")),
 			},
 		},
 	}
@@ -779,11 +847,13 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false),
-				Check:  checkShardedTransitionOldToNewSchema(true, false),
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkShardedTransitionOldToNewSchema(true, false),
+					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
 			},
 			{
-				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true),
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, false),
 				Check:  checkShardedTransitionOldToNewSchema(true, true),
 			},
 		},
@@ -1020,6 +1090,81 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 			},
 		},
 	})
+}
+
+func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, orgID, projectName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false, true),
+				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, true),
+				Check:  checkIndependentShardScalingMode(clusterName, "SHARD"),
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, orgID, projectName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false, false),
+				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, false),
+				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, true),
+				Check:  checkIndependentShardScalingMode(clusterName, "SHARD"),
+			},
+		},
+	})
+}
+
+func checkIndependentShardScalingMode(clusterName, expectedMode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		issMode, _, err := acc.GetIndependentShardScalingMode(context.Background(), projectID, clusterName)
+		if err != nil {
+			return fmt.Errorf("error getting independent shard scaling mode: %w", err)
+		}
+		if *issMode != expectedMode {
+			return fmt.Errorf("expected independent shard scaling mode to be %s, got %s", expectedMode, *issMode)
+		}
+		return nil
+	}
 }
 
 func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
@@ -1950,6 +2095,11 @@ func configShardedNewSchema(t *testing.T, isAcc bool, orgID, projectName, name s
 			use_replication_spec_per_shard = true
 		}
 
+		data "mongodbatlas_advanced_clusters" "test-replication-specs-per-shard-false" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			use_replication_spec_per_shard = false
+		}
+
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
@@ -2095,11 +2245,19 @@ func checkGeoShardedNewSchema(isAcc, includeThirdShardInFirstZone bool) resource
 	return checkAggr(isAcc, []string{}, clusterChecks)
 }
 
-func configShardedTransitionOldToNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, useNewSchema bool) string {
+func configShardedTransitionOldToNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, useNewSchema, autoscaling bool) string {
 	t.Helper()
 	var numShardsStr string
 	if !useNewSchema {
 		numShardsStr = `num_shards = 2`
+	}
+	var autoscalingStr string
+	if autoscaling {
+		autoscalingStr = `auto_scaling {
+			compute_enabled = true
+			disk_gb_enabled = true
+			compute_max_instance_size = "M20"
+		}`
 	}
 	replicationSpec := fmt.Sprintf(`
 		replication_specs {
@@ -2116,9 +2274,10 @@ func configShardedTransitionOldToNewSchema(t *testing.T, isAcc bool, orgID, proj
 				provider_name = "AWS"
 				priority      = 7
 				region_name   = "EU_WEST_1"
+				%[2]s
 			}
 		}
-	`, numShardsStr)
+	`, numShardsStr, autoscalingStr)
 
 	var replicationSpecs string
 	if useNewSchema {

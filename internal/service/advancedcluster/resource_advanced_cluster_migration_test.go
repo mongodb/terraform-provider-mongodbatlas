@@ -47,6 +47,7 @@ func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
 	// Check 10/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.disk_size_gb' not found
 	// Check 11/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.disk_iops' not found
 	acc.SkipIfAdvancedClusterV2Schema(t)
+	mig.SkipIfVersionBelow(t, "1.23.0") // version where sharded cluster tier auto-scaling was introduced
 	testCase := asymmetricShardedNewSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
@@ -116,12 +117,12 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, false),
+				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, false, false),
 				Check:             checkShardedTransitionOldToNewSchema(false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true),
+				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, false),
 				Check:                    checkShardedTransitionOldToNewSchema(false, true),
 			},
 		},
@@ -233,6 +234,32 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 				),
 			},
 			mig.TestStepCheckEmptyPlan(configUpdated),
+		},
+	})
+}
+
+func TestMigAdvancedCluster_newSchemaFromAutoscalingDisabledToEnabled(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     acc.PreCheckBasicSleep(t, nil, orgID, projectName),
+		CheckDestroy: acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: acc.ExternalProviders("1.22.0"), // last version before cluster tier auto-scaling per shard was introduced
+				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, false),
+				Check:             checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, true),
+				Check:                    checkIndependentShardScalingMode(clusterName, "SHARD"),
+			},
 		},
 	})
 }

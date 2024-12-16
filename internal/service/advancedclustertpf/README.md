@@ -7,6 +7,6 @@ This package contains the WIP for `mongodbatlas_advanced_cluster` in TPF. Curren
 ## Changes in advancedcluster that needs to be added here
 (list changes done in advancedcluster which couldn't also be done here at that moment)
 - [PR #2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825) Add new `advanced_configuration.0.default_max_time_ms` attribute to mongodbatlas_advanced_cluster resource and data sources.
-
-
+- feat: Ensures asymmetric auto-scaling is not defined in the cluster when using the old sharding configuration in mongodbatlas_advanced_cluster (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2836)
 - `pinned_fcv` attribute was a recently added attribute in `advanced_cluster`. It has been defined in the new tpf schema but we need to make sure that the implementation is also present.
+
