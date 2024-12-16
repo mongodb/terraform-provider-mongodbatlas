@@ -115,13 +115,17 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		IgnoreInStatePrefix:  []string{"regionConfigs"},
 		IncludeInStateSuffix: []string{"diskIOPS"},
 	}
+	if findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
+		// `num_shards` updates is only in the legacy ClusterDescription; therefore, force update the replicationSpecs
+		patchOptions.IncludeInStateSuffix = append(patchOptions.IncludeInStateSuffix, "replicationSpecs")
+	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
 		diags.AddError("errorPatchPayload", err.Error())
 		return
 	}
 	var clusterResp *admin.ClusterDescription20240805
-	if !update.IsZeroValues(patchReq) || findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
+	if !update.IsZeroValues(patchReq) {
 		upgradeRequest := getTenantUpgradeRequest(stateReq, patchReq)
 		if upgradeRequest != nil {
 			clusterResp = r.applyTenantUpgrade(ctx, &plan, upgradeRequest, diags)

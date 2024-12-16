@@ -16,6 +16,7 @@ type attrPatchOperations struct {
 	ignoreInStateSuffix  []string
 	ignoreInStatePrefix  []string
 	includeInStateSuffix []string
+	forceUpdateAttr      []string
 }
 
 func (m *attrPatchOperations) ignoreInStatePath(path string) bool {
@@ -46,17 +47,20 @@ func newAttrPatchOperations(patch jsondiff.Patch, options []PatchOptions) *attrP
 		ignoreSuffixInState  []string
 		ignorePrefixInState  []string
 		includeSuffixInState []string
+		forceUpdateAttr      []string
 	)
 	for _, option := range options {
 		ignoreSuffixInState = append(ignoreSuffixInState, option.IgnoreInStateSuffix...)
 		ignorePrefixInState = append(ignorePrefixInState, option.IgnoreInStatePrefix...)
 		includeSuffixInState = append(includeSuffixInState, option.IncludeInStateSuffix...)
+		forceUpdateAttr = append(forceUpdateAttr, option.ForceUpdateAttr...)
 	}
 	self := &attrPatchOperations{
 		data:                 map[string][]jsondiff.Operation{},
 		ignoreInStateSuffix:  ignoreSuffixInState,
 		ignoreInStatePrefix:  ignorePrefixInState,
 		includeInStateSuffix: includeSuffixInState,
+		forceUpdateAttr:      forceUpdateAttr,
 	}
 	for _, op := range patch {
 		if op.Path == "" {
@@ -104,7 +108,7 @@ func (m *attrPatchOperations) hasChanged(attr string) bool {
 func (m *attrPatchOperations) ChangedAttributes() []string {
 	attrs := []string{}
 	for attr := range m.data {
-		if m.hasChanged(attr) {
+		if m.hasChanged(attr) || slices.Contains(m.forceUpdateAttr, attr) {
 			attrs = append(attrs, attr)
 		}
 	}
@@ -162,6 +166,7 @@ type PatchOptions struct {
 	IgnoreInStateSuffix  []string
 	IgnoreInStatePrefix  []string
 	IncludeInStateSuffix []string
+	ForceUpdateAttr      []string
 }
 
 // PatchPayload uses the state and plan to changes to find the patch request, including changes only when:

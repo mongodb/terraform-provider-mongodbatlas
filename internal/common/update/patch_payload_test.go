@@ -22,16 +22,17 @@ func TestPatchReplicationSpecs(t *testing.T) {
 		replicationSpec2ZoneName    = "replicationSpec2_zoneName"
 		rootName                    = "my-cluster"
 		rootNameUpdated             = "my-cluster-updated"
-		state                       = admin.ClusterDescription20240805{
-			Id:   &idGlobal,
-			Name: &rootName,
-			ReplicationSpecs: &[]admin.ReplicationSpec20240805{
-				{
-					Id:       &idReplicationSpec1,
-					ZoneId:   &replicationSpec1ZoneID,
-					ZoneName: &replicationSpec1ZoneNameOld,
-				},
+		stateReplicationSpecs       = []admin.ReplicationSpec20240805{
+			{
+				Id:       &idReplicationSpec1,
+				ZoneId:   &replicationSpec1ZoneID,
+				ZoneName: &replicationSpec1ZoneNameOld,
 			},
+		}
+		state = admin.ClusterDescription20240805{
+			Id:               &idGlobal,
+			Name:             &rootName,
+			ReplicationSpecs: &stateReplicationSpecs,
 		}
 		planOptionalUpdated = admin.ClusterDescription20240805{
 			Name: &rootName,
@@ -188,6 +189,16 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				plan:          &planNoChanges,
 				patchExpected: nil,
 			},
+			"Forced changes when forceUpdateAttr set": {
+				state: &state,
+				plan:  &planNoChanges,
+				patchExpected: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &stateReplicationSpecs,
+				},
+				options: []update.PatchOptions{
+					{ForceUpdateAttr: []string{"replicationSpecs"}},
+				},
+			},
 			"Empty array should return no changes": {
 				state: &admin.ClusterDescription20240805{
 					Labels: &[]admin.ComponentLabel{},
@@ -222,6 +233,9 @@ func TestPatchReplicationSpecs(t *testing.T) {
 	)
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
+			if name == "Forced changes when forceUpdateAttr set" {
+				t.Log("debugging")
+			}
 			patchReq, err := update.PatchPayload(tc.state, tc.plan, tc.options...)
 			require.NoError(t, err)
 			assert.Equal(t, tc.patchExpected, patchReq)
