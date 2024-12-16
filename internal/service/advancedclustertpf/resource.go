@@ -102,12 +102,15 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	if usingLegacySchema(ctx, plan.ReplicationSpecs, diags) && !usingLegacySchema(ctx, state.ReplicationSpecs, diags) {
+	stateUsingLegacy := usingLegacySchema(ctx, state.ReplicationSpecs, diags)
+	planUsingLegacy := usingLegacySchema(ctx, plan.ReplicationSpecs, diags)
+	if planUsingLegacy && !stateUsingLegacy {
 		diags.AddError("error operation not permitted, nums_shards from 1 -> > 1", fmt.Sprintf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; %s", DeprecationOldSchemaAction))
 		return
 	}
-	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
-	planReq := normalizeFromTFModel(ctx, &plan, diags, false)
+	isSchemaUpgrade := stateUsingLegacy && !planUsingLegacy
+	stateReq := normalizeFromTFModel(ctx, &state, diags, isSchemaUpgrade)
+	planReq := normalizeFromTFModel(ctx, &plan, diags, isSchemaUpgrade)
 	if diags.HasError() {
 		return
 	}
@@ -115,7 +118,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		IgnoreInStatePrefix:  []string{"regionConfigs"},
 		IncludeInStateSuffix: []string{"diskIOPS"},
 	}
-	if findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
+	if isSchemaUpgrade || findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
+		// isSchemaUpgrade will have no changes by default after flattening; therefore, force update the replicationSpecs
 		// `num_shards` updates is only in the legacy ClusterDescription; therefore, force update the replicationSpecs
 		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
 	}
@@ -130,6 +134,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if upgradeRequest != nil {
 			clusterResp = r.applyTenantUpgrade(ctx, &plan, upgradeRequest, diags)
 		} else {
+			if isSchemaUpgrade {
+				specs, localDiags := populateIDValuesUsingNewAPI(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), r.Client.AtlasV2.ClustersApi, patchReq.ReplicationSpecs)
+				conversion.AddLegacyDiags(diags, localDiags)
+				if diags.HasError() {
+					return
+				}
+				patchReq.ReplicationSpecs = specs
+			}
 			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq)
 		}
 		if diags.HasError() {

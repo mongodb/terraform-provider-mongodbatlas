@@ -6,8 +6,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/spf13/cast"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
@@ -167,4 +169,28 @@ func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec20240
 		EbsVolumeType: spec.EbsVolumeType,
 		InstanceSize:  spec.InstanceSize,
 	}
+}
+
+// copied from advancedcluster/resource_update_logic.go
+func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2ClusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20240805) (*[]admin.ReplicationSpec20240805, diag.Diagnostics) {
+	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
+		return replicationSpecs, nil
+	}
+	cluster, _, err := connV2ClusterAPI.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return nil, diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+	}
+
+	zoneToReplicationSpecsIDs := groupIDsByZone(cluster.GetReplicationSpecs())
+	result := advancedcluster.AddIDsToReplicationSpecs(*replicationSpecs, zoneToReplicationSpecsIDs)
+	return &result, nil
+}
+
+// copied from advancedcluster/resource_update_logic.go
+func groupIDsByZone(specs []admin.ReplicationSpec20240805) map[string][]string {
+	result := make(map[string][]string)
+	for _, spec := range specs {
+		result[spec.GetZoneName()] = append(result[spec.GetZoneName()], spec.GetId())
+	}
+	return result
 }
