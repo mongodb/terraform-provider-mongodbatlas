@@ -39,13 +39,14 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 	return planCounts
 }
 
-func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, overrideUsingLegacySchema bool) *ExtraAPIInfo {
-	rootDiskSize := conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
-	projectID := plan.ProjectID.ValueString()
-	clusterName := plan.Name.ValueString()
-	asymmetricShardUnsupported := false
-
-	api20240530 := client.AtlasV220240530.ClustersApi
+func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, forceLegacySchema bool) *ExtraAPIInfo {
+	var (
+		api20240530                = client.AtlasV220240530.ClustersApi
+		rootDiskSize               = conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
+		projectID                  = plan.ProjectID.ValueString()
+		clusterName                = plan.Name.ValueString()
+		asymmetricShardUnsupported = false
+	)
 	clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
@@ -69,9 +70,9 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 		ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
 		AsymmetricShardUnsupported: asymmetricShardUnsupported,
 	}
-	if overrideUsingLegacySchema {
+	if forceLegacySchema {
 		info.UsingLegacySchema = true
-		info.ZoneNameNumShards = numShardsMapFromOldAPI(clusterRespOld)
+		info.ZoneNameNumShards = numShardsMapFromOldAPI(clusterRespOld) // plan is empty in data source Read when forcing legacy, so we get num_shards from the old API
 	} else {
 		info.UsingLegacySchema = usingLegacySchema(ctx, plan.ReplicationSpecs, diags)
 		info.ZoneNameNumShards = numShardsMap(ctx, plan.ReplicationSpecs, diags)

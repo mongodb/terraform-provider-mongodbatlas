@@ -429,8 +429,8 @@ func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeReque
 	return AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
-func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel, overrideUsingLegacySchema bool) (*TFModel, *ExtraAPIInfo) {
-	apiInfo := resolveAPIInfo(ctx, diags, client, modelIn, clusterResp, overrideUsingLegacySchema)
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel, forceLegacySchema bool) (*TFModel, *ExtraAPIInfo) {
+	apiInfo := resolveAPIInfo(ctx, diags, client, modelIn, clusterResp, forceLegacySchema)
 	if diags.HasError() {
 		return nil, nil
 	}
