@@ -233,9 +233,6 @@ func TestPatchReplicationSpecs(t *testing.T) {
 	)
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			if name == "Forced changes when forceUpdateAttr set" {
-				t.Log("debugging")
-			}
 			patchReq, err := update.PatchPayload(tc.state, tc.plan, tc.options...)
 			require.NoError(t, err)
 			assert.Equal(t, tc.patchExpected, patchReq)
