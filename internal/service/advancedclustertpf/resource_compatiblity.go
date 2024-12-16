@@ -37,7 +37,7 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 	return planCounts
 }
 
-func resolveAPIInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnostics, clusterLatest *admin.ClusterDescription20240805, client *config.MongoDBClient) *ExtraAPIInfo {
+func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, overrideUsingLegacySchema bool) *ExtraAPIInfo {
 	rootDiskSize := conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
 	projectID := plan.ProjectID.ValueString()
 	zoneNameSpecIDs, asymmetricShardUnsupported, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, plan.Name.ValueString(), client.AtlasV220240530.ClustersApi)

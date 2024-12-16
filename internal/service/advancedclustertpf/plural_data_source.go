@@ -73,8 +73,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			ProjectID: pluralModel.ProjectID,
 			Name:      types.StringValue(clusterResp.GetName()),
 		}
-		// TODO: pass !UseReplicationSpecPerShard to overrideUsingLegacySchema
-		modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn)
+		modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn, !useReplicationSpecPerShard)
 		if diags.HasError() {
 			return nil
 		}
