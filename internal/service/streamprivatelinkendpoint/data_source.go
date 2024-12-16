@@ -1,4 +1,3 @@
-//nolint:gocritic
 package streamprivatelinkendpoint
 
 import (
@@ -37,19 +36,20 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 		return
 	}
 
-	// TODO: make get request to resource
+	projectID := tfModel.ProjectId.ValueString()
+	connectionID := tfModel.Id.ValueString()
+	connV2 := d.Client.AtlasV2
+	streamsPrivateLinkConnection, _, err := connV2.StreamsApi.GetPrivateLinkConnection(ctx, projectID, connectionID).Execute()
 
-	// connV2 := d.Client.AtlasV2
-	//if err != nil {
-	//	resp.Diagnostics.AddError("error fetching resource", err.Error())
-	//	return
-	//}
+	if err != nil {
+		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		return
+	}
 
-	// TODO: process response into new terraform state
-	// newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, apiResp)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
-	// resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointModel)...)
+	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, projectID, streamsPrivateLinkConnection)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointModel)...)
 }
