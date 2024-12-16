@@ -706,6 +706,8 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
+	// TODO: enable when datasource attribute use_replication_spec_per_shard is used
+	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t, true))
 }
 
