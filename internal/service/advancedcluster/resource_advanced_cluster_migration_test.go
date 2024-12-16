@@ -27,25 +27,18 @@ func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t) // AttributeName("advanced_configuration"): invalid JSON, expected "{", got "["
 	testCase := singleShardedMultiCloudTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t) // AttributeName("advanced_configuration"): invalid JSON, expected "{", got "["
 	testCase := symmetricGeoShardedOldSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error, note that TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema is passing though:
-	// resource_advanced_cluster_migration_test.go:39: Step 1/2 error: Check failed: Check 2/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.disk_iops' not found
-	// Check 5/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.instance_size' not found
-	// Check 6/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.instance_size' not found
-	// Check 7/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.disk_size_gb' not found
-	// Check 8/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.analytics_specs.disk_size_gb' not found
-	// Check 9/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.analytics_specs.disk_size_gb' not found
-	// Check 10/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.disk_size_gb' not found
-	// Check 11/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.disk_iops' not found
 	acc.SkipIfAdvancedClusterV2Schema(t)
 	testCase := asymmetricShardedNewSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)

@@ -207,6 +207,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: default_max_time_ms not implemented in TPF yet
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -247,7 +248,7 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 }
 
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: default_max_time_ms not implemented in TPF yet
 	var (
 		projectID           = acc.ProjectIDExecution(t)
 		clusterName         = acc.RandomClusterName()
@@ -855,6 +856,11 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 				Config:      configPriority(t, true, orgID, projectName, clusterName, true, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
+			// Extra step added to allow deletion, otherwise we get `Error running post-test destroy` since validation of TF fails
+			{
+				Config: configPriority(t, true, orgID, projectName, clusterName, true, false),
+				Check:  acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
+			},
 		},
 	})
 }
@@ -884,6 +890,11 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 				Config:      configPriority(t, true, orgID, projectName, clusterName, false, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
+			// Extra step added to allow deletion, otherwise we get `Error running post-test destroy` since validation of TF fails
+			{
+				Config: configPriority(t, true, orgID, projectName, clusterName, false, false),
+				Check:  acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
+			},
 		},
 	})
 }
@@ -911,7 +922,7 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: pinned_fcv not implemented in TPF yet
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // Using single project to assert plural data source
