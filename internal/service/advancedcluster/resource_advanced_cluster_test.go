@@ -2091,24 +2091,19 @@ func checkShardedNewSchema(isAcc bool, diskSizeGB int, firstInstanceSize, lastIn
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
 
 	pluralChecks = acc.AddAttrChecksPrefixSchemaV2(isAcc, dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
-
-	if !config.AdvancedClusterV2Schema() { // TODDO: id is not filled yet in
-		// expected id attribute only if cluster is symmetric
-		if isAsymmetricCluster {
-			pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{}, map[string]string{
-				"replication_specs.0.id": "",
-				"replication_specs.1.id": "",
-			}))
-			pluralChecks = acc.AddAttrChecksSchemaV2(isAcc, dataSourcePluralName, pluralChecks, map[string]string{
-				"results.0.replication_specs.0.id": "",
-				"results.0.replication_specs.1.id": "",
-			})
-		} else {
-			pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
-			pluralChecks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
-		}
+	if isAsymmetricCluster {
+		pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{}, map[string]string{
+			"replication_specs.0.id": "",
+			"replication_specs.1.id": "",
+		}))
+		pluralChecks = acc.AddAttrChecksSchemaV2(isAcc, dataSourcePluralName, pluralChecks, map[string]string{
+			"results.0.replication_specs.0.id": "",
+			"results.0.replication_specs.1.id": "",
+		})
+	} else {
+		pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
+		pluralChecks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
 	}
-
 	return checkAggr(isAcc,
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
 		clusterChecks,
