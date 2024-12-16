@@ -544,8 +544,8 @@ type TFModel struct {
 	Labels                                    types.Set      `tfsdk:"labels"`
 	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
 	Tags                                      types.Set      `tfsdk:"tags"`
-	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
-	BiConnectorConfig                         types.Object   `tfsdk:"bi_connector_config"`
+	StateName                                 types.String   `tfsdk:"state_name"`
+	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
 	CreateDate                                types.String   `tfsdk:"create_date"`
 	AcceptDataRisksAndForceReplicaSetReconfig types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	EncryptionAtRestProvider                  types.String   `tfsdk:"encryption_at_rest_provider"`
@@ -554,10 +554,10 @@ type TFModel struct {
 	ClusterID                                 types.String   `tfsdk:"cluster_id"`
 	ConfigServerManagementMode                types.String   `tfsdk:"config_server_management_mode"`
 	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
-	StateName                                 types.String   `tfsdk:"state_name"`
+	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
 	Name                                      types.String   `tfsdk:"name"`
 	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
-	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
+	BiConnectorConfig                         types.Object   `tfsdk:"bi_connector_config"`
 	ConfigServerType                          types.String   `tfsdk:"config_server_type"`
 	ReplicaSetScalingStrategy                 types.String   `tfsdk:"replica_set_scaling_strategy"`
 	ClusterType                               types.String   `tfsdk:"cluster_type"`
