@@ -509,6 +509,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var clusterName string
 	var clusterID string
 	var err error
+	// With old sharding config we call older API (2024-08-05) to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
 	if isUsingOldShardingConfiguration(d) {
 		var cluster20240805 *admin20240805.ClusterDescription20240805
 		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, ConvertClusterDescription20241023to20240805(params)).Execute()
@@ -619,6 +620,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
 	}
+	// if config uses old sharding configuration we call latest API but group replications specs from the same zone and define num_shards attribute
 	if isUsingOldShardingConfiguration(d) {
 		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldShardingConfig(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
 		if err != nil {
@@ -658,7 +660,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 // GetReplicationSpecAttributesFromOldAPI returns the id and num shard values of replication specs coming from old API. This is used to populate replication_specs.*.id and replication_specs.*.num_shard attributes for old sharding confirgurations.
-// In the old API, each replications spec has a 1:1 relation with each zone, so ids and num shards are stored in a struct oldShardConfigMeta and are returned in a map from zoneName to oldShardConfigMeta.
+// In the old API (2023-02-01), each replications spec has a 1:1 relation with each zone, so ids and num shards are stored in a struct oldShardConfigMeta and are returned in a map from zoneName to oldShardConfigMeta.
 func GetReplicationSpecAttributesFromOldAPI(ctx context.Context, projectID, clusterName string, client20240530 admin20240530.ClustersApi) (map[string]OldShardConfigMeta, error) {
 	clusterOldAPI, _, err := client20240530.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
@@ -812,7 +814,7 @@ func WarningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *ad
 	return nil
 }
 
-// For both read and update operations if old sharding schema structure is used (at least one replication spec with numShards > 1) we continue to invoke the old API
+// isUsingOldShardingConfiguration is identified if at least one replication spec defines num_shards > 1. This legacy form is from 2023-02-01 API and can only represent symmetric sharded clusters.
 func isUsingOldShardingConfiguration(d *schema.ResourceData) bool {
 	tfList := d.Get("replication_specs").([]any)
 	for _, tfMapRaw := range tfList {
@@ -874,6 +876,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diags
 	}
 
+	// With old sharding config we call older API (2023-02-01) to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
 	if isUsingOldShardingConfiguration(d) {
 		req, diags := updateRequestOldAPI(d, clusterName)
 		if diags != nil {
@@ -901,7 +904,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if d.HasChange("config_server_management_mode") {
 				request.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
 			}
-			// can call latest API (2024-10-23 or newer) as replications specs with autoscaling property is not specified
+			// can call latest API (2024-10-23 or newer) as replications specs (with nested autoscaling property) is not specified
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
