@@ -4,8 +4,7 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"slices"
-	"strings"
+	"strconv"
 	"sync"
 	"testing"
 
@@ -38,15 +37,27 @@ func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint:
 }
 
 func IsCapture() bool {
-	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerCapture)))
+	val, err := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerCapture))
+	if err != nil {
+		return false
+	}
+	return val
 }
 
 func IsReplay() bool {
-	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerReplay)))
+	val, err := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerReplay))
+	if err != nil {
+		return false
+	}
+	return val
 }
 
 func IsDataUpdate() bool {
-	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerDataUpdate)))
+	val, err := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerDataUpdate))
+	if err != nil {
+		return false
+	}
+	return val
 }
 
 func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCase *resource.TestCase) { //nolint: gocritic // Want each test run to have its own config (hugeParam: config is heavy (112 bytes); consider passing it by pointer)
