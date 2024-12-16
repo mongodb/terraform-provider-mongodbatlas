@@ -38,9 +38,9 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 
 	projectID := tfModel.ProjectId.ValueString()
 	connectionID := tfModel.Id.ValueString()
+
 	connV2 := d.Client.AtlasV2
 	streamsPrivateLinkConnection, _, err := connV2.StreamsApi.GetPrivateLinkConnection(ctx, projectID, connectionID).Execute()
-
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return

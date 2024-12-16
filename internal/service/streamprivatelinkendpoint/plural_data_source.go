@@ -4,10 +4,13 @@ package streamprivatelinkendpoint
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 var _ datasource.DataSource = &pluralDS{}
@@ -38,19 +41,28 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		return
 	}
 
-	// TODO: make get request to obtain list of results
+	projectID := tfModel.ProjectId.ValueString()
 
-	// connV2 := r.Client.AtlasV2
-	//if err != nil {
-	//	resp.Diagnostics.AddError("error fetching results", err.Error())
-	//	return
-	//}
+	connV2 := d.Client.AtlasV2
 
-	// TODO: process response into new terraform state
-	// newStreamPrivatelinkEndpointsModel, diags := NewTFModelPluralDS(ctx, apiResp)
-	// if diags.HasError() {
-	// 	resp.Diagnostics.Append(diags...)
-	// 	return
-	// }
-	// resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointsModel)...)
+	params := admin.ListPrivateLinkConnectionsApiParams{
+		GroupId: projectID,
+	}
+
+	streamsPrivateLinkConnections, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.StreamsPrivateLinkConnection], *http.Response, error) {
+		request := connV2.StreamsApi.ListPrivateLinkConnectionsWithParams(ctx, &params)
+		request = request.PageNum(pageNum)
+		return request.Execute()
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("error fetching results", err.Error())
+		return
+	}
+
+	newStreamPrivatelinkEndpointsModel, diags := NewTFModelPluralDS(ctx, projectID, streamsPrivateLinkConnections)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointsModel)...)
 }
