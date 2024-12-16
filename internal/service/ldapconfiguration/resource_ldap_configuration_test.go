@@ -53,6 +53,7 @@ func TestAccLDAPConfiguration_withVerify_CACertificateComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "bind_username", username),
 					resource.TestCheckResourceAttr(resourceName, "authentication_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "port", port),
+					resource.TestCheckResourceAttr(resourceVerifyName, "request_id", ""),
 					resource.TestCheckResourceAttr(resourceVerifyName, "status", "SUCCESS"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.#", "5"),
 					resource.TestCheckResourceAttr(resourceVerifyName, "validations.0.validation_type", "CONNECT"),
