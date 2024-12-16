@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -979,8 +981,35 @@ func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra 
 	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
 	checks = acc.AddAttrChecksSchemaV2(isAcc, resourceName, checks, attrsMap)
 	checks = acc.AddAttrSetChecksSchemaV2(isAcc, resourceName, checks, attrsSet...)
-	checks = acc.AddAttrChecksSchemaV2(isAcc, dataSourceName, checks, attrsMap)
-	checks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourceName, checks, attrsSet...)
+	// TODO: TPF data source is not fully  implemented yet
+	if config.AdvancedClusterV2Schema() {
+		supportedKey := func(key string) bool {
+			unSupportedSuffixes := []string{"replication_specs.#", "num_shards", ".id"}
+			for _, suffix := range unSupportedSuffixes {
+				if strings.HasSuffix(key, suffix) {
+					return false
+				}
+			}
+			return true
+		}
+		dsAttrsMap := map[string]string{}
+		for k, v := range attrsMap {
+			if supportedKey(k) {
+				dsAttrsMap[k] = v
+			}
+		}
+		checks = acc.AddAttrChecksSchemaV2(isAcc, dataSourceName, checks, dsAttrsMap)
+		dsAttrsSet := []string{}
+		for _, v := range attrsSet {
+			if supportedKey(v) {
+				dsAttrsSet = append(dsAttrsSet, v)
+			}
+		}
+		checks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourceName, checks, dsAttrsSet...)
+	} else {
+		checks = acc.AddAttrChecksSchemaV2(isAcc, dataSourceName, checks, attrsMap)
+		checks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourceName, checks, attrsSet...)
+	}
 	checks = append(checks, extra...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
