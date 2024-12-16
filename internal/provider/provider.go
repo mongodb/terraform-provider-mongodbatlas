@@ -43,6 +43,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
@@ -477,6 +478,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		streamprocessor.Resource,
 		encryptionatrestprivateendpoint.Resource,
 		mongodbemployeeaccessgrant.Resource,
+		streamprivatelinkendpoint.Resource,
 	}
 	if config.AdvancedClusterV2Schema() {
 		resources = append(resources, advancedclustertpf.Resource)

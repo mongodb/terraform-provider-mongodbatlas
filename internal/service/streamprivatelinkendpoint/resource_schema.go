@@ -31,7 +31,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Interface endpoint ID that is created from the service endpoint ID provided.",
 			},
-			"provider": schema.StringAttribute{
+			"provider_name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Provider where the Kafka cluster is deployed.",
 			},
@@ -61,7 +61,7 @@ type TFModel struct {
 	DnsSubDomain        types.List   `tfsdk:"dns_sub_domain"`
 	ProjectId           types.String `tfsdk:"project_id"`
 	InterfaceEndpointId types.String `tfsdk:"interface_endpoint_id"`
-	Provider            types.String `tfsdk:"provider"`
+	Provider            types.String `tfsdk:"provider_name"`
 	Region              types.String `tfsdk:"region"`
 	ServiceEndpointId   types.String `tfsdk:"service_endpoint_id"`
 	State               types.String `tfsdk:"state"`

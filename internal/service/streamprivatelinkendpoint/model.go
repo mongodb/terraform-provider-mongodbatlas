@@ -4,28 +4,55 @@ package streamprivatelinkendpoint
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"go.mongodb.org/atlas-sdk/v20241113002/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
-// TODO: `ctx` parameter and `diags` return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
-func NewTFModel(ctx context.Context, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
-	// complexAttr, diagnostics := types.ListValueFrom(ctx, InnerObjectType, newTFComplexAttrModel(apiResp.ComplexAttr))
-	// if diagnostics.HasError() {
-	// 	return nil, diagnostics
-	// }
-	return &TFModel{}, nil
+func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
+	result := &TFModel{
+		Id:                  types.StringPointerValue(apiResp.Id),
+		DnsDomain:           types.StringPointerValue(apiResp.DnsDomain),
+		ProjectId:           types.StringPointerValue(&projectID),
+		InterfaceEndpointId: types.StringPointerValue(apiResp.InterfaceEndpointId),
+		Provider:            types.StringPointerValue(apiResp.Provider),
+		Region:              types.StringPointerValue(apiResp.Region),
+		ServiceEndpointId:   types.StringPointerValue(apiResp.ServiceEndpointId),
+		State:               types.StringPointerValue(apiResp.State),
+		Vendor:              types.StringPointerValue(apiResp.Vendor),
+	}
+	if apiResp.DnsSubDomain != nil {
+		subdomain, diag := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
+		if diag.HasError() {
+			return nil, diag
+		}
+		result.DnsSubDomain = subdomain
+	}
+
+	return result, nil
 }
 
-// TODO: If SDK defined different models for create and update separate functions will need to be defined.
-// TODO: `ctx` parameter and `diags` in return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
 func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkConnection, diag.Diagnostics) {
-	// var tfList []complexArgumentData
-	// resp.Diagnostics.Append(plan.ComplexArgument.ElementsAs(ctx, &tfList, false)...)
-	// if resp.Diagnostics.HasError() {
-	// 	return nil, diagnostics
-	// }
-	return &admin.StreamsPrivateLinkConnection{}, nil
+	result := &admin.StreamsPrivateLinkConnection{
+		DnsDomain:         plan.DnsDomain.ValueStringPointer(),
+		DnsSubDomain:      &[]string{},
+		Provider:          plan.Provider.ValueStringPointer(),
+		Region:            plan.Region.ValueStringPointer(),
+		ServiceEndpointId: plan.ServiceEndpointId.ValueStringPointer(),
+		State:             plan.State.ValueStringPointer(),
+		Vendor:            plan.Vendor.ValueStringPointer(),
+	}
+
+	if !plan.DnsSubDomain.IsNull() {
+		var dnsSubdomains []string
+		diags := plan.DnsSubDomain.ElementsAs(ctx, &dnsSubdomains, false)
+		if diags.HasError() {
+			return nil, diags
+		}
+		result.DnsSubDomain = &dnsSubdomains
+	}
+	return result, nil
 }
 
 func NewTFModelPluralDS(ctx context.Context, projectID string, input []admin.StreamsPrivateLinkConnection) (*TFModelDSP, diag.Diagnostics) {
