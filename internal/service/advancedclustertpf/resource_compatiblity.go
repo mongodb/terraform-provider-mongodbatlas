@@ -63,25 +63,20 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 		diags.AddError("resolveContainerIDs failed", err.Error())
 		return nil
 	}
-	var (
-		legacySchema      bool
-		zoneNameNumShards map[string]int64
-	)
-	if overrideUsingLegacySchema {
-		legacySchema = true
-		zoneNameNumShards = numShardsMapFromOldAPI(clusterRespOld)
-	} else {
-		legacySchema = usingLegacySchema(ctx, plan.ReplicationSpecs, diags)
-		zoneNameNumShards = numShardsMap(ctx, plan.ReplicationSpecs, diags)
-	}
-	return &ExtraAPIInfo{
+	info := &ExtraAPIInfo{
 		ContainerIDs:               containerIDs,
-		UsingLegacySchema:          legacySchema,
-		ZoneNameNumShards:          zoneNameNumShards,
 		RootDiskSize:               rootDiskSize,
 		ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
 		AsymmetricShardUnsupported: asymmetricShardUnsupported,
 	}
+	if overrideUsingLegacySchema {
+		info.UsingLegacySchema = true
+		info.ZoneNameNumShards = numShardsMapFromOldAPI(clusterRespOld)
+	} else {
+		info.UsingLegacySchema = usingLegacySchema(ctx, plan.ReplicationSpecs, diags)
+		info.ZoneNameNumShards = numShardsMap(ctx, plan.ReplicationSpecs, diags)
+	}
+	return info
 }
 
 // instead of using `num_shards` explode the replication specs, and set disk_size_gb
