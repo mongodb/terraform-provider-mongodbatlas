@@ -37,26 +37,17 @@ func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint:
 }
 
 func IsCapture() bool {
-	val, err := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerCapture))
-	if err != nil {
-		return false
-	}
+	val, _ := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerCapture))
 	return val
 }
 
 func IsReplay() bool {
-	val, err := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerReplay))
-	if err != nil {
-		return false
-	}
+	val, _ := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerReplay))
 	return val
 }
 
 func IsDataUpdate() bool {
-	val, err := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerDataUpdate))
-	if err != nil {
-		return false
-	}
+	val, _ := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerDataUpdate))
 	return val
 }
 
