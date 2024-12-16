@@ -131,7 +131,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	modelOut := &state
 	if clusterResp != nil {
-		modelOut, _ = getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan)
+		modelOut, _ = getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan, false)
 		if diags.HasError() {
 			return
 		}
@@ -239,7 +239,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 			return nil
 		}
 	}
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, clusterResp, plan)
+	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, clusterResp, plan, false)
 	if diags.HasError() {
 		return nil
 	}
@@ -263,7 +263,7 @@ func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, modelIn *
 		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
 		return nil
 	}
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, modelIn)
+	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, modelIn, false)
 	if diags.HasError() {
 		return nil
 	}
@@ -429,10 +429,13 @@ func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeReque
 	return AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
-func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) (*TFModel, *ExtraAPIInfo) {
-	apiInfo := resolveAPIInfo(ctx, modelIn, diags, clusterResp, client)
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel, forceLegacySchema bool) (*TFModel, *ExtraAPIInfo) {
+	apiInfo := resolveAPIInfo(ctx, diags, client, modelIn, clusterResp, forceLegacySchema)
 	if diags.HasError() {
 		return nil, nil
+	}
+	if forceLegacySchema && apiInfo.AsymmetricShardUnsupported { // can't create a model if legacy is forced but cluster does not support it
+		return nil, apiInfo
 	}
 	modelOut := NewTFModel(ctx, clusterResp, modelIn.Timeouts, diags, *apiInfo)
 	if diags.HasError() {

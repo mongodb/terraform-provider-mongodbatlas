@@ -105,23 +105,13 @@ func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 	return ""
 }
 
-func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName string, api admin20240530.ClustersApi) (zoneNameSpecIDs map[string]string, asymmetricShardUnsupported bool, err error) {
-	var clusterOldAPI *admin20240530.AdvancedClusterDescription
-	clusterOldAPI, _, err = api.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if apiError, ok := admin20240530.AsError(err); ok {
-			if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
-				return nil, true, nil // an error is expected in old API in case of an asymmetric shard. In that case, replication_specs.*.id attribute will not be populated.
-			}
-		}
-		return nil, false, fmt.Errorf("error reading  advanced cluster with 2023-02-01 API (%s): %s", clusterName, err)
-	}
-	specs := clusterOldAPI.GetReplicationSpecs()
-	zoneNameSpecIDs = make(map[string]string, len(specs))
+func replicationSpecIDsFromOldAPI(clusterRespOld *admin20240530.AdvancedClusterDescription) map[string]string {
+	specs := clusterRespOld.GetReplicationSpecs()
+	zoneNameSpecIDs := make(map[string]string, len(specs))
 	for _, spec := range specs {
 		zoneNameSpecIDs[spec.GetZoneName()] = spec.GetId()
 	}
-	return zoneNameSpecIDs, false, nil
+	return zoneNameSpecIDs
 }
 
 func convertHardwareSpecToOldSDK(hwspec *admin.HardwareSpec20240805) *admin20240530.HardwareSpec {

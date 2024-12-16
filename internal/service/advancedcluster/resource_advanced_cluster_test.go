@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -771,8 +772,6 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
-	// TODO: enable when datasource attribute use_replication_spec_per_shard is used
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t, true))
 }
 
@@ -2141,19 +2140,21 @@ func checkShardedNewSchema(isAcc bool, diskSizeGB int, firstInstanceSize, lastIn
 
 	pluralChecks = acc.AddAttrChecksPrefixSchemaV2(isAcc, dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
 
-	// expected id attribute only if cluster is symmetric
-	if isAsymmetricCluster {
-		pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{}, map[string]string{
-			"replication_specs.0.id": "",
-			"replication_specs.1.id": "",
-		}))
-		pluralChecks = acc.AddAttrChecksSchemaV2(isAcc, dataSourcePluralName, pluralChecks, map[string]string{
-			"results.0.replication_specs.0.id": "",
-			"results.0.replication_specs.1.id": "",
-		})
-	} else {
-		pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
-		pluralChecks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+	if !config.AdvancedClusterV2Schema() { // TODDO: id is not filled yet in
+		// expected id attribute only if cluster is symmetric
+		if isAsymmetricCluster {
+			pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{}, map[string]string{
+				"replication_specs.0.id": "",
+				"replication_specs.1.id": "",
+			}))
+			pluralChecks = acc.AddAttrChecksSchemaV2(isAcc, dataSourcePluralName, pluralChecks, map[string]string{
+				"results.0.replication_specs.0.id": "",
+				"results.0.replication_specs.1.id": "",
+			})
+		} else {
+			pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
+			pluralChecks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+		}
 	}
 
 	return checkAggr(isAcc,
