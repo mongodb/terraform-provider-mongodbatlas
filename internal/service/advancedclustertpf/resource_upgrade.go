@@ -6,7 +6,7 @@ import (
 )
 
 func getTenantUpgradeRequest(state, patch *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {
-	if patch.ReplicationSpecs == nil {
+	if patch == nil || patch.ReplicationSpecs == nil {
 		return nil
 	}
 	oldRegion := state.GetReplicationSpecs()[0].GetRegionConfigs()[0]
