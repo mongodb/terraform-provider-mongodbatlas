@@ -52,7 +52,7 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 		if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
 			asymmetricShardUnsupported = true
 		} else {
-			diags.AddError("errorRead", fmt.Sprintf("error reading advanced cluster with 2024-08-05 API (%s): %s", clusterName, err))
+			diags.AddError("errorRead", fmt.Sprintf("error reading advanced cluster with 2024-05-30 API (%s): %s", clusterName, err))
 			return nil
 		}
 	}
