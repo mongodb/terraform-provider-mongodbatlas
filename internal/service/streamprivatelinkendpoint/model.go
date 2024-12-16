@@ -22,9 +22,9 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 		Vendor:              types.StringPointerValue(apiResp.Vendor),
 	}
 	if apiResp.DnsSubDomain != nil {
-		subdomain, diagn := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
-		if diagn.HasError() {
-			return nil, diagn
+		subdomain, diags := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
+		if diags.HasError() {
+			return nil, diags
 		}
 		result.DnsSubDomain = subdomain
 	}

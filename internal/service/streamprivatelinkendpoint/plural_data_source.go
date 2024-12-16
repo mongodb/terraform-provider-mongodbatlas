@@ -42,9 +42,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	}
 
 	projectID := tfModel.ProjectId.ValueString()
-
 	connV2 := d.Client.AtlasV2
-
 	params := admin.ListPrivateLinkConnectionsApiParams{
 		GroupId: projectID,
 	}
