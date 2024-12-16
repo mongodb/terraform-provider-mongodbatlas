@@ -121,7 +121,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	var clusterResp *admin.ClusterDescription20240805
-	if !update.IsZeroValues(patchReq) {
+	if !update.IsZeroValues(patchReq) || findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
 		upgradeRequest := getTenantUpgradeRequest(stateReq, patchReq)
 		if upgradeRequest != nil {
 			clusterResp = r.applyTenantUpgrade(ctx, &plan, upgradeRequest, diags)
