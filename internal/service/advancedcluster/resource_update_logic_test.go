@@ -3,20 +3,21 @@ package advancedcluster_test
 import (
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/assert"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 func TestAddIDsToReplicationSpecs(t *testing.T) {
 	testCases := map[string]struct {
-		ReplicationSpecs          []admin20240805.ReplicationSpec20240805
+		ReplicationSpecs          []admin.ReplicationSpec20240805
 		ZoneToReplicationSpecsIDs map[string][]string
-		ExpectedReplicationSpecs  []admin20240805.ReplicationSpec20240805
+		ExpectedReplicationSpecs  []admin.ReplicationSpec20240805
 	}{
 		"two zones with same amount of available ids and replication specs to populate": {
-			ReplicationSpecs: []admin20240805.ReplicationSpec20240805{
+			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 				},
@@ -34,7 +35,7 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 				"Zone 1": {"zone1-id1", "zone1-id2"},
 				"Zone 2": {"zone2-id1", "zone2-id2"},
 			},
-			ExpectedReplicationSpecs: []admin20240805.ReplicationSpec20240805{
+			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 					Id:       admin.PtrString("zone1-id1"),
@@ -54,7 +55,7 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 			},
 		},
 		"less available ids than replication specs to populate": {
-			ReplicationSpecs: []admin20240805.ReplicationSpec20240805{
+			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 				},
@@ -72,7 +73,7 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 				"Zone 1": {"zone1-id1"},
 				"Zone 2": {"zone2-id1"},
 			},
-			ExpectedReplicationSpecs: []admin20240805.ReplicationSpec20240805{
+			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 					Id:       admin.PtrString("zone1-id1"),
@@ -92,7 +93,7 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 			},
 		},
 		"more available ids than replication specs to populate": {
-			ReplicationSpecs: []admin20240805.ReplicationSpec20240805{
+			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 				},
@@ -104,7 +105,7 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 				"Zone 1": {"zone1-id1", "zone1-id2"},
 				"Zone 2": {"zone2-id1", "zone2-id2"},
 			},
-			ExpectedReplicationSpecs: []admin20240805.ReplicationSpec20240805{
+			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					ZoneName: admin.PtrString("Zone 1"),
 					Id:       admin.PtrString("zone1-id1"),
@@ -127,23 +128,23 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 
 func TestSyncAutoScalingConfigs(t *testing.T) {
 	testCases := map[string]struct {
-		ReplicationSpecs         []admin20240805.ReplicationSpec20240805
-		ExpectedReplicationSpecs []admin20240805.ReplicationSpec20240805
+		ReplicationSpecs         []admin.ReplicationSpec20240805
+		ExpectedReplicationSpecs []admin.ReplicationSpec20240805
 	}{
 		"apply same autoscaling options for new replication spec which does not have autoscaling defined": {
-			ReplicationSpecs: []admin20240805.ReplicationSpec20240805{
+			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					Id: admin.PtrString("id-1"),
-					RegionConfigs: &[]admin20240805.CloudRegionConfig20240805{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
-							AutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled:          admin.PtrBool(false),
 									ScaleDownEnabled: admin.PtrBool(false),
 								},
 							},
-							AnalyticsAutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AnalyticsAutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled:          admin.PtrBool(false),
 									ScaleDownEnabled: admin.PtrBool(false),
 								},
@@ -153,7 +154,7 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 				},
 				{
 					Id: admin.PtrString("id-2"),
-					RegionConfigs: &[]admin20240805.CloudRegionConfig20240805{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
 							AutoScaling:          nil,
 							AnalyticsAutoScaling: nil,
@@ -161,19 +162,19 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 					},
 				},
 			},
-			ExpectedReplicationSpecs: []admin20240805.ReplicationSpec20240805{
+			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					Id: admin.PtrString("id-1"),
-					RegionConfigs: &[]admin20240805.CloudRegionConfig20240805{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
-							AutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled:          admin.PtrBool(false),
 									ScaleDownEnabled: admin.PtrBool(false),
 								},
 							},
-							AnalyticsAutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AnalyticsAutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled:          admin.PtrBool(false),
 									ScaleDownEnabled: admin.PtrBool(false),
 								},
@@ -183,16 +184,16 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 				},
 				{
 					Id: admin.PtrString("id-2"),
-					RegionConfigs: &[]admin20240805.CloudRegionConfig20240805{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
-							AutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled:          admin.PtrBool(false),
 									ScaleDownEnabled: admin.PtrBool(false),
 								},
 							},
-							AnalyticsAutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AnalyticsAutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled:          admin.PtrBool(false),
 									ScaleDownEnabled: admin.PtrBool(false),
 								},
@@ -204,19 +205,19 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 		},
 		// for this case the API will respond with an error and guide the user to align autoscaling options cross all nodes
 		"when different autoscaling options are defined values will not be changed": {
-			ReplicationSpecs: []admin20240805.ReplicationSpec20240805{
+			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					Id: admin.PtrString("id-1"),
-					RegionConfigs: &[]admin20240805.CloudRegionConfig20240805{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
-							AutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled:          admin.PtrBool(false),
 									ScaleDownEnabled: admin.PtrBool(false),
 								},
 							},
-							AnalyticsAutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AnalyticsAutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled:          admin.PtrBool(true),
 									ScaleDownEnabled: admin.PtrBool(true),
 								},
@@ -226,15 +227,15 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 				},
 				{
 					Id: admin.PtrString("id-2"),
-					RegionConfigs: &[]admin20240805.CloudRegionConfig20240805{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
-							AutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled: admin.PtrBool(true),
 								},
 							},
-							AnalyticsAutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AnalyticsAutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled: admin.PtrBool(false),
 								},
 							},
@@ -242,19 +243,19 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 					},
 				},
 			},
-			ExpectedReplicationSpecs: []admin20240805.ReplicationSpec20240805{
+			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
 					Id: admin.PtrString("id-1"),
-					RegionConfigs: &[]admin20240805.CloudRegionConfig20240805{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
-							AutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled:          admin.PtrBool(false),
 									ScaleDownEnabled: admin.PtrBool(false),
 								},
 							},
-							AnalyticsAutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AnalyticsAutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled:          admin.PtrBool(true),
 									ScaleDownEnabled: admin.PtrBool(true),
 								},
@@ -264,15 +265,15 @@ func TestSyncAutoScalingConfigs(t *testing.T) {
 				},
 				{
 					Id: admin.PtrString("id-2"),
-					RegionConfigs: &[]admin20240805.CloudRegionConfig20240805{
+					RegionConfigs: &[]admin.CloudRegionConfig20240805{
 						{
-							AutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled: admin.PtrBool(true),
 								},
 							},
-							AnalyticsAutoScaling: &admin20240805.AdvancedAutoScalingSettings{
-								Compute: &admin20240805.AdvancedComputeAutoScaling{
+							AnalyticsAutoScaling: &admin.AdvancedAutoScalingSettings{
+								Compute: &admin.AdvancedComputeAutoScaling{
 									Enabled: admin.PtrBool(false),
 								},
 							},

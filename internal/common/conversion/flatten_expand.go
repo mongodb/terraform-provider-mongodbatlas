@@ -68,6 +68,20 @@ func ExpandTagsFromSetSchema(d *schema.ResourceData) *[]admin.ResourceTag {
 	return &ret
 }
 
+// TODO: remove once new SDK is available with cipher config changes
+func ExpandTagsFromSetSchemaPreview(d *schema.ResourceData) *[]adminPreview.ResourceTag {
+	list := d.Get("tags").(*schema.Set)
+	ret := make([]adminPreview.ResourceTag, list.Len())
+	for i, item := range list.List() {
+		tag := item.(map[string]any)
+		ret[i] = adminPreview.ResourceTag{
+			Key:   tag["key"].(string),
+			Value: tag["value"].(string),
+		}
+	}
+	return &ret
+}
+
 func ExpandStringList(list []any) (res []string) {
 	for _, v := range list {
 		res = append(res, v.(string))
