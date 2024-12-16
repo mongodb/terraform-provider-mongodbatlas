@@ -117,7 +117,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	if findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
 		// `num_shards` updates is only in the legacy ClusterDescription; therefore, force update the replicationSpecs
-		patchOptions.IncludeInStateSuffix = append(patchOptions.IncludeInStateSuffix, "replicationSpecs")
+		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
