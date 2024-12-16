@@ -146,7 +146,9 @@ func getReplicationSpecs(t *testing.T, body *hclsyntax.Body) cty.Value {
 		assert.Equal(t, name, block.Type, "unexpected block type: %s", block.Type)
 		vals = append(vals, hcl.GetAttrVal(t, block.Body))
 	}
-	return cty.ObjectVal(map[string]cty.Value{
+	attributeValues := map[string]cty.Value{
 		name: cty.TupleVal(vals),
-	})
+	}
+	hcl.AddAttributes(t, body, attributeValues)
+	return cty.ObjectVal(attributeValues)
 }
