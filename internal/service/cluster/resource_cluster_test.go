@@ -145,8 +145,9 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configAdvancedConfPartial(projectID, clusterName, "false", &admin.ClusterDescriptionProcessArgs20240805{
-					MinimumEnabledTlsProtocol: conversion.StringPtr("TLS1_2"),
-					TlsCipherConfigMode:       conversion.StringPtr("DEFAULT"), // To unset TlsCipherConfigMode, user needs to set this to DEFAULT
+					MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_2"),
+					TlsCipherConfigMode:            conversion.StringPtr("DEFAULT"), // To unset TlsCipherConfigMode, user needs to set this to DEFAULT
+					CustomOpensslCipherConfigTls12: &[]string{},
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
@@ -1620,6 +1621,19 @@ func configAdvancedConfDefaultWriteRead(projectID, name, autoscalingEnabled stri
 }
 
 func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *admin.ClusterDescriptionProcessArgs20240805) string {
+	tlsCipherConfigModeStr := ""
+	customOpensslCipherConfigTLS12Str := ""
+
+	if p.TlsCipherConfigMode != nil {
+		tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
+		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+			//nolint:gocritic // reason: simplifying string array construction
+			customOpensslCipherConfigTLS12Str = fmt.Sprintf(
+				`custom_openssl_cipher_config_tls12 = ["%s"]`,
+				strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
+			)
+		}
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = %[1]q
@@ -1647,9 +1661,11 @@ func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *ad
 
 			advanced_configuration {
 				minimum_enabled_tls_protocol         = %[4]q
+				%[5]s
+				%[6]s
 			}
 		}
-	`, projectID, name, autoscalingEnabled, p.GetMinimumEnabledTlsProtocol())
+	`, projectID, name, autoscalingEnabled, p.GetMinimumEnabledTlsProtocol(), tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str)
 }
 
 func configAdvancedConfPartialDefault(projectID, name, autoscalingEnabled string, p *admin.ClusterDescriptionProcessArgs20240805) string {
