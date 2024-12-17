@@ -99,10 +99,6 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
 	}
 
-	if v := p.DefaultMaxTimeMS; v != nil {
-		flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
-	}
-
 	return flattenedProcessArgs
 }
 
