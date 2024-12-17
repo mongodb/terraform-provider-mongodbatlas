@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -155,24 +154,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the cluster.",
 			},
-			"labels": schema.SetNestedAttribute{
-				Computed:            true,
-				Optional:            true,
-				Default:             setdefault.StaticValue(types.SetValueMust(LabelsObjType, nil)),
-				MarkdownDescription: "Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"key": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Key applied to tag and categorize this component.",
-						},
-						"value": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Value set to the Key applied to tag and categorize this component.",
-						},
-					},
-				},
-			},
 			"mongo_db_major_version": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
@@ -291,24 +272,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this cluster.",
 			},
-			"tags": schema.SetNestedAttribute{
-				Computed:            true,
-				Optional:            true,
-				Default:             setdefault.StaticValue(types.SetValueMust(TagsObjType, nil)),
-				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"key": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.",
-						},
-						"value": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.",
-						},
-					},
-				},
-			},
 			"termination_protection_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -349,6 +312,38 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Update: true,
 				Delete: true,
 			}),
+		},
+		Blocks: map[string]schema.Block{
+			"labels": schema.SetNestedBlock{
+				MarkdownDescription: "Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.",
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"key": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Key applied to tag and categorize this component.",
+						},
+						"value": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Value set to the Key applied to tag and categorize this component.",
+						},
+					},
+				},
+			},
+			"tags": schema.SetNestedBlock{
+				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.",
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"key": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.",
+						},
+						"value": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.",
+						},
+					},
+				},
+			},
 		},
 	}
 }
