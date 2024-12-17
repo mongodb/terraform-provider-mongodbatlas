@@ -143,34 +143,33 @@ func convertElement(name string, element any, requiredFields []string) any {
 	if fElementType := vDest.FieldByName("ElementType"); fElementType.CanSet() {
 		fElementType.Set(vSrc.FieldByName("ElementType"))
 	}
-	if fAttributes := vDest.FieldByName("Attributes"); fAttributes.CanSet() {
-		attrsSrc := vSrc.FieldByName("Attributes").Interface().(map[string]schema.Attribute)
-		attrSrcDS := convertAttrs(attrsSrc, nil)
-		if fBlocks := vSrc.FieldByName("Blocks"); fBlocks.IsValid() {
-			blocksSrc := vSrc.FieldByName("Blocks").Interface().(map[string]schema.Block)
-			blockSrcDS := convertBlocksToAttrs(blocksSrc, requiredFields)
-			maps.Copy(attrSrcDS, blockSrcDS)
-		}
-		fAttributes.Set(reflect.ValueOf(attrSrcDS))
-	}
+	fillNestedAttrs(vDest, vSrc)
 
 	if fNested := vDest.FieldByName("NestedObject"); fNested.CanSet() {
 		tNested := convertNestedMappings[fNested.Type().Name()]
 		if tNested == nil {
 			panic("nested type not support yet, add it to convertNestedMappings: " + fNested.Type().Name())
 		}
-		attrsSrc := vSrc.FieldByName("NestedObject").FieldByName("Attributes").Interface().(map[string]schema.Attribute)
-		attrSrcDS := convertAttrs(attrsSrc, nil)
-		if fBlocks := vSrc.FieldByName("NestedObject").FieldByName("Blocks"); fBlocks.IsValid() {
-			blocksSrc := vSrc.FieldByName("NestedObject").FieldByName("Blocks").Interface().(map[string]schema.Block)
-			blockSrcDS := convertBlocksToAttrs(blocksSrc, requiredFields)
-			maps.Copy(attrSrcDS, blockSrcDS)
-		}
 		vNested := reflect.New(tNested).Elem()
-		vNested.FieldByName("Attributes").Set(reflect.ValueOf(attrSrcDS))
+		fillNestedAttrs(vNested, vSrc.FieldByName("NestedObject"))
 		fNested.Set(vNested)
 	}
 	return vDest.Interface()
+}
+
+func fillNestedAttrs(vDest, vSrc reflect.Value) {
+	fAttributes := vDest.FieldByName("Attributes")
+	if !fAttributes.CanSet() {
+		return
+	}
+	attrsSrc := vSrc.FieldByName("Attributes").Interface().(map[string]schema.Attribute)
+	attrSrcDS := convertAttrs(attrsSrc, nil)
+	if fBlocks := vSrc.FieldByName("Blocks"); fBlocks.IsValid() {
+		blocksSrc := fBlocks.Interface().(map[string]schema.Block)
+		blockSrcDS := convertBlocksToAttrs(blocksSrc, nil)
+		maps.Copy(attrSrcDS, blockSrcDS)
+	}
+	fAttributes.Set(reflect.ValueOf(attrSrcDS))
 }
 
 func overrideFields(attrs, overridenFields map[string]dsschema.Attribute) {
