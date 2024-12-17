@@ -6,8 +6,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
+	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func NewAtlasReqAdvancedConfiguration(ctx context.Context, objInput *types.Object, diags *diag.Diagnostics) *admin.ClusterDescriptionProcessArgs20240805 {

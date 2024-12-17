@@ -10,8 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
+	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 var (

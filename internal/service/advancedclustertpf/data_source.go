@@ -6,9 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+
+	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 var _ datasource.DataSource = &ds{}
@@ -47,7 +50,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 	clusterName := modelDS.Name.ValueString()
 	projectID := modelDS.ProjectID.ValueString()
 	useReplicationSpecPerShard := modelDS.UseReplicationSpecPerShard.ValueBool()
-	api := d.Client.AtlasV2.ClustersApi
+	api := d.Client.AtlasPreview.ClustersApi // TODO: undo
 	clusterResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
