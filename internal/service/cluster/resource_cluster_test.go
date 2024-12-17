@@ -146,6 +146,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config: configAdvancedConfPartial(projectID, clusterName, "false", &admin.ClusterDescriptionProcessArgs20240805{
 					MinimumEnabledTlsProtocol: conversion.StringPtr("TLS1_2"),
+					TlsCipherConfigMode:       conversion.StringPtr("DEFAULT"), // To unset TlsCipherConfigMode, user needs to set this to DEFAULT
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
@@ -156,6 +157,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.tls_cipher_config_mode", "DEFAULT"),
 				),
 			},
 		},
@@ -312,6 +314,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "DEFAULT"),
 				),
 			},
 			{

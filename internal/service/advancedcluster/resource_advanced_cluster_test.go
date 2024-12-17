@@ -341,6 +341,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		}
 		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
+			TlsCipherConfigMode: conversion.StringPtr("DEFAULT"),
 		}
 
 		processArgs20240530Updated = &admin20240530.ClusterDescriptionProcessArgs{
@@ -361,6 +362,11 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
 			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
 		}
+		processArgsUpdatedCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
+			DefaultMaxTimeMS: conversion.IntPtr(65),
+			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
+			TlsCipherConfigMode: conversion.StringPtr("DEFAULT"), // To unset TlsCipherConfigMode, user needs to set this to DEFAULT
+		}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -375,6 +381,10 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			{
 				Config: configAdvanced(t, true, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdated),
 				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_2", processArgsUpdated),
+			},
+			{
+				Config: configAdvanced(t, true, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdatedCipherConfig),
+				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_2", processArgsUpdatedCipherConfig),
 			},
 		},
 	})
@@ -1811,7 +1821,8 @@ func checkAdvancedDefaultWrite(isAcc bool, name, writeConcern, tls string) resou
 			"advanced_configuration.0.no_table_scan":                        "false",
 			"advanced_configuration.0.oplog_size_mb":                        "1000",
 			"advanced_configuration.0.sample_refresh_interval_bi_connector": "310",
-			"advanced_configuration.0.sample_size_bi_connector":             "110"},
+			"advanced_configuration.0.sample_size_bi_connector":             "110",
+			"advanced_configuration.0.tls_cipher_config_mode":               "DEFAULT"},
 		pluralChecks...)
 }
 
