@@ -138,7 +138,7 @@ func (r *MockRoundTripper) CheckStepRequests(_ *terraform.State) error {
 		missingRequestsCount := len(req.Responses) - r.usedResponses[req.id()]
 		if missingRequestsCount > 0 {
 			missingIndexes := []string{}
-			for i := 0; i < missingRequestsCount; i++ {
+			for i := range missingRequestsCount {
 				missingResponse := (len(req.Responses) - missingRequestsCount) + i
 				missingIndexes = append(missingIndexes, fmt.Sprintf("%d", req.Responses[missingResponse].ResponseIndex))
 			}

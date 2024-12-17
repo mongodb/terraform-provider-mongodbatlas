@@ -417,7 +417,7 @@ func flattenTags(tags *[]admin.ResourceTag) []map[string]string {
 func CheckRegionConfigsPriorityOrder(regionConfigs []admin.ReplicationSpec20240805) error {
 	for _, spec := range regionConfigs {
 		configs := spec.GetRegionConfigs()
-		for i := 0; i < len(configs)-1; i++ {
+		for i := range len(configs) - 1 {
 			if configs[i].GetPriority() < configs[i+1].GetPriority() {
 				return errors.New("priority values in region_configs must be in descending order")
 			}
@@ -430,7 +430,7 @@ func CheckRegionConfigsPriorityOrder(regionConfigs []admin.ReplicationSpec202408
 func CheckRegionConfigsPriorityOrderOld(regionConfigs []admin20240530.ReplicationSpec) error {
 	for _, spec := range regionConfigs {
 		configs := spec.GetRegionConfigs()
-		for i := 0; i < len(configs)-1; i++ {
+		for i := range len(configs) - 1 {
 			if configs[i].GetPriority() < configs[i+1].GetPriority() {
 				return errors.New("priority values in region_configs must be in descending order")
 			}
@@ -603,7 +603,7 @@ func flattenAdvancedReplicationSpecsLogic[T ReplicationSpecSDKModel](
 	tfList := make([]map[string]any, len(apiObjects))
 	wasAPIObjectUsed := make([]bool, len(apiObjects))
 
-	for i := 0; i < len(tfList); i++ {
+	for i := range len(tfList) {
 		var tfMapObject map[string]any
 
 		if len(tfMapObjects) > i {

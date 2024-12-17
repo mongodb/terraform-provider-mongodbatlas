@@ -20,7 +20,7 @@ func CopyModel[T any](src any) (*T, error) {
 	}
 	typeSrc := valSrc.Type()
 	typeDest := valDest.Type()
-	for i := 0; i < typeDest.NumField(); i++ {
+	for i := range typeDest.NumField() {
 		fieldDest := typeDest.Field(i)
 		name := fieldDest.Name
 		{
