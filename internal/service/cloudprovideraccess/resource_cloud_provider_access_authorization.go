@@ -284,7 +284,7 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 	var role *admin.CloudProviderAccessRole
 	var err error
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		role, _, err = client.CloudProviderAccessApi.AuthorizeCloudProviderAccessRole(ctx, projectID, roleID, req).Execute()
 		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") { // aws takes time to update , in case of single path
 			log.Printf("warning issue performing authorize: %s \n", err.Error())

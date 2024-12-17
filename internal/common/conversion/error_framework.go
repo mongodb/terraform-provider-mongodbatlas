@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+
+	legacyDiag "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 )
 
 type ErrBody interface {
@@ -31,4 +33,14 @@ func AddJSONBodyErrorToDiagnostics(msgPrefix string, err error, diags *diag.Diag
 	}
 	errorJSON := string(errorBytes)
 	diags.AddError(msgPrefix, errorJSON)
+}
+
+func AddLegacyDiags(diags *diag.Diagnostics, legacyDiags legacyDiag.Diagnostics) {
+	for _, diag := range legacyDiags {
+		if diag.Severity == legacyDiag.Error {
+			diags.AddError(diag.Summary, diag.Detail)
+		} else {
+			diags.AddWarning(diag.Summary, diag.Detail)
+		}
+	}
 }

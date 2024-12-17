@@ -145,7 +145,7 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 		}
 		legacyID := apiInfo.ZoneNameReplicationSpecIDs[zoneName]
 		tfModels[i] = TFReplicationSpecsModel{
-			Id:            conversion.StringNullIfEmpty(legacyID),
+			Id:            types.StringValue(legacyID),
 			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
 			NumShards:     types.Int64Value(1),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &apiInfo.ContainerIDs),

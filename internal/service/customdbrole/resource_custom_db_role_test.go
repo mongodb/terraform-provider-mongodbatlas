@@ -382,7 +382,7 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		roleName := fmt.Sprintf("test-acc-custom_role-%d", i)
 		projectName := acc.RandomProjectName()
 		t.Run(roleName, func(t *testing.T) {

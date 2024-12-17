@@ -335,7 +335,7 @@ func outputAlertConfigurationResourceHcl(label string, alert *admin.GroupAlertsC
 	}
 
 	notifications := alert.GetNotifications()
-	for i := 0; i < len(notifications); i++ {
+	for i := range len(notifications) {
 		appendBlockWithCtyValues(resource, "notification", []string{}, convertNotificationToCtyValues(&notifications[i]))
 	}
 

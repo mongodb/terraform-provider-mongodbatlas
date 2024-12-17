@@ -311,7 +311,7 @@ func NewTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projec
 
 	results := make([]TFAlertConfigurationDSModel, len(alerts))
 
-	for i := 0; i < len(alerts); i++ {
+	for i := range len(alerts) {
 		alert := alerts[i]
 		label := fmt.Sprintf("%s_%d", *alert.EventTypeName, i)
 		resultAlertConfigModel := NewTfAlertConfigurationDSModel(&alerts[i], projectID)

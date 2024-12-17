@@ -77,7 +77,7 @@ func GetChangesForTeamUsers(currentUsers, newUsers []admin.CloudAppUser) (toAdd,
 
 func InitUserSet(users []admin.CloudAppUser) map[string]bool {
 	usersSet := make(map[string]bool, len(users))
-	for i := 0; i < len(users); i++ {
+	for i := range len(users) {
 		usersSet[users[i].GetId()] = true
 	}
 	return usersSet

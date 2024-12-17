@@ -4,8 +4,7 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"slices"
-	"strings"
+	"strconv"
 	"sync"
 	"testing"
 
@@ -17,9 +16,10 @@ import (
 )
 
 const (
-	EnvNameHTTPMockerCapture = "HTTP_MOCKER_CAPTURE"
-	EnvNameHTTPMockerReplay  = "HTTP_MOCKER_REPLAY"
-	configFileExtension      = ".yaml"
+	EnvNameHTTPMockerCapture    = "HTTP_MOCKER_CAPTURE"
+	EnvNameHTTPMockerReplay     = "HTTP_MOCKER_REPLAY"
+	EnvNameHTTPMockerDataUpdate = "HTTP_MOCKER_DATA_UPDATE"
+	configFileExtension         = ".yaml"
 )
 
 type MockHTTPDataConfig struct {
@@ -28,14 +28,27 @@ type MockHTTPDataConfig struct {
 	IsDiffMustSubstrings []string
 	QueryVars            []string
 	AllowMissingRequests bool
+	AllowOutOfOrder      bool
+}
+
+func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: c is heavy (112 bytes); consider passing it by pointer)
+	c.AllowOutOfOrder = true
+	return c
 }
 
 func IsCapture() bool {
-	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerCapture)))
+	val, _ := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerCapture))
+	return val
 }
 
 func IsReplay() bool {
-	return slices.Contains([]string{"yes", "1", "true"}, strings.ToLower(os.Getenv(EnvNameHTTPMockerReplay)))
+	val, _ := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerReplay))
+	return val
+}
+
+func IsDataUpdate() bool {
+	val, _ := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerDataUpdate))
+	return val
 }
 
 func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCase *resource.TestCase) { //nolint: gocritic // Want each test run to have its own config (hugeParam: config is heavy (112 bytes); consider passing it by pointer)
@@ -126,7 +139,8 @@ func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
 	newVariables := data.Variables
 	for key, value := range oldVariables {
 		if _, ok := newVariables[key]; !ok {
-			t.Logf("Variable %s=%s not found from TF Config, probably discovered in request path", key, value)
+			t.Logf("Variable %s not found from TF Config, will use variable from the mock data with value %s", key, value)
+			data.Variables[key] = value
 		}
 	}
 	for key, value := range newVariables {
@@ -135,6 +149,18 @@ func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
 		}
 	}
 	return data
+}
+
+func UpdateMockDataDiffRequest(t *testing.T, stepIndex, diffRequestIndex int, newText string) {
+	t.Helper()
+	httpDataPath := MockConfigFilePath(t)
+	data, err := ParseTestDataConfigYAML(httpDataPath)
+	require.NoError(t, err)
+	data.Steps[stepIndex].DiffRequests[diffRequestIndex].Text = newText
+	configYaml, err := ConfigYaml(data)
+	require.NoError(t, err)
+	err = WriteConfigYaml(httpDataPath, configYaml)
+	require.NoError(t, err)
 }
 
 func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
