@@ -5,7 +5,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCopyModel(t *testing.T) {
@@ -18,7 +17,7 @@ func TestCopyModel(t *testing.T) {
 	testCases := map[string]struct {
 		input            any
 		expected         any
-		expectedErrorStr string
+		expectedPanicStr string
 	}{
 		"basic": {
 			input: &struct {
@@ -65,7 +64,7 @@ func TestCopyModel(t *testing.T) {
 			}{
 				AttrStr: true,
 			},
-			expectedErrorStr: "field has different type: AttrStr",
+			expectedPanicStr: "field has different type: AttrStr",
 		},
 		"unexported": {
 			input: &struct {
@@ -73,19 +72,18 @@ func TestCopyModel(t *testing.T) {
 			}{
 				attrUnexported: "val",
 			},
-			expectedErrorStr: "field can't be set, probably unexported: attrUnexported",
+			expectedPanicStr: "field can't be set, probably unexported: attrUnexported",
 		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			dest, err := conversion.CopyModel[destType](tc.input)
-			if err == nil {
-				assert.Equal(t, tc.expected, dest)
-				assert.Equal(t, "", tc.expectedErrorStr)
+			if tc.expectedPanicStr == "" {
+				assert.Equal(t, tc.expected, conversion.CopyModel[destType](tc.input))
 			} else {
-				require.ErrorContains(t, err, tc.expectedErrorStr)
-				assert.Nil(t, dest)
 				assert.Nil(t, tc.expected)
+				assert.PanicsWithValue(t, tc.expectedPanicStr, func() {
+					conversion.CopyModel[destType](tc.input)
+				})
 			}
 		})
 	}
