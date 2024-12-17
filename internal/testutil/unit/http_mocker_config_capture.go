@@ -117,10 +117,15 @@ func (c *CaptureMockConfigClientModifier) NormalizeCapturedData() {
 }
 
 func (c *CaptureMockConfigClientModifier) ConfigYaml() (string, error) {
+	capturedData := c.capturedData
+	return ConfigYaml(capturedData)
+}
+
+func ConfigYaml(capturedData *MockHTTPData) (string, error) {
 	initialYaml := strings.Builder{}
 	e := yaml.NewEncoder(&initialYaml)
 	e.SetIndent(1)
-	err := e.Encode(c.capturedData)
+	err := e.Encode(capturedData)
 	return initialYaml.String(), err
 }
 
@@ -129,6 +134,10 @@ func (c *CaptureMockConfigClientModifier) WriteCapturedData(filePath string) err
 	if err != nil {
 		return err
 	}
+	return WriteConfigYaml(filePath, configYaml)
+}
+
+func WriteConfigYaml(filePath, configYaml string) error {
 	dirPath := path.Dir(filePath)
 	if !fileExist(dirPath) {
 		err := os.Mkdir(dirPath, 0o755)
@@ -137,7 +146,7 @@ func (c *CaptureMockConfigClientModifier) WriteCapturedData(filePath string) err
 		}
 	}
 	// will override content if file exists
-	err = os.WriteFile(filePath, []byte(configYaml), 0o600)
+	err := os.WriteFile(filePath, []byte(configYaml), 0o600)
 	if err != nil {
 		return err
 	}

@@ -102,13 +102,28 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
-	planReq := normalizeFromTFModel(ctx, &plan, diags, false)
+	stateUsingLegacy := usingLegacySchema(ctx, state.ReplicationSpecs, diags)
+	planUsingLegacy := usingLegacySchema(ctx, plan.ReplicationSpecs, diags)
+	if planUsingLegacy && !stateUsingLegacy {
+		diags.AddError("error operation not permitted, nums_shards from 1 -> > 1", fmt.Sprintf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; %s", DeprecationOldSchemaAction))
+		return
+	}
+	isSchemaUpgrade := stateUsingLegacy && !planUsingLegacy
+	stateReq := normalizeFromTFModel(ctx, &state, diags, isSchemaUpgrade)
+	planReq := normalizeFromTFModel(ctx, &plan, diags, isSchemaUpgrade)
 	if diags.HasError() {
 		return
 	}
-	normalizePatchState(stateReq)
-	patchReq, err := update.PatchPayload(stateReq, planReq)
+	patchOptions := update.PatchOptions{
+		IgnoreInStatePrefix:  []string{"regionConfigs"},
+		IncludeInStateSuffix: []string{"diskIOPS"},
+	}
+	if isSchemaUpgrade || findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
+		// isSchemaUpgrade will have no changes by default after flattening; therefore, force update the replicationSpecs
+		// `num_shards` updates is only in the legacy ClusterDescription; therefore, force update the replicationSpecs
+		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
+	}
+	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
 		diags.AddError("errorPatchPayload", err.Error())
 		return
@@ -119,6 +134,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if upgradeRequest != nil {
 			clusterResp = r.applyTenantUpgrade(ctx, &plan, upgradeRequest, diags)
 		} else {
+			if isSchemaUpgrade {
+				specs, localDiags := populateIDValuesUsingNewAPI(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), r.Client.AtlasV2.ClustersApi, patchReq.ReplicationSpecs)
+				conversion.AddLegacyDiags(diags, localDiags)
+				if diags.HasError() {
+					return
+				}
+				patchReq.ReplicationSpecs = specs
+			}
 			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq)
 		}
 		if diags.HasError() {
@@ -131,7 +154,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	modelOut := &state
 	if clusterResp != nil {
-		modelOut, _ = getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan)
+		modelOut, _ = getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan, false)
 		if diags.HasError() {
 			return
 		}
@@ -239,7 +262,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 			return nil
 		}
 	}
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, clusterResp, plan)
+	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, clusterResp, plan, false)
 	if diags.HasError() {
 		return nil
 	}
@@ -263,7 +286,7 @@ func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, modelIn *
 		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
 		return nil
 	}
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, modelIn)
+	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, modelIn, false)
 	if diags.HasError() {
 		return nil
 	}
@@ -429,10 +452,13 @@ func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeReque
 	return AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
-func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) (*TFModel, *ExtraAPIInfo) {
-	apiInfo := resolveAPIInfo(ctx, modelIn, diags, clusterResp, client)
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel, forceLegacySchema bool) (*TFModel, *ExtraAPIInfo) {
+	apiInfo := resolveAPIInfo(ctx, diags, client, modelIn, clusterResp, forceLegacySchema)
 	if diags.HasError() {
 		return nil, nil
+	}
+	if forceLegacySchema && apiInfo.AsymmetricShardUnsupported { // can't create a model if legacy is forced but cluster does not support it
+		return nil, apiInfo
 	}
 	modelOut := NewTFModel(ctx, clusterResp, modelIn.Timeouts, diags, *apiInfo)
 	if diags.HasError() {
