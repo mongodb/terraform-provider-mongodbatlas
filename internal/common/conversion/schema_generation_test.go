@@ -446,6 +446,18 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 				MarkdownDescription: "desc overridenString",
 			},
 		},
+		Blocks: map[string]schema.Block{
+			"nested": schema.ListNestedBlock{
+				MarkdownDescription: "desc nested",
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"nested attr": schema.StringAttribute{
+							MarkdownDescription: "desc nested attr",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	expected := dsschema.Schema{
@@ -485,6 +497,20 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 							MarkdownDescription: "desc overridenString",
 							Validators: []validator.String{
 								stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+							},
+						},
+						"nested": dsschema.ListNestedAttribute{
+							Computed:            true,
+							Description:         "desc nested",
+							MarkdownDescription: "desc nested",
+							NestedObject: dsschema.NestedAttributeObject{
+								Attributes: map[string]dsschema.Attribute{
+									"nested attr": dsschema.StringAttribute{
+										Computed:            true,
+										Description:         "desc nested attr",
+										MarkdownDescription: "desc nested attr",
+									},
+								},
 							},
 						},
 					},
