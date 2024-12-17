@@ -11,17 +11,13 @@
       "nodeCount": 1
      },
      "autoScaling": {
-      "compute": {
-       "enabled": false,
-       "scaleDownEnabled": false
-      },
+      "compute": {},
       "diskGB": {
        "enabled": true
       }
      },
      "electableSpecs": {
       "diskIOPS": 2000,
-      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 3
@@ -45,17 +41,13 @@
       "nodeCount": 1
      },
      "autoScaling": {
-      "compute": {
-       "enabled": false,
-       "scaleDownEnabled": false
-      },
+      "compute": {},
       "diskGB": {
        "enabled": true
       }
      },
      "electableSpecs": {
       "diskIOPS": 1000,
-      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 3

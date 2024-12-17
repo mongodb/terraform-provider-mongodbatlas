@@ -201,7 +201,7 @@ func newDedicatedHardwareSpec20240805(ctx context.Context, input types.Object, d
 	return &admin.DedicatedHardwareSpec20240805{
 		DiskIOPS:      conversion.NilForUnknown(item.DiskIops, conversion.Int64PtrToIntPtr(item.DiskIops.ValueInt64Pointer())),
 		DiskSizeGB:    conversion.NilForUnknown(item.DiskSizeGb, item.DiskSizeGb.ValueFloat64Pointer()),
-		EbsVolumeType: conversion.NilForUnknown(item.EbsVolumeType, item.EbsVolumeType.ValueStringPointer()),
+		EbsVolumeType: conversion.NilForUnknownOrEmptyString(item.EbsVolumeType),
 		InstanceSize:  conversion.NilForUnknownOrEmptyString(item.InstanceSize),
 		NodeCount:     conversion.NilForUnknown(item.NodeCount, conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
 	}

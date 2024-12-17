@@ -119,25 +119,6 @@ func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription2024
 	return rootDiskSize
 }
 
-// Set "Computed" Specs to nil to avoid unnecessary diffs
-func normalizePatchState(cluster *admin.ClusterDescription20240805) {
-	for i, specCopy := range cluster.GetReplicationSpecs() {
-		for j := range specCopy.GetRegionConfigs() {
-			spec := cluster.GetReplicationSpecs()[i]
-			regionConfigs := *spec.RegionConfigs
-			actualConfig := &regionConfigs[j]
-			analyticsSpecs := actualConfig.AnalyticsSpecs
-			if analyticsSpecs != nil && analyticsSpecs.NodeCount != nil && *analyticsSpecs.NodeCount == 0 {
-				actualConfig.AnalyticsSpecs = nil
-			}
-			readonly := actualConfig.ReadOnlySpecs
-			if readonly != nil && readonly.NodeCount != nil && *readonly.NodeCount == 0 {
-				actualConfig.ReadOnlySpecs = nil
-			}
-		}
-	}
-}
-
 func explodeNumShards(req *admin.ClusterDescription20240805, counts []int64) {
 	specs := req.GetReplicationSpecs()
 	newSpecs := []admin.ReplicationSpec20240805{}
