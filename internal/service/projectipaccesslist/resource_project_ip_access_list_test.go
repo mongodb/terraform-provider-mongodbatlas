@@ -117,7 +117,7 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 		checks           = []resource.TestCheckFunc{}
 	)
 
-	for i := 0; i < ipWhiteListCount; i++ {
+	for i := range ipWhiteListCount {
 		entry := make(map[string]string)
 		entryName := ""
 		ipAddr := ""
