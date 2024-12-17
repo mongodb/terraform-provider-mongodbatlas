@@ -114,14 +114,16 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	AlignStateReplicationSpecs(ctx, stateReq, planReq)
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix:  []string{"regionConfigs"},
 		IncludeInStateSuffix: []string{"diskIOPS"},
 	}
-	if isSchemaUpgrade || findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
-		// isSchemaUpgrade will have no changes by default after flattening; therefore, force update the replicationSpecs
-		// `num_shards` updates is only in the legacy ClusterDescription; therefore, force update the replicationSpecs
+	specsChanged := AlignStateReplicationSpecsChanged(ctx, stateReq, planReq)
+	if specsChanged || isSchemaUpgrade || findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
+		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
+		// specsAligned, can happen when a spec is removed and then the remaining specs will seem unchanged
+		// isSchemaUpgrade will have no changes by default after flattening
+		// `num_shards` updates is only in the legacy ClusterDescription
 		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)

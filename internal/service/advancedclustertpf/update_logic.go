@@ -11,13 +11,13 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
-// This function ensures len(state.ReplicationSpecs) == len(plan.ReplicationSpecs) & each element in both state and plan is A) likely the same or B) use an empty replication spec
+// AlignStateReplicationSpecsChanged ensures len(state.ReplicationSpecs) == len(plan.ReplicationSpecs) & each element in both state and plan is A) likely the same or B) use an empty replication spec
 // If length already match, we expect either zone_name || regionNames to be the same, if both are updated, we assume the state cannot be used
 // If length missmatch (add/remove) we require both zone_name and regionNames to match to allow using an existing state
 // If an element doesn't match we set the Replication spec to the "empty" value to avoid using the `id` from state
-func AlignStateReplicationSpecs(ctx context.Context, state, plan *admin.ClusterDescription20240805) {
+func AlignStateReplicationSpecsChanged(ctx context.Context, state, plan *admin.ClusterDescription20240805) bool {
 	if !state.HasReplicationSpecs() || !plan.HasReplicationSpecs() {
-		return
+		return false
 	}
 	stateSpecs := state.GetReplicationSpecs()
 	planSpecs := plan.GetReplicationSpecs()
@@ -28,6 +28,7 @@ func AlignStateReplicationSpecs(ctx context.Context, state, plan *admin.ClusterD
 		alignedSpecs = alignSpecs(ctx, &stateSpecs, &planSpecs, specsMatchFull)
 	}
 	state.ReplicationSpecs = &alignedSpecs
+	return !reflect.DeepEqual(stateSpecs, alignedSpecs)
 }
 
 func alignSpecs(ctx context.Context, state, plan *[]admin.ReplicationSpec20240805, match func(admin.ReplicationSpec20240805, admin.ReplicationSpec20240805) bool) []admin.ReplicationSpec20240805 {
@@ -37,23 +38,17 @@ func alignSpecs(ctx context.Context, state, plan *[]admin.ReplicationSpec2024080
 	}
 	alignedSpecs := make([]admin.ReplicationSpec20240805, len(*plan))
 	for i, planSpec := range *plan {
-		foundIndex := -1
-		for j := range len(*state) {
+		for j := range *state {
 			stateSpec, ok := remainingStateSpecs[j]
 			if ok && match(stateSpec, planSpec) {
-				foundIndex = j
+				alignedSpecs[i] = remainingStateSpecs[j]
+				delete(remainingStateSpecs, j)
 				break
 			}
 		}
-		if foundIndex != -1 {
-			alignedSpecs[i] = remainingStateSpecs[foundIndex]
-			delete(remainingStateSpecs, foundIndex)
-		}
 	}
-	if len(remainingStateSpecs) > 0 {
-		for index, stateSpec := range remainingStateSpecs {
-			tflog.Info(ctx, fmt.Sprintf("Replication spec %d in state does not match any spec in config, zone_name=%s, regions=%s, assuming it has been deleted", index, stateSpec.GetZoneName(), strings.Join(regionNames(stateSpec), ", ")))
-		}
+	for index, stateSpec := range remainingStateSpecs {
+		tflog.Info(ctx, fmt.Sprintf("Replication spec %d in state does not match any spec in config, zone_name=%s, regions=%s, assuming it has been deleted", index, stateSpec.GetZoneName(), strings.Join(regionNames(stateSpec), ", ")))
 	}
 	for i, newStateSpec := range alignedSpecs {
 		if update.IsZeroValues(&newStateSpec) {
