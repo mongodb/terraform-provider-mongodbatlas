@@ -97,8 +97,6 @@ func ConvertAdvancedClusterToSchemaV2(t *testing.T, isAcc bool, def string) stri
 			continue
 		}
 		writeBody := resource.Body()
-		convertAttrs(t, "labels", writeBody, true, hcl.GetAttrVal)
-		convertAttrs(t, "tags", writeBody, true, hcl.GetAttrVal)
 		convertAttrs(t, "replication_specs", writeBody, true, getReplicationSpecs)
 		convertAttrs(t, "advanced_configuration", writeBody, false, hcl.GetAttrVal)
 		convertAttrs(t, "bi_connector_config", writeBody, false, hcl.GetAttrVal)
