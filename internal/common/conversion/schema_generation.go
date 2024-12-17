@@ -91,9 +91,6 @@ var convertNestedMappings = map[string]reflect.Type{
 
 func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields []string) map[string]dsschema.Attribute {
 	const ignoreField = "timeouts"
-	if rsAttrs == nil {
-		return nil
-	}
 	dsAttrs := make(map[string]dsschema.Attribute, len(rsAttrs))
 	for name, attr := range rsAttrs {
 		if name == ignoreField {
@@ -105,9 +102,6 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields []string) 
 }
 
 func convertBlocksToAttrs(rsBlocks map[string]schema.Block, requiredFields []string) map[string]dsschema.Attribute {
-	if rsBlocks == nil {
-		return nil
-	}
 	dsAttrs := make(map[string]dsschema.Attribute, len(rsBlocks))
 	for name, block := range rsBlocks {
 		dsAttrs[name] = convertElement(name, block, requiredFields).(dsschema.Attribute)
