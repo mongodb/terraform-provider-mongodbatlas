@@ -1002,9 +1002,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				}
 			}
 			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
-				_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.Name, &params).Execute()
+				_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
 				if err != nil {
-					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, "", cluster.Name, err))
+					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, "", clusterName, err))
 				}
 			}
 		}
