@@ -114,6 +114,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+	AlignStateReplicationSpecs(ctx, stateReq, planReq)
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix:  []string{"regionConfigs"},
 		IncludeInStateSuffix: []string{"diskIOPS"},
