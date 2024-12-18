@@ -35,24 +35,24 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	var (
-		projectID         = acc.ProjectIDExecution(t)
-		dnsDomain         = os.Getenv("MONGODB_ATLAS_STREAM_PRIVATELINK_DNS_DOMAIN")
-		provider          = "AWS"
-		region            = "us-east-1"
-		serviceEndpointID = os.Getenv("MONGODB_ATLAS_STREAM_SERVICE_ENDPOINT_ID")
+		projectID    = acc.ProjectIDExecution(t)
+		provider     = "AWS"
+		region       = "us-east-1"
+		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
 	)
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyConfluent(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, dnsDomain, provider, region, vendor, serviceEndpointID, true),
-				Check:  checksStreamPrivatelinkEndpoint(projectID, dnsDomain, provider, region, vendor, serviceEndpointID, false),
+				Config: configConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, true),
+				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, false),
 			},
 			{
-				Config:            configBasic(projectID, dnsDomain, provider, region, vendor, serviceEndpointID, true),
+				Config:            configBasic(projectID, provider, region, vendor, true),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -66,12 +66,11 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	var (
-		projectID         = acc.ProjectIDExecution(t)
-		dnsDomain         = os.Getenv("MONGODB_ATLAS_STREAM_PRIVATELINK_DNS_DOMAIN")
-		provider          = "AWS"
-		region            = "us-east-1"
-		vendor            = "CONFLUENT"
-		serviceEndpointID = os.Getenv("MONGODB_ATLAS_STREAM_SERVICE_ENDPOINT_ID")
+		projectID    = acc.ProjectIDExecution(t)
+		provider     = "AWS"
+		region       = "us-east-1"
+		vendor       = "CONFLUENT"
+		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
 	)
 
 	return &resource.TestCase{
@@ -80,32 +79,39 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, dnsDomain, provider, region, vendor, serviceEndpointID, false),
-				Check:  checksStreamPrivatelinkEndpoint(projectID, dnsDomain, provider, region, vendor, serviceEndpointID, false),
+				Config: configConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, false),
+				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, false),
 			},
 			{
-				Config:      configBasic(projectID, dnsDomain, provider, region, vendor, serviceEndpointID, true),
+				Config:      configBasic(projectID, provider, region, vendor, true),
 				ExpectError: regexp.MustCompile(`Operation not supported`),
 			},
 		},
 	}
 }
 
-func configBasic(projectID, dnsDomain, provider, region, vendor, serviceEndpointID string, withDNSSubdomains bool) string {
+func configBasic(projectID, provider, region, vendor string, withDNSSubdomains bool) string {
 	dnsSubDomainConfig := ""
 	if withDNSSubdomains {
-		dnsSubDomainConfig = fmt.Sprintf(`dns_sub_domain = [%[1]q]`, dnsDomain)
+		dnsSubDomainConfig = `dns_sub_domain = local.dns_sub_domain_entries`
 	}
 
 	return fmt.Sprintf(`
+	locals {
+		dns_sub_domain_entries = [
+    		for zone in confluent_network.private-link.zones :
+    		"${zone}.${confluent_network.private-link.dns_domain}"
+  		]
+	}	
+
 	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
 		project_id          = %[1]q
-		dns_domain          = %[2]q
-		provider_name       = %[3]q
-		region              = %[4]q
-		vendor              = %[5]q
-		service_endpoint_id = %[6]q
-		%[7]s
+		dns_domain          = confluent_network.private-link.dns_domain
+		provider_name       = %[2]q
+		region              = %[3]q
+		vendor              = %[4]q
+		service_endpoint_id = confluent_network.private-link.aws[0].private_link_endpoint_service
+		%[5]s
 	}
 
 	data "mongodbatlas_stream_privatelink_endpoint" "singular-datasource-test" {
@@ -115,21 +121,68 @@ func configBasic(projectID, dnsDomain, provider, region, vendor, serviceEndpoint
 
 	data "mongodbatlas_stream_privatelink_endpoints" "plural-datasource-test" {
 		project_id = %[1]q
-	}`, projectID, dnsDomain, provider, region, vendor, serviceEndpointID, dnsSubDomainConfig)
+	}`, projectID, provider, region, vendor, dnsSubDomainConfig)
 }
 
-func checksStreamPrivatelinkEndpoint(projectID, dnsDomain, provider, region, vendor, serviceEndpointID string, dnsSubdomainsCheck bool) resource.TestCheckFunc {
+func configConfluentDedicatedCluster(provider, region, awsAccountID string) string {
+	return fmt.Sprintf(`
+	%[1]s
+
+	data "confluent_environment" "default_environment" {
+  		display_name = "default"
+	}
+
+	resource "confluent_network" "private-link" {
+		display_name     = "terraform-test-private-link-network"
+		cloud            = %[2]q
+		region           = %[3]q
+		connection_types = ["PRIVATELINK"]
+		zones            = ["use1-az1", "use1-az4", "use1-az6"]
+		environment {
+			id = data.confluent_environment.default_environment.id
+		}
+		dns_config {
+			resolution = "PRIVATE"
+		}
+	}
+
+	resource "confluent_private_link_access" "aws" {
+		display_name = "terraform-test-aws-private-link-access"
+		aws {
+			account = %[4]q
+		}
+		environment {
+			id = data.confluent_environment.default_environment.id
+		}
+		network {
+			id = confluent_network.private-link.id
+		}
+	}
+
+	resource "confluent_kafka_cluster" "dedicated" {
+		display_name = "terraform-test-cluster"
+		availability = "MULTI_ZONE"
+		cloud        = confluent_network.private-link.cloud
+		region       = confluent_network.private-link.region
+		dedicated {
+			cku = 1
+		}
+		environment {
+			id = data.confluent_environment.default_environment.id
+		}
+		network {
+			id = confluent_network.private-link.id
+		}
+	}`, acc.ConfigConfluentProvider(), provider, region, awsAccountID)
+}
+
+func checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor string, dnsSubdomainsCheck bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists()}
 	attrMap := map[string]string{
-		"project_id":          projectID,
-		"dns_domain":          dnsDomain,
-		"provider_name":       provider,
-		"region":              region,
-		"vendor":              vendor,
-		"service_endpoint_id": serviceEndpointID,
-	}
-	if dnsSubdomainsCheck {
-		attrMap["dns_sub_domain.0"] = dnsDomain // this check might not work??? verify
+		"project_id":    projectID,
+		"provider_name": provider,
+		"region":        region,
+		"vendor":        vendor,
 	}
 	pluralMap := map[string]string{
 		"project_id": projectID,
@@ -139,6 +192,9 @@ func checksStreamPrivatelinkEndpoint(projectID, dnsDomain, provider, region, ven
 		"id",
 		"interface_endpoint_id",
 		"state",
+		"dns_domain",
+		"dns_sub_domain.0",
+		"service_endpoint_id",
 	}
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
