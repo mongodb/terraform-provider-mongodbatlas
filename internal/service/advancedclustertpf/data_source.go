@@ -72,11 +72,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 	if diags.HasError() {
 		return nil
 	}
-	modelOutDS, err := conversion.CopyModel[TFModelDS](modelOut)
-	if err != nil {
-		diags.AddError(errorRead, fmt.Sprintf("error setting model: %s", err.Error()))
-		return nil
-	}
+	modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
 	modelOutDS.UseReplicationSpecPerShard = modelDS.UseReplicationSpecPerShard // attrs not in resource model
 	return modelOutDS
 }
