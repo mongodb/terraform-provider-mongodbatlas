@@ -77,6 +77,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 	model := r.createCluster(ctx, &plan, diags)
 	if model != nil {
+		restrictResourceModel(model, &plan)
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
@@ -90,6 +91,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	model := r.readCluster(ctx, diags, &state, &resp.State)
 	if model != nil {
+		restrictResourceModel(model, &state)
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
@@ -167,6 +169,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	} else {
 		modelOut.AdvancedConfiguration = state.AdvancedConfiguration
 	}
+	restrictResourceModel(modelOut, &plan)
 	diags.Append(resp.State.Set(ctx, modelOut)...)
 }
 
