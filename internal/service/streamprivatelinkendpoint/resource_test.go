@@ -112,15 +112,24 @@ func configBasic(projectID, provider, region, vendor string, withDNSSubdomains b
 		vendor              = %[4]q
 		service_endpoint_id = confluent_network.private-link.aws[0].private_link_endpoint_service
 		%[5]s
+		depends_on = [
+			confluent_kafka_cluster.dedicated
+		]
 	}
 
-	data "mongodbatlas_stream_privatelink_endpoint" "singular-datasource-test" {
+	data "mongodbatlas_stream_privatelink_endpoint" "test" {
 		project_id = %[1]q
 		id         = mongodbatlas_stream_privatelink_endpoint.test.id
+		depends_on = [
+    		mongodbatlas_stream_privatelink_endpoint.test
+  		]
 	}
 
-	data "mongodbatlas_stream_privatelink_endpoints" "plural-datasource-test" {
+	data "mongodbatlas_stream_privatelink_endpoints" "test" {
 		project_id = %[1]q
+		depends_on = [
+    		mongodbatlas_stream_privatelink_endpoint.test
+  		]
 	}`, projectID, provider, region, vendor, dnsSubDomainConfig)
 }
 
@@ -193,8 +202,10 @@ func checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor string,
 		"interface_endpoint_id",
 		"state",
 		"dns_domain",
-		"dns_sub_domain.0",
 		"service_endpoint_id",
+	}
+	if dnsSubdomainsCheck {
+		attrSet = append(attrSet, "dns_sub_domain.0")
 	}
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
