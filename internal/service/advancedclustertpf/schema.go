@@ -552,12 +552,12 @@ type TFModel struct {
 	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
 	Name                                      types.String   `tfsdk:"name"`
 	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
-	BiConnectorConfig                         types.Object   `tfsdk:"bi_connector_config"`
+	BiConnectorConfig                         types.List     `tfsdk:"bi_connector_config"`
 	ConfigServerType                          types.String   `tfsdk:"config_server_type"`
 	ReplicaSetScalingStrategy                 types.String   `tfsdk:"replica_set_scaling_strategy"`
 	ClusterType                               types.String   `tfsdk:"cluster_type"`
 	RootCertType                              types.String   `tfsdk:"root_cert_type"`
-	AdvancedConfiguration                     types.Object   `tfsdk:"advanced_configuration"`
+	AdvancedConfiguration                     types.List     `tfsdk:"advanced_configuration"`
 	PinnedFCV                                 types.Object   `tfsdk:"pinned_fcv"`
 	TerminationProtectionEnabled              types.Bool     `tfsdk:"termination_protection_enabled"`
 	Paused                                    types.Bool     `tfsdk:"paused"`
@@ -576,8 +576,8 @@ type TFModelDS struct {
 	Tags                             types.Set     `tfsdk:"tags"`
 	ReplicaSetScalingStrategy        types.String  `tfsdk:"replica_set_scaling_strategy"`
 	Name                             types.String  `tfsdk:"name"`
-	AdvancedConfiguration            types.Object  `tfsdk:"advanced_configuration"`
-	BiConnectorConfig                types.Object  `tfsdk:"bi_connector_config"`
+	AdvancedConfiguration            types.List    `tfsdk:"advanced_configuration"`
+	BiConnectorConfig                types.List    `tfsdk:"bi_connector_config"`
 	RootCertType                     types.String  `tfsdk:"root_cert_type"`
 	ClusterType                      types.String  `tfsdk:"cluster_type"`
 	MongoDBMajorVersion              types.String  `tfsdk:"mongo_db_major_version"`
