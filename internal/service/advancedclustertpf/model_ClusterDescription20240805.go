@@ -25,7 +25,7 @@ type ExtraAPIInfo struct {
 	RootDiskSize               *float64
 	ContainerIDs               map[string]string
 	UsingLegacySchema          bool
-	AsymmetricShardUnsupported bool
+	ForceLegacySchemaFailed    bool
 }
 
 func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
