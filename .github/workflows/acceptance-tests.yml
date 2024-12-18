@@ -85,6 +85,8 @@ jobs:
       azure_key_vault_name_updated: ${{ secrets.AZURE_KEY_VAULT_NAME_UPDATED }}
       azure_key_identifier_updated: ${{ secrets.AZURE_KEY_IDENTIFIER_UPDATED }}
       azure_app_secret: ${{ secrets.AZURE_APP_SECRET }}
+      confluent_cloud_api_key: ${{ secrets.CONFLUENT_CLOUD_API_KEY }}
+      confluent_cloud_api_secret: ${{ secrets.CONFLUENT_CLOUD_API_SECRET }}
 
     with:
       terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}

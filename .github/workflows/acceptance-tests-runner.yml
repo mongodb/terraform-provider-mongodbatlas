@@ -163,6 +163,10 @@ on:
         required: true
       azure_app_secret:
         required: true
+      confluent_cloud_api_key:
+        required: true
+      confluent_cloud_api_secret:
+        required: true
           
 env:
   TF_ACC: 1
@@ -1048,8 +1052,12 @@ jobs:
         - name: Acceptance Tests
           env:
             MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+            AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
+            CONFLUENT_CLOUD_API_KEY: ${{ secrets.confluent_cloud_api_key }}
+            CONFLUENT_CLOUD_API_SECRET: ${{ secrets.confluent_cloud_api_secret }}
             ACCTEST_PACKAGES: |
               ./internal/service/streamconnection
               ./internal/service/streaminstance
               ./internal/service/streamprocessor
+              ./internal/service/streamprivatelinkendpoint
           run: make testacc
