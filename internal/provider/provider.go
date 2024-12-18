@@ -448,6 +448,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		encryptionatrestprivateendpoint.DataSource,
 		encryptionatrestprivateendpoint.PluralDataSource,
 		mongodbemployeeaccessgrant.DataSource,
+		streamprivatelinkendpoint.DataSource,
+		streamprivatelinkendpoint.PluralDataSource,
 	}
 	if config.AdvancedClusterV2Schema() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)

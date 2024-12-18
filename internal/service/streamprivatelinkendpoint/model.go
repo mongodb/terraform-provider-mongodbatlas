@@ -1,4 +1,3 @@
-//nolint:gocritic
 package streamprivatelinkendpoint
 
 import (
@@ -23,9 +22,9 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 		Vendor:              types.StringPointerValue(apiResp.Vendor),
 	}
 	if apiResp.DnsSubDomain != nil {
-		subdomain, diag := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
-		if diag.HasError() {
-			return nil, diag
+		subdomain, diags := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
+		if diags.HasError() {
+			return nil, diags
 		}
 		result.DnsSubDomain = subdomain
 	}
@@ -55,23 +54,21 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 	return result, nil
 }
 
-func NewTFModelPluralDS(ctx context.Context, projectID string, input []admin.StreamsPrivateLinkConnection) (*TFModelDSP, diag.Diagnostics) {
-	// diags := &diag.Diagnostics{}
-	// tfModels := make([]TFModel, len(input))
-	// for i := range input {
-	// 	item := &input[i]
-	// 	tfModel, diagsLocal := NewTFModel(ctx, item)
-	// 	diags.Append(diagsLocal...)
-	// 	if tfModel != nil {
-	// 		tfModels[i] = *tfModel
-	// 	}
-	// }
-	// if diags.HasError() {
-	// 	return nil, *diags
-	// }
-	// return &TFModelDSP{
-	// 	ProjectId: types.StringValue(projectID),
-	// 	Results:   tfModels,
-	// }, *diags
-	return nil, nil
+func NewTFModelPluralDS(ctx context.Context, projectID string, sdkResults []admin.StreamsPrivateLinkConnection) (*TFModelDSP, diag.Diagnostics) {
+	diags := &diag.Diagnostics{}
+	tfModels := make([]TFModel, len(sdkResults))
+	for i := range sdkResults {
+		tfModel, diagsLocal := NewTFModel(ctx, projectID, &sdkResults[i])
+		diags.Append(diagsLocal...)
+		if tfModel != nil {
+			tfModels[i] = *tfModel
+		}
+	}
+	if diags.HasError() {
+		return nil, *diags
+	}
+	return &TFModelDSP{
+		ProjectId: types.StringValue(projectID),
+		Results:   tfModels,
+	}, *diags
 }
