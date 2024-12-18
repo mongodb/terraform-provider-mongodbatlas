@@ -16,9 +16,6 @@ import (
 // If length missmatch (add/remove) we require both zone_name and regionNames to match to allow using an existing state
 // If an element doesn't match we set the Replication spec to the "empty" value to avoid using the `id` from state
 func AlignStateReplicationSpecsChanged(ctx context.Context, state, plan *admin.ClusterDescription20240805) bool {
-	if !state.HasReplicationSpecs() || !plan.HasReplicationSpecs() {
-		return false
-	}
 	stateSpecs := state.GetReplicationSpecs()
 	planSpecs := plan.GetReplicationSpecs()
 	var alignedSpecs []admin.ReplicationSpec20240805
@@ -32,7 +29,7 @@ func AlignStateReplicationSpecsChanged(ctx context.Context, state, plan *admin.C
 }
 
 func alignSpecs(ctx context.Context, state, plan *[]admin.ReplicationSpec20240805, match func(admin.ReplicationSpec20240805, admin.ReplicationSpec20240805) bool) []admin.ReplicationSpec20240805 {
-	remainingStateSpecs := map[int]admin.ReplicationSpec20240805{}
+	remainingStateSpecs := make(map[int]admin.ReplicationSpec20240805)
 	for i, stateSpec := range *state {
 		remainingStateSpecs[i] = stateSpec
 	}
