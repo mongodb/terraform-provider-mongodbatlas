@@ -67,9 +67,19 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	finalResp, err := waitStateTransition(ctx, projectID, *streamsPrivateLinkConnection.Id, connV2.StreamsApi)
 	if err != nil {
+		if finalResp != nil { // delete the resource that has been created but fails to reach desired state
+			if _, _, err := connV2.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, finalResp.GetId()).Execute(); err != nil {
+				resp.Diagnostics.AddError("error deleting resource after failed creation", err.Error())
+				return
+			}
+			_, err := WaitDeleteStateTransition(ctx, projectID, *finalResp.Id, connV2.StreamsApi)
+			if err != nil {
+				resp.Diagnostics.AddError("error waiting for state transition in deletion after a failed creation", err.Error())
+				return
+			}
+		}
 		resp.Diagnostics.AddError("error when waiting for status transition in creation", err.Error())
 		return
-		//TODO: delete if created
 	}
 
 	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, projectID, finalResp)

@@ -165,7 +165,7 @@ func configConfluentDedicatedCluster(provider, region, awsAccountID string) stri
 		cloud        = confluent_network.private-link.cloud
 		region       = confluent_network.private-link.region
 		dedicated {
-			cku = 1
+			cku = 2
 		}
 		environment {
 			id = data.confluent_environment.default_environment.id
