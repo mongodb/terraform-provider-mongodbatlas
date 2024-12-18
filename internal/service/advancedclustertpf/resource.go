@@ -116,6 +116,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix:  []string{"regionConfigs"},
+		IgnoreInStateSuffix:  []string{"id", "zoneId"}, // replication_spec.*.zone_id|id doesn't have to be included, the API will do its best to create a minimal change
 		IncludeInStateSuffix: []string{"diskIOPS"},
 	}
 	specsChanged := AlignStateReplicationSpecsChanged(ctx, stateReq, planReq)
