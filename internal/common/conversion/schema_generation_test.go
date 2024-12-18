@@ -66,19 +66,19 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				ElementType:         types.StringType,
 				MarkdownDescription: "desc setAttr",
 			},
-			"nestSingle": schema.SingleNestedAttribute{
+			"singleNestedAttribute": schema.SingleNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "desc nestSingle",
+				MarkdownDescription: "desc singleNestedAttribute",
 				Attributes: map[string]schema.Attribute{
-					"nestedSingleAttr": schema.StringAttribute{
+					"singleNestedAttributeAttr": schema.StringAttribute{
 						Computed:            true,
-						MarkdownDescription: "desc nestedSingleAttr",
+						MarkdownDescription: "desc singleNestedAttributeAttr",
 					},
 				},
 			},
-			"nestList": schema.ListNestedAttribute{
+			"listNestedAttribute": schema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "desc nestList",
+				MarkdownDescription: "desc listNestedAttribute",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"nestedAttr": schema.StringAttribute{
@@ -92,9 +92,9 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 					},
 				},
 			},
-			"nestSet": schema.SetNestedAttribute{
+			"setNestedAttribute": schema.SetNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "desc nestSet",
+				MarkdownDescription: "desc setNestedAttribute",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"nestedAttr": schema.StringAttribute{
@@ -109,18 +109,6 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				Update: true,
 				Delete: true,
 			}),
-		},
-		Blocks: map[string]schema.Block{
-			"nestBlock": schema.SetNestedBlock{
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"nestBlockAttr": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "desc nestBlockAttr",
-						},
-					},
-				},
-			},
 		},
 	}
 
@@ -180,22 +168,22 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				MarkdownDescription: "desc setAttr",
 				Description:         "desc setAttr",
 			},
-			"nestSingle": dsschema.SingleNestedAttribute{
+			"singleNestedAttribute": dsschema.SingleNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "desc nestSingle",
-				Description:         "desc nestSingle",
+				MarkdownDescription: "desc singleNestedAttribute",
+				Description:         "desc singleNestedAttribute",
 				Attributes: map[string]dsschema.Attribute{
-					"nestedSingleAttr": dsschema.StringAttribute{
+					"singleNestedAttributeAttr": dsschema.StringAttribute{
 						Computed:            true,
-						MarkdownDescription: "desc nestedSingleAttr",
-						Description:         "desc nestedSingleAttr",
+						MarkdownDescription: "desc singleNestedAttributeAttr",
+						Description:         "desc singleNestedAttributeAttr",
 					},
 				},
 			},
-			"nestList": dsschema.ListNestedAttribute{
+			"listNestedAttribute": dsschema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "desc nestList",
-				Description:         "desc nestList",
+				MarkdownDescription: "desc listNestedAttribute",
+				Description:         "desc listNestedAttribute",
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
 						"nestedAttr": dsschema.StringAttribute{
@@ -211,10 +199,10 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 					},
 				},
 			},
-			"nestSet": dsschema.SetNestedAttribute{
+			"setNestedAttribute": dsschema.SetNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "desc nestSet",
-				Description:         "desc nestSet",
+				MarkdownDescription: "desc setNestedAttribute",
+				Description:         "desc setNestedAttribute",
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
 						"nestedAttr": dsschema.StringAttribute{
@@ -234,19 +222,6 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 				},
 			},
 		},
-		Blocks: map[string]dsschema.Block{
-			"nestBlock": dsschema.SetNestedBlock{
-				NestedObject: dsschema.NestedBlockObject{
-					Attributes: map[string]dsschema.Attribute{
-						"nestBlockAttr": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "desc nestBlockAttr",
-							Description:         "desc nestBlockAttr",
-						},
-					},
-				},
-			},
-		},
 	}
 
 	ds := conversion.DataSourceSchemaFromResource(s, &conversion.DataSourceSchemaRequest{
@@ -261,6 +236,191 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 			},
 			"attrDelete": nil,
 		},
+	})
+	assert.Equal(t, expected, ds)
+}
+
+func TestDataSourceSchemaFromResource_blocksToAttrs(t *testing.T) {
+	s := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"requiredAttrString": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttrString",
+			},
+			"attrString": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrString",
+			},
+		},
+		Blocks: map[string]schema.Block{
+			"setNestedBlock": schema.SetNestedBlock{
+				MarkdownDescription: "desc setNestedBlock",
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"setNestedBlockAttr": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc setNestedBlockAttr",
+						},
+					},
+					Blocks: map[string]schema.Block{
+						"bb 1": schema.SingleNestedBlock{
+							MarkdownDescription: "desc bb 1",
+							Attributes: map[string]schema.Attribute{
+								"bb attr 1": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "desc bb attr 1",
+								},
+							},
+						},
+					},
+				},
+			},
+			"listNestedBlock": schema.ListNestedBlock{
+				MarkdownDescription: "desc listNestedBlock",
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"listNestedBlockAttr": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "desc listNestedBlockAttr",
+						},
+					},
+					Blocks: map[string]schema.Block{
+						"bb 2": schema.ListNestedBlock{
+							MarkdownDescription: "desc bb 2",
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"bb attr 2": schema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "desc bb attr 2",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"singleNestedBlock": schema.SingleNestedBlock{
+				MarkdownDescription: "desc singleNestedBlock",
+				Attributes: map[string]schema.Attribute{
+					"nestattr": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "desc nestattr",
+					},
+				},
+				Blocks: map[string]schema.Block{
+					"bb 3": schema.ListNestedBlock{
+						MarkdownDescription: "desc bb 3",
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"bb attr 3": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "desc bb attr 3",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	expected := dsschema.Schema{
+		Attributes: map[string]dsschema.Attribute{
+			"requiredAttrString": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "desc requiredAttrString",
+				Description:         "desc requiredAttrString",
+			},
+			"attrString": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "desc attrString",
+				Description:         "desc attrString",
+			},
+			"setNestedBlock": dsschema.SetNestedAttribute{
+				Computed:            true,
+				Description:         "desc setNestedBlock",
+				MarkdownDescription: "desc setNestedBlock",
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: map[string]dsschema.Attribute{
+						"setNestedBlockAttr": dsschema.StringAttribute{
+							Computed:            true,
+							Description:         "desc setNestedBlockAttr",
+							MarkdownDescription: "desc setNestedBlockAttr",
+						},
+						"bb 1": dsschema.SingleNestedAttribute{
+							Computed:            true,
+							Description:         "desc bb 1",
+							MarkdownDescription: "desc bb 1",
+							Attributes: map[string]dsschema.Attribute{
+								"bb attr 1": dsschema.StringAttribute{
+									Computed:            true,
+									Description:         "desc bb attr 1",
+									MarkdownDescription: "desc bb attr 1",
+								},
+							},
+						},
+					},
+				},
+			},
+			"listNestedBlock": dsschema.ListNestedAttribute{
+				Computed:            true,
+				Description:         "desc listNestedBlock",
+				MarkdownDescription: "desc listNestedBlock",
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: map[string]dsschema.Attribute{
+						"listNestedBlockAttr": dsschema.StringAttribute{
+							Computed:            true,
+							Description:         "desc listNestedBlockAttr",
+							MarkdownDescription: "desc listNestedBlockAttr",
+						},
+						"bb 2": dsschema.ListNestedAttribute{
+							Computed:            true,
+							Description:         "desc bb 2",
+							MarkdownDescription: "desc bb 2",
+							NestedObject: dsschema.NestedAttributeObject{
+								Attributes: map[string]dsschema.Attribute{
+									"bb attr 2": dsschema.StringAttribute{
+										Computed:            true,
+										Description:         "desc bb attr 2",
+										MarkdownDescription: "desc bb attr 2",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"singleNestedBlock": dsschema.SingleNestedAttribute{
+				Computed:            true,
+				Description:         "desc singleNestedBlock",
+				MarkdownDescription: "desc singleNestedBlock",
+				Attributes: map[string]dsschema.Attribute{
+					"nestattr": dsschema.StringAttribute{
+						Computed:            true,
+						Description:         "desc nestattr",
+						MarkdownDescription: "desc nestattr",
+					},
+					"bb 3": dsschema.ListNestedAttribute{
+						Computed:            true,
+						Description:         "desc bb 3",
+						MarkdownDescription: "desc bb 3",
+						NestedObject: dsschema.NestedAttributeObject{
+							Attributes: map[string]dsschema.Attribute{
+								"bb attr 3": dsschema.StringAttribute{
+									Computed:            true,
+									Description:         "desc bb attr 3",
+									MarkdownDescription: "desc bb attr 3",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	ds := conversion.DataSourceSchemaFromResource(s, &conversion.DataSourceSchemaRequest{
+		RequiredFields: []string{"requiredAttrString"},
 	})
 	assert.Equal(t, expected, ds)
 }
@@ -284,6 +444,18 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 				Computed:            true,
 				Description:         "desc overridenString",
 				MarkdownDescription: "desc overridenString",
+			},
+		},
+		Blocks: map[string]schema.Block{
+			"nested": schema.ListNestedBlock{
+				MarkdownDescription: "desc nested",
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"nested attr": schema.StringAttribute{
+							MarkdownDescription: "desc nested attr",
+						},
+					},
+				},
 			},
 		},
 	}
@@ -325,6 +497,20 @@ func TestPluralDataSourceSchemaFromResource(t *testing.T) {
 							MarkdownDescription: "desc overridenString",
 							Validators: []validator.String{
 								stringvalidator.ConflictsWith(path.MatchRoot("otherAttr")),
+							},
+						},
+						"nested": dsschema.ListNestedAttribute{
+							Computed:            true,
+							Description:         "desc nested",
+							MarkdownDescription: "desc nested",
+							NestedObject: dsschema.NestedAttributeObject{
+								Attributes: map[string]dsschema.Attribute{
+									"nested attr": dsschema.StringAttribute{
+										Computed:            true,
+										Description:         "desc nested attr",
+										MarkdownDescription: "desc nested attr",
+									},
+								},
 							},
 						},
 					},
