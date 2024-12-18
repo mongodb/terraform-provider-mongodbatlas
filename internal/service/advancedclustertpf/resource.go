@@ -160,7 +160,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		}
 	}
 	if advConfigChanged {
-		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
+		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &plan, legacyAdvConfig, advConfig)
 		if diags.HasError() {
 			return
 		}
@@ -266,7 +266,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if diags.HasError() {
 		return nil
 	}
-	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
+	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, plan, legacyAdvConfig, advConfig)
 	if diags.HasError() {
 		return nil
 	}
@@ -290,7 +290,7 @@ func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, modelIn *
 	if diags.HasError() {
 		return nil
 	}
-	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, nil, nil)
+	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, modelIn, nil, nil)
 	if diags.HasError() {
 		return nil
 	}
@@ -460,7 +460,7 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 	if extraInfo.ForceLegacySchemaFailed { // can't create a model if legacy is forced but cluster does not support it
 		return nil, extraInfo
 	}
-	modelOut := NewTFModel(ctx, clusterResp, modelIn.Timeouts, diags, *extraInfo)
+	modelOut := NewTFModel(ctx, diags, clusterResp, modelIn, modelIn.Timeouts, *extraInfo)
 	if diags.HasError() {
 		return nil, nil
 	}
@@ -468,7 +468,7 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 	return modelOut, extraInfo
 }
 
-func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805) {
+func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model, plan *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805) {
 	api := client.AtlasV2.ClustersApi
 	api20240530 := client.AtlasV220240530.ClustersApi
 	projectID := model.ProjectID.ValueString()
@@ -488,5 +488,5 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 			return
 		}
 	}
-	AddAdvancedConfig(ctx, model, advConfig, legacyAdvConfig, diags)
+	AddAdvancedConfig(ctx, diags, model, plan, advConfig, legacyAdvConfig)
 }
