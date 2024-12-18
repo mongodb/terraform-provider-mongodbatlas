@@ -45,21 +45,24 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		VersionReleaseSystem:             conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
 	}
 }
-func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.BiConnector {
+
+func newBiConnector(ctx context.Context, input types.List, diags *diag.Diagnostics) *admin.BiConnector {
 	var resp *admin.BiConnector
-	if input.IsUnknown() || input.IsNull() {
+	if input.IsUnknown() || input.IsNull() || len(input.Elements()) == 0 {
 		return resp
 	}
-	item := &TFBiConnectorModel{}
-	if localDiags := input.As(ctx, item, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return resp
+	elements := make([]TFBiConnectorModel, len(input.Elements()))
+	diags.Append(input.ElementsAs(ctx, &elements, false)...)
+	if diags.HasError() {
+		return nil
 	}
+	item := elements[0]
 	return &admin.BiConnector{
 		Enabled:        conversion.NilForUnknown(item.Enabled, item.Enabled.ValueBoolPointer()),
 		ReadPreference: conversion.NilForUnknown(item.ReadPreference, item.ReadPreference.ValueStringPointer()),
 	}
 }
+
 func newComponentLabel(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ComponentLabel {
 	if input.IsUnknown() {
 		return nil
