@@ -70,15 +70,14 @@ func setMoveStateResponse(ctx context.Context, projectID, clusterName string, re
 				"delete": types.StringValue("30m"),
 			}),
 	}
-	input := &admin.ClusterDescription20240805{
+	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
 		GroupId: conversion.StringPtr(projectID),
 		Name:    conversion.StringPtr(clusterName),
-	}
-	model := NewTFModel(ctx, &resp.Diagnostics, input, nil, validTimeout, ExtraAPIInfo{})
+	}, validTimeout, &resp.Diagnostics, ExtraAPIInfo{})
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	AddAdvancedConfig(ctx, &resp.Diagnostics, model, nil, nil, nil)
+	AddAdvancedConfig(ctx, model, nil, nil, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}

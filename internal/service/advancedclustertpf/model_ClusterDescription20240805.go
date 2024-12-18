@@ -28,8 +28,8 @@ type ExtraAPIInfo struct {
 	ForceLegacySchemaFailed    bool
 }
 
-func NewTFModel(ctx context.Context, diags *diag.Diagnostics, input *admin.ClusterDescription20240805, plan *TFModel, timeout timeouts.Value, apiInfo ExtraAPIInfo) *TFModel {
-	biConnector := NewBiConnectorConfigObjType(ctx, diags, input.BiConnector, plan)
+func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
+	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, input.Labels, diags)
 	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, &apiInfo)
@@ -70,8 +70,8 @@ func NewTFModel(ctx context.Context, diags *diag.Diagnostics, input *admin.Clust
 	}
 }
 
-func NewBiConnectorConfigObjType(ctx context.Context, diags *diag.Diagnostics, input *admin.BiConnector, plan *TFModel) types.List {
-	if input == nil || (plan != nil && (plan.BiConnectorConfig.IsNull() || plan.BiConnectorConfig.IsUnknown())) {
+func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.List {
+	if input == nil {
 		return types.ListNull(BiConnectorConfigObjType)
 	}
 	tfModel := TFBiConnectorModel{

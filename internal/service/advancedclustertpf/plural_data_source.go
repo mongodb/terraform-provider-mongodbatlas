@@ -80,7 +80,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		if extraInfo.ForceLegacySchemaFailed {
 			continue
 		}
-		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil, nil)
+		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
 		if diags.HasError() {
 			return nil
 		}

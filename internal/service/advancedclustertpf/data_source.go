@@ -68,7 +68,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		diags.AddError("errorRead", "Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details.")
 		return nil
 	}
-	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil, nil)
+	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
 	if diags.HasError() {
 		return nil
 	}
