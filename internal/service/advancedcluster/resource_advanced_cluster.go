@@ -49,10 +49,12 @@ var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, De
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceCreate,
-		ReadWithoutTimeout:   resourceRead,
-		UpdateWithoutTimeout: resourceUpdateOrUpgrade,
-		DeleteWithoutTimeout: resourceDelete,
+		EnableLegacyTypeSystemApplyErrors: true,
+		EnableLegacyTypeSystemPlanErrors:  true,
+		CreateWithoutTimeout:              resourceCreate,
+		ReadWithoutTimeout:                resourceRead,
+		UpdateWithoutTimeout:              resourceUpdateOrUpgrade,
+		DeleteWithoutTimeout:              resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
