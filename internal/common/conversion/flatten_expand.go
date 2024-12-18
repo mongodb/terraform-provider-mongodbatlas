@@ -5,7 +5,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	adminPreview "github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
+	// TODO: replace usage with latest once cipher config changes are in prod
 )
 
 func FlattenLinks(links []admin.Link) []map[string]string {
@@ -20,18 +20,6 @@ func FlattenLinks(links []admin.Link) []map[string]string {
 }
 
 func FlattenTags(tags []admin.ResourceTag) []map[string]string {
-	ret := make([]map[string]string, len(tags))
-	for i, tag := range tags {
-		ret[i] = map[string]string{
-			"key":   tag.GetKey(),
-			"value": tag.GetValue(),
-		}
-	}
-	return ret
-}
-
-// TODO: remove once new SDK is available with cipher config changes
-func FlattenTagsPreview(tags []adminPreview.ResourceTag) []map[string]string {
 	ret := make([]map[string]string, len(tags))
 	for i, tag := range tags {
 		ret[i] = map[string]string{
@@ -61,20 +49,6 @@ func ExpandTagsFromSetSchema(d *schema.ResourceData) *[]admin.ResourceTag {
 	for i, item := range list.List() {
 		tag := item.(map[string]any)
 		ret[i] = admin.ResourceTag{
-			Key:   tag["key"].(string),
-			Value: tag["value"].(string),
-		}
-	}
-	return &ret
-}
-
-// TODO: remove once new SDK is available with cipher config changes
-func ExpandTagsFromSetSchemaPreview(d *schema.ResourceData) *[]adminPreview.ResourceTag {
-	list := d.Get("tags").(*schema.Set)
-	ret := make([]adminPreview.ResourceTag, list.Len())
-	for i, item := range list.List() {
-		tag := item.(map[string]any)
-		ret[i] = adminPreview.ResourceTag{
 			Key:   tag["key"].(string),
 			Value: tag["value"].(string),
 		}

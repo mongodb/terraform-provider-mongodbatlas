@@ -7,13 +7,12 @@ import (
 	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
-	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace SDK once cipher config changes are in prod
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -352,7 +351,7 @@ func PluralDataSource() *schema.Resource {
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview // TODO: replace with AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	projectID := d.Get("project_id").(string)
 	d.SetId(id.UniqueId())

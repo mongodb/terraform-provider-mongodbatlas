@@ -7,14 +7,11 @@ import (
 	"net/http"
 	"testing"
 
-	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
-	// "go.mongodb.org/atlas-sdk/v20241113003/mockadmin"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/mockadmin"
 
-	// admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/atlas-sdk-go/admin"     // TODO: replace usage with latest once cipher config changes are in prod
-	"github.com/mongodb/atlas-sdk-go/mockadmin" // TODO: replace usage with latest once cipher config changes are in prod
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

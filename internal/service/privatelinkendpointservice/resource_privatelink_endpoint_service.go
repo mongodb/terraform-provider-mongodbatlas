@@ -138,7 +138,6 @@ func Resource() *schema.Resource {
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	connV2Preview := meta.(*config.MongoDBClient).AtlasPreview //TODO: undo. replace usage with conn
 
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
@@ -190,7 +189,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2Preview.ClustersApi),
+		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      1 * time.Minute,
@@ -285,7 +284,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	connV2Preview := meta.(*config.MongoDBClient).AtlasPreview //TODO: undo. replace usage with conn
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -317,7 +315,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterConf := &retry.StateChangeConf{
 			Pending:    []string{"REPEATING", "PENDING"},
 			Target:     []string{"IDLE", "DELETED"},
-			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2Preview.ClustersApi),
+			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: 5 * time.Second,
 			Delay:      1 * time.Minute,

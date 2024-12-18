@@ -1,8 +1,7 @@
 package advancedclustertpf
 
 import (
-	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
-	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )

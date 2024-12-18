@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
-	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
@@ -52,7 +51,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pluralModel *TFModelPluralDS) *TFModelPluralDS {
 	projectID := pluralModel.ProjectID.ValueString()
 	useReplicationSpecPerShard := pluralModel.UseReplicationSpecPerShard.ValueBool()
-	api := d.Client.AtlasPreview.ClustersApi // TODO: undo
+	api := d.Client.AtlasV2.ClustersApi
 	params := admin.ListClustersApiParams{
 		GroupId: projectID,
 	}

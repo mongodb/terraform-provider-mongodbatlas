@@ -343,7 +343,7 @@ func DataSource() *schema.Resource {
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview // TODO: replace with AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)

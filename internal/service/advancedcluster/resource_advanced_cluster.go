@@ -14,13 +14,12 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
-	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace SDK once cipher config changes are in prod
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
@@ -428,9 +427,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
-	// TODO: replace usage with connV2 once cipher config changes are in prod
-	// connV2Preview := meta.(*config.MongoDBClient).AtlasPreview
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
 	var rootDiskSizeGB *float64
@@ -464,7 +461,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
-		params.Tags = conversion.ExpandTagsFromSetSchemaPreview(d)
+		params.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
 		params.MongoDBMajorVersion = conversion.StringPtr(FormatMongoDBMajorVersion(v.(string)))
@@ -600,9 +597,7 @@ func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	// TODO: replace usage with connV2 once cipher config changes are in prod
-	// connV2Preview := meta.(*config.MongoDBClient).AtlasPreview
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -844,7 +839,7 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 }
 
 func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -866,10 +861,7 @@ func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenan
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	// connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
-	// TODO: replace usage with connV2 once cipher config changes are in prod
-	// connV2Preview := meta.(*config.MongoDBClient).AtlasPreview
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -1069,7 +1061,7 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 	}
 
 	if d.HasChange("tags") {
-		cluster.Tags = conversion.ExpandTagsFromSetSchemaPreview(d)
+		cluster.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 
 	if d.HasChange("mongo_db_major_version") {
@@ -1163,7 +1155,7 @@ func updateRequestOldAPI(d *schema.ResourceData, clusterName string) (*admin2024
 	}
 
 	if d.HasChange("tags") {
-		cluster.Tags = convertTagsPtrToOldSDK(conversion.ExpandTagsFromSetSchemaPreview(d))
+		cluster.Tags = convertTagsPtrToOldSDK(conversion.ExpandTagsFromSetSchema(d))
 	}
 
 	if d.HasChange("mongo_db_major_version") {
@@ -1254,7 +1246,7 @@ func obtainChangeForDiskSizeGBInFirstRegion(d *schema.ResourceData) *float64 {
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]

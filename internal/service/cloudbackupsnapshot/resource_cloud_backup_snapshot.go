@@ -126,11 +126,10 @@ func Resource() *schema.Resource {
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	connV2Preview := meta.(*config.MongoDBClient).AtlasPreview // TODO: remove
 	groupID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2Preview, groupID, clusterName, 15*time.Minute)
+	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, groupID, clusterName, 15*time.Minute)
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.FromErr(err)
 	}

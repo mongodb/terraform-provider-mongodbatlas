@@ -2,9 +2,7 @@ package advancedclustertpf
 
 import (
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-
-	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
-	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func newLegacyModel(clusterDescription *admin.ClusterDescription20240805) *admin20240805.ClusterDescription20240805 {

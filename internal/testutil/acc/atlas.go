@@ -39,8 +39,7 @@ func createCluster(tb testing.TB, projectID, name string) string {
 	req := clusterReq(name, projectID)
 	_, _, err := ConnV2().ClustersApi.CreateCluster(context.Background(), projectID, &req).Execute()
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
-	// TODO: undo:
-	stateConf := advancedcluster.CreateStateChangeConfig(context.Background(), ConnPreview(), projectID, name, 1*time.Hour)
+	stateConf := advancedcluster.CreateStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(context.Background())
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 
@@ -52,8 +51,7 @@ func deleteCluster(projectID, name string) {
 	if err != nil {
 		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)
 	}
-	// TODO: undo:
-	stateConf := advancedcluster.DeleteStateChangeConfig(context.Background(), ConnPreview(), projectID, name, 1*time.Hour)
+	stateConf := advancedcluster.DeleteStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(context.Background())
 	if err != nil {
 		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)

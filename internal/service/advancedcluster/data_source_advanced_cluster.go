@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -281,8 +282,7 @@ func DataSource() *schema.Resource {
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	// TODO: replace SDK once cipher config changes are in prod
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)

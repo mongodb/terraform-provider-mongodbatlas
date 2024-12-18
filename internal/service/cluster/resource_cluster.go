@@ -12,13 +12,13 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -391,7 +391,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	var (
 		conn             = meta.(*config.MongoDBClient).Atlas
-		connV2           = meta.(*config.MongoDBClient).AtlasPreview // TODO: replace with AtlasV2
+		connV2           = meta.(*config.MongoDBClient).AtlasV2
 		connV220240530   = meta.(*config.MongoDBClient).AtlasV220240530
 		connV220240805   = meta.(*config.MongoDBClient).AtlasV220240805
 		projectID        = d.Get("project_id").(string)
@@ -627,7 +627,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview // TODO: replace with AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -833,7 +833,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var (
 		conn                = meta.(*config.MongoDBClient).Atlas
-		connV2              = meta.(*config.MongoDBClient).AtlasPreview // TODO: replace with AtlasV2
+		connV2              = meta.(*config.MongoDBClient).AtlasV2
 		connV220240805      = meta.(*config.MongoDBClient).AtlasV220240805
 		connV220240530      = meta.(*config.MongoDBClient).AtlasV220240530
 		ids                 = conversion.DecodeStateID(d.Id())
@@ -1101,7 +1101,7 @@ func didErrOnPausedCluster(err error) bool {
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview // TODO: replace with AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]

@@ -4,12 +4,10 @@ import (
 	"context"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	// "go.mongodb.org/atlas-sdk/v20241113003/admin"
-	"github.com/mongodb/atlas-sdk-go/admin" // TODO: replace usage with latest once cipher config changes are in prod
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
