@@ -61,7 +61,7 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 	}
 }
 func newComponentLabel(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ComponentLabel {
-	if input.IsUnknown() || input.IsNull() {
+	if input.IsUnknown() {
 		return nil
 	}
 	elements := make([]TFLabelsModel, len(input.Elements()))
@@ -110,7 +110,7 @@ func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
 }
 
 func newResourceTag(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ResourceTag {
-	if input.IsUnknown() || input.IsNull() {
+	if input.IsUnknown() {
 		return nil
 	}
 	elements := make([]TFTagsModel, len(input.Elements()))
