@@ -6,13 +6,11 @@ import (
 	"slices"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 const (

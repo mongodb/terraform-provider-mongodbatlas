@@ -7,12 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-
-	"github.com/stretchr/testify/require"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/stretchr/testify/require"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func createProject(tb testing.TB, name string) string {
@@ -39,6 +37,7 @@ func createCluster(tb testing.TB, projectID, name string) string {
 	req := clusterReq(name, projectID)
 	_, _, err := ConnV2().ClustersApi.CreateCluster(context.Background(), projectID, &req).Execute()
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
+
 	stateConf := advancedcluster.CreateStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(context.Background())
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)

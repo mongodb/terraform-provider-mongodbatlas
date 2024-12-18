@@ -1,9 +1,8 @@
 package advancedclustertpf
 
 import (
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func getTenantUpgradeRequest(state, patch *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {

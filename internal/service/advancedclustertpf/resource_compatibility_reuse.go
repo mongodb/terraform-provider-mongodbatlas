@@ -6,15 +6,13 @@ import (
 	"strconv"
 	"strings"
 
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/spf13/cast"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/spf13/cast"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 type MajorVersionOperator int

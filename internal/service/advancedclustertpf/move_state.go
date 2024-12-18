@@ -4,8 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -13,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func (r *rs) MoveState(context.Context) []resource.StateMover {

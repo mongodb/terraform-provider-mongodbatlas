@@ -7,13 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 var (
