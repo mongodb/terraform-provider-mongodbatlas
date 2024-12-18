@@ -115,9 +115,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	patchOptions := update.PatchOptions{
-		IgnoreInStatePrefix:  []string{"regionConfigs"},
-		IgnoreInStateSuffix:  []string{"id", "zoneId"}, // replication_spec.*.zone_id|id doesn't have to be included, the API will do its best to create a minimal change
-		IncludeInStateSuffix: []string{"diskIOPS"},
+		IgnoreInStatePrefix: []string{"regionConfigs"},
+		IgnoreInStateSuffix: []string{"id", "zoneId"}, // replication_spec.*.zone_id|id doesn't have to be included, the API will do its best to create a minimal change
 	}
 	specsChanged := AlignStateReplicationSpecsChanged(ctx, stateReq, planReq)
 	if specsChanged || isSchemaUpgrade || findNumShardsUpdates(ctx, &state, &plan, diags) != nil {

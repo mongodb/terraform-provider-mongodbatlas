@@ -6,12 +6,10 @@
    "regionConfigs": [
     {
      "analyticsSpecs": {
-      "diskIOPS": 3000,
       "instanceSize": "M10",
       "nodeCount": 0
      },
      "electableSpecs": {
-      "diskIOPS": 3000,
       "instanceSize": "M10",
       "nodeCount": 3
      },
