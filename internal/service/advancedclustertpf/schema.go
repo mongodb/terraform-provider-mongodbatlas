@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -32,23 +33,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/) for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.",
-			},
-			"bi_connector_config": schema.SingleNestedAttribute{
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster.",
-				Attributes: map[string]schema.Attribute{
-					"enabled": schema.BoolAttribute{
-						Computed:            true,
-						Optional:            true,
-						MarkdownDescription: "Flag that indicates whether MongoDB Connector for Business Intelligence is enabled on the specified cluster.",
-					},
-					"read_preference": schema.StringAttribute{
-						Computed:            true,
-						Optional:            true,
-						MarkdownDescription: "Data source node designated for the MongoDB Connector for Business Intelligence on MongoDB Cloud. The MongoDB Connector for Business Intelligence on MongoDB Cloud reads data from the primary, secondary, or analytics node based on your read preferences. Defaults to `ANALYTICS` node, or `SECONDARY` if there are no `ANALYTICS` nodes.",
-					},
-				},
 			},
 			"cluster_type": schema.StringAttribute{
 				Required:            true,
@@ -292,7 +276,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 			},
-			"advanced_configuration": AdvancedConfigurationSchema(ctx),
 			"pinned_fcv": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed. This operation can take several minutes as the request processes through the MongoDB data plane. Once FCV is unpinned it will not be possible to downgrade the `mongo_db_major_version`. It is advised that updates to `pinned_fcv` are done isolated from other cluster changes. If a plan contains multiple changes, the FCV change will be applied first. If FCV is unpinned past the expiration date the `pinned_fcv` attribute must be removed. The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) and [FCV documentation](https://www.mongodb.com/docs/atlas/tutorial/major-version-change/#manage-feature-compatibility--fcv--during-upgrades) can be referenced for more details.",
@@ -314,6 +297,105 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			}),
 		},
 		Blocks: map[string]schema.Block{
+			"advanced_configuration": schema.ListNestedBlock{
+				MarkdownDescription: "advanced_configuration", // TODO: add description
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(1),
+				},
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
+							Default:             int64default.StaticInt64(-1), // in case the user removes the value, we should set it to -1, a special value used by the backend to use its default behavior
+							PlanModifiers: []planmodifier.Int64{
+								PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
+							},
+						},
+						"default_write_concern": schema.StringAttribute{
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "Default level of acknowledgment requested from MongoDB for write operations when none is specified by the driver.",
+						},
+						"javascript_enabled": schema.BoolAttribute{
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "Flag that indicates whether the cluster allows execution of operations that perform server-side executions of JavaScript. When using 8.0+, we recommend disabling server-side JavaScript and using operators of aggregation pipeline as more performant alternative.",
+						},
+						"minimum_enabled_tls_protocol": schema.StringAttribute{
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.",
+						},
+						"no_table_scan": schema.BoolAttribute{
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "Flag that indicates whether the cluster disables executing any query that requires a collection scan to return results.",
+						},
+						"oplog_min_retention_hours": schema.Float64Attribute{
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.",
+						},
+						"oplog_size_mb": schema.Int64Attribute{
+							Computed: true,
+							Optional: true,
+							Validators: []validator.Int64{
+								int64validator.AtLeast(0),
+							},
+							MarkdownDescription: "Storage limit of cluster's oplog expressed in megabytes. A value of null indicates that the cluster uses the default oplog size that MongoDB Cloud calculates.",
+						},
+						"sample_refresh_interval_bi_connector": schema.Int64Attribute{
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "Interval in seconds at which the mongosqld process re-samples data to create its relational schema.",
+						},
+						"sample_size_bi_connector": schema.Int64Attribute{
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "Number of documents per database to sample when gathering schema information.",
+						},
+						"transaction_lifetime_limit_seconds": schema.Int64Attribute{
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
+						},
+						"default_read_concern": schema.StringAttribute{
+							DeprecationMessage:  DeprecationMsgOldSchema,
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "default_read_concern", // TODO: add description
+						},
+						"fail_index_key_too_long": schema.BoolAttribute{
+							DeprecationMessage:  DeprecationMsgOldSchema,
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "fail_index_key_too_long", // TODO: add description
+						},
+					},
+				},
+			},
+			"bi_connector_config": schema.ListNestedBlock{
+				MarkdownDescription: "Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster.",
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(1),
+				},
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"enabled": schema.BoolAttribute{
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "Flag that indicates whether MongoDB Connector for Business Intelligence is enabled on the specified cluster.",
+						},
+						"read_preference": schema.StringAttribute{
+							Computed:            true,
+							Optional:            true,
+							MarkdownDescription: "Data source node designated for the MongoDB Connector for Business Intelligence on MongoDB Cloud. The MongoDB Connector for Business Intelligence on MongoDB Cloud reads data from the primary, secondary, or analytics node based on your read preferences. Defaults to `ANALYTICS` node, or `SECONDARY` if there are no `ANALYTICS` nodes.",
+						},
+					},
+				},
+			},
 			"labels": schema.SetNestedBlock{
 				MarkdownDescription: "Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.",
 				NestedObject: schema.NestedBlockObject{
@@ -447,85 +529,6 @@ func SpecsSchema(markdownDescription string) schema.SingleNestedAttribute {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Number of nodes of the given type for MongoDB Cloud to deploy to the region.",
-			},
-		},
-	}
-}
-
-func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribute {
-	return schema.SingleNestedAttribute{
-		Computed:            true,
-		Optional:            true,
-		MarkdownDescription: "advanced_configuration", // TODO: add description
-		Attributes: map[string]schema.Attribute{
-			"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
-				Default:             int64default.StaticInt64(-1), // in case the user removes the value, we should set it to -1, a special value used by the backend to use its default behavior
-				PlanModifiers: []planmodifier.Int64{
-					PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
-				},
-			},
-			"default_write_concern": schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Default level of acknowledgment requested from MongoDB for write operations when none is specified by the driver.",
-			},
-			"javascript_enabled": schema.BoolAttribute{
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether the cluster allows execution of operations that perform server-side executions of JavaScript. When using 8.0+, we recommend disabling server-side JavaScript and using operators of aggregation pipeline as more performant alternative.",
-			},
-			"minimum_enabled_tls_protocol": schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.",
-			},
-			"no_table_scan": schema.BoolAttribute{
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether the cluster disables executing any query that requires a collection scan to return results.",
-			},
-			"oplog_min_retention_hours": schema.Float64Attribute{
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.",
-			},
-			"oplog_size_mb": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.Int64{
-					int64validator.AtLeast(0),
-				},
-				MarkdownDescription: "Storage limit of cluster's oplog expressed in megabytes. A value of null indicates that the cluster uses the default oplog size that MongoDB Cloud calculates.",
-			},
-			"sample_refresh_interval_bi_connector": schema.Int64Attribute{
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Interval in seconds at which the mongosqld process re-samples data to create its relational schema.",
-			},
-			"sample_size_bi_connector": schema.Int64Attribute{
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Number of documents per database to sample when gathering schema information.",
-			},
-			"transaction_lifetime_limit_seconds": schema.Int64Attribute{
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
-			},
-			"default_read_concern": schema.StringAttribute{
-				DeprecationMessage:  DeprecationMsgOldSchema,
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "default_read_concern", // TODO: add description
-			},
-			"fail_index_key_too_long": schema.BoolAttribute{
-				DeprecationMessage:  DeprecationMsgOldSchema,
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 			},
 		},
 	}
