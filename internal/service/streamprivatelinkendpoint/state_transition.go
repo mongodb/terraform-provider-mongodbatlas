@@ -23,7 +23,7 @@ func waitStateTransition(ctx context.Context, projectID, endpointID string, clie
 func WaitStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, endpointID string, client admin.StreamsApi) (*admin.StreamsPrivateLinkConnection, error) {
 	return waitStateTransitionForStates(
 		ctx,
-		[]string{retrystrategy.RetryStrategyIdleState},
+		[]string{retrystrategy.RetryStrategyIdleState, retrystrategy.RetryStrategyWorkingState},
 		[]string{retrystrategy.RetryStrategyDoneState, retrystrategy.RetryStrategyFailedState},
 		minTimeout, projectID, endpointID, client)
 }

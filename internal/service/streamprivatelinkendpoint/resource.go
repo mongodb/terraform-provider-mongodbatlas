@@ -69,6 +69,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if err != nil {
 		resp.Diagnostics.AddError("error when waiting for status transition in creation", err.Error())
 		return
+		//TODO: delete if created
 	}
 
 	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, projectID, finalResp)
