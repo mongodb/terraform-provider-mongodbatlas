@@ -80,18 +80,14 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		if diags.HasError() {
 			return nil
 		}
-		if extraInfo.AsymmetricShardUnsupported && !useReplicationSpecPerShard {
+		if extraInfo.ForceLegacySchemaFailed {
 			continue
 		}
 		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
 		if diags.HasError() {
 			return nil
 		}
-		modelOutDS, err := conversion.CopyModel[TFModelDS](modelOut)
-		if err != nil {
-			diags.AddError(errorList, fmt.Sprintf("error setting model: %s", err.Error()))
-			return nil
-		}
+		modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
 		modelOutDS.UseReplicationSpecPerShard = pluralModel.UseReplicationSpecPerShard // attrs not in resource model
 		outs.Results = append(outs.Results, modelOutDS)
 	}

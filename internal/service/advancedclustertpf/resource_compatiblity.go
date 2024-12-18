@@ -45,16 +45,16 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 
 func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, forceLegacySchema bool) *ExtraAPIInfo {
 	var (
-		api20240530                = client.AtlasV220240530.ClustersApi
-		rootDiskSize               = conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
-		projectID                  = plan.ProjectID.ValueString()
-		clusterName                = plan.Name.ValueString()
-		asymmetricShardUnsupported = false
+		api20240530             = client.AtlasV220240530.ClustersApi
+		rootDiskSize            = conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
+		projectID               = plan.ProjectID.ValueString()
+		clusterName             = plan.Name.ValueString()
+		forceLegacySchemaFailed = false
 	)
 	clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
-			asymmetricShardUnsupported = true
+			forceLegacySchemaFailed = forceLegacySchema
 		} else {
 			diags.AddError("errorRead", fmt.Sprintf("error reading advanced cluster with 2024-05-30 API (%s): %s", clusterName, err))
 			return nil
@@ -72,7 +72,7 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 		ContainerIDs:               containerIDs,
 		RootDiskSize:               rootDiskSize,
 		ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
-		AsymmetricShardUnsupported: asymmetricShardUnsupported,
+		ForceLegacySchemaFailed:    forceLegacySchemaFailed,
 	}
 	if forceLegacySchema {
 		info.UsingLegacySchema = true

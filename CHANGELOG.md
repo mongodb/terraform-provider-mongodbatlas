@@ -1,17 +1,16 @@
 ## (Unreleased)
 
-NOTES:
-
-* data-source/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
-* data-source/mongodbatlas_advanced_clusters: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
-* resource/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
+## 1.23.0 (December 17, 2024)
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_advanced_cluster: Adds `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
 * data-source/mongodbatlas_advanced_cluster: Adds `pinned_fcv` attribute ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
+* data-source/mongodbatlas_advanced_clusters: Adds `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
 * data-source/mongodbatlas_advanced_clusters: Adds `pinned_fcv` attribute ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
 * data-source/mongodbatlas_cluster: Adds `pinned_fcv` attribute ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
 * data-source/mongodbatlas_clusters: Adds `pinned_fcv` attribute ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
+* resource/mongodbatlas_advanced_cluster: Adds `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
 * resource/mongodbatlas_advanced_cluster: Adds `pinned_fcv` attribute ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
 * resource/mongodbatlas_advanced_cluster: Adjusts create operation to support cluster tier auto scaling per shard. ([#2836](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2836))
 * resource/mongodbatlas_advanced_cluster: Adjusts update operation to support cluster tier auto scaling per shard. ([#2814](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2814))
