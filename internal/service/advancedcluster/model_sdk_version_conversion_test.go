@@ -3,13 +3,11 @@ package advancedcluster_test
 import (
 	"testing"
 
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/stretchr/testify/assert"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func TestConvertClusterDescription20241023to20240805(t *testing.T) {

@@ -3,11 +3,9 @@ package advancedcluster_test
 import (
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func TestAddIDsToReplicationSpecs(t *testing.T) {

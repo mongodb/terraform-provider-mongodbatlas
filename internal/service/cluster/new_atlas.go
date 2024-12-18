@@ -4,10 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.APIClient, connV220240805 *admin20240805.APIClient, projectID, clusterName string, redactClientLogData bool) error {

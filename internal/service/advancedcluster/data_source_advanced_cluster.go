@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
