@@ -374,7 +374,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			"disk_size_gb":                         GetDiskSizeGBFromReplicationSpec(cluster),
 			"encryption_at_rest_provider":          cluster.GetEncryptionAtRestProvider(),
 			"labels":                               flattenLabels(cluster.GetLabels()),
-			"tags":                                 conversion.FlattenTags(cluster.GetTags()), // TODO: undo
+			"tags":                                 conversion.FlattenTags(cluster.GetTags()),
 			"mongo_db_major_version":               cluster.GetMongoDBMajorVersion(),
 			"mongo_db_version":                     cluster.GetMongoDBVersion(),
 			"name":                                 cluster.GetName(),
