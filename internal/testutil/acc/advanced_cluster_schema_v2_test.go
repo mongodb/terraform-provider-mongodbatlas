@@ -152,30 +152,33 @@ func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
 				cluster_type = "SHARDED"
 
 
-
-
-
-
-
-
 				
-				labels = [{
-					key   = "Key Label 1"
-					value = "Value Label 1"
-  			}, {
-					key   = "Key Label 2"
-					value = "Value Label 2"
-  			}, {
-					key   = "Key Label 3"
-					value = "Value Label 3"
-  			}]
-				tags = [{
+ 				tags {
 					key   = "Key Tag 2"
 					value = "Value Tag 2"
-  			}, {
+  			}
+
+ 				labels {
+					key   = "Key Label 1"
+					value = "Value Label 1"
+  			}
+
+				tags {
 					key   = "Key Tag 1"
 					value = "Value Tag 1"
-  			}]
+			  }
+
+ 				labels {
+					key   = "Key Label 2"
+					value = "Value Label 2"
+  			}
+
+ 				labels {
+					key   = "Key Label 3"
+					value = "Value Label 3"
+  			}
+
+
 				replication_specs = [{
 						region_configs = [{
 							analytics_specs = {

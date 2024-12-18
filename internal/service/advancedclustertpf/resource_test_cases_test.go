@@ -337,14 +337,14 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 		enabled = true
 	}
 	# config_server_management_mode = "ATLAS_MANAGED" UNSTABLE: After applying this test step, the non-refresh plan was not empty
-	labels = [{
+	labels {
 		key   = "env"
 		value = "test"
-	}]
-	tags = [{
+	}
+	tags {
 		key   = "env"
 		value = "test"
-	}]
+	}
 	mongo_db_major_version = "8.0"
 	pit_enabled = true
 	redact_client_log_data = true
