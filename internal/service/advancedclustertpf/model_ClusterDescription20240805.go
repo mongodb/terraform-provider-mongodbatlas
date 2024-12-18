@@ -71,11 +71,11 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 }
 
 func restrictResourceModel(modelOut, modelIn *TFModel) {
-	if modelIn.AdvancedConfiguration.IsNull() || modelIn.AdvancedConfiguration.IsUnknown() {
-		modelOut.AdvancedConfiguration = types.ListNull(AdvancedConfigurationObjType)
+	if modelIn.AdvancedConfiguration.IsNull() {
+		modelOut.AdvancedConfiguration = modelIn.AdvancedConfiguration
 	}
-	if modelIn.BiConnectorConfig.IsNull() || modelIn.BiConnectorConfig.IsUnknown() {
-		modelOut.BiConnectorConfig = types.ListNull(BiConnectorConfigObjType)
+	if modelIn.BiConnectorConfig.IsNull() {
+		modelOut.BiConnectorConfig = modelIn.BiConnectorConfig
 	}
 }
 
