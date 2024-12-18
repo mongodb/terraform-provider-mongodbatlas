@@ -35,7 +35,8 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	var (
-		projectID    = acc.ProjectIDExecution(t)
+		// need specific projectID because feature is currently under a Feature flag
+		projectID    = os.Getenv("MONGODB_ATLAS_STREAM_AWS_PL_PROJECT_ID")
 		provider     = "AWS"
 		region       = "us-east-1"
 		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
@@ -66,7 +67,8 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	var (
-		projectID    = acc.ProjectIDExecution(t)
+		// need specific projectID because feature is currently under a Feature flag
+		projectID    = os.Getenv("MONGODB_ATLAS_STREAM_AWS_PL_PROJECT_ID")
 		provider     = "AWS"
 		region       = "us-east-1"
 		vendor       = "CONFLUENT"
