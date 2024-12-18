@@ -328,6 +328,7 @@ jobs:
             - 'internal/service/streamconnection/*.go'
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamprocessor/*.go'
+            - 'internal/service/streamprivatelinkendpoint/*.go'
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
