@@ -263,12 +263,12 @@ func TestDataSourceSchemaFromResource_blocksToAttrs(t *testing.T) {
 						},
 					},
 					Blocks: map[string]schema.Block{
-						"block block 1": schema.SingleNestedBlock{
-							MarkdownDescription: "desc block block 1",
+						"bb 1": schema.SingleNestedBlock{
+							MarkdownDescription: "desc bb 1",
 							Attributes: map[string]schema.Attribute{
-								"block block attr 1": schema.StringAttribute{
+								"bb attr 1": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "desc block block attr 1",
+									MarkdownDescription: "desc bb attr 1",
 								},
 							},
 						},
@@ -285,13 +285,13 @@ func TestDataSourceSchemaFromResource_blocksToAttrs(t *testing.T) {
 						},
 					},
 					Blocks: map[string]schema.Block{
-						"block block 2": schema.ListNestedBlock{
-							MarkdownDescription: "desc block block 2",
+						"bb 2": schema.ListNestedBlock{
+							MarkdownDescription: "desc bb 2",
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
-									"block block attr 2": schema.StringAttribute{
+									"bb attr 2": schema.StringAttribute{
 										Computed:            true,
-										MarkdownDescription: "desc block block attr 2",
+										MarkdownDescription: "desc bb attr 2",
 									},
 								},
 							},
@@ -308,13 +308,13 @@ func TestDataSourceSchemaFromResource_blocksToAttrs(t *testing.T) {
 					},
 				},
 				Blocks: map[string]schema.Block{
-					"block block 3": schema.ListNestedBlock{
-						MarkdownDescription: "desc block block 3",
+					"bb 3": schema.ListNestedBlock{
+						MarkdownDescription: "desc bb 3",
 						NestedObject: schema.NestedBlockObject{
 							Attributes: map[string]schema.Attribute{
-								"block block attr 3": schema.StringAttribute{
+								"bb attr 3": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "desc block block attr 3",
+									MarkdownDescription: "desc bb attr 3",
 								},
 							},
 						},
@@ -347,15 +347,15 @@ func TestDataSourceSchemaFromResource_blocksToAttrs(t *testing.T) {
 							Description:         "desc setNestedBlockAttr",
 							MarkdownDescription: "desc setNestedBlockAttr",
 						},
-						"block block 1": dsschema.SingleNestedAttribute{
+						"bb 1": dsschema.SingleNestedAttribute{
 							Computed:            true,
-							Description:         "desc block block 1",
-							MarkdownDescription: "desc block block 1",
+							Description:         "desc bb 1",
+							MarkdownDescription: "desc bb 1",
 							Attributes: map[string]dsschema.Attribute{
-								"block block attr 1": dsschema.StringAttribute{
+								"bb attr 1": dsschema.StringAttribute{
 									Computed:            true,
-									Description:         "desc block block attr 1",
-									MarkdownDescription: "desc block block attr 1",
+									Description:         "desc bb attr 1",
+									MarkdownDescription: "desc bb attr 1",
 								},
 							},
 						},
@@ -373,16 +373,16 @@ func TestDataSourceSchemaFromResource_blocksToAttrs(t *testing.T) {
 							Description:         "desc listNestedBlockAttr",
 							MarkdownDescription: "desc listNestedBlockAttr",
 						},
-						"block block 2": dsschema.ListNestedAttribute{
+						"bb 2": dsschema.ListNestedAttribute{
 							Computed:            true,
-							Description:         "desc block block 2",
-							MarkdownDescription: "desc block block 2",
+							Description:         "desc bb 2",
+							MarkdownDescription: "desc bb 2",
 							NestedObject: dsschema.NestedAttributeObject{
 								Attributes: map[string]dsschema.Attribute{
-									"block block attr 2": dsschema.StringAttribute{
+									"bb attr 2": dsschema.StringAttribute{
 										Computed:            true,
-										Description:         "desc block block attr 2",
-										MarkdownDescription: "desc block block attr 2",
+										Description:         "desc bb attr 2",
+										MarkdownDescription: "desc bb attr 2",
 									},
 								},
 							},
@@ -400,16 +400,16 @@ func TestDataSourceSchemaFromResource_blocksToAttrs(t *testing.T) {
 						Description:         "desc nestattr",
 						MarkdownDescription: "desc nestattr",
 					},
-					"block block 3": dsschema.ListNestedAttribute{
+					"bb 3": dsschema.ListNestedAttribute{
 						Computed:            true,
-						Description:         "desc block block 3",
-						MarkdownDescription: "desc block block 3",
+						Description:         "desc bb 3",
+						MarkdownDescription: "desc bb 3",
 						NestedObject: dsschema.NestedAttributeObject{
 							Attributes: map[string]dsschema.Attribute{
-								"block block attr 3": dsschema.StringAttribute{
+								"bb attr 3": dsschema.StringAttribute{
 									Computed:            true,
-									Description:         "desc block block attr 3",
-									MarkdownDescription: "desc block block attr 3",
+									Description:         "desc bb attr 3",
+									MarkdownDescription: "desc bb attr 3",
 								},
 							},
 						},
