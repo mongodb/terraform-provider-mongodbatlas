@@ -1,7 +1,6 @@
 {
  "replicationSpecs": [
   {
-   "id": "67587cae27216120d54106e0",
    "numShards": 2,
    "regionConfigs": [
     {
