@@ -1,17 +1,14 @@
 {
  "replicationSpecs": [
   {
-   "id": "67587cae27216120d54106e0",
    "numShards": 2,
    "regionConfigs": [
     {
      "analyticsSpecs": {
-      "diskIOPS": 3000,
       "instanceSize": "M20",
       "nodeCount": 1
      },
      "electableSpecs": {
-      "diskIOPS": 3000,
       "instanceSize": "M10",
       "nodeCount": 3
      },
@@ -21,7 +18,6 @@
     },
     {
      "electableSpecs": {
-      "diskIOPS": 3500,
       "instanceSize": "M10",
       "nodeCount": 2
      },

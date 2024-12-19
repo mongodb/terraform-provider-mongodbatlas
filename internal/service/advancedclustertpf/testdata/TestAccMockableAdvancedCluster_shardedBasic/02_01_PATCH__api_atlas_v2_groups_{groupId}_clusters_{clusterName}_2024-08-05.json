@@ -1,7 +1,6 @@
 {
  "replicationSpecs": [
   {
-   "id": "675bf94c216ed3746c09fc5d",
    "regionConfigs": [
     {
      "analyticsSpecs": {
@@ -27,11 +26,9 @@
      "regionName": "EU_WEST_1"
     }
    ],
-   "zoneId": "675bf94c216ed3746c09fc5b",
    "zoneName": "ZoneName managed by Terraform"
   },
   {
-   "id": "675bf94c216ed3746c09fc5f",
    "regionConfigs": [
     {
      "analyticsSpecs": {
@@ -57,7 +54,6 @@
      "regionName": "EU_WEST_1"
     }
    ],
-   "zoneId": "675bf94c216ed3746c09fc5b",
    "zoneName": "ZoneName managed by Terraform"
   }
  ]
