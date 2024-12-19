@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -172,13 +171,13 @@ func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec20240
 }
 
 // copied from advancedcluster/resource_update_logic.go
-func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2ClusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20240805) (*[]admin.ReplicationSpec20240805, diag.Diagnostics) {
+func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2ClusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20240805) (*[]admin.ReplicationSpec20240805, error) {
 	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
 		return replicationSpecs, nil
 	}
 	cluster, _, err := connV2ClusterAPI.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return nil, diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		return nil, err
 	}
 
 	zoneToReplicationSpecsIDs := groupIDsByZone(cluster.GetReplicationSpecs())
