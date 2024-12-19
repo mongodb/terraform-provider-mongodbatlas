@@ -85,7 +85,7 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, false),
 			},
 			{
-				Config:      configBasic(projectID, provider, region, vendor, true),
+				Config:      configConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, true),
 				ExpectError: regexp.MustCompile(`Operation not supported`),
 			},
 		},
