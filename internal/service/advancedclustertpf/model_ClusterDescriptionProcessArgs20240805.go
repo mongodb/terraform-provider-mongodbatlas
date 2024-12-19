@@ -46,7 +46,7 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 			TransactionLifetimeLimitSeconds:  types.Int64Value(conversion.SafeValue(input.TransactionLifetimeLimitSeconds)),
 		}
 	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)
+	listType, diagsLocal := types.ListValueFrom(ctx, AdvancedConfigurationObjType, []TFAdvancedConfigurationModel{advancedConfig})
 	diags.Append(diagsLocal...)
-	tfModel.AdvancedConfiguration = objType
+	tfModel.AdvancedConfiguration = listType
 }
