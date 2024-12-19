@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -36,10 +37,12 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 
 	var (
 		// need specific projectID because feature is currently under a Feature flag
-		projectID    = os.Getenv("MONGODB_ATLAS_STREAM_AWS_PL_PROJECT_ID")
-		provider     = "AWS"
-		region       = "us-east-1"
-		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
+		projectID           = os.Getenv("MONGODB_ATLAS_STREAM_AWS_PL_PROJECT_ID")
+		provider            = "AWS"
+		region              = "us-east-1"
+		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
+		networkID           = "n-dz0vk2"
+		privatelinkAccessID = "pla-km26gn"
 	)
 
 	return &resource.TestCase{
@@ -49,11 +52,11 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, true),
+				Config: getCompleteConfluentConfig(true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
 				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, false),
 			},
 			{
-				Config:            configBasic(projectID, provider, region, vendor, true),
+				Config:            getCompleteConfluentConfig(true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -81,11 +84,11 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, false),
+				Config: configNewConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, false),
 				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, false),
 			},
 			{
-				Config:      configConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, true),
+				Config:      configNewConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, true),
 				ExpectError: regexp.MustCompile(`Operation not supported`),
 			},
 		},
@@ -135,7 +138,7 @@ func configBasic(projectID, provider, region, vendor string, withDNSSubdomains b
 	}`, projectID, provider, region, vendor, dnsSubDomainConfig)
 }
 
-func configConfluentDedicatedCluster(provider, region, awsAccountID string) string {
+func configNewConfluentDedicatedCluster(provider, region, awsAccountID string) string {
 	return fmt.Sprintf(`
 	%[1]s
 
@@ -148,7 +151,7 @@ func configConfluentDedicatedCluster(provider, region, awsAccountID string) stri
 		cloud            = %[2]q
 		region           = %[3]q
 		connection_types = ["PRIVATELINK"]
-		zones            = ["use1-az1", "use1-az4", "use1-az6"]
+		zones            = ["use1-az1", "use1-az2", "use1-az4"]
 		environment {
 			id = data.confluent_environment.default_environment.id
 		}
@@ -185,6 +188,38 @@ func configConfluentDedicatedCluster(provider, region, awsAccountID string) stri
 			id = confluent_network.private-link.id
 		}
 	}`, acc.ConfigConfluentProvider(), provider, region, awsAccountID)
+}
+
+func configDataConfluentDedicatedCluster(networkID, privatelinkAccessID string) string {
+	return fmt.Sprintf(`
+	%[1]s
+
+	data "confluent_environment" "default_environment" {
+  		display_name = "default"
+	}
+
+	data "confluent_network" "private-link" {
+		id     = %[2]q
+		environment {
+			id = data.confluent_environment.default_environment.id
+		}
+	}
+
+	data "confluent_private_link_access" "aws" {
+		id = %[3]q
+		environment {
+			id = data.confluent_environment.default_environment.id
+		}
+	}`, acc.ConfigConfluentProvider(), networkID, privatelinkAccessID)
+}
+
+func getCompleteConfluentConfig(usesExistingConfluentCluster bool, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID string) string {
+	if usesExistingConfluentCluster {
+		configBasicUsingDatasources := strings.ReplaceAll(configBasic(projectID, provider, region, vendor, true), "confluent_network.private-link", "data.confluent_network.private-link")
+		configBasicUsingDatasourcesWithoutDependsOnCluster := strings.ReplaceAll(configBasicUsingDatasources, "confluent_kafka_cluster.dedicated", "")
+		return configDataConfluentDedicatedCluster(networkID, privatelinkAccessID) + configBasicUsingDatasourcesWithoutDependsOnCluster
+	}
+	return configNewConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, true)
 }
 
 func checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor string, dnsSubdomainsCheck bool) resource.TestCheckFunc {
