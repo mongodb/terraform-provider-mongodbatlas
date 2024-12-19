@@ -70,17 +70,17 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 	}
 }
 
-func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.Object {
+func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.List {
 	if input == nil {
-		return types.ObjectNull(BiConnectorConfigObjType.AttrTypes)
+		return types.ListNull(BiConnectorConfigObjType)
 	}
 	tfModel := TFBiConnectorModel{
 		Enabled:        types.BoolValue(conversion.SafeValue(input.Enabled)),
 		ReadPreference: types.StringValue(conversion.SafeValue(input.ReadPreference)),
 	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, BiConnectorConfigObjType.AttrTypes, tfModel)
+	listType, diagsLocal := types.ListValueFrom(ctx, BiConnectorConfigObjType, []TFBiConnectorModel{tfModel})
 	diags.Append(diagsLocal...)
-	return objType
+	return listType
 }
 
 func NewConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnectionStrings, diags *diag.Diagnostics) types.Object {

@@ -14,18 +14,18 @@ func TestConvertToSchemaV2AttrsMapAndAttrsSet(t *testing.T) {
 		t.Skip("Skipping test as not in AdvancedClusterV2Schema")
 	}
 	attrsMap := map[string]string{
-		"attr":                            "val1",
-		"electable_specs.0":               "val2",
-		"prefixbi_connector_config.0":     "val3",
-		"advanced_configuration.0postfix": "val4",
-		"electable_specs.0advanced_configuration.0bi_connector_config.0": "val5",
+		"attr":                     "val1",
+		"electable_specs.0":        "val2",
+		"prefixauto_scaling.0":     "val3",
+		"electable_specs.0postfix": "val4",
+		"electable_specs.0auto_scaling.0auto_scaling.0": "val5",
 	}
 	expectedMap := map[string]string{
-		"attr":                          "val1",
-		"electable_specs":               "val2",
-		"prefixbi_connector_config":     "val3",
-		"advanced_configurationpostfix": "val4",
-		"electable_specsadvanced_configurationbi_connector_config": "val5",
+		"attr":                   "val1",
+		"electable_specs":        "val2",
+		"prefixauto_scaling":     "val3",
+		"electable_specspostfix": "val4",
+		"electable_specsauto_scalingauto_scaling": "val5",
 	}
 	actualMap := acc.ConvertToSchemaV2AttrsMap(true, attrsMap)
 	assert.Equal(t, expectedMap, actualMap)
@@ -178,7 +178,22 @@ func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
 					value = "Value Label 3"
   			}
 
+				advanced_configuration  {
+					fail_index_key_too_long              = false
+					javascript_enabled                   = true
+					minimum_enabled_tls_protocol         = "TLS1_1"
+					no_table_scan                        = false
+					oplog_size_mb                        = 1000
+					sample_size_bi_connector			 = 110
+					sample_refresh_interval_bi_connector = 310
+			    transaction_lifetime_limit_seconds   = 300  
+			    change_stream_options_pre_and_post_images_expire_after_seconds = 100
+				}
 
+				bi_connector_config {
+ 					enabled         = true
+  				read_preference = "secondary"
+				}
 				replication_specs = [{
 						region_configs = [{
 							analytics_specs = {
@@ -221,21 +236,6 @@ func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
 							region_name   = "EU_WEST_1"
 						}]
 					}]
-				advanced_configuration = {
-			    change_stream_options_pre_and_post_images_expire_after_seconds = 100
-					fail_index_key_too_long              = false
-					javascript_enabled                   = true
-					minimum_enabled_tls_protocol         = "TLS1_1"
-					no_table_scan                        = false
-					oplog_size_mb                        = 1000
-					sample_refresh_interval_bi_connector = 310
-					sample_size_bi_connector			 = 110
-			    transaction_lifetime_limit_seconds   = 300  
-				}
-				bi_connector_config = {
- 					enabled         = true
-  				read_preference = "secondary"
-				}
 			}
  		`
 	)
