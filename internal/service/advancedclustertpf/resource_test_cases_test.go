@@ -328,7 +328,6 @@ func checksTenantUpgraded(projectID, name string) resource.TestCheckFunc {
 
 func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 	t.Helper()
-	t.Skip() // TODO: Import failing
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -389,7 +388,8 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
 				),
 			},
-			acc.TestStepImportCluster(resourceName),
+			// These ignored fields are blocks so can't be included if not in the config
+			acc.TestStepImportCluster(resourceName, "advanced_configuration", "bi_connector_config"),
 		},
 	}
 }
