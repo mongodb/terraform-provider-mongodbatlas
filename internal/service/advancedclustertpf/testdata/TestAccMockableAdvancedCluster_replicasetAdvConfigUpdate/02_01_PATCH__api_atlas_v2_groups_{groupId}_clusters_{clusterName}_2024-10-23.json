@@ -1,7 +1,8 @@
 {
  "backupEnabled": true,
  "biConnector": {
-  "enabled": true
+  "enabled": true,
+  "readPreference": "secondary"
  },
  "labels": [
   {
