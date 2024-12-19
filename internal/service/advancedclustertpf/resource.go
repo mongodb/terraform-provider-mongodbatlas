@@ -109,7 +109,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	isSchemaUpgrade := stateUsingLegacy && !planUsingLegacy
-	stateReq := normalizeFromTFModel(ctx, &state, diags, isSchemaUpgrade)
+	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
 	planReq := normalizeFromTFModel(ctx, &plan, diags, isSchemaUpgrade)
 	if diags.HasError() {
 		return
@@ -118,11 +118,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		IgnoreInStatePrefix: []string{"regionConfigs"},
 		IgnoreInStateSuffix: []string{"id", "zoneId"}, // replication_spec.*.zone_id|id doesn't have to be included, the API will do its best to create a minimal change
 	}
-	specsChanged := AlignStateReplicationSpecsChanged(ctx, stateReq, planReq)
-	if specsChanged || isSchemaUpgrade || findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
+	if findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
 		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
-		// specsAligned, can happen when a spec is removed and then the remaining specs will seem unchanged
-		// isSchemaUpgrade will have no changes by default after flattening
 		// `num_shards` updates is only in the legacy ClusterDescription
 		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
 	}
