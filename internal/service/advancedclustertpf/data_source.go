@@ -14,6 +14,14 @@ import (
 var _ datasource.DataSource = &ds{}
 var _ datasource.DataSourceWithConfigure = &ds{}
 
+const (
+	errorReadDatasource                 = "Error reading  advanced cluster datasource"
+	errorReadDatasourceAsymmetric       = "Error reading  advanced cluster datasource"
+	errorReadDatasourceAsymmetricDetail = "Cluster name %s. Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details."
+	errorConvertModel                   = "Error converting model"
+	errorConvertModelDetail             = "Cluster name %s. Error setting model Resource->Datasource: %s"
+)
+
 func DataSource() datasource.DataSource {
 	return &ds{
 		DSCommon: config.DSCommon{
@@ -53,7 +61,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
 			return nil
 		}
-		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
+		diags.AddError(errorReadDatasource, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
 	modelIn := &TFModel{
@@ -65,7 +73,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	if extraInfo.AsymmetricShardUnsupported && !useReplicationSpecPerShard {
-		diags.AddError("errorRead", "Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details.")
+		diags.AddError(errorReadDatasourceAsymmetric, fmt.Sprintf(errorReadDatasourceAsymmetricDetail, clusterName))
 		return nil
 	}
 	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
@@ -74,7 +82,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 	}
 	modelOutDS, err := conversion.CopyModel[TFModelDS](modelOut)
 	if err != nil {
-		diags.AddError(errorRead, fmt.Sprintf("error setting model: %s", err.Error()))
+		diags.AddError(errorConvertModel, fmt.Sprintf(errorConvertModelDetail, clusterName, err.Error()))
 		return nil
 	}
 	modelOutDS.UseReplicationSpecPerShard = modelDS.UseReplicationSpecPerShard // attrs not in resource model
