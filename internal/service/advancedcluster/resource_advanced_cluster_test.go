@@ -2227,9 +2227,10 @@ func checkGeoShardedNewSchema(isAcc, includeThirdShardInFirstZone bool) resource
 		amtOfReplicationSpecs = 2
 	}
 	clusterChecks := map[string]string{
-		"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
+		"replication_specs.#":                fmt.Sprintf("%d", amtOfReplicationSpecs),
+		"replication_specs.0.container_id.%": "1",
+		"replication_specs.1.container_id.%": "1",
 	}
-
 	return checkAggr(isAcc, []string{}, clusterChecks)
 }
 
