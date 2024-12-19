@@ -166,7 +166,7 @@ func selectContainerIDs(spec *admin.ReplicationSpec20240805, allIDs map[string]s
 		providerName := regionConfig.GetProviderName()
 		key := containerIDKey(providerName, regionConfig.GetRegionName())
 		value := allIDs[key]
-		// Should be no hard failure if not found, as it is not required for TENANT
+		// Should be no hard failure if not found, as it is not required for TENANT, error responsibility in resolveContainerIDs
 		if value == "" {
 			continue
 		}
