@@ -391,7 +391,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var (
 		conn             = meta.(*config.MongoDBClient).Atlas
 		connV2           = meta.(*config.MongoDBClient).AtlasV2
-		connV220240805   = meta.(*config.MongoDBClient).AtlasV220240805
 		projectID        = d.Get("project_id").(string)
 		clusterName      = d.Get("name").(string)
 		providerName     = d.Get("provider_name").(string)
@@ -594,7 +593,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if v, ok := d.GetOk("redact_client_log_data"); ok {
-		if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutCreate), connV2, connV220240805, projectID, clusterName, v.(bool)); err != nil {
+		if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutCreate), connV2, projectID, clusterName, v.(bool)); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 	}
@@ -823,7 +822,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var (
 		conn                = meta.(*config.MongoDBClient).Atlas
 		connV2              = meta.(*config.MongoDBClient).AtlasV2
-		connV220240805      = meta.(*config.MongoDBClient).AtlasV220240805
 		ids                 = conversion.DecodeStateID(d.Id())
 		projectID           = ids["project_id"]
 		clusterName         = ids["cluster_name"]
@@ -1042,7 +1040,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("redact_client_log_data") {
 		redactClientLogData := d.Get("redact_client_log_data").(bool)
-		if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutUpdate), connV2, connV220240805, projectID, clusterName, redactClientLogData); err != nil {
+		if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutUpdate), connV2, projectID, clusterName, redactClientLogData); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 	}

@@ -1346,22 +1346,26 @@ func TestAccCluster_basic_RedactClientLogData(t *testing.T) {
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, nil),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
-					nil, map[string]string{"redact_client_log_data": "false"}),
+					nil, map[string]string{"redact_client_log_data": "false"},
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(false)),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
-					nil, map[string]string{"redact_client_log_data": "false"}),
+					nil, map[string]string{"redact_client_log_data": "false"},
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(true)),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
-					nil, map[string]string{"redact_client_log_data": "true"}),
+					nil, map[string]string{"redact_client_log_data": "true"},
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")), // latest PATCH API is called, ensure autoscaling mode is not modified
 			},
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(false)),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
-					nil, map[string]string{"redact_client_log_data": "false"}),
+					nil, map[string]string{"redact_client_log_data": "false"},
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 		},
 	})
