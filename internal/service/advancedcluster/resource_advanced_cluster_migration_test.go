@@ -150,7 +150,7 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 
 func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
-	mig.SkipIfVersionBelow(t, "1.22.1")  // version where default_max_time_ms was introduced
+	mig.SkipIfVersionBelow(t, "1.24.0")  // version where tls_cipher_config_mode was introduced
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
