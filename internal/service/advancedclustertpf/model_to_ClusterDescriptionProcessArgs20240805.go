@@ -10,26 +10,18 @@ import (
 )
 
 func NewAtlasReqAdvancedConfiguration(ctx context.Context, input *types.List, diags *diag.Diagnostics) *admin.ClusterDescriptionProcessArgs20240805 {
-	var resp *admin.ClusterDescriptionProcessArgs20240805
-	if input == nil || input.IsUnknown() || input.IsNull() || len(input.Elements()) == 0 {
-		return resp
-	}
-	elements := make([]TFAdvancedConfigurationModel, len(input.Elements()))
-	diags.Append(input.ElementsAs(ctx, &elements, false)...)
-	if diags.HasError() {
-		return nil
-	}
-	item := elements[0]
-	return &admin.ClusterDescriptionProcessArgs20240805{
-		ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.NilForUnknown(item.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds, conversion.Int64PtrToIntPtr(item.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds.ValueInt64Pointer())),
-		DefaultWriteConcern:              conversion.NilForUnknown(item.DefaultWriteConcern, item.DefaultWriteConcern.ValueStringPointer()),
-		JavascriptEnabled:                conversion.NilForUnknown(item.JavascriptEnabled, item.JavascriptEnabled.ValueBoolPointer()),
-		MinimumEnabledTlsProtocol:        conversion.NilForUnknown(item.MinimumEnabledTlsProtocol, item.MinimumEnabledTlsProtocol.ValueStringPointer()),
-		NoTableScan:                      conversion.NilForUnknown(item.NoTableScan, item.NoTableScan.ValueBoolPointer()),
-		OplogMinRetentionHours:           conversion.NilForUnknown(item.OplogMinRetentionHours, item.OplogMinRetentionHours.ValueFloat64Pointer()),
-		OplogSizeMB:                      conversion.NilForUnknown(item.OplogSizeMb, conversion.Int64PtrToIntPtr(item.OplogSizeMb.ValueInt64Pointer())),
-		SampleRefreshIntervalBIConnector: conversion.NilForUnknown(item.SampleRefreshIntervalBiconnector, conversion.Int64PtrToIntPtr(item.SampleRefreshIntervalBiconnector.ValueInt64Pointer())),
-		SampleSizeBIConnector:            conversion.NilForUnknown(item.SampleSizeBiconnector, conversion.Int64PtrToIntPtr(item.SampleSizeBiconnector.ValueInt64Pointer())),
-		TransactionLifetimeLimitSeconds:  conversion.NilForUnknown(item.TransactionLifetimeLimitSeconds, item.TransactionLifetimeLimitSeconds.ValueInt64Pointer()),
-	}
+	return conversion.SingleListTFToSDK(ctx, diags, input, func(tf TFAdvancedConfigurationModel) *admin.ClusterDescriptionProcessArgs20240805 {
+		return &admin.ClusterDescriptionProcessArgs20240805{
+			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.NilForUnknown(tf.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds, conversion.Int64PtrToIntPtr(tf.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds.ValueInt64Pointer())),
+			DefaultWriteConcern:              conversion.NilForUnknown(tf.DefaultWriteConcern, tf.DefaultWriteConcern.ValueStringPointer()),
+			JavascriptEnabled:                conversion.NilForUnknown(tf.JavascriptEnabled, tf.JavascriptEnabled.ValueBoolPointer()),
+			MinimumEnabledTlsProtocol:        conversion.NilForUnknown(tf.MinimumEnabledTlsProtocol, tf.MinimumEnabledTlsProtocol.ValueStringPointer()),
+			NoTableScan:                      conversion.NilForUnknown(tf.NoTableScan, tf.NoTableScan.ValueBoolPointer()),
+			OplogMinRetentionHours:           conversion.NilForUnknown(tf.OplogMinRetentionHours, tf.OplogMinRetentionHours.ValueFloat64Pointer()),
+			OplogSizeMB:                      conversion.NilForUnknown(tf.OplogSizeMb, conversion.Int64PtrToIntPtr(tf.OplogSizeMb.ValueInt64Pointer())),
+			SampleRefreshIntervalBIConnector: conversion.NilForUnknown(tf.SampleRefreshIntervalBiconnector, conversion.Int64PtrToIntPtr(tf.SampleRefreshIntervalBiconnector.ValueInt64Pointer())),
+			SampleSizeBIConnector:            conversion.NilForUnknown(tf.SampleSizeBiconnector, conversion.Int64PtrToIntPtr(tf.SampleSizeBiconnector.ValueInt64Pointer())),
+			TransactionLifetimeLimitSeconds:  conversion.NilForUnknown(tf.TransactionLifetimeLimitSeconds, tf.TransactionLifetimeLimitSeconds.ValueInt64Pointer()),
+		}
+	})
 }

@@ -47,25 +47,12 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 }
 
 func newBiConnector(ctx context.Context, input types.List, diags *diag.Diagnostics) *admin.BiConnector {
-	return newAdminFromSingleList(ctx, diags, input, func(tf TFBiConnectorModel) *admin.BiConnector {
+	return conversion.SingleListTFToSDK(ctx, diags, &input, func(tf TFBiConnectorModel) *admin.BiConnector {
 		return &admin.BiConnector{
 			Enabled:        conversion.NilForUnknown(tf.Enabled, tf.Enabled.ValueBoolPointer()),
 			ReadPreference: conversion.NilForUnknown(tf.ReadPreference, tf.ReadPreference.ValueStringPointer()),
 		}
 	})
-}
-
-func newAdminFromSingleList[T, A any](ctx context.Context, diags *diag.Diagnostics, input types.List, fnTransform func(tf T) A) A {
-	var resp A
-	if input.IsUnknown() || input.IsNull() || len(input.Elements()) == 0 {
-		return resp
-	}
-	elements := make([]T, len(input.Elements()))
-	diags.Append(input.ElementsAs(ctx, &elements, false)...)
-	if diags.HasError() {
-		return resp
-	}
-	return fnTransform(elements[0])
 }
 
 func newComponentLabel(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ComponentLabel {
