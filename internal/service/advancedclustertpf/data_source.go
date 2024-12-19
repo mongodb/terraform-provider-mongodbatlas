@@ -14,6 +14,12 @@ import (
 var _ datasource.DataSource = &ds{}
 var _ datasource.DataSourceWithConfigure = &ds{}
 
+const (
+	errorReadDatasource                 = "Error reading  advanced cluster datasource"
+	errorReadDatasourceAsymmetric       = "Error reading  advanced cluster datasource"
+	errorReadDatasourceAsymmetricDetail = "Cluster name %s. Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details."
+)
+
 func DataSource() datasource.DataSource {
 	return &ds{
 		DSCommon: config.DSCommon{
@@ -53,7 +59,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
 			return nil
 		}
-		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
+		diags.AddError(errorReadDatasource, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
 	modelIn := &TFModel{
@@ -65,7 +71,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	if extraInfo.ForceLegacySchemaFailed {
-		diags.AddError("errorRead", "Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details.")
+		diags.AddError(errorReadDatasourceAsymmetric, fmt.Sprintf(errorReadDatasourceAsymmetricDetail, clusterName))
 		return nil
 	}
 	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
