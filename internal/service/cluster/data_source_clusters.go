@@ -6,13 +6,16 @@ import (
 	"log"
 	"net/http"
 
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -349,6 +352,7 @@ func PluralDataSource() *schema.Resource {
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	projectID := d.Get("project_id").(string)
 	d.SetId(id.UniqueId())
 
@@ -368,14 +372,14 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(fmt.Errorf("error reading new cluster list for project(%s): %s", projectID, err))
 	}
 
-	if err := d.Set("results", flattenClusters(ctx, d, conn, clusters, latestClusterModels)); err != nil {
+	if err := d.Set("results", flattenClusters(ctx, d, conn, connV2, connV220240530, clusters, latestClusterModels)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "results", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, clusters []matlas.Cluster, latestClusterModels map[string]*admin.ClusterDescription20240805) []map[string]any {
+func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, connV2 *admin.APIClient, connV220240530 *admin20240530.APIClient, clusters []matlas.Cluster, latestClusterModels map[string]*admin.ClusterDescription20240805) []map[string]any {
 	results := make([]map[string]any, 0)
 
 	for i := range clusters {
@@ -384,8 +388,14 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			log.Printf("[WARN] Error setting `snapshot_backup_policy` for the cluster(%s): %s", clusters[i].ID, err)
 		}
 
-		processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name)
-		log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
+		processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, clusters[i].GroupID, clusters[i].Name).Execute()
+		if err != nil {
+			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
+		}
+		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, clusters[i].GroupID, clusters[i].Name).Execute()
+		if err != nil {
+			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
+		}
 
 		var containerID string
 		if clusters[i].ProviderSettings != nil && clusters[i].ProviderSettings.ProviderName != "TENANT" {
@@ -398,7 +408,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			containerID = getContainerID(containers, &clusters[i])
 		}
 		result := map[string]any{
-			"advanced_configuration":                  flattenProcessArgs(processArgs),
+			"advanced_configuration":                  flattenProcessArgs(processArgs20240530, processArgs),
 			"auto_scaling_compute_enabled":            clusters[i].AutoScaling.Compute.Enabled,
 			"auto_scaling_compute_scale_down_enabled": clusters[i].AutoScaling.Compute.ScaleDownEnabled,
 			"auto_scaling_disk_gb_enabled":            clusters[i].AutoScaling.DiskGBEnabled,
