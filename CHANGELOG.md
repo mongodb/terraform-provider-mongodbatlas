@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.24.0 (December 20, 2024)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: Adds `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute ([#2872](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2872))
