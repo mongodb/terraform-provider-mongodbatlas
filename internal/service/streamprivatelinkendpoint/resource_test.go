@@ -58,7 +58,6 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, false),
 			},
 			{
-				Config:            config,
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
