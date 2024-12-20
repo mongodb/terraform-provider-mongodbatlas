@@ -67,6 +67,17 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	finalResp, err := waitStateTransition(ctx, projectID, *streamsPrivateLinkConnection.Id, connV2.StreamsApi)
 	if err != nil {
+		if finalResp != nil { // delete the resource that has been created but fails to reach desired state
+			if _, _, err := connV2.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, finalResp.GetId()).Execute(); err != nil {
+				resp.Diagnostics.AddError("error deleting resource after failed creation", err.Error())
+				return
+			}
+			_, err := WaitDeleteStateTransition(ctx, projectID, *finalResp.Id, connV2.StreamsApi)
+			if err != nil {
+				resp.Diagnostics.AddError("error waiting for state transition in deletion after a failed creation", err.Error())
+				return
+			}
+		}
 		resp.Diagnostics.AddError("error when waiting for status transition in creation", err.Error())
 		return
 	}
@@ -119,7 +130,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	resp.Diagnostics.AddWarning(warnUnsupportedOperation, "Updating the private endpoint for streams is not supported. To modify your infrastructure, please delete the existing mongodbatlas_stream_privatelink_endpoint resource and create a new one with the necessary updates")
+	resp.Diagnostics.AddError(warnUnsupportedOperation, "Updating the private endpoint for streams is not supported. To modify your infrastructure, please delete the existing mongodbatlas_stream_privatelink_endpoint resource and create a new one with the necessary updates")
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
