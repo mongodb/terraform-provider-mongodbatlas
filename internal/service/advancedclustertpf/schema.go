@@ -183,7 +183,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
-							DeprecationMessage:  DeprecationMsgOldSchema,
+							DeprecationMessage:  deprecationMsgOldSchema("id"),
 							Computed:            true,
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. If you include existing shard replication configurations in the request, you must specify this parameter. If you add a new shard to an existing Cluster, you may specify this parameter. The request deletes any existing shards  in the Cluster that you exclude from the request. This corresponds to Shard ID displayed in the UI.",
 						},
@@ -197,7 +197,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "external_id", // TODO: add description
 						},
 						"num_shards": schema.Int64Attribute{
-							DeprecationMessage:  DeprecationMsgOldSchema,
+							DeprecationMessage:  deprecationMsgOldSchema("num_shards"),
 							Default:             int64default.StaticInt64(1),
 							Computed:            true,
 							Optional:            true,
@@ -271,7 +271,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster.",
 			},
 			"disk_size_gb": schema.Float64Attribute{
-				DeprecationMessage:  DeprecationMsgOldSchema,
+				DeprecationMessage:  deprecationMsgOldSchema("disk_size_gb"),
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
@@ -362,13 +362,13 @@ func resourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
 						},
 						"default_read_concern": schema.StringAttribute{
-							DeprecationMessage:  DeprecationMsgOldSchema,
+							DeprecationMessage:  deprecationMsgOldSchema("default_read_concern"),
 							Computed:            true,
 							Optional:            true,
 							MarkdownDescription: "default_read_concern", // TODO: add description
 						},
 						"fail_index_key_too_long": schema.BoolAttribute{
-							DeprecationMessage:  DeprecationMsgOldSchema,
+							DeprecationMessage:  deprecationMsgOldSchema("fail_index_key_too_long"),
 							Computed:            true,
 							Optional:            true,
 							MarkdownDescription: "fail_index_key_too_long", // TODO: add description

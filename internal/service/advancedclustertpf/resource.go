@@ -63,8 +63,11 @@ func defaultAPIErrorDetails(clusterName string, err error) string {
 	return fmt.Sprintf(errorDetailDefault, clusterName, err.Error())
 }
 
+func deprecationMsgOldSchema(name string) string {
+	return fmt.Sprintf("%s Name=%s. %s", constant.DeprecationParam, name, DeprecationOldSchemaAction)
+}
+
 var (
-	DeprecationMsgOldSchema    = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
 	pauseRequest               = admin.ClusterDescription20240805{Paused: conversion.Pointer(true)}
 	resumeRequest              = admin.ClusterDescription20240805{Paused: conversion.Pointer(false)}
 	errorSchemaDowngradeDetail = "Cluster name %s. " + fmt.Sprintf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; %s", DeprecationOldSchemaAction)
