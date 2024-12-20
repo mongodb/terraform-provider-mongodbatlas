@@ -77,6 +77,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 	model := r.createCluster(ctx, &plan, diags)
 	if model != nil {
+		overrideAttributesWithPlanValue(model, &plan)
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
@@ -90,6 +91,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	model := r.readCluster(ctx, diags, &state, &resp.State)
 	if model != nil {
+		overrideAttributesWithPlanValue(model, &state)
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
@@ -109,18 +111,18 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	isSchemaUpgrade := stateUsingLegacy && !planUsingLegacy
-	stateReq := normalizeFromTFModel(ctx, &state, diags, isSchemaUpgrade)
+	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
 	planReq := normalizeFromTFModel(ctx, &plan, diags, isSchemaUpgrade)
 	if diags.HasError() {
 		return
 	}
 	patchOptions := update.PatchOptions{
-		IgnoreInStatePrefix:  []string{"regionConfigs"},
-		IncludeInStateSuffix: []string{"diskIOPS"},
+		IgnoreInStatePrefix: []string{"regionConfigs"},
+		IgnoreInStateSuffix: []string{"id", "zoneId"}, // replication_spec.*.zone_id|id doesn't have to be included, the API will do its best to create a minimal change
 	}
-	if isSchemaUpgrade || findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
-		// isSchemaUpgrade will have no changes by default after flattening; therefore, force update the replicationSpecs
-		// `num_shards` updates is only in the legacy ClusterDescription; therefore, force update the replicationSpecs
+	if findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
+		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
+		// `num_shards` updates is only in the legacy ClusterDescription
 		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
@@ -167,6 +169,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	} else {
 		modelOut.AdvancedConfiguration = state.AdvancedConfiguration
 	}
+	overrideAttributesWithPlanValue(modelOut, &plan)
 	diags.Append(resp.State.Set(ctx, modelOut)...)
 }
 
@@ -464,7 +467,6 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 	if diags.HasError() {
 		return nil, nil
 	}
-	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut, extraInfo
 }
 

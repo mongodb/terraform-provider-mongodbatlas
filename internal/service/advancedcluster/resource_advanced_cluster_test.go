@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -288,6 +289,11 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
 			DefaultMaxTimeMS: conversion.IntPtr(65),
 		}
+
+		processArgsCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
+		}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -300,8 +306,8 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
 			},
 			{
-				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, &admin.ClusterDescriptionProcessArgs20240805{}),
-				Check:  checkAdvanced(true, clusterName, "TLS1_1", &admin.ClusterDescriptionProcessArgs20240805{}),
+				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgsCipherConfig),
+				Check:  checkAdvanced(true, clusterName, "TLS1_1", processArgsCipherConfig),
 			},
 		},
 	})
@@ -327,6 +333,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		}
 		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
+			TlsCipherConfigMode: conversion.StringPtr("DEFAULT"),
 		}
 
 		processArgs20240530Updated = &admin20240530.ClusterDescriptionProcessArgs{
@@ -344,6 +351,13 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultMaxTimeMS: conversion.IntPtr(65),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
+		}
+		processArgsUpdatedCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
+			DefaultMaxTimeMS: conversion.IntPtr(65),
+			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
+			TlsCipherConfigMode: conversion.StringPtr("DEFAULT"), // To unset TlsCipherConfigMode, user needs to set this to DEFAULT
 		}
 	)
 
@@ -360,11 +374,16 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 				Config: configAdvanced(t, true, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdated),
 				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_2", processArgsUpdated),
 			},
+			{
+				Config: configAdvanced(t, true, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdatedCipherConfig),
+				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_2", processArgsUpdatedCipherConfig),
+			},
 		},
 	})
 }
 
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: tls_cipher_config_mode not implemented in TPF yet
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -766,7 +785,6 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 		projectName = acc.RandomProjectName()
 		clusterName = acc.RandomClusterName()
 	)
-	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: add support for matching state replication_specs with updated/removed replication_specs in config
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1544,20 +1562,32 @@ func checkSingleProviderPaused(isAcc bool, name string, paused bool) resource.Te
 
 func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	t.Helper()
-	changeStreamOptionsString := ""
-	defaultMaxTimeString := ""
-	mongoDBMajorVersionString := ""
+	changeStreamOptionsStr := ""
+	defaultMaxTimeStr := ""
+	tlsCipherConfigModeStr := ""
+	customOpensslCipherConfigTLS12Str := ""
+	mongoDBMajorVersionStr := ""
 
 	if p != nil {
 		if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
-			changeStreamOptionsString = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
+			changeStreamOptionsStr = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
 		}
 		if p.DefaultMaxTimeMS != nil {
-			defaultMaxTimeString = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
+			defaultMaxTimeStr = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
+		}
+		if p.TlsCipherConfigMode != nil {
+			tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
+			if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+				//nolint:gocritic // reason: simplifying string array construction
+				customOpensslCipherConfigTLS12Str = fmt.Sprintf(
+					`custom_openssl_cipher_config_tls12 = ["%s"]`,
+					strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
+				)
+			}
 		}
 	}
 	if mongoDBMajorVersion != "" {
-		mongoDBMajorVersionString = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
+		mongoDBMajorVersionStr = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
 	}
 
 	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
@@ -1594,6 +1624,8 @@ func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMaj
 			    transaction_lifetime_limit_seconds   = %[10]d
 			    %[11]s
 				%[12]s
+				%[14]s
+				%[15]s
 			}
 		}
 
@@ -1608,7 +1640,7 @@ func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMaj
 	`, projectID, clusterName,
 		p20240530.GetFailIndexKeyTooLong(), p20240530.GetJavascriptEnabled(), p20240530.GetMinimumEnabledTlsProtocol(), p20240530.GetNoTableScan(),
 		p20240530.GetOplogSizeMB(), p20240530.GetSampleSizeBIConnector(), p20240530.GetSampleRefreshIntervalBIConnector(), p20240530.GetTransactionLifetimeLimitSeconds(),
-		changeStreamOptionsString, defaultMaxTimeString, mongoDBMajorVersionString))
+		changeStreamOptionsStr, defaultMaxTimeStr, mongoDBMajorVersionStr, tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str))
 }
 
 func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
@@ -1630,6 +1662,13 @@ func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescr
 
 	if processArgs.DefaultMaxTimeMS != nil {
 		advancedConfig["advanced_configuration.0.default_max_time_ms"] = strconv.Itoa(*processArgs.DefaultMaxTimeMS)
+	}
+
+	if processArgs.TlsCipherConfigMode != nil && processArgs.CustomOpensslCipherConfigTls12 != nil {
+		advancedConfig["advanced_configuration.0.tls_cipher_config_mode"] = "CUSTOM"
+		advancedConfig["advanced_configuration.0.custom_openssl_cipher_config_tls12.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls12))
+	} else {
+		advancedConfig["advanced_configuration.0.tls_cipher_config_mode"] = "DEFAULT"
 	}
 
 	pluralChecks := []resource.TestCheckFunc{
@@ -1711,7 +1750,8 @@ func checkAdvancedDefaultWrite(isAcc bool, name, writeConcern, tls string) resou
 			"advanced_configuration.0.no_table_scan":                        "false",
 			"advanced_configuration.0.oplog_size_mb":                        "1000",
 			"advanced_configuration.0.sample_refresh_interval_bi_connector": "310",
-			"advanced_configuration.0.sample_size_bi_connector":             "110"},
+			"advanced_configuration.0.sample_size_bi_connector":             "110",
+			"advanced_configuration.0.tls_cipher_config_mode":               "DEFAULT"},
 		pluralChecks...)
 }
 

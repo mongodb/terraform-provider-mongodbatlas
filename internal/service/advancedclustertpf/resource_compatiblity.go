@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
-func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
+func overrideAttributesWithPlanValue(modelOut, modelIn *TFModel) {
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
 	if beforeVersion != nil && !modelIn.MongoDBMajorVersion.Equal(modelOut.MongoDBMajorVersion) {
 		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
@@ -21,6 +21,13 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	retainBackups := conversion.NilForUnknown(modelIn.RetainBackupsEnabled, modelIn.RetainBackupsEnabled.ValueBoolPointer())
 	if retainBackups != nil && !modelIn.RetainBackupsEnabled.Equal(modelOut.RetainBackupsEnabled) {
 		modelOut.RetainBackupsEnabled = types.BoolPointerValue(retainBackups)
+	}
+	// Blocks can't be included if not in the config
+	if modelIn.AdvancedConfiguration.IsNull() {
+		modelOut.AdvancedConfiguration = types.ListNull(AdvancedConfigurationObjType)
+	}
+	if modelIn.BiConnectorConfig.IsNull() {
+		modelOut.BiConnectorConfig = types.ListNull(BiConnectorConfigObjType)
 	}
 }
 
