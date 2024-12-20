@@ -87,7 +87,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "name", d.Id(), err))
 	}
 
-	sdkProcessors, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.CloudAppUser], *http.Response, error) {
+	teamUsers, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.CloudAppUser], *http.Response, error) {
 		request := connV2.TeamsApi.ListTeamUsers(ctx, orgID, team.GetId())
 		request = request.PageNum(pageNum)
 		return request.Execute()
@@ -98,8 +98,8 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	usernames := []string{}
-	for i := range sdkProcessors {
-		usernames = append(usernames, sdkProcessors[i].GetUsername())
+	for i := range teamUsers {
+		usernames = append(usernames, teamUsers[i].GetUsername())
 	}
 
 	if err := d.Set("usernames", usernames); err != nil {

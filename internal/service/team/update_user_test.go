@@ -4,12 +4,14 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/team"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/mockadmin"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-	"go.mongodb.org/atlas-sdk/v20241113003/mockadmin"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/team"
 )
 
 func TestGetChangesForTeamUsers(t *testing.T) {
@@ -58,7 +60,7 @@ func TestGetChangesForTeamUsers(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.testName, func(t *testing.T) {
-			toAdd, toDelete, err := team.GetChangesForTeamUsers(testCase.currentUsers, testCase.newUsers)
+			toAdd, toDelete, err := team.GetChangesForTeamUsers(&testCase.currentUsers, &testCase.newUsers)
 			require.NoError(t, err)
 			assert.ElementsMatch(t, testCase.expectedToAdd, toAdd)
 			assert.ElementsMatch(t, testCase.expectedToDelete, toDelete)
@@ -153,7 +155,7 @@ func TestUpdateTeamUsers(t *testing.T) {
 			mockTeamsAPI := mockadmin.NewTeamsApi(t)
 			mockUsersAPI := mockadmin.NewMongoDBCloudUsersApi(t)
 			testCase.mockFuncExpectations(mockTeamsAPI, mockUsersAPI)
-			testCase.expectError(t, team.UpdateTeamUsers(mockTeamsAPI, mockUsersAPI, testCase.existingTeamUsers, testCase.usernames, "orgID", "teamID"))
+			testCase.expectError(t, team.UpdateTeamUsers(mockTeamsAPI, mockUsersAPI, testCase.existingTeamUsers.Results, testCase.usernames, "orgID", "teamID"))
 		})
 	}
 }
