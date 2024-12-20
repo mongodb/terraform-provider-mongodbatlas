@@ -87,17 +87,17 @@ output "interface_endpoint_ids" {
 - `id` (String) The ID of the Private Link connection.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
 
-**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group or project id remains the same. The resource and corresponding endpoints use the term groups.
 
 ### Read-Only
 
 - `dns_domain` (String) Domain name of Privatelink connected cluster.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones.
-- `interface_endpoint_id` (String) Interface endpoint ID that is created from the service endpoint ID provided.
+- `interface_endpoint_id` (String) Interface endpoint ID that is created from the specified service endpoint ID.
 - `provider_name` (String) Provider where the Kafka cluster is deployed.
 - `region` (String) Domain name of Confluent cluster.
 - `service_endpoint_id` (String) Service Endpoint ID.
-- `state` (String) State the connection is in.
+- `state` (String) Status of the connection.
 - `vendor` (String) Vendor who manages the Kafka cluster.
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createPrivateLinkConnection) Documentation.
