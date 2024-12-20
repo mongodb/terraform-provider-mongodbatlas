@@ -103,7 +103,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
 				Computed:           true,
 				Optional:           true,
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersion, "1.24.0"),
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 				},
