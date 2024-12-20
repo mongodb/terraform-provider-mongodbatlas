@@ -41,22 +41,24 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		provider            = "AWS"
 		region              = "us-east-1"
 		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
-		networkID           = "n-dz0vk2"
-		privatelinkAccessID = "pla-km26gn"
+		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
+		privatelinkAccessID = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
+		config              = getCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID)
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckConfluentAWSPrivatelink(t) },
+		CheckDestroy:             checkDestroy,
 		ExternalProviders:        acc.ExternalProvidersOnlyConfluent(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: getCompleteConfluentConfig(true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
+
+				Config: config,
 				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, false),
 			},
 			{
-				Config:            getCompleteConfluentConfig(true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
+				Config:            config,
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -71,11 +73,13 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 
 	var (
 		// need specific projectID because feature is currently under a Feature flag
-		projectID    = os.Getenv("MONGODB_ATLAS_STREAM_AWS_PL_PROJECT_ID")
-		provider     = "AWS"
-		region       = "us-east-1"
-		vendor       = "CONFLUENT"
-		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
+		projectID           = os.Getenv("MONGODB_ATLAS_STREAM_AWS_PL_PROJECT_ID")
+		provider            = "AWS"
+		region              = "us-east-1"
+		vendor              = "CONFLUENT"
+		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
+		networkID           = "n-dz0vk2" //TODO: Use env variables
+		privatelinkAccessID = "pla-n1962k"
 	)
 
 	return &resource.TestCase{
@@ -84,11 +88,11 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configNewConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, false),
+				Config: getCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
 				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, false),
 			},
 			{
-				Config:      configNewConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, true),
+				Config:      getCompleteConfluentConfig(true, false, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
 				ExpectError: regexp.MustCompile(`Operation not supported`),
 			},
 		},
@@ -213,9 +217,9 @@ func configDataConfluentDedicatedCluster(networkID, privatelinkAccessID string) 
 	}`, acc.ConfigConfluentProvider(), networkID, privatelinkAccessID)
 }
 
-func getCompleteConfluentConfig(usesExistingConfluentCluster bool, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID string) string {
+func getCompleteConfluentConfig(usesExistingConfluentCluster, withDNSSubdomains bool, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID string) string {
 	if usesExistingConfluentCluster {
-		configBasicUsingDatasources := strings.ReplaceAll(configBasic(projectID, provider, region, vendor, true), "confluent_network.private-link", "data.confluent_network.private-link")
+		configBasicUsingDatasources := strings.ReplaceAll(configBasic(projectID, provider, region, vendor, withDNSSubdomains), "confluent_network.private-link", "data.confluent_network.private-link")
 		configBasicUsingDatasourcesWithoutDependsOnCluster := strings.ReplaceAll(configBasicUsingDatasources, "confluent_kafka_cluster.dedicated", "")
 		return configDataConfluentDedicatedCluster(networkID, privatelinkAccessID) + configBasicUsingDatasourcesWithoutDependsOnCluster
 	}
