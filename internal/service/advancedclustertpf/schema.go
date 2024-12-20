@@ -12,6 +12,7 @@ import (
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -297,82 +298,82 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			}),
 		},
 		Blocks: map[string]schema.Block{
-			"advanced_configuration": schema.ListNestedBlock{
+			"advanced_configuration": schema.SingleNestedBlock{
 				MarkdownDescription: "advanced_configuration", // TODO: add description
-				Validators: []validator.List{
-					listvalidator.SizeAtMost(1),
+				CustomType:          NewObjectTypeOf[TFAdvancedConfigurationModel](ctx),
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+					UseStateForNull(),
 				},
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
-							Default:             int64default.StaticInt64(-1), // in case the user removes the value, we should set it to -1, a special value used by the backend to use its default behavior
-							PlanModifiers: []planmodifier.Int64{
-								PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
-							},
+				Attributes: map[string]schema.Attribute{
+					"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
+						Default:             int64default.StaticInt64(-1), // in case the user removes the value, we should set it to -1, a special value used by the backend to use its default behavior
+						PlanModifiers: []planmodifier.Int64{
+							PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
 						},
-						"default_write_concern": schema.StringAttribute{
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "Default level of acknowledgment requested from MongoDB for write operations when none is specified by the driver.",
+					},
+					"default_write_concern": schema.StringAttribute{
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "Default level of acknowledgment requested from MongoDB for write operations when none is specified by the driver.",
+					},
+					"javascript_enabled": schema.BoolAttribute{
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "Flag that indicates whether the cluster allows execution of operations that perform server-side executions of JavaScript. When using 8.0+, we recommend disabling server-side JavaScript and using operators of aggregation pipeline as more performant alternative.",
+					},
+					"minimum_enabled_tls_protocol": schema.StringAttribute{
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.",
+					},
+					"no_table_scan": schema.BoolAttribute{
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "Flag that indicates whether the cluster disables executing any query that requires a collection scan to return results.",
+					},
+					"oplog_min_retention_hours": schema.Float64Attribute{
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.",
+					},
+					"oplog_size_mb": schema.Int64Attribute{
+						Computed: true,
+						Optional: true,
+						Validators: []validator.Int64{
+							int64validator.AtLeast(0),
 						},
-						"javascript_enabled": schema.BoolAttribute{
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "Flag that indicates whether the cluster allows execution of operations that perform server-side executions of JavaScript. When using 8.0+, we recommend disabling server-side JavaScript and using operators of aggregation pipeline as more performant alternative.",
-						},
-						"minimum_enabled_tls_protocol": schema.StringAttribute{
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.",
-						},
-						"no_table_scan": schema.BoolAttribute{
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "Flag that indicates whether the cluster disables executing any query that requires a collection scan to return results.",
-						},
-						"oplog_min_retention_hours": schema.Float64Attribute{
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.",
-						},
-						"oplog_size_mb": schema.Int64Attribute{
-							Computed: true,
-							Optional: true,
-							Validators: []validator.Int64{
-								int64validator.AtLeast(0),
-							},
-							MarkdownDescription: "Storage limit of cluster's oplog expressed in megabytes. A value of null indicates that the cluster uses the default oplog size that MongoDB Cloud calculates.",
-						},
-						"sample_refresh_interval_bi_connector": schema.Int64Attribute{
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "Interval in seconds at which the mongosqld process re-samples data to create its relational schema.",
-						},
-						"sample_size_bi_connector": schema.Int64Attribute{
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "Number of documents per database to sample when gathering schema information.",
-						},
-						"transaction_lifetime_limit_seconds": schema.Int64Attribute{
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
-						},
-						"default_read_concern": schema.StringAttribute{
-							DeprecationMessage:  DeprecationMsgOldSchema,
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "default_read_concern", // TODO: add description
-						},
-						"fail_index_key_too_long": schema.BoolAttribute{
-							DeprecationMessage:  DeprecationMsgOldSchema,
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "fail_index_key_too_long", // TODO: add description
-						},
+						MarkdownDescription: "Storage limit of cluster's oplog expressed in megabytes. A value of null indicates that the cluster uses the default oplog size that MongoDB Cloud calculates.",
+					},
+					"sample_refresh_interval_bi_connector": schema.Int64Attribute{
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "Interval in seconds at which the mongosqld process re-samples data to create its relational schema.",
+					},
+					"sample_size_bi_connector": schema.Int64Attribute{
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "Number of documents per database to sample when gathering schema information.",
+					},
+					"transaction_lifetime_limit_seconds": schema.Int64Attribute{
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
+					},
+					"default_read_concern": schema.StringAttribute{
+						DeprecationMessage:  DeprecationMsgOldSchema,
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "default_read_concern", // TODO: add description
+					},
+					"fail_index_key_too_long": schema.BoolAttribute{
+						DeprecationMessage:  DeprecationMsgOldSchema,
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 					},
 				},
 			},
@@ -535,37 +536,37 @@ func SpecsSchema(markdownDescription string) schema.SingleNestedAttribute {
 }
 
 type TFModel struct {
-	DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`
-	Labels                                    types.Set      `tfsdk:"labels"`
-	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
-	Tags                                      types.Set      `tfsdk:"tags"`
-	StateName                                 types.String   `tfsdk:"state_name"`
-	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
-	CreateDate                                types.String   `tfsdk:"create_date"`
-	AcceptDataRisksAndForceReplicaSetReconfig types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
-	EncryptionAtRestProvider                  types.String   `tfsdk:"encryption_at_rest_provider"`
-	Timeouts                                  timeouts.Value `tfsdk:"timeouts"`
-	ProjectID                                 types.String   `tfsdk:"project_id"`
-	ClusterID                                 types.String   `tfsdk:"cluster_id"`
-	ConfigServerManagementMode                types.String   `tfsdk:"config_server_management_mode"`
-	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
-	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
-	Name                                      types.String   `tfsdk:"name"`
-	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
-	BiConnectorConfig                         types.List     `tfsdk:"bi_connector_config"`
-	ConfigServerType                          types.String   `tfsdk:"config_server_type"`
-	ReplicaSetScalingStrategy                 types.String   `tfsdk:"replica_set_scaling_strategy"`
-	ClusterType                               types.String   `tfsdk:"cluster_type"`
-	RootCertType                              types.String   `tfsdk:"root_cert_type"`
-	AdvancedConfiguration                     types.List     `tfsdk:"advanced_configuration"`
-	PinnedFCV                                 types.Object   `tfsdk:"pinned_fcv"`
-	TerminationProtectionEnabled              types.Bool     `tfsdk:"termination_protection_enabled"`
-	Paused                                    types.Bool     `tfsdk:"paused"`
-	RetainBackupsEnabled                      types.Bool     `tfsdk:"retain_backups_enabled"`
-	BackupEnabled                             types.Bool     `tfsdk:"backup_enabled"`
-	GlobalClusterSelfManagedSharding          types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
-	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
-	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
+	DiskSizeGB                                types.Float64                               `tfsdk:"disk_size_gb"`
+	Labels                                    types.Set                                   `tfsdk:"labels"`
+	ReplicationSpecs                          types.List                                  `tfsdk:"replication_specs"`
+	Tags                                      types.Set                                   `tfsdk:"tags"`
+	StateName                                 types.String                                `tfsdk:"state_name"`
+	ConnectionStrings                         types.Object                                `tfsdk:"connection_strings"`
+	CreateDate                                types.String                                `tfsdk:"create_date"`
+	AcceptDataRisksAndForceReplicaSetReconfig types.String                                `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
+	EncryptionAtRestProvider                  types.String                                `tfsdk:"encryption_at_rest_provider"`
+	Timeouts                                  timeouts.Value                              `tfsdk:"timeouts"`
+	ProjectID                                 types.String                                `tfsdk:"project_id"`
+	ClusterID                                 types.String                                `tfsdk:"cluster_id"`
+	ConfigServerManagementMode                types.String                                `tfsdk:"config_server_management_mode"`
+	MongoDBMajorVersion                       types.String                                `tfsdk:"mongo_db_major_version"`
+	MongoDBVersion                            types.String                                `tfsdk:"mongo_db_version"`
+	Name                                      types.String                                `tfsdk:"name"`
+	VersionReleaseSystem                      types.String                                `tfsdk:"version_release_system"`
+	BiConnectorConfig                         types.List                                  `tfsdk:"bi_connector_config"`
+	ConfigServerType                          types.String                                `tfsdk:"config_server_type"`
+	ReplicaSetScalingStrategy                 types.String                                `tfsdk:"replica_set_scaling_strategy"`
+	ClusterType                               types.String                                `tfsdk:"cluster_type"`
+	RootCertType                              types.String                                `tfsdk:"root_cert_type"`
+	AdvancedConfiguration                     ObjectValueOf[TFAdvancedConfigurationModel] `tfsdk:"advanced_configuration"`
+	PinnedFCV                                 types.Object                                `tfsdk:"pinned_fcv"`
+	TerminationProtectionEnabled              types.Bool                                  `tfsdk:"termination_protection_enabled"`
+	Paused                                    types.Bool                                  `tfsdk:"paused"`
+	RetainBackupsEnabled                      types.Bool                                  `tfsdk:"retain_backups_enabled"`
+	BackupEnabled                             types.Bool                                  `tfsdk:"backup_enabled"`
+	GlobalClusterSelfManagedSharding          types.Bool                                  `tfsdk:"global_cluster_self_managed_sharding"`
+	RedactClientLogData                       types.Bool                                  `tfsdk:"redact_client_log_data"`
+	PitEnabled                                types.Bool                                  `tfsdk:"pit_enabled"`
 }
 
 // TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig; adds use_replication_spec_per_shard.

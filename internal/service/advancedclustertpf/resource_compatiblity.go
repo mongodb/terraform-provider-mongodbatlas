@@ -24,7 +24,7 @@ func overrideAttributesWithPlanValue(modelOut, modelIn *TFModel) {
 	}
 	// Blocks can't be included if not in the config
 	if modelIn.AdvancedConfiguration.IsNull() {
-		modelOut.AdvancedConfiguration = types.ListNull(AdvancedConfigurationObjType)
+		modelOut.AdvancedConfiguration = NewObjectValueOfNull[TFAdvancedConfigurationModel](context.Background())
 	}
 	if modelIn.BiConnectorConfig.IsNull() {
 		modelOut.BiConnectorConfig = types.ListNull(BiConnectorConfigObjType)

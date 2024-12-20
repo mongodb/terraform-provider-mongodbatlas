@@ -26,7 +26,7 @@ func TestAdvancedCluster_ValidationErrors(t *testing.T) {
 				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
 			},
 			{
-				Config:      configBasic(projectID, clusterName, "advanced_configuration = {oplog_size_mb = -1}"),
+				Config:      configBasic(projectID, clusterName, "advanced_configuration {oplog_size_mb = -1}"),
 				ExpectError: regexp.MustCompile("Invalid Attribute Value"),
 			},
 		},
@@ -42,12 +42,8 @@ func TestAdvancedCluster_PlanModifierErrors(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic(projectID, clusterName, "advanced_configuration = { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }\nmongo_db_major_version=\"6\""),
+				Config:      configBasic(projectID, clusterName, "advanced_configuration { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }\nmongo_db_major_version=\"6\""),
 				ExpectError: regexp.MustCompile("`advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds` can only be configured if the mongo_db_major_version is 7.0 or higher"),
-			},
-			{
-				Config:      configBasic(projectID, clusterName, "advanced_configuration = { fail_index_key_too_long = true }"),
-				ExpectError: regexp.MustCompile("`advanced_configuration.fail_index_key_too_long` can only be configured if the mongo_db_major_version is 4.4 or lower"),
 			},
 			{
 				Config:      configBasic(projectID, clusterName, "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
@@ -66,22 +62,22 @@ func TestAdvancedCluster_PlanModifierValid(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:             configBasic(projectID, clusterName, "advanced_configuration = { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }\nmongo_db_major_version=\"7\""),
+				Config:             configBasic(projectID, clusterName, "advanced_configuration { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }\nmongo_db_major_version=\"7\""),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config:             configBasic(projectID, clusterName, "advanced_configuration = { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }\nmongo_db_major_version=\"7.0\""),
+				Config:             configBasic(projectID, clusterName, "advanced_configuration { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }\nmongo_db_major_version=\"7.0\""),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config:             configBasic(projectID, clusterName, "advanced_configuration = { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }"), // mongo_db_major_version is not set should also work
+				Config:             configBasic(projectID, clusterName, "advanced_configuration { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }"), // mongo_db_major_version is not set should also work
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config:             configBasic(projectID, clusterName, "advanced_configuration = { fail_index_key_too_long = true }\nmongo_db_major_version=\"4\""),
+				Config:             configBasic(projectID, clusterName, "advanced_configuration { fail_index_key_too_long = true }\nmongo_db_major_version=\"4\""),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},

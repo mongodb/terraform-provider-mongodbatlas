@@ -385,7 +385,7 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 				Config: configBasic(projectID, clusterName, fullUpdate),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
 				),
 			},
 			// These ignored fields are blocks so can't be included if not in the config
