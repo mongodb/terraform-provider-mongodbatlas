@@ -98,8 +98,7 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 							Computed: true,
 						},
 						"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
-							Computed:           true,
-							DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersion, "1.24.0"),
+							Computed: true,
 						},
 						"region_usage_restrictions": schema.StringAttribute{
 							Computed: true,

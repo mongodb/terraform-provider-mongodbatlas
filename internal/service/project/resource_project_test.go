@@ -1080,6 +1080,74 @@ func TestAccProject_withTags(t *testing.T) {
 	})
 }
 
+func TestAccProject_slowOperationNotOwner(t *testing.T) {
+	var (
+		orgID                    = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName              = acc.RandomProjectName()
+		config                   = configBasic(orgID, projectName, "", false, nil, conversion.Pointer(false))
+		providerConfigPublicKey2 = acc.ConfigPublicKey2Provider()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPublicKey2(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyProject,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "is_slow_operation_thresholding_enabled", "false"),
+				),
+			},
+			{
+				PreConfig: func() { changeRoles(t, orgID, projectName, "GROUP_READ_ONLY") },
+				Config:    providerConfigPublicKey2 + config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "is_slow_operation_thresholding_enabled", "false"),
+				),
+			},
+			// Validate the API Key has a different role
+			{
+				Config:      providerConfigPublicKey2 + configBasic(orgID, projectName, "", false, nil, conversion.Pointer(true)),
+				ExpectError: regexp.MustCompile("error in project settings update"),
+			},
+			// read back again to ensure no changes, and allow deletion to work
+			{
+				Config: config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "is_slow_operation_thresholding_enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
+func changeRoles(t *testing.T, orgID, projectName, roleName string) {
+	t.Helper()
+	ctx := context.Background()
+	respProject, _, _ := acc.ConnV2().ProjectsApi.GetProjectByName(ctx, projectName).Execute()
+	projectID := respProject.GetId()
+	if projectID == "" {
+		t.Errorf("PreConfig: error finding project %s", projectName)
+	}
+	api := acc.ConnV2().ProgrammaticAPIKeysApi
+	respList, _, _ := api.ListApiKeys(ctx, orgID).Execute()
+	publicKey := os.Getenv("MONGODB_ATLAS_PUBLIC_KEY2")
+	keys := respList.GetResults()
+	for _, result := range keys {
+		if result.GetPublicKey() != publicKey {
+			continue
+		}
+		apiKeyID := result.GetId()
+		assignment := admin.UpdateAtlasProjectApiKey{Roles: &[]string{roleName}}
+		_, _, err := api.UpdateApiKeyRoles(ctx, projectID, apiKeyID, &assignment).Execute()
+		if err != nil {
+			t.Errorf("PreConfig: error updating key %s", err)
+		}
+		return
+	}
+	t.Error("PreConfig: key not found")
+}
+
 func createDataFederationLimit(limitName string) admin.DataFederationLimit {
 	return admin.DataFederationLimit{
 		Name: limitName,
