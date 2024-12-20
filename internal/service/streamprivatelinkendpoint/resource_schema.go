@@ -25,11 +25,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group or project id remains the same. The resource and corresponding endpoints use the term groups.",
 			},
 			"interface_endpoint_id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Interface endpoint ID that is created from the service endpoint ID provided.",
+				MarkdownDescription: "Interface endpoint ID that is created from the specified service endpoint ID.",
 			},
 			"provider_name": schema.StringAttribute{
 				Required:            true,
@@ -45,7 +45,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "State the connection is in.",
+				MarkdownDescription: "Status of the connection.",
 			},
 			"vendor": schema.StringAttribute{
 				Required:            true,
