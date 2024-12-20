@@ -99,7 +99,6 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 	model := r.createCluster(ctx, &plan, diags)
 	if model != nil {
-		overrideAttributesWithPlanValue(model, &plan)
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
@@ -113,7 +112,6 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	model := r.readCluster(ctx, diags, &state, &resp.State)
 	if model != nil {
-		overrideAttributesWithPlanValue(model, &state)
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
@@ -191,7 +189,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	} else {
 		modelOut.AdvancedConfiguration = state.AdvancedConfiguration
 	}
-	overrideAttributesWithPlanValue(modelOut, &plan)
 	diags.Append(resp.State.Set(ctx, modelOut)...)
 }
 
@@ -489,6 +486,7 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 	if diags.HasError() {
 		return nil, nil
 	}
+	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut, extraInfo
 }
 

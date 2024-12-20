@@ -70,17 +70,17 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 	}
 }
 
-func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.List {
+func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.Object {
 	if input == nil {
-		return types.ListNull(BiConnectorConfigObjType)
+		return types.ObjectNull(BiConnectorConfigObjType.AttrTypes)
 	}
 	tfModel := TFBiConnectorModel{
 		Enabled:        types.BoolValue(conversion.SafeValue(input.Enabled)),
 		ReadPreference: types.StringValue(conversion.SafeValue(input.ReadPreference)),
 	}
-	listType, diagsLocal := types.ListValueFrom(ctx, BiConnectorConfigObjType, []TFBiConnectorModel{tfModel})
+	objType, diagsLocal := types.ObjectValueFrom(ctx, BiConnectorConfigObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
-	return listType
+	return objType
 }
 
 func NewConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnectionStrings, diags *diag.Diagnostics) types.Object {
@@ -144,17 +144,35 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 			return &tfModels
 		}
 		legacyID := apiInfo.ZoneNameReplicationSpecIDs[zoneName]
+		containerIDs := selectContainerIDs(&item, apiInfo.ContainerIDs)
 		tfModels[i] = TFReplicationSpecsModel{
 			Id:            types.StringValue(legacyID),
 			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
 			NumShards:     types.Int64Value(1),
-			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &apiInfo.ContainerIDs),
+			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &containerIDs),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
 			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
 		}
 	}
 	return &tfModels
+}
+
+func selectContainerIDs(spec *admin.ReplicationSpec20240805, allIDs map[string]string) map[string]string {
+	containerIDs := map[string]string{}
+	regions := spec.GetRegionConfigs()
+	for i := range regions {
+		regionConfig := regions[i]
+		providerName := regionConfig.GetProviderName()
+		key := containerIDKey(providerName, regionConfig.GetRegionName())
+		value := allIDs[key]
+		// Should be no hard failure if not found, as it is not required for TENANT, error responsibility in resolveContainerIDs
+		if value == "" {
+			continue
+		}
+		containerIDs[key] = value
+	}
+	return containerIDs
 }
 
 func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) *[]TFReplicationSpecsModel {
@@ -188,8 +206,9 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 				tfModelsSkipIndexes = append(tfModelsSkipIndexes, i+j)
 			}
 		}
+		containerIDs := selectContainerIDs(&item, apiInfo.ContainerIDs)
 		tfModels = append(tfModels, TFReplicationSpecsModel{
-			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &apiInfo.ContainerIDs),
+			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &containerIDs),
 			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
 			Id:            types.StringValue(legacyID),
 			RegionConfigs: regionConfigs,
