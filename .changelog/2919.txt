@@ -1,0 +1,3 @@
+```release-note:bug
+data-source/mongodbatlas_team: Improves pagination in mongodbatlas_team data source
+```
