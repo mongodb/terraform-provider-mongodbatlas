@@ -15,9 +15,9 @@ var _ datasource.DataSource = &ds{}
 var _ datasource.DataSourceWithConfigure = &ds{}
 
 const (
-	errorReadDatasource                 = "Error reading  advanced cluster datasource"
-	errorReadDatasourceAsymmetric       = "Error reading  advanced cluster datasource"
-	errorReadDatasourceAsymmetricDetail = "Cluster name %s. Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details."
+	errorReadDatasource                      = "Error reading  advanced cluster datasource"
+	errorReadDatasourceForceAsymmetric       = "Error reading advanced cluster datasource, was expecting symmetric shards but found asymmetric shards"
+	errorReadDatasourceForceAsymmetricDetail = "Cluster name %s. Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details."
 )
 
 func DataSource() datasource.DataSource {
@@ -71,7 +71,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	if extraInfo.ForceLegacySchemaFailed {
-		diags.AddError(errorReadDatasourceAsymmetric, fmt.Sprintf(errorReadDatasourceAsymmetricDetail, clusterName))
+		diags.AddError(errorReadDatasourceForceAsymmetric, fmt.Sprintf(errorReadDatasourceForceAsymmetricDetail, clusterName))
 		return nil
 	}
 	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
