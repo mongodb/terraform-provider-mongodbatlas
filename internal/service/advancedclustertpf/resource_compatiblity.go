@@ -52,7 +52,7 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 		if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
 			forceLegacySchemaFailed = forceLegacySchema
 		} else {
-			diags.AddError("errorRead", fmt.Sprintf("error reading advanced cluster with 2024-05-30 API (%s): %s", clusterName, err))
+			diags.AddError(errorReadLegacy20240530, defaultAPIErrorDetails(clusterName, err))
 			return nil
 		}
 	}
@@ -61,7 +61,7 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 	}
 	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterLatest, client.AtlasV2.NetworkPeeringApi)
 	if err != nil {
-		diags.AddError("resolveContainerIDs failed", err.Error())
+		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
 		return nil
 	}
 	info := &ExtraAPIInfo{

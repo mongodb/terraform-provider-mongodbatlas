@@ -59,7 +59,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		return request.Execute()
 	})
 	if err != nil {
-		diags.AddError("errorList", fmt.Sprintf(errorList, projectID, err.Error()))
+		diags.AddError(errorList, fmt.Sprintf(errorListDetail, projectID, err.Error()))
 		return nil
 	}
 	outs := &TFModelPluralDS{
