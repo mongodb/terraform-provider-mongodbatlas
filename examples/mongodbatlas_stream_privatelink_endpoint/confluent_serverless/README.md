@@ -1,6 +1,6 @@
 # MongoDB Atlas Provider - AWS Confluent Privatelink for Atlas Streams 
 
-This example shows how to use AWS Confluent Privatelink for Streams for Serveless products
+This example shows how to use AWS Confluent Privatelink for Atlas Streams for Serveless products
 
 You must set the following variables:
 
