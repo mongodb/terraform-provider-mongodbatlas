@@ -1,6 +1,6 @@
 # MongoDB Atlas Provider - AWS Confluent Privatelink for Streams 
 
-This example shows how to use AWS Confluent Privatelink for Streams with a dedicated Confluent Cluster. 
+This example shows how to use AWS Confluent Privatelink for Atlas Streams with a dedicated Confluent Cluster. 
 
 You must set the following variables:
 
