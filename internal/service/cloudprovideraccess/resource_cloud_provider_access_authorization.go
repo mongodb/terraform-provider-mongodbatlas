@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 /*
@@ -284,7 +284,7 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 	var role *admin.CloudProviderAccessRole
 	var err error
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		role, _, err = client.CloudProviderAccessApi.AuthorizeCloudProviderAccessRole(ctx, projectID, roleID, req).Execute()
 		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") { // aws takes time to update , in case of single path
 			log.Printf("warning issue performing authorize: %s \n", err.Error())

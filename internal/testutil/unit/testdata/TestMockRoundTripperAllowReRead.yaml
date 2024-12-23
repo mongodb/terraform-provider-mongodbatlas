@@ -1,0 +1,36 @@
+steps:
+- diff_requests:
+  - version: '2024-08-05'
+    method: POST
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+    text: "{\n \"name\": \"test-policy\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\"\n  }\n ]\n}"
+    responses:
+    - status: 201
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-20T07:15:05Z\",\n \"id\": \"673d8c796b13675d681aaf86\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-20T07:15:05Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673d8c796b13675d681aaf85\"\n  }\n ],\n \"version\": \"v1\"\n}"
+      response_index: 2
+  request_responses:
+  - version: '2024-08-05'
+    method: POST
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+    text: "{\n \"name\": \"test-policy\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\"\n  }\n ]\n}"
+    responses:
+    - status: 201
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-20T07:15:05Z\",\n \"id\": \"673d8c796b13675d681aaf86\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-20T07:15:05Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673d8c796b13675d681aaf85\"\n  }\n ],\n \"version\": \"v1\"\n}"
+      response_index: 2
+  - version: '2024-08-05'
+    method: GET
+    path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+    text: ''
+    responses:
+    - status: 200
+      text: "{\"expect\": \"returned again\"}"
+      response_index: 0
+    - status: 200
+      text: "{\n \"createdByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"createdDate\": \"2024-11-20T07:15:05Z\",\n \"id\": \"673d8c796b13675d681aaf86\",\n \"lastUpdatedByUser\": {\n  \"id\": \"65def6f00f722a1507105ad8\",\n  \"name\": \"mvccpeou\"\n },\n \"lastUpdatedDate\": \"2024-11-20T07:15:05Z\",\n \"name\": \"test-policy\",\n \"orgId\": \"{orgId}\",\n \"policies\": [\n  {\n   \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n   \"id\": \"673d8c796b13675d681aaf85\"\n  }\n ],\n \"version\": \"v1\"\n}"
+      response_index: 8
+    - status: 200
+      text: "[\n {\n  \"createdByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"createdDate\": \"2024-11-20T07:15:05Z\",\n  \"id\": \"673d8c796b13675d681aaf86\",\n  \"lastUpdatedByUser\": {\n   \"id\": \"65def6f00f722a1507105ad8\",\n   \"name\": \"mvccpeou\"\n  },\n  \"lastUpdatedDate\": \"2024-11-20T07:15:05Z\",\n  \"name\": \"test-policy\",\n  \"orgId\": \"{orgId}\",\n  \"policies\": [\n   {\n    \"body\": \"\\t\\t\\t\\n\\tforbid (\\n\\tprincipal,\\n\\taction == cloud::Action::\\\"cluster.createEdit\\\",\\n\\tresource\\n\\t) when {\\n\\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\\\"aws\\\"])\\n\\t};\\n\",\n    \"id\": \"673d8c796b13675d681aaf85\"\n   }\n  ],\n  \"version\": \"v1\"\n }\n]"
+      response_index: 12
+variables:
+  orgId: 65def6ce0f722a1507105aa5
+  resourcePolicyId: 673d8c796b13675d681aaf86

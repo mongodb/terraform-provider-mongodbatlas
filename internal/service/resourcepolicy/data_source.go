@@ -28,8 +28,9 @@ type resourcePolicyDS struct {
 }
 
 func (d *resourcePolicyDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	requiredFields := []string{"org_id", "id"}
-	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requiredFields, nil)
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+		RequiredFields: []string{"org_id", "id"},
+	})
 }
 
 func (d *resourcePolicyDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

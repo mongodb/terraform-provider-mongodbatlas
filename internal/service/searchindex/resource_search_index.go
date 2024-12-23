@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 const (
@@ -275,8 +275,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutUpdate)
 		stateConf := &retry.StateChangeConf{
-			Pending:    []string{"IN_PROGRESS", "MIGRATING"},
-			Target:     []string{"STEADY"},
+			Pending:    []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
+			Target:     []string{"READY", "STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
 			MinTimeout: 1 * time.Minute,
@@ -449,8 +449,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutCreate)
 		stateConf := &retry.StateChangeConf{
-			Pending:    []string{"IN_PROGRESS", "MIGRATING"},
-			Target:     []string{"STEADY"},
+			Pending:    []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
+			Target:     []string{"READY", "STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
 			MinTimeout: 1 * time.Minute,

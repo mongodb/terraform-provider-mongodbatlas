@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func Resource() *schema.Resource {
@@ -76,7 +76,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if err := d.Set("private_key", apiKey.GetPrivateKey()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
+		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func DataSource() *schema.Resource {
@@ -319,6 +321,22 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"pinned_fcv": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"expiration_date": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -326,6 +344,7 @@ func DataSource() *schema.Resource {
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
 
@@ -384,10 +403,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err := d.Set("encryption_at_rest_provider", cluster.EncryptionAtRestProvider); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "encryption_at_rest_provider", clusterName, err))
-	}
-
-	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_db_major_version", clusterName, err))
 	}
 
 	// Avoid Global Cluster issues. (NumShards is not present in Global Clusters)
@@ -472,12 +487,16 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	/*
 		Get the advaced configuration options and set up to the terraform state
 	*/
-	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, advancedcluster.V20240530, clusterName, err))
+	}
+	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, "", clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
 	}
 
@@ -491,12 +510,21 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
-	redactClientLogData, err := newAtlasGet(ctx, connV2, projectID, clusterName)
+	latestClusterModel, err := newAtlasGet(ctx, connV2, projectID, clusterName)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
 	}
-	if err := d.Set("redact_client_log_data", redactClientLogData); err != nil {
+
+	if err := d.Set("mongo_db_major_version", latestClusterModel.MongoDBMajorVersion); err != nil { // uses 2024-08-05 or above as it has fix for correct value when FCV is active
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_db_major_version", clusterName, err))
+	}
+
+	if err := d.Set("redact_client_log_data", latestClusterModel.GetRedactClientLogData()); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "redact_client_log_data", clusterName, err))
+	}
+
+	if err := d.Set("pinned_fcv", advancedcluster.FlattenPinnedFCV(latestClusterModel)); err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "pinned_fcv", clusterName, err))
 	}
 
 	d.SetId(cluster.ID)

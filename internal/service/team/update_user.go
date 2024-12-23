@@ -3,7 +3,7 @@ package team
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersApi, existingTeamUsers *admin.PaginatedAppUser, newUsernames []string, orgID, teamID string) error {
@@ -77,7 +77,7 @@ func GetChangesForTeamUsers(currentUsers, newUsers []admin.CloudAppUser) (toAdd,
 
 func InitUserSet(users []admin.CloudAppUser) map[string]bool {
 	usersSet := make(map[string]bool, len(users))
-	for i := 0; i < len(users); i++ {
+	for i := range len(users) {
 		usersSet[users[i].GetId()] = true
 	}
 	return usersSet

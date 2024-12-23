@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 var (
@@ -21,7 +20,7 @@ var (
 	RetryPollInterval = 30 * time.Second
 )
 
-func AwaitChanges(ctx context.Context, api admin20240805.ClustersApi, t *timeouts.Value, diags *diag.Diagnostics, projectID, clusterName, changeReason string) (cluster *admin20240805.ClusterDescription20240805) {
+func AwaitChanges(ctx context.Context, api admin.ClustersApi, t *timeouts.Value, diags *diag.Diagnostics, projectID, clusterName, changeReason string) (cluster *admin.ClusterDescription20240805) {
 	var (
 		timeoutDuration time.Duration
 		localDiags      diag.Diagnostics
@@ -58,7 +57,7 @@ func AwaitChanges(ctx context.Context, api admin20240805.ClustersApi, t *timeout
 	if targetState == retrystrategy.RetryStrategyDeletedState {
 		return nil
 	}
-	cluster, ok := clusterAny.(*admin20240805.ClusterDescription20240805)
+	cluster, ok := clusterAny.(*admin.ClusterDescription20240805)
 	if !ok {
 		diags.AddError("errorAwaitingCluster", fmt.Sprintf(errorCreate, "unexpected type from WaitForStateContext"))
 		return nil
@@ -66,7 +65,7 @@ func AwaitChanges(ctx context.Context, api admin20240805.ClustersApi, t *timeout
 	return cluster
 }
 
-func CreateStateChangeConfig(ctx context.Context, api admin20240805.ClustersApi, projectID, name, targetState string, timeout time.Duration, extraPending ...string) retry.StateChangeConf {
+func CreateStateChangeConfig(ctx context.Context, api admin.ClustersApi, projectID, name, targetState string, timeout time.Duration, extraPending ...string) retry.StateChangeConf {
 	return retry.StateChangeConf{
 		Pending: slices.Concat([]string{
 			retrystrategy.RetryStrategyCreatingState,
@@ -85,7 +84,7 @@ func CreateStateChangeConfig(ctx context.Context, api admin20240805.ClustersApi,
 	}
 }
 
-func resourceRefreshFunc(ctx context.Context, name, projectID string, api admin20240805.ClustersApi) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, name, projectID string, api admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		cluster, resp, err := api.GetCluster(ctx, projectID, name).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {

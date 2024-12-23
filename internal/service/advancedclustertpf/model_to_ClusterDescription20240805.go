@@ -8,13 +8,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20240805005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
+
+const defaultZoneName = "ZoneName managed by Terraform"
 
 func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
 	acceptDataRisksAndForceReplicaSetReconfig, ok := conversion.StringPtrToTimePtr(input.AcceptDataRisksAndForceReplicaSetReconfig.ValueStringPointer())
 	if !ok {
 		diags.AddError("error converting AcceptDataRisksAndForceReplicaSetReconfig", fmt.Sprintf("not a valid time: %s", input.AcceptDataRisksAndForceReplicaSetReconfig.ValueString()))
+	}
+	majorVersion := conversion.NilForUnknown(input.MongoDBMajorVersion, input.MongoDBMajorVersion.ValueStringPointer())
+	if majorVersion != nil {
+		majorVersionFormatted := FormatMongoDBMajorVersion(*majorVersion)
+		majorVersion = &majorVersionFormatted
 	}
 	return &admin.ClusterDescription20240805{
 		AcceptDataRisksAndForceReplicaSetReconfig: acceptDataRisksAndForceReplicaSetReconfig,
@@ -25,7 +32,7 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		EncryptionAtRestProvider:         conversion.NilForUnknown(input.EncryptionAtRestProvider, input.EncryptionAtRestProvider.ValueStringPointer()),
 		GlobalClusterSelfManagedSharding: conversion.NilForUnknown(input.GlobalClusterSelfManagedSharding, input.GlobalClusterSelfManagedSharding.ValueBoolPointer()),
 		Labels:                           newComponentLabel(ctx, input.Labels, diags),
-		MongoDBMajorVersion:              conversion.NilForUnknown(input.MongoDBMajorVersion, input.MongoDBMajorVersion.ValueStringPointer()),
+		MongoDBMajorVersion:              majorVersion,
 		Name:                             input.Name.ValueStringPointer(),
 		Paused:                           conversion.NilForUnknown(input.Paused, input.Paused.ValueBoolPointer()),
 		PitEnabled:                       conversion.NilForUnknown(input.PitEnabled, input.PitEnabled.ValueBoolPointer()),
@@ -54,7 +61,7 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 	}
 }
 func newComponentLabel(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ComponentLabel {
-	if input.IsUnknown() || input.IsNull() {
+	if input.IsUnknown() {
 		return nil
 	}
 	elements := make([]TFLabelsModel, len(input.Elements()))
@@ -85,16 +92,25 @@ func newReplicationSpec20240805(ctx context.Context, input types.List, diags *di
 	for i := range elements {
 		item := &elements[i]
 		resp[i] = admin.ReplicationSpec20240805{
-			Id:            conversion.NilForUnknown(item.Id, item.Id.ValueStringPointer()),
+			Id:            conversion.NilForUnknown(item.ExternalId, item.ExternalId.ValueStringPointer()),
 			ZoneId:        conversion.NilForUnknown(item.ZoneId, item.ZoneId.ValueStringPointer()),
 			RegionConfigs: newCloudRegionConfig20240805(ctx, item.RegionConfigs, diags),
-			ZoneName:      item.ZoneName.ValueStringPointer(),
+			ZoneName:      conversion.StringPtr(resolveZoneNameOrUseDefault(item)),
 		}
 	}
 	return &resp
 }
+
+func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
+	zoneName := conversion.NilForUnknown(item.ZoneName, item.ZoneName.ValueStringPointer())
+	if zoneName == nil {
+		return defaultZoneName
+	}
+	return *zoneName
+}
+
 func newResourceTag(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ResourceTag {
-	if input.IsUnknown() || input.IsNull() {
+	if input.IsUnknown() {
 		return nil
 	}
 	elements := make([]TFTagsModel, len(input.Elements()))
@@ -167,7 +183,7 @@ func newHardwareSpec20240805(ctx context.Context, input types.Object, diags *dia
 	return &admin.HardwareSpec20240805{
 		DiskIOPS:      conversion.NilForUnknown(item.DiskIops, conversion.Int64PtrToIntPtr(item.DiskIops.ValueInt64Pointer())),
 		DiskSizeGB:    conversion.NilForUnknown(item.DiskSizeGb, item.DiskSizeGb.ValueFloat64Pointer()),
-		EbsVolumeType: conversion.NilForUnknown(item.EbsVolumeType, item.EbsVolumeType.ValueStringPointer()),
+		EbsVolumeType: conversion.NilForUnknownOrEmptyString(item.EbsVolumeType),
 		InstanceSize:  conversion.NilForUnknown(item.InstanceSize, item.InstanceSize.ValueStringPointer()),
 		NodeCount:     conversion.NilForUnknown(item.NodeCount, conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
 	}
@@ -185,8 +201,8 @@ func newDedicatedHardwareSpec20240805(ctx context.Context, input types.Object, d
 	return &admin.DedicatedHardwareSpec20240805{
 		DiskIOPS:      conversion.NilForUnknown(item.DiskIops, conversion.Int64PtrToIntPtr(item.DiskIops.ValueInt64Pointer())),
 		DiskSizeGB:    conversion.NilForUnknown(item.DiskSizeGb, item.DiskSizeGb.ValueFloat64Pointer()),
-		EbsVolumeType: conversion.NilForUnknown(item.EbsVolumeType, item.EbsVolumeType.ValueStringPointer()),
-		InstanceSize:  conversion.NilForUnknown(item.InstanceSize, item.InstanceSize.ValueStringPointer()),
+		EbsVolumeType: conversion.NilForUnknownOrEmptyString(item.EbsVolumeType),
+		InstanceSize:  conversion.NilForUnknownOrEmptyString(item.InstanceSize),
 		NodeCount:     conversion.NilForUnknown(item.NodeCount, conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
 	}
 }
@@ -204,8 +220,8 @@ func newAdvancedComputeAutoScaling(ctx context.Context, input types.Object, diag
 	return &admin.AdvancedComputeAutoScaling{
 		Enabled:          conversion.NilForUnknown(item.ComputeEnabled, item.ComputeEnabled.ValueBoolPointer()),
 		ScaleDownEnabled: conversion.NilForUnknown(item.ComputeScaleDownEnabled, item.ComputeScaleDownEnabled.ValueBoolPointer()),
-		MaxInstanceSize:  conversion.NilForUnknown(item.ComputeMaxInstanceSize, item.ComputeMaxInstanceSize.ValueStringPointer()),
-		MinInstanceSize:  conversion.NilForUnknown(item.ComputeMinInstanceSize, item.ComputeMinInstanceSize.ValueStringPointer()),
+		MaxInstanceSize:  conversion.NilForUnknownOrEmptyString(item.ComputeMaxInstanceSize),
+		MinInstanceSize:  conversion.NilForUnknownOrEmptyString(item.ComputeMinInstanceSize),
 	}
 }
 func newDiskGBAutoScaling(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.DiskGBAutoScaling {

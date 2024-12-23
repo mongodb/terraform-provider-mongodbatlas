@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 var _ datasource.DataSource = &alertConfigurationDS{}
@@ -335,7 +335,7 @@ func outputAlertConfigurationResourceHcl(label string, alert *admin.GroupAlertsC
 	}
 
 	notifications := alert.GetNotifications()
-	for i := 0; i < len(notifications); i++ {
+	for i := range len(notifications) {
 		appendBlockWithCtyValues(resource, "notification", []string{}, convertNotificationToCtyValues(&notifications[i]))
 	}
 

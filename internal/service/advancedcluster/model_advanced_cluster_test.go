@@ -8,9 +8,8 @@ import (
 	"testing"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
-	"go.mongodb.org/atlas-sdk/v20241113001/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +27,7 @@ var (
 	advancedClusters = []admin.ClusterDescription20240805{{StateName: conversion.StringPtr("NOT IDLE")}}
 )
 
-func TestFlattenReplicationSpecs(t *testing.T) {
+func TestFlattenAdvancedReplicationSpecsOldShardingConfig(t *testing.T) {
 	var (
 		regionName         = "EU_WEST_1"
 		providerName       = "AWS"
@@ -36,7 +35,7 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 		unexpectedID       = "id2"
 		expectedZoneName   = "z1"
 		unexpectedZoneName = "z2"
-		regionConfigAdmin  = []admin20240530.CloudRegionConfig{{
+		regionConfigAdmin  = []admin.CloudRegionConfig20240805{{
 			ProviderName: &providerName,
 			RegionName:   &regionName,
 		}}
@@ -49,8 +48,8 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 			"region_name":   regionName,
 			"zone_name":     unexpectedZoneName,
 		}
-		apiSpecExpected  = admin20240530.ReplicationSpec{Id: &expectedID, ZoneName: &expectedZoneName, RegionConfigs: &regionConfigAdmin}
-		apiSpecDifferent = admin20240530.ReplicationSpec{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &regionConfigAdmin}
+		apiSpecExpected  = admin.ReplicationSpec20240805{Id: &expectedID, ZoneName: &expectedZoneName, RegionConfigs: &regionConfigAdmin}
+		apiSpecDifferent = admin.ReplicationSpec20240805{Id: &unexpectedID, ZoneName: &unexpectedZoneName, RegionConfigs: &regionConfigAdmin}
 		testSchema       = map[string]*schema.Schema{
 			"project_id": {Type: schema.TypeString},
 		}
@@ -80,47 +79,56 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 		}
 	)
 	testCases := map[string]struct {
-		adminSpecs   []admin20240530.ReplicationSpec
-		tfInputSpecs []any
-		expectedLen  int
+		adminSpecs                       []admin.ReplicationSpec20240805
+		zoneNameToOldReplicationSpecMeta map[string]advancedcluster.OldShardConfigMeta
+		tfInputSpecs                     []any
+		expectedLen                      int
 	}{
 		"empty admin spec should return empty list": {
-			[]admin20240530.ReplicationSpec{},
+			[]admin.ReplicationSpec20240805{},
+			map[string]advancedcluster.OldShardConfigMeta{},
 			[]any{tfSameIDSameZone},
 			0,
 		},
 		"existing id, should match admin": {
-			[]admin20240530.ReplicationSpec{apiSpecExpected},
+			[]admin.ReplicationSpec20240805{apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
 			[]any{tfSameIDSameZone},
 			1,
 		},
 		"existing different id, should change to admin spec": {
-			[]admin20240530.ReplicationSpec{apiSpecExpected},
+			[]admin.ReplicationSpec20240805{apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
 			[]any{tfdiffIDDiffZone},
 			1,
 		},
 		"missing id, should be set when zone_name matches": {
-			[]admin20240530.ReplicationSpec{apiSpecExpected},
+			[]admin.ReplicationSpec20240805{apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
 			[]any{tfNoIDSameZone},
 			1,
 		},
 		"missing id and diff zone, should change to admin spec": {
-			[]admin20240530.ReplicationSpec{apiSpecExpected},
+			[]admin.ReplicationSpec20240805{apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}},
 			[]any{tfNoIDDiffZone},
 			1,
 		},
 		"existing id, should match correct api spec using `id` and extra api spec added": {
-			[]admin20240530.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
+			[]admin.ReplicationSpec20240805{apiSpecDifferent, apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{unexpectedZoneName: {unexpectedID, 1}, expectedZoneName: {expectedID, 1}},
 			[]any{tfSameIDSameZone},
 			2,
 		},
 		"missing id, should match correct api spec using `zone_name` and extra api spec added": {
-			[]admin20240530.ReplicationSpec{apiSpecDifferent, apiSpecExpected},
+			[]admin.ReplicationSpec20240805{apiSpecDifferent, apiSpecExpected},
+			map[string]advancedcluster.OldShardConfigMeta{unexpectedZoneName: {unexpectedID, 1}, expectedZoneName: {expectedID, 1}},
 			[]any{tfNoIDSameZone},
 			2,
 		},
 		"two matching specs should be set to api specs": {
-			[]admin20240530.ReplicationSpec{apiSpecExpected, apiSpecDifferent},
+			[]admin.ReplicationSpec20240805{apiSpecExpected, apiSpecDifferent},
+			map[string]advancedcluster.OldShardConfigMeta{expectedZoneName: {expectedID, 1}, unexpectedZoneName: {unexpectedID, 1}},
 			[]any{tfSameIDSameZone, tfdiffIDDiffZone},
 			2,
 		},
@@ -138,7 +146,7 @@ func TestFlattenReplicationSpecs(t *testing.T) {
 			}
 			resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]any{"project_id": "p1"})
 
-			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldSDK(context.Background(), tc.adminSpecs, nil, 0, tc.tfInputSpecs, resourceData, client)
+			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldShardingConfig(context.Background(), tc.adminSpecs, tc.zoneNameToOldReplicationSpecMeta, tc.tfInputSpecs, resourceData, client)
 
 			require.NoError(t, err)
 			assert.Len(t, tfOutputSpecs, tc.expectedLen)
@@ -451,13 +459,13 @@ func TestCheckRegionConfigsPriorityOrder(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			configs := make([]admin20240805.CloudRegionConfig20240805, len(tc.priorities))
+			configs := make([]admin.CloudRegionConfig20240805, len(tc.priorities))
 			configsOld := make([]admin20240530.CloudRegionConfig, len(tc.priorities))
 			for i, priority := range tc.priorities {
 				configs[i].Priority = conversion.IntPtr(priority)
 				configsOld[i].Priority = conversion.IntPtr(priority)
 			}
-			err := advancedcluster.CheckRegionConfigsPriorityOrder([]admin20240805.ReplicationSpec20240805{{RegionConfigs: &configs}})
+			err := advancedcluster.CheckRegionConfigsPriorityOrder([]admin.ReplicationSpec20240805{{RegionConfigs: &configs}})
 			assert.Equal(t, tc.errorExpected, err != nil)
 			err = advancedcluster.CheckRegionConfigsPriorityOrderOld([]admin20240530.ReplicationSpec{{RegionConfigs: &configsOld}})
 			assert.Equal(t, tc.errorExpected, err != nil)

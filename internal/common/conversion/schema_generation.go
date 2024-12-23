@@ -1,6 +1,7 @@
 package conversion
 
 import (
+	"maps"
 	"reflect"
 	"slices"
 
@@ -8,17 +9,57 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-func DataSourceSchemaFromResource(rs schema.Schema, requiredFields []string, overridenFields map[string]dsschema.Attribute) dsschema.Schema {
-	blocks := convertBlocks(rs.Blocks, requiredFields)
-	attrs := convertAttrs(rs.Attributes, requiredFields)
-	for name, attr := range overridenFields {
-		if attr == nil {
-			delete(attrs, name)
-		} else {
-			attrs[name] = attr
+type DataSourceSchemaRequest struct {
+	OverridenFields map[string]dsschema.Attribute
+	RequiredFields  []string
+}
+
+type PluralDataSourceSchemaRequest struct {
+	OverridenFields     map[string]dsschema.Attribute
+	OverridenRootFields map[string]dsschema.Attribute
+	OverrideResultsDoc  string
+	RequiredFields      []string
+	HasLegacyFields     bool
+}
+
+func DataSourceSchemaFromResource(rs schema.Schema, req *DataSourceSchemaRequest) dsschema.Schema {
+	attrs := convertAttrs(rs.Attributes, req.RequiredFields)
+	maps.Copy(attrs, convertBlocksToAttrs(rs.Blocks, req.RequiredFields))
+	overrideFields(attrs, req.OverridenFields)
+	ds := dsschema.Schema{Attributes: attrs}
+	UpdateSchemaDescription(&ds)
+	return ds
+}
+
+func PluralDataSourceSchemaFromResource(rs schema.Schema, req *PluralDataSourceSchemaRequest) dsschema.Schema {
+	attrs := convertAttrs(rs.Attributes, nil)
+	maps.Copy(attrs, convertBlocksToAttrs(rs.Blocks, nil))
+	overrideFields(attrs, req.OverridenFields)
+	rootAttrs := convertAttrs(rs.Attributes, req.RequiredFields)
+	for name := range rootAttrs {
+		if !slices.Contains(req.RequiredFields, name) {
+			delete(rootAttrs, name)
 		}
 	}
-	ds := dsschema.Schema{Attributes: attrs, Blocks: blocks}
+	overrideFields(rootAttrs, req.OverridenRootFields)
+	resultsDoc := "List of documents that MongoDB Cloud returns for this request."
+	if req.OverrideResultsDoc != "" {
+		resultsDoc = req.OverrideResultsDoc
+	}
+	rootAttrs["results"] = dsschema.ListNestedAttribute{
+		Computed: true,
+		NestedObject: dsschema.NestedAttributeObject{
+			Attributes: attrs,
+		},
+		MarkdownDescription: resultsDoc,
+	}
+	if req.HasLegacyFields {
+		rootAttrs["id"] = dsschema.StringAttribute{Computed: true}
+		rootAttrs["total_count"] = dsschema.Int64Attribute{Computed: true}
+		rootAttrs["page_num"] = dsschema.Int64Attribute{Optional: true}
+		rootAttrs["items_per_page"] = dsschema.Int64Attribute{Optional: true}
+	}
+	ds := dsschema.Schema{Attributes: rootAttrs}
 	UpdateSchemaDescription(&ds)
 	return ds
 }
@@ -33,12 +74,14 @@ var convertMappings = map[string]reflect.Type{
 	"Int64Attribute":        reflect.TypeOf(dsschema.Int64Attribute{}),
 	"Float64Attribute":      reflect.TypeOf(dsschema.Float64Attribute{}),
 	"MapAttribute":          reflect.TypeOf(dsschema.MapAttribute{}),
+	"ListAttribute":         reflect.TypeOf(dsschema.ListAttribute{}),
+	"SetAttribute":          reflect.TypeOf(dsschema.SetAttribute{}),
 	"SingleNestedAttribute": reflect.TypeOf(dsschema.SingleNestedAttribute{}),
 	"ListNestedAttribute":   reflect.TypeOf(dsschema.ListNestedAttribute{}),
 	"SetNestedAttribute":    reflect.TypeOf(dsschema.SetNestedAttribute{}),
-	"ListAttribute":         reflect.TypeOf(dsschema.ListAttribute{}),
-	"SetNestedBlock":        reflect.TypeOf(dsschema.SetNestedBlock{}),
-	"SetAttribute":          reflect.TypeOf(dsschema.SetAttribute{}),
+	"SingleNestedBlock":     reflect.TypeOf(dsschema.SingleNestedAttribute{}),
+	"ListNestedBlock":       reflect.TypeOf(dsschema.ListNestedAttribute{}),
+	"SetNestedBlock":        reflect.TypeOf(dsschema.SetNestedAttribute{}),
 }
 
 var convertNestedMappings = map[string]reflect.Type{
@@ -48,9 +91,6 @@ var convertNestedMappings = map[string]reflect.Type{
 
 func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields []string) map[string]dsschema.Attribute {
 	const ignoreField = "timeouts"
-	if rsAttrs == nil {
-		return nil
-	}
 	dsAttrs := make(map[string]dsschema.Attribute, len(rsAttrs))
 	for name, attr := range rsAttrs {
 		if name == ignoreField {
@@ -61,15 +101,12 @@ func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields []string) 
 	return dsAttrs
 }
 
-func convertBlocks(rsBlocks map[string]schema.Block, requiredFields []string) map[string]dsschema.Block {
-	if rsBlocks == nil {
-		return nil
-	}
-	dsBlocks := make(map[string]dsschema.Block, len(rsBlocks))
+func convertBlocksToAttrs(rsBlocks map[string]schema.Block, requiredFields []string) map[string]dsschema.Attribute {
+	dsAttrs := make(map[string]dsschema.Attribute, len(rsBlocks))
 	for name, block := range rsBlocks {
-		dsBlocks[name] = convertElement(name, block, requiredFields).(dsschema.Block)
+		dsAttrs[name] = convertElement(name, block, requiredFields).(dsschema.Attribute)
 	}
-	return dsBlocks
+	return dsAttrs
 }
 
 func convertElement(name string, element any, requiredFields []string) any {
@@ -88,8 +125,8 @@ func convertElement(name string, element any, requiredFields []string) any {
 	vDest := reflect.New(tDest).Elem()
 	vDest.FieldByName("MarkdownDescription").Set(vSrc.FieldByName("MarkdownDescription"))
 	vDest.FieldByName("DeprecationMessage").Set(vSrc.FieldByName("DeprecationMessage"))
-	if fSensitive := vDest.FieldByName("Sensitive"); fSensitive.CanSet() {
-		fSensitive.Set(vSrc.FieldByName("Sensitive"))
+	if fSensitive, sSensitive := vDest.FieldByName("Sensitive"), vSrc.FieldByName("Sensitive"); fSensitive.CanSet() && sSensitive.IsValid() {
+		fSensitive.Set(sSensitive)
 	}
 	if fComputed := vDest.FieldByName("Computed"); fComputed.CanSet() {
 		fComputed.SetBool(computed)
@@ -100,21 +137,43 @@ func convertElement(name string, element any, requiredFields []string) any {
 	if fElementType := vDest.FieldByName("ElementType"); fElementType.CanSet() {
 		fElementType.Set(vSrc.FieldByName("ElementType"))
 	}
-	if fAttributes := vDest.FieldByName("Attributes"); fAttributes.CanSet() {
-		attrsSrc := vSrc.FieldByName("Attributes").Interface().(map[string]schema.Attribute)
-		fAttributes.Set(reflect.ValueOf(convertAttrs(attrsSrc, nil)))
-	}
+	fillNestedAttrs(vDest, vSrc)
+
 	if fNested := vDest.FieldByName("NestedObject"); fNested.CanSet() {
 		tNested := convertNestedMappings[fNested.Type().Name()]
 		if tNested == nil {
 			panic("nested type not support yet, add it to convertNestedMappings: " + fNested.Type().Name())
 		}
-		attrsSrc := vSrc.FieldByName("NestedObject").FieldByName("Attributes").Interface().(map[string]schema.Attribute)
 		vNested := reflect.New(tNested).Elem()
-		vNested.FieldByName("Attributes").Set(reflect.ValueOf(convertAttrs(attrsSrc, nil)))
+		fillNestedAttrs(vNested, vSrc.FieldByName("NestedObject"))
 		fNested.Set(vNested)
 	}
 	return vDest.Interface()
+}
+
+func fillNestedAttrs(vDest, vSrc reflect.Value) {
+	fAttributes := vDest.FieldByName("Attributes")
+	if !fAttributes.CanSet() {
+		return
+	}
+	attrsSrc := vSrc.FieldByName("Attributes").Interface().(map[string]schema.Attribute)
+	attrSrcDS := convertAttrs(attrsSrc, nil)
+	if fBlocks := vSrc.FieldByName("Blocks"); fBlocks.IsValid() {
+		blocksSrc := fBlocks.Interface().(map[string]schema.Block)
+		blockSrcDS := convertBlocksToAttrs(blocksSrc, nil)
+		maps.Copy(attrSrcDS, blockSrcDS)
+	}
+	fAttributes.Set(reflect.ValueOf(attrSrcDS))
+}
+
+func overrideFields(attrs, overridenFields map[string]dsschema.Attribute) {
+	for name, attr := range overridenFields {
+		if attr == nil {
+			delete(attrs, name)
+		} else {
+			attrs[name] = attr
+		}
+	}
 }
 
 // UpdateAttr is exported for testing purposes only and should not be used directly.

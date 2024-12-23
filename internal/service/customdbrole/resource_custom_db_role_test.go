@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 const resourceName = "mongodbatlas_custom_db_role.test"
@@ -382,7 +382,7 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		roleName := fmt.Sprintf("test-acc-custom_role-%d", i)
 		projectName := acc.RandomProjectName()
 		t.Run(roleName, func(t *testing.T) {

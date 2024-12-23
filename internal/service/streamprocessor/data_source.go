@@ -24,8 +24,9 @@ type StreamProccesorDS struct {
 }
 
 func (d *StreamProccesorDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	requireFields := []string{"project_id", "instance_name", "processor_name"}
-	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), requireFields, nil)
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+		RequiredFields: []string{"project_id", "instance_name", "processor_name"},
+	})
 }
 
 func (d *StreamProccesorDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

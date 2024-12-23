@@ -1,19 +1,22 @@
 package cluster_test
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
+	"time"
+
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	clustersvc "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -42,7 +45,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config: configAWS(projectID, clusterName, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -64,7 +67,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config: configAWS(projectID, clusterName, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -77,13 +80,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_disk_gb_enabled", "false"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"cloud_backup", "retain_backups_enabled"},
-			},
+			acc.TestStepImportCluster(resourceName, "cloud_backup", "retain_backups_enabled"),
 		},
 	}
 }
@@ -105,18 +102,23 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvancedConf(projectID, clusterName, "false", &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              conversion.Pointer(false),
-					JavascriptEnabled:                conversion.Pointer(true),
-					MinimumEnabledTLSProtocol:        "TLS1_1",
-					NoTableScan:                      conversion.Pointer(false),
-					OplogSizeMB:                      conversion.Pointer[int64](1000),
-					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
-					SampleSizeBIConnector:            conversion.Pointer[int64](110),
-					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
-				}),
+				Config: configAdvancedConf(projectID, clusterName, "false", &admin20240530.ClusterDescriptionProcessArgs{
+					FailIndexKeyTooLong: conversion.Pointer(false),
+					DefaultReadConcern:  conversion.StringPtr("available"),
+				},
+					&admin.ClusterDescriptionProcessArgs20240805{
+						JavascriptEnabled:                conversion.Pointer(true),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						NoTableScan:                      conversion.Pointer(false),
+						OplogSizeMB:                      conversion.Pointer(1000),
+						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
+						SampleSizeBIConnector:            conversion.Pointer(110),
+						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+						TlsCipherConfigMode:              conversion.StringPtr("CUSTOM"),
+						CustomOpensslCipherConfigTls12:   &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
+					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
@@ -125,6 +127,9 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "CUSTOM"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.custom_openssl_cipher_config_tls12.#", "2"),
+
 					resource.TestCheckResourceAttr(dataSourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(dataSourceName, "disk_size_gb", "10"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "mongo_uri"),
@@ -134,14 +139,18 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.tls_cipher_config_mode", "CUSTOM"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.custom_openssl_cipher_config_tls12.#", "2"),
 				),
 			},
 			{
-				Config: configAdvancedConfPartial(projectID, clusterName, "false", &matlas.ProcessArgs{
-					MinimumEnabledTLSProtocol: "TLS1_2",
+				Config: configAdvancedConfPartial(projectID, clusterName, "false", &admin.ClusterDescriptionProcessArgs20240805{
+					MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_2"),
+					TlsCipherConfigMode:            conversion.StringPtr("DEFAULT"), // To unset TlsCipherConfigMode, user needs to set this to DEFAULT
+					CustomOpensslCipherConfigTls12: &[]string{},
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
@@ -149,39 +158,45 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "DEFAULT"),
 				),
 			},
 		},
 	}
 }
 
-func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
+func basicDefaultWriteReadAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		projectID   = acc.ProjectIDExecution(tb)
 		clusterName = acc.RandomClusterName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+	return &resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(tb, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvancedConfDefaultWriteRead(projectID, clusterName, "false", &matlas.ProcessArgs{
-					DefaultReadConcern:               "available",
-					DefaultWriteConcern:              "1",
-					FailIndexKeyTooLong:              conversion.Pointer(false),
-					JavascriptEnabled:                conversion.Pointer(true),
-					MinimumEnabledTLSProtocol:        "TLS1_1",
-					NoTableScan:                      conversion.Pointer(false),
-					OplogSizeMB:                      conversion.Pointer[int64](1000),
-					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
-					SampleSizeBIConnector:            conversion.Pointer[int64](110),
-					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
-					ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.Pointer[int64](113),
-				}),
+				Config: configAdvancedConfDefaultWriteRead(projectID, clusterName, "false",
+					&admin20240530.ClusterDescriptionProcessArgs{
+						FailIndexKeyTooLong: conversion.Pointer(false),
+						DefaultReadConcern:  conversion.StringPtr("available"),
+					},
+					&admin.ClusterDescriptionProcessArgs20240805{
+						DefaultWriteConcern:              conversion.StringPtr("1"),
+						JavascriptEnabled:                conversion.Pointer(true),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						NoTableScan:                      conversion.Pointer(false),
+						OplogSizeMB:                      conversion.Pointer(1000),
+						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
+						SampleSizeBIConnector:            conversion.Pointer(110),
+						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+						ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.Pointer(113),
+					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
@@ -191,14 +206,15 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds", "113"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "DEFAULT"),
 				),
 			},
 			{
-				Config: configAdvancedConfPartialDefault(projectID, clusterName, "false", &matlas.ProcessArgs{
-					MinimumEnabledTLSProtocol: "TLS1_2",
+				Config: configAdvancedConfPartialDefault(projectID, clusterName, "false", &admin.ClusterDescriptionProcessArgs20240805{
+					MinimumEnabledTlsProtocol: conversion.StringPtr("TLS1_2"),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
@@ -208,10 +224,15 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds", "-1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "DEFAULT"),
 				),
 			},
 		},
-	})
+	}
+}
+
+func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
+	resource.ParallelTest(t, *basicDefaultWriteReadAdvancedConfTestCase(t))
 }
 
 func TestAccCluster_emptyAdvancedConf(t *testing.T) {
@@ -226,21 +247,23 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvancedConfPartial(projectID, clusterName, "false", &matlas.ProcessArgs{
-					MinimumEnabledTLSProtocol: "TLS1_2",
+				Config: configAdvancedConfPartial(projectID, clusterName, "false", &admin.ClusterDescriptionProcessArgs20240805{
+					MinimumEnabledTlsProtocol: conversion.StringPtr("TLS1_2"),
 				}),
 			},
 			{
-				Config: configAdvancedConf(projectID, clusterName, "false", &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              conversion.Pointer(false),
-					JavascriptEnabled:                conversion.Pointer(true),
-					MinimumEnabledTLSProtocol:        "TLS1_1",
-					NoTableScan:                      conversion.Pointer(false),
-					OplogSizeMB:                      conversion.Pointer[int64](1000),
-					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
-					SampleSizeBIConnector:            conversion.Pointer[int64](110),
-					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
-				}),
+				Config: configAdvancedConf(projectID, clusterName, "false", &admin20240530.ClusterDescriptionProcessArgs{
+					FailIndexKeyTooLong: conversion.Pointer(false),
+				},
+					&admin.ClusterDescriptionProcessArgs20240805{
+						JavascriptEnabled:                conversion.Pointer(true),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						NoTableScan:                      conversion.Pointer(false),
+						OplogSizeMB:                      conversion.Pointer(1000),
+						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
+						SampleSizeBIConnector:            conversion.Pointer(110),
+						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
@@ -268,19 +291,23 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvancedConf(projectID, clusterName, "false", &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              conversion.Pointer(false),
-					JavascriptEnabled:                conversion.Pointer(true),
-					MinimumEnabledTLSProtocol:        "TLS1_2",
-					NoTableScan:                      conversion.Pointer(true),
-					OplogSizeMB:                      conversion.Pointer[int64](1000),
-					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](310),
-					SampleSizeBIConnector:            conversion.Pointer[int64](110),
-					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
-				}),
+				Config: configAdvancedConf(projectID, clusterName, "false", &admin20240530.ClusterDescriptionProcessArgs{
+					FailIndexKeyTooLong: conversion.Pointer(false),
+					DefaultReadConcern:  conversion.StringPtr("available"),
+				},
+					&admin.ClusterDescriptionProcessArgs20240805{
+						JavascriptEnabled:                conversion.Pointer(true),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
+						NoTableScan:                      conversion.Pointer(true),
+						OplogSizeMB:                      conversion.Pointer(1000),
+						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
+						SampleSizeBIConnector:            conversion.Pointer(110),
+						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "true"),
@@ -288,21 +315,26 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "DEFAULT"),
 				),
 			},
 			{
-				Config: configAdvancedConf(projectID, clusterName, "false", &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              conversion.Pointer(false),
-					JavascriptEnabled:                conversion.Pointer(false),
-					MinimumEnabledTLSProtocol:        "TLS1_1",
-					NoTableScan:                      conversion.Pointer(false),
-					OplogSizeMB:                      conversion.Pointer[int64](990),
-					SampleRefreshIntervalBIConnector: conversion.Pointer[int64](0),
-					SampleSizeBIConnector:            conversion.Pointer[int64](0),
-					TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](60),
-				}),
+				Config: configAdvancedConf(projectID, clusterName, "false", &admin20240530.ClusterDescriptionProcessArgs{
+					FailIndexKeyTooLong: conversion.Pointer(false),
+				},
+					&admin.ClusterDescriptionProcessArgs20240805{
+						JavascriptEnabled:                conversion.Pointer(false),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						NoTableScan:                      conversion.Pointer(false),
+						OplogSizeMB:                      conversion.Pointer(990),
+						SampleRefreshIntervalBIConnector: conversion.Pointer(0),
+						SampleSizeBIConnector:            conversion.Pointer(0),
+						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](60),
+						TlsCipherConfigMode:              conversion.StringPtr("CUSTOM"),
+						CustomOpensslCipherConfigTls12:   &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"},
+					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
@@ -311,6 +343,8 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "60"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "CUSTOM"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.custom_openssl_cipher_config_tls12.#", "1"),
 				),
 			},
 		},
@@ -333,7 +367,7 @@ func TestAccCluster_basicAzure(t *testing.T) {
 			{
 				Config: configAzure(orgID, projectName, clusterName, "true", "M30", true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
@@ -344,7 +378,7 @@ func TestAccCluster_basicAzure(t *testing.T) {
 			{
 				Config: configAzure(orgID, projectName, clusterName, "false", "M30", true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
@@ -372,7 +406,7 @@ func TestAccCluster_basicGCP(t *testing.T) {
 			{
 				Config: configGCP(orgID, projectName, clusterName, "true"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "40"),
@@ -384,7 +418,7 @@ func TestAccCluster_basicGCP(t *testing.T) {
 			{
 				Config: configGCP(orgID, projectName, clusterName, "false"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "40"),
@@ -413,7 +447,7 @@ func TestAccCluster_WithBiConnectorGCP(t *testing.T) {
 			{
 				Config: configGCPWithBiConnector(orgID, projectName, clusterName, "true", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "40"),
@@ -426,7 +460,7 @@ func TestAccCluster_WithBiConnectorGCP(t *testing.T) {
 			{
 				Config: configGCPWithBiConnector(orgID, projectName, clusterName, "false", true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "40"),
@@ -482,7 +516,7 @@ func TestAccCluster_MultiRegion(t *testing.T) {
 			{
 				Config: configMultiRegion(orgID, projectName, clusterName, "true", createRegionsConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -497,7 +531,7 @@ func TestAccCluster_MultiRegion(t *testing.T) {
 			{
 				Config: configMultiRegion(orgID, projectName, clusterName, "false", updatedRegionsConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -552,7 +586,7 @@ func TestAccCluster_ProviderRegionName(t *testing.T) {
 			{
 				Config: configSingleRegionWithProviderRegionName(orgID, projectName, clusterName, "false"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -567,7 +601,7 @@ func TestAccCluster_ProviderRegionName(t *testing.T) {
 			{
 				Config: configMultiRegion(orgID, projectName, clusterName, "false", updatedRegionsConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -598,7 +632,7 @@ func TestAccCluster_Global(t *testing.T) {
 			{
 				Config: configClusterGlobal(orgID, projectName, clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
@@ -631,7 +665,7 @@ func TestAccCluster_AWSWithLabels(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, clusterName, "false", "M10", "US_WEST_2", []matlas.Label{}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
@@ -657,7 +691,7 @@ func TestAccCluster_AWSWithLabels(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
@@ -679,7 +713,7 @@ func TestAccCluster_AWSWithLabels(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
@@ -706,7 +740,7 @@ func TestAccCluster_WithTags(t *testing.T) {
 			{
 				Config: configWithTags(orgID, projectName, clusterName, "false", "M10", "US_WEST_2", []matlas.Tag{}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
@@ -729,7 +763,7 @@ func TestAccCluster_WithTags(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
@@ -754,7 +788,7 @@ func TestAccCluster_WithTags(t *testing.T) {
 					},
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
@@ -798,7 +832,7 @@ func TestAccCluster_withPrivateEndpointLink(t *testing.T) {
 				Config: configWithPrivateEndpointLink(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
@@ -832,7 +866,7 @@ func TestAccCluster_withAzureNetworkPeering(t *testing.T) {
 			{
 				Config: configAzureWithNetworkPeering(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName, clusterName, atlasCidrBlock, region),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 				),
@@ -862,7 +896,7 @@ func TestAccCluster_withGCPNetworkPeering(t *testing.T) {
 			{
 				Config: configGCPWithNetworkPeering(gcpProjectID, gcpRegion, projectID, providerName, gcpPeeringName, clusterName, gcpClusterRegion),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "5"),
@@ -992,7 +1026,7 @@ func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 			{
 				Config: configAWSWithAutoscaling(projectID, clusterName, "true", "false", "true", "false", minSize, maxSize, instanceSize),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_compute_enabled", "true"),
@@ -1011,7 +1045,7 @@ func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 			{
 				Config: configAWSWithAutoscaling(projectID, clusterName, "false", "true", "true", "true", minSizeUpdated, maxSizeUpdated, instanceSizeUpdated),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_compute_enabled", "true"),
@@ -1040,7 +1074,7 @@ func TestAccCluster_tenant(t *testing.T) {
 			{
 				Config: configTenant(orgID, projectName, clusterName, "M2", "2"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "2"),
@@ -1050,7 +1084,7 @@ func TestAccCluster_tenant(t *testing.T) {
 			{
 				Config: configTenantUpdated(orgID, projectName, clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
@@ -1077,7 +1111,7 @@ func TestAccCluster_tenant_m5(t *testing.T) {
 			{
 				Config: configTenant(orgID, projectName, clusterName, "M5", "5"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "5"),
@@ -1270,7 +1304,7 @@ func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 			{
 				Config: configAWSPaused(projectID, clusterName, true, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -1283,7 +1317,7 @@ func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 			{
 				Config: configAWSPaused(projectID, clusterName, false, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -1293,13 +1327,7 @@ func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateClusterIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"cloud_backup", "backup_enabled"},
-			},
+			acc.TestStepImportCluster(resourceName, "cloud_backup", "backup_enabled"),
 		},
 	})
 }
@@ -1318,7 +1346,7 @@ func TestAccCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 			{
 				Config: configAWSPaused(projectID, clusterName, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -1331,7 +1359,7 @@ func TestAccCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 			{
 				Config: configAWSPaused(projectID, clusterName, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
@@ -1402,22 +1430,57 @@ func TestAccCluster_create_RedactClientLogData(t *testing.T) {
 	})
 }
 
-func checkExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		log.Printf("[DEBUG] projectID: %s, name %s", ids["project_id"], ids["cluster_name"])
-		if _, _, err := acc.Conn().Clusters.Get(context.Background(), ids["project_id"], ids["cluster_name"]); err == nil {
-			return nil
-		}
-		return fmt.Errorf("cluster(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.ID)
-	}
+func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() //  Using single project to assert plural data source
+		clusterName = acc.RandomClusterName()
+	)
+
+	now := time.Now()
+	// Time 7 days from now, truncated to the beginning of the day
+	sevenDaysFromNow := now.AddDate(0, 0, 7).Truncate(24 * time.Hour)
+	firstExpirationDate := conversion.TimeToString(sevenDaysFromNow)
+	// Time 8 days from now
+	eightDaysFromNow := sevenDaysFromNow.AddDate(0, 0, 1)
+	updatedExpirationDate := conversion.TimeToString(eightDaysFromNow)
+	invalidDateFormat := "invalid"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+			},
+			{ // pins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(firstExpirationDate), conversion.Pointer(7)),
+			},
+			{ // using incorrect format
+				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
+				ExpectError: regexp.MustCompile("expiration_date format is incorrect: " + invalidDateFormat),
+			},
+			{ // updates expiration date of fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+			},
+			{ // upgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+			},
+			{ // downgrade mongodb version with fcv pinned
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+			},
+			{ // unpins fcv
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+			},
+		},
+	})
 }
 
 func configAWS(projectID, name string, backupEnabled, autoDiskGBEnabled bool) string {
@@ -1446,7 +1509,27 @@ func configAWS(projectID, name string, backupEnabled, autoDiskGBEnabled bool) st
 	`, projectID, name, backupEnabled, autoDiskGBEnabled)
 }
 
-func configAdvancedConf(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
+func configAdvancedConf(projectID, name, autoscalingEnabled string,
+	p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
+	defaultReadConcernStr := ""
+	tlsCipherConfigModeStr := ""
+	customOpensslCipherConfigTLS12Str := ""
+
+	if p20240530.DefaultReadConcern != nil {
+		defaultReadConcernStr = fmt.Sprintf("default_read_concern = %[1]q", *p20240530.DefaultReadConcern)
+	}
+
+	if p.TlsCipherConfigMode != nil {
+		tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
+		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+			//nolint:gocritic // reason: simplifying string array construction
+			customOpensslCipherConfigTLS12Str = fmt.Sprintf(
+				`custom_openssl_cipher_config_tls12 = ["%s"]`,
+				strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
+			)
+		}
+	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = %[1]q
@@ -1473,13 +1556,17 @@ func configAdvancedConf(projectID, name, autoscalingEnabled string, p *matlas.Pr
 
 			advanced_configuration  {
 				fail_index_key_too_long              = %[4]t
-				javascript_enabled                   = %[5]t
-				minimum_enabled_tls_protocol         = %[6]q
-				no_table_scan                        = %[7]t
-				oplog_size_mb                        = %[8]d
-				sample_size_bi_connector			 = %[9]d
-				sample_refresh_interval_bi_connector = %[10]d
-				transaction_lifetime_limit_seconds   = %[11]d
+				%[5]s
+				javascript_enabled                   = %[6]t
+				minimum_enabled_tls_protocol         = %[7]q
+				no_table_scan                        = %[8]t
+				oplog_size_mb                        = %[9]d
+				sample_size_bi_connector			 = %[10]d
+				sample_refresh_interval_bi_connector = %[11]d
+				transaction_lifetime_limit_seconds   = %[12]d
+				%[13]s
+				%[14]s
+
 			}
 		}
 
@@ -1488,11 +1575,11 @@ func configAdvancedConf(projectID, name, autoscalingEnabled string, p *matlas.Pr
 			name 	     = mongodbatlas_cluster.test.name
 		}
 	`, projectID, name, autoscalingEnabled,
-		*p.FailIndexKeyTooLong, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
-		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, *p.TransactionLifetimeLimitSeconds)
+		p20240530.GetFailIndexKeyTooLong(), defaultReadConcernStr, p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
+		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds(), tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str)
 }
 
-func configAdvancedConfDefaultWriteRead(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
+func configAdvancedConfDefaultWriteRead(projectID, name, autoscalingEnabled string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = %[1]q
@@ -1529,11 +1616,24 @@ func configAdvancedConfDefaultWriteRead(projectID, name, autoscalingEnabled stri
 			}
 		}
 	`, projectID, name, autoscalingEnabled,
-		*p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
-		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, p.DefaultReadConcern, p.DefaultWriteConcern, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
+		p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
+		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p20240530.GetDefaultReadConcern(), p.GetDefaultWriteConcern(), p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds())
 }
 
-func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
+func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *admin.ClusterDescriptionProcessArgs20240805) string {
+	tlsCipherConfigModeStr := ""
+	customOpensslCipherConfigTLS12Str := ""
+
+	if p.TlsCipherConfigMode != nil {
+		tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
+		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+			//nolint:gocritic // reason: simplifying string array construction
+			customOpensslCipherConfigTLS12Str = fmt.Sprintf(
+				`custom_openssl_cipher_config_tls12 = ["%s"]`,
+				strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
+			)
+		}
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = %[1]q
@@ -1561,12 +1661,14 @@ func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *ma
 
 			advanced_configuration {
 				minimum_enabled_tls_protocol         = %[4]q
+				%[5]s
+				%[6]s
 			}
 		}
-	`, projectID, name, autoscalingEnabled, p.MinimumEnabledTLSProtocol)
+	`, projectID, name, autoscalingEnabled, p.GetMinimumEnabledTlsProtocol(), tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str)
 }
 
-func configAdvancedConfPartialDefault(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
+func configAdvancedConfPartialDefault(projectID, name, autoscalingEnabled string, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = %[1]q
@@ -1596,7 +1698,7 @@ func configAdvancedConfPartialDefault(projectID, name, autoscalingEnabled string
 				minimum_enabled_tls_protocol = %[4]q
 			}
 		}
-	`, projectID, name, autoscalingEnabled, p.MinimumEnabledTLSProtocol)
+	`, projectID, name, autoscalingEnabled, p.GetMinimumEnabledTlsProtocol())
 }
 
 func configAzure(orgID, projectName, name, backupEnabled, instanceSizeName string, includeDiskType bool) string {
@@ -2414,6 +2516,54 @@ func configClusterGlobal(orgID, projectName, clusterName string) string {
 			}
 		}
 	`, orgID, projectName, clusterName)
+}
+
+func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationDate *string, mongoDBMajorVersion string) string {
+	var pinnedFCVAttr string
+	if pinningExpirationDate != nil {
+		pinnedFCVAttr = fmt.Sprintf(`
+		pinned_fcv {
+    		expiration_date = %q
+  		}
+		`, *pinningExpirationDate)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+		
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = mongodbatlas_project.test.id
+			name         = %[3]q
+			cluster_type = "REPLICASET"
+			provider_name = "AWS"
+  			provider_instance_size_name = "M10"
+
+			mongo_db_major_version = %[4]q
+
+			%[5]s
+
+			replication_specs {
+				num_shards = 1
+				regions_config {
+					region_name     = "US_WEST_2"
+					electable_nodes = 3
+					priority        = 7
+				}
+			}
+		}
+
+		data "mongodbatlas_cluster" "test" {
+			project_id = mongodbatlas_cluster.test.project_id
+			name 	     = mongodbatlas_cluster.test.name
+		}
+
+		data "mongodbatlas_clusters" "test" {
+			project_id = mongodbatlas_cluster.test.project_id
+		}
+	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)
 }
 
 func TestIsMultiRegionCluster(t *testing.T) {

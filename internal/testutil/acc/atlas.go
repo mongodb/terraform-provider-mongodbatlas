@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func createProject(tb testing.TB, name string) string {
@@ -101,9 +101,6 @@ func projectIDLocal(tb testing.TB) string {
 	id := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	if id == "" {
 		return ""
-	}
-	if InCI() {
-		tb.Fatal("MONGODB_ATLAS_PROJECT_ID can't be used in CI")
 	}
 	tb.Logf("Using MONGODB_ATLAS_PROJECT_ID: %s", id)
 	return id

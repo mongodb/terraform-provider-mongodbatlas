@@ -11,7 +11,8 @@ import (
 	"regexp"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -31,7 +32,7 @@ const (
 	errorClusterRead              = "error reading MongoDB Cluster (%s): %s"
 	errorClusterDelete            = "error deleting MongoDB Cluster (%s): %s"
 	errorClusterUpdate            = "error updating MongoDB Cluster (%s): %s"
-	errorAdvancedConfUpdate       = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	errorAdvancedConfUpdate       = "error updating Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
 	ErrorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
 )
 
@@ -354,6 +355,23 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"pinned_fcv": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"expiration_date": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 		CustomizeDiff: resourceClusterCustomizeDiff,
 		Timeouts: &schema.ResourceTimeout{
@@ -374,6 +392,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var (
 		conn             = meta.(*config.MongoDBClient).Atlas
 		connV2           = meta.(*config.MongoDBClient).AtlasV2
+		connV220240530   = meta.(*config.MongoDBClient).AtlasV220240530
 		connV220240805   = meta.(*config.MongoDBClient).AtlasV220240805
 		projectID        = d.Get("project_id").(string)
 		clusterName      = d.Get("name").(string)
@@ -555,12 +574,16 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	*/
 	ac, ok := d.GetOk("advanced_configuration")
 	if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any), &clusterRequest.MongoDBMajorVersion)
+		params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), &clusterRequest.MongoDBMajorVersion)
 
 		if ok {
-			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
+			_, _, err = connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.Name, &params20240530).Execute()
 			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, cluster.Name, err))
+				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, advancedcluster.V20240530, cluster.Name, err))
+			}
+			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.Name, &params).Execute()
+			if err != nil {
+				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, "", cluster.Name, err))
 			}
 		}
 	}
@@ -570,7 +593,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterRequest = &matlas.Cluster{
 			Paused: conversion.Pointer(v),
 		}
-
 		_, _, err = updateCluster(ctx, conn, connV2, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
@@ -579,6 +601,16 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if v, ok := d.GetOk("redact_client_log_data"); ok {
 		if err := newAtlasUpdate(ctx, d.Timeout(schema.TimeoutCreate), connV2, connV220240805, projectID, clusterName, v.(bool)); err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+		}
+	}
+
+	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
+		if diags := advancedcluster.PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
+			return diags
+		}
+		stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 	}
@@ -596,6 +628,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -657,10 +690,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	if err := d.Set("encryption_at_rest_provider", cluster.EncryptionAtRestProvider); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "encryption_at_rest_provider", clusterName, err))
-	}
-
-	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_db_major_version", clusterName, err))
 	}
 
 	// Avoid Global Cluster issues. (NumShards is not present in Global Clusters)
@@ -757,12 +786,16 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	/*
 		Get the advaced configuration options and set up to the terraform state
 	*/
-	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, clusterName, err))
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, advancedcluster.V20240530, clusterName, err))
+	}
+	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, "", clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
 	}
 
@@ -776,15 +809,25 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(err)
 	}
 
-	redactClientLogData, err := newAtlasGet(ctx, connV2, projectID, clusterName)
+	latestClusterModel, err := newAtlasGet(ctx, connV2, projectID, clusterName)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
 	}
-	if err := d.Set("redact_client_log_data", redactClientLogData); err != nil {
+	if err := d.Set("redact_client_log_data", latestClusterModel.GetRedactClientLogData()); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "redact_client_log_data", clusterName, err))
 	}
 
-	return nil
+	if err := d.Set("mongo_db_major_version", latestClusterModel.MongoDBMajorVersion); err != nil { // uses 2024-08-05 or above as it has fix for correct value when FCV is active
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_db_major_version", clusterName, err))
+	}
+
+	warning := advancedcluster.WarningIfFCVExpiredOrUnpinnedExternally(d, latestClusterModel) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
+
+	if err := d.Set("pinned_fcv", advancedcluster.FlattenPinnedFCV(latestClusterModel)); err != nil {
+		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "pinned_fcv", clusterName, err))
+	}
+
+	return warning
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -792,9 +835,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		conn                = meta.(*config.MongoDBClient).Atlas
 		connV2              = meta.(*config.MongoDBClient).AtlasV2
 		connV220240805      = meta.(*config.MongoDBClient).AtlasV220240805
+		connV220240530      = meta.(*config.MongoDBClient).AtlasV220240530
 		ids                 = conversion.DecodeStateID(d.Id())
 		projectID           = ids["project_id"]
 		clusterName         = ids["cluster_name"]
+		timeout             = d.Timeout(schema.TimeoutUpdate)
 		cluster             = new(matlas.Cluster)
 		clusterChangeDetect = &matlas.Cluster{
 			AutoScaling: &matlas.AutoScaling{
@@ -802,6 +847,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			},
 		}
 	)
+
+	// FCV update is intentionally handled before other cluster updates, and will wait for cluster to reach IDLE state before continuing
+	if diags := advancedcluster.HandlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout); diags != nil {
+		return diags
+	}
 
 	if d.HasChange("name") {
 		cluster.Name, _ = d.Get("name").(string)
@@ -933,8 +983,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		cluster.Paused = conversion.Pointer(d.Get("paused").(bool))
 	}
 
-	timeout := d.Timeout(schema.TimeoutUpdate)
-
 	/*
 		Check if advaced configuration option has a changes to update it
 	*/
@@ -946,11 +994,17 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		ac := d.Get("advanced_configuration")
 		if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
-			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any), &mongoDBMajorVersion)
-			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
-				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
+			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), &mongoDBMajorVersion)
+			if !reflect.DeepEqual(params20240530, admin20240530.ClusterDescriptionProcessArgs{}) {
+				_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params20240530).Execute()
 				if err != nil {
-					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, clusterName, err))
+					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, advancedcluster.V20240530, clusterName, err))
+				}
+			}
+			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
+				_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
+				if err != nil {
+					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, "", clusterName, err))
 				}
 			}
 		}

@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20241113001/admin"
-	"go.mongodb.org/atlas-sdk/v20241113001/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113003/mockadmin"
 )
 
 func TestGetChangesForTeamUsers(t *testing.T) {
