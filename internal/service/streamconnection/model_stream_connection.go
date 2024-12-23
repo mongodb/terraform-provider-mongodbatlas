@@ -60,6 +60,18 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		}
 	}
 
+	if !plan.Networking.IsNull() && !plan.Networking.IsUnknown() {
+		networkingModel := &TFNetworkingModel{}
+		if diags := plan.Networking.As(ctx, networkingModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.Networking = &admin.StreamsKafkaNetworking{
+			Access: &admin.StreamsKafkaNetworkingAccess{
+				Type: networkingModel.Access.Type.ValueStringPointer(),
+			},
+		}
+	}
+
 	return &streamConnection, nil
 }
 
@@ -112,6 +124,19 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 			return nil, diags
 		}
 		connectionModel.DBRoleToExecute = dbRoleToExecuteModel
+	}
+
+	connectionModel.Networking = types.ObjectNull(NetworkingObjectType.AttrTypes)
+	if apiResp.Networking != nil {
+		networkingModel, diags := types.ObjectValueFrom(ctx, NetworkingObjectType.AttrTypes, TFNetworkingModel{
+			Access: TFNetworkingAccessModel{
+				Type: types.StringPointerValue(apiResp.Networking.Access.Type),
+			},
+		})
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.Networking = networkingModel
 	}
 
 	return &connectionModel, nil
