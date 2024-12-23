@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 var (
@@ -255,7 +256,9 @@ func kafkaStreamConnectionAttributeChecks(
 		resource.TestCheckResourceAttr(resourceName, "authentication.username", username),
 		resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", bootstrapServers),
 		resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", configValue),
-		resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingType),
+	}
+	if mig.IsProviderVersionAtLeast("1.25.0") {
+		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingType))
 	}
 	if checkPassword {
 		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "authentication.password", password))
