@@ -7,7 +7,7 @@ resource "confluent_private_link_attachment" "pla" {
   region       = var.aws_region
   display_name = "private-link-attachment"
   environment {
-    id =  confluent_environment.staging.id
+    id = confluent_environment.staging.id
   }
 }
 
@@ -22,7 +22,7 @@ module "privatelink" {
 resource "confluent_private_link_attachment_connection" "plac" {
   display_name = "private-link-attachment-connection"
   environment {
-    id =  confluent_environment.staging.id
+    id = confluent_environment.staging.id
   }
   aws {
     vpc_endpoint_id = module.privatelink.vpc_endpoint_id
