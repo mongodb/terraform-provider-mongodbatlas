@@ -12,9 +12,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-//go:embed testdata/dummy-ca.pem
-var DummyCACert string
 var (
+	//go:embed testdata/dummy-ca.pem
+	DummyCACert string
 	networkingTypeVPC    = "VPC"
 	networkingTypePublic = "PUBLIC"
 	kafkaNetworkingVPC   = fmt.Sprintf(`networking = {
