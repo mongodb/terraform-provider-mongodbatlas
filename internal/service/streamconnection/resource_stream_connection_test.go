@@ -14,7 +14,7 @@ import (
 
 var (
 	//go:embed testdata/dummy-ca.pem
-	DummyCACert string
+	DummyCACert          string
 	networkingTypeVPC    = "VPC"
 	networkingTypePublic = "PUBLIC"
 	kafkaNetworkingVPC   = fmt.Sprintf(`networking = {
