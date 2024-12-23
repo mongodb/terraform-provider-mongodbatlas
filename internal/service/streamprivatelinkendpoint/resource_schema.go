@@ -15,7 +15,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "The ID of the Private Link connection.",
 			},
 			"dns_domain": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Domain name of Privatelink connected cluster.",
 			},
 			"dns_sub_domain": schema.ListAttribute{
@@ -36,11 +36,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Provider where the Kafka cluster is deployed.",
 			},
 			"region": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Domain name of Confluent cluster.",
 			},
 			"service_endpoint_id": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Service Endpoint ID.",
 			},
 			"state": schema.StringAttribute{

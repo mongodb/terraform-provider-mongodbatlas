@@ -32,6 +32,12 @@ func TestAccStreamPrivatelinkEndpoint_failedUpdate(t *testing.T) {
 	resource.Test(t, *tc)
 }
 
+func TestAccStreamPrivatelinkEndpoint_missingRequiredFields(t *testing.T) {
+	tc := missingRequiredFieldsTestCase(t)
+	// Tests include testing of plural data source and so cannot be run in parallel
+	resource.Test(t, *tc)
+}
+
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
@@ -77,8 +83,8 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 		region              = "us-east-1"
 		vendor              = "CONFLUENT"
 		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
-		networkID           = "n-dz0vk2" //TODO: Use env variables
-		privatelinkAccessID = "pla-n1962k"
+		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
+		privatelinkAccessID = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
 	)
 
 	return &resource.TestCase{
@@ -97,6 +103,41 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 			},
 		},
 	}
+}
+
+func missingRequiredFieldsTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
+	var (
+		// need specific projectID because feature is currently under a Feature flag
+		projectID           = os.Getenv("MONGODB_ATLAS_STREAM_AWS_PL_PROJECT_ID")
+		provider            = "AWS"
+		vendor              = "CONFLUENT"
+		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
+		privatelinkAccessID = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		CheckDestroy:             checkDestroy,
+		ExternalProviders:        acc.ExternalProvidersOnlyConfluent(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configDataConfluentDedicatedCluster(networkID, privatelinkAccessID) + missingRequiredFieldsConfig(projectID, provider, vendor),
+				ExpectError: regexp.MustCompile(`(?s)^.*?service_endpoint_id is required for vendor CONFLUENT.*?dns_domain is required for vendor CONFLUENT.*?region is required for vendor CONFLUENT.*$`),
+			},
+		},
+	}
+}
+
+func missingRequiredFieldsConfig(projectID, provider, vendor string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id          = %[1]q
+		provider_name       = %[2]q
+		vendor              = %[3]q
+	}`, projectID, provider, vendor)
 }
 
 func configBasic(projectID, provider, region, vendor string, withDNSSubdomains bool) string {
