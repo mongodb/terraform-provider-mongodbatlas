@@ -2,11 +2,16 @@ package streamprivatelinkendpoint
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+)
+
+const (
+	VendorConfluent = "CONFLUENT"
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
@@ -33,6 +38,22 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 }
 
 func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkConnection, diag.Diagnostics) {
+	if plan.Vendor.ValueString() == VendorConfluent {
+		diags := diag.Diagnostics{}
+		if plan.ServiceEndpointId.IsNull() {
+			diags.AddError(fmt.Sprintf("service_endpoint_id is required for vendor %s", VendorConfluent), "")
+		}
+		if plan.DnsDomain.IsNull() {
+			diags.AddError(fmt.Sprintf("dns_domain is required for vendor %s", VendorConfluent), "")
+		}
+		if plan.Region.IsNull() {
+			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorConfluent), "")
+		}
+		if diags.HasError() {
+			return nil, diags
+		}
+	}
+
 	result := &admin.StreamsPrivateLinkConnection{
 		DnsDomain:         plan.DnsDomain.ValueStringPointer(),
 		DnsSubDomain:      &[]string{},
