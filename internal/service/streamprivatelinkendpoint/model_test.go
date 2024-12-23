@@ -153,7 +153,6 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 			},
 			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
 				DnsDomain:         &dnsDomain,
-				DnsSubDomain:      &[]string{},
 				Provider:          &provider,
 				Region:            &region,
 				ServiceEndpointId: &serviceEndpointID,
