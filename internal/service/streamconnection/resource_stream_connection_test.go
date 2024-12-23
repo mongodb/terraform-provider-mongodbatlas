@@ -47,11 +47,11 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", "", false),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, true),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
 			},
 			{
 				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user2", "otherpassword", "localhost:9093", "latest", kafkaNetworkingPublic, false),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false, true),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -78,16 +78,12 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 			{
 				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
-					resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingTypePublic),
+					kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
 				),
 			},
 			{
 				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
-				Check: resource.ComposeAggregateTestCheckFunc(kafkaStreamConnectionAttributeChecks(
-					resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
-					resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingTypeVPC),
-				),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -113,7 +109,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -248,7 +244,7 @@ func sampleStreamConnectionAttributeChecks(
 }
 
 func kafkaStreamConnectionAttributeChecks(
-	resourceName, instanceName, username, password, bootstrapServers, configValue string, usesSSL, checkPassword bool) resource.TestCheckFunc {
+	resourceName, instanceName, username, password, bootstrapServers, configValue, networkingType string, usesSSL, checkPassword bool) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -259,6 +255,7 @@ func kafkaStreamConnectionAttributeChecks(
 		resource.TestCheckResourceAttr(resourceName, "authentication.username", username),
 		resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", bootstrapServers),
 		resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", configValue),
+		resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingType),
 	}
 	if checkPassword {
 		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "authentication.password", password))

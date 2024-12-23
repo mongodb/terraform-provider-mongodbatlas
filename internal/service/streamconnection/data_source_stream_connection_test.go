@@ -21,7 +21,7 @@ func TestAccStreamDSStreamConnection_kafkaPlaintext(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: streamConnectionDataSourceConfig(kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", kafkaNetworkingPublic, false)),
-				Check:  kafkaStreamConnectionAttributeChecks(dataSourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, false),
+				Check:  kafkaStreamConnectionAttributeChecks(dataSourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
 			},
 		},
 	})
@@ -40,7 +40,7 @@ func TestAccStreamDSStreamConnection_kafkaSSL(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: streamConnectionDataSourceConfig(kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true)),
-				Check:  kafkaStreamConnectionAttributeChecks(dataSourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, false),
+				Check:  kafkaStreamConnectionAttributeChecks(dataSourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, false),
 			},
 		},
 	})
