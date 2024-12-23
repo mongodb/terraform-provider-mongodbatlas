@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
+* data-source/mongodbatlas_stream_connections: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
+* resource/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
+
 ## 1.24.0 (December 20, 2024)
 
 ENHANCEMENTS:
