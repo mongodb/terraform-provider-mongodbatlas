@@ -121,3 +121,24 @@ func CheckFCVPinningConfig(resourceName, dataSourceName, pluralDataSourceName st
 
 	return CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
 }
+
+func CheckIndependentShardScalingMode(resourceName, clusterName, expectedMode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		issMode, _, err := GetIndependentShardScalingMode(context.Background(), projectID, clusterName)
+		if err != nil {
+			return fmt.Errorf("error getting independent shard scaling mode: %w", err)
+		}
+		if *issMode != expectedMode {
+			return fmt.Errorf("expected independent shard scaling mode to be %s, got %s", expectedMode, *issMode)
+		}
+		return nil
+	}
+}

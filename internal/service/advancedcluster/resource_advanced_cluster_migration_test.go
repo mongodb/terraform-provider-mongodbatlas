@@ -251,12 +251,12 @@ func TestMigAdvancedCluster_newSchemaFromAutoscalingDisabledToEnabled(t *testing
 			{
 				ExternalProviders: acc.ExternalProviders("1.22.0"), // last version before cluster tier auto-scaling per shard was introduced
 				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, false),
-				Check:             checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+				Check:             acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, true),
-				Check:                    checkIndependentShardScalingMode(clusterName, "SHARD"),
+				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
 			},
 		},
 	})
