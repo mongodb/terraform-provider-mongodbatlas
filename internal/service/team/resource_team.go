@@ -167,7 +167,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		newUsernames := conversion.ExpandStringList(d.Get("usernames").(*schema.Set).List())
 
-		err = UpdateTeamUsers(connV2.TeamsApi, connV2.MongoDBCloudUsersApi, &existingUsers, newUsernames, orgID, teamID)
+		err = UpdateTeamUsers(connV2.TeamsApi, connV2.MongoDBCloudUsersApi, existingUsers, newUsernames, orgID, teamID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error when updating usernames in team: %s", err))
 		}

@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
-func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersApi, existingTeamUsers *[]admin.CloudAppUser, newUsernames []string, orgID, teamID string) error {
+func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersApi, existingTeamUsers []admin.CloudAppUser, newUsernames []string, orgID, teamID string) error {
 	validNewUsers, err := ValidateUsernames(usersAPI, newUsernames)
 	if err != nil {
 		return err
@@ -41,7 +41,7 @@ func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersAp
 	return nil
 }
 
-func ValidateUsernames(c admin.MongoDBCloudUsersApi, usernames []string) (*[]admin.CloudAppUser, error) {
+func ValidateUsernames(c admin.MongoDBCloudUsersApi, usernames []string) ([]admin.CloudAppUser, error) {
 	var validUsers []admin.CloudAppUser
 	for _, elem := range usernames {
 		userToAdd, _, err := c.GetUserByUsername(context.Background(), elem).Execute()
@@ -50,13 +50,13 @@ func ValidateUsernames(c admin.MongoDBCloudUsersApi, usernames []string) (*[]adm
 		}
 		validUsers = append(validUsers, *userToAdd)
 	}
-	return &validUsers, nil
+	return validUsers, nil
 }
 
-func GetChangesForTeamUsers(currentUsers, newUsers *[]admin.CloudAppUser) (toAdd, toDelete []string, err error) {
+func GetChangesForTeamUsers(currentUsers, newUsers []admin.CloudAppUser) (toAdd, toDelete []string, err error) {
 	// Create two sets to store the elements of current and new users
-	currentUsersSet := InitUserSet(*currentUsers)
-	newUsersSet := InitUserSet(*newUsers)
+	currentUsersSet := InitUserSet(currentUsers)
+	newUsersSet := InitUserSet(newUsers)
 
 	// Iterate over new users and add them to the toAdd array if they are not in current users
 	for elem := range newUsersSet {
