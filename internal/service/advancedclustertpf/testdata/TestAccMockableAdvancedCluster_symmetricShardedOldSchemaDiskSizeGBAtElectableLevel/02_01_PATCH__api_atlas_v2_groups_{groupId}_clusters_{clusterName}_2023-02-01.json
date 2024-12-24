@@ -2,17 +2,14 @@
  "diskSizeGB": 55,
  "replicationSpecs": [
   {
-   "id": "67587c99240d1b0223213a95",
    "numShards": 2,
    "regionConfigs": [
     {
      "analyticsSpecs": {
-      "diskIOPS": 3000,
       "instanceSize": "M10",
       "nodeCount": 0
      },
      "electableSpecs": {
-      "diskIOPS": 3000,
       "instanceSize": "M10",
       "nodeCount": 3
      },

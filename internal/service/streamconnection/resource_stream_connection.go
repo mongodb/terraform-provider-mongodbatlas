@@ -5,12 +5,14 @@ import (
 	"errors"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -43,6 +45,7 @@ type TFStreamConnectionModel struct {
 	Config           types.Map    `tfsdk:"config"`
 	Security         types.Object `tfsdk:"security"`
 	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
+	Networking       types.Object `tfsdk:"networking"`
 }
 
 type TFConnectionAuthenticationModel struct {
@@ -75,6 +78,22 @@ type TFDbRoleToExecuteModel struct {
 var DBRoleToExecuteObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"role": types.StringType,
 	"type": types.StringType,
+}}
+
+type TFNetworkingAccessModel struct {
+	Type types.String `tfsdk:"type"`
+}
+
+var NetworkingAccessObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"type": types.StringType,
+}}
+
+type TFNetworkingModel struct {
+	Access TFNetworkingAccessModel `tfsdk:"access"`
+}
+
+var NetworkingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"access": NetworkingAccessObjectType,
 }}
 
 func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -181,7 +200,7 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 	projectID := streamConnectionState.ProjectID.ValueString()
 	instanceName := streamConnectionState.InstanceName.ValueString()
 	connectionName := streamConnectionState.ConnectionName.ValueString()
-	if _, _, err := connV2.StreamsApi.DeleteStreamConnection(ctx, projectID, instanceName, connectionName).Execute(); err != nil {
+	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, time.Minute); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

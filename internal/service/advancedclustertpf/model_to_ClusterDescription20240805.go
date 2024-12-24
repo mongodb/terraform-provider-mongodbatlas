@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 const defaultZoneName = "ZoneName managed by Terraform"
@@ -45,16 +45,21 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		VersionReleaseSystem:             conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
 	}
 }
-
-func newBiConnector(ctx context.Context, input types.List, diags *diag.Diagnostics) *admin.BiConnector {
-	return conversion.SingleListTFToSDK(ctx, diags, &input, func(tf TFBiConnectorModel) *admin.BiConnector {
-		return &admin.BiConnector{
-			Enabled:        conversion.NilForUnknown(tf.Enabled, tf.Enabled.ValueBoolPointer()),
-			ReadPreference: conversion.NilForUnknown(tf.ReadPreference, tf.ReadPreference.ValueStringPointer()),
-		}
-	})
+func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.BiConnector {
+	var resp *admin.BiConnector
+	if input.IsUnknown() || input.IsNull() {
+		return resp
+	}
+	item := &TFBiConnectorModel{}
+	if localDiags := input.As(ctx, item, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return resp
+	}
+	return &admin.BiConnector{
+		Enabled:        conversion.NilForUnknown(item.Enabled, item.Enabled.ValueBoolPointer()),
+		ReadPreference: conversion.NilForUnknown(item.ReadPreference, item.ReadPreference.ValueStringPointer()),
+	}
 }
-
 func newComponentLabel(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ComponentLabel {
 	if input.IsUnknown() {
 		return nil

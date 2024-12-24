@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 var (
@@ -40,7 +40,7 @@ func AwaitChanges(ctx context.Context, api admin.ClustersApi, t *timeouts.Value,
 		targetState = retrystrategy.RetryStrategyDeletedState
 		extraPending = append(extraPending, retrystrategy.RetryStrategyIdleState)
 	default:
-		diags.AddError("errorAwaitingChanges", "unknown change reason "+changeReason)
+		diags.AddError(errorUnknownChangeReason, "unknown change reason "+changeReason)
 	}
 	if diags.HasError() {
 		return nil
@@ -48,10 +48,10 @@ func AwaitChanges(ctx context.Context, api admin.ClustersApi, t *timeouts.Value,
 	stateConf := CreateStateChangeConfig(ctx, api, projectID, clusterName, targetState, timeoutDuration, extraPending...)
 	clusterAny, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && changeReason == "delete" {
+		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && changeReason == changeReasonDelete {
 			return nil
 		}
-		diags.AddError("errorAwaitingCluster", fmt.Sprintf(errorCreate, err))
+		diags.AddError(errorAwaitState, fmt.Sprintf("change reason: %s, desired state: %s, error: %s", changeReason, targetState, err))
 		return nil
 	}
 	if targetState == retrystrategy.RetryStrategyDeletedState {
@@ -59,7 +59,7 @@ func AwaitChanges(ctx context.Context, api admin.ClustersApi, t *timeouts.Value,
 	}
 	cluster, ok := clusterAny.(*admin.ClusterDescription20240805)
 	if !ok {
-		diags.AddError("errorAwaitingCluster", fmt.Sprintf(errorCreate, "unexpected type from WaitForStateContext"))
+		diags.AddError(errorAwaitStateResultType, fmt.Sprintf("unexpected type: %T", clusterAny))
 		return nil
 	}
 	return cluster

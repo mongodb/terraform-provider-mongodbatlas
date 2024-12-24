@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 const projectsDataSourceName = "projects"
@@ -98,8 +98,7 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 							Computed: true,
 						},
 						"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
-							Computed:           true,
-							DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersion, "1.24.0"),
+							Computed: true,
 						},
 						"region_usage_restrictions": schema.StringAttribute{
 							Computed: true,

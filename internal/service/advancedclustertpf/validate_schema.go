@@ -101,7 +101,7 @@ func (v RegionSpecPriorityOrderDecreasingValidator) ValidateList(ctx context.Con
 	configs := *regionConfigs
 	for i := range len(configs) - 1 {
 		if configs[i].GetPriority() < configs[i+1].GetPriority() {
-			diags.AddError("priority values in region_configs must be in descending order", fmt.Sprintf("priority value at index %d is %d and priority value at index %d is %d", i, configs[i].GetPriority(), i+1, configs[i+1].GetPriority()))
+			diags.AddError(errorRegionPriorities, fmt.Sprintf("priority value at index %d is %d and priority value at index %d is %d", i, configs[i].GetPriority(), i+1, configs[i+1].GetPriority()))
 		}
 	}
 }

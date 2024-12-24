@@ -13,7 +13,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -786,7 +786,6 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 		projectName = acc.RandomProjectName()
 		clusterName = acc.RandomClusterName()
 	)
-	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: add support for matching state replication_specs with updated/removed replication_specs in config
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -2228,9 +2227,10 @@ func checkGeoShardedNewSchema(isAcc, includeThirdShardInFirstZone bool) resource
 		amtOfReplicationSpecs = 2
 	}
 	clusterChecks := map[string]string{
-		"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
+		"replication_specs.#":                fmt.Sprintf("%d", amtOfReplicationSpecs),
+		"replication_specs.0.container_id.%": "1",
+		"replication_specs.1.container_id.%": "1",
 	}
-
 	return checkAggr(isAcc, []string{}, clusterChecks)
 }
 

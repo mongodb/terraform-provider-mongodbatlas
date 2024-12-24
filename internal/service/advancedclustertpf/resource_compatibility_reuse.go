@@ -6,13 +6,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/spf13/cast"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 type MajorVersionOperator int
@@ -55,6 +54,10 @@ func FormatMongoDBMajorVersion(version string) string {
 	return fmt.Sprintf("%.1f", cast.ToFloat32(version))
 }
 
+func containerIDKey(providerName, regionName string) string {
+	return fmt.Sprintf("%s:%s", providerName, regionName)
+}
+
 // based on flattenAdvancedReplicationSpecRegionConfigs in model_advanced_cluster.go
 func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.ClusterDescription20240805, api admin.NetworkPeeringApi) (map[string]string, error) {
 	containerIDs := map[string]string{}
@@ -69,8 +72,8 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 				GroupId:      projectID,
 				ProviderName: &providerName,
 			}
-			containerIDKey := fmt.Sprintf("%s:%s", providerName, regionConfig.GetRegionName())
-			if _, ok := containerIDs[containerIDKey]; ok {
+			key := containerIDKey(providerName, regionConfig.GetRegionName())
+			if _, ok := containerIDs[key]; ok {
 				continue
 			}
 			var containersResponse *admin.PaginatedCloudProviderContainer
@@ -85,9 +88,9 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 				responseCache[providerName] = containersResponse
 			}
 			if results := getAdvancedClusterContainerID(containersResponse.GetResults(), &regionConfig); results != "" {
-				containerIDs[containerIDKey] = results
+				containerIDs[key] = results
 			} else {
-				return nil, fmt.Errorf("container id not found for %s", containerIDKey)
+				return nil, fmt.Errorf("container id not found for %s", key)
 			}
 		}
 	}
@@ -172,13 +175,13 @@ func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec20240
 }
 
 // copied from advancedcluster/resource_update_logic.go
-func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2ClusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20240805) (*[]admin.ReplicationSpec20240805, diag.Diagnostics) {
+func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2ClusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20240805) (*[]admin.ReplicationSpec20240805, error) {
 	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
 		return replicationSpecs, nil
 	}
 	cluster, _, err := connV2ClusterAPI.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return nil, diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		return nil, err
 	}
 
 	zoneToReplicationSpecsIDs := groupIDsByZone(cluster.GetReplicationSpecs())

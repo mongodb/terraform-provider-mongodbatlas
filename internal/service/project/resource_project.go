@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -420,12 +420,6 @@ func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI adm
 func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (bool, error) {
 	response, err := api.GetManagedSlowMs(ctx, projectID).Execute()
 	if err != nil {
-		if admin.IsErrorCode(err, "USER_UNAUTHORIZED") {
-			if warnings != nil {
-				warnings.AddWarning("user does not have permission to read is_slow_operation_thresholding_enabled. Please read our documentation for more information.", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
-			}
-			return false, nil
-		}
 		return false, err
 	}
 	var isEnabled bool

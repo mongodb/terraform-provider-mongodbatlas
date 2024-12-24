@@ -1,56 +1,51 @@
 package update_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 func TestPatchReplicationSpecs(t *testing.T) {
 	var (
-		idGlobal                    = "id_root"
-		idReplicationSpec1          = "id_replicationSpec1"
-		idReplicationSpec2          = "id_replicationSpec2"
-		replicationSpec1ZoneNameOld = "replicationSpec1_zoneName_old"
-		replicationSpec1ZoneNameNew = "replicationSpec1_zoneName_new"
-		replicationSpec1ZoneID      = "replicationSpec1_zoneId"
-		replicationSpec2ZoneID      = "replicationSpec2_zoneId"
-		replicationSpec2ZoneName    = "replicationSpec2_zoneName"
-		rootName                    = "my-cluster"
-		rootNameUpdated             = "my-cluster-updated"
-		stateReplicationSpecs       = []admin.ReplicationSpec20240805{
-			{
-				Id:       &idReplicationSpec1,
-				ZoneId:   &replicationSpec1ZoneID,
-				ZoneName: &replicationSpec1ZoneNameOld,
-			},
+		rp1         = replicationSpec{placeholderIndex: 1}.toAdmin()
+		rp2         = replicationSpec{placeholderIndex: 2}.toAdmin()
+		rp3         = replicationSpec{placeholderIndex: 3}.toAdmin()
+		rp1ZoneName = rp1.GetZoneName()
+		rp1ID       = rp1.GetId()
+		rp1ZoneID   = rp1.GetZoneId()
+		idGlobal    = "id_root"
+
+		clusterName           = "my-cluster"
+		rootNameUpdated       = "my-cluster-updated"
+		stateReplicationSpecs = []admin.ReplicationSpec20240805{
+			rp1,
 		}
 		state = admin.ClusterDescription20240805{
 			Id:               &idGlobal,
-			Name:             &rootName,
+			Name:             &clusterName,
 			ReplicationSpecs: &stateReplicationSpecs,
 		}
-		planOptionalUpdated = admin.ClusterDescription20240805{
-			Name: &rootName,
-			ReplicationSpecs: &[]admin.ReplicationSpec20240805{
-				{
-					ZoneName: &replicationSpec1ZoneNameNew,
-				},
-			},
-		}
-		planNewListEntry = admin.ClusterDescription20240805{
-			ReplicationSpecs: &[]admin.ReplicationSpec20240805{
-				{
-					ZoneName: &replicationSpec1ZoneNameOld,
-				},
-				{
-					ZoneName: &replicationSpec2ZoneName,
-				},
-			},
+		stateWithReplicationSpecs = func(specs []replicationSpec, id, name string) *admin.ClusterDescription20240805 {
+			newSpecs := make([]admin.ReplicationSpec20240805, len(specs))
+			for i := range specs {
+				newSpecs[i] = specs[i].toAdmin()
+			}
+			cd := admin.ClusterDescription20240805{
+				ReplicationSpecs: &newSpecs,
+			}
+			if id != "" {
+				cd.Id = &id
+			}
+			if name != "" {
+				cd.Name = &name
+			}
+			return &cd
 		}
 		planNameDifferentAndEnableBackup = admin.ClusterDescription20240805{
 			Name:          &rootNameUpdated,
@@ -59,7 +54,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 		planNoChanges = admin.ClusterDescription20240805{
 			ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 				{
-					ZoneName: &replicationSpec1ZoneNameOld,
+					ZoneName: &rp1ZoneName,
 				},
 			},
 		}
@@ -69,66 +64,58 @@ func TestPatchReplicationSpecs(t *testing.T) {
 			patchExpected *admin.ClusterDescription20240805
 			options       []update.PatchOptions
 		}{
-			"ComputedValues from the state are added to plan and unchanged attributes are not included": {
+			"ComputedValues from the state are added to nested attribute plan and unchanged attributes are not included": {
 				state: &state,
-				plan:  &planOptionalUpdated,
+				plan:  stateWithReplicationSpecs([]replicationSpec{{zoneName: "newName"}}, "", ""),
 				patchExpected: &admin.ClusterDescription20240805{
 					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 						{
-							Id:       &idReplicationSpec1,
-							ZoneId:   &replicationSpec1ZoneID,
-							ZoneName: &replicationSpec1ZoneNameNew,
+							Id:       &rp1ID,
+							ZoneId:   &rp1ZoneID,
+							ZoneName: conversion.Pointer("newName"),
 						},
 					},
 				},
 			},
 			"New list entry added should be included": {
 				state: &state,
-				plan:  &planNewListEntry,
+				plan:  stateWithReplicationSpecs([]replicationSpec{{placeholderIndex: 1}, {zoneName: "zone2"}}, "", ""),
 				patchExpected: &admin.ClusterDescription20240805{
 					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						rp1,
 						{
-							Id:       &idReplicationSpec1,
-							ZoneId:   &replicationSpec1ZoneID,
-							ZoneName: &replicationSpec1ZoneNameOld,
-						},
-						{
-							ZoneName: &replicationSpec2ZoneName,
+							ZoneName: conversion.Pointer("zone2"),
 						},
 					},
 				},
 			},
-			"Removed list entry should be included": {
-				state: &admin.ClusterDescription20240805{
-					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
-						{
-							Id:       &idReplicationSpec1,
-							ZoneId:   &replicationSpec1ZoneID,
-							ZoneName: &replicationSpec1ZoneNameOld,
-						},
-						{
-							Id:       &idReplicationSpec2,
-							ZoneName: &replicationSpec2ZoneName,
-							ZoneId:   &replicationSpec2ZoneID,
-						},
-					},
-				},
-				plan: &admin.ClusterDescription20240805{
-					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
-						{
-							Id:       &idReplicationSpec1,
-							ZoneId:   &replicationSpec1ZoneID,
-							ZoneName: &replicationSpec1ZoneNameOld,
-						},
-					},
-				},
+			"Removed list entry should be detected": {
+				state: stateWithReplicationSpecs([]replicationSpec{{placeholderIndex: 1}, {placeholderIndex: 2}}, "", ""),
+				plan:  stateWithReplicationSpecs([]replicationSpec{{placeholderIndex: 1}}, "", ""),
 				patchExpected: &admin.ClusterDescription20240805{
 					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
-						{
-							Id:       &idReplicationSpec1,
-							ZoneId:   &replicationSpec1ZoneID,
-							ZoneName: &replicationSpec1ZoneNameOld,
-						},
+						rp1,
+					},
+				},
+			},
+			"Added list entry in the middle should be detected": {
+				state: stateWithReplicationSpecs([]replicationSpec{{placeholderIndex: 1}, {placeholderIndex: 2}}, "", ""),
+				plan:  stateWithReplicationSpecs([]replicationSpec{{placeholderIndex: 1}, {placeholderIndex: 3}, {placeholderIndex: 2}}, "", ""),
+				patchExpected: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						rp1,
+						rp3,
+						rp2,
+					},
+				},
+			},
+			"Removed list entry in the middle should be detected": {
+				state: stateWithReplicationSpecs([]replicationSpec{{placeholderIndex: 1}, {placeholderIndex: 2}, {placeholderIndex: 3}}, "", ""),
+				plan:  stateWithReplicationSpecs([]replicationSpec{{placeholderIndex: 1}, {placeholderIndex: 3}}, "", ""),
+				patchExpected: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						rp1,
+						rp3,
 					},
 				},
 			},
@@ -136,7 +123,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				state: &admin.ClusterDescription20240805{
 					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 						{
-							Id: &idReplicationSpec1,
+							Id: &rp1ID,
 							RegionConfigs: &[]admin.CloudRegionConfig20240805{
 								{
 									Priority: conversion.Pointer(1),
@@ -148,7 +135,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				plan: &admin.ClusterDescription20240805{
 					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 						{
-							Id: &idReplicationSpec1,
+							Id: &rp1ID,
 							RegionConfigs: &[]admin.CloudRegionConfig20240805{
 								{
 									Priority: conversion.Pointer(1),
@@ -163,7 +150,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				patchExpected: &admin.ClusterDescription20240805{
 					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 						{
-							Id: &idReplicationSpec1,
+							Id: &rp1ID,
 							RegionConfigs: &[]admin.CloudRegionConfig20240805{
 								{
 									Priority: conversion.Pointer(1),
@@ -300,6 +287,44 @@ func TestIsEmpty(t *testing.T) {
 	var myVar admin.ClusterDescription20240805
 	assert.True(t, update.IsZeroValues(&myVar))
 	assert.False(t, update.IsZeroValues(&admin.ClusterDescription20240805{Name: conversion.Pointer("my-cluster")}))
+}
+
+type replicationSpec struct {
+	id               string
+	zoneName         string
+	zoneID           string
+	placeholderIndex int
+}
+
+func (r replicationSpec) toAdmin() admin.ReplicationSpec20240805 {
+	var (
+		placeholderID       = "replicationSpec%d_id"
+		placeholderZoneID   = "replicationSpec%d_zoneId"
+		placeholderZoneName = "replicationSpec%d_zoneName"
+	)
+	index := r.placeholderIndex
+	if index != 0 {
+		if r.id == "" {
+			r.id = fmt.Sprintf(placeholderID, index)
+		}
+		if r.zoneName == "" {
+			r.zoneName = fmt.Sprintf(placeholderZoneName, index)
+		}
+		if r.zoneID == "" {
+			r.zoneID = fmt.Sprintf(placeholderZoneID, index)
+		}
+	}
+	spec := admin.ReplicationSpec20240805{}
+	if r.id != "" {
+		spec.SetId(r.id)
+	}
+	if r.zoneID != "" {
+		spec.SetZoneId(r.zoneID)
+	}
+	if r.zoneName != "" {
+		spec.SetZoneName(r.zoneName)
+	}
+	return spec
 }
 
 func clusterDescriptionDiskSizeNodeCount(diskSizeGBElectable float64, nodeCountElectable int, diskSizeGBReadOnly *float64, nodeCountReadOnly int, diskIopsState *int) *admin.ClusterDescription20240805 {

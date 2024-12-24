@@ -9,12 +9,63 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-//go:embed testdata/dummy-ca.pem
-var DummyCACert string
+var (
+	//go:embed testdata/dummy-ca.pem
+	DummyCACert          string
+	networkingTypeVPC    = "VPC"
+	networkingTypePublic = "PUBLIC"
+	kafkaNetworkingVPC   = fmt.Sprintf(`networking = {
+			access = {
+				type = %[1]q
+			}
+		}`, networkingTypeVPC)
+	kafkaNetworkingPublic = fmt.Sprintf(`networking = {
+			access = {
+				type = %[1]q
+			}
+		}`, networkingTypePublic)
+)
 
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
+	testCase := testCaseKafkaPlaintext(t)
+	resource.ParallelTest(t, *testCase)
+}
+
+func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
+	t.Helper()
+	var (
+		resourceName = "mongodbatlas_stream_connection.test"
+		projectID    = acc.ProjectIDExecution(t)
+		instanceName = acc.RandomName()
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", "", false),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
+			},
+			{
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user2", "otherpassword", "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"authentication.password"},
+			},
+		},
+	}
+}
+
+func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"
 		projectID    = acc.ProjectIDExecution(t)
@@ -26,12 +77,14 @@ func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", false, true),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
+				),
 			},
 			{
-				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user2", "otherpassword", "localhost:9093", "latest", false, true),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -56,8 +109,8 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true),
-				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", true, true),
+				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
+				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -71,12 +124,18 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 }
 
 func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
+	testCase := testCaseCluster(t)
+	resource.ParallelTest(t, *testCase)
+}
+
+func testCaseCluster(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		resourceName           = "mongodbatlas_stream_connection.test"
 		projectID, clusterName = acc.ClusterNameExecution(t)
 		instanceName           = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -92,7 +151,7 @@ func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	})
+	}
 }
 
 func TestAccStreamRSStreamConnection_sample(t *testing.T) {
@@ -121,7 +180,7 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	})
 }
 
-func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bootstrapServers, configValue string, useSSL bool) string {
+func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 	securityConfig := `
 		security = {
@@ -135,7 +194,6 @@ func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bo
 		    protocol = "SSL"
 		}`, DummyCACert)
 	}
-
 	return fmt.Sprintf(`
 		%[1]s
 		
@@ -154,8 +212,9 @@ func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bo
 		    	"auto.offset.reset": %[5]q
 		    }
 		    %[6]s
+			%[7]s
 		}
-	`, projectAndStreamInstanceConfig, username, password, bootstrapServers, configValue, securityConfig)
+	`, projectAndStreamInstanceConfig, username, password, bootstrapServers, configValue, networkingConfig, securityConfig)
 }
 
 func sampleStreamConnectionConfig(projectID, instanceName, sampleName string) string {
@@ -186,17 +245,20 @@ func sampleStreamConnectionAttributeChecks(
 }
 
 func kafkaStreamConnectionAttributeChecks(
-	resourceName, instanceName, username, password, bootstrapServers, configValue string, usesSSL, checkPassword bool) resource.TestCheckFunc {
+	resourceName, instanceName, username, password, bootstrapServers, configValue, networkingType string, usesSSL, checkPassword bool) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "connection_name"),
 		resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
+		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 		resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "PLAIN"),
 		resource.TestCheckResourceAttr(resourceName, "authentication.username", username),
 		resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", bootstrapServers),
 		resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", configValue),
+	}
+	if mig.IsProviderVersionAtLeast("1.25.0") {
+		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingType))
 	}
 	if checkPassword {
 		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "authentication.password", password))
