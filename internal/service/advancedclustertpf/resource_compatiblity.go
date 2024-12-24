@@ -2,12 +2,14 @@ package advancedclustertpf
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
@@ -37,29 +39,45 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 	return planCounts
 }
 
-func resolveAPIInfo(ctx context.Context, plan *TFModel, diags *diag.Diagnostics, clusterLatest *admin.ClusterDescription20240805, client *config.MongoDBClient) *ExtraAPIInfo {
-	rootDiskSize := conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
-	projectID := plan.ProjectID.ValueString()
-	zoneNameSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, plan.Name.ValueString(), client.AtlasV220240530.ClustersApi)
+func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, forceLegacySchema bool) *ExtraAPIInfo {
+	var (
+		api20240530             = client.AtlasV220240530.ClustersApi
+		rootDiskSize            = conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
+		projectID               = plan.ProjectID.ValueString()
+		clusterName             = plan.Name.ValueString()
+		forceLegacySchemaFailed = false
+	)
+	clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		diags.AddError("getReplicationSpecIDsFromOldAPI", err.Error())
-		return nil
+		if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
+			forceLegacySchemaFailed = forceLegacySchema
+		} else {
+			diags.AddError(errorReadLegacy20240530, defaultAPIErrorDetails(clusterName, err))
+			return nil
+		}
 	}
 	if rootDiskSize == nil {
 		rootDiskSize = findRegionRootDiskSize(clusterLatest.ReplicationSpecs)
 	}
 	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterLatest, client.AtlasV2.NetworkPeeringApi)
 	if err != nil {
-		diags.AddError("resolveContainerIDs failed", err.Error())
+		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
 		return nil
 	}
-	return &ExtraAPIInfo{
+	info := &ExtraAPIInfo{
 		ContainerIDs:               containerIDs,
-		UsingLegacySchema:          usingLegacySchema(ctx, plan.ReplicationSpecs, diags),
-		ZoneNameNumShards:          numShardsMap(ctx, plan.ReplicationSpecs, diags),
 		RootDiskSize:               rootDiskSize,
-		ZoneNameReplicationSpecIDs: zoneNameSpecIDs,
+		ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
+		ForceLegacySchemaFailed:    forceLegacySchemaFailed,
 	}
+	if forceLegacySchema {
+		info.UsingLegacySchema = true
+		info.ZoneNameNumShards = numShardsMapFromOldAPI(clusterRespOld) // plan is empty in data source Read when forcing legacy, so we get num_shards from the old API
+	} else {
+		info.UsingLegacySchema = usingLegacySchema(ctx, plan.ReplicationSpecs, diags)
+		info.ZoneNameNumShards = numShardsMap(ctx, plan.ReplicationSpecs, diags)
+	}
+	return info
 }
 
 // instead of using `num_shards` explode the replication specs, and set disk_size_gb
@@ -101,25 +119,6 @@ func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription2024
 	return rootDiskSize
 }
 
-// Set "Computed" Specs to nil to avoid unnecessary diffs
-func normalizePatchState(cluster *admin.ClusterDescription20240805) {
-	for i, specCopy := range cluster.GetReplicationSpecs() {
-		for j := range specCopy.GetRegionConfigs() {
-			spec := cluster.GetReplicationSpecs()[i]
-			regionConfigs := *spec.RegionConfigs
-			actualConfig := &regionConfigs[j]
-			analyticsSpecs := actualConfig.AnalyticsSpecs
-			if analyticsSpecs != nil && analyticsSpecs.NodeCount != nil && *analyticsSpecs.NodeCount == 0 {
-				actualConfig.AnalyticsSpecs = nil
-			}
-			readonly := actualConfig.ReadOnlySpecs
-			if readonly != nil && readonly.NodeCount != nil && *readonly.NodeCount == 0 {
-				actualConfig.ReadOnlySpecs = nil
-			}
-		}
-	}
-}
-
 func explodeNumShards(req *admin.ClusterDescription20240805, counts []int64) {
 	specs := req.GetReplicationSpecs()
 	newSpecs := []admin.ReplicationSpec20240805{}
@@ -140,6 +139,9 @@ func repSpecNoIDs(repspec admin.ReplicationSpec20240805) *admin.ReplicationSpec2
 
 func numShardsCounts(ctx context.Context, input types.List, diags *diag.Diagnostics) []int64 {
 	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
+	if len(elements) == 0 {
+		return nil
+	}
 	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
 		diags.Append(localDiags...)
 		return nil
@@ -162,6 +164,9 @@ func usingLegacySchema(ctx context.Context, input types.List, diags *diag.Diagno
 
 func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]int64 {
 	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
+	if len(elements) == 0 {
+		return nil
+	}
 	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
 		diags.Append(localDiags...)
 		return nil
@@ -173,6 +178,15 @@ func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics
 		counts[zoneName] = e.NumShards.ValueInt64()
 	}
 	return counts
+}
+
+func numShardsMapFromOldAPI(clusterRespOld *admin20240530.AdvancedClusterDescription) map[string]int64 {
+	ret := make(map[string]int64)
+	for i := range clusterRespOld.GetReplicationSpecs() {
+		spec := &clusterRespOld.GetReplicationSpecs()[i]
+		ret[spec.GetZoneName()] = int64(spec.GetNumShards())
+	}
+	return ret
 }
 
 func isNumShardsGreaterThanOne(counts []int64) bool {

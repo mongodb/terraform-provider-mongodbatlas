@@ -36,13 +36,14 @@ const (
 	errorConfigUpdate              = "error updating advanced cluster configuration options (%s): %s"
 	errorConfigRead                = "error reading advanced cluster configuration options (%s): %s"
 	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"
-	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
 	ErrorDefaultMaxTimeMinVersion  = "default_max_time_ms can not be set for mongo_db_major_version lower than 8.0"
 	ignoreLabel                    = "Infrastructure Tool"
 	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
+	V20240530                      = "(v20240530)"
 )
 
 var DeprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, DeprecationOldSchemaAction)
@@ -434,7 +435,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		rootDiskSizeGB = conversion.Pointer(v.(float64))
 	}
 
-	params := &admin20240805.ClusterDescription20240805{
+	params := &admin.ClusterDescription20240805{
 		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
 		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
 		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB),
@@ -460,7 +461,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
-		params.Tags = conversion.ExpandTagsFromSetSchemaV220240805(d)
+		params.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
 		params.MongoDBMajorVersion = conversion.StringPtr(FormatMongoDBMajorVersion(v.(string)))
@@ -505,10 +506,27 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err := CheckRegionConfigsPriorityOrder(params.GetReplicationSpecs()); err != nil {
 		return diag.FromErr(err)
 	}
-	// cannot call latest API (2024-10-23 or newer) as it can enable ISS autoscaling
-	cluster, _, err := connV220240805.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorCreate, err))
+
+	var clusterName string
+	var clusterID string
+	var err error
+	// With old sharding config we call older API (2024-08-05) to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
+	if isUsingOldShardingConfiguration(d) {
+		var cluster20240805 *admin20240805.ClusterDescription20240805
+		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, ConvertClusterDescription20241023to20240805(params)).Execute()
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorCreate, err))
+		}
+		clusterName = cluster20240805.GetName()
+		clusterID = cluster20240805.GetId()
+	} else {
+		var cluster *admin.ClusterDescription20240805
+		cluster, _, err = connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorCreate, err))
+		}
+		clusterName = cluster.GetName()
+		clusterID = cluster.GetId()
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
@@ -521,13 +539,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
 			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), params.MongoDBMajorVersion)
-			_, _, err = connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params20240530).Execute()
+			_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params20240530).Execute()
 			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
+				return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 			}
-			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.GetName(), &params).Execute()
+			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
 			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorConfigUpdate, cluster.GetName(), err))
+				return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 			}
 		}
 	}
@@ -545,7 +563,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
-		if diags := PinFCV(ctx, connV2, projectID, cluster.GetName(), pinnedFCVBlock[0]); diags.HasError() {
+		if diags := PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
 			return diags
 		}
 		waitForChanges = true
@@ -558,9 +576,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   cluster.GetId(),
+		"cluster_id":   clusterID,
 		"project_id":   projectID,
-		"cluster_name": cluster.GetName(),
+		"cluster_name": clusterName,
 	}))
 
 	return resourceRead(ctx, d, meta)
@@ -584,72 +602,40 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	var clusterResp *admin.ClusterDescription20240805
-
 	var replicationSpecs []map[string]any
-	if isUsingOldAPISchemaStructure(d) {
-		clusterOldSDK, resp, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				d.SetId("")
-				return nil
-			}
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		}
 
-		if err := d.Set("disk_size_gb", clusterOldSDK.GetDiskSizeGB()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
+	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
 		}
-		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				d.SetId("")
-				return nil
-			}
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		}
-
-		zoneNameToZoneIDs, err := getZoneIDsFromNewAPI(cluster)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-
-		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldSDK(ctx, clusterOldSDK.GetReplicationSpecs(), zoneNameToZoneIDs, clusterOldSDK.GetDiskSizeGB(), d.Get("replication_specs").([]any), d, connV2)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
-		}
-
-		clusterResp = cluster
-	} else {
-		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				d.SetId("")
-				return nil
-			}
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		}
-
-		// root disk_size_gb defined for backwards compatibility avoiding breaking changes
-		if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(cluster)); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
-		}
-
-		zoneNameToOldReplicationSpecIDs, err := getReplicationSpecIDsFromOldAPI(ctx, projectID, clusterName, connV220240530)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-
-		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecIDs, d.Get("replication_specs").([]any), d, connV2)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
-		}
-
-		clusterResp = cluster
+		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 	}
 
-	warning := WarningIfFCVExpiredOrUnpinnedExternally(d, clusterResp) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
-	diags := setRootFields(d, clusterResp, true)
+	zoneNameToOldReplicationSpecMeta, err := GetReplicationSpecAttributesFromOldAPI(ctx, projectID, clusterName, connV220240530.ClustersApi)
+	if err != nil {
+		if apiError, ok := admin20240530.AsError(err); !ok {
+			return diag.FromErr(err)
+		} else if apiError.GetErrorCode() != "ASYMMETRIC_SHARD_UNSUPPORTED" || (apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" && isUsingOldShardingConfiguration(d)) {
+			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		}
+	}
+	// if config uses old sharding configuration we call latest API but group replications specs from the same zone and define num_shards attribute
+	if isUsingOldShardingConfiguration(d) {
+		replicationSpecs, err = FlattenAdvancedReplicationSpecsOldShardingConfig(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
+		}
+	} else {
+		replicationSpecs, err = flattenAdvancedReplicationSpecs(ctx, cluster.GetReplicationSpecs(), zoneNameToOldReplicationSpecMeta, d.Get("replication_specs").([]any), d, connV2)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
+		}
+	}
+
+	warning := WarningIfFCVExpiredOrUnpinnedExternally(d, cluster) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
+	diags := setRootFields(d, cluster, true)
 	if diags.HasError() {
 		return diags
 	}
@@ -674,31 +660,17 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	return warning
 }
 
-// getReplicationSpecIDsFromOldAPI returns the id values of replication specs coming from old API. This is used to populate old replication_specs.*.id attribute avoiding breaking changes.
-// In the old API each replications spec has a 1:1 relation with each zone, so ids are returned in a map from zoneName to id.
-func getReplicationSpecIDsFromOldAPI(ctx context.Context, projectID, clusterName string, connV220240530 *admin20240530.APIClient) (map[string]string, error) {
-	clusterOldAPI, _, err := connV220240530.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	if apiError, ok := admin20240530.AsError(err); ok {
-		if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" {
-			return nil, nil // if its the case of an asymmetric shard an error is expected in old API, replication_specs.*.id attribute will not be populated
-		}
-		readErrorMsg := "error reading  advanced cluster with 2023-02-01 API (%s): %s"
-		return nil, fmt.Errorf(readErrorMsg, clusterName, err)
+// GetReplicationSpecAttributesFromOldAPI returns the id and num shard values of replication specs coming from old API. This is used to populate replication_specs.*.id and replication_specs.*.num_shard attributes for old sharding confirgurations.
+// In the old API (2023-02-01), each replications spec has a 1:1 relation with each zone, so ids and num shards are stored in a struct oldShardConfigMeta and are returned in a map from zoneName to oldShardConfigMeta.
+func GetReplicationSpecAttributesFromOldAPI(ctx context.Context, projectID, clusterName string, client20240530 admin20240530.ClustersApi) (map[string]OldShardConfigMeta, error) {
+	clusterOldAPI, _, err := client20240530.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return nil, err
 	}
 	specs := clusterOldAPI.GetReplicationSpecs()
-	result := make(map[string]string, len(specs))
+	result := make(map[string]OldShardConfigMeta, len(specs))
 	for _, spec := range specs {
-		result[spec.GetZoneName()] = spec.GetId()
-	}
-	return result, nil
-}
-
-// getZoneIDsFromNewAPI returns the zone id values of replication specs coming from new API. This is used to populate zone_id when old API is called in the read.
-func getZoneIDsFromNewAPI(cluster *admin.ClusterDescription20240805) (map[string]string, error) {
-	specs := cluster.GetReplicationSpecs()
-	result := make(map[string]string, len(specs))
-	for _, spec := range specs {
-		result[spec.GetZoneName()] = spec.GetZoneId()
+		result[spec.GetZoneName()] = OldShardConfigMeta{spec.GetId(), spec.GetNumShards()}
 	}
 	return result, nil
 }
@@ -734,6 +706,11 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 
 	if err := d.Set("create_date", conversion.TimePtrToStringPtr(cluster.CreateDate)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "create_date", clusterName, err))
+	}
+
+	// root disk_size_gb defined for backwards compatibility avoiding breaking changes
+	if err := d.Set("disk_size_gb", GetDiskSizeGBFromReplicationSpec(cluster)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "disk_size_gb", clusterName, err))
 	}
 
 	if err := d.Set("encryption_at_rest_provider", cluster.GetEncryptionAtRestProvider()); err != nil {
@@ -788,12 +765,9 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "global_cluster_self_managed_sharding", clusterName, err))
 	}
 
-	// fields not supported in connV220240530 SDK (mapping to 2023-02-01 API)
-
 	if err := d.Set("replica_set_scaling_strategy", cluster.GetReplicaSetScalingStrategy()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replica_set_scaling_strategy", clusterName, err))
 	}
-
 	if err := d.Set("redact_client_log_data", cluster.GetRedactClientLogData()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "redact_client_log_data", clusterName, err))
 	}
@@ -841,8 +815,8 @@ func WarningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *ad
 	return nil
 }
 
-// For both read and update operations if old sharding schema structure is used (at least one replication spec with numShards > 1) we continue to invoke the old API
-func isUsingOldAPISchemaStructure(d *schema.ResourceData) bool {
+// isUsingOldShardingConfiguration is identified if at least one replication spec defines num_shards > 1. This legacy form is from 2023-02-01 API and can only represent symmetric sharded clusters.
+func isUsingOldShardingConfiguration(d *schema.ResourceData) bool {
 	tfList := d.Get("replication_specs").([]any)
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
@@ -887,7 +861,6 @@ func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenan
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -904,7 +877,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diags
 	}
 
-	if isUsingOldAPISchemaStructure(d) {
+	// With old sharding config we call older API (2023-02-01) to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
+	if isUsingOldShardingConfiguration(d) {
 		req, diags := updateRequestOldAPI(d, clusterName)
 		if diags != nil {
 			return diags
@@ -921,7 +895,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			waitOnUpdate = true
 		}
 		if d.HasChange("replica_set_scaling_strategy") || d.HasChange("redact_client_log_data") || d.HasChange("config_server_management_mode") {
-			request := new(admin20240805.ClusterDescription20240805)
+			request := new(admin.ClusterDescription20240805)
 			if d.HasChange("replica_set_scaling_strategy") {
 				request.ReplicaSetScalingStrategy = conversion.Pointer(d.Get("replica_set_scaling_strategy").(string))
 			}
@@ -931,8 +905,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if d.HasChange("config_server_management_mode") {
 				request.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
 			}
-			// can call latest API (2024-10-23 or newer) as autoscaling property is not specified, using older version just for caution until iss autoscaling epic is done
-			if _, _, err := connV220240805.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
+			// can call latest API (2024-10-23 or newer) as replications specs (with nested autoscaling property) is not specified
+			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 			waitOnUpdate = true
@@ -952,8 +926,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if err := CheckRegionConfigsPriorityOrder(req.GetReplicationSpecs()); err != nil {
 				return diag.FromErr(err)
 			}
-			// cannot call latest API (2024-10-23 or newer) as it can enable ISS autoscaling
-			if _, _, err := connV220240805.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
+			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
@@ -987,11 +960,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.Get("paused").(bool) {
-		clusterRequest := &admin20240805.ClusterDescription20240805{
+		clusterRequest := &admin.ClusterDescription20240805{
 			Paused: conversion.Pointer(true),
 		}
-		// can call latest API (2024-10-23 or newer) as autoscaling property is not specified, using older version just for caution until iss autoscaling epic is done
-		if _, _, err := connV220240805.ClustersApi.UpdateCluster(ctx, projectID, clusterName, clusterRequest).Execute(); err != nil {
+		if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, clusterRequest).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
 		if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
@@ -1041,8 +1013,8 @@ func PinFCV(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName
 	return nil
 }
 
-func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clusterName string, connV2 *admin.APIClient) (*admin20240805.ClusterDescription20240805, diag.Diagnostics) {
-	cluster := new(admin20240805.ClusterDescription20240805)
+func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clusterName string, connV2 *admin.APIClient) (*admin.ClusterDescription20240805, diag.Diagnostics) {
+	cluster := new(admin.ClusterDescription20240805)
 
 	if d.HasChange("replication_specs") || d.HasChange("disk_size_gb") {
 		var updatedDiskSizeGB *float64
@@ -1089,7 +1061,7 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 	}
 
 	if d.HasChange("tags") {
-		cluster.Tags = conversion.ExpandTagsFromSetSchemaV220240805(d)
+		cluster.Tags = conversion.ExpandTagsFromSetSchema(d)
 	}
 
 	if d.HasChange("mongo_db_major_version") {
@@ -1183,7 +1155,7 @@ func updateRequestOldAPI(d *schema.ResourceData, clusterName string) (*admin2024
 	}
 
 	if d.HasChange("tags") {
-		cluster.Tags = convertTagsPtrToOldSDK(conversion.ExpandTagsFromSetSchemaV220240805(d))
+		cluster.Tags = convertTagsPtrToOldSDK(conversion.ExpandTagsFromSetSchema(d))
 	}
 
 	if d.HasChange("mongo_db_major_version") {

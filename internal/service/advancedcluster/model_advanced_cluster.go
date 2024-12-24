@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -26,6 +25,11 @@ import (
 
 const minVersionForChangeStreamOptions = 6.0
 const minVersionForDefaultMaxTimeMS = 8.0
+
+type OldShardConfigMeta struct {
+	ID       string
+	NumShard int
+}
 
 var (
 	DSTagsSchema = schema.Schema{
@@ -121,6 +125,17 @@ func SchemaAdvancedConfigDS() *schema.Schema {
 				"default_max_time_ms": {
 					Type:     schema.TypeInt,
 					Computed: true,
+				},
+				"tls_cipher_config_mode": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"custom_openssl_cipher_config_tls12": {
+					Type:     schema.TypeSet,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 			},
 		},
@@ -271,6 +286,18 @@ func SchemaAdvancedConfig() *schema.Schema {
 					Type:     schema.TypeInt,
 					Optional: true,
 				},
+				"custom_openssl_cipher_config_tls12": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"tls_cipher_config_mode": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -410,10 +437,10 @@ func flattenTags(tags *[]admin.ResourceTag) []map[string]string {
 }
 
 // CheckRegionConfigsPriorityOrder will be deleted in CLOUDP-275825
-func CheckRegionConfigsPriorityOrder(regionConfigs []admin20240805.ReplicationSpec20240805) error {
+func CheckRegionConfigsPriorityOrder(regionConfigs []admin.ReplicationSpec20240805) error {
 	for _, spec := range regionConfigs {
 		configs := spec.GetRegionConfigs()
-		for i := 0; i < len(configs)-1; i++ {
+		for i := range len(configs) - 1 {
 			if configs[i].GetPriority() < configs[i+1].GetPriority() {
 				return errors.New("priority values in region_configs must be in descending order")
 			}
@@ -426,7 +453,7 @@ func CheckRegionConfigsPriorityOrder(regionConfigs []admin20240805.ReplicationSp
 func CheckRegionConfigsPriorityOrderOld(regionConfigs []admin20240530.ReplicationSpec) error {
 	for _, spec := range regionConfigs {
 		configs := spec.GetRegionConfigs()
-		for i := 0; i < len(configs)-1; i++ {
+		for i := range len(configs) - 1 {
 			if configs[i].GetPriority() < configs[i+1].GetPriority() {
 				return errors.New("priority values in region_configs must be in descending order")
 			}
@@ -492,11 +519,11 @@ func flattenBiConnectorConfig(biConnector *admin.BiConnector) []map[string]any {
 	}
 }
 
-func expandBiConnectorConfig(d *schema.ResourceData) *admin20240805.BiConnector {
+func expandBiConnectorConfig(d *schema.ResourceData) *admin.BiConnector {
 	if v, ok := d.GetOk("bi_connector_config"); ok {
 		if biConn := v.([]any); len(biConn) > 0 {
 			biConnMap := biConn[0].(map[string]any)
-			return &admin20240805.BiConnector{
+			return &admin.BiConnector{
 				Enabled:        conversion.Pointer(cast.ToBool(biConnMap["enabled"])),
 				ReadPreference: conversion.StringPtr(cast.ToString(biConnMap["read_preference"])),
 			}
@@ -534,29 +561,55 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 		if v := p.DefaultMaxTimeMS; v != nil {
 			flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
 		}
+		flattenedProcessArgs[0]["tls_cipher_config_mode"] = p.GetTlsCipherConfigMode()
+		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = p.GetCustomOpensslCipherConfigTls12()
 	}
 
 	return flattenedProcessArgs
 }
 
-func FlattenAdvancedReplicationSpecsOldSDK(ctx context.Context, apiObjects []admin20240530.ReplicationSpec, zoneNameToZoneIDs map[string]string, rootDiskSizeGB float64, tfMapObjects []any,
+func FlattenAdvancedReplicationSpecsOldShardingConfig(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]OldShardConfigMeta, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
-	// for flattening old model we need information of value defined at root disk_size_gb so we set the value in new location under hardware specs
-	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin20240530.ReplicationSpec, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
-		return flattenAdvancedReplicationSpecOldSDK(ctx, sdkModel, zoneNameToZoneIDs, rootDiskSizeGB, tfModel, resourceData, connV2)
+	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin.ReplicationSpec20240805, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
+		return flattenAdvancedReplicationSpecOldShardingConfig(ctx, sdkModel, zoneNameToOldReplicationSpecMeta, tfModel, resourceData, connV2)
 	}
-	return flattenAdvancedReplicationSpecsLogic[admin20240530.ReplicationSpec](ctx, apiObjects, tfMapObjects, d,
-		doesAdvancedReplicationSpecMatchAPIOldSDK, replicationSpecFlattener, connV2)
+	compressedAPIObjects := compressAPIObjectList(apiObjects)
+	return flattenAdvancedReplicationSpecsLogic(ctx, compressedAPIObjects, tfMapObjects, d,
+		doesAdvancedReplicationSpecMatchAPIOldShardConfig, replicationSpecFlattener, connV2)
 }
 
-func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecIDs map[string]string, tfMapObjects []any,
+func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]OldShardConfigMeta, tfMapObjects []any,
 	d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	// for flattening new model we need information of replication spec ids associated to old API to avoid breaking changes for users referencing replication_specs.*.id
 	replicationSpecFlattener := func(ctx context.Context, sdkModel *admin.ReplicationSpec20240805, tfModel map[string]any, resourceData *schema.ResourceData, client *admin.APIClient) (map[string]any, error) {
-		return flattenAdvancedReplicationSpec(ctx, sdkModel, zoneNameToOldReplicationSpecIDs, tfModel, resourceData, connV2)
+		return flattenAdvancedReplicationSpec(ctx, sdkModel, zoneNameToOldReplicationSpecMeta, tfModel, resourceData, connV2)
 	}
-	return flattenAdvancedReplicationSpecsLogic[admin.ReplicationSpec20240805](ctx, apiObjects, tfMapObjects, d,
+	return flattenAdvancedReplicationSpecsLogic(ctx, apiObjects, tfMapObjects, d,
 		doesAdvancedReplicationSpecMatchAPI, replicationSpecFlattener, connV2)
+}
+
+// compressAPIObjectList returns an array of ReplicationSpec20240805. The input array is reduced from all shards to only one shard per zoneName
+func compressAPIObjectList(apiObjects []admin.ReplicationSpec20240805) []admin.ReplicationSpec20240805 {
+	var compressedAPIObjectList []admin.ReplicationSpec20240805
+	wasZoneNameUsed := populateZoneNameMap(apiObjects)
+	for _, apiObject := range apiObjects {
+		if !wasZoneNameUsed[apiObject.GetZoneName()] {
+			compressedAPIObjectList = append(compressedAPIObjectList, apiObject)
+			wasZoneNameUsed[apiObject.GetZoneName()] = true
+		}
+	}
+	return compressedAPIObjectList
+}
+
+// populateZoneNameMap returns a map of zoneNames and initializes all keys to false.
+func populateZoneNameMap(apiObjects []admin.ReplicationSpec20240805) map[string]bool {
+	zoneNames := make(map[string]bool)
+	for _, apiObject := range apiObjects {
+		if _, exists := zoneNames[apiObject.GetZoneName()]; !exists {
+			zoneNames[apiObject.GetZoneName()] = false
+		}
+	}
+	return zoneNames
 }
 
 type ReplicationSpecSDKModel interface {
@@ -575,13 +628,12 @@ func flattenAdvancedReplicationSpecsLogic[T ReplicationSpecSDKModel](
 	tfList := make([]map[string]any, len(apiObjects))
 	wasAPIObjectUsed := make([]bool, len(apiObjects))
 
-	for i := 0; i < len(tfList); i++ {
+	for i := range len(tfList) {
 		var tfMapObject map[string]any
 
 		if len(tfMapObjects) > i {
 			tfMapObject = tfMapObjects[i].(map[string]any)
 		}
-
 		for j := 0; j < len(apiObjects); j++ {
 			if wasAPIObjectUsed[j] || !tfModelWithSDKMatcher(tfMapObject, &apiObjects[j]) {
 				continue
@@ -624,8 +676,8 @@ func flattenAdvancedReplicationSpecsLogic[T ReplicationSpecSDKModel](
 	return tfList, nil
 }
 
-func doesAdvancedReplicationSpecMatchAPIOldSDK(tfObject map[string]any, apiObject *admin20240530.ReplicationSpec) bool {
-	return tfObject["id"] == apiObject.GetId() || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.GetZoneName())
+func doesAdvancedReplicationSpecMatchAPIOldShardConfig(tfObject map[string]any, apiObject *admin.ReplicationSpec20240805) bool {
+	return tfObject["zone_name"] == apiObject.GetZoneName()
 }
 
 func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]any, apiObject *admin.ReplicationSpec20240805) bool {
@@ -719,11 +771,11 @@ func hwSpecToDedicatedHwSpec(apiObject *admin.HardwareSpec20240805) *admin.Dedic
 	}
 }
 
-func dedicatedHwSpecToHwSpec(apiObject *admin20240805.DedicatedHardwareSpec20240805) *admin20240805.HardwareSpec20240805 {
+func dedicatedHwSpecToHwSpec(apiObject *admin.DedicatedHardwareSpec20240805) *admin.HardwareSpec20240805 {
 	if apiObject == nil {
 		return nil
 	}
-	return &admin20240805.HardwareSpec20240805{
+	return &admin.HardwareSpec20240805{
 		DiskSizeGB:    apiObject.DiskSizeGB,
 		NodeCount:     apiObject.NodeCount,
 		DiskIOPS:      apiObject.DiskIOPS,
@@ -885,6 +937,14 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		}
 	}
 
+	if _, ok := d.GetOkExists("advanced_configuration.0.tls_cipher_config_mode"); ok {
+		res.TlsCipherConfigMode = conversion.StringPtr(cast.ToString(p["tls_cipher_config_mode"]))
+	}
+
+	if _, ok := d.GetOkExists("advanced_configuration.0.custom_openssl_cipher_config_tls12"); ok {
+		tmp := conversion.ExpandStringListFromSetSchema(d.Get("advanced_configuration.0.custom_openssl_cipher_config_tls12").(*schema.Set))
+		res.CustomOpensslCipherConfigTls12 = &tmp
+	}
 	return res20240530, res
 }
 
@@ -913,16 +973,16 @@ func IsDefaultMaxTimeMinRequiredMajorVersion(input *string) bool {
 	return isMinRequiredMajorVersion(input, minVersionForDefaultMaxTimeMS)
 }
 
-func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin20240805.ComponentLabel, diag.Diagnostics) {
+func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLabel, diag.Diagnostics) {
 	list := d.Get("labels").(*schema.Set)
-	res := make([]admin20240805.ComponentLabel, list.Len())
+	res := make([]admin.ComponentLabel, list.Len())
 	for i, val := range list.List() {
 		v := val.(map[string]any)
 		key := v["key"].(string)
 		if key == ignoreLabel {
 			return nil, diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 		}
-		res[i] = admin20240805.ComponentLabel{
+		res[i] = admin.ComponentLabel{
 			Key:   conversion.StringPtr(key),
 			Value: conversion.StringPtr(v["value"].(string)),
 		}
@@ -930,8 +990,8 @@ func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin20240805.Comp
 	return res, nil
 }
 
-func expandAdvancedReplicationSpecs(tfList []any, rootDiskSizeGB *float64) *[]admin20240805.ReplicationSpec20240805 {
-	var apiObjects []admin20240805.ReplicationSpec20240805
+func expandAdvancedReplicationSpecs(tfList []any, rootDiskSizeGB *float64) *[]admin.ReplicationSpec20240805 {
+	var apiObjects []admin.ReplicationSpec20240805
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
 		if !ok || tfMap == nil {
@@ -968,8 +1028,8 @@ func expandAdvancedReplicationSpecsOldSDK(tfList []any) *[]admin20240530.Replica
 	return &apiObjects
 }
 
-func expandAdvancedReplicationSpec(tfMap map[string]any, rootDiskSizeGB *float64) *admin20240805.ReplicationSpec20240805 {
-	apiObject := &admin20240805.ReplicationSpec20240805{
+func expandAdvancedReplicationSpec(tfMap map[string]any, rootDiskSizeGB *float64) *admin.ReplicationSpec20240805 {
+	apiObject := &admin.ReplicationSpec20240805{
 		ZoneName:      conversion.StringPtr(tfMap["zone_name"].(string)),
 		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]any), rootDiskSizeGB),
 	}
@@ -991,8 +1051,8 @@ func expandAdvancedReplicationSpecOldSDK(tfMap map[string]any) *admin20240530.Re
 	return apiObject
 }
 
-func expandRegionConfigs(tfList []any, rootDiskSizeGB *float64) *[]admin20240805.CloudRegionConfig20240805 {
-	var apiObjects []admin20240805.CloudRegionConfig20240805
+func expandRegionConfigs(tfList []any, rootDiskSizeGB *float64) *[]admin.CloudRegionConfig20240805 {
+	var apiObjects []admin.CloudRegionConfig20240805
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]any)
 		if !ok || tfMap == nil {
@@ -1007,9 +1067,9 @@ func expandRegionConfigs(tfList []any, rootDiskSizeGB *float64) *[]admin20240805
 	return &apiObjects
 }
 
-func expandRegionConfig(tfMap map[string]any, rootDiskSizeGB *float64) *admin20240805.CloudRegionConfig20240805 {
+func expandRegionConfig(tfMap map[string]any, rootDiskSizeGB *float64) *admin.CloudRegionConfig20240805 {
 	providerName := tfMap["provider_name"].(string)
-	apiObject := &admin20240805.CloudRegionConfig20240805{
+	apiObject := &admin.CloudRegionConfig20240805{
 		Priority:     conversion.Pointer(cast.ToInt(tfMap["priority"])),
 		ProviderName: conversion.StringPtr(providerName),
 		RegionName:   conversion.StringPtr(tfMap["region_name"].(string)),
@@ -1036,9 +1096,9 @@ func expandRegionConfig(tfMap map[string]any, rootDiskSizeGB *float64) *admin202
 	return apiObject
 }
 
-func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *float64) *admin20240805.DedicatedHardwareSpec20240805 {
+func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *float64) *admin.DedicatedHardwareSpec20240805 {
 	tfMap, _ := tfList[0].(map[string]any)
-	apiObject := new(admin20240805.DedicatedHardwareSpec20240805)
+	apiObject := new(admin.DedicatedHardwareSpec20240805)
 	if providerName == constant.AWS || providerName == constant.AZURE {
 		if v, ok := tfMap["disk_iops"]; ok && v.(int) > 0 {
 			apiObject.DiskIOPS = conversion.Pointer(v.(int))
@@ -1068,11 +1128,11 @@ func expandRegionConfigSpec(tfList []any, providerName string, rootDiskSizeGB *f
 	return apiObject
 }
 
-func expandRegionConfigAutoScaling(tfList []any) *admin20240805.AdvancedAutoScalingSettings {
+func expandRegionConfigAutoScaling(tfList []any) *admin.AdvancedAutoScalingSettings {
 	tfMap, _ := tfList[0].(map[string]any)
-	settings := admin20240805.AdvancedAutoScalingSettings{
-		DiskGB:  new(admin20240805.DiskGBAutoScaling),
-		Compute: new(admin20240805.AdvancedComputeAutoScaling),
+	settings := admin.AdvancedAutoScalingSettings{
+		DiskGB:  new(admin.DiskGBAutoScaling),
+		Compute: new(admin.AdvancedComputeAutoScaling),
 	}
 
 	if v, ok := tfMap["disk_gb_enabled"]; ok {
@@ -1099,7 +1159,7 @@ func expandRegionConfigAutoScaling(tfList []any) *admin20240805.AdvancedAutoScal
 	return &settings
 }
 
-func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecIDs map[string]string, d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
+func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]OldShardConfigMeta, d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
 	if len(apiRepSpecs) == 0 {
 		return nil, nil
 	}
@@ -1107,7 +1167,7 @@ func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.
 	tfList := make([]map[string]any, len(apiRepSpecs))
 
 	for i, apiRepSpec := range apiRepSpecs {
-		tfReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiRepSpec, zoneNameToOldReplicationSpecIDs, nil, d, connV2)
+		tfReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiRepSpec, zoneNameToOldReplicationSpecMeta, nil, d, connV2)
 		if err != nil {
 			return nil, err
 		}
@@ -1116,7 +1176,7 @@ func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.
 	return tfList, nil
 }
 
-func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecIDs map[string]string, tfMapObject map[string]any,
+func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]OldShardConfigMeta, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
 		return nil, nil
@@ -1125,8 +1185,8 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 	tfMap := map[string]any{}
 	tfMap["external_id"] = apiObject.GetId()
 
-	if oldID, ok := zoneNameToOldReplicationSpecIDs[apiObject.GetZoneName()]; ok {
-		tfMap["id"] = oldID // replicationSpecs.*.id stores value associated to old cluster API (2023-02-01)
+	if oldShardConfig, ok := zoneNameToOldReplicationSpecMeta[apiObject.GetZoneName()]; ok {
+		tfMap["id"] = oldShardConfig.ID // replicationSpecs.*.id stores value associated to old cluster API (2023-02-01)
 	}
 
 	// define num_shards for backwards compatibility as this attribute has default value of 1.
@@ -1153,24 +1213,26 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.Replic
 	return tfMap, nil
 }
 
-func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin20240530.ReplicationSpec, zoneNameToZoneIDs map[string]string, rootDiskSizeGB float64, tfMapObject map[string]any,
+func flattenAdvancedReplicationSpecOldShardingConfig(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldShardConfigMeta map[string]OldShardConfigMeta, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
 		return nil, nil
 	}
 
 	tfMap := map[string]any{}
-	tfMap["num_shards"] = apiObject.GetNumShards()
-	tfMap["id"] = apiObject.GetId()
+	if oldShardConfigData, ok := zoneNameToOldShardConfigMeta[apiObject.GetZoneName()]; ok {
+		tfMap["num_shards"] = oldShardConfigData.NumShard
+		tfMap["id"] = oldShardConfigData.ID
+	}
 	if tfMapObject != nil {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, *convertRegionConfigSliceToLatest(apiObject.RegionConfigs, rootDiskSizeGB), tfMapObject["region_configs"].([]any), d, connV2)
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), tfMapObject["region_configs"].([]any), d, connV2)
 		if err != nil {
 			return nil, err
 		}
 		tfMap["region_configs"] = object
 		tfMap["container_id"] = containerIDs
 	} else {
-		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, *convertRegionConfigSliceToLatest(apiObject.RegionConfigs, rootDiskSizeGB), nil, d, connV2)
+		object, containerIDs, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.GetRegionConfigs(), nil, d, connV2)
 		if err != nil {
 			return nil, err
 		}
@@ -1178,9 +1240,7 @@ func flattenAdvancedReplicationSpecOldSDK(ctx context.Context, apiObject *admin2
 		tfMap["container_id"] = containerIDs
 	}
 	tfMap["zone_name"] = apiObject.GetZoneName()
-	if zoneID, ok := zoneNameToZoneIDs[apiObject.GetZoneName()]; ok { // zone id is not present on old API SDK, so we fetch values from new API and map them using zone name
-		tfMap["zone_id"] = zoneID
-	}
+	tfMap["zone_id"] = apiObject.GetZoneId()
 
 	return tfMap, nil
 }

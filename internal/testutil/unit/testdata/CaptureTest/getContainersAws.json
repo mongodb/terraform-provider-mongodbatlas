@@ -1,0 +1,19 @@
+{
+ "links": [
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/6746cee66f62fc3c122a3b82/containers?includeCount=true&providerName=AWS&pageNum=1&itemsPerPage=100",
+   "rel": "self"
+  }
+ ],
+ "results": [
+  {
+   "atlasCidrBlock": "192.168.248.0/21",
+   "id": "6746ceedaef48d1cb265896b",
+   "providerName": "AWS",
+   "provisioned": true,
+   "regionName": "EU_WEST_1",
+   "vpcId": "vpc-00b20ecca20a410e2"
+  }
+ ],
+ "totalCount": 1
+}

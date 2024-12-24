@@ -1,8 +1,6 @@
 package unit_test
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -12,8 +10,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func TestExtractVersion(t *testing.T) {
@@ -21,141 +17,83 @@ func TestExtractVersion(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "2022-06-01", version)
 }
+
+func TestExtractVersionRequestResponse(t *testing.T) {
+	version := unit.ExtractVersionRequestResponse("application/json;", "application/vnd.atlas.2023-01-01+json;charset=utf-8")
+	require.Equal(t, "2023-01-01", version)
+}
+
+func TestExtractVersionRequestResponseNotFound(t *testing.T) {
+	version := unit.ExtractVersionRequestResponse("application/json;", "application/vnd.atlas.2023-01+json;charset=utf-8")
+	require.Equal(t, "", version)
+}
+
+func asURL(t *testing.T, reqPath string) *url.URL {
+	t.Helper()
+	u, err := url.Parse("http://localhost" + reqPath)
+	require.NoError(t, err)
+	return u
+}
+
 func TestRequestInfo_Match(t *testing.T) {
 	req := unit.RequestInfo{
 		Version: "2022-06-01",
 		Method:  "GET",
 		Path:    "/v1/cluster/{cluster_id}",
 	}
-	assert.True(t, req.Match("GET", "/v1/cluster/123", "2022-06-01", map[string]string{"cluster_id": "123"}))
-	assert.False(t, req.Match("GET", "/v1/cluster/123", "2022-06-01", map[string]string{"cluster_id": "456"}))
+	mockData := unit.MockHTTPData{
+		Variables: map[string]string{"cluster_id": "123"},
+	}
+	assert.True(t, req.Match(t, "GET", "2022-06-01", asURL(t, "/v1/cluster/123"), &mockData)) // Exact match
+	mockData2 := unit.MockHTTPData{
+		Variables: map[string]string{"cluster_id": "456"},
+	}
+	// Doesn't match the current request, but adds the new variable mapping cluster_id2=123
+	assert.False(t, req.Match(t, "GET", "2022-06-01", asURL(t, "/v1/cluster/123"), &mockData2)) // API Spec match
+	assert.Equal(t, map[string]string{"cluster_id": "456", "cluster_id2": "123"}, mockData2.Variables)
+}
+func TestRequestInfo_MatchQuery(t *testing.T) {
+	reqAzure := unit.RequestInfo{
+		Version: "2022-06-01",
+		Method:  "GET",
+		Path:    "/api/atlas/v2/groups/{groupId3}/containers?providerName=AZURE",
+	}
+	assert.Equal(t, []string{"providerName"}, reqAzure.QueryVars())
+	expectedNormalized := "/api/atlas/v2/groups/6746cee66f62fc3c122a3b82/containers?providerName=AZURE"
+	reqURLAzure := asURL(t, "/api/atlas/v2/groups/6746cee66f62fc3c122a3b82/containers?includeCount=true&itemsPerPage=100&pageNum=1&providerName=AZURE")
+	assert.Equal(t, expectedNormalized, reqAzure.NormalizePath(reqURLAzure))
+	mockData := unit.MockHTTPData{
+		Variables: map[string]string{"groupId3": "6746cee66f62fc3c122a3b82"},
+	}
+	assert.True(t, reqAzure.Match(t, "GET", "2022-06-01", reqURLAzure, &mockData))
+
+	assert.Equal(t, map[string]string{"groupId3": "6746cee66f62fc3c122a3b82"}, mockData.Variables)
+	reqURLAws := asURL(t, "/api/atlas/v2/groups/6746cee66f62fc3c122a3b82/containers?includeCount=true&itemsPerPage=100&pageNum=1&providerName=AWS")
+	assert.False(t, reqAzure.Match(t, "GET", "2022-06-01", reqURLAws, &mockData))
+	assert.Equal(t, map[string]string{"groupId3": "6746cee66f62fc3c122a3b82"}, mockData.Variables)
+
+	reqAws := unit.RequestInfo{
+		Version: "2022-06-01",
+		Method:  "GET",
+		Path:    "/api/atlas/v2/groups/{groupId3}/containers?providerName=AWS",
+	}
+	assert.True(t, reqAws.Match(t, "GET", "2022-06-01", reqURLAws, &mockData))
 }
 
-func request(method, path string) *http.Request {
-	return &http.Request{
+func request(method, path, body string) *http.Request {
+	reqURL, err := url.Parse("http://localhost" + path)
+	if err != nil {
+		panic(err)
+	}
+	req := http.Request{
 		Method: method,
-		URL:    &url.URL{Path: path},
+		URL:    reqURL,
 		Header: http.Header{
 			"Accept": []string{"application/json; version=2024-08-05"},
 		},
 	}
-}
-
-const reqPoliciesCreateBody = `{
- "name": "test-policy",
- "policies": [
-  {
-   "body": "\t\t\t\n\tforbid (\n\tprincipal,\n\taction == cloud::Action::\"cluster.createEdit\",\n\tresource\n\t) when {\n\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\"aws\"])\n\t};\n"
-  }
- ]
-}`
-const reqPoliciesUpdateBody = `{
- "name": "updated-policy",
- "policies": [
-  {
-   "body": "\t\t\t\n\tforbid (\n\tprincipal,\n\taction == cloud::Action::\"cluster.createEdit\",\n\tresource\n\t) when {\n\tcontext.cluster.cloudProviders.containsAny([cloud::cloudProvider::\"aws\"])\n\t};\n"
-  }
- ]
-}`
-
-const reqPoliciesManualValidateDelete = `{}`
-
-func TestMockRoundTripper(t *testing.T) {
-	orgID := "123"
-	resourcePolicyID := "456"
-	vars := map[string]string{
-		"orgId":            orgID,
-		"resourcePolicyId": resourcePolicyID,
+	if body != "" {
+		req.Body = io.NopCloser(strings.NewReader(body))
 	}
-	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowMissingRequests: true})
-	client := &http.Client{
-		Transport: mockTransport,
-	}
-	// Error check
-	unknownRequest := request("GET", "/v1/cluster/123")
-	resp, err := client.Do(unknownRequest)
-	require.ErrorContains(t, err, "no matching request found")
-	assert.Nil(t, resp)
-
-	// Step 1
-	createRequest := request("POST", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID))
-	createRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesCreateBody))
-	resp, err = client.Do(createRequest)
-
-	require.NoError(t, err)
-	require.Equal(t, 201, resp.StatusCode)
-	err = checkFunc(nil)
-	require.NoError(t, err)
-	// Step 2
-	patchRequest := request("PATCH", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID))
-	patchRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesUpdateBody))
-	resp, err = client.Do(patchRequest)
-	require.NoError(t, err)
-	err = checkFunc(nil)
-	require.NoError(t, err)
-	var policyResp admin.ApiAtlasResourcePolicy
-	err = json.NewDecoder(resp.Body).Decode(&policyResp)
-	require.NoError(t, err)
-	assert.Equal(t, resourcePolicyID, policyResp.GetId())
-
-	// Step 3
-	// First GET request OK
-	// Second GET request OK
-	getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID))
-	_, err = client.Do(getRequest)
-	require.NoError(t, err)
-	_, err = client.Do(getRequest)
-	require.NoError(t, err)
-	// Third GET request FAIL with no match as there are no more responses until after DELETE
-	_, err = client.Do(getRequest)
-	require.ErrorContains(t, err, "no matching request found")
-
-	// Test _manual diff file (set to {} instead of '')
-	validateRequest := request("DELETE", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies/%s", orgID, resourcePolicyID))
-	validateRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesManualValidateDelete))
-	_, err = client.Do(validateRequest)
-	require.NoError(t, err)
-	// Fourth GET request OK, since we have gotten the diff
-	notFoundResp, err := client.Do(getRequest)
-	require.NoError(t, err)
-	notFoundMap := parseMapStringAny(t, notFoundResp)
-	assert.Equal(t, "RESOURCE_POLICY_NOT_FOUND", notFoundMap["errorCode"])
-
-	err = checkFunc(nil)
-	require.NoError(t, err)
-}
-
-func parseMapStringAny(t *testing.T, resp *http.Response) map[string]any {
-	t.Helper()
-	stringMap := map[string]any{}
-	err := json.NewDecoder(resp.Body).Decode(&stringMap)
-	require.NoError(t, err)
-	return stringMap
-}
-
-func TestMockRoundTripperAllowReRead(t *testing.T) {
-	orgID := "123"
-	resourcePolicyID := "456"
-	vars := map[string]string{
-		"orgId":            orgID,
-		"resourcePolicyId": resourcePolicyID,
-	}
-	mockTransport, checkFunc := unit.MockRoundTripper(t, vars, &unit.MockHTTPDataConfig{AllowReReadGet: true, AllowMissingRequests: true})
-	client := &http.Client{
-		Transport: mockTransport,
-	}
-	for range []int{0, 1, 2} {
-		getRequest := request("GET", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID))
-		resp, err := client.Do(getRequest)
-		require.NoError(t, err)
-		assert.Equal(t, "returned again", parseMapStringAny(t, resp)["expect"])
-	}
-	createRequest := request("POST", fmt.Sprintf("/api/atlas/v2/orgs/%s/resourcePolicies", orgID))
-	createRequest.Body = io.NopCloser(strings.NewReader(reqPoliciesCreateBody))
-	resp, err := client.Do(createRequest)
-
-	require.NoError(t, err)
-	require.Equal(t, 201, resp.StatusCode)
-	err = checkFunc(nil)
-	require.NoError(t, err)
+	return &req
 }

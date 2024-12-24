@@ -163,7 +163,7 @@ func checksResourcePolicy(orgID, name string, policyCount int) resource.TestChec
 	}
 	checks := []resource.TestCheckFunc{checkExists()}
 	checks = acc.AddAttrChecks(dataSourcePluralID, checks, pluralMap)
-	for i := 0; i < policyCount; i++ {
+	for i := range policyCount {
 		checks = acc.AddAttrSetChecks(resourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
 		checks = acc.AddAttrSetChecks(dataSourceID, checks, fmt.Sprintf("policies.%d.body", i), fmt.Sprintf("policies.%d.id", i))
 		checks = acc.AddAttrSetChecks(dataSourcePluralID, checks, fmt.Sprintf("results.0.policies.%d.body", i), fmt.Sprintf("results.0.policies.%d.id", i))

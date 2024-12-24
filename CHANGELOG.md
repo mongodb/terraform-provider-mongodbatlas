@@ -1,18 +1,36 @@
 ## (Unreleased)
 
-NOTES:
+ENHANCEMENTS:
 
-* data-source/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
-* data-source/mongodbatlas_advanced_clusters: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
-* resource/mongodbatlas_advanced_cluster: Adds new `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
+* data-source/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
+* data-source/mongodbatlas_stream_connections: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
+* resource/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
+
+## 1.24.0 (December 20, 2024)
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_advanced_cluster: Adds `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute ([#2872](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2872))
+* data-source/mongodbatlas_advanced_clusters: Adds `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute ([#2872](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2872))
+* data-source/mongodbatlas_cluster: Adds `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute ([#2872](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2872))
+* data-source/mongodbatlas_cluster: Adds `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute ([#2872](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2872))
+* resource/mongodbatlas_advanced_cluster: Adds `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute ([#2872](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2872))
+* resource/mongodbatlas_cluster: Adds `advanced_configuration.0.tls_cipher_config_mode` and `advanced_configuration.0.custom_openssl_cipher_config_tls12` attribute ([#2872](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2872))
+
+## 1.23.0 (December 17, 2024)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Adds `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
 * data-source/mongodbatlas_advanced_cluster: Adds `pinned_fcv` attribute ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
+* data-source/mongodbatlas_advanced_clusters: Adds `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
 * data-source/mongodbatlas_advanced_clusters: Adds `pinned_fcv` attribute ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
 * data-source/mongodbatlas_cluster: Adds `pinned_fcv` attribute ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
 * data-source/mongodbatlas_clusters: Adds `pinned_fcv` attribute ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
+* resource/mongodbatlas_advanced_cluster: Adds `advanced_configuration.0.default_max_time_ms` attribute ([#2825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2825))
 * resource/mongodbatlas_advanced_cluster: Adds `pinned_fcv` attribute ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
+* resource/mongodbatlas_advanced_cluster: Adjusts create operation to support cluster tier auto scaling per shard. ([#2836](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2836))
+* resource/mongodbatlas_advanced_cluster: Adjusts update operation to support cluster tier auto scaling per shard. ([#2814](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2814))
 * resource/mongodbatlas_cluster: Adds `pinned_fcv` attribute ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
 
 BUG FIXES:
@@ -23,6 +41,7 @@ BUG FIXES:
 * data-source/mongodbatlas_clusters: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
 * resource/mongodbatlas_advanced_cluster: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2789))
 * resource/mongodbatlas_cluster: `mongo_db_major_version` attribute is populated with binary version when FCV pin is active ([#2817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2817))
+* resource/mongodbatlas_search_index: Fixes resource create and update when `wait_for_index_build_completion` attribute is used ([#2887](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2887))
 
 ## 1.22.0 (November 26, 2024)
 

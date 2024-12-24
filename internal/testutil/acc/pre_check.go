@@ -148,6 +148,13 @@ func PreCheckGovBasic(tb testing.TB) {
 		tb.Fatal("`MONGODB_ATLAS_GOV_BASE_URL`, `MONGODB_ATLAS_GOV_PUBLIC_KEY`, `MONGODB_ATLAS_GOV_PRIVATE_KEY`and `MONGODB_ATLAS_GOV_ORG_ID` must be set for acceptance testing")
 	}
 }
+func PreCheckPublicKey2(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY") == "" ||
+		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY`, `MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY` must be set for acceptance testing")
+	}
+}
 
 func PreCheckGPCEnv(tb testing.TB) {
 	tb.Helper()

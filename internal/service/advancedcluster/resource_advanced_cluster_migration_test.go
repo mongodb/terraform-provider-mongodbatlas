@@ -27,26 +27,20 @@ func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t) // AttributeName("advanced_configuration"): invalid JSON, expected "{", got "["
 	testCase := singleShardedMultiCloudTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t) // AttributeName("advanced_configuration"): invalid JSON, expected "{", got "["
 	testCase := symmetricGeoShardedOldSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error, note that TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema is passing though:
-	// resource_advanced_cluster_migration_test.go:39: Step 1/2 error: Check failed: Check 2/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.disk_iops' not found
-	// Check 5/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.instance_size' not found
-	// Check 6/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.instance_size' not found
-	// Check 7/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.disk_size_gb' not found
-	// Check 8/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.analytics_specs.disk_size_gb' not found
-	// Check 9/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.analytics_specs.disk_size_gb' not found
-	// Check 10/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.disk_size_gb' not found
-	// Check 11/15 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.1.region_configs.0.electable_specs.disk_iops' not found
 	acc.SkipIfAdvancedClusterV2Schema(t)
+	mig.SkipIfVersionBelow(t, "1.23.0") // version where sharded cluster tier auto-scaling was introduced
 	testCase := asymmetricShardedNewSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
@@ -116,12 +110,12 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, false),
+				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, false, false),
 				Check:             checkShardedTransitionOldToNewSchema(false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true),
+				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, false),
 				Check:                    checkShardedTransitionOldToNewSchema(false, true),
 			},
 		},
@@ -156,7 +150,7 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 
 func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
-	mig.SkipIfVersionBelow(t, "1.22.1")  // version where default_max_time_ms was introduced
+	mig.SkipIfVersionBelow(t, "1.24.0")  // version where tls_cipher_config_mode was introduced
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -188,6 +182,8 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 				sample_size_bi_connector			 = 110
 				sample_refresh_interval_bi_connector = 310
 				default_max_time_ms = 65
+				tls_cipher_config_mode               = "CUSTOM"
+			    custom_openssl_cipher_config_tls12   = ["TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"]
 				}
 				
 				bi_connector_config {
@@ -212,6 +208,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_min_retention_hours", "4"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "DEFAULT"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "true"),
 				),
 			},
@@ -228,11 +225,39 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_max_time_ms", "65"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "CUSTOM"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.custom_openssl_cipher_config_tls12.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.read_preference", "secondary"),
 				),
 			},
 			mig.TestStepCheckEmptyPlan(configUpdated),
+		},
+	})
+}
+
+func TestMigAdvancedCluster_newSchemaFromAutoscalingDisabledToEnabled(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     acc.PreCheckBasicSleep(t, nil, orgID, projectName),
+		CheckDestroy: acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: acc.ExternalProviders("1.22.0"), // last version before cluster tier auto-scaling per shard was introduced
+				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, false),
+				Check:             checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, true),
+				Check:                    checkIndependentShardScalingMode(clusterName, "SHARD"),
+			},
 		},
 	})
 }

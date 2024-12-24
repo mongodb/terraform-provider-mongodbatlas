@@ -1,17 +1,24 @@
 package advancedcluster_test
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
 	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -28,6 +35,61 @@ var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 )
+
+func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
+	var (
+		projectID   = "11111"
+		clusterName = "testCluster"
+		ID          = "111111"
+		numShard    = 2
+		zoneName    = "ZoneName managed by Terraform"
+	)
+
+	testCases := map[string]struct {
+		mockCluster    *admin20240530.AdvancedClusterDescription
+		mockResponse   *http.Response
+		mockError      error
+		expectedResult map[string]advancedcluster.OldShardConfigMeta
+		expectedError  error
+	}{
+		"Error in the API call": {
+			mockCluster:    &admin20240530.AdvancedClusterDescription{},
+			mockResponse:   &http.Response{StatusCode: 400},
+			mockError:      errGeneric,
+			expectedError:  errGeneric,
+			expectedResult: nil,
+		},
+		"Successful": {
+			mockCluster: &admin20240530.AdvancedClusterDescription{
+				ReplicationSpecs: &[]admin20240530.ReplicationSpec{
+					{
+						NumShards: &numShard,
+						Id:        &ID,
+						ZoneName:  &zoneName,
+					},
+				},
+			},
+			mockResponse:  &http.Response{},
+			mockError:     nil,
+			expectedError: nil,
+			expectedResult: map[string]advancedcluster.OldShardConfigMeta{
+				zoneName: {ID: ID, NumShard: numShard},
+			},
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			testObject := mockadmin20240530.NewClustersApi(t)
+
+			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin20240530.GetClusterApiRequest{ApiService: testObject}).Once()
+			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
+
+			result, err := advancedcluster.GetReplicationSpecAttributesFromOldAPI(context.Background(), projectID, clusterName, testObject)
+			assert.Equal(t, tc.expectedError, err)
+			assert.Equal(t, tc.expectedResult, result)
+		})
+	}
+}
 
 func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	var (
@@ -119,11 +181,6 @@ func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 
 func singleShardedMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
-	// TODO: Already prepared for TPF but getting this error:
-	// resource_advanced_cluster_test.go:119: Step 1/3 error: Check failed: Check 9/12 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.0.disk_iops' expected to be set
-	// Check 10/12 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.analytics_specs.0.disk_iops' expected to be set
-	// Check 11/12 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.1.electable_specs.0.disk_iops' expected to be set
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -212,9 +269,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// unexpected new value: .advanced_configuration.fail_index_key_too_long: was cty.False, but now null
-	acc.SkipIfAdvancedClusterV2Schema(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: default_max_time_ms not implemented in TPF yet
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -235,6 +290,11 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
 			DefaultMaxTimeMS: conversion.IntPtr(65),
 		}
+
+		processArgsCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
+		}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -247,15 +307,15 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
 			},
 			{
-				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, &admin.ClusterDescriptionProcessArgs20240805{}),
-				Check:  checkAdvanced(true, clusterName, "TLS1_1", &admin.ClusterDescriptionProcessArgs20240805{}),
+				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgsCipherConfig),
+				Check:  checkAdvanced(true, clusterName, "TLS1_1", processArgsCipherConfig),
 			},
 		},
 	})
 }
 
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: default_max_time_ms not implemented in TPF yet
 	var (
 		projectID           = acc.ProjectIDExecution(t)
 		clusterName         = acc.RandomClusterName()
@@ -274,6 +334,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		}
 		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
+			TlsCipherConfigMode: conversion.StringPtr("DEFAULT"),
 		}
 
 		processArgs20240530Updated = &admin20240530.ClusterDescriptionProcessArgs{
@@ -291,6 +352,13 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultMaxTimeMS: conversion.IntPtr(65),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
+		}
+		processArgsUpdatedCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
+			DefaultMaxTimeMS: conversion.IntPtr(65),
+			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
+			TlsCipherConfigMode: conversion.StringPtr("DEFAULT"), // To unset TlsCipherConfigMode, user needs to set this to DEFAULT
 		}
 	)
 
@@ -307,14 +375,16 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 				Config: configAdvanced(t, true, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdated),
 				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_2", processArgsUpdated),
 			},
+			{
+				Config: configAdvanced(t, true, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdatedCipherConfig),
+				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_2", processArgsUpdatedCipherConfig),
+			},
 		},
 	})
 }
 
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// Check failed: Check 8/14 error: mongodbatlas_advanced_cluster.test: Attribute 'advanced_configuration.fail_index_key_too_long' not found
-	acc.SkipIfAdvancedClusterV2Schema(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: tls_cipher_config_mode not implemented in TPF yet
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -360,9 +430,6 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// POST: HTTP 400 Bad Request (Error code: "INVALID_ENUM_VALUE") Detail: An invalid enumeration value  was specified. Reason: Bad Request. Params: [],
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -406,9 +473,6 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 }
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// POST: HTTP 400 Bad Request (Error code: "INVALID_ENUM_VALUE") Detail: An invalid enumeration value  was specified. Reason: Bad Request. Params: [],
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
@@ -451,9 +515,6 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 }
 
 func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpectsError(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// POST: HTTP 400 Bad Request (Error code: "ASYMMETRIC_REGION_TOPOLOGY_IN_ZONE"). Detail: All shards in the same zone must have the same region topology.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -534,9 +595,6 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// POST: HTTP 400 Bad Request (Error code: "ASYMMETRIC_REGION_TOPOLOGY_IN_ZONE"). Detail: All shards in the same zone must have the same region topology.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -586,12 +644,6 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchema(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// resource_advanced_cluster_test.go:545: Step 1/2 error: Check failed: Check 3/13 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.num_shards' expected "2", got "1"
-	// Check 9/13 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.electable_specs.0.disk_iops' expected to be set
-	// Check 10/13 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.0.analytics_specs.0.disk_iops' expected to be set
-	// Check 11/13 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.region_configs.1.electable_specs.0.disk_iops' expected to be set
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -621,9 +673,6 @@ func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing
 
 func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
-	// TODO: Already prepared for TPF but getting this error:
-	// POST: HTTP 400 Bad Request (Error code: "INVALID_ENUM_VALUE") Detail: An invalid enumeration value  was specified. Reason: Bad Request. Params: [],
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -637,20 +686,21 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isAcc bool) resource.Tes
 		Steps: []resource.TestStep{
 			{
 				Config: configGeoShardedOldSchema(t, isAcc, orgID, projectName, clusterName, 2, 2, false),
-				Check:  checkGeoShardedOldSchema(isAcc, clusterName, 2, 2, true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkGeoShardedOldSchema(isAcc, clusterName, 2, 2, true, false),
+					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
 			},
 			{
 				Config: configGeoShardedOldSchema(t, isAcc, orgID, projectName, clusterName, 3, 3, false),
-				Check:  checkGeoShardedOldSchema(isAcc, clusterName, 3, 3, true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkGeoShardedOldSchema(isAcc, clusterName, 3, 3, true, false),
+					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
 			},
 		},
 	}
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// Check failed: Check 2/5 error: mongodbatlas_advanced_cluster.test: Attribute 'replication_specs.0.num_shards' expected \"2\", got \"1\"
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -675,9 +725,6 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedOldSchemaDiskSizeGBAtEl
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAddingRemovingShard(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// PATCH: HTTP 400 Bad Request (Error code: \"AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG\") Detail: If any regionConfigs specify an autoScaling object, all regionConfigs must also specify an autoScaling object.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -724,22 +771,21 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestC
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
-				Check:  checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_clusters.test-replication-specs-per-shard-false", "results.#", "0"),
+					checkIndependentShardScalingMode(clusterName, "SHARD")),
 			},
 		},
 	}
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemovingShard(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	//  POST: HTTP 400 Bad Request (Error code: "ASYMMETRIC_REGION_TOPOLOGY_IN_ZONE"). Detail: All shards in the same zone must have the same region topology.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
 		clusterName = acc.RandomClusterName()
 	)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -762,9 +808,6 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 }
 
 func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// PATCH: HTTP 400 Bad Request (Error code: "AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG") Detail: If any regionConfigs specify an autoScaling object, all regionConfigs must also specify an autoScaling object.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -777,11 +820,13 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false),
-				Check:  checkShardedTransitionOldToNewSchema(true, false),
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkShardedTransitionOldToNewSchema(true, false),
+					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
 			},
 			{
-				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true),
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, false),
 				Check:  checkShardedTransitionOldToNewSchema(true, true),
 			},
 		},
@@ -789,9 +834,6 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 }
 
 func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// POST: HTTP 400 Bad Request (Error code: "ASYMMETRIC_REGION_TOPOLOGY_IN_ZONE"). Detail: All shards in the same zone must have the same region topology.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -877,14 +919,6 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 
 // TestAccClusterAdvancedCluster_priorityOldSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// .replication_specs[0].region_configs[0].electable_specs.node_count: was cty.NumberIntVal(1), but now cty.NumberIntVal(2)
-	// .replication_specs[0].region_configs[0].priority: was cty.NumberIntVal(6), but now cty.NumberIntVal(7).
-	//  .replication_specs[0].region_configs[0].region_name: was cty.StringVal("US_WEST_2"), but now cty.StringVal("US_EAST_1").
-	// .replication_specs[0].region_configs[1].electable_specs.node_count: was cty.NumberIntVal(2), but now cty.NumberIntVal(1).
-	// .replication_specs[0].region_configs[1].priority: was cty.NumberIntVal(7), but now cty.NumberIntVal(6).
-	// .replication_specs[0].region_configs[1].region_name: was cty.StringVal("US_EAST_1"), but now cty.StringVal("US_WEST_2").
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -908,15 +942,17 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 				Config:      configPriority(t, true, orgID, projectName, clusterName, true, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
+			// Extra step added to allow deletion, otherwise we get `Error running post-test destroy` since validation of TF fails
+			{
+				Config: configPriority(t, true, orgID, projectName, clusterName, true, false),
+				Check:  acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
+			},
 		},
 	})
 }
 
 // TestAccClusterAdvancedCluster_priorityNewSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
-	// TODO: Already prepared for TPF but getting this error:
-	// Error: errorUpdateLegacy. PATCH: HTTP 400 Bad Request (Error code: "AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG") Detail: If any regionConfigs specify an autoScaling object, all regionConfigs must also specify an autoScaling object.
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -939,6 +975,11 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 			{
 				Config:      configPriority(t, true, orgID, projectName, clusterName, false, true),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
+			},
+			// Extra step added to allow deletion, otherwise we get `Error running post-test destroy` since validation of TF fails
+			{
+				Config: configPriority(t, true, orgID, projectName, clusterName, false, false),
+				Check:  acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 		},
 	})
@@ -967,7 +1008,7 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: pinned_fcv not implemented in TPF yet
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // Using single project to assert plural data source
@@ -1018,6 +1059,81 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 			},
 		},
 	})
+}
+
+func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, orgID, projectName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false, true),
+				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, true),
+				Check:  checkIndependentShardScalingMode(clusterName, "SHARD"),
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *testing.T) {
+	acc.SkipIfAdvancedClusterV2Schema(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, orgID, projectName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false, false),
+				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, false),
+				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+			},
+			{
+				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, true),
+				Check:  checkIndependentShardScalingMode(clusterName, "SHARD"),
+			},
+		},
+	})
+}
+
+func checkIndependentShardScalingMode(clusterName, expectedMode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		issMode, _, err := acc.GetIndependentShardScalingMode(context.Background(), projectID, clusterName)
+		if err != nil {
+			return fmt.Errorf("error getting independent shard scaling mode: %w", err)
+		}
+		if *issMode != expectedMode {
+			return fmt.Errorf("expected independent shard scaling mode to be %s, got %s", expectedMode, *issMode)
+		}
+		return nil
+	}
 }
 
 func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
@@ -1468,20 +1584,32 @@ func checkSingleProviderPaused(isAcc bool, name string, paused bool) resource.Te
 
 func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	t.Helper()
-	changeStreamOptionsString := ""
-	defaultMaxTimeString := ""
-	mongoDBMajorVersionString := ""
+	changeStreamOptionsStr := ""
+	defaultMaxTimeStr := ""
+	tlsCipherConfigModeStr := ""
+	customOpensslCipherConfigTLS12Str := ""
+	mongoDBMajorVersionStr := ""
 
 	if p != nil {
 		if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
-			changeStreamOptionsString = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
+			changeStreamOptionsStr = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
 		}
 		if p.DefaultMaxTimeMS != nil {
-			defaultMaxTimeString = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
+			defaultMaxTimeStr = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
+		}
+		if p.TlsCipherConfigMode != nil {
+			tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
+			if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+				//nolint:gocritic // reason: simplifying string array construction
+				customOpensslCipherConfigTLS12Str = fmt.Sprintf(
+					`custom_openssl_cipher_config_tls12 = ["%s"]`,
+					strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
+				)
+			}
 		}
 	}
 	if mongoDBMajorVersion != "" {
-		mongoDBMajorVersionString = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
+		mongoDBMajorVersionStr = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
 	}
 
 	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
@@ -1518,6 +1646,8 @@ func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMaj
 			    transaction_lifetime_limit_seconds   = %[10]d
 			    %[11]s
 				%[12]s
+				%[14]s
+				%[15]s
 			}
 		}
 
@@ -1532,7 +1662,7 @@ func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMaj
 	`, projectID, clusterName,
 		p20240530.GetFailIndexKeyTooLong(), p20240530.GetJavascriptEnabled(), p20240530.GetMinimumEnabledTlsProtocol(), p20240530.GetNoTableScan(),
 		p20240530.GetOplogSizeMB(), p20240530.GetSampleSizeBIConnector(), p20240530.GetSampleRefreshIntervalBIConnector(), p20240530.GetTransactionLifetimeLimitSeconds(),
-		changeStreamOptionsString, defaultMaxTimeString, mongoDBMajorVersionString))
+		changeStreamOptionsStr, defaultMaxTimeStr, mongoDBMajorVersionStr, tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str))
 }
 
 func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
@@ -1554,6 +1684,13 @@ func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescr
 
 	if processArgs.DefaultMaxTimeMS != nil {
 		advancedConfig["advanced_configuration.0.default_max_time_ms"] = strconv.Itoa(*processArgs.DefaultMaxTimeMS)
+	}
+
+	if processArgs.TlsCipherConfigMode != nil && processArgs.CustomOpensslCipherConfigTls12 != nil {
+		advancedConfig["advanced_configuration.0.tls_cipher_config_mode"] = "CUSTOM"
+		advancedConfig["advanced_configuration.0.custom_openssl_cipher_config_tls12.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls12))
+	} else {
+		advancedConfig["advanced_configuration.0.tls_cipher_config_mode"] = "DEFAULT"
 	}
 
 	pluralChecks := []resource.TestCheckFunc{
@@ -1635,7 +1772,8 @@ func checkAdvancedDefaultWrite(isAcc bool, name, writeConcern, tls string) resou
 			"advanced_configuration.0.no_table_scan":                        "false",
 			"advanced_configuration.0.oplog_size_mb":                        "1000",
 			"advanced_configuration.0.sample_refresh_interval_bi_connector": "310",
-			"advanced_configuration.0.sample_size_bi_connector":             "110"},
+			"advanced_configuration.0.sample_size_bi_connector":             "110",
+			"advanced_configuration.0.tls_cipher_config_mode":               "DEFAULT"},
 		pluralChecks...)
 }
 
@@ -1948,6 +2086,11 @@ func configShardedNewSchema(t *testing.T, isAcc bool, orgID, projectName, name s
 			use_replication_spec_per_shard = true
 		}
 
+		data "mongodbatlas_advanced_clusters" "test-replication-specs-per-shard-false" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			use_replication_spec_per_shard = false
+		}
+
 		data "mongodbatlas_advanced_clusters" "test" {
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
@@ -1988,8 +2131,6 @@ func checkShardedNewSchema(isAcc bool, diskSizeGB int, firstInstanceSize, lastIn
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
 
 	pluralChecks = acc.AddAttrChecksPrefixSchemaV2(isAcc, dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
-
-	// expected id attribute only if cluster is symmetric
 	if isAsymmetricCluster {
 		pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{}, map[string]string{
 			"replication_specs.0.id": "",
@@ -2003,7 +2144,6 @@ func checkShardedNewSchema(isAcc bool, diskSizeGB int, firstInstanceSize, lastIn
 		pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
 		pluralChecks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
 	}
-
 	return checkAggr(isAcc,
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
 		clusterChecks,
@@ -2087,17 +2227,26 @@ func checkGeoShardedNewSchema(isAcc, includeThirdShardInFirstZone bool) resource
 		amtOfReplicationSpecs = 2
 	}
 	clusterChecks := map[string]string{
-		"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
+		"replication_specs.#":                fmt.Sprintf("%d", amtOfReplicationSpecs),
+		"replication_specs.0.container_id.%": "1",
+		"replication_specs.1.container_id.%": "1",
 	}
-
 	return checkAggr(isAcc, []string{}, clusterChecks)
 }
 
-func configShardedTransitionOldToNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, useNewSchema bool) string {
+func configShardedTransitionOldToNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, useNewSchema, autoscaling bool) string {
 	t.Helper()
 	var numShardsStr string
 	if !useNewSchema {
 		numShardsStr = `num_shards = 2`
+	}
+	var autoscalingStr string
+	if autoscaling {
+		autoscalingStr = `auto_scaling {
+			compute_enabled = true
+			disk_gb_enabled = true
+			compute_max_instance_size = "M20"
+		}`
 	}
 	replicationSpec := fmt.Sprintf(`
 		replication_specs {
@@ -2114,9 +2263,10 @@ func configShardedTransitionOldToNewSchema(t *testing.T, isAcc bool, orgID, proj
 				provider_name = "AWS"
 				priority      = 7
 				region_name   = "EU_WEST_1"
+				%[2]s
 			}
 		}
-	`, numShardsStr)
+	`, numShardsStr, autoscalingStr)
 
 	var replicationSpecs string
 	if useNewSchema {
