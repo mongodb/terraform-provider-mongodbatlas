@@ -150,9 +150,9 @@ func PreCheckGovBasic(tb testing.TB) {
 }
 func PreCheckPublicKey2(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY2") == "" ||
-		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY2") == "" {
-		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY2`, `MONGODB_ATLAS_PRIVATE_KEY2` must be set for acceptance testing")
+	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY") == "" ||
+		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY`, `MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY` must be set for acceptance testing")
 	}
 }
 

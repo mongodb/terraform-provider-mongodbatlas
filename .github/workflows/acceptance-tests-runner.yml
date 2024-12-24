@@ -103,9 +103,9 @@ on:
         required: true
       mongodb_atlas_private_key:
         required: true
-      mongodb_atlas_public_key2:
+      mongodb_atlas_public_key_read_only:
         required: true
-      mongodb_atlas_private_key2:
+      mongodb_atlas_private_key_read_only:
         required: true
       ca_cert: 
         required: true
@@ -178,9 +178,9 @@ env:
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
   MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-  MONGODB_ATLAS_PUBLIC_KEY2: ${{ secrets.mongodb_atlas_public_key2 }}
   MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
-  MONGODB_ATLAS_PRIVATE_KEY2: ${{ secrets.mongodb_atlas_private_key2 }}
+  MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY: ${{ secrets.mongodb_atlas_public_key_read_only }}
+  MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY: ${{ secrets.mongodb_atlas_private_key_read_only }}
   MONGODB_ATLAS_GOV_PUBLIC_KEY: ${{ secrets.mongodb_atlas_gov_public_key }}
   MONGODB_ATLAS_GOV_PRIVATE_KEY: ${{ secrets.mongodb_atlas_gov_private_key }}
   MONGODB_ATLAS_GOV_BASE_URL:  ${{ inputs.mongodb_atlas_gov_base_url }}

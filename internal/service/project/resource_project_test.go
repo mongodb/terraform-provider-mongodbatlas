@@ -1080,12 +1080,12 @@ func TestAccProject_withTags(t *testing.T) {
 	})
 }
 
-func TestAccProject_slowOperationNotOwner(t *testing.T) {
+func TestAccProject_slowOperationReadOnly(t *testing.T) {
 	var (
-		orgID                    = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName              = acc.RandomProjectName()
-		config                   = configBasic(orgID, projectName, "", false, nil, conversion.Pointer(false))
-		providerConfigPublicKey2 = acc.ConfigPublicKey2Provider()
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName            = acc.RandomProjectName()
+		config                 = configBasic(orgID, projectName, "", false, nil, conversion.Pointer(false))
+		providerConfigReadOnly = acc.ConfigReadOnlyProvider()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPublicKey2(t) },
@@ -1100,14 +1100,14 @@ func TestAccProject_slowOperationNotOwner(t *testing.T) {
 			},
 			{
 				PreConfig: func() { changeRoles(t, orgID, projectName, "GROUP_READ_ONLY") },
-				Config:    providerConfigPublicKey2 + config,
+				Config:    providerConfigReadOnly + config,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "is_slow_operation_thresholding_enabled", "false"),
 				),
 			},
 			// Validate the API Key has a different role
 			{
-				Config:      providerConfigPublicKey2 + configBasic(orgID, projectName, "", false, nil, conversion.Pointer(true)),
+				Config:      providerConfigReadOnly + configBasic(orgID, projectName, "", false, nil, conversion.Pointer(true)),
 				ExpectError: regexp.MustCompile("error in project settings update"),
 			},
 			// read back again to ensure no changes, and allow deletion to work
@@ -1131,7 +1131,7 @@ func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 	}
 	api := acc.ConnV2().ProgrammaticAPIKeysApi
 	respList, _, _ := api.ListApiKeys(ctx, orgID).Execute()
-	publicKey := os.Getenv("MONGODB_ATLAS_PUBLIC_KEY2")
+	publicKey := os.Getenv("MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY")
 	keys := respList.GetResults()
 	for _, result := range keys {
 		if result.GetPublicKey() != publicKey {
