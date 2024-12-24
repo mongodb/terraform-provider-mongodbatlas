@@ -98,7 +98,7 @@ func TestUpdateTeamUsers(t *testing.T) {
 				mockUsersApi.EXPECT().GetUserByUsername(mock.Anything, invaliduser1).Return(admin.GetUserByUsernameApiRequest{ApiService: mockUsersApi})
 				mockUsersApi.EXPECT().GetUserByUsernameExecute(mock.Anything).Return(nil, nil, errors.New("invalid username"))
 			},
-			existingTeamUsers: &admin.PaginatedAppUser{Results: &[]admin.CloudAppUser{}},
+			existingTeamUsers: &admin.PaginatedAppUser{Results: nil},
 			usernames:         []string{invaliduser1},
 			expectError:       require.Error,
 		},
@@ -155,7 +155,7 @@ func TestUpdateTeamUsers(t *testing.T) {
 			mockTeamsAPI := mockadmin.NewTeamsApi(t)
 			mockUsersAPI := mockadmin.NewMongoDBCloudUsersApi(t)
 			testCase.mockFuncExpectations(mockTeamsAPI, mockUsersAPI)
-			testCase.expectError(t, team.UpdateTeamUsers(mockTeamsAPI, mockUsersAPI, *testCase.existingTeamUsers.Results, testCase.usernames, "orgID", "teamID"))
+			testCase.expectError(t, team.UpdateTeamUsers(mockTeamsAPI, mockUsersAPI, testCase.existingTeamUsers.GetResults(), testCase.usernames, "orgID", "teamID"))
 		})
 	}
 }
