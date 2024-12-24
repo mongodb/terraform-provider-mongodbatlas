@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
-	"go.mongodb.org/atlas-sdk/v20241113003/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
