@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -72,9 +73,10 @@ func Schema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"tenant_id": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.27.0") + " The tenant_id is found using the `mongodbatlas_cloud_provider_access_authorization` and will have no effect.",
+			Type:       schema.TypeString,
+			Optional:   true,
+			ForceNew:   true,
 		},
 	}
 }
@@ -91,7 +93,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		BucketName:    d.Get("bucket_name").(string),
 		RoleId:        conversion.StringPtr(d.Get("role_id").(string)),
 		ServiceUrl:    conversion.StringPtr(d.Get("service_url").(string)),
-		TenantId:      conversion.StringPtr(d.Get("tenant_id").(string)),
 		CloudProvider: cloudProvider,
 	}
 
