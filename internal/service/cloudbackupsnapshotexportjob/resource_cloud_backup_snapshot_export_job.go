@@ -57,6 +57,7 @@ func returnCloudBackupSnapshotExportJobSchema() map[string]*schema.Schema {
 		},
 		"custom_data": {
 			Type:     schema.TypeSet,
+			Optional: true,
 			ForceNew: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
