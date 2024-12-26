@@ -34,7 +34,7 @@ export MONGODB_ATLAS_ENABLE_PREVIEW="true"
 
 trap 'rm -R docs-out/' EXIT # temp dir cleanup when script exits
 
-tfplugindocs generate --tf-version "${TF_VERSION}" --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out"
+tfplugindocs generate --tf-version "${TF_VERSION}" --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out" --provider-name "mongodbatlas"
 
 printf "\nStarting file move\n\n"
 
