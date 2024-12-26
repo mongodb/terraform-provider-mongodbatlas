@@ -92,6 +92,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		BucketName:    d.Get("bucket_name").(string),
 		RoleId:        conversion.StringPtr(d.Get("role_id").(string)),
 		ServiceUrl:    conversion.StringPtr(d.Get("service_url").(string)),
+		TenantId:      conversion.StringPtr(d.Get("tenant_id").(string)),
 		CloudProvider: cloudProvider,
 	}
 	bucketResponse, _, err := conn.CloudBackupsApi.CreateExportBucket(ctx, projectID, request).Execute()
