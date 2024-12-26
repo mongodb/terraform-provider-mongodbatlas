@@ -9,6 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -420,9 +421,9 @@ func TestSplitDatabaseUserImportID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			part1, part2, part3, err := databaseuser.SplitDatabaseUserImportID(tc.importID)
 			if tc.errorString != "" {
-				assert.EqualError(t, err, tc.errorString)
+				require.EqualError(t, err, tc.errorString)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 			assert.Equal(t, tc.projectID, part1)
 			assert.Equal(t, tc.username, part2)

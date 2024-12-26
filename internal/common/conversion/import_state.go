@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func ImportSplit3(importRaw string) (bool, string, string, string) {
+func ImportSplit3(importRaw string) (ok bool, part1, part2, part3 string) {
 	parts := strings.Split(importRaw, "/")
 	if len(parts) != 3 {
 		return false, "", "", ""

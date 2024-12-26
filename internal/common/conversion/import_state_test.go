@@ -27,10 +27,10 @@ func TestValidateClusterName(t *testing.T) {
 func TestImportSplit3(t *testing.T) {
 	tests := map[string]struct {
 		importRaw string
-		expected  bool
 		part1     string
 		part2     string
 		part3     string
+		expected  bool
 	}{
 		"valid input": {
 			importRaw: "part1/part2/part3",
