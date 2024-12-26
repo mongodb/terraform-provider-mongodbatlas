@@ -364,3 +364,69 @@ func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue, password typ
 		Scopes:           scopes,
 	}
 }
+
+func TestSplitDatabaseUserImportID(t *testing.T) {
+	const invalidDefaultString = "import format error: to import a Database User, use the format {project_id}-{username}-{auth_database_name} OR {project_id}/{username}/{auth_database_name}"
+	tests := map[string]struct {
+		importID    string
+		projectID   string
+		username    string
+		authDBName  string
+		errorString string
+	}{
+		"valid input": {
+			importID:   "664619d870c247237f4b86a6/my-username-dash/my-db-name",
+			projectID:  "664619d870c247237f4b86a6",
+			username:   "my-username-dash",
+			authDBName: "my-db-name",
+		},
+		"valid input legacy": {
+			importID:   "664619d870c247237f4b86a6-myUsernameCamel-mydbname",
+			projectID:  "664619d870c247237f4b86a6",
+			username:   "myUsernameCamel",
+			authDBName: "mydbname",
+		},
+		"invalid input projectID": {
+			importID:    "part1/part2/part3",
+			projectID:   "part1",
+			username:    "part2",
+			authDBName:  "part3",
+			errorString: "project_id must be a 24 character hex string: part1",
+		},
+		"invalid input with more parts": {
+			importID:    "part1/part2/part3/part4",
+			projectID:   "",
+			username:    "",
+			authDBName:  "",
+			errorString: invalidDefaultString,
+		},
+		"invalid input with less parts": {
+			importID:    "part1/part2",
+			projectID:   "",
+			username:    "",
+			authDBName:  "",
+			errorString: invalidDefaultString,
+		},
+		"empty input": {
+			importID:    "",
+			projectID:   "",
+			username:    "",
+			authDBName:  "",
+			errorString: invalidDefaultString,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			part1, part2, part3, err := databaseuser.SplitDatabaseUserImportID(tc.importID)
+			if tc.errorString != "" {
+				assert.EqualError(t, err, tc.errorString)
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tc.projectID, part1)
+			assert.Equal(t, tc.username, part2)
+			assert.Equal(t, tc.authDBName, part3)
+		})
+	}
+}

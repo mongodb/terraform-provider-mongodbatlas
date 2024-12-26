@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -346,17 +347,19 @@ func (r *databaseUserRS) ImportState(ctx context.Context, req resource.ImportSta
 }
 
 func SplitDatabaseUserImportID(id string) (projectID, username, authDatabaseName string, err error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([$a-z]{1,15})$`)
-	parts := re.FindStringSubmatch(id)
-
-	if len(parts) != 4 {
-		err = errors.New("import format error: to import a Database User, use the format {project_id}-{username}-{auth_database_name}")
+	ok, projectID, username, authDatabaseName := conversion.ImportSplit3(id)
+	if ok {
+		err = conversion.ValidateProjectID(projectID)
 		return
 	}
-
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([$a-z]{1,15})$`)
+	parts := re.FindStringSubmatch(id)
+	if len(parts) != 4 {
+		err = errors.New("import format error: to import a Database User, use the format {project_id}-{username}-{auth_database_name} OR {project_id}/{username}/{auth_database_name}")
+		return
+	}
 	projectID = parts[1]
 	username = parts[2]
 	authDatabaseName = parts[3]
-
 	return
 }
