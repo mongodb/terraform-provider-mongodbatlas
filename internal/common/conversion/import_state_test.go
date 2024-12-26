@@ -23,3 +23,52 @@ func TestValidateClusterName(t *testing.T) {
 	assert.Contains(t, err.Error(), "_invalidClusterName")
 	assert.Contains(t, err.Error(), "cluster_name must be a string with length between 1 and 64, starting and ending with an alphanumeric character, and containing only alphanumeric characters and hyphens")
 }
+
+func TestImportSplit3(t *testing.T) {
+	tests := map[string]struct {
+		importRaw string
+		expected  bool
+		part1     string
+		part2     string
+		part3     string
+	}{
+		"valid input": {
+			importRaw: "part1/part2/part3",
+			expected:  true,
+			part1:     "part1",
+			part2:     "part2",
+			part3:     "part3",
+		},
+		"invalid input with more parts": {
+			importRaw: "part1/part2/part3/part4",
+			expected:  false,
+			part1:     "",
+			part2:     "",
+			part3:     "",
+		},
+		"invalid input with two parts": {
+			importRaw: "part1/part2",
+			expected:  false,
+			part1:     "",
+			part2:     "",
+			part3:     "",
+		},
+		"invalid input with one part": {
+			importRaw: "part1",
+			expected:  false,
+			part1:     "",
+			part2:     "",
+			part3:     "",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			ok, part1, part2, part3 := conversion.ImportSplit3(tc.importRaw)
+			assert.Equal(t, tc.expected, ok)
+			assert.Equal(t, tc.part1, part1)
+			assert.Equal(t, tc.part2, part2)
+			assert.Equal(t, tc.part3, part3)
+		})
+	}
+}

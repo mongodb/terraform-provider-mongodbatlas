@@ -10,6 +10,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
+func ImportSplit3(importRaw string) (bool, string, string, string) {
+	parts := strings.Split(importRaw, "/")
+	if len(parts) != 3 {
+		return false, "", "", ""
+	}
+	return true, parts[0], parts[1], parts[2]
+}
+
 func ImportStateProjectIDClusterName(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse, attrNameProjectID, attrNameClusterName string) {
 	parts := strings.SplitN(req.ID, "-", 2)
 	if len(parts) != 2 {
