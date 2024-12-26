@@ -82,7 +82,7 @@ resource "azapi_update_resource" "approval" {
 - `private_endpoint_connection_name` (String) Connection name of the Azure Private Endpoint.
 - `status` (String) State of the Encryption At Rest private endpoint.
 
-# Import 
+## Import 
 Encryption At Rest Private Endpoint resource can be imported using the project ID, cloud provider, and private endpoint ID. The format must be `{project_id}-{cloud_provider}-{private_endpoint_id}` e.g.
 
 ```
