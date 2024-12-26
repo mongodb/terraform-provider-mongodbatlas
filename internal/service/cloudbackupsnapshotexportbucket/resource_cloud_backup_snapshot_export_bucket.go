@@ -76,7 +76,7 @@ func Schema() map[string]*schema.Schema {
 			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.27.0") + " The tenant_id is found using the `mongodbatlas_cloud_provider_access_authorization` and will have no effect.",
 			Type:       schema.TypeString,
 			Optional:   true,
-			ForceNew:   true,
+			Computed:   true,
 		},
 	}
 }
@@ -87,7 +87,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 
 	cloudProvider := d.Get("cloud_provider").(string)
-
 	request := &admin.DiskBackupSnapshotExportBucketRequest{
 		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
 		BucketName:    d.Get("bucket_name").(string),
@@ -95,7 +94,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ServiceUrl:    conversion.StringPtr(d.Get("service_url").(string)),
 		CloudProvider: cloudProvider,
 	}
-
 	bucketResponse, _, err := conn.CloudBackupsApi.CreateExportBucket(ctx, projectID, request).Execute()
 	if err != nil {
 		return diag.Errorf("error creating snapshot export bucket: %s", err)
