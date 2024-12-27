@@ -117,11 +117,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "team_id", teamID, err))
 	}
 
-	teamUsers, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.CloudAppUser], *http.Response, error) {
-		request := connV2.TeamsApi.ListTeamUsers(ctx, orgID, team.GetId())
-		request = request.PageNum(pageNum)
-		return request.Execute()
-	})
+	teamUsers, err := listAllTeamUsers(ctx, connV2, orgID, team.GetId())
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
@@ -156,11 +152,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("usernames") {
-		existingUsers, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.CloudAppUser], *http.Response, error) {
-			request := connV2.TeamsApi.ListTeamUsers(ctx, orgID, teamID)
-			request = request.PageNum(pageNum)
-			return request.Execute()
-		})
+		existingUsers, err := listAllTeamUsers(ctx, connV2, orgID, teamID)
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorTeamRead, err))
@@ -259,4 +251,12 @@ func getProjectIDByTeamID(ctx context.Context, connV2 *admin.APIClient, teamID s
 	}
 
 	return "", nil
+}
+
+func listAllTeamUsers(ctx context.Context, connV2 *admin.APIClient, orgID, teamID string) ([]admin.CloudAppUser, error) {
+	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.CloudAppUser], *http.Response, error) {
+		request := connV2.TeamsApi.ListTeamUsers(ctx, orgID, teamID)
+		request = request.PageNum(pageNum)
+		return request.Execute()
+	})
 }

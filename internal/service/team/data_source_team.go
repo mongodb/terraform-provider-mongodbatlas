@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
@@ -13,7 +12,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -87,11 +85,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "name", d.Id(), err))
 	}
 
-	teamUsers, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.CloudAppUser], *http.Response, error) {
-		request := connV2.TeamsApi.ListTeamUsers(ctx, orgID, team.GetId())
-		request = request.PageNum(pageNum)
-		return request.Execute()
-	})
+	teamUsers, err := listAllTeamUsers(ctx, connV2, orgID, team.GetId())
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
