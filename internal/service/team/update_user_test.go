@@ -4,12 +4,14 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/team"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/mockadmin"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/mockadmin"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/team"
 )
 
 func TestGetChangesForTeamUsers(t *testing.T) {
@@ -96,7 +98,7 @@ func TestUpdateTeamUsers(t *testing.T) {
 				mockUsersApi.EXPECT().GetUserByUsername(mock.Anything, invaliduser1).Return(admin.GetUserByUsernameApiRequest{ApiService: mockUsersApi})
 				mockUsersApi.EXPECT().GetUserByUsernameExecute(mock.Anything).Return(nil, nil, errors.New("invalid username"))
 			},
-			existingTeamUsers: nil,
+			existingTeamUsers: &admin.PaginatedAppUser{Results: nil},
 			usernames:         []string{invaliduser1},
 			expectError:       require.Error,
 		},
@@ -153,7 +155,7 @@ func TestUpdateTeamUsers(t *testing.T) {
 			mockTeamsAPI := mockadmin.NewTeamsApi(t)
 			mockUsersAPI := mockadmin.NewMongoDBCloudUsersApi(t)
 			testCase.mockFuncExpectations(mockTeamsAPI, mockUsersAPI)
-			testCase.expectError(t, team.UpdateTeamUsers(mockTeamsAPI, mockUsersAPI, testCase.existingTeamUsers, testCase.usernames, "orgID", "teamID"))
+			testCase.expectError(t, team.UpdateTeamUsers(mockTeamsAPI, mockUsersAPI, testCase.existingTeamUsers.GetResults(), testCase.usernames, "orgID", "teamID"))
 		})
 	}
 }
