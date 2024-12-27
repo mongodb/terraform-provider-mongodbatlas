@@ -6,6 +6,11 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_stream_connections: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
 * resource/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
 
+BUG FIXES:
+
+* data-source/mongodbatlas_team: Fixes pagination logic when retrieved users of a team ([#2919](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2919))
+* resource/mongodbatlas_team: Fixes pagination logic when retrieved users of a team ([#2919](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2919))
+
 ## 1.24.0 (December 20, 2024)
 
 ENHANCEMENTS:
