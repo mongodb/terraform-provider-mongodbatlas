@@ -367,7 +367,6 @@ func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue, password typ
 }
 
 func TestSplitDatabaseUserImportID(t *testing.T) {
-	const invalidDefaultString = "import format error: to import a Database User, use the format {project_id}-{username}-{auth_database_name} OR {project_id}/{username}/{auth_database_name}"
 	tests := map[string]struct {
 		importID    string
 		projectID   string
@@ -399,21 +398,21 @@ func TestSplitDatabaseUserImportID(t *testing.T) {
 			projectID:   "",
 			username:    "",
 			authDBName:  "",
-			errorString: invalidDefaultString,
+			errorString: databaseuser.ErrorImportFormat,
 		},
 		"invalid input with less parts": {
 			importID:    "part1/part2",
 			projectID:   "",
 			username:    "",
 			authDBName:  "",
-			errorString: invalidDefaultString,
+			errorString: databaseuser.ErrorImportFormat,
 		},
 		"empty input": {
 			importID:    "",
 			projectID:   "",
 			username:    "",
 			authDBName:  "",
-			errorString: invalidDefaultString,
+			errorString: databaseuser.ErrorImportFormat,
 		},
 	}
 
