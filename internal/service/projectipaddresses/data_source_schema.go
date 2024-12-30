@@ -57,9 +57,11 @@ type TFServicesModel struct {
 }
 
 type TFClusterValueModel struct {
-	ClusterName types.String `tfsdk:"cluster_name"`
-	Inbound     types.List   `tfsdk:"inbound"`
-	Outbound    types.List   `tfsdk:"outbound"`
+	ClusterName    types.String `tfsdk:"cluster_name"`
+	Inbound        types.List   `tfsdk:"inbound"`
+	Outbound       types.List   `tfsdk:"outbound"`
+	FutureInbound  types.List   `tfsdk:"future_inbound"`
+	FutureOutbound types.List   `tfsdk:"future_outbound"`
 }
 
 var IPAddressesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -72,7 +74,9 @@ var ServicesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 var ClusterIPsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"cluster_name": types.StringType,
-	"inbound":      types.ListType{ElemType: types.StringType},
-	"outbound":     types.ListType{ElemType: types.StringType},
+	"cluster_name":    types.StringType,
+	"inbound":         types.ListType{ElemType: types.StringType},
+	"outbound":        types.ListType{ElemType: types.StringType},
+	"future_inbound":  types.ListType{ElemType: types.StringType},
+	"future_outbound": types.ListType{ElemType: types.StringType},
 }}
