@@ -85,7 +85,7 @@ func Resource() *schema.Resource {
 			"skip_default_alerts_settings": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  true,
+				Computed: true,
 			},
 		},
 	}
@@ -266,10 +266,16 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizationRequest {
+	skipDefaultAlertsSettings := true // defaulting to true otherwise alerts may be created behind the scenes resulting in drift detection in alert configuration resources
+
+	if v, ok := d.GetOkExists("skip_default_alerts_settings"); ok {
+		skipDefaultAlertsSettings = v.(bool)
+	}
+
 	createRequest := &admin.CreateOrganizationRequest{
 		Name:                      d.Get("name").(string),
 		OrgOwnerId:                conversion.Pointer(d.Get("org_owner_id").(string)),
-		SkipDefaultAlertsSettings: conversion.Pointer(d.Get("skip_default_alerts_settings").(bool)),
+		SkipDefaultAlertsSettings: conversion.Pointer(skipDefaultAlertsSettings),
 
 		ApiKey: &admin.CreateAtlasOrganizationApiKey{
 			Roles: conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
