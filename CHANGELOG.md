@@ -9,6 +9,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * data-source/mongodbatlas_team: Fixes pagination logic when retrieved users of a team ([#2919](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2919))
+* resource/mongodbatlas_database_user: Avoids import error for database_user when both username and auth database contain hyphens ([#2928](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2928))
 * resource/mongodbatlas_team: Fixes pagination logic when retrieved users of a team ([#2919](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2919))
 
 ## 1.24.0 (December 20, 2024)
