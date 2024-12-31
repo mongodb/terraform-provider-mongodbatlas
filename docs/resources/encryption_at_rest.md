@@ -212,7 +212,7 @@ Read-Only:
 
 - `valid` (Boolean) Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.
 
-# Import 
+## Import 
 Encryption at Rest Settings can be imported using project ID, in the format `project_id`, e.g.
 
 ```

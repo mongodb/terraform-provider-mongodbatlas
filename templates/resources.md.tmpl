@@ -62,7 +62,20 @@
 
 {{ if .SchemaMarkdown }}{{ .SchemaMarkdown | trimspace }}{{ end }}
 
-# Import 
-## Add the import
+## Import 
+
+{{.Name}} can be imported using the {PLACEHOLDER1} and {PLACEHOLDER2}, in the format `{PLACEHOLDER1}/{PLACEHOLDER2}`, e.g.
+
+**Using `terraform` CLI**
+`terraform import mongodbatlas_{{.Name}}.this {PLACEHOLDER1_EXAMPLE}-{PLACEHOLDER2_EXAMPLE}`
+
+or **Using the `import` block syntax:** (Terraform v1.5.0 and later)
+
+```terraform
+import {
+    id = "{PLACEHOLDER1_EXAMPLE}-{PLACEHOLDER2_EXAMPLE}"
+    to = mongodbatlas_{{.Name}}.this
+}
+```
 
 For more information see: [MongoDB Atlas API - Search Node](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) Documentation.

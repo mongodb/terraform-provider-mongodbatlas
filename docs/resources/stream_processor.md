@@ -166,7 +166,7 @@ Required:
 - `connection_name` (String) Name of the connection to write DLQ messages to. Must be an Atlas connection.
 - `db` (String) Name of the database to use for the DLQ.
 
-# Import 
+## Import 
 Stream Processor resource can be imported using the Project ID, Stream Instance name and Stream Processor name, in the format `INSTANCE_NAME-PROJECT_ID-PROCESSOR_NAME`, e.g.
 ```
 $ terraform import mongodbatlas_stream_processor.test yourInstanceName-6117ac2fe2a3d04ed27a987v-yourProcessorName
