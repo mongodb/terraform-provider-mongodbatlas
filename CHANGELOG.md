@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+NOTES:
+
+* resource/mongodbatlas_cloud_backup_snapshot_export_job: Changes `custom_data` changed attribute from required -> optional ([#2929](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2929))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
