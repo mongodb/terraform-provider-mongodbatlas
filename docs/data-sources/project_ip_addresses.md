@@ -37,9 +37,9 @@ Read-Only:
 Read-Only:
 
 - `cluster_name` (String) Human-readable label that identifies the cluster.
-- `inbound` (List of String) List of inbound IP addresses associated with the cluster. If your network allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your application can connect to your Atlas cluster.
-- `outbound` (List of String) List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.
 - `future_inbound` (List of String) List of future inbound IP addresses associated with the cluster. If your network allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your application can connect to your Atlas cluster.
 - `future_outbound` (List of String) List of future outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.
+- `inbound` (List of String) List of inbound IP addresses associated with the cluster. If your network allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your application can connect to your Atlas cluster.
+- `outbound` (List of String) List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.
 
 For more information see: [MongoDB Atlas API - Return All IP Addresses for One Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Projects/operation/returnAllIPAddresses) Documentation.

@@ -34,6 +34,16 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									Computed:            true,
 									MarkdownDescription: "List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.",
 								},
+								"future_inbound": schema.ListAttribute{
+									ElementType:         types.StringType,
+									Computed:            true,
+									MarkdownDescription: "List of future inbound IP addresses associated with the cluster. If your network allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your application can connect to your Atlas cluster.",
+								},
+								"future_outbound": schema.ListAttribute{
+									ElementType:         types.StringType,
+									Computed:            true,
+									MarkdownDescription: "List of future outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.",
+								},
 							},
 						},
 						Computed:            true,
