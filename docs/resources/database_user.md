@@ -180,8 +180,8 @@ In addition to all arguments above, the following attributes are exported:
 
 Database users can be imported using project ID, username, and auth database name in the format:
 
-1.  `project_id`-`username`-`auth_database_name`
-2.  `project_id`/`username`/`auth_database_name`
+1. `project_id`-`username`-`auth_database_name` Only works if no `-` are used for `username`/`auth_database_name`. For example `my-username` should use (2).
+2.  `project_id`/`username`/`auth_database_name` Works in all cases (introduced after (1))
 
 ```
 terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934-my_user-admin # (1)
