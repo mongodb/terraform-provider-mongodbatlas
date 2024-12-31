@@ -1,6 +1,6 @@
 # Resource: mongodbatlas_cloud_backup_snapshot_export_bucket
 
-`mongodbatlas_cloud_backup_snapshot_export_bucket` allows you to create an export snapshot bucket for the specified project. 
+`mongodbatlas_cloud_backup_snapshot_export_bucket` allows you to create an export snapshot bucket for the specified project.
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
@@ -39,20 +39,20 @@ resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 * `iam_role_id` - Unique identifier of the role that Atlas can use to access the bucket. Required if `cloud_provider` is set to `AWS`.
 * `role_id` - Unique identifier of the Azure Service Principal that Atlas can use to access the Azure Blob Storage Container. Required if `cloud_provider` is set to `AZURE`.
 * `service_url` - URL that identifies the blob Endpoint of the Azure Blob Storage Account. Required if `cloud_provider` is set to `AZURE`.
-* `tenant_id` - (Deprecated) This field is ignored; the tenantId of the Cloud Provider Access role (from roleId) is used. UUID that identifies the Azure Active Directory Tenant ID.
+* `tenant_id` - (Deprecated) This field is ignored; the `mongodbatlas_cloud_provider_access_authorization.azure.tenant_id` is used instead. UUID that identifies the Azure Active Directory Tenant ID.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `export_bucket_id` -	Unique identifier of the snapshot export bucket.
+* `export_bucket_id` - Unique identifier of the snapshot export bucket.
 
 ## Import
 
 Cloud Backup Snapshot Export Backup entries can be imported using project project_id, and bucket_id (Unique identifier of the snapshot export bucket), in the format `PROJECTID-BUCKETID`, e.g.
 
 ```
-$ terraform import mongodbatlas_cloud_backup_snapshot_export_bucket.test 5d0f1f73cf09a29120e173cf-5d116d82014b764445b2f9b5
+terraform import mongodbatlas_cloud_backup_snapshot_export_bucket.test 5d0f1f73cf09a29120e173cf-5d116d82014b764445b2f9b5
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/export/create-one-export-bucket/)

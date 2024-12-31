@@ -73,7 +73,7 @@ func Schema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"tenant_id": {
-			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.27.0") + " The tenantId of the Cloud Provider Access role (from roleId) is used.",
+			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.27.0") + " This field is ignored; the `mongodbatlas_cloud_provider_access_authorization.azure.tenant_id` is used instead.",
 			Type:       schema.TypeString,
 			Optional:   true,
 			Computed:   true,
