@@ -34,6 +34,16 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									Computed:            true,
 									MarkdownDescription: "List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.",
 								},
+								"future_inbound": schema.ListAttribute{
+									ElementType:         types.StringType,
+									Computed:            true,
+									MarkdownDescription: "List of future inbound IP addresses associated with the cluster. If your network allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your application can connect to your Atlas cluster.",
+								},
+								"future_outbound": schema.ListAttribute{
+									ElementType:         types.StringType,
+									Computed:            true,
+									MarkdownDescription: "List of future outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.",
+								},
 							},
 						},
 						Computed:            true,
@@ -57,9 +67,11 @@ type TFServicesModel struct {
 }
 
 type TFClusterValueModel struct {
-	ClusterName types.String `tfsdk:"cluster_name"`
-	Inbound     types.List   `tfsdk:"inbound"`
-	Outbound    types.List   `tfsdk:"outbound"`
+	ClusterName    types.String `tfsdk:"cluster_name"`
+	Inbound        types.List   `tfsdk:"inbound"`
+	Outbound       types.List   `tfsdk:"outbound"`
+	FutureInbound  types.List   `tfsdk:"future_inbound"`
+	FutureOutbound types.List   `tfsdk:"future_outbound"`
 }
 
 var IPAddressesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -72,7 +84,9 @@ var ServicesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 var ClusterIPsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"cluster_name": types.StringType,
-	"inbound":      types.ListType{ElemType: types.StringType},
-	"outbound":     types.ListType{ElemType: types.StringType},
+	"cluster_name":    types.StringType,
+	"inbound":         types.ListType{ElemType: types.StringType},
+	"outbound":        types.ListType{ElemType: types.StringType},
+	"future_inbound":  types.ListType{ElemType: types.StringType},
+	"future_outbound": types.ListType{ElemType: types.StringType},
 }}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -31,7 +32,7 @@ func (d *projectIPAddressesDS) Schema(ctx context.Context, req datasource.Schema
 }
 
 func (d *projectIPAddressesDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	connV2 := d.Client.AtlasV2
+	connV2 := d.Client.AtlasPreview // TODO: revert
 	var databaseDSUserConfig *TFProjectIpAddressesModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseDSUserConfig)...)
 	if resp.Diagnostics.HasError() {
