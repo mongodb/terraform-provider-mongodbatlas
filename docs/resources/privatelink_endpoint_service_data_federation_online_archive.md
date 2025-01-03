@@ -15,15 +15,25 @@ resource "mongodbatlas_project" "atlas-project" {
   name   = var.atlas_project_name
 }
 
+resource "aws_vpc_endpoint" "test" {
+  vpc_id             = "vpc-7fc0a543"
+  service_name       = "<SERVICE-NAME>"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = ["subnet-de0406d2"]
+  security_group_ids = ["sg-3f238186"]
+}
+
 resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
-  project_id = mongodbatlas_project.atlas-project.id
-  endpoint_id = "vpce-046cf43c79424d4c9"
+  project_id    = mongodbatlas_project.atlas-project.id
+  endpoint_id   = aws_vpc_endpoint.test.id
   provider_name = "AWS"
-  comment = "Test"
+  comment       = "Test"
   region        = "US_EAST_1"
-  customer_endpoint_dns_name = "vpce-046cf43c79424d4c9-nmls2y9k.vpce-svc-0824460b72e1a420e.us-east-1.vpce.amazonaws.com"
+  customer_endpoint_dns_name = aws_vpc_endpoint.test.dns_entry[0].dns_name
 }
 ```
+
+The `service_name` value for the region in question can be found in the [MongoDB Atlas Administration](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint) documentation.
 
 ## Argument Reference
 
