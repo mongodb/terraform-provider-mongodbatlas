@@ -32,7 +32,7 @@ func (d *projectIPAddressesDS) Schema(ctx context.Context, req datasource.Schema
 }
 
 func (d *projectIPAddressesDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	connV2 := d.Client.AtlasPreview // TODO: revert
+	connV2 := d.Client.AtlasV2
 	var databaseDSUserConfig *TFProjectIpAddressesModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseDSUserConfig)...)
 	if resp.Diagnostics.HasError() {

@@ -3,11 +3,10 @@ package projectipaddresses
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	// "go.mongodb.org/atlas-sdk/v20241113004/admin" // TODO: revert
-	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
 func NewTFProjectIPAddresses(ctx context.Context, ipAddresses *admin.GroupIPAddresses) (*TFProjectIpAddressesModel, diag.Diagnostics) {
