@@ -1,0 +1,3 @@
+```release-note:note
+resource/mongodbatlas_cloud_backup_snapshot_export_bucket: Deprecates `tenant_id` attribute as the `mongodbatlas_cloud_provider_access_authorization.azure.tenant_id` is used instead
+```
