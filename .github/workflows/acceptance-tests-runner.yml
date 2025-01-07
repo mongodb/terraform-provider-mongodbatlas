@@ -98,9 +98,6 @@ on:
       mongodb_atlas_flex_project_id:
         type: string
         required: true
-      mongodb_atlas_stream_aws_pl_project_id:
-        type: string
-        required: true
       confluent_cloud_network_id:
         type: string
         required: true
@@ -1074,7 +1071,6 @@ jobs:
             AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
             CONFLUENT_CLOUD_API_KEY: ${{ secrets.confluent_cloud_api_key }}
             CONFLUENT_CLOUD_API_SECRET: ${{ secrets.confluent_cloud_api_secret }}
-            MONGODB_ATLAS_STREAM_AWS_PL_PROJECT_ID: ${{ inputs.mongodb_atlas_stream_aws_pl_project_id }}
             CONFLUENT_CLOUD_NETWORK_ID: ${{ inputs.confluent_cloud_network_id }}
             CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID: ${{ inputs.confluent_cloud_privatelink_access_id }}
             ACCTEST_PACKAGES: |
