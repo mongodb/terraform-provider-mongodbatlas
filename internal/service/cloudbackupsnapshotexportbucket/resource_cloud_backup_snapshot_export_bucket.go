@@ -73,7 +73,6 @@ func Schema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"tenant_id": {
-			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.27.0") + " This argument is ignored; the `mongodbatlas_cloud_provider_access_authorization.azure.tenant_id` is used instead. The attribute exist but it is computed only.",
 			Type:       schema.TypeString,
 			Optional:   true,
 			Computed:   true,
