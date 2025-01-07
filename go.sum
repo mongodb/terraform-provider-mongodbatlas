@@ -831,6 +831,8 @@ go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.0 h1:EGTT54tKbDbkhhK+jH5AqI
 go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.0/go.mod h1:UTNpAyiKm/7utu+Nl0FafgjgvS+ONNGEoxBT5g/40WM=
 go.mongodb.org/atlas-sdk/v20241113004 v20241113004.0.0 h1:dmIp82dS4foajdKgcKRfr26g0cWE52jQAf+nbgFXr10=
 go.mongodb.org/atlas-sdk/v20241113004 v20241113004.0.0/go.mod h1:z6m7PcfItkgV3+mnLuStlTkdTbfUBQJpRyES8tuHNCk=
+go.mongodb.org/atlas-sdk/v20241113004 v20241113004.1.0 h1:AvrgNUpVMFnqZZJo4m/Bynr0wlDWM4xjhugCSdX/7mM=
+go.mongodb.org/atlas-sdk/v20241113004 v20241113004.1.0/go.mod h1:CABkQ0sbsqRBXR55UwS+0rX91Dx7et0xxq4QBB6qRog=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
