@@ -1,0 +1,3 @@
+```release-note:enhancement
+mongodbatlas_stream_connection: Supports PRIVATE_LINK networking type for Kafka Stream Connections
+```
