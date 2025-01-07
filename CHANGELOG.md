@@ -6,6 +6,7 @@ NOTES:
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_project_ip_addresses: Adds support for `future_inbound` and `future_outbound` fields ([#2934](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2934))
 * data-source/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
 * data-source/mongodbatlas_stream_connections: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
 * resource/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
