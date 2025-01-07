@@ -112,6 +112,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							"type": schema.StringAttribute{
 								Required: true,
 							},
+							"name": schema.StringAttribute{
+								Optional: true,
+							},
+							"connection_id": schema.StringAttribute{
+								Optional: true,
+							},
 						},
 					},
 				},

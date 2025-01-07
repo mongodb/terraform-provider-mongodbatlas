@@ -67,7 +67,9 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		}
 		streamConnection.Networking = &admin.StreamsKafkaNetworking{
 			Access: &admin.StreamsKafkaNetworkingAccess{
-				Type: networkingModel.Access.Type.ValueStringPointer(),
+				Type:         networkingModel.Access.Type.ValueStringPointer(),
+				ConnectionId: networkingModel.Access.ConnectionID.ValueStringPointer(),
+				Name:         networkingModel.Access.Name.ValueStringPointer(),
 			},
 		}
 	}
@@ -130,7 +132,9 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 	if apiResp.Networking != nil {
 		networkingModel, diags := types.ObjectValueFrom(ctx, NetworkingObjectType.AttrTypes, TFNetworkingModel{
 			Access: TFNetworkingAccessModel{
-				Type: types.StringPointerValue(apiResp.Networking.Access.Type),
+				Type:         types.StringPointerValue(apiResp.Networking.Access.Type),
+				Name:         types.StringPointerValue(apiResp.Networking.Access.Name),
+				ConnectionID: types.StringPointerValue(apiResp.Networking.Access.ConnectionId),
 			},
 		})
 		if diags.HasError() {
