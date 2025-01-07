@@ -9,7 +9,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"github.com/stretchr/testify/require"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 var (
@@ -362,5 +363,70 @@ func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue, password typ
 		Roles:            roles,
 		Labels:           labels,
 		Scopes:           scopes,
+	}
+}
+
+func TestSplitDatabaseUserImportID(t *testing.T) {
+	tests := map[string]struct {
+		importID    string
+		projectID   string
+		username    string
+		authDBName  string
+		errorString string
+	}{
+		"valid input": {
+			importID:   "664619d870c247237f4b86a6/my-username-dash/my-db-name",
+			projectID:  "664619d870c247237f4b86a6",
+			username:   "my-username-dash",
+			authDBName: "my-db-name",
+		},
+		"valid input legacy": {
+			importID:   "664619d870c247237f4b86a6-myUsernameCamel-mydbname",
+			projectID:  "664619d870c247237f4b86a6",
+			username:   "myUsernameCamel",
+			authDBName: "mydbname",
+		},
+		"invalid input projectID": {
+			importID:    "part1/part2/part3",
+			projectID:   "part1",
+			username:    "part2",
+			authDBName:  "part3",
+			errorString: "project_id must be a 24 character hex string: part1",
+		},
+		"invalid input with more parts": {
+			importID:    "part1/part2/part3/part4",
+			projectID:   "",
+			username:    "",
+			authDBName:  "",
+			errorString: databaseuser.ErrorImportFormat,
+		},
+		"invalid input with less parts": {
+			importID:    "part1/part2",
+			projectID:   "",
+			username:    "",
+			authDBName:  "",
+			errorString: databaseuser.ErrorImportFormat,
+		},
+		"empty input": {
+			importID:    "",
+			projectID:   "",
+			username:    "",
+			authDBName:  "",
+			errorString: databaseuser.ErrorImportFormat,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			part1, part2, part3, err := databaseuser.SplitDatabaseUserImportID(tc.importID)
+			if tc.errorString != "" {
+				require.EqualError(t, err, tc.errorString)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tc.projectID, part1)
+			assert.Equal(t, tc.username, part2)
+			assert.Equal(t, tc.authDBName, part3)
+		})
 	}
 }

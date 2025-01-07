@@ -24,17 +24,17 @@ require (
 	github.com/huandu/xstrings v1.5.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20241216083848-a48e58d34867
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20241230083710-6269ca486ddc
 	github.com/pb33f/libopenapi v0.18.7
 	github.com/sebdah/goldie/v2 v2.5.5
-	github.com/spf13/cast v1.6.0
+	github.com/spf13/cast v1.7.1
 	github.com/stretchr/testify v1.10.0
 	github.com/wI2L/jsondiff v0.6.1
 	github.com/zclconf/go-cty v1.15.1
 	go.mongodb.org/atlas v0.37.0
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
 	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.0
-	go.mongodb.org/atlas-sdk/v20241113003 v20241113003.0.0
+	go.mongodb.org/atlas-sdk/v20241113004 v20241113004.1.0
 	go.mongodb.org/realm v0.1.0
 	gopkg.in/yaml.v3 v3.0.1
 )

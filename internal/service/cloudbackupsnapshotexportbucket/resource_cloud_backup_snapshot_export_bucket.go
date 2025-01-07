@@ -9,12 +9,13 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -72,9 +73,10 @@ func Schema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"tenant_id": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.27.0") + " This field is ignored; the `mongodbatlas_cloud_provider_access_authorization.azure.tenant_id` is used instead.",
+			Type:       schema.TypeString,
+			Optional:   true,
+			Computed:   true,
 		},
 	}
 }
@@ -85,7 +87,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 
 	cloudProvider := d.Get("cloud_provider").(string)
-
 	request := &admin.DiskBackupSnapshotExportBucketRequest{
 		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
 		BucketName:    d.Get("bucket_name").(string),
@@ -94,7 +95,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		TenantId:      conversion.StringPtr(d.Get("tenant_id").(string)),
 		CloudProvider: cloudProvider,
 	}
-
 	bucketResponse, _, err := conn.CloudBackupsApi.CreateExportBucket(ctx, projectID, request).Execute()
 	if err != nil {
 		return diag.Errorf("error creating snapshot export bucket: %s", err)
