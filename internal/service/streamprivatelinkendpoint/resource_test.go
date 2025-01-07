@@ -42,8 +42,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	var (
-		// need specific projectID because feature is currently under a Feature flag
-		projectID           = os.Getenv("MONGODB_ATLAS_STREAM_AWS_PL_PROJECT_ID")
+		projectID           = acc.ProjectIDExecution(t)
 		provider            = "AWS"
 		region              = "us-east-1"
 		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
@@ -77,8 +76,7 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	var (
-		// need specific projectID because feature is currently under a Feature flag
-		projectID           = os.Getenv("MONGODB_ATLAS_STREAM_AWS_PL_PROJECT_ID")
+		projectID           = acc.ProjectIDExecution(t)
 		provider            = "AWS"
 		region              = "us-east-1"
 		vendor              = "CONFLUENT"
@@ -109,8 +107,7 @@ func missingRequiredFieldsTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	var (
-		// need specific projectID because feature is currently under a Feature flag
-		projectID           = os.Getenv("MONGODB_ATLAS_STREAM_AWS_PL_PROJECT_ID")
+		projectID           = acc.ProjectIDExecution(t)
 		provider            = "AWS"
 		vendor              = "CONFLUENT"
 		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
