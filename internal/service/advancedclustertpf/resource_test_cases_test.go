@@ -196,31 +196,6 @@ func checkShardedOldSchemaMultiCloud(name string, numShards int, analyticsSize s
 		additionalChecks...)
 }
 
-func basicTenantTestCase(t *testing.T) *resource.TestCase {
-	t.Helper()
-	var (
-		projectID          = acc.ProjectIDExecution(t)
-		clusterName        = acc.RandomClusterName()
-		clusterNameUpdated = acc.RandomClusterName()
-	)
-	return &resource.TestCase{
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
-		Steps: []resource.TestStep{
-			{
-				Config: configTenant(projectID, clusterName),
-				Check:  checkTenant(projectID, clusterName),
-			},
-			{
-				Config: configTenant(projectID, clusterNameUpdated),
-				Check:  checkTenant(projectID, clusterNameUpdated),
-			},
-			acc.TestStepImportCluster(resourceName),
-		},
-	}
-}
-
 func configTenant(projectID, name string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {

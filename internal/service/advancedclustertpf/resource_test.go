@@ -19,11 +19,6 @@ func shortenRetries() error {
 	return nil
 }
 
-func TestAccMockableAdvancedCluster_basicTenant(t *testing.T) {
-	testCase := basicTenantTestCase(t)
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
-}
-
 func TestAccMockableAdvancedCluster_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
 	testCase := symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
