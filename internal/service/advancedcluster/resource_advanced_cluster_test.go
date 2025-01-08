@@ -36,7 +36,7 @@ const (
 var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
-	mockConfig                                 = unit.MockHTTPDataConfig{AllowMissingRequests: true, SideEffect: shortenRetries, IsDiffMustSubstrings: []string{"/clusters"}}
+	mockConfig                                 = unit.MockHTTPDataConfig{AllowMissingRequests: true, SideEffect: shortenRetries, IsDiffMustSubstrings: []string{"/clusters"}, QueryVars: []string{"providerName"}}
 )
 
 func shortenRetries() error {
@@ -1280,6 +1280,7 @@ func shardedBasic(t *testing.T) *resource.TestCase {
 }
 
 func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool) string {
+	t.Helper()
 	var autoScaling, analyticsSpecs string
 	if withUpdate {
 		autoScaling = `
@@ -1338,7 +1339,6 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 	}
 	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2))
 }
-
 
 func checkIndependentShardScalingMode(clusterName, expectedMode string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {

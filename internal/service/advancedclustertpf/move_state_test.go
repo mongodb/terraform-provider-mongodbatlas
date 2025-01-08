@@ -9,8 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
+
 const (
-	resourceName         = "mongodbatlas_advanced_cluster.test"
+	resourceName = "mongodbatlas_advanced_cluster.test"
 )
 
 func TestAccAdvancedCluster_moveBasic(t *testing.T) {

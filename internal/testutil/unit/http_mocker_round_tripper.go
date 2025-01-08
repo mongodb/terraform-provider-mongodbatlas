@@ -195,7 +195,7 @@ func (r *MockRoundTripper) receiveRequest(method string) func(req *http.Request)
 		}
 		_, payload, err := extractAndNormalizePayload(req.Body)
 		if r.logRequests {
-			r.t.Logf("received request\n %s %s %s\n%s\n", method, req.URL.Path, version, payload)
+			r.t.Logf("received request\n %s %s?%s %s\n%s\n", method, req.URL.Path, req.URL.RawQuery, version, payload)
 		}
 		if err != nil {
 			return nil, err
