@@ -33,11 +33,22 @@ const (
 	dataSourcePluralName = "data.mongodbatlas_advanced_clusters.test"
 	dataSourcesTF        = `
 	data "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			name 	     = mongodbatlas_advanced_cluster.test.name
-		}
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		name 	     = mongodbatlas_advanced_cluster.test.name
+	}
 
 	data "mongodbatlas_advanced_clusters" "test" {
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+	}`
+	dataSourcesTFNewSchema = `
+	data "mongodbatlas_advanced_cluster" "test" {
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		name 	     = mongodbatlas_advanced_cluster.test.name
+		use_replication_spec_per_shard = true
+	}
+			
+	data "mongodbatlas_advanced_clusters" "test" {
+		use_replication_spec_per_shard = true
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 	}`
 )
@@ -1303,13 +1314,18 @@ func shardedBasicReplicationSpecUpdates(t *testing.T) *resource.TestCase {
 			"replication_specs.0.region_configs.0.analytics_specs.0.node_count":      "1",
 			"replication_specs.0.region_configs.0.analytics_specs.0.disk_iops":       "2000",
 			"replication_specs.0.region_configs.0.analytics_specs.0.ebs_volume_type": "PROVISIONED",
-			"replication_specs.0.region_configs.0.analytics_specs.1.instance_size":   "M30",
-			"replication_specs.0.region_configs.0.analytics_specs.1.node_count":      "1",
-			"replication_specs.0.region_configs.0.analytics_specs.1.ebs_volume_type": "PROVISIONED",
-			"replication_specs.0.region_configs.0.analytics_specs.1.disk_iops":       "1000",
+			"replication_specs.1.region_configs.0.analytics_specs.0.instance_size":   "M30",
+			"replication_specs.1.region_configs.0.analytics_specs.0.node_count":      "1",
+			"replication_specs.1.region_configs.0.analytics_specs.0.ebs_volume_type": "PROVISIONED",
+			"replication_specs.1.region_configs.0.analytics_specs.0.disk_iops":       "1000",
 		}
 		checks        = checkAggr(true, nil, checksMap)
-		checksUpdated = checkAggr(true, nil, checksUpdatedMap)
+		checksUpdated = checkAggr(true, nil, checksUpdatedMap, func(state *terraform.State) error {
+			if false {
+				return fmt.Errorf("this is a test error")
+			}
+			return nil
+		})
 	)
 	return &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1385,7 +1401,7 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 			}
 		}
 	}
-	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)) + dataSourcesTF
+	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)) + dataSourcesTFNewSchema
 }
 
 func checkIndependentShardScalingMode(clusterName, expectedMode string) resource.TestCheckFunc {
