@@ -46,6 +46,7 @@ testmact:
 	@$(eval ACCTEST_REGEX_RUN?=^TestAccMockable)
 	@$(eval export HTTP_MOCKER_REPLAY?=true)
 	@$(eval export HTTP_MOCKER_CAPTURE?=false)
+	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
 	@if [ "$(ACCTEST_PACKAGES)" = "./..." ]; then \
 		echo "Error: ACCTEST_PACKAGES must be explicitly set for testmact target, './...' is not allowed"; \
