@@ -44,7 +44,18 @@ test: fmtcheck
 testmact:
 	@$(eval VERSION=macct)
 	@$(eval ACCTEST_REGEX_RUN?=^TestAccMockable)
-	TF_ACC=1 MONGODB_ATLAS_PROJECT_ID=111111111111111111111111 HTTP_MOCKER_REPLAY=true go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
+	@$(eval export HTTP_MOCKER_REPLAY?=true)
+	@$(eval export HTTP_MOCKER_CAPTURE?=false)
+	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
+	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
+
+.PHONY: testmact-capture
+testmact-capture:
+	@$(eval VERSION=macct)
+	@$(eval export ACCTEST_REGEX_RUN?=^TestAccMockable)
+	@$(eval export HTTP_MOCKER_REPLAY?=false)
+	@$(eval export HTTP_MOCKER_CAPTURE?=true)
+	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testacc
 testacc: fmtcheck
