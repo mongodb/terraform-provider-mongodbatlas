@@ -1157,7 +1157,7 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 }
 
 func TestAccMockableAdvancedCluster_shardedBasic(t *testing.T) {
-	testCase := shardedBasic(t)
+	testCase := shardedBasicReplicationSpecUpdates(t)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, testCase)
 }
 
@@ -1168,7 +1168,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 
 func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 	t.Helper()
-	// TODO: Improve checks
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -1178,14 +1177,38 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 		checksSet = []string{
 			"replication_specs.0.container_id.AWS:US_EAST_1",
 		}
-		timeoutCheck = resource.TestCheckResourceAttr(resourceName, acc.AttrNameToSchemaV2(true, "timeouts.0.create"), "2000s")  // timeouts.create is not set on data sources
-		checks     = checkAggr(true, checksSet, checksMap, timeoutCheck)
-		fullUpdate = `
+		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, acc.AttrNameToSchemaV2(true, "timeouts.0.create"), "2000s") // timeouts.create is not set on data sources
+		checks         = checkAggr(true, checksSet, checksMap, timeoutCheck)
+		afterUpdateMap = map[string]string{
+			"state_name":                    "IDLE",
+			"backup_enabled":                "true",
+			"bi_connector_config.0.enabled": "true",
+			"labels.0.key":                  "env",
+			"labels.0.value":                "test",
+			"tags.0.key":                    "env",
+			"tags.0.value":                  "test",
+			"mongo_db_major_version":        "8.0",
+			"pit_enabled":                   "true",
+			"redact_client_log_data":        "true",
+			"replica_set_scaling_strategy":  "NODE_TYPE",
+			"root_cert_type":                "ISRGROOTX1",
+			"version_release_system":        "CONTINUOUS",
+			"advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds": "100",
+			"advanced_configuration.0.default_read_concern":                                           "available",
+			"advanced_configuration.0.default_write_concern":                                          "majority",
+			"advanced_configuration.0.javascript_enabled":                                             "true",
+			"advanced_configuration.0.minimum_enabled_tls_protocol":                                   "TLS1_2",
+			"advanced_configuration.0.no_table_scan":                                                  "true",
+			"advanced_configuration.0.sample_refresh_interval_bi_connector":                           "310",
+			"advanced_configuration.0.sample_size_bi_connector":                                       "110",
+			"advanced_configuration.0.transaction_lifetime_limit_seconds":                             "300",
+		}
+		checksUpdate = checkAggr(true, checksSet, afterUpdateMap, timeoutCheck)
+		fullUpdate   = `
 	backup_enabled = true
 	bi_connector_config = {
 		enabled = true
 	}
-	# config_server_management_mode = "ATLAS_MANAGED" UNSTABLE: After applying this test step, the non-refresh plan was not empty
 	labels {
 		key   = "env"
 		value = "test"
@@ -1198,9 +1221,7 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 	pit_enabled = true
 	redact_client_log_data = true
 	replica_set_scaling_strategy = "NODE_TYPE"
-	# retain_backups_enabled = true # only set on delete
 	root_cert_type = "ISRGROOTX1"
-	# termination_protection_enabled = true # must be reset to false to enable delete
 	version_release_system = "CONTINUOUS"
 	
 	advanced_configuration = {
@@ -1215,9 +1236,6 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 		transaction_lifetime_limit_seconds                             = 300
 	}
 `
-	// # oplog_min_retention_hours                                      = 5.5
-	// # oplog_size_mb                                                  = 1000
-	// # fail_index_key_too_long 								        = true # only valid for MongoDB version 4.4 and earlier
 	)
 	return &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1228,10 +1246,7 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 			},
 			{
 				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
-				),
+				Check:  checksUpdate,
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -1269,23 +1284,43 @@ func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) s
 	`, projectID, clusterName, extra)) + dataSourcesTF
 }
 
-func shardedBasic(t *testing.T) *resource.TestCase {
-	// TODO: Improve the checks
+func shardedBasicReplicationSpecUpdates(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
+		checksMap   = map[string]string{
+			"state_name": "IDLE",
+			"project_id": projectID,
+			"name":       clusterName,
+			"replication_specs.0.region_configs.0.electable_specs.0.instance_size": "M30",
+			"replication_specs.0.region_configs.0.analytics_specs.0.node_count":    "0",
+		}
+		checksUpdatedMap = map[string]string{
+			"replication_specs.0.region_configs.0.auto_scaling.0.disk_gb_enabled":    "true",
+			"replication_specs.0.region_configs.0.electable_specs.0.instance_size":   "M30",
+			"replication_specs.0.region_configs.0.analytics_specs.0.instance_size":   "M30",
+			"replication_specs.0.region_configs.0.analytics_specs.0.node_count":      "1",
+			"replication_specs.0.region_configs.0.analytics_specs.0.disk_iops":       "2000",
+			"replication_specs.0.region_configs.0.analytics_specs.0.ebs_volume_type": "PROVISIONED",
+			"replication_specs.0.region_configs.0.analytics_specs.1.instance_size":   "M30",
+			"replication_specs.0.region_configs.0.analytics_specs.1.node_count":      "1",
+			"replication_specs.0.region_configs.0.analytics_specs.1.ebs_volume_type": "PROVISIONED",
+			"replication_specs.0.region_configs.0.analytics_specs.1.disk_iops":       "1000",
+		}
+		checks        = checkAggr(true, nil, checksMap)
+		checksUpdated = checkAggr(true, nil, checksUpdatedMap)
 	)
 	return &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: configSharded(t, projectID, clusterName, false),
-				Check:  resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				Check:  checks,
 			},
 			{
 				Config: configSharded(t, projectID, clusterName, true),
-				Check:  resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+				Check:  checksUpdated,
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
