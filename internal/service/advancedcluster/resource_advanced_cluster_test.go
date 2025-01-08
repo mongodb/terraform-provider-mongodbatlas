@@ -1174,12 +1174,11 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 		clusterName = acc.RandomClusterName()
 		checksMap   = map[string]string{
 			"state_name":        "IDLE",
-			"timeouts.0.create": "2000s",
 		}
 		checksSet = []string{
 			"replication_specs.0.container_id.AWS:US_EAST_1",
 		}
-		checks     = checkAggr(true, checksSet, checksMap)
+		checks     = checkAggr(true, checksSet, checksMap, resource.TestCheckResourceAttr(resourceName, "timeouts.0.create", "2000s")) // timeouts.create is not set on data sources
 		fullUpdate = `
 	backup_enabled = true
 	bi_connector_config = {
