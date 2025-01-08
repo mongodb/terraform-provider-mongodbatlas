@@ -4,12 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/spf13/cast"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
@@ -45,13 +42,6 @@ func MajorVersionCompatible(input *string, version float64, operator MajorVersio
 		return nil
 	}
 	return &result
-}
-
-func FormatMongoDBMajorVersion(version string) string {
-	if strings.Contains(version, ".") {
-		return version
-	}
-	return fmt.Sprintf("%.1f", cast.ToFloat32(version))
 }
 
 func containerIDKey(providerName, regionName string) string {
@@ -185,7 +175,7 @@ func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName str
 	}
 
 	zoneToReplicationSpecsIDs := groupIDsByZone(cluster.GetReplicationSpecs())
-	result := advancedcluster.AddIDsToReplicationSpecs(*replicationSpecs, zoneToReplicationSpecsIDs)
+	result := AddIDsToReplicationSpecs(*replicationSpecs, zoneToReplicationSpecsIDs)
 	return &result, nil
 }
 

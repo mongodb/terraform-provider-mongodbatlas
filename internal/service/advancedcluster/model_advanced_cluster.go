@@ -21,6 +21,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
 const minVersionForChangeStreamOptions = 6.0
@@ -404,10 +405,7 @@ func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID strin
 }
 
 func FormatMongoDBMajorVersion(val any) string {
-	if strings.Contains(val.(string), ".") {
-		return val.(string)
-	}
-	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
+	return advancedclustertpf.FormatMongoDBMajorVersion(val.(string))
 }
 
 func flattenLabels(l []admin.ComponentLabel) []map[string]string {
