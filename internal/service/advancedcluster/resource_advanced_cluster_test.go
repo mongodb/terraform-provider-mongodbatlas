@@ -31,6 +31,15 @@ const (
 	resourceName         = "mongodbatlas_advanced_cluster.test"
 	dataSourceName       = "data.mongodbatlas_advanced_cluster.test"
 	dataSourcePluralName = "data.mongodbatlas_advanced_clusters.test"
+	dataSourcesTF        = `
+	data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+
+	data "mongodbatlas_advanced_clusters" "test" {
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+	}`
 )
 
 var (
@@ -1163,7 +1172,15 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
-		fullUpdate  = `
+		checksMap   = map[string]string{
+			"state_name":        "IDLE",
+			"timeouts.0.create": "2000s",
+		}
+		checksSet = []string{
+			"replication_specs.0.container_id.AWS:US_EAST_1",
+		}
+		checks     = checkAggr(true, checksSet, checksMap)
+		fullUpdate = `
 	backup_enabled = true
 	bi_connector_config = {
 		enabled = true
@@ -1207,11 +1224,7 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicReplicaset(t, projectID, clusterName, ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "state_name", "IDLE"),
-					resource.TestCheckResourceAttr(resourceName, "timeouts.create", "2000s"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.container_id.AWS:US_EAST_1"),
-				),
+				Check:  checks,
 			},
 			{
 				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate),
@@ -1253,7 +1266,7 @@ func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) s
 			}
 			%[3]s
 		}
-	`, projectID, clusterName, extra))
+	`, projectID, clusterName, extra)) + dataSourcesTF
 }
 
 func shardedBasic(t *testing.T) *resource.TestCase {
@@ -1337,7 +1350,7 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 			}
 		}
 	}
-	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2))
+	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)) + dataSourcesTF
 }
 
 func checkIndependentShardScalingMode(clusterName, expectedMode string) resource.TestCheckFunc {
@@ -1391,16 +1404,7 @@ func configTenant(t *testing.T, isAcc bool, projectID, name string) string {
 				}
 			}
 		}
-
-		data "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			name 	     = mongodbatlas_advanced_cluster.test.name
-		}
-
-		data "mongodbatlas_advanced_clusters" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-		}
-	`, projectID, name))
+	`, projectID, name)) + dataSourcesTF
 }
 
 func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
@@ -1497,16 +1501,7 @@ func configWithKeyValueBlocks(t *testing.T, isAcc bool, orgID, projectName, clus
 
 			%[4]s
 		}
-
-		data "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			name 	     = mongodbatlas_advanced_cluster.test.name
-		}
-
-		data "mongodbatlas_advanced_clusters" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-		}
-	`, orgID, projectName, clusterName, extraConfig))
+	`, orgID, projectName, clusterName, extraConfig)) + dataSourcesTF
 }
 
 func checkKeyValueBlocks(isAcc bool, clusterName, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
@@ -1678,16 +1673,7 @@ func configReplicaSetMultiCloud(t *testing.T, isAcc bool, orgID, projectName, na
 				}
 			}
 		}
-
-		data "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			name 	     = mongodbatlas_advanced_cluster.test.name
-		}
-
-		data "mongodbatlas_advanced_clusters" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-		}
-	`, orgID, projectName, name))
+	`, orgID, projectName, name)) + dataSourcesTF
 }
 
 func checkReplicaSetMultiCloud(isAcc bool, name string, regionConfigs int) resource.TestCheckFunc {
@@ -1915,19 +1901,10 @@ func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMaj
 				%[15]s
 			}
 		}
-
-		data "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			name 	     = mongodbatlas_advanced_cluster.test.name
-		}
-
-		data "mongodbatlas_advanced_clusters" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-		}
 	`, projectID, clusterName,
 		p20240530.GetFailIndexKeyTooLong(), p20240530.GetJavascriptEnabled(), p20240530.GetMinimumEnabledTlsProtocol(), p20240530.GetNoTableScan(),
 		p20240530.GetOplogSizeMB(), p20240530.GetSampleSizeBIConnector(), p20240530.GetSampleRefreshIntervalBIConnector(), p20240530.GetTransactionLifetimeLimitSeconds(),
-		changeStreamOptionsStr, defaultMaxTimeStr, mongoDBMajorVersionStr, tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str))
+		changeStreamOptionsStr, defaultMaxTimeStr, mongoDBMajorVersionStr, tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str)) + dataSourcesTF
 }
 
 func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
@@ -2006,17 +1983,8 @@ func configAdvancedDefaultWrite(t *testing.T, isAcc bool, projectID, clusterName
 				default_write_concern                = %[10]q
 			}
 		}
-
-		data "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			name 	     = mongodbatlas_advanced_cluster.test.name
-		}
-
-		data "mongodbatlas_advanced_clusters" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-		}
 	`, projectID, clusterName, p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
-		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetDefaultReadConcern(), p.GetDefaultWriteConcern()))
+		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetDefaultReadConcern(), p.GetDefaultWriteConcern())) + dataSourcesTF
 }
 
 func checkAdvancedDefaultWrite(isAcc bool, name, writeConcern, tls string) resource.TestCheckFunc {
@@ -2980,13 +2948,5 @@ func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationD
 			}
 		}
 
-		data "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			name 	     = mongodbatlas_advanced_cluster.test.name
-		}
-
-		data "mongodbatlas_advanced_clusters" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-		}
-	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)
+	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr) + dataSourcesTF
 }
