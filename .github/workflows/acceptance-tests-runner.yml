@@ -377,7 +377,8 @@ jobs:
         run: go test -v ./internal/testutil/acc/advanced_cluster_schema_v2_test.go
       - name: Mocked Acceptance Tests
         env:
-          ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
+          ACCTEST_REGEX_RUN: '^TestAccMockable'
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testmact
       - name: Acceptance Tests
         env:
