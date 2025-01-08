@@ -6,7 +6,6 @@ else
     ACCTEST_PACKAGES := "./..."
 endif
 
-ACCTEST_REGEX_RUN?=^TestAcc
 ACCTEST_TIMEOUT?=300m
 PARALLEL_GO_TEST?=50
 
@@ -41,9 +40,16 @@ install: fmtcheck
 test: fmtcheck
 	go test ./... -timeout=30s -parallel=4 -race
 
+.PHONY: testmact
+testmact:
+	@$(eval VERSION=macct)
+	@$(eval ACCTEST_REGEX_RUN?=^TestAccMockable)
+	TF_ACC=1 MONGODB_ATLAS_PROJECT_ID=111111111111111111111111 HTTP_MOCKER_REPLAY=true go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
+
 .PHONY: testacc
 testacc: fmtcheck
 	@$(eval VERSION=acc)
+	@$(eval ACCTEST_REGEX_RUN?=^TestAcc)
 	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
