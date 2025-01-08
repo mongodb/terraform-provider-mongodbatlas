@@ -77,7 +77,7 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 				}
 				responseCache[providerName] = containersResponse
 			}
-			if results := getAdvancedClusterContainerID(containersResponse.GetResults(), &regionConfig); results != "" {
+			if results := GetAdvancedClusterContainerID(containersResponse.GetResults(), &regionConfig); results != "" {
 				containerIDs[key] = results
 			} else {
 				return nil, fmt.Errorf("container id not found for %s", key)
@@ -85,19 +85,6 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 		}
 	}
 	return containerIDs, nil
-}
-
-// copied from model_advanced_cluster.go
-func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
-	for i, container := range containers {
-		gpc := cluster.GetProviderName() == constant.GCP
-		azure := container.GetProviderName() == cluster.GetProviderName() && container.GetRegion() == cluster.GetRegionName()
-		aws := container.GetRegionName() == cluster.GetRegionName()
-		if gpc || azure || aws {
-			return containers[i].GetId()
-		}
-	}
-	return ""
 }
 
 func replicationSpecIDsFromOldAPI(clusterRespOld *admin20240530.AdvancedClusterDescription) map[string]string {

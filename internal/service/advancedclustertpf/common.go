@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
@@ -30,4 +31,16 @@ func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, 
 		}
 	}
 	return replicationSpecs
+}
+
+func GetAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
+	for i, container := range containers {
+		gpc := cluster.GetProviderName() == constant.GCP
+		azure := container.GetProviderName() == cluster.GetProviderName() && container.GetRegion() == cluster.GetRegionName()
+		aws := container.GetRegionName() == cluster.GetRegionName()
+		if gpc || azure || aws {
+			return containers[i].GetId()
+		}
+	}
+	return ""
 }

@@ -709,7 +709,7 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects
 			if err != nil {
 				return nil, nil, err
 			}
-			if result := getAdvancedClusterContainerID(containers.GetResults(), &apiObject); result != "" {
+			if result := advancedclustertpf.GetAdvancedClusterContainerID(containers.GetResults(), &apiObject); result != "" {
 				// Will print as "providerName:regionName" = "containerId" in terraform show
 				containerIDs[fmt.Sprintf("%s:%s", apiObject.GetProviderName(), apiObject.GetRegionName())] = result
 			}
@@ -841,23 +841,6 @@ func flattenAdvancedReplicationSpecAutoScaling(apiObject *admin.AdvancedAutoScal
 	}
 	tfList = append(tfList, tfMap)
 	return tfList
-}
-
-func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
-	if len(containers) == 0 {
-		return ""
-	}
-	for i := range containers {
-		if cluster.GetProviderName() == constant.GCP {
-			return containers[i].GetId()
-		}
-		if containers[i].GetProviderName() == cluster.GetProviderName() &&
-			containers[i].GetRegion() == cluster.GetRegionName() || // For Azure
-			containers[i].GetRegionName() == cluster.GetRegionName() { // For AWS
-			return containers[i].GetId()
-		}
-	}
-	return ""
 }
 
 func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
