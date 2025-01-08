@@ -47,6 +47,10 @@ testmact:
 	@$(eval export HTTP_MOCKER_REPLAY?=true)
 	@$(eval export HTTP_MOCKER_CAPTURE?=false)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
+	@if [ "$(ACCTEST_PACKAGES)" = "./..." ]; then \
+		echo "Error: ACCTEST_PACKAGES must be explicitly set for testmact target, './...' is not allowed"; \
+		exit 1; \
+	fi
 	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testmact-capture
@@ -55,6 +59,10 @@ testmact-capture:
 	@$(eval export ACCTEST_REGEX_RUN?=^TestAccMockable)
 	@$(eval export HTTP_MOCKER_REPLAY?=false)
 	@$(eval export HTTP_MOCKER_CAPTURE?=true)
+	@if [ "$(ACCTEST_PACKAGES)" = "./..." ]; then \
+		echo "Error: ACCTEST_PACKAGES must be explicitly set for testmact-capture target, './...' is not allowed"; \
+		exit 1; \
+	fi
 	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testacc
