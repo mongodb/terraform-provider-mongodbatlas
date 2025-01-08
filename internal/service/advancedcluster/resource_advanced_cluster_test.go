@@ -1173,12 +1173,13 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 		checksMap   = map[string]string{
-			"state_name":        "IDLE",
+			"state_name": "IDLE",
 		}
 		checksSet = []string{
 			"replication_specs.0.container_id.AWS:US_EAST_1",
 		}
-		checks     = checkAggr(true, checksSet, checksMap, resource.TestCheckResourceAttr(resourceName, "timeouts.0.create", "2000s")) // timeouts.create is not set on data sources
+		timeoutCheck = resource.TestCheckResourceAttr(resourceName, acc.AttrNameToSchemaV2(true, "timeouts.0.create"), "2000s")  // timeouts.create is not set on data sources
+		checks     = checkAggr(true, checksSet, checksMap, timeoutCheck)
 		fullUpdate = `
 	backup_enabled = true
 	bi_connector_config = {
@@ -1207,7 +1208,7 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 		default_read_concern                                           = "available"
 		default_write_concern                                          = "majority"
 		javascript_enabled                                             = true
-		minimum_enabled_tls_protocol                                   = "TLS1_0"
+		minimum_enabled_tls_protocol                                   = "TLS1_2" # This cluster does not support TLS1.0 or TLS1.1. If you must use old TLS versions contact MongoDB support
 		no_table_scan                                                  = true
 		sample_refresh_interval_bi_connector                           = 310
 		sample_size_bi_connector                                       = 110
