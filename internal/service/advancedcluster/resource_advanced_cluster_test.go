@@ -1228,7 +1228,7 @@ func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) s
 	t.Helper()
 	return acc.ConvertAdvancedClusterToSchemaV2(t, true, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
-			timeouts = {
+			timeouts {
 				create = "2000s"
 			}
 			project_id = %[1]q

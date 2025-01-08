@@ -72,6 +72,7 @@ var tpfSingleNestedAttrs = []string{
 	"advanced_configuration",
 	"bi_connector_config",
 	"pinned_fcv",
+	"timeouts",
 }
 
 func AttrNameToSchemaV2(isAcc bool, name string) string {
@@ -100,6 +101,7 @@ func ConvertAdvancedClusterToSchemaV2(t *testing.T, isAcc bool, def string) stri
 		convertAttrs(t, "replication_specs", writeBody, true, getReplicationSpecs)
 		convertAttrs(t, "advanced_configuration", writeBody, false, hcl.GetAttrVal)
 		convertAttrs(t, "bi_connector_config", writeBody, false, hcl.GetAttrVal)
+		convertAttrs(t, "timeouts", writeBody, false, hcl.GetAttrVal)
 	}
 	content := parse.Bytes()
 	return string(content)
