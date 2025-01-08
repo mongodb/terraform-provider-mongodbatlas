@@ -108,7 +108,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
 						JavascriptEnabled:                conversion.Pointer(true),
-						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 						NoTableScan:                      conversion.Pointer(false),
 						OplogSizeMB:                      conversion.Pointer(1000),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -121,7 +121,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
@@ -145,7 +145,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configAdvancedConfPartial(projectID, clusterName, "false", &admin.ClusterDescriptionProcessArgs20240805{
-					MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_2"),
+					MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_3"),
 					TlsCipherConfigMode:            conversion.StringPtr("DEFAULT"), // To unset TlsCipherConfigMode, user needs to set this to DEFAULT
 					CustomOpensslCipherConfigTls12: &[]string{},
 				}),
@@ -153,7 +153,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_3"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
@@ -187,7 +187,7 @@ func basicDefaultWriteReadAdvancedConfTestCase(tb testing.TB) *resource.TestCase
 					&admin.ClusterDescriptionProcessArgs20240805{
 						DefaultWriteConcern:              conversion.StringPtr("1"),
 						JavascriptEnabled:                conversion.Pointer(true),
-						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 						NoTableScan:                      conversion.Pointer(false),
 						OplogSizeMB:                      conversion.Pointer(1000),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -200,7 +200,7 @@ func basicDefaultWriteReadAdvancedConfTestCase(tb testing.TB) *resource.TestCase
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
@@ -211,14 +211,14 @@ func basicDefaultWriteReadAdvancedConfTestCase(tb testing.TB) *resource.TestCase
 			},
 			{
 				Config: configAdvancedConfPartialDefault(projectID, clusterName, "false", &admin.ClusterDescriptionProcessArgs20240805{
-					MinimumEnabledTlsProtocol: conversion.StringPtr("TLS1_2"),
+					MinimumEnabledTlsProtocol: conversion.StringPtr("TLS1_3"),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_3"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
@@ -248,7 +248,7 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAdvancedConfPartial(projectID, clusterName, "false", &admin.ClusterDescriptionProcessArgs20240805{
-					MinimumEnabledTlsProtocol: conversion.StringPtr("TLS1_2"),
+					MinimumEnabledTlsProtocol: conversion.StringPtr("TLS1_3"),
 				}),
 			},
 			{
@@ -257,7 +257,7 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
 						JavascriptEnabled:                conversion.Pointer(true),
-						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 						NoTableScan:                      conversion.Pointer(false),
 						OplogSizeMB:                      conversion.Pointer(1000),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -267,7 +267,7 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
@@ -297,7 +297,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
 						JavascriptEnabled:                conversion.Pointer(true),
-						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_3"),
 						NoTableScan:                      conversion.Pointer(true),
 						OplogSizeMB:                      conversion.Pointer(1000),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -309,7 +309,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_3"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
@@ -324,7 +324,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
 						JavascriptEnabled:                conversion.Pointer(false),
-						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 						NoTableScan:                      conversion.Pointer(false),
 						OplogSizeMB:                      conversion.Pointer(990),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(0),
@@ -337,7 +337,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "990"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "0"),

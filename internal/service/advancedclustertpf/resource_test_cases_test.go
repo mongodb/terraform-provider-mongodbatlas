@@ -359,7 +359,7 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 		default_read_concern                                           = "available"
 		default_write_concern                                          = "majority"
 		javascript_enabled                                             = true
-		minimum_enabled_tls_protocol                                   = "TLS1_0"
+		minimum_enabled_tls_protocol                                   = "TLS1_2"
 		no_table_scan                                                  = true
 		sample_refresh_interval_bi_connector                           = 310
 		sample_size_bi_connector                                       = 110
@@ -386,6 +386,7 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "mongo_db_major_version", "8.0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds", "100"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.minimum_enabled_tls_protocol", "TLS1_2"),
 				),
 			},
 			acc.TestStepImportCluster(resourceName),
