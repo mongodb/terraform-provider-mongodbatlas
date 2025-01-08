@@ -70,6 +70,10 @@ func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCa
 	resource.ParallelTest(t, *testCase)
 }
 
+func IsTfLogDebug() bool {
+	return os.Getenv("TF_LOG") == "DEBUG"
+}
+
 type mockClientModifier struct {
 	config           *MockHTTPDataConfig
 	mockRoundTripper http.RoundTripper
@@ -88,44 +92,10 @@ func (c *mockClientModifier) ResetHTTPClient(httpClient *http.Client) {
 	}
 }
 
-func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
+func MockConfigFilePath(t *testing.T) string {
 	t.Helper()
-	tfConfigs := extractAndNormalizeConfig(t, testCase)
-	data := ReadMockData(t, tfConfigs)
-	roundTripper, mockRoundTripper := NewMockRoundTripper(t, config, data)
-	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
-	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
-	testCase.PreCheck = func() {
-		if config.SideEffect != nil {
-			require.NoError(t, config.SideEffect())
-		}
-	}
-	require.Equal(t, len(testCase.Steps), len(data.Steps), "Number of steps in test case and mock data should match")
-	checkFunc := mockRoundTripper.CheckStepRequests
-	for i := range testCase.Steps {
-		step := &testCase.Steps[i]
-		oldSkip := step.SkipFunc
-		step.SkipFunc = func() (bool, error) {
-			mockRoundTripper.IncreaseStepNumberAndInit()
-			if os.Getenv("TF_LOG") == "DEBUG" && tfConfigs[i] != "" {
-				t.Logf("Step %d:\n%s\n", i+1, tfConfigs[i])
-			}
-			var shouldSkip bool
-			var err error
-			if oldSkip != nil {
-				shouldSkip, err = oldSkip()
-			}
-			return shouldSkip, err
-		}
-		if i == len(testCase.Steps)-1 {
-			// Last check done in checkDestroy to support checking DELETE calls
-			step.Check = wrapClientDuringCheck(step.Check, &httpClientModifier)
-		} else {
-			step.Check = wrapClientDuringCheck(step.Check, &httpClientModifier, checkFunc)
-		}
-	}
-	testCase.CheckDestroy = wrapClientDuringCheck(testCase.CheckDestroy, &httpClientModifier, checkFunc)
-	return nil
+	testDir := "testdata"
+	return path.Join(testDir, t.Name()+configFileExtension)
 }
 
 func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
@@ -163,6 +133,44 @@ func UpdateMockDataDiffRequest(t *testing.T, stepIndex, diffRequestIndex int, ne
 	require.NoError(t, err)
 }
 
+func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
+	t.Helper()
+	tfConfigs := extractAndNormalizeConfig(t, testCase)
+	data := ReadMockData(t, tfConfigs)
+	roundTripper, mockRoundTripper := NewMockRoundTripper(t, config, data)
+	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
+	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
+	testCase.PreCheck = func() {
+		if config.SideEffect != nil {
+			require.NoError(t, config.SideEffect())
+		}
+	}
+	require.Equal(t, len(testCase.Steps), len(data.Steps), "Number of steps in test case and mock data should match")
+	checkFunc := mockRoundTripper.CheckStepRequests
+	for i := range testCase.Steps {
+		step := &testCase.Steps[i]
+		oldSkip := step.SkipFunc
+		step.SkipFunc = func() (bool, error) {
+			mockRoundTripper.IncreaseStepNumberAndInit()
+			logConfig(t, tfConfigs, i)
+			var shouldSkip bool
+			var err error
+			if oldSkip != nil {
+				shouldSkip, err = oldSkip()
+			}
+			return shouldSkip, err
+		}
+		if i == len(testCase.Steps)-1 {
+			// Last check done in checkDestroy to support checking DELETE calls
+			step.Check = wrapClientDuringCheck(step.Check, &httpClientModifier)
+		} else {
+			step.Check = wrapClientDuringCheck(step.Check, &httpClientModifier, checkFunc)
+		}
+	}
+	testCase.CheckDestroy = wrapClientDuringCheck(testCase.CheckDestroy, &httpClientModifier, checkFunc)
+	return nil
+}
+
 func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
 	stepCount := len(testCase.Steps)
@@ -175,6 +183,7 @@ func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 		oldSkip := step.SkipFunc
 		step.SkipFunc = func() (bool, error) {
 			clientModifier.IncreaseStepNumber()
+			logConfig(t, tfConfigs, i)
 			var shouldSkip bool
 			var err error
 			if oldSkip != nil {
@@ -199,6 +208,13 @@ func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 	return nil
 }
 
+func logConfig(t *testing.T, tfConfigs []string, i int) {
+	t.Helper()
+	if IsTfLogDebug() && tfConfigs[i] != "" {
+		t.Logf("Step %d:\n%s\n", i+1, tfConfigs[i])
+	}
+}
+
 func extractAndNormalizeConfig(t *testing.T, testCase *resource.TestCase) []string {
 	t.Helper()
 	stepCount := len(testCase.Steps)
@@ -207,12 +223,6 @@ func extractAndNormalizeConfig(t *testing.T, testCase *resource.TestCase) []stri
 		tfConfigs[i] = hcl.PrettyHCL(t, testCase.Steps[i].Config)
 	}
 	return tfConfigs
-}
-
-func MockConfigFilePath(t *testing.T) string {
-	t.Helper()
-	testDir := "testdata"
-	return path.Join(testDir, t.Name()+configFileExtension)
 }
 
 var accClientLock = &sync.Mutex{}

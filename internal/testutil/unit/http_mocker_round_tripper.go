@@ -50,7 +50,7 @@ func newMockRoundTripper(t *testing.T, data *MockHTTPData) *MockRoundTripper {
 		t:                t,
 		g:                goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json")),
 		data:             data,
-		logRequests:      os.Getenv("TF_LOG") == "DEBUG",
+		logRequests:      IsTfLogDebug(),
 		currentStepIndex: -1, // increased on the start of the test
 	}
 }
