@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
@@ -46,10 +47,8 @@ const (
 	errorUnknownChangeReason        = "unknown change reason"
 	errorAwaitState                 = "error awaiting cluster to reach desired state"
 	errorAwaitStateResultType       = "the result of awaiting cluster wasn't of the expected type"
-
-	// TODO: Used in two places
-	errorAdvancedConfUpdate       = "error updating Advanced Configuration"
-	errorAdvancedConfUpdateLegacy = "error updating Advanced Configuration from legacy API"
+	errorAdvancedConfUpdate         = "error updating Advanced Configuration"
+	errorAdvancedConfUpdateLegacy   = "error updating Advanced Configuration from legacy API"
 
 	DeprecationOldSchemaAction = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 	defaultTimeout             = 3 * time.Hour
@@ -230,7 +229,6 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		projectID   = plan.ProjectID.ValueString()
 		clusterName = plan.Name.ValueString()
 		api20240805 = r.Client.AtlasV220240805.ClustersApi
-		api20240530 = r.Client.AtlasV220240530.ClustersApi
 		api         = r.Client.AtlasV2.ClustersApi
 		err         error
 		pauseAfter  = latestReq.GetPaused()
@@ -255,34 +253,10 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if pauseAfter {
 		clusterResp = r.updateAndWait(ctx, &pauseRequest, diags, plan)
 	}
-	var legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
-	legacyAdvConfigUpdate := NewAtlasReqAdvancedConfigurationLegacy(ctx, &plan.AdvancedConfiguration, diags)
-	if !update.IsZeroValues(legacyAdvConfigUpdate) {
-		legacyAdvConfig, _, err = api20240530.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, legacyAdvConfigUpdate).Execute()
-		if err != nil {
-			// Maybe should be warning instead of error to avoid having to re-create the cluster
-			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
-			return nil
-		}
-		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
-		if diags.HasError() {
-			return nil
-		}
-	}
-
-	advConfigUpdate := NewAtlasReqAdvancedConfiguration(ctx, &plan.AdvancedConfiguration, diags)
-	var advConfig *admin.ClusterDescriptionProcessArgs20240805
-	if !update.IsZeroValues(advConfigUpdate) {
-		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, advConfigUpdate).Execute()
-		if err != nil {
-			// Maybe should be warning instead of error to avoid having to re-create the cluster
-			diags.AddError(errorAdvancedConfUpdate, defaultAPIErrorDetails(clusterName, err))
-			return nil
-		}
-		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
-		if diags.HasError() {
-			return nil
-		}
+	emptyState := &TFModel{AdvancedConfiguration: types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)}
+	legacyAdvConfig, advConfig, _ := r.applyAdvancedConfigurationChanges(ctx, diags, emptyState, plan)
+	if diags.HasError() {
+		return nil
 	}
 	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, clusterResp, plan, false)
 	if diags.HasError() {
