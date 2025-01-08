@@ -342,7 +342,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			DefaultWriteConcern:              conversion.StringPtr("0"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
 			JavascriptEnabled:                conversion.Pointer(true),
-			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_3"),
+			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 			NoTableScan:                      conversion.Pointer(false),
 			OplogSizeMB:                      conversion.Pointer(1000),
 			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -373,11 +373,11 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			},
 			{
 				Config: configAdvanced(t, true, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdated),
-				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_3", processArgsUpdated),
+				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_2", processArgsUpdated),
 			},
 			{
 				Config: configAdvanced(t, true, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdatedCipherConfig),
-				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_3", processArgsUpdatedCipherConfig),
+				Check:  checkAdvanced(true, clusterNameUpdated, "TLS1_2", processArgsUpdatedCipherConfig),
 			},
 		},
 	})
@@ -403,7 +403,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("majority"),
 			JavascriptEnabled:                conversion.Pointer(true),
-			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_3"),
+			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 			NoTableScan:                      conversion.Pointer(false),
 			OplogSizeMB:                      conversion.Pointer(1000),
 			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -423,7 +423,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			},
 			{
 				Config: configAdvancedDefaultWrite(t, true, projectID, clusterNameUpdated, processArgsUpdated),
-				Check:  checkAdvancedDefaultWrite(true, clusterNameUpdated, "majority", "TLS1_3"),
+				Check:  checkAdvancedDefaultWrite(true, clusterNameUpdated, "majority", "TLS1_2"),
 			},
 		},
 	})
