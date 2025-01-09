@@ -202,11 +202,9 @@ steps:
         method: PATCH
         version: '2024-08-05'
         text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"defaultWriteConcern\": \"majority\",\n \"noTableScan\": true,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
-        text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"defaultWriteConcern\": \"majority\",\n \"noTableScan\": true,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
         responses:
           - response_index: 72
             status: 200
-            text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": 300\n}"
             text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": 300\n}"
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
         method: PATCH
@@ -215,7 +213,6 @@ steps:
         responses:
           - response_index: 75
             status: 200
-            text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": 300\n}"
             text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultReadConcern\": \"available\",\n \"defaultWriteConcern\": \"majority\",\n \"failIndexKeyTooLong\": null,\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": 300\n}"
     request_responses:
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
@@ -303,11 +300,9 @@ steps:
         method: PATCH
         version: '2024-08-05'
         text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"defaultWriteConcern\": \"majority\",\n \"noTableScan\": true,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
-        text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"defaultWriteConcern\": \"majority\",\n \"noTableScan\": true,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
         responses:
           - response_index: 72
             status: 200
-            text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": 300\n}"
             text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"chunkMigrationConcurrency\": null,\n \"customOpensslCipherConfigTls12\": [],\n \"defaultMaxTimeMS\": null,\n \"defaultWriteConcern\": \"majority\",\n \"javascriptEnabled\": true,\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": true,\n \"oplogMinRetentionHours\": null,\n \"oplogSizeMB\": null,\n \"queryStatsLogVerbosity\": 1,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"tlsCipherConfigMode\": \"DEFAULT\",\n \"transactionLifetimeLimitSeconds\": 300\n}"
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
         method: PATCH
