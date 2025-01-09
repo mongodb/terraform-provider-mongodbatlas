@@ -169,7 +169,7 @@ steps:
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
         method: PATCH
         version: '2024-08-05'
-        text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"defaultWriteConcern\": \"majority\",\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": true,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+        text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"defaultWriteConcern\": \"majority\",\n \"noTableScan\": true,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
         responses:
           - response_index: 41
             status: 200
@@ -260,7 +260,7 @@ steps:
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
         method: PATCH
         version: '2024-08-05'
-        text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"defaultWriteConcern\": \"majority\",\n \"minimumEnabledTlsProtocol\": \"TLS1_2\",\n \"noTableScan\": true,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
+        text: "{\n \"changeStreamOptionsPreAndPostImagesExpireAfterSeconds\": 100,\n \"defaultWriteConcern\": \"majority\",\n \"noTableScan\": true,\n \"sampleRefreshIntervalBIConnector\": 310,\n \"sampleSizeBIConnector\": 110,\n \"transactionLifetimeLimitSeconds\": 300\n}"
         responses:
           - response_index: 41
             status: 200
