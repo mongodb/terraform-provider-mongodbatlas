@@ -1192,7 +1192,7 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 		checksSet = []string{
 			"replication_specs.0.container_id.AWS:US_EAST_1",
 		}
-		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, acc.AttrNameToSchemaV2(true, "timeouts.0.create"), "2000s") // timeouts.create is not set on data sources
+		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, "timeouts.create", "2000s") // timeouts.create is not set on data sources
 		checks         = checkAggr(true, checksSet, checksMap, timeoutCheck)
 		afterUpdateMap = map[string]string{
 			"state_name":                    "IDLE",
@@ -1221,7 +1221,7 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 		checksUpdate = checkAggr(true, checksSet, afterUpdateMap, timeoutCheck)
 		fullUpdate   = `
 	backup_enabled = true
-	bi_connector_config = {
+	bi_connector_config {
 		enabled = true
 	}
 	labels {
@@ -1239,7 +1239,7 @@ func replicasetAdvConfigUpdate(t *testing.T) *resource.TestCase {
 	root_cert_type = "ISRGROOTX1"
 	version_release_system = "CONTINUOUS"
 	
-	advanced_configuration = {
+	advanced_configuration {
 		change_stream_options_pre_and_post_images_expire_after_seconds = 100
 		default_read_concern                                           = "available"
 		default_write_concern                                          = "majority"
