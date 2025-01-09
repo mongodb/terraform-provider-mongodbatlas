@@ -91,6 +91,7 @@ func basicAzureTestCase(t *testing.T) *resource.TestCase {
 			"project_id":     projectID,
 			"bucket_name":    bucketName,
 			"service_url":    serviceURL,
+			"tenant_id":      tenantID,
 			"cloud_provider": "AZURE",
 		}
 		pluralAttrMapCheck = map[string]string{
@@ -99,6 +100,7 @@ func basicAzureTestCase(t *testing.T) *resource.TestCase {
 			"results.0.bucket_name":    bucketName,
 			"results.0.service_url":    serviceURL,
 			"results.0.cloud_provider": "AZURE",
+			"results.0.tenant_id":      tenantID,
 		}
 		attrsSet = []string{
 			"role_id",
