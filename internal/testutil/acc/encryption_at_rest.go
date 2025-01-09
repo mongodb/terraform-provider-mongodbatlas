@@ -65,6 +65,17 @@ func CheckEARExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
+func ConvertToAwsKmsEARAttrMap(awsKms *admin.AWSKMSConfiguration) map[string]string {
+	return map[string]string{
+		"enabled":                    strconv.FormatBool(awsKms.GetEnabled()),
+		"region":                     awsKms.GetRegion(),
+		"role_id":                    awsKms.GetRoleId(),
+		"customer_master_key_id":     awsKms.GetCustomerMasterKeyID(),
+		"valid":                      "true",
+		"require_private_networking": strconv.FormatBool(awsKms.GetRequirePrivateNetworking()),
+	}
+}
+
 func ConvertToAzureKeyVaultEARAttrMap(az *admin.AzureKeyVault) map[string]string {
 	return map[string]string{
 		"enabled":                    strconv.FormatBool(az.GetEnabled()),
