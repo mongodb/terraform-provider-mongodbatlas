@@ -163,7 +163,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 			advanced_configuration  {
 				fail_index_key_too_long              = false
 				javascript_enabled                   = true
-				minimum_enabled_tls_protocol         = "TLS1_1"
+				minimum_enabled_tls_protocol         = "TLS1_2"
 				no_table_scan                        = false
 				oplog_min_retention_hours 		     = 4
 			}
@@ -176,7 +176,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 			advanced_configuration  {
 				fail_index_key_too_long              = false
 				javascript_enabled                   = true
-				minimum_enabled_tls_protocol         = "TLS1_1"
+				minimum_enabled_tls_protocol         = "TLS1_2"
 				no_table_scan                        = false
 				default_read_concern                 = "available"
 				sample_size_bi_connector			 = 110
@@ -205,7 +205,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_min_retention_hours", "4"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.tls_cipher_config_mode", "DEFAULT"),
@@ -220,7 +220,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
