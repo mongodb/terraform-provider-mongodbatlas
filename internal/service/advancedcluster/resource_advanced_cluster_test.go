@@ -279,7 +279,7 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
 			JavascriptEnabled:                conversion.Pointer(true),
-			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 			NoTableScan:                      conversion.Pointer(false),
 			OplogSizeMB:                      conversion.Pointer(1000),
 			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -308,7 +308,7 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 			},
 			{
 				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgsCipherConfig),
-				Check:  checkAdvanced(true, clusterName, "TLS1_1", processArgsCipherConfig),
+				Check:  checkAdvanced(true, clusterName, "TLS1_2", processArgsCipherConfig),
 			},
 		},
 	})
@@ -325,7 +325,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
 			JavascriptEnabled:                conversion.Pointer(true),
-			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 			NoTableScan:                      conversion.Pointer(false),
 			OplogSizeMB:                      conversion.Pointer(1000),
 			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -369,7 +369,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAdvanced(t, true, projectID, clusterName, "", processArgs20240530, processArgs),
-				Check:  checkAdvanced(true, clusterName, "TLS1_1", processArgs),
+				Check:  checkAdvanced(true, clusterName, "TLS1_2", processArgs),
 			},
 			{
 				Config: configAdvanced(t, true, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdated),
@@ -393,7 +393,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			JavascriptEnabled:                conversion.Pointer(true),
-			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 			NoTableScan:                      conversion.Pointer(false),
 			OplogSizeMB:                      conversion.Pointer(1000),
 			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -419,7 +419,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAdvancedDefaultWrite(t, true, projectID, clusterName, processArgs),
-				Check:  checkAdvancedDefaultWrite(true, clusterName, "1", "TLS1_1"),
+				Check:  checkAdvancedDefaultWrite(true, clusterName, "1", "TLS1_2"),
 			},
 			{
 				Config: configAdvancedDefaultWrite(t, true, projectID, clusterNameUpdated, processArgsUpdated),
