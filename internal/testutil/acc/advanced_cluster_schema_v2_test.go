@@ -142,6 +142,9 @@ func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
  					enabled         = true
   				read_preference = "secondary"
 				}
+				timeouts {
+					create = "5m"
+				}
 			}	
  		`
 		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToSchemaV2
@@ -235,6 +238,9 @@ func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
 				bi_connector_config = {
  					enabled         = true
   				read_preference = "secondary"
+				}
+				timeouts = {
+					create = "5m"
 				}
 			}
  		`
