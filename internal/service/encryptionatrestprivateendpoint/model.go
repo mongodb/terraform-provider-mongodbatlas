@@ -2,8 +2,10 @@ package encryptionatrestprivateendpoint
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	// "go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 func NewTFEarPrivateEndpoint(apiResp admin.EARPrivateEndpoint, projectID string) TFEarPrivateEndpointModel {

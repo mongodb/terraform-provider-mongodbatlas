@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
-
+	// "go.mongodb.org/atlas-sdk/v20241113004/admin"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -54,7 +54,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 	}
 
 	privateEndpointReq := NewEarPrivateEndpointReq(&earPrivateEndpointPlan)
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview // TODO: revert
 	projectID := earPrivateEndpointPlan.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointPlan.CloudProvider.ValueString()
 	createResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.CreateEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, privateEndpointReq).Execute()
@@ -83,7 +83,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview // TODO: revert
 	projectID := earPrivateEndpointState.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointState.CloudProvider.ValueString()
 	endpointID := earPrivateEndpointState.ID.ValueString()
@@ -115,7 +115,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview // TODO: revert
 	projectID := earPrivateEndpointState.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointState.CloudProvider.ValueString()
 	endpointID := earPrivateEndpointState.ID.ValueString()

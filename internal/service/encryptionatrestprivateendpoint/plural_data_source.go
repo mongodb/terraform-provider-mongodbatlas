@@ -7,10 +7,12 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	// "go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 var _ datasource.DataSource = &encryptionAtRestPrivateEndpointsDS{}
@@ -43,7 +45,7 @@ func (d *encryptionAtRestPrivateEndpointsDS) Read(ctx context.Context, req datas
 	projectID := earPrivateEndpointConfig.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointConfig.CloudProvider.ValueString()
 
-	connV2 := d.Client.AtlasV2
+	connV2 := d.Client.AtlasPreview // TODO: revert
 
 	params := admin.GetEncryptionAtRestPrivateEndpointsForCloudProviderApiParams{
 		GroupId:       projectID,

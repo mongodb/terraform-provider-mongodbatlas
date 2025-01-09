@@ -7,8 +7,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	// "go.mongodb.org/atlas-sdk/v20241113004/admin"
+
+	"github.com/mongodb/atlas-sdk-go/admin"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 const (

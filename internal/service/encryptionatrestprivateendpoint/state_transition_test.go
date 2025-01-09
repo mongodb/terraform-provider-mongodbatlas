@@ -2,19 +2,21 @@ package encryptionatrestprivateendpoint_test
 
 import (
 	"context"
-	"time"
-
 	"errors"
 	"net/http"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	// "go.mongodb.org/atlas-sdk/v20241113004/admin"
+	// "go.mongodb.org/atlas-sdk/v20241113004/mockadmin"
+	"github.com/mongodb/atlas-sdk-go/admin"
+	"github.com/mongodb/atlas-sdk-go/mockadmin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/mockadmin"
 )
 
 type testCase struct {
