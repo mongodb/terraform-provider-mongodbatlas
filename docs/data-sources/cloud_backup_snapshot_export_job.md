@@ -49,7 +49,7 @@ In addition to all arguments above, the following attributes are exported:
 * `custom_data` - Custom data to include in the metadata file named `.complete` that Atlas uploads to the bucket when the export job finishes. Custom data can be specified as key and value pairs.
 * `components` - _Returned for sharded clusters only._ Export job details for each replica set in the sharded cluster.
 * `created_at` - Timestamp in ISO 8601 date and time format in UTC when the export job was created.
-* `export_status` - _Returned for replica set only._ Status of the export job.
+* `export_status` - Status of the export job.
 * `finished_at` - Timestamp in ISO 8601 date and time format in UTC when the export job completes.
 * `export_job_id` - Unique identifier of the export job.
 * `prefix ` - Full path on the cloud provider bucket to the folder where the snapshot is exported. The path is in the following format:`/exported_snapshots/{ORG-NAME}/{PROJECT-NAME}/{CLUSTER-NAME}/{SNAPSHOT-INITIATION-DATE}/{TIMESTAMP}`
@@ -58,6 +58,7 @@ In addition to all arguments above, the following attributes are exported:
     * `InProgress` - indicates that the snapshot is being exported
     * `Successful` - indicates that the export job has completed successfully
     * `Failed` - indicates that the export job has failed
+    * `Cancelled` - indicates that the export job has cancelled
 
 ### Custom Data
 * `key` - Custom data specified as key in the key and value pair.

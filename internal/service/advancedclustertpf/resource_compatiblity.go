@@ -10,10 +10,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
-func overrideAttributesWithPlanValue(modelOut, modelIn *TFModel) {
+func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
 	if beforeVersion != nil && !modelIn.MongoDBMajorVersion.Equal(modelOut.MongoDBMajorVersion) {
 		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
@@ -21,13 +21,6 @@ func overrideAttributesWithPlanValue(modelOut, modelIn *TFModel) {
 	retainBackups := conversion.NilForUnknown(modelIn.RetainBackupsEnabled, modelIn.RetainBackupsEnabled.ValueBoolPointer())
 	if retainBackups != nil && !modelIn.RetainBackupsEnabled.Equal(modelOut.RetainBackupsEnabled) {
 		modelOut.RetainBackupsEnabled = types.BoolPointerValue(retainBackups)
-	}
-	// Blocks can't be included if not in the config
-	if modelIn.AdvancedConfiguration.IsNull() {
-		modelOut.AdvancedConfiguration = types.ListNull(AdvancedConfigurationObjType)
-	}
-	if modelIn.BiConnectorConfig.IsNull() {
-		modelOut.BiConnectorConfig = types.ListNull(BiConnectorConfigObjType)
 	}
 }
 
@@ -59,7 +52,7 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 		if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
 			forceLegacySchemaFailed = forceLegacySchema
 		} else {
-			diags.AddError("errorRead", fmt.Sprintf("error reading advanced cluster with 2024-05-30 API (%s): %s", clusterName, err))
+			diags.AddError(errorReadLegacy20240530, defaultAPIErrorDetails(clusterName, err))
 			return nil
 		}
 	}
@@ -68,7 +61,7 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 	}
 	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterLatest, client.AtlasV2.NetworkPeeringApi)
 	if err != nil {
-		diags.AddError("resolveContainerIDs failed", err.Error())
+		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
 		return nil
 	}
 	info := &ExtraAPIInfo{

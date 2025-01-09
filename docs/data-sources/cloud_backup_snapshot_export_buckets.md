@@ -23,7 +23,7 @@ data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
-* `page_num` - (Optional)  	The page to return. Defaults to `1`.
+* `page_num` - (Optional)   The page to return. Defaults to `1`.
 * `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`.
 
 
@@ -38,7 +38,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### CloudProviderSnapshotExportBucket
 * `project_id` - The unique identifier of the project for the Atlas cluster.
-* `export_bucket_id` -	Unique identifier of the snapshot bucket id.
+* `export_bucket_id` - Unique identifier of the snapshot bucket id.
 * `iam_role_id` - Unique identifier of the role that Atlas can use to access the bucket.
 * `bucket_name` - Name of the bucket that the provided role ID is authorized to access.
 * `cloud_provider` - Name of the provider of the cloud service where Atlas can access the S3 bucket.

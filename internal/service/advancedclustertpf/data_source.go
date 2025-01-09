@@ -8,11 +8,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 var _ datasource.DataSource = &ds{}
 var _ datasource.DataSourceWithConfigure = &ds{}
+
+const (
+	errorReadDatasource                      = "Error reading  advanced cluster datasource"
+	errorReadDatasourceForceAsymmetric       = "Error reading advanced cluster datasource, was expecting symmetric shards but found asymmetric shards"
+	errorReadDatasourceForceAsymmetricDetail = "Cluster name %s. Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. %s"
+)
 
 func DataSource() datasource.DataSource {
 	return &ds{
@@ -53,7 +59,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
 			return nil
 		}
-		diags.AddError("errorRead", fmt.Sprintf(errorRead, clusterName, err.Error()))
+		diags.AddError(errorReadDatasource, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
 	modelIn := &TFModel{
@@ -65,7 +71,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	if extraInfo.ForceLegacySchemaFailed {
-		diags.AddError("errorRead", "Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. Refer to documentation for more details.")
+		diags.AddError(errorReadDatasourceForceAsymmetric, fmt.Sprintf(errorReadDatasourceForceAsymmetricDetail, clusterName, DeprecationOldSchemaAction))
 		return nil
 	}
 	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)

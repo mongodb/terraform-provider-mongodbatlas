@@ -55,7 +55,9 @@ jobs:
     secrets:
       mongodb_atlas_public_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_QA || secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
       mongodb_atlas_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_QA || secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
-      mongodb_atlas_gov_public_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_GOV_PUBLIC_KEY_QA || secrets.MONGODB_ATLAS_GOV_PUBLIC_KEY_DEV }}
+      mongodb_atlas_public_key_read_only: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY_QA || secrets.MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY_DEV }}
+      mongodb_atlas_private_key_read_only: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY_QA || secrets.MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY_DEV }}
+      mongodb_atlas_gov_public_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_GOV_PUBLIC_KEY_QA || secrets.MONGODB_ATLAS_GOV_PUBLIC_KEY_DEV  }}
       mongodb_atlas_gov_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_GOV_PRIVATE_KEY_QA || secrets.MONGODB_ATLAS_GOV_PRIVATE_KEY_DEV }}
       mongodb_atlas_rp_public_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_RP_PUBLIC_KEY_QA || secrets.MONGODB_ATLAS_RP_PUBLIC_KEY_DEV }}
       mongodb_atlas_rp_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_RP_PRIVATE_KEY_QA || secrets.MONGODB_ATLAS_RP_PRIVATE_KEY_DEV }}
@@ -98,7 +100,7 @@ jobs:
       mongodb_atlas_project_owner_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_OWNER_ID_QA || vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
       mongodb_atlas_teams_ids: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_TEAMS_IDS_QA || vars.MONGODB_ATLAS_TEAMS_IDS }}
       azure_atlas_app_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_ATLAS_APP_ID_QA || vars.AZURE_ATLAS_APP_ID }}
-      azure_service_principal_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_SERVICE_PRINCIPAL_ID_APP_QA || vars.AZURE_SERVICE_PRINCIPAL_ID }}
+      azure_service_principal_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_SERVICE_PRINCIPAL_ID_QA || vars.AZURE_SERVICE_PRINCIPAL_ID }}
       azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
       aws_secret_name: ${{ inputs.atlas_cloud_env == 'qa' && vars.AWS_SECRET_NAME_QA || vars.AWS_SECRET_NAME }}
       mongodb_atlas_federation_settings_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATION_SETTINGS_ID_QA || vars.MONGODB_ATLAS_FEDERATION_SETTINGS_ID }}

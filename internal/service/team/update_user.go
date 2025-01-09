@@ -3,15 +3,15 @@ package team
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
-func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersApi, existingTeamUsers *admin.PaginatedAppUser, newUsernames []string, orgID, teamID string) error {
+func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersApi, existingTeamUsers []admin.CloudAppUser, newUsernames []string, orgID, teamID string) error {
 	validNewUsers, err := ValidateUsernames(usersAPI, newUsernames)
 	if err != nil {
 		return err
 	}
-	usersToAdd, usersToRemove, err := GetChangesForTeamUsers(existingTeamUsers.GetResults(), validNewUsers)
+	usersToAdd, usersToRemove, err := GetChangesForTeamUsers(existingTeamUsers, validNewUsers)
 	if err != nil {
 		return err
 	}

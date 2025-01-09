@@ -3,7 +3,7 @@ package acc
 import (
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 func ConfigDatabaseUserBasic(projectID, username, roleName, keyLabel, valueLabel string) string {

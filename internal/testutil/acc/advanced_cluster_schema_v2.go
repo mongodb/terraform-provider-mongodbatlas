@@ -69,6 +69,8 @@ var tpfSingleNestedAttrs = []string{
 	"electable_specs",
 	"read_only_specs",
 	"auto_scaling", // includes analytics_auto_scaling
+	"advanced_configuration",
+	"bi_connector_config",
 	"pinned_fcv",
 }
 
@@ -96,6 +98,8 @@ func ConvertAdvancedClusterToSchemaV2(t *testing.T, isAcc bool, def string) stri
 		}
 		writeBody := resource.Body()
 		convertAttrs(t, "replication_specs", writeBody, true, getReplicationSpecs)
+		convertAttrs(t, "advanced_configuration", writeBody, false, hcl.GetAttrVal)
+		convertAttrs(t, "bi_connector_config", writeBody, false, hcl.GetAttrVal)
 	}
 	content := parse.Bytes()
 	return string(content)

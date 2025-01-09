@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 var _ datasource.DataSource = &pluralDS{}
@@ -59,7 +59,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		return request.Execute()
 	})
 	if err != nil {
-		diags.AddError("errorList", fmt.Sprintf(errorList, projectID, err.Error()))
+		diags.AddError(errorList, fmt.Sprintf(errorListDetail, projectID, err.Error()))
 		return nil
 	}
 	outs := &TFModelPluralDS{

@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
 )
 
 func DataSource() *schema.Resource {
@@ -77,21 +78,22 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if err := d.Set("team_id", team.GetId()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorTeamSetting, "name", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(errorTeamSetting, "team_id", d.Id(), err))
 	}
 
 	if err := d.Set("name", team.GetName()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "name", d.Id(), err))
 	}
 
-	users, _, err := connV2.TeamsApi.ListTeamUsers(ctx, orgID, team.GetId()).Execute()
+	teamUsers, err := listAllTeamUsers(ctx, connV2, orgID, team.GetId())
+
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 	}
 
 	usernames := []string{}
-	for i := range users.GetResults() {
-		usernames = append(usernames, users.GetResults()[i].GetUsername())
+	for i := range teamUsers {
+		usernames = append(usernames, teamUsers[i].GetUsername())
 	}
 
 	if err := d.Set("usernames", usernames); err != nil {

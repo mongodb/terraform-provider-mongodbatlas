@@ -1,5 +1,25 @@
 ## (Unreleased)
 
+## 1.25.0 (January 07, 2025)
+
+NOTES:
+
+* resource/mongodbatlas_cloud_backup_snapshot_export_bucket: Deprecates `tenant_id` argument as the `mongodbatlas_cloud_provider_access_authorization.azure.tenant_id` is used instead ([#2932](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2932))
+* resource/mongodbatlas_cloud_backup_snapshot_export_job: Changes `custom_data` changed attribute from required -> optional ([#2929](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2929))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_project_ip_addresses: Adds support for `future_inbound` and `future_outbound` fields ([#2934](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2934))
+* data-source/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
+* data-source/mongodbatlas_stream_connections: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
+* resource/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_team: Fixes pagination logic when retrieved users of a team ([#2919](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2919))
+* resource/mongodbatlas_database_user: Avoids import error for database_user when both username and auth database contain hyphens ([#2928](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2928))
+* resource/mongodbatlas_team: Fixes pagination logic when retrieved users of a team ([#2919](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2919))
+
 ## 1.24.0 (December 20, 2024)
 
 ENHANCEMENTS:

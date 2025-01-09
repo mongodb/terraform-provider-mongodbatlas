@@ -99,8 +99,8 @@ func basicAzureTestCase(t *testing.T) *resource.TestCase {
 			"results.#":                "1",
 			"results.0.bucket_name":    bucketName,
 			"results.0.service_url":    serviceURL,
-			"results.0.tenant_id":      tenantID,
 			"results.0.cloud_provider": "AZURE",
+			"results.0.tenant_id":      tenantID,
 		}
 		attrsSet = []string{
 			"role_id",
@@ -291,7 +291,6 @@ func configAzureBasic(projectID, atlasAzureAppID, servicePrincipalID, tenantID, 
             cloud_provider = "AZURE"
 			service_url	   = %[6]q
 			role_id		   = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-			tenant_id	   = %[4]q
         }
 
         data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {

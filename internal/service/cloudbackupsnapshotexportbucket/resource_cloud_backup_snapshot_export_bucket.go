@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -73,8 +73,8 @@ func Schema() map[string]*schema.Schema {
 		},
 		"tenant_id": {
 			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Optional: true, // attribute is only used as a computed, this is called out in docs and configuration of optional argument can be eventually removed implying a breaking change. To be removed in https://jira.mongodb.org/browse/CLOUDP-293142
+			Computed: true,
 		},
 	}
 }
@@ -85,7 +85,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 
 	cloudProvider := d.Get("cloud_provider").(string)
-
 	request := &admin.DiskBackupSnapshotExportBucketRequest{
 		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
 		BucketName:    d.Get("bucket_name").(string),
@@ -94,7 +93,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		TenantId:      conversion.StringPtr(d.Get("tenant_id").(string)),
 		CloudProvider: cloudProvider,
 	}
-
 	bucketResponse, _, err := conn.CloudBackupsApi.CreateExportBucket(ctx, projectID, request).Execute()
 	if err != nil {
 		return diag.Errorf("error creating snapshot export bucket: %s", err)

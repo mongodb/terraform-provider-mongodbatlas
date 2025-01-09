@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
@@ -57,6 +57,18 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		streamConnection.DbRoleToExecute = &admin.DBRoleToExecute{
 			Role: dbRoleToExecuteModel.Role.ValueStringPointer(),
 			Type: dbRoleToExecuteModel.Type.ValueStringPointer(),
+		}
+	}
+
+	if !plan.Networking.IsNull() && !plan.Networking.IsUnknown() {
+		networkingModel := &TFNetworkingModel{}
+		if diags := plan.Networking.As(ctx, networkingModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.Networking = &admin.StreamsKafkaNetworking{
+			Access: &admin.StreamsKafkaNetworkingAccess{
+				Type: networkingModel.Access.Type.ValueStringPointer(),
+			},
 		}
 	}
 
@@ -112,6 +124,19 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 			return nil, diags
 		}
 		connectionModel.DBRoleToExecute = dbRoleToExecuteModel
+	}
+
+	connectionModel.Networking = types.ObjectNull(NetworkingObjectType.AttrTypes)
+	if apiResp.Networking != nil {
+		networkingModel, diags := types.ObjectValueFrom(ctx, NetworkingObjectType.AttrTypes, TFNetworkingModel{
+			Access: TFNetworkingAccessModel{
+				Type: types.StringPointerValue(apiResp.Networking.Access.Type),
+			},
+		})
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.Networking = networkingModel
 	}
 
 	return &connectionModel, nil

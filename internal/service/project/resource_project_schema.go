@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"go.mongodb.org/atlas-sdk/v20241113003/admin"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -101,9 +101,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
-				Computed:           true,
-				Optional:           true,
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersion, "1.24.0"),
+				Computed: true,
+				Optional: true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 				},
