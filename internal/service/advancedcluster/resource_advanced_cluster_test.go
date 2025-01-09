@@ -1257,7 +1257,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 	})
 }
 
-func TestAccMockableAdvancedCluster_shardedBasic(t *testing.T) {
+func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -1281,12 +1281,7 @@ func TestAccMockableAdvancedCluster_shardedBasic(t *testing.T) {
 			"replication_specs.1.region_configs.0.analytics_specs.0.disk_iops":       "1000",
 		}
 		checks        = checkAggr(true, nil, checksMap)
-		checksUpdated = checkAggr(true, nil, checksUpdatedMap, func(state *terraform.State) error {
-			if false {
-				return fmt.Errorf("this is a test error")
-			}
-			return nil
-		})
+		checksUpdated = checkAggr(true, nil, checksUpdatedMap)
 	)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1341,11 +1336,11 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 	var autoScaling, analyticsSpecs string
 	if withUpdate {
 		autoScaling = `
-			auto_scaling = {
+			auto_scaling {
 				disk_gb_enabled = true
 			}`
 		analyticsSpecs = `
-			analytics_specs = {
+			analytics_specs {
 				instance_size   = "M30"
 				node_count      = 1
 				ebs_volume_type = "PROVISIONED"
