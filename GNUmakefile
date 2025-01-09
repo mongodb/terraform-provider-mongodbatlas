@@ -72,7 +72,6 @@ testacc: fmtcheck
 
 .PHONY: testaccgov
 testaccgov: fmtcheck
-	@$(eval VERSION=acc)
 	TF_ACC=1 go test ./... -run 'TestAccProjectRSGovProject_CreateWithProjectOwner' -v -parallel 1 "$(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags=$(LINKER_FLAGS) "
 
 .PHONY: fmt
