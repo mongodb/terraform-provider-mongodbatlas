@@ -42,7 +42,6 @@ test: fmtcheck
 
 .PHONY: testmact
 testmact:
-	@$(eval VERSION=macct)
 	@$(eval ACCTEST_REGEX_RUN?=^TestAccMockable)
 	@$(eval export HTTP_MOCKER_REPLAY?=true)
 	@$(eval export HTTP_MOCKER_CAPTURE?=false)
@@ -57,7 +56,6 @@ testmact:
 
 .PHONY: testmact-capture
 testmact-capture:
-	@$(eval VERSION=macct)
 	@$(eval export ACCTEST_REGEX_RUN?=^TestAccMockable)
 	@$(eval export HTTP_MOCKER_REPLAY?=false)
 	@$(eval export HTTP_MOCKER_CAPTURE?=true)
@@ -69,7 +67,6 @@ testmact-capture:
 
 .PHONY: testacc
 testacc: fmtcheck
-	@$(eval VERSION=acc)
 	@$(eval ACCTEST_REGEX_RUN?=^TestAcc)
 	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
