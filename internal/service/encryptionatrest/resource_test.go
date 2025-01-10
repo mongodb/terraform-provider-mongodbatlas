@@ -34,32 +34,22 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:             conversion.Pointer(true),
-			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			Enabled:                  conversion.Pointer(true),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
-		awsKmsAttrMap = map[string]string{
-			"enabled":                "true",
-			"region":                 awsKms.GetRegion(),
-			"role_id":                awsKms.GetRoleId(),
-			"customer_master_key_id": awsKms.GetCustomerMasterKeyID(),
-			"valid":                  "true",
-		}
+		awsKmsAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKms)
 
 		awsKmsUpdated = admin.AWSKMSConfiguration{
-			Enabled:             conversion.Pointer(true),
-			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			Enabled:                  conversion.Pointer(true),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
-		awsKmsUpdatedAttrMap = map[string]string{
-			"enabled":                "true",
-			"region":                 awsKmsUpdated.GetRegion(),
-			"role_id":                awsKmsUpdated.GetRoleId(),
-			"customer_master_key_id": awsKmsUpdated.GetCustomerMasterKeyID(),
-			"valid":                  "true",
-		}
+		awsKmsUpdatedAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKmsUpdated)
 	)
 
 	resource.Test(t, resource.TestCase{
