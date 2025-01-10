@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -1265,8 +1266,6 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 			"state_name": "IDLE",
 			"project_id": projectID,
 			"name":       clusterName,
-			"replication_specs.0.region_configs.0.electable_specs.0.instance_size": "M30",
-			"replication_specs.0.region_configs.0.analytics_specs.0.node_count":    "0",
 		}
 		checksUpdatedMap = map[string]string{
 			"replication_specs.0.region_configs.0.auto_scaling.0.disk_gb_enabled":    "true",
@@ -1280,9 +1279,13 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 			"replication_specs.1.region_configs.0.analytics_specs.0.ebs_volume_type": "PROVISIONED",
 			"replication_specs.1.region_configs.0.analytics_specs.0.disk_iops":       "1000",
 		}
-		checks        = checkAggr(true, nil, checksMap)
 		checksUpdated = checkAggr(true, nil, checksUpdatedMap)
 	)
+	if config.AdvancedClusterV2Schema() {
+		checksMap["replication_specs.0.region_configs.0.electable_specs.0.instance_size"] = "M30"
+		checksMap["replication_specs.0.region_configs.0.analytics_specs.0.node_count"] = "0"
+	}
+	checks := checkAggr(true, nil, checksMap)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
