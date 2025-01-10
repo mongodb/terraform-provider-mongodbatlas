@@ -18,7 +18,7 @@ func FormatMongoDBMajorVersion(version string) string {
 
 func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, zoneToReplicationSpecsIDs map[string][]string) []admin.ReplicationSpec20240805 {
 	for zoneName, availableIDs := range zoneToReplicationSpecsIDs {
-		var indexOfIDToUse = 0
+		indexOfIDToUse := 0
 		for i := range replicationSpecs {
 			if indexOfIDToUse >= len(availableIDs) {
 				break // all available ids for this zone have been used
