@@ -943,17 +943,25 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		ac := d.Get("advanced_configuration")
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
+			advancedConfigChanged := false
 			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), &mongoDBMajorVersion)
 			if !reflect.DeepEqual(params20240530, admin20240530.ClusterDescriptionProcessArgs{}) {
+				advancedConfigChanged = true
 				_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params20240530).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 				}
 			}
 			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
+				advancedConfigChanged = true
 				_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
+				}
+			}
+			if advancedConfigChanged {
+				if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+					return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 				}
 			}
 		}
