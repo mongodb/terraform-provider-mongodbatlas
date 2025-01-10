@@ -302,6 +302,7 @@ func Resource() *schema.Resource {
 						"zone_name": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							Default:  "ZoneName managed by Terraform",
 						},
 					},
