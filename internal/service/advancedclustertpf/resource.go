@@ -22,6 +22,7 @@ import (
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 var _ resource.ResourceWithMoveState = &rs{}
+var _ resource.ResourceWithUpgradeState = &rs{}
 
 const (
 	resourceName                    = "advanced_cluster"
