@@ -36,6 +36,12 @@ build: fmt fmtcheck
 install: fmtcheck
 	go install -ldflags="$(LINKER_FLAGS)"
 
+.PHONY: clean-atlas-org
+clean-atlas-org: clean-atlas-org
+	@$(eval export MONGODB_ATLAS_CLEAN_ORG?=true)
+	@$(eval export DRY_RUN?=true)
+	go test 'github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean' -timeout 3600s -parallel=250 -run 'TestCleanProjectAndClusters' -v -ldflags="$(LINKER_FLAGS)"
+
 .PHONY: test
 test: fmtcheck
 	go test ./... -timeout=30s -parallel=4 -race
