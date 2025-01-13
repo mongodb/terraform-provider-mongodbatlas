@@ -1281,7 +1281,7 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 		}
 		checksUpdated = checkAggr(true, nil, checksUpdatedMap)
 	)
-	if config.AdvancedClusterV2Schema() {
+	if config.AdvancedClusterV2Schema() { // SDKv2 don't set "computed" specs in the state
 		checksMap["replication_specs.0.region_configs.0.electable_specs.0.instance_size"] = "M30"
 		checksMap["replication_specs.0.region_configs.0.analytics_specs.0.node_count"] = "0"
 	}
