@@ -183,6 +183,7 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 }
 
 func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
+	acc.SkipTestForCI(t) // requires Confluent Cloud resources
 	var (
 		resourceName               = "mongodbatlas_stream_connection.test"
 		projectID                  = acc.ProjectIDExecution(t)
