@@ -18,5 +18,5 @@ func stateUpgraderFromV1(ctx context.Context, req resource.UpgradeStateRequest, 
 	if diags.HasError() {
 		return
 	}
-	setStateResponse(ctx, &resp.Diagnostics, &resp.State, projectID, name)
+	setStateResponse(ctx, diags, &resp.State, projectID, name)
 }
