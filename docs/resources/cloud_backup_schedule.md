@@ -234,7 +234,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `export` - Policy for automatically exporting Cloud Backup Snapshots. See [below](#export)
 ### export
 * `export_bucket_id` - Unique identifier of the mongodbatlas_cloud_backup_snapshot_export_bucket export_bucket_id value.
-* `frequency_type` - Frequency associated with the export snapshot item: `weekly`, `montly`, `yearly`, `daily` (requires reaching out to Customer Support)
+* `frequency_type` - Frequency associated with the export snapshot item: `weekly`, `monthly`, `yearly`, `daily` (requires reaching out to Customer Support)
 
 ### policy_item_hourly
 * `id` - Unique identifier of the backup policy item.
