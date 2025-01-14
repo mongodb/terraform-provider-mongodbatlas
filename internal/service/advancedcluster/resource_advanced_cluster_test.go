@@ -127,9 +127,8 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 
 func TestAccMockableAdvancedCluster_basicTenant(t *testing.T) {
 	var (
-		projectID          = acc.ProjectIDExecution(t)
-		clusterName        = acc.RandomClusterName()
-		clusterNameUpdated = acc.RandomClusterName()
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
+		clusterNameUpdated     = acc.RandomClusterName()
 	)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -151,9 +150,8 @@ func TestAccMockableAdvancedCluster_basicTenant(t *testing.T) {
 
 func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 	var (
-		projectID       = acc.ProjectIDExecution(t)
-		clusterName     = acc.RandomClusterName()
-		defaultZoneName = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
+		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
 	)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -179,8 +177,7 @@ func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
 	)
 
 	return resource.TestCase{
@@ -265,10 +262,9 @@ func singleShardedMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase
 
 func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 	var (
-		projectID           = acc.ProjectIDExecution(t)
-		clusterName         = acc.RandomClusterName()
-		instanceSize        = "M10"
-		anotherInstanceSize = "M20"
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
+		instanceSize           = "M10"
+		anotherInstanceSize    = "M20"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -295,9 +291,8 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 	var (
-		projectID    = acc.ProjectIDExecution(t)
-		clusterName  = acc.RandomClusterName()
-		instanceSize = "M10"
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
+		instanceSize           = "M10"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -328,8 +323,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: default_max_time_ms not implemented in TPF yet
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
 
 		processArgs20240530 = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
@@ -374,10 +368,9 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: default_max_time_ms not implemented in TPF yet
 	var (
-		projectID           = acc.ProjectIDExecution(t)
-		clusterName         = acc.RandomClusterName()
-		clusterNameUpdated  = acc.RandomClusterName()
-		processArgs20240530 = &admin20240530.ClusterDescriptionProcessArgs{
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
+		clusterNameUpdated     = acc.RandomClusterName()
+		processArgs20240530    = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			FailIndexKeyTooLong:              conversion.Pointer(false),
@@ -443,10 +436,9 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: tls_cipher_config_mode not implemented in TPF yet
 	var (
-		projectID          = acc.ProjectIDExecution(t)
-		clusterName        = acc.RandomClusterName()
-		clusterNameUpdated = acc.RandomClusterName()
-		processArgs        = &admin20240530.ClusterDescriptionProcessArgs{
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
+		clusterNameUpdated     = acc.RandomClusterName()
+		processArgs            = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			JavascriptEnabled:                conversion.Pointer(true),
@@ -488,10 +480,9 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
 	var (
-		projectID          = acc.ProjectIDExecution(t)
-		clusterName        = acc.RandomClusterName()
-		clusterNameUpdated = acc.RandomClusterName()
-		autoScaling        = &admin.AdvancedAutoScalingSettings{
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
+		clusterNameUpdated     = acc.RandomClusterName()
+		autoScaling            = &admin.AdvancedAutoScalingSettings{
 			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
 			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
@@ -531,10 +522,9 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t *testing.T) {
 	var (
-		projectID          = acc.ProjectIDExecution(t)
-		clusterName        = acc.RandomClusterName()
-		clusterNameUpdated = acc.RandomClusterName()
-		autoScaling        = &admin.AdvancedAutoScalingSettings{
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
+		clusterNameUpdated     = acc.RandomClusterName()
+		autoScaling            = &admin.AdvancedAutoScalingSettings{
 			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
 			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
 		}
@@ -683,8 +673,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 
 func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1044,8 +1033,7 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -1174,9 +1162,8 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 
 func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-		checksMap   = map[string]string{
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
+		checksMap              = map[string]string{
 			"state_name": "IDLE",
 		}
 		checksSet = []string{
@@ -1260,9 +1247,8 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 
 func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-		checksMap   = map[string]string{
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
+		checksMap              = map[string]string{
 			"state_name": "IDLE",
 			"project_id": projectID,
 			"name":       clusterName,
