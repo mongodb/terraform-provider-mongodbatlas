@@ -1577,7 +1577,7 @@ func configReplicaSetAWSProvider(t *testing.T, isAcc bool, projectID, name strin
 				}
 			}
 		}
-	`, projectID, name, diskSizeGB, nodeCountElectable)) + dataSourcesTFNewSchema
+	`, projectID, name, diskSizeGB, nodeCountElectable)) + dataSourcesTFOldSchema
 }
 
 func checkReplicaSetAWSProvider(isAcc bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
