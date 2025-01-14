@@ -160,32 +160,11 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenant(t, true, projectID, clusterName, "Zone 1")),
+				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenant(t, true, projectID, clusterName, "Zone 1")), // Uses backend default to avoid non-empty plan, see CLOUDP-294339
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenantUpgraded(projectID, clusterName, "Zone 1")),
-				Check:  checksTenantUpgraded(projectID, clusterName),
-			},
-		},
-	})
-}
-func TestAccMockableAdvancedCluster_tenantUpgradeExplicitZoneName(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-	)
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenant(t, true, projectID, clusterName, "explicit-name")),
-				Check:  checkTenant(true, projectID, clusterName),
-			},
-			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenantUpgraded(projectID, clusterName, "explicit-name")),
+				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenantUpgraded(projectID, clusterName, "Zone 1")), // Uses backend default to avoid non-empty plan, see CLOUDP-294339
 				Check:  checksTenantUpgraded(projectID, clusterName),
 			},
 		},
