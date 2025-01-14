@@ -105,7 +105,6 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 
 ### Access
 * `type` - Selected networking type. Either `PUBLIC`, `VPC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
-* `name` - Name of the Private Link connection when type is `PRIVATE_LINK`.
 * `connection_id` - Id of the Private Link connection when type is `PRIVATE_LINK`.
 
 ## Import

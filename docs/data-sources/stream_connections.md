@@ -66,7 +66,6 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 
 ### Access
 * `type` - Selected networking type. Either `PUBLIC`, `VPC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
-* `name` - Name of the Private Link connection when type is `PRIVATE_LINK`.
 * `connection_id` - Id of the Private Link connection when type is `PRIVATE_LINK`.
 
 To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/listStreamConnections) Documentation.
