@@ -19,8 +19,9 @@ import (
 const (
 	itemsPerPage                   = 100
 	keepProjectsCreatedWithinHours = 5
-	retryInterval                  = 60 * time.Second
-	retryAttempts                  = 10
+	// Resource cleanup for a project can be slow, especially when there are active clusters, that can take more than 10 minutes to delete
+	retryInterval = 60 * time.Second
+	retryAttempts = 10
 )
 
 var (
@@ -49,7 +50,6 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
 	onlyZeroClusters, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_ONLY_WHEN_NO_CLUSTERS"))
 	skipProjectsAfter := time.Now().Add(-keepProjectsCreatedWithinHours * time.Hour)
-	maxDeleteCount := 250
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
 		return client.ProjectsApi.ListProjects(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	})
@@ -57,10 +57,6 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	t.Logf("found %d projects (DRY_RUN=%t)", len(projects), dryRun)
 	projectsToDelete := map[string]string{}
 	for _, p := range projects {
-		if len(projectsToDelete) > maxDeleteCount {
-			t.Logf("reached max delete count %d", maxDeleteCount)
-			break
-		}
 		skipReason := projectSkipReason(&p, skipProjectsAfter, onlyZeroClusters)
 		projectName := p.GetName()
 		if skipReason != "" {
