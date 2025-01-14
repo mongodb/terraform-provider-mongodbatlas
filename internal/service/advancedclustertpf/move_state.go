@@ -2,12 +2,15 @@ package advancedclustertpf
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -20,66 +23,72 @@ func (r *rs) MoveState(context.Context) []resource.StateMover {
 }
 
 func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+	diags := &resp.Diagnostics
 	if req.SourceTypeName != "mongodbatlas_cluster" || !strings.HasSuffix(req.SourceProviderAddress, "/mongodbatlas") {
 		return
 	}
-	rawStateValue, err := req.SourceRawState.UnmarshalWithOpts(tftypes.Object{
+	projectID, name := getProjectIDClusterNameFromRawState(diags, req.SourceRawState)
+	if diags.HasError() {
+		return
+	}
+	setStateResponse(ctx, diags, &resp.TargetState, projectID, name)
+}
+
+// getProjectIDClusterNameFromRawState is used in Move State and Upgrade State
+func getProjectIDClusterNameFromRawState(diags *diag.Diagnostics, state *tfprotov6.RawState) (projectID, name string) {
+	rawStateValue, err := state.UnmarshalWithOpts(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"project_id": tftypes.String,
 			"name":       tftypes.String,
 		},
 	}, tfprotov6.UnmarshalOpts{ValueFromJSONOpts: tftypes.ValueFromJSONOpts{IgnoreUndefinedAttributes: true}})
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to Unmarshal Source State", err.Error())
-		return
+		diags.AddError("Unable to Unmarshal state", err.Error())
+		return "", ""
 	}
 	var rawState map[string]tftypes.Value
 	if err := rawStateValue.As(&rawState); err != nil {
-		resp.Diagnostics.AddError("Unable to Convert Source State", err.Error())
-		return
+		diags.AddError("Unable to Parse state", err.Error())
+		return "", ""
 	}
-	var projectID *string
-	if err := rawState["project_id"].As(&projectID); err != nil {
-		resp.Diagnostics.AddAttributeError(path.Root("project_id"), "Unable to read cluster project_id", err.Error())
-		return
+	var projectIDPtr *string
+	if err := rawState["project_id"].As(&projectIDPtr); err != nil {
+		diags.AddAttributeError(path.Root("project_id"), "Unable to read cluster project_id", err.Error())
+		return "", ""
 	}
-	var name *string
-	if err := rawState["name"].As(&name); err != nil {
-		resp.Diagnostics.AddAttributeError(path.Root("name"), "Unable to Convert read cluster name", err.Error())
-		return
+	var namePtr *string
+	if err := rawState["name"].As(&namePtr); err != nil {
+		diags.AddAttributeError(path.Root("name"), "Unable to read cluster name", err.Error())
+		return "", ""
 	}
-
-	if !conversion.IsStringPresent(projectID) || !conversion.IsStringPresent(name) {
-		resp.Diagnostics.AddError("Unable to read project_id or name", "")
-		return
+	projectID, name = conversion.SafeString(projectIDPtr), conversion.SafeString(namePtr)
+	if projectID == "" || name == "" {
+		diags.AddError("Unable to read project_id or name", fmt.Sprintf("project_id: %s, name: %s", projectID, name))
+		return "", ""
 	}
-	setMoveStateResponse(ctx, *projectID, *name, resp)
+	return projectID, name
 }
 
-func setMoveStateResponse(ctx context.Context, projectID, clusterName string, resp *resource.MoveStateResponse) {
+// setStateResponse is used in Move State and Upgrade State
+func setStateResponse(ctx context.Context, diags *diag.Diagnostics, state *tfsdk.State, projectID, clusterName string) {
 	validTimeout := timeouts.Value{
-		Object: types.ObjectValueMust(
+		Object: types.ObjectNull(
 			map[string]attr.Type{
 				"create": types.StringType,
 				"update": types.StringType,
 				"delete": types.StringType,
-			},
-			map[string]attr.Value{
-				"create": types.StringValue("30m"),
-				"update": types.StringValue("30m"),
-				"delete": types.StringValue("30m"),
 			}),
 	}
 	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
 		GroupId: conversion.StringPtr(projectID),
 		Name:    conversion.StringPtr(clusterName),
-	}, validTimeout, &resp.Diagnostics, ExtraAPIInfo{})
-	if resp.Diagnostics.HasError() {
+	}, validTimeout, diags, ExtraAPIInfo{})
+	if diags.HasError() {
 		return
 	}
-	AddAdvancedConfig(ctx, model, nil, nil, &resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
+	AddAdvancedConfig(ctx, model, nil, nil, diags)
+	if diags.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.TargetState.Set(ctx, model)...)
+	diags.Append(state.Set(ctx, model)...)
 }
