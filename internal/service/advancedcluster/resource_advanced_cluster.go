@@ -949,11 +949,17 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 				}
+				if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+					return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+				}
 			}
 			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
 				_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
+				}
+				if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+					return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 				}
 			}
 		}
