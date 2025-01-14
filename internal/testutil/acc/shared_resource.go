@@ -9,6 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	MaxClustersPerProject = 10
+)
+
 // SetupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
 // It returns the cleanup function that must be called at the end of TestMain.
 func SetupSharedResources() func() {
@@ -25,6 +29,10 @@ func cleanupSharedResources() {
 	if sharedInfo.projectID != "" {
 		fmt.Printf("Deleting execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
 		deleteProject(sharedInfo.projectID)
+	}
+	for projectName, projectID := range sharedInfo.projectIDs {
+		fmt.Printf("Deleting execution project: %s, id: %s\n", projectName, projectID)
+		deleteProject(projectID)
 	}
 }
 
@@ -53,6 +61,21 @@ func ProjectIDExecution(tb testing.TB) string {
 	return sharedInfo.projectID
 }
 
+// ProjectIDExecutionWithCluster creates a project and reuses it `MaxClustersPerProject` times. The clusterName is always unique.
+// When `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` are defined, they are used instead of creating a project and clusterName.
+func ProjectIDExecutionWithCluster(tb testing.TB) (projectID, clusterName string) {
+	tb.Helper()
+	SkipInUnitTest(tb)
+	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+
+	if ExistingClusterUsed() {
+		return existingProjectIDClusterName()
+	}
+	return NextProjectIDClusterName(func(projectName string) string {
+		return createProject(tb, projectName)
+	})
+}
+
 // ClusterNameExecution returns the name of a created cluster for the execution of the tests in the resource package.
 // This function relies on using an execution project and returns its id.
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined it will be used instead of creating resources. This is useful for local execution but not intended for CI executions.
@@ -61,10 +84,8 @@ func ClusterNameExecution(tb testing.TB) (projectID, clusterName string) {
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
 
-	localProjectID := projectIDLocal(tb)
-	localClusterName := clusterNameLocal(tb)
-	if localProjectID != "" && localClusterName != "" {
-		return localProjectID, localClusterName
+	if ExistingClusterUsed() {
+		return existingProjectIDClusterName()
 	}
 
 	// before locking for cluster creation we need to ensure we have an execution project created
@@ -99,10 +120,42 @@ func SerialSleep(tb testing.TB) {
 }
 
 var sharedInfo = struct {
-	projectID   string
-	projectName string
-	clusterName string
-	mu          sync.Mutex
-	muSleep     sync.Mutex
-	init        bool
-}{}
+	projectID           string
+	projectNameClusters map[string][]string
+	projectIDs          map[string]string
+	currentProjectName  string
+	projectName         string
+	clusterName         string
+	mu                  sync.Mutex
+	muSleep             sync.Mutex
+	init                bool
+}{
+	projectNameClusters: map[string][]string{},
+	projectIDs:          map[string]string{},
+}
+
+// NextProjectIDClusterName is an internal method used when we want to reuse a projectID `MaxClustersPerProject` times
+func NextProjectIDClusterName(projectCreator func(string) string) (projectID, clusterName string) {
+	sharedInfo.mu.Lock()
+	defer sharedInfo.mu.Unlock()
+	var newProject = false
+	var projectName = sharedInfo.currentProjectName
+	clusterName = RandomClusterName()
+	if projectName == "" {
+		projectName = RandomProjectName()
+		newProject = true
+	}
+	currentClusters := sharedInfo.projectNameClusters[projectName]
+	if len(currentClusters) == MaxClustersPerProject {
+		projectName = RandomProjectName()
+		newProject = true
+		currentClusters = nil
+	}
+	sharedInfo.projectNameClusters[projectName] = append(currentClusters, clusterName)
+	if newProject {
+		sharedInfo.currentProjectName = projectName
+		projectID = projectCreator(projectName)
+		sharedInfo.projectIDs[projectName] = projectID
+	}
+	return sharedInfo.projectIDs[projectName], clusterName
+}
