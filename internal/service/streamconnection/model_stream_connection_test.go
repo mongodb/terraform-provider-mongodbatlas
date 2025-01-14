@@ -534,11 +534,15 @@ func tfDBRoleToExecuteObject(t *testing.T, role, roleType string) types.Object {
 
 func tfNetworkingObject(t *testing.T, networkingType string, connectionID *string) types.Object {
 	t.Helper()
+	networkingAccessModel, diags := types.ObjectValueFrom(context.Background(), streamconnection.NetworkingAccessObjectType.AttrTypes, streamconnection.TFNetworkingAccessModel{
+		Type:         types.StringValue(networkingType),
+		ConnectionID: types.StringPointerValue(connectionID),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
 	networking, diags := types.ObjectValueFrom(context.Background(), streamconnection.NetworkingObjectType.AttrTypes, streamconnection.TFNetworkingModel{
-		Access: streamconnection.TFNetworkingAccessModel{
-			Type:         types.StringValue(networkingType),
-			ConnectionID: types.StringPointerValue(connectionID),
-		},
+		Access: networkingAccessModel,
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())

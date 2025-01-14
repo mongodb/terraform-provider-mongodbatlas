@@ -91,7 +91,7 @@ var NetworkingAccessObjectType = types.ObjectType{AttrTypes: map[string]attr.Typ
 }}
 
 type TFNetworkingModel struct {
-	Access TFNetworkingAccessModel `tfsdk:"access"`
+	Access types.Object `tfsdk:"access"`
 }
 
 var NetworkingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{

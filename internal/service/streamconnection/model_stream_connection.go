@@ -65,10 +65,14 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		if diags := plan.Networking.As(ctx, networkingModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
+		networkingAccessModel := &TFNetworkingAccessModel{}
+		if diags := networkingModel.Access.As(ctx, networkingAccessModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
 		streamConnection.Networking = &admin.StreamsKafkaNetworking{
 			Access: &admin.StreamsKafkaNetworkingAccess{
-				Type:         networkingModel.Access.Type.ValueStringPointer(),
-				ConnectionId: networkingModel.Access.ConnectionID.ValueStringPointer(),
+				Type:         networkingAccessModel.Type.ValueStringPointer(),
+				ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
 			},
 		}
 	}
@@ -130,18 +134,26 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 	connectionModel.Networking = types.ObjectNull(NetworkingObjectType.AttrTypes)
 	if apiResp.Networking != nil {
 		connectionID := types.StringNull()
-		if currNetworkingConfig != nil && !currNetworkingConfig.IsNull() { // if config is available (create & update of resource) connectionID value from the config is set in new state
+		if currNetworkingConfig != nil && !currNetworkingConfig.IsNull() && !currNetworkingConfig.IsUnknown() { // if config is available (create & update of resource) connectionID value from the config is set in new state
 			configNetworkingModel := &TFNetworkingModel{}
 			if diags := currNetworkingConfig.As(ctx, configNetworkingModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 				return nil, diags
 			}
-			connectionID = configNetworkingModel.Access.ConnectionID
+			configNetworkingAccessModel := &TFNetworkingAccessModel{}
+			if diags := configNetworkingModel.Access.As(ctx, configNetworkingAccessModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+				return nil, diags
+			}
+			connectionID = configNetworkingAccessModel.ConnectionID
+		}
+		networkingAccessModel, diags := types.ObjectValueFrom(ctx, NetworkingAccessObjectType.AttrTypes, TFNetworkingAccessModel{
+			Type:         types.StringPointerValue(apiResp.Networking.Access.Type),
+			ConnectionID: connectionID,
+		})
+		if diags.HasError() {
+			return nil, diags
 		}
 		networkingModel, diags := types.ObjectValueFrom(ctx, NetworkingObjectType.AttrTypes, TFNetworkingModel{
-			Access: TFNetworkingAccessModel{
-				Type:         types.StringPointerValue(apiResp.Networking.Access.Type),
-				ConnectionID: connectionID,
-			},
+			Access: networkingAccessModel,
 		})
 		if diags.HasError() {
 			return nil, diags
