@@ -8,7 +8,7 @@ inputs:
   dry-run:
     description: 'Dry run the cleanup'
     default: 'true'
-  clean-only-0-clusters:
+  clean-only-when-no-clusters:
     description: 'Only projects with 0 clusters'
     default: 'false'
 
@@ -24,4 +24,4 @@ runs:
       env:
         DRY_RUN: ${{ inputs.dry-run }}
         MONGODB_ATLAS_CLEAN_ORG: 'true'
-        MONGODB_ATLAS_CLEAN_ONLY_0_CLUSTERS: ${{ inputs.clean-only-0-clusters }}
+        MONGODB_ATLAS_CLEAN_ONLY_0_CLUSTERS: ${{ inputs.clean-only-when-no-clusters }}
