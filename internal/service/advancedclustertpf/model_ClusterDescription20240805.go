@@ -143,7 +143,7 @@ func NewPinnedFCVObjType(ctx context.Context, cluster *admin.ClusterDescription2
 		Version:        types.StringValue(cluster.GetFeatureCompatibilityVersion()),
 		ExpirationDate: types.StringValue(conversion.TimeToString(cluster.GetFeatureCompatibilityVersionExpirationDate())),
 	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, ConnectionStringsObjType.AttrTypes, tfModel)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, PinnedFCVObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
 }
