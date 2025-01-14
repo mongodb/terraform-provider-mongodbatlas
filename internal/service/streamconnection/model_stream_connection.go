@@ -77,7 +77,7 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 	return &streamConnection, nil
 }
 
-func NewTFStreamConnection(ctx context.Context, projID, instanceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
+func NewTFStreamConnection(ctx context.Context, projID, instanceName string, currAuthConfig, currNetworkingConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
 	rID := fmt.Sprintf("%s-%s-%s", instanceName, projID, conversion.SafeString(apiResp.Name))
 	connectionModel := TFStreamConnectionModel{
 		ID:               types.StringValue(rID),
@@ -130,11 +130,19 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 
 	connectionModel.Networking = types.ObjectNull(NetworkingObjectType.AttrTypes)
 	if apiResp.Networking != nil {
+		connectionID := types.StringNull()
+		if currNetworkingConfig != nil && !currNetworkingConfig.IsNull() { // if config is available (create & update of resource) connectionID value from the config is set in new state
+			configNetworkingModel := &TFNetworkingModel{}
+			if diags := currNetworkingConfig.As(ctx, configNetworkingModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+				return nil, diags
+			}
+			connectionID = configNetworkingModel.Access.ConnectionID
+		}
 		networkingModel, diags := types.ObjectValueFrom(ctx, NetworkingObjectType.AttrTypes, TFNetworkingModel{
 			Access: TFNetworkingAccessModel{
 				Type:         types.StringPointerValue(apiResp.Networking.Access.Type),
 				Name:         types.StringPointerValue(apiResp.Networking.Access.Name),
-				ConnectionID: types.StringPointerValue(apiResp.Networking.Access.ConnectionId),
+				ConnectionID: connectionID,
 			},
 		})
 		if diags.HasError() {
@@ -179,7 +187,7 @@ func NewTFStreamConnections(ctx context.Context,
 	for i := range input {
 		projectID := streamConnectionsConfig.ProjectID.ValueString()
 		instanceName := streamConnectionsConfig.InstanceName.ValueString()
-		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, nil, &input[i])
+		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, nil, nil, &input[i])
 		if diags.HasError() {
 			return nil, diags
 		}
