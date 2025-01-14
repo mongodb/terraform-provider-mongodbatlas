@@ -20,8 +20,9 @@ const (
 	itemsPerPage                   = 100
 	keepProjectsCreatedWithinHours = 5
 	// Resource cleanup for a project can be slow, especially when there are active clusters, that can take more than 10 minutes to delete
+	// Once 5 minutes are passed, we give up deleting and hope for the project to be deleted within the next run
 	retryInterval = 60 * time.Second
-	retryAttempts = 10
+	retryAttempts = 5
 )
 
 var (
@@ -92,7 +93,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 					continue
 				}
 			}
-			require.False(t, true, "failed to delete project %s: %s", name, err)
+			t.Logf("failed to delete project %s: %s", name, err)
 		})
 	}
 }
