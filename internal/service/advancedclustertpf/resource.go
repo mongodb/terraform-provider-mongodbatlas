@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
@@ -49,6 +50,8 @@ const (
 	errorAwaitStateResultType       = "the result of awaiting cluster wasn't of the expected type"
 	errorAdvancedConfUpdate         = "error updating Advanced Configuration"
 	errorAdvancedConfUpdateLegacy   = "error updating Advanced Configuration from legacy API"
+	errorPinningFCV                 = "error pinning FCV"
+	errorUnpinningFCV               = "error unpinning FCV"
 
 	DeprecationOldSchemaAction = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 	defaultTimeout             = 3 * time.Hour
@@ -123,6 +126,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+
+	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
+	r.applyPinnedFCVChanges(ctx, diags, &state, &plan)
+	if diags.HasError() {
+		return
+	}
+
 	stateUsingLegacy := usingLegacySchema(ctx, state.ReplicationSpecs, diags)
 	planUsingLegacy := usingLegacySchema(ctx, plan.ReplicationSpecs, diags)
 	if planUsingLegacy && !stateUsingLegacy {
@@ -135,6 +145,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"regionConfigs"},
 		IgnoreInStateSuffix: []string{"id", "zoneId"}, // replication_spec.*.zone_id|id doesn't have to be included, the API will do its best to create a minimal change
@@ -258,6 +269,12 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if diags.HasError() {
 		return nil
 	}
+	// TODO check empty state works well here.
+	r.applyPinnedFCVChanges(ctx, diags, emptyState, plan)
+	if diags.HasError() {
+		return nil
+	}
+
 	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, clusterResp, plan, false)
 	if diags.HasError() {
 		return nil
@@ -266,23 +283,25 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if diags.HasError() {
 		return nil
 	}
+
 	return modelOut
 }
 
-func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, modelIn *TFModel, state *tfsdk.State) *TFModel {
-	clusterName := modelIn.Name.ValueString()
-	projectID := modelIn.ProjectID.ValueString()
+func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, state *TFModel, respState *tfsdk.State) *TFModel {
+	clusterName := state.Name.ValueString()
+	projectID := state.ProjectID.ValueString()
 	api := r.Client.AtlasV2.ClustersApi
 	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
-			state.RemoveResource(ctx)
+			respState.RemoveResource(ctx)
 			return nil
 		}
 		diags.AddError(errorReadResource, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, modelIn, false)
+	warningIfFCVExpiredOrUnpinnedExternally(diags, state, readResp)
+	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, state, false)
 	if diags.HasError() {
 		return nil
 	}
@@ -291,6 +310,36 @@ func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, modelIn *
 		return nil
 	}
 	return modelOut
+}
+
+func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+	var (
+		api         = r.Client.AtlasV2.ClustersApi
+		projectID   = plan.ProjectID.ValueString()
+		clusterName = plan.Name.ValueString()
+	)
+	if !state.PinnedFCV.Equal(plan.PinnedFCV) { // TODO verify this works correctly by changing something else to trigger an update and in create
+		isFCVPresentInConfig := !plan.PinnedFCV.IsNull() // TODO verify this works correctly
+		if isFCVPresentInConfig {
+			fcvModel := &TFPinnedFCVModel{}
+			// pinned_fcv has been defined or updated expiration date
+			if localDiags := plan.PinnedFCV.As(ctx, fcvModel, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
+				diags.Append(localDiags...)
+				return
+			}
+			if err := PinFCV(ctx, api, projectID, clusterName, fcvModel.ExpirationDate.ValueString()); err != nil {
+				diags.AddError(errorUnpinningFCV, defaultAPIErrorDetails(clusterName, err))
+			}
+		} else {
+			// pinned_fcv has been removed from the config so unpin method is called
+			if _, _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
+				diags.AddError(errorUnpinningFCV, defaultAPIErrorDetails(clusterName, err))
+				return
+			}
+		}
+		// ensures cluster is in IDLE state before continuing with other changes
+		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+	}
 }
 
 func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
@@ -485,4 +534,10 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 		}
 	}
 	AddAdvancedConfig(ctx, model, advConfig, legacyAdvConfig, diags)
+}
+
+func warningIfFCVExpiredOrUnpinnedExternally(diags *diag.Diagnostics, state *TFModel, clusterResp *admin.ClusterDescription20240805) {
+	fcvPresentInState := !state.PinnedFCV.IsNull()
+	newWarnings := GenerateFCVPinningWarningForRead(fcvPresentInState, clusterResp.FeatureCompatibilityVersionExpirationDate)
+	diags.Append(newWarnings...)
 }
