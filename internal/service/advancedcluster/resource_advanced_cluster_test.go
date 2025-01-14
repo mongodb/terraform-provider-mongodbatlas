@@ -16,7 +16,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -744,13 +743,13 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isAcc bool) resource.Tes
 				Config: configGeoShardedOldSchema(t, isAcc, orgID, projectName, clusterName, 2, 2, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkGeoShardedOldSchema(isAcc, clusterName, 2, 2, true, false),
-					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			{
 				Config: configGeoShardedOldSchema(t, isAcc, orgID, projectName, clusterName, 3, 3, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkGeoShardedOldSchema(isAcc, clusterName, 3, 3, true, false),
-					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 		},
 	}
@@ -830,7 +829,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestC
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_clusters.test-replication-specs-per-shard-false", "results.#", "0"),
-					checkIndependentShardScalingMode(clusterName, "SHARD")),
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD")),
 			},
 		},
 	}
@@ -879,7 +878,7 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkShardedTransitionOldToNewSchema(true, false),
-					checkIndependentShardScalingMode(clusterName, "CLUSTER")),
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			{
 				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, false),
@@ -1132,11 +1131,11 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false, true),
-				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
 				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, true),
-				Check:  checkIndependentShardScalingMode(clusterName, "SHARD"),
+				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
 			},
 		},
 	})
@@ -1157,15 +1156,15 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 		Steps: []resource.TestStep{
 			{
 				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, false, false),
-				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
 				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, false),
-				Check:  checkIndependentShardScalingMode(clusterName, "CLUSTER"),
+				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
 				Config: configShardedTransitionOldToNewSchema(t, true, orgID, projectName, clusterName, true, true),
-				Check:  checkIndependentShardScalingMode(clusterName, "SHARD"),
+				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
 			},
 		},
 	})
@@ -1390,27 +1389,6 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 		}
 	}
 	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)) + dataSourcesTFNewSchema
-}
-
-func checkIndependentShardScalingMode(clusterName, expectedMode string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-		projectID := rs.Primary.Attributes["project_id"]
-		issMode, _, err := acc.GetIndependentShardScalingMode(context.Background(), projectID, clusterName)
-		if err != nil {
-			return fmt.Errorf("error getting independent shard scaling mode: %w", err)
-		}
-		if *issMode != expectedMode {
-			return fmt.Errorf("expected independent shard scaling mode to be %s, got %s", expectedMode, *issMode)
-		}
-		return nil
-	}
 }
 
 func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
