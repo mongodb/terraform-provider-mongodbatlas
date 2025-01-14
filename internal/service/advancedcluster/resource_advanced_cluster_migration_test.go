@@ -30,13 +30,11 @@ func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // AttributeName("advanced_configuration"): invalid JSON, expected "{", got "["
 	testCase := symmetricGeoShardedOldSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	mig.SkipIfVersionBelow(t, "1.23.0") // version where sharded cluster tier auto-scaling was introduced
 	testCase := asymmetricShardedNewSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
@@ -234,7 +232,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_newSchemaFromAutoscalingDisabledToEnabled(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
