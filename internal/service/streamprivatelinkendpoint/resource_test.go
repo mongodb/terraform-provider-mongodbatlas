@@ -21,18 +21,21 @@ var (
 )
 
 func TestAccStreamPrivatelinkEndpoint_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // needs confluent cloud resources
 	tc := basicTestCase(t)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
 }
 
 func TestAccStreamPrivatelinkEndpoint_failedUpdate(t *testing.T) {
+	acc.SkipTestForCI(t) // needs confluent cloud resources
 	tc := failedUpdateTestCase(t)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
 }
 
 func TestAccStreamPrivatelinkEndpoint_missingRequiredFields(t *testing.T) {
+	acc.SkipTestForCI(t) // needs confluent cloud resources
 	tc := missingRequiredFieldsTestCase(t)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
