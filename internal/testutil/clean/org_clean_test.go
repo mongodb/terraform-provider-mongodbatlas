@@ -47,7 +47,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		t.Skip("skipping test; set MONGODB_ATLAS_CLEAN_ORG=true to run")
 	}
 	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
-	onlyZeroClusters, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_ONLY_0_CLUSTERS"))
+	onlyZeroClusters, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_ONLY_WHEN_NO_CLUSTERS"))
 	skipProjectsAfter := time.Now().Add(-keepProjectsCreatedWithinHours * time.Hour)
 	maxDeleteCount := 250
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {

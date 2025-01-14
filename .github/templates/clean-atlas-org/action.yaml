@@ -24,4 +24,4 @@ runs:
       env:
         DRY_RUN: ${{ inputs.dry-run }}
         MONGODB_ATLAS_CLEAN_ORG: 'true'
-        MONGODB_ATLAS_CLEAN_ONLY_0_CLUSTERS: ${{ inputs.clean-only-when-no-clusters }}
+        MONGODB_ATLAS_CLEAN_ONLY_WHEN_NO_CLUSTERS: ${{ inputs.clean-only-when-no-clusters }}
