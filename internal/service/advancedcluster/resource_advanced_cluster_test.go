@@ -137,11 +137,11 @@ func TestAccMockableAdvancedCluster_basicTenant(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(t, true, projectID, clusterName),
+				Config: configTenant(t, true, projectID, clusterName, ""),
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: configTenant(t, true, projectID, clusterNameUpdated),
+				Config: configTenant(t, true, projectID, clusterNameUpdated, ""),
 				Check:  checkTenant(true, projectID, clusterNameUpdated),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -151,8 +151,9 @@ func TestAccMockableAdvancedCluster_basicTenant(t *testing.T) {
 
 func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
+		projectID       = acc.ProjectIDExecution(t)
+		clusterName     = acc.RandomClusterName()
+		defaultZoneName = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
 	)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -160,11 +161,11 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenant(t, true, projectID, clusterName)),
+				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenant(t, true, projectID, clusterName, defaultZoneName)),
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenantUpgraded(projectID, clusterName)),
+				Config: acc.ConvertAdvancedClusterToSchemaV2(t, true, configTenantUpgraded(projectID, clusterName, defaultZoneName)),
 				Check:  checksTenantUpgraded(projectID, clusterName),
 			},
 		},
@@ -1404,8 +1405,12 @@ func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra 
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func configTenant(t *testing.T, isAcc bool, projectID, name string) string {
+func configTenant(t *testing.T, isAcc bool, projectID, name, zoneName string) string {
 	t.Helper()
+	zoneNameLine := ""
+	if zoneName != "" {
+		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
+	}
 	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
@@ -1422,9 +1427,10 @@ func configTenant(t *testing.T, isAcc bool, projectID, name string) string {
 					region_name           = "US_EAST_1"
 					priority              = 7
 				}
+				%[3]s
 			}
 		}
-	`, projectID, name)) + dataSourcesTFNewSchema
+	`, projectID, name, zoneNameLine)) + dataSourcesTFNewSchema
 }
 
 func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
@@ -1440,7 +1446,11 @@ func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
 		pluralChecks...)
 }
 
-func configTenantUpgraded(projectID, name string) string {
+func configTenantUpgraded(projectID, name, zoneName string) string {
+	zoneNameLine := ""
+	if zoneName != "" {
+		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
+	}
 	return fmt.Sprintf(`
 	resource "mongodbatlas_advanced_cluster" "test" {
 		project_id   = %[1]q
@@ -1457,9 +1467,10 @@ func configTenantUpgraded(projectID, name string) string {
 					instance_size = "M10"
 				}
 			}
+			%[3]s
 		}
 	}
-	`, projectID, name) + dataSourcesTFNewSchema
+	`, projectID, name, zoneNameLine) + dataSourcesTFNewSchema
 }
 
 func checksTenantUpgraded(projectID, name string) resource.TestCheckFunc {
