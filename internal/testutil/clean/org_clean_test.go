@@ -41,6 +41,7 @@ var (
 	}
 )
 
+// Using a test to simplify logging and parallelization
 func TestCleanProjectAndClusters(t *testing.T) {
 	client := acc.ConnV2()
 	ctx := context.Background()
