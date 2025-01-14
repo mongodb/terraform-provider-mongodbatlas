@@ -16,12 +16,19 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
+const (
+	itemsPerPage                   = 100
+	keepProjectsCreatedWithinHours = 5
+	retryInterval                  = 60 * time.Second
+	retryAttempts                  = 10
+)
+
 var (
 	botProjectPrefixes = []string{
 		"cfn-test-bot-",
 		"test-acc-tf-p-",
 	}
-	blessedPrefixes = []string{
+	keptPrefixes = []string{
 		"test-acc-tf-p-keep",
 	}
 	projectRetryDeleteErrors = []string{
@@ -41,10 +48,10 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	}
 	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
 	onlyZeroClusters, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_ONLY_0_CLUSTERS"))
-	skipProjectsAfter := time.Now().Add(-5 * time.Hour)
+	skipProjectsAfter := time.Now().Add(-keepProjectsCreatedWithinHours * time.Hour)
 	maxDeleteCount := 250
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
-		return client.ProjectsApi.ListProjects(ctx).ItemsPerPage(100).PageNum(pageNum).Execute()
+		return client.ProjectsApi.ListProjects(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	})
 	require.NoError(t, err)
 	t.Logf("found %d projects (DRY_RUN=%t)", len(projects), dryRun)
@@ -70,10 +77,10 @@ func TestCleanProjectAndClusters(t *testing.T) {
 			if changes != "" {
 				t.Logf("project %s %s", name, changes)
 			}
-			for i := range 10 {
+			for i := range retryAttempts {
 				attempt := i + 1
 				if attempt > 1 {
-					time.Sleep(60 * time.Second)
+					time.Sleep(retryInterval)
 				}
 				t.Logf("attempt %d to delete project %s", attempt, name)
 				if dryRun {
@@ -109,7 +116,6 @@ func deleteProject(ctx context.Context, client *admin.APIClient, projectID strin
 	if err == nil || admin.IsErrorCode(err, "PROJECT_NOT_FOUND") {
 		return nil
 	}
-	_, _, err = client.ProjectsApi.DeleteProject(ctx, projectID).Execute()
 	return err
 }
 
@@ -136,7 +142,7 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 }
 
 func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bool) string {
-	for _, blessedPrefix := range blessedPrefixes {
+	for _, blessedPrefix := range keptPrefixes {
 		if strings.HasPrefix(p.GetName(), blessedPrefix) {
 			return "blessed prefix: " + blessedPrefix
 		}
@@ -162,7 +168,7 @@ func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bo
 
 func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
 	t.Helper()
-	clusters, _, err := client.ClustersApi.ListClusters(ctx, projectID).ItemsPerPage(100).Execute()
+	clusters, _, err := client.ClustersApi.ListClusters(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
 	require.NoError(t, err)
 	clustersResults := clusters.GetResults()
 
@@ -184,7 +190,7 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 
 func removeNetworkPeering(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
 	t.Helper()
-	peering, _, err := client.NetworkPeeringApi.ListPeeringConnections(ctx, projectID).ItemsPerPage(100).Execute()
+	peering, _, err := client.NetworkPeeringApi.ListPeeringConnections(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
 	require.NoError(t, err)
 	peeringResults := peering.GetResults()
 	for i := range peeringResults {
