@@ -751,22 +751,27 @@ func TestAccMockableAdvancedCluster_symmetricShardedOldSchemaDiskSizeGBAtElectab
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAddingRemovingShard(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(t, true, projectID, clusterName, 50, "M10", "M10", nil, nil, false),
+				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false),
 				Check:  checkShardedNewSchema(true, 50, "M10", "M10", nil, nil, false, false),
 			},
 			{
-				Config: configShardedNewSchema(t, true, projectID, clusterName, 55, "M10", "M20", nil, nil, true), // add middle replication spec and transition to asymmetric
+				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true), // add middle replication spec and transition to asymmetric
 				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, true),
 			},
 			{
-				Config: configShardedNewSchema(t, true, projectID, clusterName, 55, "M10", "M20", nil, nil, false), // removes middle replication spec
+				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false), // removes middle replication spec
 				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, false),
 			},
 		},
@@ -779,7 +784,11 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 
 func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
 
 	return resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -787,7 +796,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestC
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(t, isAcc, projectID, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
+				Config: configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_clusters.test-replication-specs-per-shard-false", "results.#", "0"),
@@ -863,7 +872,11 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 }
 
 func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -871,19 +884,19 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *t
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, projectID, clusterName, "WORKLOAD_TYPE", true),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, orgID, projectName, clusterName, "WORKLOAD_TYPE", true),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "WORKLOAD_TYPE", true),
 			},
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, projectID, clusterName, "SEQUENTIAL", false),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, orgID, projectName, clusterName, "SEQUENTIAL", false),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "SEQUENTIAL", false),
 			},
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, projectID, clusterName, "NODE_TYPE", true),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, orgID, projectName, clusterName, "NODE_TYPE", true),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "NODE_TYPE", true),
 			},
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, projectID, clusterName, "NODE_TYPE", false),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogData(t, true, orgID, projectName, clusterName, "NODE_TYPE", false),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "NODE_TYPE", false),
 			},
 		},
@@ -891,7 +904,11 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *t
 }
 
 func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t)
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -899,15 +916,15 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, true, projectID, clusterName, "WORKLOAD_TYPE", false),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, true, orgID, projectName, clusterName, "WORKLOAD_TYPE", false),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "WORKLOAD_TYPE", false),
 			},
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, true, projectID, clusterName, "SEQUENTIAL", true),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, true, orgID, projectName, clusterName, "SEQUENTIAL", true),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "SEQUENTIAL", true),
 			},
 			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, true, projectID, clusterName, "NODE_TYPE", false),
+				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, true, orgID, projectName, clusterName, "NODE_TYPE", false),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "NODE_TYPE", false),
 			},
 		},
@@ -2115,7 +2132,7 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel(isAcc bool, diskSizeGB int) r
 		})
 }
 
-func configShardedNewSchema(t *testing.T, isAcc bool, projectID, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec bool) string {
+func configShardedNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec bool) string {
 	t.Helper()
 	var thirdReplicationSpec string
 	if includeMiddleSpec {
@@ -2154,24 +2171,29 @@ func configShardedNewSchema(t *testing.T, isAcc bool, projectID, name string, di
 		`, *lastDiskIOPS)
 	}
 	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id = %[1]q
-			name = %[2]q
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
 			backup_enabled = false
 			cluster_type   = "SHARDED"
 
 			replication_specs {
 				region_configs {
 					electable_specs {
-						instance_size = %[3]q
+						instance_size = %[4]q
 						node_count    = 3
-						disk_size_gb  = %[8]d
-						%[5]s
+						disk_size_gb  = %[9]d
+						%[6]s
 					}
 					analytics_specs {
-						instance_size = %[3]q
+						instance_size = %[4]q
 						node_count    = 1
-						disk_size_gb  = %[8]d
+						disk_size_gb  = %[9]d
 					}
 					provider_name = "AWS"
 					priority      = 7
@@ -2179,20 +2201,20 @@ func configShardedNewSchema(t *testing.T, isAcc bool, projectID, name string, di
 				}
 			}
 
-			%[7]s
+			%[8]s
 
 			replication_specs {
 				region_configs {
 					electable_specs {
-						instance_size = %[4]q
+						instance_size = %[5]q
 						node_count    = 3
-						disk_size_gb  = %[8]d
-						%[6]s
+						disk_size_gb  = %[9]d
+						%[7]s
 					}
 					analytics_specs {
-						instance_size = %[4]q
+						instance_size = %[5]q
 						node_count    = 1
-						disk_size_gb  = %[8]d
+						disk_size_gb  = %[9]d
 					}
 					provider_name = "AWS"
 					priority      = 7
@@ -2216,7 +2238,7 @@ func configShardedNewSchema(t *testing.T, isAcc bool, projectID, name string, di
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
 		}
-	`, projectID, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB))
+	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB))
 }
 
 func checkShardedNewSchema(isAcc bool, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops *int, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
@@ -2518,16 +2540,21 @@ func checkGeoShardedTransitionOldToNewSchema(isAcc, useNewSchema bool) resource.
 	)
 }
 
-func configReplicaSetScalingStrategyAndRedactClientLogData(t *testing.T, isAcc bool, projectID, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
+func configReplicaSetScalingStrategyAndRedactClientLogData(t *testing.T, isAcc bool, orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
 	t.Helper()
 	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id = %[1]q
-			name = %[2]q
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
 			backup_enabled = false
 			cluster_type   = "SHARDED"
-			replica_set_scaling_strategy = %[3]q
-			redact_client_log_data = %[4]t
+			replica_set_scaling_strategy = %[4]q
+			redact_client_log_data = %[5]t
 
 			replication_specs {
 				region_configs {
@@ -2547,19 +2574,24 @@ func configReplicaSetScalingStrategyAndRedactClientLogData(t *testing.T, isAcc b
 				}
 			}
 		}
-	`, projectID, name, replicaSetScalingStrategy, redactClientLogData)) + dataSourcesTFNewSchema
+	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData)) + dataSourcesTFNewSchema
 }
 
-func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T, isAcc bool, projectID, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
+func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T, isAcc bool, orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
 	t.Helper()
 	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id = %[1]q
-			name = %[2]q
+			project_id = mongodbatlas_project.cluster_project.id
+			name = %[3]q
 			backup_enabled = false
 			cluster_type   = "SHARDED"
-			replica_set_scaling_strategy = %[3]q
-			redact_client_log_data = %[4]t
+			replica_set_scaling_strategy = %[4]q
+			redact_client_log_data = %[5]t
 
 			replication_specs {
 				num_shards = 2
@@ -2580,7 +2612,7 @@ func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T
 				}
 			}
 		}
-	`, projectID, name, replicaSetScalingStrategy, redactClientLogData)) + dataSourcesTFOldSchema
+	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData)) + dataSourcesTFOldSchema
 }
 
 func checkReplicaSetScalingStrategyAndRedactClientLogData(isAcc bool, replicaSetScalingStrategy string, redactClientLogData bool) resource.TestCheckFunc {
