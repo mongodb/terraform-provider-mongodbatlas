@@ -15,17 +15,20 @@ func Test_NextProjectIDClusterName(t *testing.T) {
 	projectIDs := map[string]int{}
 	clusterNames := map[string]int{}
 
-	addProjectIDClusterName := func() {
-		projectID, clusterName := acc.NextProjectIDClusterName(projectIDReturner)
+	addProjectIDClusterName := func(nodeCount int) {
+		projectID, clusterName := acc.NextProjectIDClusterName(nodeCount, projectIDReturner)
 		projectIDs[projectID]++
 		clusterNames[clusterName]++
 	}
-	for range acc.MaxClustersPerProject {
-		addProjectIDClusterName()
+	for range acc.MaxClusterNodesPerProject {
+		addProjectIDClusterName(1)
 	}
 	assert.Len(t, projectIDs, 1)
-	assert.Len(t, clusterNames, acc.MaxClustersPerProject)
-	addProjectIDClusterName()
+	assert.Len(t, clusterNames, acc.MaxClusterNodesPerProject)
+	addProjectIDClusterName(1)
 	assert.Len(t, projectIDs, 2)
-	assert.Len(t, clusterNames, acc.MaxClustersPerProject+1)
+	assert.Len(t, clusterNames, acc.MaxClusterNodesPerProject+1)
+	addProjectIDClusterName(acc.MaxClusterNodesPerProject)
+	assert.Len(t, projectIDs, 3)
+	assert.Len(t, clusterNames, acc.MaxClusterNodesPerProject+2)
 }

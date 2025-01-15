@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	MaxClustersPerProject = 5
+	MaxClusterNodesPerProject = 30 // Choose to be conservative, 40 clusters per project is the limit before `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` error, see https://www.mongodb.com/docs/atlas/reference/atlas-limits/
 )
 
 // SetupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
@@ -62,9 +62,10 @@ func ProjectIDExecution(tb testing.TB) string {
 }
 
 // ProjectIDExecutionWithCluster creates a project and reuses it `MaxClustersPerProject` times. The clusterName is always unique.
+// TotalNodeCount = sum(specs.node_count) * num_shards (1 if new schema)
 // This avoids the `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` error when creating too many clusters within the same project.
 // When `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` are defined, they are used instead of creating a project and clusterName.
-func ProjectIDExecutionWithCluster(tb testing.TB) (projectID, clusterName string) {
+func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID, clusterName string) {
 	tb.Helper()
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
@@ -72,7 +73,7 @@ func ProjectIDExecutionWithCluster(tb testing.TB) (projectID, clusterName string
 	if ExistingClusterUsed() {
 		return existingProjectIDClusterName()
 	}
-	return NextProjectIDClusterName(func(projectName string) string {
+	return NextProjectIDClusterName(totalNodeCount, func(projectName string) string {
 		return createProject(tb, projectName)
 	})
 }
@@ -121,9 +122,9 @@ func SerialSleep(tb testing.TB) {
 }
 
 type projectInfo struct {
-	id           string
-	name         string
-	clusterCount int
+	id        string
+	name      string
+	nodeCount int
 }
 
 var sharedInfo = struct {
@@ -139,20 +140,20 @@ var sharedInfo = struct {
 }
 
 // NextProjectIDClusterName is an internal method used when we want to reuse a projectID `MaxClustersPerProject` times
-func NextProjectIDClusterName(projectCreator func(string) string) (projectID, clusterName string) {
+func NextProjectIDClusterName(totalNodeCount int, projectCreator func(string) string) (projectID, clusterName string) {
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
 	var project projectInfo
-	if len(sharedInfo.projects) == 0 || sharedInfo.projects[len(sharedInfo.projects)-1].clusterCount == MaxClustersPerProject {
+	if len(sharedInfo.projects) == 0 || sharedInfo.projects[len(sharedInfo.projects)-1].nodeCount+totalNodeCount > MaxClusterNodesPerProject {
 		project = projectInfo{
-			name:         RandomProjectName(),
-			clusterCount: 1,
+			name:      RandomProjectName(),
+			nodeCount: totalNodeCount,
 		}
 		project.id = projectCreator(project.name)
 		sharedInfo.projects = append(sharedInfo.projects, project)
 	} else {
 		project = sharedInfo.projects[len(sharedInfo.projects)-1]
-		sharedInfo.projects[len(sharedInfo.projects)-1].clusterCount++
+		sharedInfo.projects[len(sharedInfo.projects)-1].nodeCount += totalNodeCount
 	}
 	return project.id, RandomClusterName()
 }
