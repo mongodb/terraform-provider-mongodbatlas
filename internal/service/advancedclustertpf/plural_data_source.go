@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -74,6 +75,9 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			Name:      types.StringValue(clusterResp.GetName()),
 		}
 		modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn, !useReplicationSpecPerShard)
+		if DiagsHasOnlyClusterNotFound(diags) {
+			continue
+		}
 		if diags.HasError() {
 			return nil
 		}
@@ -81,6 +85,9 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			continue
 		}
 		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
+		if DiagsHasOnlyClusterNotFound(diags) {
+			continue
+		}
 		if diags.HasError() {
 			return nil
 		}
@@ -89,4 +96,14 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		outs.Results = append(outs.Results, modelOutDS)
 	}
 	return outs
+}
+
+func DiagsHasOnlyClusterNotFound(diags *diag.Diagnostics) bool {
+	for _, d := range *diags {
+		if d.Severity() != diag.SeverityError || strings.Contains(d.Detail(), "CLUSTER_NOT_FOUND") {
+			continue
+		}
+		return false
+	}
+	return true
 }
