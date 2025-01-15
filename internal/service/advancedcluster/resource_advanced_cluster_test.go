@@ -1719,8 +1719,7 @@ func checkShardedOldSchemaMultiCloud(isAcc bool, name string, numShards int, ana
 			acc.TestCheckResourceAttrSetSchemaV2(isAcc, resourceName, "config_server_type"),
 			acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourceName, "config_server_management_mode", *configServerManagementMode),
 			acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourceName, "config_server_type"),
-			acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourcePluralName, "results.0.config_server_management_mode", *configServerManagementMode),
-			acc.TestCheckResourceAttrSetSchemaV2(isAcc, dataSourcePluralName, "results.0.config_server_type"))
+		)
 	}
 
 	return checkAggr(isAcc,

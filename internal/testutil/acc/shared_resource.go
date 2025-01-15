@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	MaxClustersPerProject = 6
+	MaxClustersPerProject = 5
 )
 
 // SetupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
