@@ -205,8 +205,10 @@ func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t)
-		clusterNameUpdated     = acc.RandomClusterName()
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName        = acc.RandomClusterName()
+		clusterNameUpdated = acc.RandomClusterName()
 	)
 
 	return resource.TestCase{
@@ -215,11 +217,11 @@ func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetMultiCloud(t, isAcc, projectID, clusterName),
+				Config: configReplicaSetMultiCloud(t, isAcc, orgID, projectName, clusterName),
 				Check:  checkReplicaSetMultiCloud(isAcc, clusterName, 3),
 			},
 			{
-				Config: configReplicaSetMultiCloud(t, isAcc, projectID, clusterNameUpdated),
+				Config: configReplicaSetMultiCloud(t, isAcc, orgID, projectName, clusterNameUpdated),
 				Check:  checkReplicaSetMultiCloud(isAcc, clusterNameUpdated, 3),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
@@ -1577,12 +1579,17 @@ func configIncorrectTypeGobalClusterSelfManagedSharding(t *testing.T, isAcc bool
 	`, projectID, name))
 }
 
-func configReplicaSetMultiCloud(t *testing.T, isAcc bool, projectID, name string) string {
+func configReplicaSetMultiCloud(t *testing.T, isAcc bool, orgID, projectName, name string) string {
 	t.Helper()
 	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
+			project_id   = mongodbatlas_project.cluster_project.id
+			name         = %[3]q
 			cluster_type = "REPLICASET"
 			retain_backups_enabled = false
 
@@ -1622,7 +1629,7 @@ func configReplicaSetMultiCloud(t *testing.T, isAcc bool, projectID, name string
 				}
 			}
 		}
-	`, projectID, name)) + dataSourcesTFNewSchema
+	`, orgID, projectName, name)) + dataSourcesTFNewSchema
 }
 
 func checkReplicaSetMultiCloud(isAcc bool, name string, regionConfigs int) resource.TestCheckFunc {
