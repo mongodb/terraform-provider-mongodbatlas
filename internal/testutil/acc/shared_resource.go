@@ -142,23 +142,15 @@ func NextProjectIDClusterName(projectCreator func(string) string) (projectID, cl
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
 	var project projectInfo
-	if len(sharedInfo.projects) == 0 {
+	if len(sharedInfo.projects) == 0 || sharedInfo.projects[len(sharedInfo.projects)-1].clusterCount == MaxClustersPerProject {
 		project = projectInfo{
 			name: RandomProjectName(),
+			clusterCount: 1,
 		}
-	} else {
-		project = sharedInfo.projects[len(sharedInfo.projects)-1]
-	}
-	if project.clusterCount == MaxClustersPerProject {
-		project = projectInfo{
-			name: RandomProjectName(),
-		}
-	}
-	if project.id == "" {
-		project.clusterCount++
 		project.id = projectCreator(project.name)
 		sharedInfo.projects = append(sharedInfo.projects, project)
 	} else {
+		project = sharedInfo.projects[len(sharedInfo.projects)-1]
 		sharedInfo.projects[len(sharedInfo.projects)-1].clusterCount++
 	}
 	return project.id, RandomClusterName()
