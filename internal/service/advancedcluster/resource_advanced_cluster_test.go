@@ -1077,8 +1077,6 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 	eightDaysFromNow := sevenDaysFromNow.AddDate(0, 0, 1)
 	updatedExpirationDate := conversion.TimeToString(eightDaysFromNow)
 	invalidDateFormat := "invalid"
-	config := configFCVPinning(t, true, orgID, projectName, clusterName, &firstExpirationDate, "7.0")
-	checks := acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(firstExpirationDate), admin.PtrInt(7))
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1089,8 +1087,8 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 			{ // pins fcv
-				Config: config,
-				Check:  checks,
+				Config: configFCVPinning(t, true, orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(firstExpirationDate), admin.PtrInt(7)),
 			},
 			{ // using incorrect format
 				Config:      configFCVPinning(t, true, orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
