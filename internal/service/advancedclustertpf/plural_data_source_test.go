@@ -15,7 +15,7 @@ func TestDiagsHasOnlyClusterNotFound(t *testing.T) {
 	}{
 		"empty diagnostics": {
 			diags:    diag.Diagnostics{},
-			expected: false,
+			expected: true,
 		},
 		"single cluster not found": {
 			diags: diag.Diagnostics{
@@ -48,8 +48,62 @@ func TestDiagsHasOnlyClusterNotFound(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			result := advancedclustertpf.DiagsHasOnlyClusterNotFound(&tc.diags)
+			result := advancedclustertpf.DiagsHasOnlyClusterNotFoundErrors(&tc.diags)
 			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestResetClusterNotFoundErrors(t *testing.T) {
+	tests := map[string]struct {
+		input    diag.Diagnostics
+		expected diag.Diagnostics
+	}{
+		"empty diagnostics": {
+			input:    diag.Diagnostics{},
+			expected: diag.Diagnostics{},
+		},
+		"only cluster not found errors": {
+			input: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Error", "CLUSTER_NOT_FOUND"),
+				diag.NewErrorDiagnostic("Error", "CLUSTER_NOT_FOUND"),
+			},
+			expected: diag.Diagnostics{},
+		},
+		"mixed errors": {
+			input: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Error", "CLUSTER_NOT_FOUND"),
+				diag.NewErrorDiagnostic("Other Error", "Some other error"),
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Other Error", "Some other error"),
+			},
+		},
+		"no cluster not found errors": {
+			input: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Error 1", "Some error"),
+				diag.NewErrorDiagnostic("Error 2", "Another error"),
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Error 1", "Some error"),
+				diag.NewErrorDiagnostic("Error 2", "Another error"),
+			},
+		},
+		"warnings with cluster not found": {
+			input: diag.Diagnostics{
+				diag.NewWarningDiagnostic("Warning", "Some warning"),
+				diag.NewErrorDiagnostic("Error", "CLUSTER_NOT_FOUND"),
+			},
+			expected: diag.Diagnostics{
+				diag.NewWarningDiagnostic("Warning", "Some warning"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			result := advancedclustertpf.ResetClusterNotFoundErrors(&tc.input)
+			assert.Equal(t, tc.expected, *result)
 		})
 	}
 }

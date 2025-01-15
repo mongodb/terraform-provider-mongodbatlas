@@ -42,6 +42,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		return
 	}
 	model, diags := d.readClusters(ctx, diags, &state)
+	resp.Diagnostics = *diags
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
@@ -75,22 +76,22 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			Name:      types.StringValue(clusterResp.GetName()),
 		}
 		modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn, !useReplicationSpecPerShard)
-		if DiagsHasOnlyClusterNotFound(diags) {
-			diags = &diag.Diagnostics{}
-			continue
-		}
 		if diags.HasError() {
+			if DiagsHasOnlyClusterNotFoundErrors(diags) {
+				diags = ResetClusterNotFoundErrors(diags)
+				continue
+			}
 			return nil, diags
 		}
 		if extraInfo.ForceLegacySchemaFailed {
 			continue
 		}
 		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
-		if DiagsHasOnlyClusterNotFound(diags) {
-			diags = &diag.Diagnostics{}
-			continue
-		}
 		if diags.HasError() {
+			if DiagsHasOnlyClusterNotFoundErrors(diags) {
+				diags = ResetClusterNotFoundErrors(diags)
+				continue
+			}
 			return nil, diags
 		}
 		modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
@@ -99,16 +100,22 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	}
 	return outs, diags
 }
-
-func DiagsHasOnlyClusterNotFound(diags *diag.Diagnostics) bool {
-	if !diags.HasError() {
-		return false
-	}
+func DiagsHasOnlyClusterNotFoundErrors(diags *diag.Diagnostics) bool {
 	for _, d := range *diags {
-		if d.Severity() != diag.SeverityError || strings.Contains(d.Detail(), "CLUSTER_NOT_FOUND") {
-			continue
+		if d.Severity() == diag.SeverityError && !strings.Contains(d.Detail(), "CLUSTER_NOT_FOUND") {
+			return false
 		}
-		return false
 	}
 	return true
+}
+
+func ResetClusterNotFoundErrors(diags *diag.Diagnostics) *diag.Diagnostics {
+	newDiags := &diag.Diagnostics{}
+	for _, d := range *diags {
+		if d.Severity() == diag.SeverityError && strings.Contains(d.Detail(), "CLUSTER_NOT_FOUND") {
+			continue
+		}
+		newDiags.Append(d)
+	}
+	return newDiags
 }
