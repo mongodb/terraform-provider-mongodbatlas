@@ -319,8 +319,8 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 		projectID   = plan.ProjectID.ValueString()
 		clusterName = plan.Name.ValueString()
 	)
-	if !state.PinnedFCV.Equal(plan.PinnedFCV) { // TODO verify this works correctly by changing something else to trigger an update and in create
-		isFCVPresentInConfig := !plan.PinnedFCV.IsNull() // TODO verify this works correctly
+	if !state.PinnedFCV.Equal(plan.PinnedFCV) {
+		isFCVPresentInConfig := !plan.PinnedFCV.IsNull()
 		if isFCVPresentInConfig {
 			fcvModel := &TFPinnedFCVModel{}
 			// pinned_fcv has been defined or updated expiration date
