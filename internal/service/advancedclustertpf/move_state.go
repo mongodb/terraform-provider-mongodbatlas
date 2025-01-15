@@ -38,6 +38,13 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 			"name":                   tftypes.String,
 			"retain_backups_enabled": tftypes.Bool,
 			"mongo_db_major_version": tftypes.String,
+			"timeouts": tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"create": tftypes.String,
+					"update": tftypes.String,
+					"delete": tftypes.String,
+				},
+			},
 		},
 	}, tfprotov6.UnmarshalOpts{ValueFromJSONOpts: tftypes.ValueFromJSONOpts{IgnoreUndefinedAttributes: true}})
 	if err != nil {
@@ -64,18 +71,11 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 			conversion.SafeString(projectID), conversion.SafeString(name)))
 		return
 	}
-	validTimeout := timeouts.Value{
-		Object: types.ObjectNull(
-			map[string]attr.Type{
-				"create": types.StringType,
-				"update": types.StringType,
-				"delete": types.StringType,
-			}),
-	}
+
 	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
 		GroupId: projectID,
 		Name:    name,
-	}, validTimeout, diags, ExtraAPIInfo{})
+	}, getAttrTimeout(diags, rawState), diags, ExtraAPIInfo{})
 	if diags.HasError() {
 		return
 	}
@@ -104,4 +104,32 @@ func getAttrFromRawState[T any](diags *diag.Diagnostics, rawState map[string]tft
 		return nil
 	}
 	return ret
+}
+
+func getAttrTimeout(diags *diag.Diagnostics, rawState map[string]tftypes.Value) timeouts.Value {
+	attrTypes := map[string]attr.Type{
+		"create": types.StringType,
+		"update": types.StringType,
+		"delete": types.StringType,
+	}
+	nullObj := timeouts.Value{Object: types.ObjectNull(attrTypes)}
+	timeoutState := getAttrFromRawState[map[string]tftypes.Value](diags, rawState, "timeouts")
+	if diags.HasError() || timeoutState == nil {
+		return nullObj
+	}
+	timeoutMap := make(map[string]attr.Value)
+	for action := range attrTypes {
+		actionTimeout := getAttrFromRawState[string](diags, *timeoutState, action)
+		if actionTimeout == nil {
+			timeoutMap[action] = types.StringNull()
+		} else {
+			timeoutMap[action] = types.StringPointerValue(actionTimeout)
+		}
+	}
+	obj, d := types.ObjectValue(attrTypes, timeoutMap)
+	diags.Append(d...)
+	if diags.HasError() {
+		return nullObj
+	}
+	return timeouts.Value{Object: obj}
 }
