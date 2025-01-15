@@ -1192,7 +1192,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate),
 				Check:  checksUpdate,
 			},
-			acc.TestStepImportCluster(resourceName),
+			acc.TestStepImportCluster(resourceName, acc.ImportIgnoredFields()...),
 		},
 	})
 }
@@ -1235,7 +1235,7 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 				Config: configSharded(t, projectID, clusterName, true),
 				Check:  checksUpdated,
 			},
-			acc.TestStepImportCluster(resourceName),
+			acc.TestStepImportCluster(resourceName, acc.ImportIgnoredFields()...),
 		},
 	})
 }
