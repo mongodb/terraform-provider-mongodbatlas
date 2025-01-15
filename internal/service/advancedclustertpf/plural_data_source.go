@@ -41,13 +41,13 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	if diags.HasError() {
 		return
 	}
-	model := d.readClusters(ctx, diags, &state)
+	model, diags := d.readClusters(ctx, diags, &state)
 	if model != nil {
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
 
-func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pluralModel *TFModelPluralDS) *TFModelPluralDS {
+func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pluralModel *TFModelPluralDS) (*TFModelPluralDS, *diag.Diagnostics) {
 	projectID := pluralModel.ProjectID.ValueString()
 	useReplicationSpecPerShard := pluralModel.UseReplicationSpecPerShard.ValueBool()
 	api := d.Client.AtlasV2.ClustersApi
@@ -61,7 +61,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	})
 	if err != nil {
 		diags.AddError(errorList, fmt.Sprintf(errorListDetail, projectID, err.Error()))
-		return nil
+		return nil, diags
 	}
 	outs := &TFModelPluralDS{
 		ProjectID:                         pluralModel.ProjectID,
@@ -76,26 +76,28 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		}
 		modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn, !useReplicationSpecPerShard)
 		if DiagsHasOnlyClusterNotFound(diags) {
+			diags = &diag.Diagnostics{}
 			continue
 		}
 		if diags.HasError() {
-			return nil
+			return nil, diags
 		}
 		if extraInfo.ForceLegacySchemaFailed {
 			continue
 		}
 		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
 		if DiagsHasOnlyClusterNotFound(diags) {
+			diags = &diag.Diagnostics{}
 			continue
 		}
 		if diags.HasError() {
-			return nil
+			return nil, diags
 		}
 		modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
 		modelOutDS.UseReplicationSpecPerShard = pluralModel.UseReplicationSpecPerShard // attrs not in resource model
 		outs.Results = append(outs.Results, modelOutDS)
 	}
-	return outs
+	return outs, diags
 }
 
 func DiagsHasOnlyClusterNotFound(diags *diag.Diagnostics) bool {
