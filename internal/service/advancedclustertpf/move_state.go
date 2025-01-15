@@ -64,7 +64,6 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 			conversion.SafeString(projectID), conversion.SafeString(name)))
 		return
 	}
-
 	validTimeout := timeouts.Value{
 		Object: types.ObjectNull(
 			map[string]attr.Type{
@@ -81,22 +80,14 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 		return
 	}
 
-	var retainBackupsEnabled *bool
-	if err := rawState["retain_backups_enabled"].As(&retainBackupsEnabled); err != nil {
-		diags.AddAttributeError(path.Root("retain_backups_enabled"), "Unable to read cluster retain_backups_enabled", err.Error())
-		return
-	}
-	if retainBackupsEnabled != nil {
+	if retainBackupsEnabled := getAttrFromRawState[bool](diags, rawState, "retain_backups_enabled"); retainBackupsEnabled != nil {
 		model.RetainBackupsEnabled = types.BoolPointerValue(retainBackupsEnabled)
 	}
-
-	var mongoDBMajorVersion *string
-	if err := rawState["mongo_db_major_version"].As(&mongoDBMajorVersion); err != nil {
-		diags.AddAttributeError(path.Root("mongo_db_major_version"), "Unable to read cluster mongo_db_major_version", err.Error())
-		return
-	}
-	if mongoDBMajorVersion != nil {
+	if mongoDBMajorVersion := getAttrFromRawState[string](diags, rawState, "mongo_db_major_version"); mongoDBMajorVersion != nil {
 		model.MongoDBMajorVersion = types.StringPointerValue(mongoDBMajorVersion)
+	}
+	if diags.HasError() {
+		return
 	}
 
 	AddAdvancedConfig(ctx, model, nil, nil, diags)
@@ -104,4 +95,13 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 		return
 	}
 	diags.Append(stateOut.Set(ctx, model)...)
+}
+
+func getAttrFromRawState[T any](diags *diag.Diagnostics, rawState map[string]tftypes.Value, attrName string) *T {
+	var ret *T
+	if err := rawState[attrName].As(&ret); err != nil {
+		diags.AddAttributeError(path.Root(attrName), fmt.Sprintf("Unable to read cluster %s", attrName), err.Error())
+		return nil
+	}
+	return ret
 }
