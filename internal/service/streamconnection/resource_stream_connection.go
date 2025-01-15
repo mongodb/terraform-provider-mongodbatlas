@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -200,7 +200,7 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 	projectID := streamConnectionState.ProjectID.ValueString()
 	instanceName := streamConnectionState.InstanceName.ValueString()
 	connectionName := streamConnectionState.ConnectionName.ValueString()
-	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, time.Minute); err != nil {
+	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, 2*time.Minute); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}
