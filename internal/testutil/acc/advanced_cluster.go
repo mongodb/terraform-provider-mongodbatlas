@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -42,17 +41,6 @@ var (
 		"value": "label value 3",
 	}
 )
-
-func ImportIgnoredFields() []string {
-	if config.AdvancedClusterV2Schema() {
-		return []string{}
-	}
-	return []string{
-		"replication_specs.0.region_configs.0.read_only_specs",
-		"replication_specs.0.region_configs.0.analytics_specs",
-		"replication_specs.0.region_configs.0.electable_specs.0.ebs_volume_type",
-	}
-}
 
 func TestStepImportCluster(resourceName string, ignoredFields ...string) resource.TestStep {
 	return resource.TestStep{
