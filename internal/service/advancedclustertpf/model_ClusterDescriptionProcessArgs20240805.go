@@ -3,11 +3,13 @@ package advancedclustertpf
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.ClusterDescriptionProcessArgs20240805, inputLegacy *admin20240530.ClusterDescriptionProcessArgs, diags *diag.Diagnostics) {
@@ -44,8 +46,15 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 			SampleSizeBiconnector:            types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.SampleSizeBIConnector))),
 			SampleRefreshIntervalBiconnector: types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.SampleRefreshIntervalBIConnector))),
 			TransactionLifetimeLimitSeconds:  types.Int64Value(conversion.SafeValue(input.TransactionLifetimeLimitSeconds)),
+			DefaultMaxTimeMS:                 types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.DefaultMaxTimeMS))),
+			TlsCipherConfigMode:              types.StringValue(conversion.SafeValue(input.TlsCipherConfigMode)),
 		}
+
+		customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, input.CustomOpensslCipherConfigTls12)
+		diags.Append(d...)
+		advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12
 	}
+
 	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)
 	diags.Append(diagsLocal...)
 	tfModel.AdvancedConfiguration = objType
