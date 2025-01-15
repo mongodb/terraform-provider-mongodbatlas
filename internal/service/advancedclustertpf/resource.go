@@ -270,7 +270,6 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if diags.HasError() {
 		return nil
 	}
-	// TODO check empty state works well here.
 	if changedCluster := r.applyPinnedFCVChanges(ctx, diags, emptyState, plan); changedCluster != nil {
 		clusterResp = changedCluster
 	}
