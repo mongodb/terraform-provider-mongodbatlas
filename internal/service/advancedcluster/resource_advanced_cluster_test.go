@@ -1077,7 +1077,8 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 	eightDaysFromNow := sevenDaysFromNow.AddDate(0, 0, 1)
 	updatedExpirationDate := conversion.TimeToString(eightDaysFromNow)
 	invalidDateFormat := "invalid"
-
+	config := configFCVPinning(t, true, orgID, projectName, clusterName, &firstExpirationDate, "7.0")
+	checks := acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(firstExpirationDate), admin.PtrInt(7))
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1088,8 +1089,8 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 			{ // pins fcv
-				Config: configFCVPinning(t, true, orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(firstExpirationDate), admin.PtrInt(7)),
+				Config: config,
+				Check:  checks,
 			},
 			{ // using incorrect format
 				Config:      configFCVPinning(t, true, orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
@@ -1391,13 +1392,9 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 }
 
 func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
-	checks = acc.AddAttrChecksSchemaV2(isAcc, resourceName, checks, attrsMap)
-	checks = acc.AddAttrSetChecksSchemaV2(isAcc, resourceName, checks, attrsSet...)
-	checks = acc.AddAttrChecksSchemaV2(isAcc, dataSourceName, checks, attrsMap)
-	checks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourceName, checks, attrsSet...)
-	checks = append(checks, extra...)
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	extraChecks := extra
+	extraChecks = append(extraChecks, acc.CheckExistsCluster(resourceName))
+	return acc.CheckRSAndDSSchemaV2(isAcc, resourceName, admin.PtrString(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
 }
 
 func configTenant(t *testing.T, isAcc bool, projectID, name string) string {
