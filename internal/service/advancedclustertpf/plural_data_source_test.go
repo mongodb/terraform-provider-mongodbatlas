@@ -15,7 +15,7 @@ func TestDiagsHasOnlyClusterNotFound(t *testing.T) {
 	}{
 		"empty diagnostics": {
 			diags:    diag.Diagnostics{},
-			expected: true,
+			expected: false,
 		},
 		"single cluster not found": {
 			diags: diag.Diagnostics{

@@ -101,6 +101,9 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 }
 
 func DiagsHasOnlyClusterNotFound(diags *diag.Diagnostics) bool {
+	if !diags.HasError() {
+		return false
+	}
 	for _, d := range *diags {
 		if d.Severity() != diag.SeverityError || strings.Contains(d.Detail(), "CLUSTER_NOT_FOUND") {
 			continue
