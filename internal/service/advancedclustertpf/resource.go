@@ -237,7 +237,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		latestReq.Paused = nil
 	}
 	if usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
-		legacyReq := newLegacyModel(latestReq)
+		legacyReq := ConvertClusterDescription20241023to20240805(latestReq)
 		_, _, err = api20240805.CreateCluster(ctx, projectID, legacyReq).Execute()
 	} else {
 		_, _, err = api.CreateCluster(ctx, projectID, latestReq).Execute()
@@ -367,7 +367,7 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 	replicationSpecsUpdated := patchReq.ReplicationSpecs != nil
 	if replicationSpecsUpdated {
 		// Cannot call latest API (2024-10-23 or newer) as it can enable ISS autoscaling
-		legacyPatch := newLegacyModel(patchReq)
+		legacyPatch := ConvertClusterDescription20241023to20240805(patchReq)
 		cluster = r.updateAndWaitLegacy(ctx, legacyPatch, diags, plan)
 	} else {
 		cluster = r.updateAndWait(ctx, patchReq, diags, plan)

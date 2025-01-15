@@ -5,7 +5,11 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
-func newLegacyModel(clusterDescription *admin.ClusterDescription20240805) *admin20240805.ClusterDescription20240805 {
+// Conversions from one SDK model version to another are used to avoid duplicating our flatten/expand conversion functions.
+// - These functions must not contain any business logic.
+// - All will be removed once we rely on a single API version.
+
+func ConvertClusterDescription20241023to20240805(clusterDescription *admin.ClusterDescription20240805) *admin20240805.ClusterDescription20240805 {
 	return &admin20240805.ClusterDescription20240805{
 		Name:                             clusterDescription.Name,
 		ClusterType:                      clusterDescription.ClusterType,
