@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	MaxClustersPerProject = 8
+	MaxClustersPerProject = 6
 )
 
 // SetupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
@@ -62,6 +62,7 @@ func ProjectIDExecution(tb testing.TB) string {
 }
 
 // ProjectIDExecutionWithCluster creates a project and reuses it `MaxClustersPerProject` times. The clusterName is always unique.
+// This avoids the `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` error when creating too many clusters within the same project.
 // When `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` are defined, they are used instead of creating a project and clusterName.
 func ProjectIDExecutionWithCluster(tb testing.TB) (projectID, clusterName string) {
 	tb.Helper()
