@@ -34,8 +34,10 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfprotov6.RawState, stateOut *tfsdk.State) {
 	rawStateValue, err := stateIn.UnmarshalWithOpts(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
-			"project_id": tftypes.String,
-			"name":       tftypes.String,
+			"project_id":             tftypes.String,
+			"name":                   tftypes.String,
+			"retain_backups_enabled": tftypes.Bool,
+			"mongo_db_major_version": tftypes.String,
 		},
 	}, tfprotov6.UnmarshalOpts{ValueFromJSONOpts: tftypes.ValueFromJSONOpts{IgnoreUndefinedAttributes: true}})
 	if err != nil {
@@ -62,6 +64,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 			conversion.SafeString(projectID), conversion.SafeString(name)))
 		return
 	}
+
 	validTimeout := timeouts.Value{
 		Object: types.ObjectNull(
 			map[string]attr.Type{
@@ -77,6 +80,25 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	if diags.HasError() {
 		return
 	}
+
+	var retainBackupsEnabled *bool
+	if err := rawState["retain_backups_enabled"].As(&retainBackupsEnabled); err != nil {
+		diags.AddAttributeError(path.Root("retain_backups_enabled"), "Unable to read cluster retain_backups_enabled", err.Error())
+		return
+	}
+	if retainBackupsEnabled != nil {
+		model.RetainBackupsEnabled = types.BoolPointerValue(retainBackupsEnabled)
+	}
+
+	var mongoDBMajorVersion *string
+	if err := rawState["mongo_db_major_version"].As(&mongoDBMajorVersion); err != nil {
+		diags.AddAttributeError(path.Root("mongo_db_major_version"), "Unable to read cluster mongo_db_major_version", err.Error())
+		return
+	}
+	if mongoDBMajorVersion != nil {
+		model.MongoDBMajorVersion = types.StringPointerValue(mongoDBMajorVersion)
+	}
+
 	AddAdvancedConfig(ctx, model, nil, nil, diags)
 	if diags.HasError() {
 		return
