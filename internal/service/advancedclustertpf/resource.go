@@ -197,6 +197,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if diags.HasError() {
 			return
 		}
+	} else {
+		modelOut.AdvancedConfiguration = state.AdvancedConfiguration
 	}
 	diags.Append(resp.State.Set(ctx, modelOut)...)
 }
