@@ -200,7 +200,7 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 	projectID := streamConnectionState.ProjectID.ValueString()
 	instanceName := streamConnectionState.InstanceName.ValueString()
 	connectionName := streamConnectionState.ConnectionName.ValueString()
-	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, 2*time.Minute); err != nil {
+	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, 10*time.Minute); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}
