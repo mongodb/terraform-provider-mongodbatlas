@@ -42,6 +42,10 @@ func AddAttrChecksPrefixSchemaV2(isAcc bool, name string, checks []resource.Test
 	return AddAttrChecksPrefix(name, checks, ConvertToSchemaV2AttrsMap(isAcc, mapChecks), prefix, skipNames...)
 }
 
+func AddAttrSetChecksPrefixSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, attrNames []string, prefix string) []resource.TestCheckFunc {
+	return AddAttrSetChecksPrefix(name, checks, ConvertToSchemaV2AttrsSet(isAcc, attrNames), prefix)
+}
+
 func ConvertToSchemaV2AttrsMap(isAcc bool, attrsMap map[string]string) map[string]string {
 	if skipSchemaV2Work(isAcc) {
 		return attrsMap
