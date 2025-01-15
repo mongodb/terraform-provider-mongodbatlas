@@ -127,8 +127,10 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
+	var clusterResp *admin.ClusterDescription20240805
+
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	r.applyPinnedFCVChanges(ctx, diags, &state, &plan)
+	clusterResp = r.applyPinnedFCVChanges(ctx, diags, &state, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -160,7 +162,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		diags.AddError(errorPatchPayload, err.Error())
 		return
 	}
-	var clusterResp *admin.ClusterDescription20240805
 	if !update.IsZeroValues(patchReq) {
 		upgradeRequest := getTenantUpgradeRequest(stateReq, patchReq)
 		if upgradeRequest != nil {
@@ -196,8 +197,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if diags.HasError() {
 			return
 		}
-	} else {
-		modelOut.AdvancedConfiguration = state.AdvancedConfiguration
 	}
 	diags.Append(resp.State.Set(ctx, modelOut)...)
 }
@@ -312,7 +311,7 @@ func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, state *TF
 	return modelOut
 }
 
-func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) *admin.ClusterDescription20240805 {
 	var (
 		api         = r.Client.AtlasV2.ClustersApi
 		projectID   = plan.ProjectID.ValueString()
@@ -325,21 +324,23 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 			// pinned_fcv has been defined or updated expiration date
 			if localDiags := plan.PinnedFCV.As(ctx, fcvModel, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
 				diags.Append(localDiags...)
-				return
+				return nil
 			}
 			if err := PinFCV(ctx, api, projectID, clusterName, fcvModel.ExpirationDate.ValueString()); err != nil {
 				diags.AddError(errorUnpinningFCV, defaultAPIErrorDetails(clusterName, err))
+				return nil
 			}
 		} else {
 			// pinned_fcv has been removed from the config so unpin method is called
 			if _, _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 				diags.AddError(errorUnpinningFCV, defaultAPIErrorDetails(clusterName, err))
-				return
+				return nil
 			}
 		}
 		// ensures cluster is in IDLE state before continuing with other changes
-		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+		return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 	}
+	return nil
 }
 
 func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
