@@ -56,14 +56,10 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 		diags.AddError("Unable to Parse state", err.Error())
 		return
 	}
-	var projectID *string
-	if err := rawState["project_id"].As(&projectID); err != nil {
-		diags.AddAttributeError(path.Root("project_id"), "Unable to read cluster project_id", err.Error())
-		return
-	}
-	var name *string
-	if err := rawState["name"].As(&name); err != nil {
-		diags.AddAttributeError(path.Root("name"), "Unable to read cluster name", err.Error())
+
+	projectID := getAttrFromRawState[string](diags, rawState, "project_id")
+	name := getAttrFromRawState[string](diags, rawState, "name")
+	if diags.HasError() {
 		return
 	}
 	if !conversion.IsStringPresent(projectID) || !conversion.IsStringPresent(name) {
