@@ -30,9 +30,9 @@ func cleanupSharedResources() {
 		fmt.Printf("Deleting execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
 		deleteProject(sharedInfo.projectID)
 	}
-	for projectName, projectID := range sharedInfo.projectIDs {
-		fmt.Printf("Deleting execution project: %s, id: %s\n", projectName, projectID)
-		deleteProject(projectID)
+	for i, project := range sharedInfo.projects {
+		fmt.Printf("Deleting execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
+		deleteProject(project.id)
 	}
 }
 
@@ -119,43 +119,47 @@ func SerialSleep(tb testing.TB) {
 	time.Sleep(5 * time.Second)
 }
 
+type projectInfo struct {
+	id           string
+	name         string
+	clusterCount int
+}
+
 var sharedInfo = struct {
-	projectID           string
-	projectNameClusters map[string][]string
-	projectIDs          map[string]string
-	currentProjectName  string
-	projectName         string
-	clusterName         string
-	mu                  sync.Mutex
-	muSleep             sync.Mutex
-	init                bool
+	projectID   string
+	projectName string
+	clusterName string
+	projects    []projectInfo
+	mu          sync.Mutex
+	muSleep     sync.Mutex
+	init        bool
 }{
-	projectNameClusters: map[string][]string{},
-	projectIDs:          map[string]string{},
+	projects: []projectInfo{},
 }
 
 // NextProjectIDClusterName is an internal method used when we want to reuse a projectID `MaxClustersPerProject` times
 func NextProjectIDClusterName(projectCreator func(string) string) (projectID, clusterName string) {
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
-	var newProject = false
-	var projectName = sharedInfo.currentProjectName
-	clusterName = RandomClusterName()
-	if projectName == "" {
-		projectName = RandomProjectName()
-		newProject = true
+	var project projectInfo
+	if len(sharedInfo.projects) == 0 {
+		project = projectInfo{
+			name: RandomProjectName(),
+		}
+	} else {
+		project = sharedInfo.projects[len(sharedInfo.projects)-1]
 	}
-	currentClusters := sharedInfo.projectNameClusters[projectName]
-	if len(currentClusters) == MaxClustersPerProject {
-		projectName = RandomProjectName()
-		newProject = true
-		currentClusters = nil
+	if project.clusterCount == MaxClustersPerProject {
+		project = projectInfo{
+			name: RandomProjectName(),
+		}
 	}
-	sharedInfo.projectNameClusters[projectName] = append(currentClusters, clusterName)
-	if newProject {
-		sharedInfo.currentProjectName = projectName
-		projectID = projectCreator(projectName)
-		sharedInfo.projectIDs[projectName] = projectID
+	if project.id == "" {
+		project.clusterCount++
+		project.id = projectCreator(project.name)
+		sharedInfo.projects = append(sharedInfo.projects, project)
+	} else {
+		sharedInfo.projects[len(sharedInfo.projects)-1].clusterCount++
 	}
-	return sharedInfo.projectIDs[projectName], clusterName
+	return project.id, RandomClusterName()
 }
