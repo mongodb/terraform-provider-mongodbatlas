@@ -14,9 +14,5 @@ func (r *rs) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader 
 
 func stateUpgraderFromV1(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
 	diags := &resp.Diagnostics
-	projectID, name := getProjectIDClusterNameFromRawState(diags, req.RawState)
-	if diags.HasError() {
-		return
-	}
-	setStateResponse(ctx, diags, &resp.State, projectID, name)
+	setStateResponse(ctx, diags, req.RawState, &resp.State)
 }
