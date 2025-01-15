@@ -144,7 +144,7 @@ func NextProjectIDClusterName(projectCreator func(string) string) (projectID, cl
 	var project projectInfo
 	if len(sharedInfo.projects) == 0 || sharedInfo.projects[len(sharedInfo.projects)-1].clusterCount == MaxClustersPerProject {
 		project = projectInfo{
-			name: RandomProjectName(),
+			name:         RandomProjectName(),
 			clusterCount: 1,
 		}
 		project.id = projectCreator(project.name)
