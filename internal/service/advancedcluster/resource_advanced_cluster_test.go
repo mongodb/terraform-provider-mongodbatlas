@@ -326,7 +326,6 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: default_max_time_ms not implemented in TPF yet
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -372,7 +371,6 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 }
 
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: default_max_time_ms not implemented in TPF yet
 	var (
 		projectID           = acc.ProjectIDExecution(t)
 		clusterName         = acc.RandomClusterName()
@@ -441,7 +439,6 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: tls_cipher_config_mode not implemented in TPF yet
 	var (
 		projectID          = acc.ProjectIDExecution(t)
 		clusterName        = acc.RandomClusterName()
