@@ -532,6 +532,9 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 			"default_max_time_ms": schema.Int64Attribute{
 				Optional:            true,
 				MarkdownDescription: "Default time limit in milliseconds for individual read operations to complete. This parameter is supported only for MongoDB version 8.0 and above.",
+				PlanModifiers: []planmodifier.Int64{
+					PlanMustUseMongoDBVersion(8.0, EqualOrHigher),
+				},
 			},
 			"custom_openssl_cipher_config_tls12": schema.SetAttribute{
 				Optional:            true,
