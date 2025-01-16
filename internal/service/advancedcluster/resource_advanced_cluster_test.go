@@ -1013,7 +1013,6 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // TODO: pinned_fcv not implemented in TPF yet
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName() // Using single project to assert plural data source
@@ -1028,39 +1027,38 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 	eightDaysFromNow := sevenDaysFromNow.AddDate(0, 0, 1)
 	updatedExpirationDate := conversion.TimeToString(eightDaysFromNow)
 	invalidDateFormat := "invalid"
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, nil, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 			{ // pins fcv
-				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(firstExpirationDate), admin.PtrInt(7)),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(firstExpirationDate), admin.PtrInt(7)),
 			},
 			{ // using incorrect format
-				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
+				Config:      configFCVPinning(t, orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
 				ExpectError: regexp.MustCompile("expiration_date format is incorrect: " + invalidDateFormat),
 			},
 			{ // updates expiration date of fcv
-				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
 			},
 			{ // upgrade mongodb version with fcv pinned
-				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 8, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
 			},
 			{ // downgrade mongodb version with fcv pinned
-				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
 			},
 			{ // unpins fcv
-				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, nil, "7.0"),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 		},
 	})
@@ -1334,13 +1332,9 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 }
 
 func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
-	checks = acc.AddAttrChecksSchemaV2(isAcc, resourceName, checks, attrsMap)
-	checks = acc.AddAttrSetChecksSchemaV2(isAcc, resourceName, checks, attrsSet...)
-	checks = acc.AddAttrChecksSchemaV2(isAcc, dataSourceName, checks, attrsMap)
-	checks = acc.AddAttrSetChecksSchemaV2(isAcc, dataSourceName, checks, attrsSet...)
-	checks = append(checks, extra...)
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	extraChecks := extra
+	extraChecks = append(extraChecks, acc.CheckExistsCluster(resourceName))
+	return acc.CheckRSAndDSSchemaV2(isAcc, resourceName, admin.PtrString(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
 }
 
 func configTenant(t *testing.T, isAcc bool, projectID, name, zoneName string) string {
@@ -2745,7 +2739,8 @@ func checkTenantBiConnectorConfig(isAcc bool, projectID, name string, enabled bo
 	return checkAggr(isAcc, nil, attrsMap)
 }
 
-func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationDate *string, mongoDBMajorVersion string) string {
+func configFCVPinning(t *testing.T, orgID, projectName, clusterName string, pinningExpirationDate *string, mongoDBMajorVersion string) string {
+	t.Helper()
 	var pinnedFCVAttr string
 	if pinningExpirationDate != nil {
 		pinnedFCVAttr = fmt.Sprintf(`
@@ -2755,7 +2750,7 @@ func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationD
 		`, *pinningExpirationDate)
 	}
 
-	return fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToSchemaV2(t, true, fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -2784,7 +2779,7 @@ func configFCVPinning(orgID, projectName, clusterName string, pinningExpirationD
 			}
 		}
 
-	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr) + dataSourcesTFNewSchema
+	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)) + dataSourcesTFNewSchema
 }
 
 func importIgnoredFields() []string {

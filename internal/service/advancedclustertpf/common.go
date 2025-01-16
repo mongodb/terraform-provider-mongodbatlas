@@ -1,10 +1,14 @@
 package advancedclustertpf
 
 import (
+	"context"
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
@@ -43,4 +47,37 @@ func GetAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 		}
 	}
 	return ""
+}
+
+func PinFCV(ctx context.Context, api admin.ClustersApi, projectID, clusterName, expirationDateStr string) error {
+	expirationTime, ok := conversion.StringToTime(expirationDateStr)
+	if !ok {
+		return fmt.Errorf("expiration_date format is incorrect: %s", expirationDateStr)
+	}
+	req := admin.PinFCV{
+		ExpirationDate: &expirationTime,
+	}
+	if _, _, err := api.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func GenerateFCVPinningWarningForRead(fcvPresentInState bool, apiRespFCVExpirationDate *time.Time) []diag.Diagnostic {
+	pinIsActive := apiRespFCVExpirationDate != nil
+	if fcvPresentInState && !pinIsActive { // pin is not active but present in state (and potentially in config file)
+		warning := diag.NewWarningDiagnostic(
+			"FCV pin is no longer active",
+			"Please remove `pinned_fcv` from the configuration and apply changes to avoid re-pinning the FCV. Warning can be ignored if `pinned_fcv` block has been removed from the configuration.")
+		return []diag.Diagnostic{warning}
+	}
+	if fcvPresentInState && pinIsActive {
+		if time.Now().After(*apiRespFCVExpirationDate) { // pin is active, present in state, but its expiration date has passed
+			warning := diag.NewWarningDiagnostic(
+				"FCV pin expiration date has expired",
+				"During the next maintenance window FCV will be unpinned. FCV expiration date can be extended, or `pinned_fcv` block can be removed to trigger the unpin immediately.")
+			return []diag.Diagnostic{warning}
+		}
+	}
+	return nil
 }
