@@ -22,15 +22,23 @@ func (r *rs) MoveState(context.Context) []resource.StateMover {
 	return []resource.StateMover{{StateMover: stateMover}}
 }
 
+func (r *rs) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
+	return map[int64]resource.StateUpgrader{
+		1: {StateUpgrader: stateUpgraderFromV1},
+	}
+}
+
 func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
-	diags := &resp.Diagnostics
 	if req.SourceTypeName != "mongodbatlas_cluster" || !strings.HasSuffix(req.SourceProviderAddress, "/mongodbatlas") {
 		return
 	}
-	setStateResponse(ctx, diags, req.SourceRawState, &resp.TargetState)
+	setStateResponse(ctx, &resp.Diagnostics, req.SourceRawState, &resp.TargetState)
 }
 
-// setStateResponse is used in Move State and Upgrade State
+func stateUpgraderFromV1(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+	setStateResponse(ctx, &resp.Diagnostics, req.RawState, &resp.State)
+}
+
 func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfprotov6.RawState, stateOut *tfsdk.State) {
 	rawStateValue, err := stateIn.UnmarshalWithOpts(tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
