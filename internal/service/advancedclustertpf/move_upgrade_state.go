@@ -46,7 +46,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 			"project_id":             tftypes.String, // project_id and name to identify the cluster
 			"name":                   tftypes.String,
 			"retain_backups_enabled": tftypes.Bool,   // TF specific so can't be got in Read
-			"mongo_db_major_version": tftypes.String, // Has special logic in overrideAttributesWithPrevStateValue that need the previous state
+			"mongo_db_major_version": tftypes.String, // Has special logic in overrideAttributesWithPrevStateValue that needs the previous state
 			"timeouts": tftypes.Object{ // TF specific so can't be got in Read
 				AttributeTypes: map[string]tftypes.Type{
 					"create": tftypes.String,
@@ -99,6 +99,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	if diags.HasError() {
 		return
 	}
+	model.ClusterID = types.StringValue("forceLegacySchema")
 	diags.Append(stateOut.Set(ctx, model)...)
 }
 
