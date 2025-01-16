@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_backup_compliance_policy: Adds support for disabling Backup Compliance Policy on resource delete ([#2953](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2953))
+
 ## 1.25.0 (January 07, 2025)
 
 NOTES:

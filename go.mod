@@ -25,12 +25,12 @@ require (
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/mongodb-forks/digest v1.1.0
 	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250110083710-d98b17d706e9
-	github.com/pb33f/libopenapi v0.19.1
+	github.com/pb33f/libopenapi v0.20.0
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.7.1
 	github.com/stretchr/testify v1.10.0
 	github.com/wI2L/jsondiff v0.6.1
-	github.com/zclconf/go-cty v1.16.0
+	github.com/zclconf/go-cty v1.16.1
 	go.mongodb.org/atlas v0.37.0
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
 	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.0
@@ -61,7 +61,6 @@ require (
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dprotaso/go-yit v0.0.0-20240618133044-5a0af90af097 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
@@ -120,6 +119,7 @@ require (
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/skeema/knownhosts v1.3.0 // indirect
+	github.com/speakeasy-api/jsonpath v0.3.1 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
@@ -131,7 +131,6 @@ require (
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.9-0.20240815153524-6ea36470d1bd // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/zclconf/go-cty-yaml v1.0.2 // indirect

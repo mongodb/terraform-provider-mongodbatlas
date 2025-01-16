@@ -552,11 +552,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	var waitForChanges bool
 	if v := d.Get("paused").(bool); v {
-		request := &admin20240805.ClusterDescription20240805{
+		request := &admin.ClusterDescription20240805{
 			Paused: conversion.Pointer(v),
 		}
-		// can call latest API (2024-10-23 or newer) as autoscaling property is not specified, using older version just for caution until iss autoscaling epic is done
-		if _, _, err := connV220240805.ClustersApi.UpdateCluster(ctx, projectID, d.Get("name").(string), request).Execute(); err != nil {
+		// can call latest API (2024-10-23 or newer) as replications specs (with nested autoscaling property) is not specified
+		if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, d.Get("name").(string), request).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
 		waitForChanges = true
@@ -949,11 +949,17 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 				}
+				if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+					return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+				}
 			}
 			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
 				_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
+				}
+				if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+					return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 				}
 			}
 		}
