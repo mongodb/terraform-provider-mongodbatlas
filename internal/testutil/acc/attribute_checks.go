@@ -102,22 +102,6 @@ func CheckRSAndDS(resourceName string, dataSourceName, pluralDataSourceName *str
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func CheckRSAndDSSchemaV2(isAcc bool, resourceName string, dataSourceName, pluralDataSourceName *string, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{}
-	checks = AddAttrChecksSchemaV2(isAcc, resourceName, checks, attrsMap)
-	checks = AddAttrSetChecksSchemaV2(isAcc, resourceName, checks, attrsSet...)
-	if dataSourceName != nil {
-		checks = AddAttrChecksSchemaV2(isAcc, *dataSourceName, checks, attrsMap)
-		checks = AddAttrSetChecksSchemaV2(isAcc, *dataSourceName, checks, attrsSet...)
-	}
-	if pluralDataSourceName != nil {
-		checks = AddAttrChecksPrefixSchemaV2(isAcc, *pluralDataSourceName, checks, attrsMap, "results.0")
-		checks = AddAttrSetChecksPrefixSchemaV2(isAcc, *pluralDataSourceName, checks, attrsSet, "results.0")
-	}
-	checks = append(checks, extra...)
-	return resource.ComposeAggregateTestCheckFunc(checks...)
-}
-
 func AddAttrSetChecks(targetName string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
 	newChecks := copyChecks(checks, attrNames)
 	for _, attrName := range attrNames {

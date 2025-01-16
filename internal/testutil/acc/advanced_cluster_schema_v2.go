@@ -14,6 +14,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func CheckRSAndDSSchemaV2(isAcc bool, resourceName string, dataSourceName, pluralDataSourceName *string, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	modifiedSet := ConvertToSchemaV2AttrsSet(isAcc, attrsSet)
+	modifiedMap := ConvertToSchemaV2AttrsMap(isAcc, attrsMap)
+	return CheckRSAndDS(resourceName, dataSourceName, pluralDataSourceName, modifiedSet, modifiedMap, extra...)
+}
+
 func TestCheckResourceAttrSchemaV2(isAcc bool, name, key, value string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttr(name, AttrNameToSchemaV2(isAcc, key), value)
 }
@@ -40,10 +46,6 @@ func AddAttrSetChecksSchemaV2(isAcc bool, name string, checks []resource.TestChe
 
 func AddAttrChecksPrefixSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string, prefix string, skipNames ...string) []resource.TestCheckFunc {
 	return AddAttrChecksPrefix(name, checks, ConvertToSchemaV2AttrsMap(isAcc, mapChecks), prefix, skipNames...)
-}
-
-func AddAttrSetChecksPrefixSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, attrNames []string, prefix string) []resource.TestCheckFunc {
-	return AddAttrSetChecksPrefix(name, checks, ConvertToSchemaV2AttrsSet(isAcc, attrNames), prefix)
 }
 
 func ConvertToSchemaV2AttrsMap(isAcc bool, attrsMap map[string]string) map[string]string {
