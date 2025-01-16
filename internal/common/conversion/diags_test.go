@@ -16,9 +16,14 @@ func TestFromTPFDiagsToSDKV2Diags(t *testing.T) {
 		expectedOutput sdkv2diag.Diagnostics
 	}{
 		{
+			name:           "Nil slice",
+			inputDiags:     nil,
+			expectedOutput: nil,
+		},
+		{
 			name:           "Empty slice",
 			inputDiags:     []diag.Diagnostic{},
-			expectedOutput: []sdkv2diag.Diagnostic{},
+			expectedOutput: nil,
 		},
 		{
 			name: "Single error diagnostic",
