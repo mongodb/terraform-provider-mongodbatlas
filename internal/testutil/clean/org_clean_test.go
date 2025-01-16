@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/require"
@@ -41,23 +43,47 @@ var (
 	}
 )
 
-// Using a test to simplify logging and parallelization
-func TestCleanProjectAndClusters(t *testing.T) {
+func TestSingleProjectRemoval(t *testing.T) {
+	projectToClean := os.Getenv("MONGODB_ATLAS_CLEAN_PROJECT_ID")
+	if projectToClean == "" {
+		t.Skip("skipping test; set MONGODB_ATLAS_CLEAN_PROJECT_ID=project-id to run")
+	}
 	client := acc.ConnV2()
 	ctx := context.Background()
+	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
+	changes := removeProjectResources(ctx, t, dryRun, client, projectToClean)
+	if changes != "" {
+		t.Logf("project %s %s", projectToClean, changes)
+	}
+	err := deleteProject(ctx, client, projectToClean)
+	require.NoError(t, err)
+}
+
+// Using a test to simplify logging and parallelization
+func TestCleanProjectAndClusters(t *testing.T) {
 	cleanOrg, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_ORG"))
 	if !cleanOrg {
 		t.Skip("skipping test; set MONGODB_ATLAS_CLEAN_ORG=true to run")
 	}
+	client := acc.ConnV2()
+	ctx := context.Background()
 	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
 	onlyZeroClusters, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_ONLY_WHEN_NO_CLUSTERS"))
 	skipProjectsAfter := time.Now().Add(-keepProjectsCreatedWithinHours * time.Hour)
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
 		return client.ProjectsApi.ListProjects(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	})
+	retryAttemptsStr := os.Getenv("MONGODB_ATLAS_CLEAN_RETRY_ATTEMPTS")
+	runRetries := retryAttempts
+	if retryAttemptsStr != "" {
+		attempts, err := strconv.Atoi(retryAttemptsStr)
+		require.NoError(t, err)
+		runRetries = attempts
+	}
 	require.NoError(t, err)
 	t.Logf("found %d projects (DRY_RUN=%t)", len(projects), dryRun)
 	projectsToDelete := map[string]string{}
+	projectInfos := []string{}
 	for _, p := range projects {
 		skipReason := projectSkipReason(&p, skipProjectsAfter, onlyZeroClusters)
 		projectName := p.GetName()
@@ -65,9 +91,13 @@ func TestCleanProjectAndClusters(t *testing.T) {
 			t.Logf("skip project %s, reason: %s", projectName, skipReason)
 			continue
 		}
+		projectInfos = append(projectInfos, fmt.Sprintf("Project created at %s name %s (%s)", p.GetCreated().Format(time.RFC3339), projectName, p.GetId()))
 		projectID := p.GetId()
 		projectsToDelete[projectName] = projectID
 	}
+	t.Logf("will try to delete %d projects:", len(projectsToDelete))
+	slices.Sort(projectInfos)
+	t.Log(strings.Join(projectInfos, "\n"))
 	for name, projectID := range projectsToDelete {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -75,7 +105,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 			if changes != "" {
 				t.Logf("project %s %s", name, changes)
 			}
-			for i := range retryAttempts {
+			for i := range runRetries {
 				attempt := i + 1
 				if attempt > 1 {
 					time.Sleep(retryInterval)
@@ -98,6 +128,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		})
 	}
 }
+
 func findRetryErrorCode(err error) string {
 	if err == nil {
 		return ""
@@ -119,10 +150,14 @@ func deleteProject(ctx context.Context, client *admin.APIClient, projectID strin
 
 func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) string {
 	t.Helper()
-	clustersRemoved := removeClusters(ctx, t, dryRun, client, projectID)
 	changes := []string{}
+	clustersRemoved := removeClusters(ctx, t, dryRun, client, projectID)
 	if clustersRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d clusters", clustersRemoved))
+	}
+	serverlessClustersRemoved := removeServerlessClusters(ctx, t, dryRun, client, projectID)
+	if serverlessClustersRemoved > 0 {
+		changes = append(changes, fmt.Sprintf("removed %d serverless clusters", serverlessClustersRemoved))
 	}
 	peeringsRemoved := removeNetworkPeering(ctx, t, dryRun, client, projectID)
 	if peeringsRemoved > 0 {
@@ -131,6 +166,10 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 	datalakesRemoved := removeDataLakePipelines(ctx, t, dryRun, client, projectID)
 	if datalakesRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d datalake pipelines", datalakesRemoved))
+	}
+	federatedEndpointsRemoved := removeFederatedDatabasePrivateEndpoints(ctx, t, dryRun, client, projectID)
+	if federatedEndpointsRemoved > 0 {
+		changes = append(changes, fmt.Sprintf("removed %d federated private endpoints", federatedEndpointsRemoved))
 	}
 	federatedDatabasesRemoved := removeFederatedDatabases(ctx, t, dryRun, client, projectID)
 	if federatedDatabasesRemoved > 0 {
@@ -174,7 +213,7 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 		c := clustersResults[i]
 		cName := c.GetName()
 		t.Logf("delete cluster %s", cName)
-		if !dryRun || c.GetStateName() != "DELETING" {
+		if !dryRun {
 			_, err = client.ClustersApi.DeleteCluster(ctx, projectID, cName).Execute()
 			if admin.IsErrorCode(err, "CLUSTER_ALREADY_REQUESTED_DELETION") {
 				t.Logf("cluster %s already requested deletion", cName)
@@ -186,17 +225,47 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 	return len(clustersResults)
 }
 
+func removeServerlessClusters(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+	t.Helper()
+	clusters, _, err := client.ServerlessInstancesApi.ListServerlessInstances(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
+	require.NoError(t, err)
+	clustersResults := clusters.GetResults()
+	for i := range clustersResults {
+		c := clustersResults[i]
+		cName := c.GetName()
+		t.Logf("delete serverless cluster %s", cName)
+		if !dryRun {
+			_, _, err = client.ServerlessInstancesApi.DeleteServerlessInstance(ctx, projectID, cName).Execute()
+			if admin.IsErrorCode(err, "SERVERLESS_INSTANCE_ALREADY_REQUESTED_DELETION") {
+				t.Logf("serverless cluster %s already requested deletion", cName)
+				continue
+			}
+			require.NoError(t, err)
+		}
+	}
+	return len(clustersResults)
+}
+
 func removeNetworkPeering(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
 	t.Helper()
-	peering, _, err := client.NetworkPeeringApi.ListPeeringConnections(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
-	require.NoError(t, err)
-	peeringResults := peering.GetResults()
-	for i := range peeringResults {
-		p := peeringResults[i]
-		peerID := p.GetId()
+	peeringIDs := []string{}
+	for _, providerName := range []string{constant.AWS, constant.AZURE, constant.GCP} {
+		peering, _, err := client.NetworkPeeringApi.ListPeeringConnectionsWithParams(ctx, &admin.ListPeeringConnectionsApiParams{
+			ProviderName: &providerName,
+			GroupId:      projectID,
+		}).ItemsPerPage(itemsPerPage).Execute()
+		require.NoError(t, err)
+		peeringResults := peering.GetResults()
+		for i := range peeringResults {
+			p := peeringResults[i]
+			peerID := p.GetId()
+			peeringIDs = append(peeringIDs, peerID)
+		}
+	}
+	for _, peerID := range peeringIDs {
 		t.Logf("delete peering %s", peerID)
 		if !dryRun {
-			_, _, err = client.NetworkPeeringApi.DeletePeeringConnection(ctx, projectID, peerID).Execute()
+			_, _, err := client.NetworkPeeringApi.DeletePeeringConnection(ctx, projectID, peerID).Execute()
 			if admin.IsErrorCode(err, "PEER_ALREADY_REQUESTED_DELETION") {
 				t.Logf("peering %s already requested deletion", peerID)
 				continue
@@ -204,7 +273,7 @@ func removeNetworkPeering(ctx context.Context, t *testing.T, dryRun bool, client
 			require.NoError(t, err)
 		}
 	}
-	return len(peeringResults)
+	return len(peeringIDs)
 }
 
 func removeDataLakePipelines(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
@@ -222,11 +291,27 @@ func removeDataLakePipelines(ctx context.Context, t *testing.T, dryRun bool, cli
 	return len(datalakeResults)
 }
 
+func removeFederatedDatabasePrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+	t.Helper()
+	paginatedResults, _, err := client.DataFederationApi.ListDataFederationPrivateEndpoints(ctx, projectID).Execute()
+	require.NoError(t, err)
+	endpoints := paginatedResults.GetResults()
+	for _, f := range endpoints {
+		endpointID := f.GetEndpointId()
+		t.Logf("delete federated private endpoint %s", endpointID)
+		if !dryRun {
+			_, _, err = client.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+			require.NoError(t, err)
+		}
+	}
+	return len(endpoints)
+}
+
 func removeFederatedDatabases(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
 	t.Helper()
 	federatedResults, _, err := client.DataFederationApi.ListFederatedDatabases(ctx, projectID).Execute()
 	if admin.IsErrorCode(err, "DATA_FEDERATION_TENANT_NOT_FOUND_FOR_ID") {
-		t.Logf("no federated databases found for project %s", projectID)
+		t.Logf("no federated databases found for project %s, must delete this manually from the UI", projectID) // Deletion task was only partially successful - deleted the storage config but not the tenant config (internal slack thread)
 		return 0
 	}
 	require.NoError(t, err)
