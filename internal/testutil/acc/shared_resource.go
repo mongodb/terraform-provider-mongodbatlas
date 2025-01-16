@@ -61,7 +61,7 @@ func ProjectIDExecution(tb testing.TB) string {
 	return sharedInfo.projectID
 }
 
-// ProjectIDExecutionWithCluster creates a project and reuses it `MaxClustersPerProject` times. The clusterName is always unique.
+// ProjectIDExecutionWithCluster creates a project and reuses it for  `MaxClusterNodesPerProject ` nodes. The clusterName is always unique.
 // TotalNodeCount = sum(specs.node_count) * num_shards (1 if new schema)
 // This avoids the `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` error when creating too many clusters within the same project.
 // When `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` are defined, they are used instead of creating a project and clusterName.
