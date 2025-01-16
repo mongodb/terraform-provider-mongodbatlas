@@ -71,7 +71,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 		return
 	}
 	if !conversion.IsStringPresent(projectID) || !conversion.IsStringPresent(name) {
-		diags.AddError("Unable to read project_id or name", fmt.Sprintf("project_id: %s, name: %s",
+		diags.AddError("Unable to read project_id or name from state", fmt.Sprintf("project_id: %s, name: %s",
 			conversion.SafeString(projectID), conversion.SafeString(name)))
 		return
 	}
