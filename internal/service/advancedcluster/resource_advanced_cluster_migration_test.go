@@ -2,7 +2,6 @@ package advancedcluster_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -68,11 +67,7 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 
 func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
-		clusterName = acc.RandomClusterName()
-	)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 12)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -80,12 +75,12 @@ func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configGeoShardedOldSchema(t, false, orgID, projectName, clusterName, 2, 2, false),
+				Config:            configGeoShardedOldSchema(t, false, projectID, clusterName, 2, 2, false),
 				Check:             checkGeoShardedOldSchema(false, clusterName, 2, 2, false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configGeoShardedOldSchema(t, false, orgID, projectName, clusterName, 2, 1, false),
+				Config:                   configGeoShardedOldSchema(t, false, projectID, clusterName, 2, 1, false),
 				Check:                    checkGeoShardedOldSchema(false, clusterName, 2, 1, true, false),
 			},
 		},
@@ -94,11 +89,8 @@ func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 
 func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-	)
+
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -106,12 +98,12 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, false, false),
+				Config:            configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, false, false),
 				Check:             checkShardedTransitionOldToNewSchema(false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, false),
+				Config:                   configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true, false),
 				Check:                    checkShardedTransitionOldToNewSchema(false, true),
 			},
 		},
@@ -120,11 +112,7 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 
 func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-	)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -132,12 +120,12 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configGeoShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, false),
+				Config:            configGeoShardedTransitionOldToNewSchema(t, false, projectID, clusterName, false),
 				Check:             checkGeoShardedTransitionOldToNewSchema(false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configGeoShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true),
+				Config:                   configGeoShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true),
 				Check:                    checkGeoShardedTransitionOldToNewSchema(false, true),
 			},
 		},
@@ -234,24 +222,20 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 
 func TestMigAdvancedCluster_newSchemaFromAutoscalingDisabledToEnabled(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-	)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     acc.PreCheckBasicSleep(t, nil, orgID, projectName),
+		PreCheck:     acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders("1.22.0"), // last version before cluster tier auto-scaling per shard was introduced
-				Config:            configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, false),
+				Config:            configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true, false),
 				Check:             acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configShardedTransitionOldToNewSchema(t, false, orgID, projectName, clusterName, true, true),
+				Config:                   configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true, true),
 				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
 			},
 		},
