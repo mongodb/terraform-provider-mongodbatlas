@@ -41,12 +41,13 @@ func stateUpgraderFromV1(ctx context.Context, req resource.UpgradeStateRequest, 
 
 func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfprotov6.RawState, stateOut *tfsdk.State) {
 	rawStateValue, err := stateIn.UnmarshalWithOpts(tftypes.Object{
+		// Minimum attributes needed so Read fills in the rest
 		AttributeTypes: map[string]tftypes.Type{
-			"project_id":             tftypes.String,
+			"project_id":             tftypes.String, // project_id and name to identify the cluster
 			"name":                   tftypes.String,
-			"retain_backups_enabled": tftypes.Bool,
-			"mongo_db_major_version": tftypes.String,
-			"timeouts": tftypes.Object{
+			"retain_backups_enabled": tftypes.Bool,   // TF specific so can't be got in Read
+			"mongo_db_major_version": tftypes.String, // Has special logic in overrideAttributesWithPrevStateValue that need the previous state
+			"timeouts": tftypes.Object{ // TF specific so can't be got in Read
 				AttributeTypes: map[string]tftypes.Type{
 					"create": tftypes.String,
 					"update": tftypes.String,
