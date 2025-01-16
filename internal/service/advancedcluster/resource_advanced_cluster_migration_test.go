@@ -14,31 +14,27 @@ import (
 const versionBeforeISSRelease = "1.17.6"
 
 func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // AttributeName("advanced_configuration"): invalid JSON, expected "{", got "["
 	testCase := replicaSetAWSProviderTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // AttributeName("advanced_configuration"): invalid JSON, expected "{", got "["
 	testCase := replicaSetMultiCloudTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // AttributeName("advanced_configuration"): invalid JSON, expected "{", got "["
 	testCase := singleShardedMultiCloudTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // AttributeName("advanced_configuration"): invalid JSON, expected "{", got "["
+	acc.SkipIfAdvancedClusterV2Schema(t) // unexpected update and then: error operation not permitted, nums_shards from 1 -> > 1
 	testCase := symmetricGeoShardedOldSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
 
 func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	mig.SkipIfVersionBelow(t, "1.23.0") // version where sharded cluster tier auto-scaling was introduced
 	testCase := asymmetricShardedNewSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
@@ -225,7 +221,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_newSchemaFromAutoscalingDisabledToEnabled(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
+	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
