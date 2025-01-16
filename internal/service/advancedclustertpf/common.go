@@ -50,12 +50,13 @@ func GetAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 }
 
 func PinFCV(ctx context.Context, api admin.ClustersApi, projectID, clusterName, expirationDateStr string) error {
-	req := admin.PinFCV{}
 	expirationTime, ok := conversion.StringToTime(expirationDateStr)
 	if !ok {
 		return fmt.Errorf("expiration_date format is incorrect: %s", expirationDateStr)
 	}
-	req.ExpirationDate = &expirationTime
+	req := admin.PinFCV{
+		ExpirationDate: &expirationTime,
+	}
 	if _, _, err := api.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
 		return err
 	}
