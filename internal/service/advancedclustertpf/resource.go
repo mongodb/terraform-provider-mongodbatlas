@@ -123,15 +123,15 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	stateUsingLegacy := usingLegacySchema(ctx, state.ReplicationSpecs, diags)
-	planUsingLegacy := usingLegacySchema(ctx, plan.ReplicationSpecs, diags)
+	stateUsingLegacy := usingLegacyShardingConfig(ctx, state.ReplicationSpecs, diags)
+	planUsingLegacy := usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags)
 	if planUsingLegacy && !stateUsingLegacy {
 		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
 		return
 	}
-	isSchemaUpgrade := stateUsingLegacy && !planUsingLegacy
+	isShardingConfigUpgrade := stateUsingLegacy && !planUsingLegacy
 	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
-	planReq := normalizeFromTFModel(ctx, &plan, diags, isSchemaUpgrade)
+	planReq := normalizeFromTFModel(ctx, &plan, diags, isShardingConfigUpgrade)
 	if diags.HasError() {
 		return
 	}
@@ -155,7 +155,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if upgradeRequest != nil {
 			clusterResp = r.applyTenantUpgrade(ctx, &plan, upgradeRequest, diags)
 		} else {
-			if isSchemaUpgrade {
+			if isShardingConfigUpgrade {
 				specs, err := populateIDValuesUsingNewAPI(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), r.Client.AtlasV2.ClustersApi, patchReq.ReplicationSpecs)
 				if err != nil {
 					diags.AddError(errorSchemaUpgradeReadIDs, defaultAPIErrorDetails(plan.Name.ValueString(), err))
@@ -236,7 +236,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if pauseAfter {
 		latestReq.Paused = nil
 	}
-	if usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
+	if usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
 		legacyReq := ConvertClusterDescription20241023to20240805(latestReq)
 		_, _, err = api20240805.CreateCluster(ctx, projectID, legacyReq).Execute()
 	} else {
@@ -333,8 +333,8 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 
 func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
 	var cluster *admin.ClusterDescription20240805
-	if usingLegacySchema(ctx, plan.ReplicationSpecs, diags) {
-		// Only updates of replication specs will be done with legacy API
+	if usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+		// With old sharding config we call older API (2023-02-01) for updating replication specs to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
 		legacySpecsChanged := r.updateLegacyReplicationSpecs(ctx, state, plan, diags, patchReq.ReplicationSpecs)
 		if diags.HasError() {
 			return nil
