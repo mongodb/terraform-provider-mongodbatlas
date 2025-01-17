@@ -2789,9 +2789,22 @@ func importIgnoredFieldsSetOnlyInV2Schema(replicationSpecsCount int) []string {
 	var ignored []string
 	for i := range replicationSpecsCount {
 		ignored = append(ignored,
-			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.#", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.%%", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.disk_iops", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.disk_size_gb", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.ebs_volume_type", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.instance_size", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.node_count", i),
 			fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.ebs_volume_type", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.ebs_volume_type", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.#", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.%%", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.disk_iops", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.disk_size_gb", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.ebs_volume_type", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.instance_size", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.node_count", i),
 		)
 	}
 	return ignored
