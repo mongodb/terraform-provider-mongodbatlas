@@ -41,7 +41,7 @@ func stateUpgraderFromV1(ctx context.Context, req resource.UpgradeStateRequest, 
 	setStateResponse(ctx, &resp.Diagnostics, req.RawState, &resp.State)
 }
 
-// Minimum attributes needed from source schema. Read will fill in the rest
+// Attributes needed from source schema. Read will fill in the rest
 var stateAttrs = map[string]tftypes.Type{
 	"project_id":             tftypes.String, // project_id and name to identify the cluster
 	"name":                   tftypes.String,
@@ -54,7 +54,7 @@ var stateAttrs = map[string]tftypes.Type{
 			"delete": tftypes.String,
 		},
 	},
-	"replication_specs": tftypes.List{ // Needed to check if some num_shards are > 1 so we need to force legacy schema
+	"replication_specs": tftypes.List{ // Needed to send num_shards to Read so it can decide if it's using the legacy schema.
 		ElementType: tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
 				"num_shards": tftypes.Number,
