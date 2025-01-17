@@ -29,7 +29,6 @@ func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // unexpected update and then: error operation not permitted, nums_shards from 1 -> > 1
 	testCase := symmetricGeoShardedOldSchemaTestCase(t, false)
 	mig.CreateAndRunTest(t, &testCase)
 }
