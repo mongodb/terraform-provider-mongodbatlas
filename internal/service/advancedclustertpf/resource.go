@@ -304,8 +304,7 @@ func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, state *TF
 		return nil
 	}
 	warningIfFCVExpiredOrUnpinnedExternally(diags, state, readResp)
-	forceLegacySchema := receivedLegacySchemaRequestInRead(state)
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, state, forceLegacySchema)
+	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, state, false)
 	if diags.HasError() {
 		return nil
 	}

@@ -91,7 +91,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	if diags.HasError() {
 		return
 	}
-	setOptionalModelAttrs(stateObj, model)
+	setOptionalModelAttrs(ctx, stateObj, model)
 	diags.Append(stateOut.Set(ctx, model)...)
 }
 
@@ -141,49 +141,57 @@ func getTimeoutFromStateObj(stateObj map[string]tftypes.Value) timeouts.Value {
 	return timeouts.Value{Object: obj}
 }
 
-func setOptionalModelAttrs(stateObj map[string]tftypes.Value, model *TFModel) {
+func setOptionalModelAttrs(ctx context.Context, stateObj map[string]tftypes.Value, model *TFModel) {
 	if retainBackupsEnabled := getAttrFromStateObj[bool](stateObj, "retain_backups_enabled"); retainBackupsEnabled != nil {
 		model.RetainBackupsEnabled = types.BoolPointerValue(retainBackupsEnabled)
 	}
 	if mongoDBMajorVersion := getAttrFromStateObj[string](stateObj, "mongo_db_major_version"); mongoDBMajorVersion != nil {
 		model.MongoDBMajorVersion = types.StringPointerValue(mongoDBMajorVersion)
 	}
-	if isLegacySchemaState(stateObj) {
-		sendLegacySchemaRequestToRead(model)
+	if specsVal := getAttrFromStateObj[[]tftypes.Value](stateObj, "replication_specs"); specsVal != nil {
+		var specModels []TFReplicationSpecsModel
+		for _, specVal := range *specsVal {
+			var specObj map[string]tftypes.Value
+			if err := specVal.As(&specObj); err != nil {
+				continue
+			}
+			if specModel := replicationSpecModelWithNumShards(specObj["num_shards"]); specModel != nil {
+				specModels = append(specModels, *specModel)
+			}
+		}
+		if len(specModels) > 0 {
+			model.ReplicationSpecs, _ = types.ListValueFrom(ctx, ReplicationSpecsObjType, specModels)
+		}
 	}
 }
 
-func isLegacySchemaState(stateObj map[string]tftypes.Value) bool {
-	one := big.NewFloat(1.0)
-	specsVal := getAttrFromStateObj[[]tftypes.Value](stateObj, "replication_specs")
-	if specsVal == nil {
-		return false
+func replicationSpecModelWithNumShards(numShardsVal tftypes.Value) *TFReplicationSpecsModel {
+	var numShardsFloat *big.Float
+	if err := numShardsVal.As(&numShardsFloat); err != nil || numShardsFloat == nil {
+		return nil
 	}
-	for _, specVal := range *specsVal {
-		var specObj map[string]tftypes.Value
-		if err := specVal.As(&specObj); err != nil {
-			return false
-		}
-		numShardsVal := specObj["num_shards"]
-		var numShards *big.Float
-		if err := numShardsVal.As(&numShards); err != nil || numShards == nil {
-			return false
-		}
-		if numShards.Cmp(one) > 0 { // legacy schema if numShards > 1
-			return true
-		}
+	numShards, _ := numShardsFloat.Int64()
+	return &TFReplicationSpecsModel{
+		NumShards:     types.Int64Value(numShards),
+		RegionConfigs: types.ListNull(RegionConfigsObjType),
+		ContainerId:   types.MapNull(types.StringType),
+		Id:            types.StringNull(),
+		ExternalId:    types.StringNull(),
+		ZoneId:        types.StringNull(),
+		ZoneName:      types.StringNull(),
 	}
-	return false
 }
 
-// sendLegacySchemaRequestToRead sets ClusterID to a special value so Read can know whether it must use legacy schema.
-// private state can't be used here because it's not available in Move Upgrader.
-// ClusterID is computed (not optional) so the value will be overridden in Read and the special value won't ever appear in the state file.
-func sendLegacySchemaRequestToRead(model *TFModel) {
-	model.ClusterID = types.StringValue("forceLegacySchema")
+/*
+
+type TFReplicationSpecsModel struct {
+	RegionConfigs types.List   `tfsdk:"region_configs"`
+	ContainerId   types.Map    `tfsdk:"container_id"`
+	Id            types.String `tfsdk:"id"`
+	ExternalId    types.String `tfsdk:"external_id"`
+	ZoneId        types.String `tfsdk:"zone_id"`
+	ZoneName      types.String `tfsdk:"zone_name"`
+	NumShards     types.Int64  `tfsdk:"num_shards"`
 }
 
-// receivedLegacySchemaRequestInRead checks if Read has to use the legacy schema because a State Move or Upgrader happened just before.
-func receivedLegacySchemaRequestInRead(model *TFModel) bool {
-	return model.ClusterID.ValueString() == "forceLegacySchema"
-}
+*/
