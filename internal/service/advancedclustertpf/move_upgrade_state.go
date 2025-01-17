@@ -3,6 +3,7 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -99,7 +100,72 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	if diags.HasError() {
 		return
 	}
-	model.ClusterID = types.StringValue("forceLegacySchema")
+
+	rawStateValue2, err := stateIn.UnmarshalWithOpts(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"replication_specs": tftypes.List{
+				ElementType: tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"num_shards": tftypes.Number,
+					},
+				},
+			},
+		},
+	}, tfprotov6.UnmarshalOpts{ValueFromJSONOpts: tftypes.ValueFromJSONOpts{IgnoreUndefinedAttributes: true}})
+	if err != nil {
+		diags.AddError("Unable to Unmarshal state", err.Error())
+		return
+	}
+
+	forceLegacySchema := false
+	var rawState2 map[string]tftypes.Value
+	if err := rawStateValue2.As(&rawState2); err != nil {
+		diags.AddError("Unable to Parse state", err.Error())
+		return
+	}
+
+	var rawState3 []tftypes.Value
+	if err := rawState2["replication_specs"].As(&rawState3); err != nil {
+		diags.AddError("Unable to Parse state", err.Error())
+		return
+	}
+	/*
+		for _, rawStateValue := range rawState2 {
+			var numShards int
+			if err := rawStateValue
+			numShards := getAttrFromRawState[int](diags, rawStateValue, "num_shards")
+		}
+	*/
+
+	for _, rawStateValue := range rawState3 {
+		var rawState4 map[string]tftypes.Value
+		if err := rawStateValue.As(&rawState4); err != nil {
+			diags.AddError("Unable to Parse state", err.Error())
+			return
+		}
+
+		var objectData map[string]tftypes.Value
+		if err := rawStateValue.As(&objectData); err != nil {
+			fmt.Printf("Error: %s\n", err)
+			return
+		}
+		numShardsData := objectData["num_shards"]
+		var numShards *big.Float
+		if err := numShardsData.As(&numShards); err != nil {
+			fmt.Printf("Error: %s\n", err)
+			return
+		}
+
+		one := big.NewFloat(1.0)
+		if numShards != nil && numShards.Cmp(one) > 0 {
+			forceLegacySchema = true
+			break
+		}
+	}
+
+	if forceLegacySchema {
+		model.ClusterID = types.StringValue("forceLegacySchema")
+	}
 	diags.Append(stateOut.Set(ctx, model)...)
 }
 
