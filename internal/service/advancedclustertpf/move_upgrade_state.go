@@ -19,10 +19,12 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
+// MoveState is used with moved block to upgrade from cluster to adv_cluster
 func (r *rs) MoveState(context.Context) []resource.StateMover {
 	return []resource.StateMover{{StateMover: stateMover}}
 }
 
+// UpgradeState is used to upgrade from adv_cluster schema v1 (SDKv2) to v2 (TPF)
 func (r *rs) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
 	return map[int64]resource.StateUpgrader{
 		1: {StateUpgrader: stateUpgraderFromV1},
