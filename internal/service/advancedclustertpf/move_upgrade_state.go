@@ -41,7 +41,9 @@ func stateUpgraderFromV1(ctx context.Context, req resource.UpgradeStateRequest, 
 	setStateResponse(ctx, &resp.Diagnostics, req.RawState, &resp.State)
 }
 
-// Attributes needed from source schema. Read will fill in the rest
+// stateAttrs has the attributes needed from source schema.
+// Filling these attributes in the destination will prevent plan changes when moving/upgrading state.
+// Read will fill in the rest.
 var stateAttrs = map[string]tftypes.Type{
 	"project_id":             tftypes.String, // project_id and name to identify the cluster
 	"name":                   tftypes.String,
