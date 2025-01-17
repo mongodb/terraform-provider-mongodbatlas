@@ -26,6 +26,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
 const (
@@ -429,6 +430,23 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
+
+	if isFlex(d.Get("cluster_type").(string)) {
+		clusterName := d.Get("name").(string)
+		flexClusterReq := flexcluster.NewAtlasCreateReqSDKv2(d, expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil))
+		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("error creating flex cluster: %v", err))
+		}
+
+		d.SetId(conversion.EncodeStateID(map[string]string{
+			"cluster_id":   flexClusterResp.GetId(),
+			"project_id":   projectID,
+			"cluster_name": clusterName,
+		}))
+
+		return resourceRead(ctx, d, meta)
+	}
 
 	var rootDiskSizeGB *float64
 	if v, ok := d.GetOk("disk_size_gb"); ok {
@@ -1441,4 +1459,8 @@ func waitForUpdateToFinish(ctx context.Context, connV2 *admin.APIClient, project
 
 	_, err := stateConf.WaitForStateContext(ctx)
 	return err
+}
+
+func isFlex(clusterType string) bool {
+	return clusterType == "FLEX"
 }

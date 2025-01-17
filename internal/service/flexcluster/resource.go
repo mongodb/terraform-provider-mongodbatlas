@@ -56,20 +56,9 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	clusterName := tfModel.Name.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.FlexClustersApi.CreateFlexCluster(ctx, projectID, flexClusterReq).Execute()
+	flexClusterResp, err := CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 	if err != nil {
-		resp.Diagnostics.AddError("error creating resource", err.Error())
-		return
-	}
-
-	flexClusterParams := &admin.GetFlexClusterApiParams{
-		GroupId: projectID,
-		Name:    clusterName,
-	}
-
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{retrystrategy.RetryStrategyCreatingState}, []string{retrystrategy.RetryStrategyIdleState})
-	if err != nil {
-		resp.Diagnostics.AddError("error waiting for resource to be created", err.Error())
+		resp.Diagnostics.AddError("error creating the resource", err.Error())
 		return
 	}
 
@@ -212,4 +201,22 @@ func splitFlexClusterImportID(id string) (projectID, clusterName *string, err er
 	clusterName = &parts[2]
 
 	return
+}
+
+func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionCreate20241113, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
+	_, _, err := client.CreateFlexCluster(ctx, projectID, flexClusterReq).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: projectID,
+		Name:    clusterName,
+	}
+
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyCreatingState}, []string{retrystrategy.RetryStrategyIdleState})
+	if err != nil {
+		return nil, err
+	}
+	return flexClusterResp, nil
 }
