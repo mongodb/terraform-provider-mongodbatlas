@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -84,7 +83,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
 		GroupId: projectID,
 		Name:    name,
-	}, getTimeoutFromStateObj(diags, stateObj), diags, ExtraAPIInfo{})
+	}, getTimeoutFromStateObj(stateObj), diags, ExtraAPIInfo{})
 	if diags.HasError() {
 		return
 	}
@@ -96,21 +95,17 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	diags.Append(stateOut.Set(ctx, model)...)
 }
 
-func getAttrFromStateObj[T any](diags *diag.Diagnostics, rawState map[string]tftypes.Value, attrName string) *T {
+func getAttrFromStateObj[T any](rawState map[string]tftypes.Value, attrName string) *T {
 	var ret *T
 	if err := rawState[attrName].As(&ret); err != nil {
-		diags.AddAttributeError(path.Root(attrName), fmt.Sprintf("Unable to read cluster attribute %s", attrName), err.Error())
 		return nil
 	}
 	return ret
 }
 
 func getProjectIDNameFromStateObj(diags *diag.Diagnostics, stateObj map[string]tftypes.Value) (projectID, name *string) {
-	projectID = getAttrFromStateObj[string](diags, stateObj, "project_id")
-	name = getAttrFromStateObj[string](diags, stateObj, "name")
-	if diags.HasError() {
-		return
-	}
+	projectID = getAttrFromStateObj[string](stateObj, "project_id")
+	name = getAttrFromStateObj[string](stateObj, "name")
 	if !conversion.IsStringPresent(projectID) || !conversion.IsStringPresent(name) {
 		diags.AddError("Unable to read project_id or name from state", fmt.Sprintf("project_id: %s, name: %s",
 			conversion.SafeString(projectID), conversion.SafeString(name)))
@@ -119,20 +114,20 @@ func getProjectIDNameFromStateObj(diags *diag.Diagnostics, stateObj map[string]t
 	return projectID, name
 }
 
-func getTimeoutFromStateObj(diags *diag.Diagnostics, stateObj map[string]tftypes.Value) timeouts.Value {
+func getTimeoutFromStateObj(stateObj map[string]tftypes.Value) timeouts.Value {
 	attrTypes := map[string]attr.Type{
 		"create": types.StringType,
 		"update": types.StringType,
 		"delete": types.StringType,
 	}
 	nullObj := timeouts.Value{Object: types.ObjectNull(attrTypes)}
-	timeoutState := getAttrFromStateObj[map[string]tftypes.Value](diags, stateObj, "timeouts")
-	if diags.HasError() || timeoutState == nil {
+	timeoutState := getAttrFromStateObj[map[string]tftypes.Value](stateObj, "timeouts")
+	if timeoutState == nil {
 		return nullObj
 	}
 	timeoutMap := make(map[string]attr.Value)
 	for action := range attrTypes {
-		actionTimeout := getAttrFromStateObj[string](diags, *timeoutState, action)
+		actionTimeout := getAttrFromStateObj[string](*timeoutState, action)
 		if actionTimeout == nil {
 			timeoutMap[action] = types.StringNull()
 		} else {
@@ -140,19 +135,17 @@ func getTimeoutFromStateObj(diags *diag.Diagnostics, stateObj map[string]tftypes
 		}
 	}
 	obj, d := types.ObjectValue(attrTypes, timeoutMap)
-	diags.Append(d...)
-	if diags.HasError() {
+	if d.HasError() {
 		return nullObj
 	}
 	return timeouts.Value{Object: obj}
 }
 
 func setOptionalModelAttrs(stateObj map[string]tftypes.Value, model *TFModel) {
-	var diags *diag.Diagnostics // discard errors as these are optional attributes
-	if retainBackupsEnabled := getAttrFromStateObj[bool](diags, stateObj, "retain_backups_enabled"); retainBackupsEnabled != nil {
+	if retainBackupsEnabled := getAttrFromStateObj[bool](stateObj, "retain_backups_enabled"); retainBackupsEnabled != nil {
 		model.RetainBackupsEnabled = types.BoolPointerValue(retainBackupsEnabled)
 	}
-	if mongoDBMajorVersion := getAttrFromStateObj[string](diags, stateObj, "mongo_db_major_version"); mongoDBMajorVersion != nil {
+	if mongoDBMajorVersion := getAttrFromStateObj[string](stateObj, "mongo_db_major_version"); mongoDBMajorVersion != nil {
 		model.MongoDBMajorVersion = types.StringPointerValue(mongoDBMajorVersion)
 	}
 	if isLegacySchemaState(stateObj) {
@@ -161,9 +154,8 @@ func setOptionalModelAttrs(stateObj map[string]tftypes.Value, model *TFModel) {
 }
 
 func isLegacySchemaState(stateObj map[string]tftypes.Value) bool {
-	var diags *diag.Diagnostics // discard errors and assume not legacy if there are any errors
 	one := big.NewFloat(1.0)
-	specsVal := getAttrFromStateObj[[]tftypes.Value](diags, stateObj, "replication_specs")
+	specsVal := getAttrFromStateObj[[]tftypes.Value](stateObj, "replication_specs")
 	if specsVal == nil {
 		return false
 	}
