@@ -70,9 +70,6 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
 	onlyZeroClusters, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_ONLY_WHEN_NO_CLUSTERS"))
 	skipProjectsAfter := time.Now().Add(-keepProjectsCreatedWithinHours * time.Hour)
-	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
-		return client.ProjectsApi.ListProjects(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
-	})
 	retryAttemptsStr := os.Getenv("MONGODB_ATLAS_CLEAN_RETRY_ATTEMPTS")
 	runRetries := retryAttempts
 	if retryAttemptsStr != "" {
@@ -80,8 +77,9 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		require.NoError(t, err)
 		runRetries = attempts
 	}
-	require.NoError(t, err)
-	t.Logf("found %d projects (DRY_RUN=%t)", len(projects), dryRun)
+	projects := readAllProjects(ctx, t, client)
+	projectsBefore := len(projects)
+	t.Logf("found %d projects (DRY_RUN=%t)", projectsBefore, dryRun)
 	projectsToDelete := map[string]string{}
 	projectInfos := []string{}
 	for _, p := range projects {
@@ -98,6 +96,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	t.Logf("will try to delete %d projects:", len(projectsToDelete))
 	slices.Sort(projectInfos)
 	t.Log(strings.Join(projectInfos, "\n"))
+	var deleteErrors int
 	for name, projectID := range projectsToDelete {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -105,6 +104,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 			if changes != "" {
 				t.Logf("project %s %s", name, changes)
 			}
+			var err error
 			for i := range runRetries {
 				attempt := i + 1
 				if attempt > 1 {
@@ -125,8 +125,22 @@ func TestCleanProjectAndClusters(t *testing.T) {
 				}
 			}
 			t.Logf("failed to delete project %s: %s", name, err)
+			deleteErrors++
 		})
 	}
+	t.Cleanup(func() {
+		projectsAfter := readAllProjects(ctx, t, client)
+		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, dryRun)
+	})
+}
+
+func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient) []admin.Group {
+	t.Helper()
+	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
+		return client.ProjectsApi.ListProjects(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
+	})
+	require.NoError(t, err)
+	return projects
 }
 
 func findRetryErrorCode(err error) string {
