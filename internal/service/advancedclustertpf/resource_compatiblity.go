@@ -42,6 +42,7 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, forceLegacySchema bool) *ExtraAPIInfo {
 	var (
 		api20240530             = client.AtlasV220240530.ClustersApi
+		rootDiskSize            = conversion.NilForUnknown(plan.DiskSizeGB, plan.DiskSizeGB.ValueFloat64Pointer())
 		projectID               = plan.ProjectID.ValueString()
 		clusterName             = plan.Name.ValueString()
 		forceLegacySchemaFailed = false
@@ -55,18 +56,28 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 			return nil
 		}
 	}
+	if rootDiskSize == nil {
+		rootDiskSize = findRegionRootDiskSize(clusterLatest.ReplicationSpecs)
+	}
 	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterLatest, client.AtlasV2.NetworkPeeringApi)
 	if err != nil {
 		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
 		return nil
 	}
-	return &ExtraAPIInfo{
+	info := &ExtraAPIInfo{
 		ContainerIDs:               containerIDs,
+		RootDiskSize:               rootDiskSize,
 		ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
 		ForceLegacySchemaFailed:    forceLegacySchemaFailed,
-		ZoneNameNumShards:          numShardsMapFromOldAPI(clusterRespOld),
-		UsingLegacySchema:          forceLegacySchema || usingLegacySchema(ctx, plan.ReplicationSpecs, diags),
 	}
+	if forceLegacySchema {
+		info.UsingLegacySchema = true
+		info.ZoneNameNumShards = numShardsMapFromOldAPI(clusterRespOld) // plan is empty in data source Read when forcing legacy, so we get num_shards from the old API
+	} else {
+		info.UsingLegacySchema = usingLegacySchema(ctx, plan.ReplicationSpecs, diags)
+		info.ZoneNameNumShards = numShardsMap(ctx, plan.ReplicationSpecs, diags)
+	}
+	return info
 }
 
 // instead of using `num_shards` explode the replication specs, and set disk_size_gb
