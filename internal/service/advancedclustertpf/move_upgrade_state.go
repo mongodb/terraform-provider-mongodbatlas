@@ -181,17 +181,3 @@ func replicationSpecModelWithNumShards(numShardsVal tftypes.Value) *TFReplicatio
 		ZoneName:      types.StringNull(),
 	}
 }
-
-/*
-
-type TFReplicationSpecsModel struct {
-	RegionConfigs types.List   `tfsdk:"region_configs"`
-	ContainerId   types.Map    `tfsdk:"container_id"`
-	Id            types.String `tfsdk:"id"`
-	ExternalId    types.String `tfsdk:"external_id"`
-	ZoneId        types.String `tfsdk:"zone_id"`
-	ZoneName      types.String `tfsdk:"zone_name"`
-	NumShards     types.Int64  `tfsdk:"num_shards"`
-}
-
-*/
