@@ -14,8 +14,7 @@ import (
 )
 
 const (
-	IgnoreLabelKey   = "Infrastructure Tool"
-	IgnoreLabelValue = "MongoDB Atlas Terraform Provider"
+	IgnoreLabelKey = "Infrastructure Tool"
 )
 
 var (

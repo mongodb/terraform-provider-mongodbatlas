@@ -37,7 +37,7 @@ const (
 	ErrorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
 )
 
-var defaultLabel = matlas.Label{Key: advancedclustertpf.IgnoreLabelKey, Value: advancedclustertpf.IgnoreLabelValue}
+var defaultLabel = matlas.Label{Key: advancedclustertpf.IgnoreLabelKey, Value: "MongoDB Atlas Terraform Provider"}
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
