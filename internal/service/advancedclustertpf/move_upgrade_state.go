@@ -42,35 +42,72 @@ func stateUpgraderFromV1(ctx context.Context, req resource.UpgradeStateRequest, 
 	setStateResponse(ctx, &resp.Diagnostics, req.RawState, &resp.State)
 }
 
-func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfprotov6.RawState, stateOut *tfsdk.State) {
-	rawStateValue, err := stateIn.UnmarshalWithOpts(tftypes.Object{
-		// Minimum attributes needed so Read fills in the rest
+// Minimum attributes needed from source schema. Read will fill in the rest
+var stateAttrs = map[string]tftypes.Type{
+	"project_id":             tftypes.String, // project_id and name to identify the cluster
+	"name":                   tftypes.String,
+	"retain_backups_enabled": tftypes.Bool,   // TF specific so can't be got in Read
+	"mongo_db_major_version": tftypes.String, // Has special logic in overrideAttributesWithPrevStateValue that needs the previous state
+	"timeouts": tftypes.Object{ // TF specific so can't be got in Read
 		AttributeTypes: map[string]tftypes.Type{
-			"project_id":             tftypes.String, // project_id and name to identify the cluster
-			"name":                   tftypes.String,
-			"retain_backups_enabled": tftypes.Bool,   // TF specific so can't be got in Read
-			"mongo_db_major_version": tftypes.String, // Has special logic in overrideAttributesWithPrevStateValue that needs the previous state
-			"timeouts": tftypes.Object{ // TF specific so can't be got in Read
-				AttributeTypes: map[string]tftypes.Type{
-					"create": tftypes.String,
-					"update": tftypes.String,
-					"delete": tftypes.String,
-				},
+			"create": tftypes.String,
+			"update": tftypes.String,
+			"delete": tftypes.String,
+		},
+	},
+	"replication_specs": tftypes.List{ // Needed to check if some num_shards are > 1 so we need to force legacy schema
+		ElementType: tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"num_shards": tftypes.Number,
 			},
 		},
+	},
+}
+
+func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfprotov6.RawState, stateOut *tfsdk.State) {
+	rawStateValue, err := stateIn.UnmarshalWithOpts(tftypes.Object{
+		AttributeTypes: stateAttrs,
 	}, tfprotov6.UnmarshalOpts{ValueFromJSONOpts: tftypes.ValueFromJSONOpts{IgnoreUndefinedAttributes: true}})
 	if err != nil {
 		diags.AddError("Unable to Unmarshal state", err.Error())
 		return
 	}
-	var rawState map[string]tftypes.Value
-	if err := rawStateValue.As(&rawState); err != nil {
+	var stateObj map[string]tftypes.Value
+	if err := rawStateValue.As(&stateObj); err != nil {
 		diags.AddError("Unable to Parse state", err.Error())
 		return
 	}
+	projectID, name := getProjectIDNameFromStateObj(diags, stateObj)
+	if diags.HasError() {
+		return
+	}
+	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
+		GroupId: projectID,
+		Name:    name,
+	}, getTimeoutFromStateObj(diags, stateObj), diags, ExtraAPIInfo{})
+	if diags.HasError() {
+		return
+	}
+	AddAdvancedConfig(ctx, model, nil, nil, diags)
+	if diags.HasError() {
+		return
+	}
+	setOptionalModelAttrs(stateObj, model)
+	diags.Append(stateOut.Set(ctx, model)...)
+}
 
-	projectID := getAttrFromRawState[string](diags, rawState, "project_id")
-	name := getAttrFromRawState[string](diags, rawState, "name")
+func getAttrFromStateObj[T any](diags *diag.Diagnostics, rawState map[string]tftypes.Value, attrName string) *T {
+	var ret *T
+	if err := rawState[attrName].As(&ret); err != nil {
+		diags.AddAttributeError(path.Root(attrName), fmt.Sprintf("Unable to read cluster attribute %s", attrName), err.Error())
+		return nil
+	}
+	return ret
+}
+
+func getProjectIDNameFromStateObj(diags *diag.Diagnostics, stateObj map[string]tftypes.Value) (projectID, name *string) {
+	projectID = getAttrFromStateObj[string](diags, stateObj, "project_id")
+	name = getAttrFromStateObj[string](diags, stateObj, "name")
 	if diags.HasError() {
 		return
 	}
@@ -79,121 +116,23 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 			conversion.SafeString(projectID), conversion.SafeString(name)))
 		return
 	}
-
-	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
-		GroupId: projectID,
-		Name:    name,
-	}, getAttrTimeout(diags, rawState), diags, ExtraAPIInfo{})
-	if diags.HasError() {
-		return
-	}
-
-	if retainBackupsEnabled := getAttrFromRawState[bool](diags, rawState, "retain_backups_enabled"); retainBackupsEnabled != nil {
-		model.RetainBackupsEnabled = types.BoolPointerValue(retainBackupsEnabled)
-	}
-	if mongoDBMajorVersion := getAttrFromRawState[string](diags, rawState, "mongo_db_major_version"); mongoDBMajorVersion != nil {
-		model.MongoDBMajorVersion = types.StringPointerValue(mongoDBMajorVersion)
-	}
-	if diags.HasError() {
-		return
-	}
-
-	AddAdvancedConfig(ctx, model, nil, nil, diags)
-	if diags.HasError() {
-		return
-	}
-
-	rawStateValue2, err := stateIn.UnmarshalWithOpts(tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"replication_specs": tftypes.List{
-				ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"num_shards": tftypes.Number,
-					},
-				},
-			},
-		},
-	}, tfprotov6.UnmarshalOpts{ValueFromJSONOpts: tftypes.ValueFromJSONOpts{IgnoreUndefinedAttributes: true}})
-	if err != nil {
-		diags.AddError("Unable to Unmarshal state", err.Error())
-		return
-	}
-
-	forceLegacySchema := false
-	var rawState2 map[string]tftypes.Value
-	if err := rawStateValue2.As(&rawState2); err != nil {
-		diags.AddError("Unable to Parse state", err.Error())
-		return
-	}
-
-	var rawState3 []tftypes.Value
-	if err := rawState2["replication_specs"].As(&rawState3); err != nil {
-		diags.AddError("Unable to Parse state", err.Error())
-		return
-	}
-	/*
-		for _, rawStateValue := range rawState2 {
-			var numShards int
-			if err := rawStateValue
-			numShards := getAttrFromRawState[int](diags, rawStateValue, "num_shards")
-		}
-	*/
-
-	for _, rawStateValue := range rawState3 {
-		var rawState4 map[string]tftypes.Value
-		if err := rawStateValue.As(&rawState4); err != nil {
-			diags.AddError("Unable to Parse state", err.Error())
-			return
-		}
-
-		var objectData map[string]tftypes.Value
-		if err := rawStateValue.As(&objectData); err != nil {
-			fmt.Printf("Error: %s\n", err)
-			return
-		}
-		numShardsData := objectData["num_shards"]
-		var numShards *big.Float
-		if err := numShardsData.As(&numShards); err != nil {
-			fmt.Printf("Error: %s\n", err)
-			return
-		}
-
-		one := big.NewFloat(1.0)
-		if numShards != nil && numShards.Cmp(one) > 0 {
-			forceLegacySchema = true
-			break
-		}
-	}
-
-	if forceLegacySchema {
-		model.ClusterID = types.StringValue("forceLegacySchema")
-	}
-	diags.Append(stateOut.Set(ctx, model)...)
+	return projectID, name
 }
 
-func getAttrFromRawState[T any](diags *diag.Diagnostics, rawState map[string]tftypes.Value, attrName string) *T {
-	var ret *T
-	if err := rawState[attrName].As(&ret); err != nil {
-		diags.AddAttributeError(path.Root(attrName), fmt.Sprintf("Unable to read cluster %s", attrName), err.Error())
-		return nil
-	}
-	return ret
-}
-
-func getAttrTimeout(diags *diag.Diagnostics, rawState map[string]tftypes.Value) timeouts.Value {
+func getTimeoutFromStateObj(diags *diag.Diagnostics, stateObj map[string]tftypes.Value) timeouts.Value {
 	attrTypes := map[string]attr.Type{
 		"create": types.StringType,
 		"update": types.StringType,
 		"delete": types.StringType,
 	}
 	nullObj := timeouts.Value{Object: types.ObjectNull(attrTypes)}
-	timeoutState := getAttrFromRawState[map[string]tftypes.Value](diags, rawState, "timeouts")
+	timeoutState := getAttrFromStateObj[map[string]tftypes.Value](diags, stateObj, "timeouts")
 	if diags.HasError() || timeoutState == nil {
 		return nullObj
 	}
 	timeoutMap := make(map[string]attr.Value)
 	for action := range attrTypes {
-		actionTimeout := getAttrFromRawState[string](diags, *timeoutState, action)
+		actionTimeout := getAttrFromStateObj[string](diags, *timeoutState, action)
 		if actionTimeout == nil {
 			timeoutMap[action] = types.StringNull()
 		} else {
@@ -206,4 +145,53 @@ func getAttrTimeout(diags *diag.Diagnostics, rawState map[string]tftypes.Value) 
 		return nullObj
 	}
 	return timeouts.Value{Object: obj}
+}
+
+func setOptionalModelAttrs(stateObj map[string]tftypes.Value, model *TFModel) {
+	var diags *diag.Diagnostics // discard errors as these are optional attributes
+	if retainBackupsEnabled := getAttrFromStateObj[bool](diags, stateObj, "retain_backups_enabled"); retainBackupsEnabled != nil {
+		model.RetainBackupsEnabled = types.BoolPointerValue(retainBackupsEnabled)
+	}
+	if mongoDBMajorVersion := getAttrFromStateObj[string](diags, stateObj, "mongo_db_major_version"); mongoDBMajorVersion != nil {
+		model.MongoDBMajorVersion = types.StringPointerValue(mongoDBMajorVersion)
+	}
+	if isLegacySchemaState(stateObj) {
+		sendLegacySchemaRequestToRead(model)
+	}
+}
+
+func isLegacySchemaState(stateObj map[string]tftypes.Value) bool {
+	var diags *diag.Diagnostics // discard errors and assume not legacy if there are any errors
+	one := big.NewFloat(1.0)
+	specsVal := getAttrFromStateObj[[]tftypes.Value](diags, stateObj, "replication_specs")
+	if specsVal == nil {
+		return false
+	}
+	for _, specVal := range *specsVal {
+		var specObj map[string]tftypes.Value
+		if err := specVal.As(&specObj); err != nil {
+			return false
+		}
+		numShardsVal := specObj["num_shards"]
+		var numShards *big.Float
+		if err := numShardsVal.As(&numShards); err != nil || numShards == nil {
+			return false
+		}
+		if numShards.Cmp(one) > 0 { // legacy schema if numShards > 1
+			return true
+		}
+	}
+	return false
+}
+
+// sendLegacySchemaRequestToRead sets ClusterID to a special value so Read can know whether it must use legacy schema.
+// private state can't be used here because it's not available in Move Upgrader.
+// ClusterID is computed (not optional) so the value will be overridden in Read and the special value won't ever appear in the state file.
+func sendLegacySchemaRequestToRead(model *TFModel) {
+	model.ClusterID = types.StringValue("forceLegacySchema")
+}
+
+// receivedLegacySchemaRequestInRead checks if Read has to use the legacy schema because a State Move or Upgrader happened just before.
+func receivedLegacySchemaRequestInRead(model *TFModel) bool {
+	return model.ClusterID.ValueString() == "forceLegacySchema"
 }
