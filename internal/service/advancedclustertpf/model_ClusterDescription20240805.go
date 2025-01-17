@@ -22,7 +22,6 @@ const (
 type ExtraAPIInfo struct {
 	ZoneNameNumShards          map[string]int64
 	ZoneNameReplicationSpecIDs map[string]string
-	RootDiskSize               *float64
 	ContainerIDs               map[string]string
 	UsingLegacySchema          bool
 	ForceLegacySchemaFailed    bool
