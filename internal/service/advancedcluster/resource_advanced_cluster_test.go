@@ -1190,7 +1190,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate),
 				Check:  checksUpdate,
 			},
-			acc.TestStepImportCluster(resourceName, importIgnoredFields(1)...),
+			acc.TestStepImportCluster(resourceName, importIgnoredFieldsSetOnlyInV2Schema(1)...),
 		},
 	})
 }
@@ -1233,7 +1233,7 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 				Config: configSharded(t, projectID, clusterName, true),
 				Check:  checksUpdated,
 			},
-			acc.TestStepImportCluster(resourceName, importIgnoredFields(2)...),
+			acc.TestStepImportCluster(resourceName, importIgnoredFieldsSetOnlyInV2Schema(2)...),
 		},
 	})
 }
@@ -2782,12 +2782,12 @@ func configFCVPinning(t *testing.T, orgID, projectName, clusterName string, pinn
 	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)) + dataSourcesTFNewSchema
 }
 
-func importIgnoredFields(replicationSpecs int) []string {
-	if config.AdvancedClusterV2Schema() {
-		return []string{}
+func importIgnoredFieldsSetOnlyInV2Schema(replicationSpecsCount int) []string {
+	if !config.AdvancedClusterV2Schema() {
+		return nil
 	}
-	ignored := []string{}
-	for i := range replicationSpecs {
+	var ignored []string
+	for i := range replicationSpecsCount {
 		ignored = append(ignored,
 			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs", i),
 			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs", i),
