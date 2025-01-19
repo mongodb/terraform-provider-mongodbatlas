@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
@@ -58,25 +57,35 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 	tfModel.AdvancedConfiguration = objType
 }
 
+// create - tfModel.AdvConfig is nil, tfModel is not nil
+// read - tfModel.AdvConfig is nil, tfModel is not nil
+// update - tfModel.AdvConfig is not nil, tfModel is not nil
 func customOpensslCipherConfigTLS12(ctx context.Context, tfModel *TFModel, processArgs *admin.ClusterDescriptionProcessArgs20240805, diags *diag.Diagnostics) types.Set {
-	if tfModel == nil {
-		customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, processArgs.CustomOpensslCipherConfigTls12)
-		diags.Append(d...)
-		return customOpensslCipherConfigTLS12
-	}
 
-	stateConfig := tfModel.AdvancedConfiguration
-	if stateConfig.IsUnknown() || stateConfig.IsNull() {
-		return types.SetNull(types.StringType)
-	}
+	// if tfModel == nil {
+	// 	customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, processArgs.CustomOpensslCipherConfigTls12)
+	// 	diags.Append(d...)
+	// 	return customOpensslCipherConfigTLS12
+	// }
 
-	input := &TFAdvancedConfigurationModel{}
-	if d := stateConfig.As(ctx, input, basetypes.ObjectAsOptions{}); len(d) > 0 {
-		diags.Append(d...)
-		return types.SetNull(types.StringType)
-	}
+	// stateConfig := tfModel.AdvancedConfiguration
+	// if stateConfig.IsNull() {
+	// 	if processArgs != nil && len(*processArgs.CustomOpensslCipherConfigTls12) == 0 {
+	// 		return types.SetNull(types.StringType)
+	// 	}
+	// 	customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, processArgs.CustomOpensslCipherConfigTls12)
+	// 	diags.Append(d...)
+	// 	return customOpensslCipherConfigTLS12
+	// 	// return types.SetNull(types.StringType)
+	// }
 
-	if input.CustomOpensslCipherConfigTls12.IsNull() && len(*processArgs.CustomOpensslCipherConfigTls12) == 0 {
+	// input := &TFAdvancedConfigurationModel{}
+	// if d := stateConfig.As(ctx, input, basetypes.ObjectAsOptions{}); len(d) > 0 {
+	// 	diags.Append(d...)
+	// 	return types.SetNull(types.StringType)
+	// }
+
+	if processArgs != nil && len(*processArgs.CustomOpensslCipherConfigTls12) == 0 {
 		return types.SetNull(types.StringType)
 	}
 
