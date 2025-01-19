@@ -29,7 +29,7 @@ func TestAccAdvancedCluster_moveBasic(t *testing.T) {
 			{
 				Config: configMoveSecond(projectID, clusterName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPostRefresh: []plancheck.PlanCheck{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
 						plancheck.ExpectEmptyPlan(),
 					},
 				},
