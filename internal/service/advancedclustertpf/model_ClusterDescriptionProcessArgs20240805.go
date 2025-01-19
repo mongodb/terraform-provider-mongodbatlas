@@ -48,7 +48,7 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 			TransactionLifetimeLimitSeconds:  types.Int64Value(conversion.SafeValue(input.TransactionLifetimeLimitSeconds)),
 			DefaultMaxTimeMS:                 types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DefaultMaxTimeMS)),
 			TlsCipherConfigMode:              types.StringValue(conversion.SafeValue(input.TlsCipherConfigMode)),
-			CustomOpensslCipherConfigTls12:   customOpensslCipherConfigTLS12(ctx, tfModel, input, diags),
+			CustomOpensslCipherConfigTls12:   customOpensslCipherConfigTLS12(ctx, input, diags),
 		}
 	}
 
@@ -60,31 +60,7 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 // create - tfModel.AdvConfig is nil, tfModel is not nil
 // read - tfModel.AdvConfig is nil, tfModel is not nil
 // update - tfModel.AdvConfig is not nil, tfModel is not nil
-func customOpensslCipherConfigTLS12(ctx context.Context, tfModel *TFModel, processArgs *admin.ClusterDescriptionProcessArgs20240805, diags *diag.Diagnostics) types.Set {
-
-	// if tfModel == nil {
-	// 	customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, processArgs.CustomOpensslCipherConfigTls12)
-	// 	diags.Append(d...)
-	// 	return customOpensslCipherConfigTLS12
-	// }
-
-	// stateConfig := tfModel.AdvancedConfiguration
-	// if stateConfig.IsNull() {
-	// 	if processArgs != nil && len(*processArgs.CustomOpensslCipherConfigTls12) == 0 {
-	// 		return types.SetNull(types.StringType)
-	// 	}
-	// 	customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, processArgs.CustomOpensslCipherConfigTls12)
-	// 	diags.Append(d...)
-	// 	return customOpensslCipherConfigTLS12
-	// 	// return types.SetNull(types.StringType)
-	// }
-
-	// input := &TFAdvancedConfigurationModel{}
-	// if d := stateConfig.As(ctx, input, basetypes.ObjectAsOptions{}); len(d) > 0 {
-	// 	diags.Append(d...)
-	// 	return types.SetNull(types.StringType)
-	// }
-
+func customOpensslCipherConfigTLS12(ctx context.Context, processArgs *admin.ClusterDescriptionProcessArgs20240805, diags *diag.Diagnostics) types.Set {
 	if processArgs != nil && len(*processArgs.CustomOpensslCipherConfigTls12) == 0 {
 		return types.SetNull(types.StringType)
 	}
