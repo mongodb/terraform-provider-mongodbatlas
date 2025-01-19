@@ -389,13 +389,13 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
 		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
-			// enable when added support DefaultMaxTimeMS: conversion.IntPtr(65),
+			DefaultMaxTimeMS: conversion.IntPtr(65),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
 			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
 			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
 		}
 		processArgsUpdatedCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
-			// enable when added support DefaultMaxTimeMS: conversion.IntPtr(65),
+			DefaultMaxTimeMS: conversion.IntPtr(65),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
 			TlsCipherConfigMode: conversion.StringPtr("DEFAULT"), // To unset TlsCipherConfigMode, user needs to set this to DEFAULT
 		}

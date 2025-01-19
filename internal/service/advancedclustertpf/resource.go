@@ -359,12 +359,12 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 		advConfig       *admin.ClusterDescriptionProcessArgs20240805
 		legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
 	)
-	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	if !update.IsZeroValues(patchReqProcessArgs) {
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	if !update.IsZeroValues(patchReqProcessArgsLegacy) {
 		changed = true
-		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgs).Execute()
+		legacyAdvConfig, _, err = r.Client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgsLegacy).Execute()
 		if err != nil {
-			diags.AddError(errorAdvancedConfUpdate, defaultAPIErrorDetails(clusterName, err))
+			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
 		}
 		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
@@ -372,12 +372,12 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 			return nil, nil, false
 		}
 	}
-	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
-	if !update.IsZeroValues(patchReqProcessArgsLegacy) {
+	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	if !update.IsZeroValues(patchReqProcessArgs) {
 		changed = true
-		legacyAdvConfig, _, err = r.Client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgsLegacy).Execute()
+		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgs).Execute()
 		if err != nil {
-			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
+			diags.AddError(errorAdvancedConfUpdate, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
 		}
 		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
