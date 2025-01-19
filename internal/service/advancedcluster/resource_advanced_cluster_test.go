@@ -1190,7 +1190,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate),
 				Check:  checksUpdate,
 			},
-			acc.TestStepImportCluster(resourceName, importIgnoredFieldsSetOnlyInV2Schema(1)...),
+			acc.TestStepImportCluster(resourceName, importIgnoredPrefixFieldsInV2Schema(1)...),
 		},
 	})
 }
@@ -1233,7 +1233,7 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 				Config: configSharded(t, projectID, clusterName, true),
 				Check:  checksUpdated,
 			},
-			acc.TestStepImportCluster(resourceName, importIgnoredFieldsSetOnlyInV2Schema(2)...),
+			acc.TestStepImportCluster(resourceName, importIgnoredPrefixFieldsInV2Schema(2)...),
 		},
 	})
 }
@@ -2782,29 +2782,20 @@ func configFCVPinning(t *testing.T, orgID, projectName, clusterName string, pinn
 	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)) + dataSourcesTFNewSchema
 }
 
-func importIgnoredFieldsSetOnlyInV2Schema(replicationSpecsCount int) []string {
-	if !config.AdvancedClusterV2Schema() {
+// importIgnoredPrefixFieldsInV2Schema ignores import fields in SDKv2.
+// analytics|electable|read_only are only set in state in SDKv2 if present in the definition.
+// However, as import doesn't have a previous state to compare with, import will always fill them.
+// This will make these fields differ in the state, although the plan change won't be shown to the user as they're computed values.
+func importIgnoredPrefixFieldsInV2Schema(replicationSpecsCount int) []string {
+	if config.AdvancedClusterV2Schema() {
 		return nil
 	}
 	var ignored []string
 	for i := range replicationSpecsCount {
 		ignored = append(ignored,
-			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.#", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.%%", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.disk_iops", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.disk_size_gb", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.ebs_volume_type", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.instance_size", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs.0.node_count", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.ebs_volume_type", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.ebs_volume_type", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.#", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.%%", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.disk_iops", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.disk_size_gb", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.ebs_volume_type", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.instance_size", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs.0.node_count", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs", i),
+			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs", i),
 		)
 	}
 	return ignored

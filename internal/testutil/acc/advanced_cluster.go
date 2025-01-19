@@ -42,14 +42,14 @@ var (
 	}
 )
 
-func TestStepImportCluster(resourceName string, ignoredFields ...string) resource.TestStep {
+func TestStepImportCluster(resourceName string, ignoredPrefixFields ...string) resource.TestStep {
 	return resource.TestStep{
 		ResourceName:                         resourceName,
 		ImportStateIdFunc:                    ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
 		ImportState:                          true,
 		ImportStateVerify:                    true,
 		ImportStateVerifyIdentifierAttribute: "name",
-		ImportStateVerifyIgnore:              ignoredFields,
+		ImportStateVerifyIgnore:              ignoredPrefixFields,
 	}
 }
 
