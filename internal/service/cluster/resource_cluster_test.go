@@ -80,7 +80,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_disk_gb_enabled", "false"),
 				),
 			},
-			acc.TestStepImportCluster(resourceName, "cloud_backup"),
+			acc.TestStepImportCluster(resourceName, "cloud_backup", "retain_backups_enabled"),
 		},
 	}
 }
