@@ -25,6 +25,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
 const (
@@ -605,8 +606,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
-		if diags := advancedcluster.PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
-			return diags
+		nestedObj := pinnedFCVBlock[0].(map[string]any)
+		expDateStr := cast.ToString(nestedObj["expiration_date"])
+		if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 		stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {

@@ -22,7 +22,7 @@ import (
 
 func resourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
-		Version: 1,
+		Version: 2,
 		Attributes: map[string]schema.Attribute{
 			"accept_data_risks_and_force_replica_set_reconfig": schema.StringAttribute{
 				Optional:            true,

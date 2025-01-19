@@ -49,7 +49,7 @@ resource "mongodbatlas_cloud_backup_schedule" "backup" {
   auto_export_enabled = true
   export {
     export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.export.export_bucket_id
-    frequency_type = "daily"
+    frequency_type = "weekly"
   }
   use_org_and_group_names_in_export_prefix = true
 

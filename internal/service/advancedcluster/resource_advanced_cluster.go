@@ -26,6 +26,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
 const (
@@ -563,8 +564,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
-		if diags := PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
-			return diags
+		nestedObj := pinnedFCVBlock[0].(map[string]any)
+		expDateStr := cast.ToString(nestedObj["expiration_date"])
+		if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
+			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
 		waitForChanges = true
 	}
@@ -789,30 +792,9 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 
 func WarningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
 	pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
-	presentInState := len(pinnedFCVBlock) > 0
-	pinIsActive := cluster.FeatureCompatibilityVersionExpirationDate != nil
-	if presentInState && !pinIsActive { // pin is not active but present in state (and potentially in config file)
-		return diag.Diagnostics{
-			diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "FCV pin is no longer active",
-				Detail:   "Please remove `pinned_fcv` from the configuration and apply changes to avoid re-pinning the FCV. Warning can be ignored if `pinned_fcv` block has been removed from the configuration.",
-			},
-		}
-	}
-	if presentInState && pinIsActive {
-		expirationDate := cluster.GetFeatureCompatibilityVersionExpirationDate()
-		if time.Now().After(expirationDate) { // pin is active, present in state, but its expiration date has passed
-			return diag.Diagnostics{
-				diag.Diagnostic{
-					Severity: diag.Warning,
-					Summary:  "FCV pin expiration date has expired",
-					Detail:   "During the next maintenance window FCV will be unpinned. FCV expiration date can be extended, or `pinned_fcv` block can be removed to trigger the unpin immediately.",
-				},
-			}
-		}
-	}
-	return nil
+	fcvPresentInState := len(pinnedFCVBlock) > 0
+	diagsTpf := advancedclustertpf.GenerateFCVPinningWarningForRead(fcvPresentInState, cluster.FeatureCompatibilityVersionExpirationDate)
+	return conversion.FromTPFDiagsToSDKV2Diags(diagsTpf)
 }
 
 // isUsingOldShardingConfiguration is identified if at least one replication spec defines num_shards > 1. This legacy form is from 2023-02-01 API and can only represent symmetric sharded clusters.
@@ -986,8 +968,10 @@ func HandlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 		isFCVPresentInConfig := len(pinnedFCVBlock) > 0
 		if isFCVPresentInConfig {
 			// pinned_fcv has been defined or updated expiration date
-			if diags := PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
-				return diags
+			nestedObj := pinnedFCVBlock[0].(map[string]any)
+			expDateStr := cast.ToString(nestedObj["expiration_date"])
+			if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 		} else {
 			// pinned_fcv has been removed from the config so unpin method is called
@@ -999,22 +983,6 @@ func HandlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 		if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
-	}
-	return nil
-}
-
-func PinFCV(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, fcvBlock any) diag.Diagnostics {
-	req := admin.PinFCV{}
-	if nestedObj, ok := fcvBlock.(map[string]any); ok {
-		expDateStrPtr := conversion.StringPtr(cast.ToString(nestedObj["expiration_date"]))
-		expirationTime, ok := conversion.StringPtrToTimePtr(expDateStrPtr)
-		if !ok {
-			return diag.FromErr(fmt.Errorf("expiration_date format is incorrect: %s", *expDateStrPtr))
-		}
-		req.ExpirationDate = expirationTime
-	}
-	if _, _, err := connV2.ClustersApi.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
-		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 	}
 	return nil
 }

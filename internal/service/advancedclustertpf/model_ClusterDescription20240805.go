@@ -22,7 +22,6 @@ const (
 type ExtraAPIInfo struct {
 	ZoneNameNumShards          map[string]int64
 	ZoneNameReplicationSpecIDs map[string]string
-	RootDiskSize               *float64
 	ContainerIDs               map[string]string
 	UsingLegacySchema          bool
 	ForceLegacySchemaFailed    bool
@@ -34,6 +33,7 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 	labels := NewLabelsObjType(ctx, input.Labels, diags)
 	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, &apiInfo)
 	tags := NewTagsObjType(ctx, input.Tags, diags)
+	pinnedFCV := NewPinnedFCVObjType(ctx, input, diags)
 	if diags.HasError() {
 		return nil
 	}
@@ -65,7 +65,7 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 		Tags:                             tags,
 		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
 		VersionReleaseSystem:             types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
-		PinnedFCV:                        types.ObjectNull(PinnedFCVObjType.AttrTypes), // TODO static object
+		PinnedFCV:                        pinnedFCV,
 		Timeouts:                         timeout,
 	}
 }
@@ -132,6 +132,19 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 	listType, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, *tfModels)
 	diags.Append(diagsLocal...)
 	return listType
+}
+
+func NewPinnedFCVObjType(ctx context.Context, cluster *admin.ClusterDescription20240805, diags *diag.Diagnostics) types.Object {
+	if cluster.FeatureCompatibilityVersionExpirationDate == nil {
+		return types.ObjectNull(PinnedFCVObjType.AttrTypes)
+	}
+	tfModel := TFPinnedFCVModel{
+		Version:        types.StringValue(cluster.GetFeatureCompatibilityVersion()),
+		ExpirationDate: types.StringValue(conversion.TimeToString(cluster.GetFeatureCompatibilityVersionExpirationDate())),
+	}
+	objType, diagsLocal := types.ObjectValueFrom(ctx, PinnedFCVObjType.AttrTypes, tfModel)
+	diags.Append(diagsLocal...)
+	return objType
 }
 
 func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) *[]TFReplicationSpecsModel {

@@ -79,7 +79,6 @@ $ terraform destroy
 
 **What's the resource dependency chain?**
 1. `mongodbatlas_project` must exist for any of the following
-2. `aws_vpc_endpoint` is dependent on the `mongodbatlas_privatelink_endpoint`, and its dependencies.
-3. `mongodbatlas_privatelink_endpoint_service` is dependent on `aws_vpc_endpoint` and its dependencies.
+2. `aws_vpc_endpoint` is dependent on its associated AWS resources and a valid `service_name`.
 4. `mongodbatlas_privatelink_endpoint_service_data_federation_online_archive` is dependent on the `mongodbatlas_project` and `aws_vpc_endpoint`
 
