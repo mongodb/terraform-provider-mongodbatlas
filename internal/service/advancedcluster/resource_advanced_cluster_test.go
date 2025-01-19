@@ -193,7 +193,7 @@ func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 				Config: configReplicaSetAWSProvider(t, isAcc, projectID, clusterName, 50, 5),
 				Check:  checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 50, 5, true, true),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	}
 }
@@ -224,7 +224,7 @@ func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 				Config: configReplicaSetMultiCloud(t, isAcc, orgID, projectName, clusterNameUpdated),
 				Check:  checkReplicaSetMultiCloud(isAcc, clusterNameUpdated, 3),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	}
 }
@@ -253,7 +253,7 @@ func singleShardedMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase
 				Config: configShardedOldSchemaMultiCloud(t, isAcc, projectID, clusterNameUpdated, 1, "M10", nil),
 				Check:  checkShardedOldSchemaMultiCloud(isAcc, clusterNameUpdated, 1, "M10", true, nil),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	}
 }
@@ -282,7 +282,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -313,7 +313,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 			{
 				Config: configSingleProviderPaused(t, true, projectID, clusterName, false, instanceSize),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -1190,7 +1190,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate),
 				Check:  checksUpdate,
 			},
-			acc.TestStepImportCluster(resourceName, importIgnoredPrefixFieldsInV2Schema(1)...),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -1233,7 +1233,7 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 				Config: configSharded(t, projectID, clusterName, true),
 				Check:  checksUpdated,
 			},
-			acc.TestStepImportCluster(resourceName, importIgnoredPrefixFieldsInV2Schema(2)...),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -2780,23 +2780,4 @@ func configFCVPinning(t *testing.T, orgID, projectName, clusterName string, pinn
 		}
 
 	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)) + dataSourcesTFNewSchema
-}
-
-// importIgnoredPrefixFieldsInV2Schema ignores import fields in SDKv2.
-// analytics|electable|read_only are only set in state in SDKv2 if present in the definition.
-// However, as import doesn't have a previous state to compare with, import will always fill them.
-// This will make these fields differ in the state, although the plan change won't be shown to the user as they're computed values.
-func importIgnoredPrefixFieldsInV2Schema(replicationSpecsCount int) []string {
-	if config.AdvancedClusterV2Schema() {
-		return nil
-	}
-	var ignored []string
-	for i := range replicationSpecsCount {
-		ignored = append(ignored,
-			fmt.Sprintf("replication_specs.%d.region_configs.0.analytics_specs", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs", i),
-			fmt.Sprintf("replication_specs.%d.region_configs.0.read_only_specs", i),
-		)
-	}
-	return ignored
 }
