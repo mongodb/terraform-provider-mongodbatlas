@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -40,6 +41,11 @@ var (
 	ClusterLabelsMap3 = map[string]string{
 		"key":   "label key 3",
 		"value": "label value 3",
+	}
+
+	ClusterLabelsMapIgnored = map[string]string{
+		"key":   advancedclustertpf.LegacyIgnoredLabelKey,
+		"value": "value",
 	}
 )
 
