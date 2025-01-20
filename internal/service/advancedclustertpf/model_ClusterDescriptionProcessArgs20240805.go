@@ -48,7 +48,7 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 			TransactionLifetimeLimitSeconds:  types.Int64Value(conversion.SafeValue(input.TransactionLifetimeLimitSeconds)),
 			DefaultMaxTimeMS:                 types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DefaultMaxTimeMS)),
 			TlsCipherConfigMode:              types.StringValue(conversion.SafeValue(input.TlsCipherConfigMode)),
-			CustomOpensslCipherConfigTls12:   customOpensslCipherConfigTLS12(ctx, input, diags),
+			CustomOpensslCipherConfigTls12:   customOpensslCipherConfigTLS12(ctx, diags, input),
 		}
 	} else {
 		advancedConfig.CustomOpensslCipherConfigTls12 = types.SetNull(types.StringType) // required to handle move state
@@ -59,8 +59,8 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 	tfModel.AdvancedConfiguration = objType
 }
 
-func customOpensslCipherConfigTLS12(ctx context.Context, processArgs *admin.ClusterDescriptionProcessArgs20240805, diags *diag.Diagnostics) types.Set {
-	if processArgs != nil && len(*processArgs.CustomOpensslCipherConfigTls12) == 0 {
+func customOpensslCipherConfigTLS12(ctx context.Context, diags *diag.Diagnostics, processArgs *admin.ClusterDescriptionProcessArgs20240805) types.Set {
+	if processArgs == nil || len(*processArgs.CustomOpensslCipherConfigTls12) == 0 {
 		return types.SetNull(types.StringType)
 	}
 
