@@ -4,5 +4,10 @@
  "noTableScan": true,
  "sampleRefreshIntervalBIConnector": 310,
  "sampleSizeBIConnector": 110,
- "transactionLifetimeLimitSeconds": 300
+ "transactionLifetimeLimitSeconds": 300,
+ "tlsCipherConfigMode": "CUSTOM",
+ "customOpensslCipherConfigTls12": [
+    "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+   ],
+ "defaultMaxTimeMS": 65
 }

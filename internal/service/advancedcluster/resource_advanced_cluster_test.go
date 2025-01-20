@@ -1133,6 +1133,9 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			"advanced_configuration.0.sample_refresh_interval_bi_connector":                           "310",
 			"advanced_configuration.0.sample_size_bi_connector":                                       "110",
 			"advanced_configuration.0.transaction_lifetime_limit_seconds":                             "300",
+			"advanced_configuration.0.tls_cipher_config_mode":                                         "CUSTOM",
+			"advanced_configuration.0.custom_openssl_cipher_config_tls12.#":                           "1",
+			"advanced_configuration.0.default_max_time_ms":                                            "65",
 		}
 		checksUpdate = checkAggr(true, checksSet, afterUpdateMap, timeoutCheck)
 		fullUpdate   = `
@@ -1165,6 +1168,9 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		sample_refresh_interval_bi_connector                           = 310
 		sample_size_bi_connector                                       = 110
 		transaction_lifetime_limit_seconds                             = 300
+		custom_openssl_cipher_config_tls12							   = ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"]
+		tls_cipher_config_mode               						   = "CUSTOM"
+		default_max_time_ms											   = 65
 	}
 `
 	)
