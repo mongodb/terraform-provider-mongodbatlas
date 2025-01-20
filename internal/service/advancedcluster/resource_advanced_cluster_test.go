@@ -224,7 +224,7 @@ func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 				Config: configReplicaSetMultiCloud(t, isAcc, orgID, projectName, clusterNameUpdated),
 				Check:  checkReplicaSetMultiCloud(isAcc, clusterNameUpdated, 3),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	}
 }
@@ -253,7 +253,7 @@ func singleShardedMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase
 				Config: configShardedOldSchemaMultiCloud(t, isAcc, projectID, clusterNameUpdated, 1, "M10", nil),
 				Check:  checkShardedOldSchemaMultiCloud(isAcc, clusterNameUpdated, 1, "M10", true, nil),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	}
 }
@@ -282,7 +282,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -313,7 +313,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 			{
 				Config: configSingleProviderPaused(t, true, projectID, clusterName, false, instanceSize),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
