@@ -124,7 +124,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.Networking, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -153,7 +153,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionState.Authentication, &streamConnectionState.Networking, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionState.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -183,7 +183,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.Networking, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
