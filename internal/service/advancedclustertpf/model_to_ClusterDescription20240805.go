@@ -72,8 +72,8 @@ func newComponentLabel(ctx context.Context, input types.Set, diags *diag.Diagnos
 	resp := make([]admin.ComponentLabel, len(input.Elements()))
 	for i := range elements {
 		item := &elements[i]
-		if item.Key.ValueString() == IgnoreLabelKey {
-			diags.AddError(ErrIgnoreLabel.Error(), ErrIgnoreLabel.Error())
+		if item.Key.ValueString() == LegacyIgnoredLabelKey {
+			diags.AddError(ErrLegacyIgnoreLabel.Error(), ErrLegacyIgnoreLabel.Error())
 			return nil
 		}
 		resp[i] = admin.ComponentLabel{

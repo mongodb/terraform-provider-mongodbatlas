@@ -648,7 +648,7 @@ func TestAccClusterAdvancedCluster_withLabelIgnored(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "labels", acc.ClusterLabelsMapIgnored),
-				ExpectError: regexp.MustCompile(advancedclustertpf.ErrIgnoreLabel.Error()),
+				ExpectError: regexp.MustCompile(advancedclustertpf.ErrLegacyIgnoreLabel.Error()),
 			},
 		},
 	})

@@ -44,7 +44,7 @@ var (
 	}
 
 	ClusterLabelsMapIgnored = map[string]string{
-		"key":   advancedclustertpf.IgnoreLabelKey,
+		"key":   advancedclustertpf.LegacyIgnoredLabelKey,
 		"value": "value",
 	}
 )

@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	IgnoreLabelKey = "Infrastructure Tool"
+	LegacyIgnoredLabelKey = "Infrastructure Tool"
 )
 
 var (
-	ErrIgnoreLabel = fmt.Errorf("you should not set `%s` label, it is used for internal purposes", IgnoreLabelKey)
+	ErrLegacyIgnoreLabel = fmt.Errorf("label `%s` is not supported as it is reserved for internal purposes", LegacyIgnoredLabelKey)
 )
 
 func FormatMongoDBMajorVersion(version string) string {

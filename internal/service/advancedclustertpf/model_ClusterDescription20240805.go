@@ -108,7 +108,7 @@ func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags 
 	for _, item := range *input {
 		key := conversion.SafeValue(item.Key)
 		value := conversion.SafeValue(item.Value)
-		if key == IgnoreLabelKey {
+		if key == LegacyIgnoredLabelKey {
 			continue
 		}
 		tfModels = append(tfModels, TFLabelsModel{Key: types.StringValue(key), Value: types.StringValue(value)})

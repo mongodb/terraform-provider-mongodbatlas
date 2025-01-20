@@ -411,7 +411,7 @@ func FormatMongoDBMajorVersion(val any) string {
 func flattenLabels(l []admin.ComponentLabel) []map[string]string {
 	labels := make([]map[string]string, 0, len(l))
 	for _, item := range l {
-		if item.GetKey() == advancedclustertpf.IgnoreLabelKey {
+		if item.GetKey() == advancedclustertpf.LegacyIgnoredLabelKey {
 			continue
 		}
 		labels = append(labels, map[string]string{
@@ -960,8 +960,8 @@ func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLab
 	for i, val := range list.List() {
 		v := val.(map[string]any)
 		key := v["key"].(string)
-		if key == advancedclustertpf.IgnoreLabelKey {
-			return nil, diag.FromErr(advancedclustertpf.ErrIgnoreLabel)
+		if key == advancedclustertpf.LegacyIgnoredLabelKey {
+			return nil, diag.FromErr(advancedclustertpf.ErrLegacyIgnoreLabel)
 		}
 		res[i] = admin.ComponentLabel{
 			Key:   conversion.StringPtr(key),
