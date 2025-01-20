@@ -335,6 +335,11 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
 
+		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
+			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
+			DefaultMaxTimeMS: conversion.IntPtr(65),
+		}
+
 		processArgsCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
 			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
 			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
@@ -346,6 +351,10 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
+			{
+				Config:      configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgs),
+				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
+			},
 			{
 				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgsCipherConfig),
 				Check:  checkAdvanced(true, clusterName, "TLS1_2", processArgsCipherConfig),
@@ -394,7 +403,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
 		}
 		processArgsUpdatedCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
-			DefaultMaxTimeMS: conversion.IntPtr(67),
+			DefaultMaxTimeMS: conversion.IntPtr(65),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
 			TlsCipherConfigMode: conversion.StringPtr("DEFAULT"), // To unset TlsCipherConfigMode, user needs to set this to DEFAULT
 		}

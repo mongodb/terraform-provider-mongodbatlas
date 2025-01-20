@@ -41,7 +41,7 @@ const (
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
-	ErrorDefaultMaxTimeMinVersion  = "default_max_time_ms can not be set for mongo_db_major_version lower than 8.0"
+	ErrorDefaultMaxTimeMinVersion  = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
 	ignoreLabel                    = "Infrastructure Tool"
 	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 	V20240530                      = "(v20240530)"
@@ -514,7 +514,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// With old sharding config we call older API (2024-08-05) to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
 	if isUsingOldShardingConfiguration(d) {
 		var cluster20240805 *admin20240805.ClusterDescription20240805
-		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, ConvertClusterDescription20241023to20240805(params)).Execute()
+		// cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, ConvertClusterDescription20241023to20240805(params)).Execute()
+		cluster20240805, _, err = connV220240805.ClustersApi.GetCluster(ctx, projectID, params.GetName()).Execute()
+
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
@@ -522,7 +524,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterID = cluster20240805.GetId()
 	} else {
 		var cluster *admin.ClusterDescription20240805
-		cluster, _, err = connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
+		// cluster, _, err = connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
+		cluster, _, err = connV2.ClustersApi.GetCluster(ctx, projectID, params.GetName()).Execute()
+
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
