@@ -170,7 +170,7 @@ func ConvertRegionConfigSlice20241023to20240530(slice *[]admin.CloudRegionConfig
 	}
 	cloudRegionSlice := *slice
 	results := make([]admin20240530.CloudRegionConfig, len(cloudRegionSlice))
-	for i := range len(cloudRegionSlice) {
+	for i := range cloudRegionSlice {
 		cloudRegion := cloudRegionSlice[i]
 		results[i] = admin20240530.CloudRegionConfig{
 			ElectableSpecs:       convertHardwareSpec20241023to20240530(cloudRegion.ElectableSpecs),
