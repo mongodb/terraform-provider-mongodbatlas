@@ -18,6 +18,8 @@ import (
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -226,7 +228,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		diags.AddError(errorDelete, defaultAPIErrorDetails(clusterName, err))
 		return
 	}
-	_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &state.Timeouts, diags, projectID, clusterName, changeReasonDelete)
+	_ = awaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &state.Timeouts, diags, projectID, clusterName, changeReasonDelete)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -259,7 +261,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 		diags.AddError(errorCreate, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
-	clusterResp := AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
+	clusterResp := awaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
 	if diags.HasError() {
 		return nil
 	}
@@ -342,7 +344,7 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 			}
 		}
 		// ensures cluster is in IDLE state before continuing with other changes
-		return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+		return awaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 	}
 	return nil
 }
@@ -364,7 +366,7 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 			diags.AddError(errorAdvancedConfUpdate, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
 		}
-		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+		_ = awaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 		if diags.HasError() {
 			return nil, nil, false
 		}
@@ -377,7 +379,7 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
 		}
-		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+		_ = awaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 		if diags.HasError() {
 			return nil, nil, false
 		}
@@ -395,7 +397,7 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 		}
 		patchReq.ReplicationSpecs = nil // Already updated by legacy API
 		if legacySpecsChanged && update.IsZeroValues(patchReq) {
-			return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, plan.ProjectID.ValueString(), plan.Name.ValueString(), changeReasonUpdate)
+			return awaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, plan.ProjectID.ValueString(), plan.Name.ValueString(), changeReasonUpdate)
 		}
 	}
 	if update.IsZeroValues(patchReq) {
@@ -474,7 +476,7 @@ func (r *rs) updateAndWait(ctx context.Context, patchReq *admin.ClusterDescripti
 		diags.AddError(errorUpdate, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+	return awaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
 func (r *rs) updateAndWaitLegacy(ctx context.Context, patchReq *admin20240805.ClusterDescription20240805, diags *diag.Diagnostics, plan *TFModel) *admin.ClusterDescription20240805 {
@@ -486,7 +488,7 @@ func (r *rs) updateAndWaitLegacy(ctx context.Context, patchReq *admin20240805.Cl
 		diags.AddError(errorUpdateLegacy20240805, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+	return awaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
 func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
@@ -499,7 +501,7 @@ func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeReque
 		diags.AddError(errorTenantUpgrade, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
+	return awaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
 }
 
 func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel, forceLegacySchema bool) (*TFModel, *ExtraAPIInfo) {
@@ -545,4 +547,29 @@ func warningIfFCVExpiredOrUnpinnedExternally(diags *diag.Diagnostics, state *TFM
 	fcvPresentInState := !state.PinnedFCV.IsNull()
 	newWarnings := GenerateFCVPinningWarningForRead(fcvPresentInState, clusterResp.FeatureCompatibilityVersionExpirationDate)
 	diags.Append(newWarnings...)
+}
+
+func awaitChanges(ctx context.Context, api admin.ClustersApi, t *timeouts.Value, diags *diag.Diagnostics, projectID, clusterName, changeReason string) (cluster *admin.ClusterDescription20240805) {
+	var (
+		timeoutDuration time.Duration
+		localDiags      diag.Diagnostics
+	)
+	switch changeReason {
+	case changeReasonCreate:
+		timeoutDuration, localDiags = t.Create(ctx, defaultTimeout)
+		diags.Append(localDiags...)
+	case changeReasonUpdate:
+		timeoutDuration, localDiags = t.Update(ctx, defaultTimeout)
+		diags.Append(localDiags...)
+	case changeReasonDelete:
+		timeoutDuration, localDiags = t.Delete(ctx, defaultTimeout)
+		diags.Append(localDiags...)
+	default:
+		diags.AddError(errorUnknownChangeReason, "unknown change reason "+changeReason)
+	}
+	if diags.HasError() {
+		return nil
+	}
+	isDelete := changeReason == changeReasonDelete
+	return AwaitChanges(ctx, isDelete, api, projectID, clusterName, timeoutDuration, diags)
 }
