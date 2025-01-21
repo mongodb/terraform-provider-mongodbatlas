@@ -1056,6 +1056,10 @@ jobs:
         - name: Acceptance Tests
           env:
             MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+            AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
+            AWS_REGION: ${{ vars.AWS_REGION }}
+            AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
+            AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
             ACCTEST_PACKAGES: |
               ./internal/service/streamconnection
               ./internal/service/streaminstance
