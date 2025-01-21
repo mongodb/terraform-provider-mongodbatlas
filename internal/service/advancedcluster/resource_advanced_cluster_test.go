@@ -334,7 +334,6 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
-
 		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
 			DefaultMaxTimeMS: conversion.IntPtr(65),

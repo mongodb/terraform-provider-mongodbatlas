@@ -514,7 +514,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if isUsingOldShardingConfiguration(d) {
 		var cluster20240805 *admin20240805.ClusterDescription20240805
 		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, ConvertClusterDescription20241023to20240805(params)).Execute()
-
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
@@ -523,7 +522,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	} else {
 		var cluster *admin.ClusterDescription20240805
 		cluster, _, err = connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
-
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
