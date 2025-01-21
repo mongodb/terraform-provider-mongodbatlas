@@ -514,8 +514,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// With old sharding config we call older API (2024-08-05) to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
 	if isUsingOldShardingConfiguration(d) {
 		var cluster20240805 *admin20240805.ClusterDescription20240805
-		// cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, ConvertClusterDescription20241023to20240805(params)).Execute()
-		cluster20240805, _, err = connV220240805.ClustersApi.GetCluster(ctx, projectID, params.GetName()).Execute()
+		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, ConvertClusterDescription20241023to20240805(params)).Execute()
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreate, err))
@@ -524,8 +523,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterID = cluster20240805.GetId()
 	} else {
 		var cluster *admin.ClusterDescription20240805
-		// cluster, _, err = connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
-		cluster, _, err = connV2.ClustersApi.GetCluster(ctx, projectID, params.GetName()).Execute()
+		cluster, _, err = connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreate, err))
