@@ -14,6 +14,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func CheckRSAndDSSchemaV2(isAcc bool, resourceName string, dataSourceName, pluralDataSourceName *string, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	modifiedSet := ConvertToSchemaV2AttrsSet(isAcc, attrsSet)
+	modifiedMap := ConvertToSchemaV2AttrsMap(isAcc, attrsMap)
+	return CheckRSAndDS(resourceName, dataSourceName, pluralDataSourceName, modifiedSet, modifiedMap, extra...)
+}
+
 func TestCheckResourceAttrSchemaV2(isAcc bool, name, key, value string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttr(name, AttrNameToSchemaV2(isAcc, key), value)
 }
@@ -72,6 +78,7 @@ var tpfSingleNestedAttrs = []string{
 	"advanced_configuration",
 	"bi_connector_config",
 	"pinned_fcv",
+	"timeouts",
 }
 
 func AttrNameToSchemaV2(isAcc bool, name string) string {
@@ -100,6 +107,8 @@ func ConvertAdvancedClusterToSchemaV2(t *testing.T, isAcc bool, def string) stri
 		convertAttrs(t, "replication_specs", writeBody, true, getReplicationSpecs)
 		convertAttrs(t, "advanced_configuration", writeBody, false, hcl.GetAttrVal)
 		convertAttrs(t, "bi_connector_config", writeBody, false, hcl.GetAttrVal)
+		convertAttrs(t, "pinned_fcv", writeBody, false, hcl.GetAttrVal)
+		convertAttrs(t, "timeouts", writeBody, false, hcl.GetAttrVal)
 	}
 	content := parse.Bytes()
 	return string(content)

@@ -15,7 +15,7 @@
      "regionName": "US_EAST_1"
     }
    ],
-   "zoneName": "ZoneName managed by Terraform"
+   "zoneName": "Zone 1"
   }
  ],
  "tags": []

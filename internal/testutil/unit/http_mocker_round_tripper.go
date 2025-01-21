@@ -50,7 +50,7 @@ func newMockRoundTripper(t *testing.T, data *MockHTTPData) *MockRoundTripper {
 		t:                t,
 		g:                goldie.New(t, goldie.WithTestNameForDir(true), goldie.WithNameSuffix(".json")),
 		data:             data,
-		logRequests:      os.Getenv("TF_LOG") == "DEBUG",
+		logRequests:      IsTfLogDebug(),
 		currentStepIndex: -1, // increased on the start of the test
 	}
 }
@@ -195,7 +195,7 @@ func (r *MockRoundTripper) receiveRequest(method string) func(req *http.Request)
 		}
 		_, payload, err := extractAndNormalizePayload(req.Body)
 		if r.logRequests {
-			r.t.Logf("received request\n %s %s %s\n%s\n", method, req.URL.Path, version, payload)
+			r.t.Logf("received request\n %s %s?%s %s\n%s\n", method, req.URL.Path, req.URL.RawQuery, version, payload)
 		}
 		if err != nil {
 			return nil, err

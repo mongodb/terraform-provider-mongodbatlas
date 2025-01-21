@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -40,16 +42,31 @@ var (
 		"key":   "label key 3",
 		"value": "label value 3",
 	}
+
+	ClusterLabelsMapIgnored = map[string]string{
+		"key":   advancedclustertpf.LegacyIgnoredLabelKey,
+		"value": "value",
+	}
 )
 
-func TestStepImportCluster(resourceName string, ignoredFields ...string) resource.TestStep {
+func TestStepImportCluster(resourceName string, ignorePrefixFields ...string) resource.TestStep {
+	ignorePrefixFields = append(ignorePrefixFields,
+		"retain_backups_enabled", // This field is TF specific and not returned by Atlas, so Import can't fill it in.
+	)
+
+	// auto_scaling & specs (electable_specs, read_only_specs, etc.) are only set in state in SDKv2 if present in the definition.
+	// However, as import doesn't have a previous state to compare with, import will always fill them.
+	// This will make these fields differ in the state, although the plan change won't be shown to the user as they're computed values.
+	if !config.AdvancedClusterV2Schema() {
+		ignorePrefixFields = append(ignorePrefixFields, "replication_specs")
+	}
 	return resource.TestStep{
 		ResourceName:                         resourceName,
 		ImportStateIdFunc:                    ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
 		ImportState:                          true,
 		ImportStateVerify:                    true,
 		ImportStateVerifyIdentifierAttribute: "name",
-		ImportStateVerifyIgnore:              ignoredFields,
+		ImportStateVerifyIgnore:              ignorePrefixFields,
 	}
 }
 
@@ -102,7 +119,7 @@ func CheckExistsClusterHandlingRetry(projectID, clusterName string) error {
 	})
 }
 
-func CheckFCVPinningConfig(resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
+func CheckFCVPinningConfig(isAcc bool, resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
 	mapChecks := map[string]string{
 		"mongo_db_major_version": fmt.Sprintf("%d.0", mongoDBMajorVersion),
 	}
@@ -119,5 +136,26 @@ func CheckFCVPinningConfig(resourceName, dataSourceName, pluralDataSourceName st
 
 	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
 
-	return CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
+	return CheckRSAndDSSchemaV2(isAcc, resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
+}
+
+func CheckIndependentShardScalingMode(resourceName, clusterName, expectedMode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		issMode, _, err := GetIndependentShardScalingMode(context.Background(), projectID, clusterName)
+		if err != nil {
+			return fmt.Errorf("error getting independent shard scaling mode: %w", err)
+		}
+		if *issMode != expectedMode {
+			return fmt.Errorf("expected independent shard scaling mode to be %s, got %s", expectedMode, *issMode)
+		}
+		return nil
+	}
 }

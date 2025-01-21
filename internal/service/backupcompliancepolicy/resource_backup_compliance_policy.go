@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -21,6 +20,7 @@ import (
 
 const (
 	errorBackupPolicyUpdate          = "error updating a Backup Compliance Policy: %s: %s"
+	errorBackupPolicyDelete          = "error disabling the Backup Compliance Policy: %s: %s"
 	errorBackupPolicyRead            = "error getting a Backup Compliance Policy for the project(%s): %s"
 	errorBackupPolicySetting         = "error setting `%s` for Backup Compliance Policy : %s: %s"
 	errorSnapshotBackupPolicySetting = "error setting `%s` for Cloud Provider Snapshot Backup Policy(%s): %s"
@@ -377,12 +377,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// There is no resource to delete a backup compliance policy, it can only be updated.
-	log.Printf("[WARN] Note: Deleting a Backup Compliance Policy resource in Terraform does not remove the policy from your Atlas Project. " +
-		"To disable a Backup Compliance Policy, the security or legal representative specified for the Backup Compliance Policy must contact " +
-		"MongoDB Support and complete an extensive verification process. ")
-
-	d.SetId("")
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	projectID := d.Get("project_id").(string)
+	_, _, err := connV2.CloudBackupsApi.DisableDataProtectionSettings(ctx, projectID).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorBackupPolicyDelete, projectID, err))
+	}
 	return nil
 }
 
