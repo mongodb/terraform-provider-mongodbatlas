@@ -21,6 +21,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
 const minVersionForChangeStreamOptions = 6.0
@@ -404,16 +405,13 @@ func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID strin
 }
 
 func FormatMongoDBMajorVersion(val any) string {
-	if strings.Contains(val.(string), ".") {
-		return val.(string)
-	}
-	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
+	return advancedclustertpf.FormatMongoDBMajorVersion(val.(string))
 }
 
 func flattenLabels(l []admin.ComponentLabel) []map[string]string {
 	labels := make([]map[string]string, 0, len(l))
 	for _, item := range l {
-		if item.GetKey() == ignoreLabel {
+		if item.GetKey() == advancedclustertpf.LegacyIgnoredLabelKey {
 			continue
 		}
 		labels = append(labels, map[string]string{
@@ -711,7 +709,7 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects
 			if err != nil {
 				return nil, nil, err
 			}
-			if result := getAdvancedClusterContainerID(containers.GetResults(), &apiObject); result != "" {
+			if result := advancedclustertpf.GetAdvancedClusterContainerID(containers.GetResults(), &apiObject); result != "" {
 				// Will print as "providerName:regionName" = "containerId" in terraform show
 				containerIDs[fmt.Sprintf("%s:%s", apiObject.GetProviderName(), apiObject.GetRegionName())] = result
 			}
@@ -845,23 +843,6 @@ func flattenAdvancedReplicationSpecAutoScaling(apiObject *admin.AdvancedAutoScal
 	return tfList
 }
 
-func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
-	if len(containers) == 0 {
-		return ""
-	}
-	for i := range containers {
-		if cluster.GetProviderName() == constant.GCP {
-			return containers[i].GetId()
-		}
-		if containers[i].GetProviderName() == cluster.GetProviderName() &&
-			containers[i].GetRegion() == cluster.GetRegionName() || // For Azure
-			containers[i].GetRegionName() == cluster.GetRegionName() { // For AWS
-			return containers[i].GetId()
-		}
-	}
-	return ""
-}
-
 func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
 	res20240530 := admin20240530.ClusterDescriptionProcessArgs{}
 	res := admin.ClusterDescriptionProcessArgs20240805{}
@@ -979,8 +960,8 @@ func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLab
 	for i, val := range list.List() {
 		v := val.(map[string]any)
 		key := v["key"].(string)
-		if key == ignoreLabel {
-			return nil, diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+		if key == advancedclustertpf.LegacyIgnoredLabelKey {
+			return nil, diag.FromErr(advancedclustertpf.ErrLegacyIgnoreLabel)
 		}
 		res[i] = admin.ComponentLabel{
 			Key:   conversion.StringPtr(key),

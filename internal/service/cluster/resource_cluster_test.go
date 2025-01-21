@@ -108,7 +108,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
 						JavascriptEnabled:                conversion.Pointer(true),
-						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 						NoTableScan:                      conversion.Pointer(false),
 						OplogSizeMB:                      conversion.Pointer(1000),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -121,7 +121,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
@@ -187,7 +187,7 @@ func basicDefaultWriteReadAdvancedConfTestCase(tb testing.TB) *resource.TestCase
 					&admin.ClusterDescriptionProcessArgs20240805{
 						DefaultWriteConcern:              conversion.StringPtr("1"),
 						JavascriptEnabled:                conversion.Pointer(true),
-						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 						NoTableScan:                      conversion.Pointer(false),
 						OplogSizeMB:                      conversion.Pointer(1000),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -200,7 +200,7 @@ func basicDefaultWriteReadAdvancedConfTestCase(tb testing.TB) *resource.TestCase
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
@@ -257,7 +257,7 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
 						JavascriptEnabled:                conversion.Pointer(true),
-						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 						NoTableScan:                      conversion.Pointer(false),
 						OplogSizeMB:                      conversion.Pointer(1000),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
@@ -267,7 +267,7 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
@@ -324,7 +324,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
 						JavascriptEnabled:                conversion.Pointer(false),
-						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_1"),
+						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 						NoTableScan:                      conversion.Pointer(false),
 						OplogSizeMB:                      conversion.Pointer(990),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(0),
@@ -337,7 +337,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "990"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "0"),
@@ -1388,22 +1388,26 @@ func TestAccCluster_basic_RedactClientLogData(t *testing.T) {
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, nil),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
-					nil, map[string]string{"redact_client_log_data": "false"}),
+					nil, map[string]string{"redact_client_log_data": "false"},
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(false)),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
-					nil, map[string]string{"redact_client_log_data": "false"}),
+					nil, map[string]string{"redact_client_log_data": "false"},
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(true)),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
-					nil, map[string]string{"redact_client_log_data": "true"}),
+					nil, map[string]string{"redact_client_log_data": "true"},
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")), // latest PATCH API is called, ensure autoscaling mode is not modified
 			},
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(false)),
 				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
-					nil, map[string]string{"redact_client_log_data": "false"}),
+					nil, map[string]string{"redact_client_log_data": "false"},
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 		},
 	})
@@ -1453,11 +1457,11 @@ func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 			{ // pins fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(firstExpirationDate), conversion.Pointer(7)),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(firstExpirationDate), conversion.Pointer(7)),
 			},
 			{ // using incorrect format
 				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
@@ -1465,19 +1469,19 @@ func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
 			},
 			{ // updates expiration date of fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
 			},
 			{ // upgrade mongodb version with fcv pinned
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 8, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
 			},
 			{ // downgrade mongodb version with fcv pinned
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
 			},
 			{ // unpins fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+				Check:  acc.CheckFCVPinningConfig(true, resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
 			},
 		},
 	})

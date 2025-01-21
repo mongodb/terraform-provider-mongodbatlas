@@ -39,13 +39,14 @@ resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 * `iam_role_id` - Unique identifier of the role that Atlas can use to access the bucket. Required if `cloud_provider` is set to `AWS`.
 * `role_id` - Unique identifier of the Azure Service Principal that Atlas can use to access the Azure Blob Storage Container. Required if `cloud_provider` is set to `AZURE`.
 * `service_url` - URL that identifies the blob Endpoint of the Azure Blob Storage Account. Required if `cloud_provider` is set to `AZURE`.
-* `tenant_id` - (Deprecated) This field is ignored; the `mongodbatlas_cloud_provider_access_authorization.azure.tenant_id` is used instead. UUID that identifies the Azure Active Directory Tenant ID.
+* `tenant_id` - (Deprecated) This field is ignored; the `mongodbatlas_cloud_provider_access_authorization.azure.tenant_id` is used instead and returned as an attribute. UUID that identifies the Azure Active Directory Tenant ID.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `export_bucket_id` - Unique identifier of the snapshot export bucket.
+* `tenant_id` - UUID that identifies the Azure Active Directory Tenant ID.
 
 ## Import
 

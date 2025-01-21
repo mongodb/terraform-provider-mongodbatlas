@@ -254,6 +254,7 @@ jobs:
         filters: |
           advanced_cluster:
             - 'internal/service/advancedcluster/!(*_test).go' # matches any adv_cluster file change except test files
+            - 'internal/service/advancedclustertpf/common.go'
           advanced_cluster_tpf:
             - 'internal/service/advancedclustertpf/*.go'
             - 'internal/service/advancedcluster/*_test.go'
@@ -389,10 +390,8 @@ jobs:
       - name: Mocked Acceptance Tests
         env:
           ACCTEST_REGEX_RUN: '^TestAccMockable'
-          ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
-          MONGODB_ATLAS_PROJECT_ID: '111111111111111111111111' # 24 chars used for skipping acc.ProjectIDExecution(t) in mocked tests
-          HTTP_MOCKER_REPLAY: 'true'
-        run: make testacc
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
+        run: make testmact
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -1073,6 +1072,9 @@ jobs:
             CONFLUENT_CLOUD_API_SECRET: ${{ secrets.confluent_cloud_api_secret }}
             CONFLUENT_CLOUD_NETWORK_ID: ${{ inputs.confluent_cloud_network_id }}
             CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID: ${{ inputs.confluent_cloud_privatelink_access_id }}
+            AWS_REGION: ${{ vars.AWS_REGION }}
+            AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
+            AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
             ACCTEST_PACKAGES: |
               ./internal/service/streamconnection
               ./internal/service/streaminstance

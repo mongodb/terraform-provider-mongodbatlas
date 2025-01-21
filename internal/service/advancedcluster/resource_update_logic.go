@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -31,25 +32,8 @@ func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName str
 	}
 
 	zoneToReplicationSpecsIDs := groupIDsByZone(cluster.GetReplicationSpecs())
-	result := AddIDsToReplicationSpecs(*replicationSpecs, zoneToReplicationSpecsIDs)
+	result := advancedclustertpf.AddIDsToReplicationSpecs(*replicationSpecs, zoneToReplicationSpecsIDs)
 	return &result, nil
-}
-
-func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, zoneToReplicationSpecsIDs map[string][]string) []admin.ReplicationSpec20240805 {
-	for zoneName, availableIDs := range zoneToReplicationSpecsIDs {
-		var indexOfIDToUse = 0
-		for i := range replicationSpecs {
-			if indexOfIDToUse >= len(availableIDs) {
-				break // all available ids for this zone have been used
-			}
-			if replicationSpecs[i].GetZoneName() == zoneName {
-				newID := availableIDs[indexOfIDToUse]
-				indexOfIDToUse++
-				replicationSpecs[i].Id = &newID
-			}
-		}
-	}
-	return replicationSpecs
 }
 
 func groupIDsByZone(specs []admin.ReplicationSpec20240805) map[string][]string {

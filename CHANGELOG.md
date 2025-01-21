@@ -1,7 +1,14 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_backup_compliance_policy: Adds support for disabling Backup Compliance Policy on resource delete ([#2953](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2953))
+
+## 1.25.0 (January 07, 2025)
+
 NOTES:
 
+* resource/mongodbatlas_cloud_backup_snapshot_export_bucket: Deprecates `tenant_id` argument as the `mongodbatlas_cloud_provider_access_authorization.azure.tenant_id` is used instead ([#2932](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2932))
 * resource/mongodbatlas_cloud_backup_snapshot_export_job: Changes `custom_data` changed attribute from required -> optional ([#2929](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2929))
 
 ENHANCEMENTS:

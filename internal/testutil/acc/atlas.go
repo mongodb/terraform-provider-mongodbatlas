@@ -105,16 +105,3 @@ func projectIDLocal(tb testing.TB) string {
 	tb.Logf("Using MONGODB_ATLAS_PROJECT_ID: %s", id)
 	return id
 }
-
-func clusterNameLocal(tb testing.TB) string {
-	tb.Helper()
-	name := os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
-	if name == "" {
-		return ""
-	}
-	if InCI() {
-		tb.Fatal("MONGODB_ATLAS_CLUSTER_NAME can't be used in CI")
-	}
-	tb.Logf("Using MONGODB_ATLAS_CLUSTER_NAME: %s", name)
-	return name
-}
