@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	sdkv2diag "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
@@ -18,6 +20,12 @@ var (
 	RetryDelay        = 30 * time.Second
 	RetryPollInterval = 30 * time.Second
 )
+
+func AwaitChangesSDKv2(ctx context.Context, isDelete bool, api *admin.APIClient, projectID, clusterName string, timeoutDuration time.Duration) sdkv2diag.Diagnostics {
+	diags := &diag.Diagnostics{}
+	_ = AwaitChanges(ctx, isDelete, api.ClustersApi, projectID, clusterName, timeoutDuration, diags)
+	return conversion.FromTPFDiagsToSDKV2Diags(*diags)
+}
 
 func AwaitChanges(ctx context.Context, isDelete bool, api admin.ClustersApi, projectID, clusterName string, timeoutDuration time.Duration, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
 	targetState := retrystrategy.RetryStrategyIdleState

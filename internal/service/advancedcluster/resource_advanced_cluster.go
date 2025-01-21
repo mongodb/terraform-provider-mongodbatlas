@@ -429,6 +429,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
+	clusterName := d.Get("name").(string)
 
 	var rootDiskSizeGB *float64
 	if v, ok := d.GetOk("disk_size_gb"); ok {
@@ -507,7 +508,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
-	var clusterName string
 	var clusterID string
 	var err error
 	// With old sharding config we call older API (2024-08-05) to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
@@ -517,7 +517,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
-		clusterName = cluster20240805.GetName()
 		clusterID = cluster20240805.GetId()
 	} else {
 		var cluster *admin.ClusterDescription20240805
@@ -525,17 +524,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
-		clusterName = cluster.GetName()
 		clusterID = cluster.GetId()
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, d.Get("name").(string), timeout)
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorCreate, err))
+	if diags := advancedclustertpf.AwaitChangesSDKv2(ctx, false, connV2, projectID, clusterName, timeout); diags.HasError() {
+		return diags
 	}
-
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
 			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), params.MongoDBMajorVersion)
@@ -572,8 +567,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if waitForChanges {
-		if err = waitForUpdateToFinish(ctx, connV2, projectID, d.Get("name").(string), timeout); err != nil {
-			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
+		if diags := advancedclustertpf.AwaitChangesSDKv2(ctx, false, connV2, projectID, clusterName, timeout); diags.HasError() {
+			return diags
 		}
 	}
 
