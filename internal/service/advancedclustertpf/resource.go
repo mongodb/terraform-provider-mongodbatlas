@@ -69,6 +69,7 @@ func deprecationMsgOldSchema(name string) string {
 }
 
 var (
+	resumeRequest              = admin.ClusterDescription20240805{Paused: conversion.Pointer(false)}
 	pauseRequest               = admin.ClusterDescription20240805{Paused: conversion.Pointer(true)}
 	errorSchemaDowngradeDetail = "Cluster name %s. " + fmt.Sprintf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; %s", DeprecationOldSchemaAction)
 )
@@ -383,6 +384,20 @@ func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.
 }
 
 func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
+	// paused = `false` is sent in an isolated request before other changes to avoid error from API: Cannot update cluster while it is paused or being paused.
+	var result *admin.ClusterDescription20240805
+	if patchReq.Paused != nil && !patchReq.GetPaused() {
+		patchReq.Paused = nil
+		_ = r.updateAndWait(ctx, &resumeRequest, diags, plan)
+	}
+
+	// paused = `true` is sent in an isolated request after other changes have been applied to avoid error from API: Cannot update and pause cluster at the same time
+	var pauseAfterOtherChanges = false
+	if patchReq.Paused != nil && patchReq.GetPaused() {
+		patchReq.Paused = nil
+		pauseAfterOtherChanges = true
+	}
+
 	if usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
 		// With old sharding config we call older API (2023-02-01) for updating replication specs to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
 		r.updateLegacyReplicationSpecs(ctx, state, plan, diags, patchReq.ReplicationSpecs)
@@ -390,12 +405,18 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 			return nil
 		}
 		patchReq.ReplicationSpecs = nil // Already updated by 2023-02-01 API
-		if update.IsZeroValues(patchReq) {
+		if update.IsZeroValues(patchReq) && !pauseAfterOtherChanges {
 			return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, plan.ProjectID.ValueString(), plan.Name.ValueString(), changeReasonUpdate)
 		}
 	}
+
 	// latest API can be used safely because if old sharding config is used replication specs will not be included in this request
-	return r.updateAndWait(ctx, patchReq, diags, plan)
+	result = r.updateAndWait(ctx, patchReq, diags, plan)
+
+	if pauseAfterOtherChanges {
+		result = r.updateAndWait(ctx, &pauseRequest, diags, plan)
+	}
+	return result
 }
 
 func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, specChanges *[]admin.ReplicationSpec20240805) {
