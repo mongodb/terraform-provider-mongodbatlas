@@ -48,12 +48,14 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 			TransactionLifetimeLimitSeconds:  types.Int64Value(conversion.SafeValue(input.TransactionLifetimeLimitSeconds)),
 			DefaultMaxTimeMS:                 types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DefaultMaxTimeMS)),
 			TlsCipherConfigMode:              types.StringValue(conversion.SafeValue(input.TlsCipherConfigMode)),
-			CustomOpensslCipherConfigTls12:   customOpensslCipherConfigTLS12(ctx, diags, input),
+			// CustomOpensslCipherConfigTls12:   customOpensslCipherConfigTLS12(ctx, diags, input),
 		}
-	} else {
-		advancedConfig.CustomOpensslCipherConfigTls12 = types.SetNull(types.StringType) // required to handle move state
 	}
+	// else {
+	// 	advancedConfig.CustomOpensslCipherConfigTls12 = types.SetNull(types.StringType) // required to handle move state
+	// }
 
+	advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, input) // required to handle move state
 	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)
 	diags.Append(diagsLocal...)
 	tfModel.AdvancedConfiguration = objType
