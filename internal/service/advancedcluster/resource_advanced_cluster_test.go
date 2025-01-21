@@ -224,7 +224,7 @@ func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 				Config: configReplicaSetMultiCloud(t, isAcc, orgID, projectName, clusterNameUpdated),
 				Check:  checkReplicaSetMultiCloud(isAcc, clusterNameUpdated, 3),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	}
 }
@@ -253,7 +253,7 @@ func singleShardedMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase
 				Config: configShardedOldSchemaMultiCloud(t, isAcc, projectID, clusterNameUpdated, 1, "M10", nil),
 				Check:  checkShardedOldSchemaMultiCloud(isAcc, clusterNameUpdated, 1, "M10", true, nil),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	}
 }
@@ -282,7 +282,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -313,7 +313,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 			{
 				Config: configSingleProviderPaused(t, true, projectID, clusterName, false, instanceSize),
 			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -628,6 +628,25 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 			{
 				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap3),
 				Check:  checkKeyValueBlocks(true, clusterName, "labels", acc.ClusterLabelsMap3),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedCluster_withLabelIgnored(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "labels", acc.ClusterLabelsMapIgnored),
+				ExpectError: regexp.MustCompile(advancedclustertpf.ErrLegacyIgnoreLabel.Error()),
 			},
 		},
 	})
@@ -1194,7 +1213,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate),
 				Check:  checksUpdate,
 			},
-			acc.TestStepImportCluster(resourceName, importIgnoredFields()...),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -1237,7 +1256,7 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 				Config: configSharded(t, projectID, clusterName, true),
 				Check:  checksUpdated,
 			},
-			acc.TestStepImportCluster(resourceName, importIgnoredFields()...),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -2784,15 +2803,4 @@ func configFCVPinning(t *testing.T, orgID, projectName, clusterName string, pinn
 		}
 
 	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)) + dataSourcesTFNewSchema
-}
-
-func importIgnoredFields() []string {
-	if config.AdvancedClusterV2Schema() {
-		return []string{}
-	}
-	return []string{
-		"replication_specs.0.region_configs.0.read_only_specs",
-		"replication_specs.0.region_configs.0.analytics_specs",
-		"replication_specs.0.region_configs.0.electable_specs.0.ebs_volume_type",
-	}
 }

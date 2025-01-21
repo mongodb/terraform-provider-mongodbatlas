@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -40,16 +42,31 @@ var (
 		"key":   "label key 3",
 		"value": "label value 3",
 	}
+
+	ClusterLabelsMapIgnored = map[string]string{
+		"key":   advancedclustertpf.LegacyIgnoredLabelKey,
+		"value": "value",
+	}
 )
 
-func TestStepImportCluster(resourceName string, ignoredFields ...string) resource.TestStep {
+func TestStepImportCluster(resourceName string, ignorePrefixFields ...string) resource.TestStep {
+	ignorePrefixFields = append(ignorePrefixFields,
+		"retain_backups_enabled", // This field is TF specific and not returned by Atlas, so Import can't fill it in.
+	)
+
+	// auto_scaling & specs (electable_specs, read_only_specs, etc.) are only set in state in SDKv2 if present in the definition.
+	// However, as import doesn't have a previous state to compare with, import will always fill them.
+	// This will make these fields differ in the state, although the plan change won't be shown to the user as they're computed values.
+	if !config.AdvancedClusterV2Schema() {
+		ignorePrefixFields = append(ignorePrefixFields, "replication_specs")
+	}
 	return resource.TestStep{
 		ResourceName:                         resourceName,
 		ImportStateIdFunc:                    ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
 		ImportState:                          true,
 		ImportStateVerify:                    true,
 		ImportStateVerifyIdentifierAttribute: "name",
-		ImportStateVerifyIgnore:              ignoredFields,
+		ImportStateVerifyIgnore:              ignorePrefixFields,
 	}
 }
 
