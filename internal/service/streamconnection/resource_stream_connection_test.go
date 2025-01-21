@@ -298,7 +298,7 @@ func clusterStreamConnectionConfig(projectID, instanceName, clusterName string) 
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = mongodbatlas_stream_instance.test.project_id
 			instance_name = mongodbatlas_stream_instance.test.instance_name
-		 	connection_name = "ConnectionNameKafka"
+		 	connection_name = "ConnectionNameCluster"
 		 	type = "Cluster"
 		 	cluster_name = %[3]q
 			db_role_to_execute = {
