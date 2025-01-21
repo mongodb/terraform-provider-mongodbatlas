@@ -210,7 +210,7 @@ func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bo
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = mongodbatlas_stream_instance.test.project_id
 			instance_name = mongodbatlas_stream_instance.test.instance_name
-		 	connection_name = "ConnectionNameKafka" + mongodbatlas_stream_instance.test.instance_name
+		 	connection_name = mongodbatlas_stream_instance.test.instance_name
 		 	type = "Kafka"
 		 	authentication = {
 		    	mechanism = "PLAIN"
