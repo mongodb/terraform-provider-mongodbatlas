@@ -20,4 +20,5 @@ const (
 	RetryStrategyDeleteRequestedState   = "DELETE_REQUESTED"
 	RetryStrategyDoneState              = "DONE"
 	RetryStrategyWorkingState           = "WORKING"
+	RetryStrategyDeployingState         = "DEPLOYING"
 )

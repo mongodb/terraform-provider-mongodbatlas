@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"regexp"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -202,8 +201,14 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 	projectID := streamConnectionState.ProjectID.ValueString()
 	instanceName := streamConnectionState.InstanceName.ValueString()
 	connectionName := streamConnectionState.ConnectionName.ValueString()
-	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, time.Minute); err != nil {
+	if _, _, err := connV2.StreamsApi.DeleteStreamConnection(ctx, projectID, instanceName, connectionName).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
+		return
+	}
+
+	_, err := WaitDeletetateTransitionWithMinTimeout(ctx, defaultMinTimeout, projectID, instanceName, connectionName, connV2.StreamsApi)
+	if err != nil {
+		resp.Diagnostics.AddError("error waiting for state transition", err.Error())
 		return
 	}
 }
