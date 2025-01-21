@@ -31,14 +31,14 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t) // needs AWS configuration
 
 	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:                   conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
-			RequirePrivateNetworking: conversion.Pointer(false),
+			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 		awsKmsAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKms)
 
@@ -511,9 +511,10 @@ func configAwsKms(projectID string, aws *admin.AWSKMSConfiguration, useDatasourc
 				customer_master_key_id = %[3]q
 				region                 = %[4]q
 				role_id              = %[5]q
+				require_private_networking = %[6]t
 			}
 		}
-	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId())
+	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId(), aws.GetRequirePrivateNetworking())
 
 	if useDatasource {
 		return fmt.Sprintf(`%s %s`, config, acc.EARDatasourceConfig())
