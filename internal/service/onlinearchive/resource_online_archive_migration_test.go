@@ -32,7 +32,7 @@ func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            clusterTerraformStr,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					populateWithSampleData(clusterResourceName, projectID, clusterName),
+					acc.PopulateWithSampleData(clusterResourceName, projectID, clusterName),
 				),
 			},
 			{

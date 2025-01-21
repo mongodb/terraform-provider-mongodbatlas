@@ -3,6 +3,7 @@ package acc
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -155,6 +156,58 @@ func CheckIndependentShardScalingMode(resourceName, clusterName, expectedMode st
 		}
 		if *issMode != expectedMode {
 			return fmt.Errorf("expected independent shard scaling mode to be %s, got %s", expectedMode, *issMode)
+		}
+		return nil
+	}
+}
+
+// PopulateWithSampleData adds Sample Data to the cluster, otherwise online archive or indexes won't work
+func PopulateWithSampleData(resourceName, projectID, clusterName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+
+		ctx := context.Background()
+		_, _, err := ConnV2().ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			return fmt.Errorf("cluster(%s:%s) does not exist %s", projectID, clusterName, err)
+		}
+		job, _, err := ConnV2().ClustersApi.LoadSampleDataset(context.Background(), projectID, clusterName).Execute()
+		if err != nil {
+			return fmt.Errorf("cluster(%s:%s) loading sample data set error %s", projectID, clusterName, err)
+		}
+		if job == nil {
+			return fmt.Errorf("cluster(%s:%s) loading sample data set error, no job found", projectID, clusterName)
+		}
+		ticker := time.NewTicker(30 * time.Second)
+
+	loop:
+		for {
+			select {
+			case <-time.After(20 * time.Second):
+				log.Println("timeout elapsed ....")
+			case <-ticker.C:
+				job, _, err = ConnV2().ClustersApi.GetSampleDatasetLoadStatus(ctx, projectID, job.GetId()).Execute()
+				fmt.Println("querying for job ")
+				if err != nil {
+					return fmt.Errorf("cluster(%s:%s) failed to query for job, %s", projectID, clusterName, err)
+				}
+				if job == nil {
+					return fmt.Errorf("cluster(%s:%s) failed to query for job, no job found", projectID, clusterName)
+				}
+				if job.GetState() != "WORKING" {
+					break loop
+				}
+			}
+		}
+
+		if job.GetState() != "COMPLETED" {
+			return fmt.Errorf("cluster(%s:%s) working sample data set error %s", projectID, job.GetId(), job.GetState())
 		}
 		return nil
 	}
