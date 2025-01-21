@@ -4,10 +4,12 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -67,23 +69,31 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 
 func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_stream_connection.test"
-		projectID    = acc.ProjectIDExecution(t)
-		instanceName = acc.RandomName()
+		resourceName         = "mongodbatlas_stream_connection.test"
+		projectID            = acc.ProjectIDExecution(t)
+		instanceName         = acc.RandomName()
+		vpcID                = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID         = os.Getenv("AWS_ACCOUNT_ID")
+		containerRegion      = os.Getenv("AWS_REGION")
+		peerRegion           = conversion.MongoDBRegionToAWSRegion(containerRegion)
+		providerName         = "AWS"
+		networkPeeringConfig = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
+				Config: networkPeeringConfig + kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
 				),
 			},
 			{
-				Config: kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				Config: networkPeeringConfig + kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
 				Check:  kafkaStreamConnectionAttributeChecks(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
@@ -200,7 +210,7 @@ func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bo
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = mongodbatlas_stream_instance.test.project_id
 			instance_name = mongodbatlas_stream_instance.test.instance_name
-		 	connection_name = "ConnectionNameKafka"
+		 	connection_name = mongodbatlas_stream_instance.test.instance_name
 		 	type = "Kafka"
 		 	authentication = {
 		    	mechanism = "PLAIN"
@@ -288,7 +298,7 @@ func clusterStreamConnectionConfig(projectID, instanceName, clusterName string) 
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = mongodbatlas_stream_instance.test.project_id
 			instance_name = mongodbatlas_stream_instance.test.instance_name
-		 	connection_name = "ConnectionNameKafka"
+		 	connection_name = "ConnectionNameCluster"
 		 	type = "Cluster"
 		 	cluster_name = %[3]q
 			db_role_to_execute = {
@@ -358,4 +368,25 @@ func CheckDestroyStreamConnection(state *terraform.State) error {
 		}
 	}
 	return nil
+}
+
+func configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_network_container" "test" {
+		project_id   		 = %[1]q
+		atlas_cidr_block  	 = "192.168.208.0/21"
+		provider_name		 = %[2]q
+		region_name			 = %[6]q
+	}
+
+	resource "mongodbatlas_network_peering" "test" {
+		accepter_region_name	= %[7]q
+		project_id    			= %[1]q
+		container_id           	= mongodbatlas_network_container.test.id
+		provider_name           = %[2]q
+		route_table_cidr_block  = %[5]q
+		vpc_id					= %[3]q
+		aws_account_id	        = %[4]q
+	}
+`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer)
 }
