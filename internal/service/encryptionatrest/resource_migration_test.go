@@ -21,7 +21,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),
@@ -29,7 +29,8 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
-		useDatasource = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
+		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
+		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.27.0") // require_private_networking introduced in this version
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -38,7 +39,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configAwsKms(projectID, &awsKms, useDatasource),
+				Config:            configAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -47,7 +48,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(configAwsKms(projectID, &awsKms, useDatasource)),
+			mig.TestStepCheckEmptyPlan(configAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking)),
 		},
 	})
 }
@@ -187,7 +188,7 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),
@@ -197,7 +198,8 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
-		useDatasource = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
+		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
+		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.27.0") // require_private_networking introduced in this version
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -206,7 +208,7 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProvidersWithAWS("1.11.0"),
-				Config:            configAwsKms(projectID, &awsKms, useDatasource),
+				Config:            configAwsKms(projectID, &awsKms, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -215,7 +217,7 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(configAwsKms(projectID, &awsKms, useDatasource)),
+			mig.TestStepCheckEmptyPlan(configAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking)),
 		},
 	})
 }
