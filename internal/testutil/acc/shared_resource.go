@@ -21,9 +21,13 @@ func SetupSharedResources() func() {
 }
 
 func cleanupSharedResources() {
-	if sharedInfo.projectID != "" && sharedInfo.clusterName != "" {
-		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, sharedInfo.projectID)
-		deleteCluster(sharedInfo.projectID, sharedInfo.clusterName)
+	if sharedInfo.clusterName != "" {
+		projectID := sharedInfo.projectID
+		if projectID == "" {
+			projectID = projectIDLocal()
+		}
+		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, projectID)
+		deleteCluster(projectID, sharedInfo.clusterName)
 	}
 
 	if sharedInfo.projectID != "" {
@@ -47,7 +51,7 @@ func ProjectIDExecution(tb testing.TB) string {
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
 
-	if id := projectIDLocal(tb); id != "" {
+	if id := projectIDLocal(); id != "" {
 		return id
 	}
 
@@ -81,7 +85,7 @@ func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID
 // ClusterNameExecution returns the name of a created cluster for the execution of the tests in the resource package.
 // This function relies on using an execution project and returns its id.
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined it will be used instead of creating resources. This is useful for local execution but not intended for CI executions.
-func ClusterNameExecution(tb testing.TB) (projectID, clusterName string) {
+func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, clusterName string) {
 	tb.Helper()
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
@@ -90,9 +94,9 @@ func ClusterNameExecution(tb testing.TB) (projectID, clusterName string) {
 		return existingProjectIDClusterName()
 	}
 
-	// before locking for cluster creation we need to ensure we have an execution project created
-	if sharedInfo.projectID == "" {
-		_ = ProjectIDExecution(tb)
+	projectID = sharedInfo.projectID
+	if projectID == "" {
+		projectID = ProjectIDExecution(tb) // ensure the execution project is created before cluster creation
 	}
 
 	sharedInfo.mu.Lock()
@@ -102,10 +106,15 @@ func ClusterNameExecution(tb testing.TB) (projectID, clusterName string) {
 	if sharedInfo.clusterName == "" {
 		name := RandomClusterName()
 		tb.Logf("Creating execution cluster: %s\n", name)
-		sharedInfo.clusterName = createCluster(tb, sharedInfo.projectID, name)
+		sharedInfo.clusterName = createCluster(tb, projectID, name)
+
+		if populateSampleData {
+			err := PopulateWithSampleData(projectID, sharedInfo.clusterName)
+			require.NoError(tb, err)
+		}
 	}
 
-	return sharedInfo.projectID, sharedInfo.clusterName
+	return projectID, sharedInfo.clusterName
 }
 
 // SerialSleep waits a few seconds so clusters in a project are not created concurrently, see HELP-65223.

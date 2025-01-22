@@ -92,7 +92,7 @@ func TestAccStreamProcessor_JSONWhiteSpaceFormat(t *testing.T) {
 
 func TestAccStreamProcessor_withOptions(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(t, false)
 		processorName          = "new-processor"
 		instanceName           = acc.RandomName()
 		src                    = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: true}
@@ -143,7 +143,7 @@ func TestAccStreamProcessor_createWithAutoStartAndStop(t *testing.T) {
 
 func TestAccStreamProcessor_clusterType(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(t, false)
 		processorName          = "new-processor"
 		instanceName           = acc.RandomName()
 		srcConfig              = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true}
@@ -189,7 +189,7 @@ func TestAccStreamProcessor_updateErrors(t *testing.T) {
 	var (
 		processorName          = "new-processor"
 		instanceName           = acc.RandomName()
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(t, false)
 		src                    = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: false}
 		srcWithOptions         = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: true}
 	)
