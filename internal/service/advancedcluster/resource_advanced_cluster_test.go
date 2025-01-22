@@ -1138,7 +1138,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		checksSet = []string{
 			"replication_specs.0.container_id.AWS:US_EAST_1",
 		}
-		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, "timeouts.create", "2000s") // timeouts.create is not set on data sources
+		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, "timeouts.create", "6000s") // timeouts.create is not set on data sources
 		checks         = checkAggr(true, checksSet, checksMap, timeoutCheck)
 		afterUpdateMap = map[string]string{
 			"state_name":                    "IDLE",
@@ -1262,7 +1262,7 @@ func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) s
 	return acc.ConvertAdvancedClusterToSchemaV2(t, true, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			timeouts {
-				create = "2000s"
+				create = "6000s"
 			}
 			project_id = %[1]q
 			name = %[2]q
