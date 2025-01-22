@@ -75,7 +75,7 @@ func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics)
 func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyzer, diag.Diagnostics) {
 	fields := []admin.AtlasSearchAnalyzer{}
 	if str == "" {
-		return fields, nil
+		return nil, nil // don't send analyzers field to Atlas if empty
 	}
 	dec := json.NewDecoder(bytes.NewReader([]byte(str)))
 	dec.DisallowUnknownFields()
