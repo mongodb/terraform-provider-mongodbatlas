@@ -30,6 +30,8 @@ import (
 )
 
 const (
+	errorCreateWait                = "error waiting for advanced cluster creation"
+	errorCreateWaitFinal           = "error waiting for advanced cluster creation after all updates"
 	errorCreate                    = "error creating advanced cluster: %s"
 	errorRead                      = "error reading  advanced cluster (%s): %s"
 	errorDelete                    = "error deleting advanced cluster (%s): %s"
@@ -528,7 +530,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	if diags := advancedclustertpf.AwaitChangesSDKv2(ctx, false, connV2, projectID, clusterName, timeout); diags.HasError() {
+	if diags := AwaitChanges(ctx, false, connV2, projectID, clusterName, errorCreateWait, timeout); diags.HasError() {
 		return diags
 	}
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
@@ -567,7 +569,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if waitForChanges {
-		if diags := advancedclustertpf.AwaitChangesSDKv2(ctx, false, connV2, projectID, clusterName, timeout); diags.HasError() {
+		if diags := AwaitChanges(ctx, false, connV2, projectID, clusterName, errorCreateWaitFinal, timeout); diags.HasError() {
 			return diags
 		}
 	}
