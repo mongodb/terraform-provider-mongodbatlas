@@ -77,6 +77,56 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 	}
 }
 
+// PrivateEndpointConnectionName is not returned for AWS
+func TestEncryptionAtRestPrivateEndpointSDKToTFModel_noPEConnectionName(t *testing.T) {
+	testCases := map[string]sdkToTFModelTestCase{
+		"nil PrivateEndpointConnectionName": {
+			SDKResp: admin.EARPrivateEndpoint{
+				CloudProvider: admin.PtrString(testCloudProvider),
+				ErrorMessage:  admin.PtrString(""),
+				Id:            admin.PtrString(testID),
+				RegionName:    admin.PtrString(testRegionName),
+				Status:        admin.PtrString(testStatus),
+			},
+			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
+				CloudProvider:                 types.StringValue(testCloudProvider),
+				ErrorMessage:                  types.StringNull(),
+				ID:                            types.StringValue(testID),
+				RegionName:                    types.StringValue(testRegionName),
+				Status:                        types.StringValue(testStatus),
+				PrivateEndpointConnectionName: types.StringNull(),
+				ProjectID:                     types.StringValue(testProjectID),
+			},
+		},
+		"empty PrivateEndpointConnectionName": {
+			SDKResp: admin.EARPrivateEndpoint{
+				CloudProvider:                 admin.PtrString(testCloudProvider),
+				ErrorMessage:                  admin.PtrString(""),
+				Id:                            admin.PtrString(testID),
+				RegionName:                    admin.PtrString(testRegionName),
+				Status:                        admin.PtrString(testStatus),
+				PrivateEndpointConnectionName: admin.PtrString(""),
+			},
+			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
+				CloudProvider:                 types.StringValue(testCloudProvider),
+				ErrorMessage:                  types.StringNull(),
+				ID:                            types.StringValue(testID),
+				RegionName:                    types.StringValue(testRegionName),
+				Status:                        types.StringValue(testStatus),
+				PrivateEndpointConnectionName: types.StringNull(),
+				ProjectID:                     types.StringValue(testProjectID),
+			},
+		},
+	}
+
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			resultModel := encryptionatrestprivateendpoint.NewTFEarPrivateEndpoint(tc.SDKResp, testProjectID)
+			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
+		})
+	}
+}
+
 type tfToSDKModelTestCase struct {
 	tfModel        *encryptionatrestprivateendpoint.TFEarPrivateEndpointModel
 	expectedSDKReq *admin.EARPrivateEndpoint
