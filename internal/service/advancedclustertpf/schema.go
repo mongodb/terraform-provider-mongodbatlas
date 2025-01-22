@@ -512,9 +512,9 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 
 type TFModel struct {
 	DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`
-	Labels                                    types.Set      `tfsdk:"labels"`
+	Labels                                    types.Map      `tfsdk:"labels"`
 	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
-	Tags                                      types.Set      `tfsdk:"tags"`
+	Tags                                      types.Map      `tfsdk:"tags"`
 	StateName                                 types.String   `tfsdk:"state_name"`
 	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
 	CreateDate                                types.String   `tfsdk:"create_date"`
@@ -547,9 +547,9 @@ type TFModel struct {
 // TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig; adds use_replication_spec_per_shard.
 type TFModelDS struct {
 	DiskSizeGB                       types.Float64 `tfsdk:"disk_size_gb"`
-	Labels                           types.Set     `tfsdk:"labels"`
+	Labels                           types.Map     `tfsdk:"labels"`
 	ReplicationSpecs                 types.List    `tfsdk:"replication_specs"`
-	Tags                             types.Set     `tfsdk:"tags"`
+	Tags                             types.Map     `tfsdk:"tags"`
 	ReplicaSetScalingStrategy        types.String  `tfsdk:"replica_set_scaling_strategy"`
 	Name                             types.String  `tfsdk:"name"`
 	AdvancedConfiguration            types.Object  `tfsdk:"advanced_configuration"`
@@ -639,16 +639,6 @@ var EndpointsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"region":        types.StringType,
 }}
 
-type TFLabelsModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
-}
-
-var LabelsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"key":   types.StringType,
-	"value": types.StringType,
-}}
-
 type TFReplicationSpecsModel struct {
 	RegionConfigs types.List   `tfsdk:"region_configs"`
 	ContainerId   types.Map    `tfsdk:"container_id"`
@@ -723,16 +713,6 @@ var SpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"ebs_volume_type": types.StringType,
 	"instance_size":   types.StringType,
 	"node_count":      types.Int64Type,
-}}
-
-type TFTagsModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
-}
-
-var TagsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"key":   types.StringType,
-	"value": types.StringType,
 }}
 
 type TFAdvancedConfigurationModel struct {
