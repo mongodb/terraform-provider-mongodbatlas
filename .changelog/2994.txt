@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_search_index: Don't send empty `analyzers` attribute to Atlas
+```
