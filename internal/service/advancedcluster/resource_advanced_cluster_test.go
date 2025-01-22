@@ -125,12 +125,12 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 	}
 }
 
-func TestAccMockableAdvancedCluster_basicTenant(t *testing.T) {
+func TestAccAdvancedCluster_basicTenant(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
 		clusterNameUpdated     = acc.RandomClusterName()
 	)
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
