@@ -48,7 +48,6 @@ const (
 	errorReadLegacy20240530         = "error reading cluster with legacy API 20240530"
 	errorResolveContainerIDs        = "error resolving container IDs"
 	errorRegionPriorities           = "priority values in region_configs must be in descending order"
-	errorUnknownChangeReason        = "unknown change reason"
 	errorAwaitState                 = "error awaiting cluster to reach desired state"
 	errorAwaitStateResultType       = "the result of awaiting cluster wasn't of the expected type"
 	errorAdvancedConfUpdate         = "error updating Advanced Configuration"
@@ -454,24 +453,12 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 }
 
 func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805) {
-	api := client.AtlasV2.ClustersApi
-	api20240530 := client.AtlasV220240530.ClustersApi
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	var err error
-	if legacyAdvConfig == nil {
-		legacyAdvConfig, _, err = api20240530.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			diags.AddError(errorAdvancedConfReadLegacy, defaultAPIErrorDetails(clusterName, err))
-			return
-		}
-	}
-	if advConfig == nil {
-		advConfig, _, err = api.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			diags.AddError(errorAdvancedConfRead, defaultAPIErrorDetails(clusterName, err))
-			return
-		}
+	reader := &ClusterReader{ProjectID: projectID, ClusterName: clusterName, Timeout: defaultTimeout} // timeout is not used
+	legacyAdvConfig, advConfig = readIfUnsetAdvancedConfiguration(ctx, diags, client, reader, legacyAdvConfig, advConfig)
+	if diags.HasError() {
+		return
 	}
 	AddAdvancedConfig(ctx, model, advConfig, legacyAdvConfig, diags)
 }
@@ -513,7 +500,7 @@ func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 		timeoutDuration, localDiags = t.Delete(ctx, defaultTimeout)
 		diags.Append(localDiags...)
 	default:
-		diags.AddError(errorUnknownChangeReason, "unknown change reason "+operationName)
+		timeoutDuration = defaultTimeout
 	}
 	return timeoutDuration
 }

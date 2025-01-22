@@ -48,18 +48,6 @@ func updateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 		projectID       = reader.ProjectID
 		clusterName     = reader.ClusterName
 	)
-	if !update.IsZeroValues(reqLegacy) {
-		changed = true
-		legacyAdvConfig, _, err = client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, reqLegacy).Execute()
-		if err != nil {
-			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
-			return nil, nil, false
-		}
-		_ = AwaitChanges(ctx, client, reader, operationAdvancedConfigurationUpdate20240530, diags)
-		if diags.HasError() {
-			return nil, nil, false
-		}
-	}
 	if !update.IsZeroValues(reqNew) {
 		changed = true
 		advConfig, _, err = client.AtlasV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, reqNew).Execute()
@@ -68,6 +56,18 @@ func updateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 			return nil, nil, false
 		}
 		_ = AwaitChanges(ctx, client, reader, operationAdvancedConfigurationUpdate, diags)
+		if diags.HasError() {
+			return nil, nil, false
+		}
+	}
+	if !update.IsZeroValues(reqLegacy) {
+		changed = true
+		legacyAdvConfig, _, err = client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, reqLegacy).Execute()
+		if err != nil {
+			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
+			return nil, nil, false
+		}
+		_ = AwaitChanges(ctx, client, reader, operationAdvancedConfigurationUpdate20240530, diags)
 		if diags.HasError() {
 			return nil, nil, false
 		}
