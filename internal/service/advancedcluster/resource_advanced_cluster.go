@@ -1513,6 +1513,14 @@ func getFlexClusterUpdateRequest(d *schema.ResourceData) *admin.FlexClusterDescr
 }
 
 func getUpgradeToFlexClusterRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+	// WIP: will be finished as part of CLOUDP-296220, added simple check for now for local testing and avoid warnings
+	if d.HasChange("cluster_type") && d.Get("cluster_type").(string) == flexcluster.FlexClusterType {
+		return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+			ProviderSettings: &admin.ClusterProviderSettings{
+				ProviderName: flexcluster.FlexClusterType,
+			},
+		}
+	}
 	return nil
 }
 
