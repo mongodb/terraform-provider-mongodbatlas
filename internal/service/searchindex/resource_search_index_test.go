@@ -18,7 +18,7 @@ func TestAccSearchIndex_basic(t *testing.T) {
 
 func TestAccSearchIndex_withSearchType(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 		database, collection   = databaseAndCollection()
 	)
@@ -37,7 +37,7 @@ func TestAccSearchIndex_withSearchType(t *testing.T) {
 
 func TestAccSearchIndex_withMapping(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 		database, collection   = databaseAndCollection()
 	)
@@ -56,7 +56,7 @@ func TestAccSearchIndex_withMapping(t *testing.T) {
 
 func TestAccSearchIndex_withSynonyms(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 		database, collection   = databaseAndCollection()
 	)
@@ -75,7 +75,7 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 
 func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 		database, collection   = databaseAndCollection()
 	)
@@ -98,7 +98,7 @@ func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 
 func TestAccSearchIndex_updatedToEmptyAnalyzers(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 		database, collection   = databaseAndCollection()
 	)
@@ -125,7 +125,7 @@ func TestAccSearchIndex_updatedToEmptyAnalyzers(t *testing.T) {
 
 func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 		database, collection   = databaseAndCollection()
 	)
@@ -153,7 +153,7 @@ func TestAccSearchIndex_withVector(t *testing.T) {
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(tb)
+		projectID, clusterName = acc.ClusterNameExecution(tb, true)
 		indexName              = acc.RandomName()
 		database, collection   = databaseAndCollection()
 	)
@@ -204,7 +204,7 @@ func TestAccSearchIndex_withStoredSourceUpdateSearchType(t *testing.T) {
 func storedSourceTestCase(tb testing.TB, storedSource string) *resource.TestCase {
 	tb.Helper()
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(tb)
+		projectID, clusterName = acc.ClusterNameExecution(tb, true)
 		indexName              = acc.RandomName()
 		database, collection   = databaseAndCollection()
 	)
@@ -224,7 +224,7 @@ func storedSourceTestCase(tb testing.TB, storedSource string) *resource.TestCase
 func storedSourceTestCaseUpdate(tb testing.TB, searchType string) *resource.TestCase {
 	tb.Helper()
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(tb)
+		projectID, clusterName = acc.ClusterNameExecution(tb, true)
 		indexName              = acc.RandomName()
 		database, collection   = databaseAndCollection()
 	)
@@ -248,7 +248,7 @@ func storedSourceTestCaseUpdate(tb testing.TB, searchType string) *resource.Test
 func basicVectorTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(tb)
+		projectID, clusterName = acc.ClusterNameExecution(tb, true)
 		indexName              = acc.RandomName()
 		database, collection   = databaseAndCollection()
 	)
