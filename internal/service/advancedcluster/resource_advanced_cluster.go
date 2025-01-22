@@ -444,7 +444,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
 		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB),
 	}
-
+	if v := d.Get("paused").(bool); v {
+		params.Paused = conversion.Pointer(v)
+	}
 	if v, ok := d.GetOk("backup_enabled"); ok {
 		params.BackupEnabled = conversion.Pointer(v.(bool))
 	}
