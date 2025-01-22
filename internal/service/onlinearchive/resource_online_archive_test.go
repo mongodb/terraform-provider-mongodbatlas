@@ -39,9 +39,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: clusterTerraformStr,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.PopulateWithSampleData(clusterResourceName, projectID, clusterName),
-				),
+				Check:  acc.PopulateWithSampleDataTestCheck(projectID, clusterName),
 			},
 			{
 				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 7),
@@ -137,9 +135,7 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: clusterTerraformStr,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.PopulateWithSampleData(clusterResourceName, projectID, clusterName),
-				),
+				Check:  acc.PopulateWithSampleDataTestCheck(projectID, clusterName),
 			},
 			{
 				Config: configWithoutSchedule(clusterTerraformStr, clusterResourceName),
@@ -186,9 +182,7 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: clusterTerraformStr,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.PopulateWithSampleData(clusterResourceName, projectID, clusterName),
-				),
+				Check:  acc.PopulateWithSampleDataTestCheck(projectID, clusterName),
 			},
 			{
 				Config: configWithDataProcessRegion(clusterTerraformStr, clusterResourceName, cloudProvider, processRegion),

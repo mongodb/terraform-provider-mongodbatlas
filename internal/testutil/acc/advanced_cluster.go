@@ -161,54 +161,51 @@ func CheckIndependentShardScalingMode(resourceName, clusterName, expectedMode st
 	}
 }
 
-// PopulateWithSampleData adds Sample Data to the cluster, otherwise online archive or indexes won't work
-func PopulateWithSampleData(resourceName, projectID, clusterName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
+// PopulateWithSampleDataTestCheck is a wrapper around PopulateWithSampleData to be used as a resource.TestCheckFunc
+func PopulateWithSampleDataTestCheck(projectID, clusterName string) resource.TestCheckFunc {
+	return func(*terraform.State) error {
+		return PopulateWithSampleData(projectID, clusterName)
+	}
+}
 
-		ctx := context.Background()
-		_, _, err := ConnV2().ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			return fmt.Errorf("cluster(%s:%s) does not exist %s", projectID, clusterName, err)
-		}
-		job, _, err := ConnV2().ClustersApi.LoadSampleDataset(context.Background(), projectID, clusterName).Execute()
-		if err != nil {
-			return fmt.Errorf("cluster(%s:%s) loading sample data set error %s", projectID, clusterName, err)
-		}
-		if job == nil {
-			return fmt.Errorf("cluster(%s:%s) loading sample data set error, no job found", projectID, clusterName)
-		}
-		ticker := time.NewTicker(30 * time.Second)
+// PopulateWithSampleData adds Sample Data to the cluster, otherwise resources like online archive or indexes won't work
+func PopulateWithSampleData(projectID, clusterName string) error {
+	ctx := context.Background()
+	_, _, err := ConnV2().ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return fmt.Errorf("cluster(%s:%s) does not exist %s", projectID, clusterName, err)
+	}
+	job, _, err := ConnV2().ClustersApi.LoadSampleDataset(context.Background(), projectID, clusterName).Execute()
+	if err != nil {
+		return fmt.Errorf("cluster(%s:%s) loading sample data set error %s", projectID, clusterName, err)
+	}
+	if job == nil {
+		return fmt.Errorf("cluster(%s:%s) loading sample data set error, no job found", projectID, clusterName)
+	}
+	ticker := time.NewTicker(30 * time.Second)
 
-	loop:
-		for {
-			select {
-			case <-time.After(20 * time.Second):
-				log.Println("timeout elapsed ....")
-			case <-ticker.C:
-				job, _, err = ConnV2().ClustersApi.GetSampleDatasetLoadStatus(ctx, projectID, job.GetId()).Execute()
-				fmt.Println("querying for job ")
-				if err != nil {
-					return fmt.Errorf("cluster(%s:%s) failed to query for job, %s", projectID, clusterName, err)
-				}
-				if job == nil {
-					return fmt.Errorf("cluster(%s:%s) failed to query for job, no job found", projectID, clusterName)
-				}
-				if job.GetState() != "WORKING" {
-					break loop
-				}
+loop:
+	for {
+		select {
+		case <-time.After(20 * time.Second):
+			log.Println("timeout elapsed ....")
+		case <-ticker.C:
+			job, _, err = ConnV2().ClustersApi.GetSampleDatasetLoadStatus(ctx, projectID, job.GetId()).Execute()
+			fmt.Println("querying for job ")
+			if err != nil {
+				return fmt.Errorf("cluster(%s:%s) failed to query for job, %s", projectID, clusterName, err)
+			}
+			if job == nil {
+				return fmt.Errorf("cluster(%s:%s) failed to query for job, no job found", projectID, clusterName)
+			}
+			if job.GetState() != "WORKING" {
+				break loop
 			}
 		}
-
-		if job.GetState() != "COMPLETED" {
-			return fmt.Errorf("cluster(%s:%s) working sample data set error %s", projectID, job.GetId(), job.GetState())
-		}
-		return nil
 	}
+
+	if job.GetState() != "COMPLETED" {
+		return fmt.Errorf("cluster(%s:%s) working sample data set error %s", projectID, job.GetId(), job.GetState())
+	}
+	return nil
 }
