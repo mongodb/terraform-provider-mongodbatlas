@@ -32,6 +32,8 @@ import (
 const (
 	errorCreateWait                = "error waiting for advanced cluster creation"
 	errorCreateWaitFinal           = "error waiting for advanced cluster creation after all updates"
+	errorUpdateWaitLegacy          = "error waiting for advanced cluster update (legacy schema)"
+	errorUpdateWait                = "error waiting for advanced cluster update"
 	errorCreate                    = "error creating advanced cluster: %s"
 	errorRead                      = "error reading  advanced cluster (%s): %s"
 	errorDelete                    = "error deleting advanced cluster (%s): %s"
@@ -890,8 +892,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			waitOnUpdate = true
 		}
 		if waitOnUpdate {
-			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
-				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			if diags := AwaitChanges(ctx, false, connV2, projectID, clusterName, errorUpdateWaitLegacy, timeout); diags.HasError() {
+				return diags
 			}
 		}
 	} else {
@@ -907,8 +909,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
-			if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
-				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+			if diags := AwaitChanges(ctx, false, connV2, projectID, clusterName, errorUpdateWait, timeout); diags.HasError() {
+				return diags
 			}
 		}
 	}
