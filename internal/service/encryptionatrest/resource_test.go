@@ -109,7 +109,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
 			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
-			RequirePrivateNetworking: conversion.Pointer(true),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 
 		azureKeyVaultAttrMap = acc.ConvertToAzureKeyVaultEARAttrMap(&azureKeyVault)
@@ -124,7 +124,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
 			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
-			RequirePrivateNetworking: conversion.Pointer(false),
+			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 
 		azureKeyVaultUpdatedAttrMap = acc.ConvertToAzureKeyVaultEARAttrMap(&azureKeyVaultUpdated)
@@ -149,7 +149,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, false, true),
+				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
