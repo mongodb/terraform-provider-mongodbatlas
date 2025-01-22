@@ -126,20 +126,10 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	clusterName := plan.Name.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.FlexClustersApi.UpdateFlexCluster(ctx, projectID, plan.Name.ValueString(), flexClusterReq).Execute()
+
+	flexClusterResp, err := UpdateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
-		return
-	}
-
-	flexClusterParams := &admin.GetFlexClusterApiParams{
-		GroupId: projectID,
-		Name:    clusterName,
-	}
-
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState})
-	if err != nil {
-		resp.Diagnostics.AddError("error waiting for resource to be updated", err.Error())
 		return
 	}
 
@@ -164,18 +154,11 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 
 	connV2 := r.Client.AtlasV2
-	if _, _, err := connV2.FlexClustersApi.DeleteFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString()).Execute(); err != nil {
+
+	err := DeleteFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString(), connV2.FlexClustersApi)
+
+	if err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
-		return
-	}
-
-	flexClusterParams := &admin.GetFlexClusterApiParams{
-		GroupId: flexClusterState.ProjectId.ValueString(),
-		Name:    flexClusterState.Name.ValueString(),
-	}
-
-	if err := WaitStateTransitionDelete(ctx, flexClusterParams, connV2.FlexClustersApi); err != nil {
-		resp.Diagnostics.AddError("error waiting for resource to be deleted", err.Error())
 		return
 	}
 }
@@ -248,4 +231,17 @@ func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 		return nil, err
 	}
 	return flexClusterResp, nil
+}
+
+func DeleteFlexCluster(ctx context.Context, projectID, clusterName string, client admin.FlexClustersApi) error {
+	if _, _, err := client.DeleteFlexCluster(ctx, projectID, clusterName).Execute(); err != nil {
+		return err
+	}
+
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: projectID,
+		Name:    clusterName,
+	}
+
+	return WaitStateTransitionDelete(ctx, flexClusterParams, client)
 }
