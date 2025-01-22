@@ -14,14 +14,16 @@ import (
 )
 
 var (
-	RetryMinTimeout   = 1 * time.Minute
-	RetryDelay        = 30 * time.Second
-	RetryPollInterval = 30 * time.Second
+	RetryMinTimeout      = 1 * time.Minute
+	RetryDelay           = 30 * time.Second
+	RetryPollInterval    = 30 * time.Second
+	AwaitDeleteOperation = "delete"
 )
 
-func AwaitChanges(ctx context.Context, isDelete bool, api admin.ClustersApi, projectID, clusterName string, timeoutDuration time.Duration, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
+func AwaitChanges(ctx context.Context, api admin.ClustersApi, projectID, clusterName, lastOperation string, timeoutDuration time.Duration, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
 	targetState := retrystrategy.RetryStrategyIdleState
 	extraPending := []string{}
+	isDelete := lastOperation == AwaitDeleteOperation
 	if isDelete {
 		targetState = retrystrategy.RetryStrategyDeletedState
 		extraPending = append(extraPending, retrystrategy.RetryStrategyIdleState)
@@ -32,7 +34,7 @@ func AwaitChanges(ctx context.Context, isDelete bool, api admin.ClustersApi, pro
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && isDelete {
 			return nil
 		}
-		diags.AddError(errorAwaitState, fmt.Sprintf("cluster=%s didn't reach desired state: %s, error: %s", clusterName, targetState, err))
+		diags.AddError(errorAwaitState, fmt.Sprintf("cluster=%s didn't reach desired state: %s, last operation: %s, error: %s", clusterName, targetState, lastOperation, err))
 		return nil
 	}
 	if isDelete {
@@ -40,7 +42,7 @@ func AwaitChanges(ctx context.Context, isDelete bool, api admin.ClustersApi, pro
 	}
 	cluster, ok := clusterAny.(*admin.ClusterDescription20240805)
 	if !ok {
-		diags.AddError(errorAwaitStateResultType, fmt.Sprintf("cluster=%s, got unexpected type: %T", clusterName, clusterAny))
+		diags.AddError(errorAwaitStateResultType, fmt.Sprintf("cluster=%s, got unexpected type: %T, last operation: %s", clusterName, clusterAny, lastOperation))
 		return nil
 	}
 	return cluster

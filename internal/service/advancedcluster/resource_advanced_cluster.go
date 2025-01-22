@@ -30,10 +30,11 @@ import (
 )
 
 const (
-	errorCreateWait                = "error waiting for advanced cluster creation"
-	errorCreateWaitFinal           = "error waiting for advanced cluster creation after all updates"
-	errorUpdateWaitLegacy          = "error waiting for advanced cluster update (legacy schema)"
-	errorUpdateWait                = "error waiting for advanced cluster update"
+	operationCreate       = "create"
+	operationCreateFinal  = "create final"
+	operationUpdate       = "update"
+	operationUpdateLegacy = "update (legacy schema)"
+
 	errorCreate                    = "error creating advanced cluster: %s"
 	errorRead                      = "error reading  advanced cluster (%s): %s"
 	errorDelete                    = "error deleting advanced cluster (%s): %s"
@@ -532,7 +533,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	if diags := AwaitChanges(ctx, false, connV2, projectID, clusterName, errorCreateWait, timeout); diags.HasError() {
+	if diags := AwaitChanges(ctx, connV2, projectID, clusterName, operationCreate, timeout); diags.HasError() {
 		return diags
 	}
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
@@ -571,7 +572,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if waitForChanges {
-		if diags := AwaitChanges(ctx, false, connV2, projectID, clusterName, errorCreateWaitFinal, timeout); diags.HasError() {
+		if diags := AwaitChanges(ctx, connV2, projectID, clusterName, operationCreateFinal, timeout); diags.HasError() {
 			return diags
 		}
 	}
@@ -892,7 +893,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			waitOnUpdate = true
 		}
 		if waitOnUpdate {
-			if diags := AwaitChanges(ctx, false, connV2, projectID, clusterName, errorUpdateWaitLegacy, timeout); diags.HasError() {
+			if diags := AwaitChanges(ctx, connV2, projectID, clusterName, operationUpdateLegacy, timeout); diags.HasError() {
 				return diags
 			}
 		}
@@ -909,7 +910,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
-			if diags := AwaitChanges(ctx, false, connV2, projectID, clusterName, errorUpdateWait, timeout); diags.HasError() {
+			if diags := AwaitChanges(ctx, connV2, projectID, clusterName, operationUpdate, timeout); diags.HasError() {
 				return diags
 			}
 		}

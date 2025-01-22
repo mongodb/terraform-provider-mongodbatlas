@@ -11,8 +11,8 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
-func AwaitChanges(ctx context.Context, isDelete bool, api *admin.APIClient, projectID, clusterName, errorSummary string, timeoutDuration time.Duration) sdkv2diag.Diagnostics {
+func AwaitChanges(ctx context.Context, api *admin.APIClient, projectID, clusterName, lastOperation string, timeoutDuration time.Duration) sdkv2diag.Diagnostics {
 	diags := &diag.Diagnostics{}
-	_ = advancedclustertpf.AwaitChanges(ctx, isDelete, api.ClustersApi, projectID, clusterName, timeoutDuration, diags)
-	return conversion.FromTPFDiagsToSDKV2Diags(*diags, conversion.DiagsOptions{Summary: errorSummary})
+	_ = advancedclustertpf.AwaitChanges(ctx, api.ClustersApi, projectID, clusterName, lastOperation, timeoutDuration, diags)
+	return conversion.FromTPFDiagsToSDKV2Diags(*diags)
 }
