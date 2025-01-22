@@ -81,15 +81,17 @@ var DBRoleToExecuteObjectType = types.ObjectType{AttrTypes: map[string]attr.Type
 }}
 
 type TFNetworkingAccessModel struct {
-	Type types.String `tfsdk:"type"`
+	Type         types.String `tfsdk:"type"`
+	ConnectionID types.String `tfsdk:"connection_id"`
 }
 
 var NetworkingAccessObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"type": types.StringType,
+	"type":          types.StringType,
+	"connection_id": types.StringType,
 }}
 
 type TFNetworkingModel struct {
-	Access TFNetworkingAccessModel `tfsdk:"access"`
+	Access types.Object `tfsdk:"access"`
 }
 
 var NetworkingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -200,7 +202,7 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 	projectID := streamConnectionState.ProjectID.ValueString()
 	instanceName := streamConnectionState.InstanceName.ValueString()
 	connectionName := streamConnectionState.ConnectionName.ValueString()
-	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, time.Minute); err != nil {
+	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, 10*time.Minute); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}
