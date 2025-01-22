@@ -17,4 +17,5 @@ const (
 	RetryStrategyRepairingState         = "REPAIRING"
 	RetryStrategyRepeatingState         = "REPEATING"
 	RetryStrategyUpdatingState          = "UPDATING"
+	RetryStrategyWorkingState           = "WORKING"
 )

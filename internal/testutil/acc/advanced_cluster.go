@@ -2,13 +2,13 @@ package acc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -171,21 +171,23 @@ func PopulateWithSampleDataTestCheck(projectID, clusterName string) resource.Tes
 // PopulateWithSampleData adds Sample Data to the cluster, otherwise resources like online archive or indexes won't work
 func PopulateWithSampleData(projectID, clusterName string) error {
 	ctx := context.Background()
-	job, _, err := ConnV2().ClustersApi.LoadSampleDataset(context.Background(), projectID, clusterName).Execute()
-	if err != nil || job == nil {
+	jobLoad, _, err := ConnV2().ClustersApi.LoadSampleDataset(context.Background(), projectID, clusterName).Execute()
+	if err != nil || jobLoad == nil {
 		return fmt.Errorf("cluster(%s:%s) loading sample data set error: %s", projectID, clusterName, err)
 	}
-	jobID := job.GetId()
-	retryableError := retry.RetryableError(errors.New("working"))
-	return retry.RetryContext(ctx, 30*time.Second, func() *retry.RetryError {
-		job, _, err = ConnV2().ClustersApi.GetSampleDatasetLoadStatus(ctx, projectID, jobID).Execute()
-		state := job.GetState()
-		if state == "COMPLETED" {
-			return nil
-		}
-		if state == "WORKING" {
-			return retryableError
-		}
-		return retry.NonRetryableError(fmt.Errorf("cluster(%s:%s) failed to load sample data, state: %s, error: %s", projectID, clusterName, state, err))
-	})
+	jobID := jobLoad.GetId()
+	stateConf := retry.StateChangeConf{
+		Pending:    []string{retrystrategy.RetryStrategyWorkingState},
+		Target:     []string{retrystrategy.RetryStrategyCompletedState},
+		Timeout:    15 * time.Minute,
+		MinTimeout: 1 * time.Minute,
+		Delay:      1 * time.Minute,
+		Refresh: func() (result any, state string, err error) {
+			job, _, err := ConnV2().ClustersApi.GetSampleDatasetLoadStatus(ctx, projectID, jobID).Execute()
+			state = job.GetState()
+			return job, state, err
+		},
+	}
+	_, err = stateConf.WaitForStateContext(ctx)
+	return err
 }
