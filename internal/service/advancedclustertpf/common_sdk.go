@@ -13,7 +13,30 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
-func createCluster20240805(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin20240805.ClusterDescription20240805, reader *ClusterReader) *admin.ClusterDescription20240805 {
+func CreateClusterFull(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, reader *ClusterReader, usingOldShardingConfiguration bool) *admin.ClusterDescription20240805 {
+	var (
+		pauseAfter  = req.GetPaused()
+		clusterResp *admin.ClusterDescription20240805
+	)
+	if pauseAfter {
+		req.Paused = nil
+	}
+	if usingOldShardingConfiguration {
+		legacyReq := ConvertClusterDescription20241023to20240805(req)
+		clusterResp = CreateCluster20240805(ctx, diags, client, legacyReq, reader)
+	} else {
+		clusterResp = CreateCluster(ctx, diags, client, req, reader)
+	}
+	if diags.HasError() {
+		return nil
+	}
+	if pauseAfter {
+		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, reader, operationCreate)
+	}
+	return clusterResp
+}
+
+func CreateCluster20240805(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin20240805.ClusterDescription20240805, reader *ClusterReader) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV220240805.ClustersApi.CreateCluster(ctx, reader.ProjectID, req).Execute()
 	if err != nil {
 		diags.AddError(errorCreateLegacy20240805, defaultAPIErrorDetails(reader.ClusterName, err))
@@ -22,7 +45,7 @@ func createCluster20240805(ctx context.Context, diags *diag.Diagnostics, client 
 	return AwaitChanges(ctx, client, reader, operationCreateLegacy, diags)
 }
 
-func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, reader *ClusterReader) *admin.ClusterDescription20240805 {
+func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, reader *ClusterReader) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, reader.ProjectID, req).Execute()
 	if err != nil {
 		diags.AddError(errorCreate, defaultAPIErrorDetails(reader.ClusterName, err))
@@ -40,7 +63,7 @@ func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	return AwaitChanges(ctx, client, reader, operationName, diags)
 }
 
-func updateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, reqLegacy *admin20240530.ClusterDescriptionProcessArgs, reqNew *admin.ClusterDescriptionProcessArgs20240805, reader *ClusterReader) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
+func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, reqLegacy *admin20240530.ClusterDescriptionProcessArgs, reqNew *admin.ClusterDescriptionProcessArgs20240805, reader *ClusterReader) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
 	var (
 		err             error
 		advConfig       *admin.ClusterDescriptionProcessArgs20240805

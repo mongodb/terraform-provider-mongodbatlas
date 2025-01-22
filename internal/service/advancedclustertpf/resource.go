@@ -200,7 +200,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig, advConfigChanged := updateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, reader)
+	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, reader)
 	if diags.HasError() {
 		return
 	}
@@ -264,32 +264,14 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if diags.HasError() {
 		return nil
 	}
-	var (
-		pauseAfter  = latestReq.GetPaused()
-		clusterResp *admin.ClusterDescription20240805
-	)
-	if pauseAfter {
-		latestReq.Paused = nil
-	}
-	if usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
-		legacyReq := ConvertClusterDescription20241023to20240805(latestReq)
-		clusterResp = createCluster20240805(ctx, diags, r.Client, legacyReq, reader)
-	} else {
-		clusterResp = createCluster(ctx, diags, r.Client, latestReq, reader)
-	}
-	if diags.HasError() {
-		return nil
-	}
-	if pauseAfter {
-		clusterResp = updateCluster(ctx, diags, r.Client, &pauseRequest, reader, operationCreate)
-	}
+	clusterResp := CreateClusterFull(ctx, diags, r.Client, latestReq, reader, usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags))
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return nil
 	}
-	legacyAdvConfig, advConfig, _ := updateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, reader)
+	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, reader)
 	if diags.HasError() {
 		return nil
 	}

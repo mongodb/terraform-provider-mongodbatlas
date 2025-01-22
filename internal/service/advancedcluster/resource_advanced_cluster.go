@@ -13,7 +13,6 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -431,8 +430,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 	client := meta.(*config.MongoDBClient)
-	connV220240530 := client.AtlasV220240530
-	connV220240805 := client.AtlasV220240805
 	connV2 := client.AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
@@ -514,53 +511,24 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
-	var clusterID string
-	var err error
-	// With old sharding config we call older API (2024-08-05) to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
-	if isUsingOldShardingConfiguration(d) {
-		var cluster20240805 *admin20240805.ClusterDescription20240805
-		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, advancedclustertpf.ConvertClusterDescription20241023to20240805(params)).Execute()
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorCreate, err))
-		}
-		clusterID = cluster20240805.GetId()
-	} else {
-		var cluster *admin.ClusterDescription20240805
-		cluster, _, err = connV2.ClustersApi.CreateCluster(ctx, projectID, params).Execute()
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorCreate, err))
-		}
-		clusterID = cluster.GetId()
+	reader := &advancedclustertpf.ClusterReader{
+		ProjectID:   projectID,
+		ClusterName: clusterName,
+		Timeout:     d.Timeout(schema.TimeoutCreate),
 	}
-
-	timeout := d.Timeout(schema.TimeoutCreate)
-	if diags := AwaitChanges(ctx, client, projectID, clusterName, operationCreate, timeout); diags.HasError() {
-		return diags
+	diags := new(diag.Diagnostics)
+	cluster := CreateClusterFull(ctx, diags, client, params, reader, isUsingOldShardingConfiguration(d))
+	if diags.HasError() {
+		return *diags
 	}
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
 			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), params.MongoDBMajorVersion)
-			_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params20240530).Execute()
-			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
-			}
-			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
-			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
+			_, _, _ = UpdateAdvancedConfiguration(ctx, diags, client, &params20240530, &params, reader)
+			if diags.HasError() {
+				return *diags
 			}
 		}
-	}
-
-	var waitForChanges bool
-	if v := d.Get("paused").(bool); v {
-		request := &admin.ClusterDescription20240805{
-			Paused: conversion.Pointer(v),
-		}
-		// can call latest API (2024-10-23 or newer) as replications specs (with nested autoscaling property) is not specified
-		if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, d.Get("name").(string), request).Execute(); err != nil {
-			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
-		}
-		waitForChanges = true
 	}
 
 	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
@@ -569,17 +537,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
-		waitForChanges = true
-	}
-
-	if waitForChanges {
-		if diags := AwaitChanges(ctx, client, projectID, clusterName, operationCreateFinal, timeout); diags.HasError() {
+		if diags := AwaitChanges(ctx, client, reader, operationCreateFinal); diags.HasError() {
 			return diags
 		}
 	}
-
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   clusterID,
+		"cluster_id":   cluster.GetId(),
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 	}))
@@ -849,6 +812,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
+	reader := &advancedclustertpf.ClusterReader{
+		ProjectID:   projectID,
+		ClusterName: clusterName,
+		Timeout:     d.Timeout(schema.TimeoutUpdate),
+	}
 
 	if v, err := isUpdateAllowed(d); !v {
 		return diag.FromErr(fmt.Errorf("%s: %s", ErrorOperationNotPermitted, err))
@@ -896,7 +864,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			waitOnUpdate = true
 		}
 		if waitOnUpdate {
-			if diags := AwaitChanges(ctx, client, projectID, clusterName, operationUpdateLegacy, timeout); diags.HasError() {
+			if diags := AwaitChanges(ctx, client, reader, operationUpdateLegacy); diags.HasError() {
 				return diags
 			}
 		}
@@ -913,7 +881,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
-			if diags := AwaitChanges(ctx, client, projectID, clusterName, operationUpdate, timeout); diags.HasError() {
+			if diags := AwaitChanges(ctx, client, reader, operationUpdate); diags.HasError() {
 				return diags
 			}
 		}
