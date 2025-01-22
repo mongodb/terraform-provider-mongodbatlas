@@ -58,7 +58,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAwsKms(projectID, &awsKms, true, true),
+				Config: acc.ConfigAwsKms(projectID, &awsKms, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -72,7 +72,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 				),
 			},
 			{
-				Config: configAwsKms(projectID, &awsKmsUpdated, true, true),
+				Config: acc.ConfigAwsKms(projectID, &awsKmsUpdated, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -97,7 +97,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 
 func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
 
 		azureKeyVault = admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
@@ -109,7 +109,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
 			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
-			RequirePrivateNetworking: conversion.Pointer(false),
+			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 
 		azureKeyVaultAttrMap = acc.ConvertToAzureKeyVaultEARAttrMap(&azureKeyVault)
@@ -131,7 +131,10 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckEncryptionAtRestEnvAzureWithUpdate(t) },
+		PreCheck: func() {
+			acc.PreCheckEncryptionAtRestPrivateEndpoint(t)
+			acc.PreCheckEncryptionAtRestEnvAzureWithUpdate(t)
+		},
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
@@ -499,32 +502,6 @@ func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
 			assert.Equal(t, tc.expectedRetrystrategy, strategy)
 		})
 	}
-}
-
-func configAwsKms(projectID string, aws *admin.AWSKMSConfiguration, useDatasource, useRequirePrivateNetworking bool) string {
-	requirePrivateNetworkingStr := ""
-	if useRequirePrivateNetworking {
-		requirePrivateNetworkingStr = fmt.Sprintf("require_private_networking = %t", aws.GetRequirePrivateNetworking())
-	}
-	config := fmt.Sprintf(`
-		resource "mongodbatlas_encryption_at_rest" "test" {
-			project_id = %[1]q
-
-		  aws_kms_config {
-				enabled                = %[2]t
-				customer_master_key_id = %[3]q
-				region                 = %[4]q
-				role_id              = %[5]q
-				
-				%[6]s
-			}
-		}
-	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId(), requirePrivateNetworkingStr)
-
-	if useDatasource {
-		return fmt.Sprintf(`%s %s`, config, acc.EARDatasourceConfig())
-	}
-	return config
 }
 
 func configGoogleCloudKms(projectID string, google *admin.GoogleCloudKMS, useDatasource bool) string {
