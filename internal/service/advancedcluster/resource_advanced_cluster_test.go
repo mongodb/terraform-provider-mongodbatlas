@@ -275,11 +275,11 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				Check:  checkSingleProviderPaused(true, clusterName, false),
 			},
 			{
-				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize),
+				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize), // allows pausing and other change in same apply
 				Check:  checkSingleProviderPaused(true, clusterName, true),
 			},
 			{
-				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize),
+				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1084,7 +1084,6 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 }
 
 func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1105,7 +1104,6 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 }
 
 func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
