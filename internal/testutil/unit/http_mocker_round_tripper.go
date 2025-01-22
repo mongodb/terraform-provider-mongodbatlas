@@ -57,19 +57,18 @@ func newMockRoundTripper(t *testing.T, data *MockHTTPData) *MockRoundTripper {
 }
 
 type MockRoundTripper struct {
-	t    *testing.T
-	g    *goldie.Goldie
-	data *MockHTTPData
-
-	lock                 sync.Mutex // as requests are in parallel, there is a chance of concurrent modification while reading/updating variables
+	t                    *testing.T
+	g                    *goldie.Goldie
+	data                 *MockHTTPData
 	usedResponses        map[string]int
 	foundsDiffs          map[int]string
 	currentStepIndex     int
 	diffResponseIndex    int
+	reReadCounter        int
+	lock                 sync.Mutex // as requests are in parallel, there is a chance of concurrent modification while reading/updating variables
 	allowMissingRequests bool
 	allowOutOfOrder      bool
 	logRequests          bool
-	reReadCounter        int
 }
 
 func (r *MockRoundTripper) IncreaseStepNumberAndInit() {
