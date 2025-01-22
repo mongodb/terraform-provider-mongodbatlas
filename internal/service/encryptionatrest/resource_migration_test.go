@@ -21,7 +21,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),
@@ -188,7 +188,7 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:             conversion.Pointer(true),

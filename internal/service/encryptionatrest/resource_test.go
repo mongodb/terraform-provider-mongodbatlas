@@ -31,7 +31,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t) // needs AWS configuration
 
 	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:                  conversion.Pointer(true),
