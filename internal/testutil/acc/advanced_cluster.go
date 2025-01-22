@@ -2,6 +2,7 @@ package acc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -175,6 +176,7 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 		return fmt.Errorf("cluster(%s:%s) loading sample data set error: %s", projectID, clusterName, err)
 	}
 	jobID := job.GetId()
+	retryableError := retry.RetryableError(errors.New("working"))
 	return retry.RetryContext(ctx, 30*time.Second, func() *retry.RetryError {
 		job, _, err = ConnV2().ClustersApi.GetSampleDatasetLoadStatus(ctx, projectID, jobID).Execute()
 		state := job.GetState()
@@ -182,7 +184,7 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 			return nil
 		}
 		if state == "WORKING" {
-			return retry.RetryableError(nil)
+			return retryableError
 		}
 		return retry.NonRetryableError(fmt.Errorf("cluster(%s:%s) failed to load sample data, state: %s, error: %s", projectID, clusterName, state, err))
 	})
