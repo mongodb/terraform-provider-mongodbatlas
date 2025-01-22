@@ -16,8 +16,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const resourceName = "flex_cluster"
-const ErrorUpdateNotAllowed = "update not allowed"
+const (
+	resourceName          = "flex_cluster"
+	ErrorUpdateNotAllowed = "update not allowed"
+	FlexClusterType       = "FLEX"
+)
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
@@ -219,4 +222,12 @@ func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 		return nil, err
 	}
 	return flexClusterResp, nil
+}
+
+func GetFlexCluster(ctx context.Context, projectID, clusterName string, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
+	flexCluster, _, err := client.GetFlexCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return nil, err
+	}
+	return flexCluster, nil
 }

@@ -34,11 +34,14 @@ const (
 	errorRead                      = "error reading  advanced cluster (%s): %s"
 	errorDelete                    = "error deleting advanced cluster (%s): %s"
 	errorUpdate                    = "error updating advanced cluster (%s): %s"
+	errorCreateFlex                = "error creating flex cluster: %s"
+	errorReadFlex                  = "error reading  flex cluster (%s): %s"
 	errorConfigUpdate              = "error updating advanced cluster configuration options (%s): %s"
 	errorConfigRead                = "error reading advanced cluster configuration options (%s): %s"
 	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"
 	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
+	ErrorFlexClusterSetting        = "error setting `%s` for MongoDB Flex Cluster (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
 	ErrorDefaultMaxTimeMinVersion  = "default_max_time_ms can not be set for mongo_db_major_version lower than 8.0"
@@ -436,7 +439,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		flexClusterReq := flexcluster.NewAtlasCreateReqSDKv2(d, expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil))
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("error creating flex cluster: %v", err))
+			return diag.FromErr(fmt.Errorf(errorCreateFlex, err))
 		}
 
 		d.SetId(conversion.EncodeStateID(map[string]string{
@@ -621,14 +624,28 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	clusterName := ids["cluster_name"]
 
 	var replicationSpecs []map[string]any
-
+	isFlex := false
 	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		if isFlex = admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API"); !isFlex { // if cluster is flex we need to call different API
+			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		}
+	}
+	if isFlex {
+		clusterName := d.Get("name").(string)
+		flexClusterResp, err := flexcluster.GetFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorReadFlex, clusterName, err))
+		}
+		diags := setFlexFields(d, flexClusterResp)
+		if diags.HasError() {
+			return diags
+		}
+		return nil
 	}
 
 	zoneNameToOldReplicationSpecMeta, err := GetReplicationSpecAttributesFromOldAPI(ctx, projectID, clusterName, connV220240530.ClustersApi)
@@ -1462,5 +1479,63 @@ func waitForUpdateToFinish(ctx context.Context, connV2 *admin.APIClient, project
 }
 
 func isFlex(clusterType string) bool {
-	return clusterType == "FLEX"
+	return clusterType == flexcluster.FlexClusterType
+}
+
+func setFlexFields(d *schema.ResourceData, flexCluster *admin.FlexClusterDescription20241113) diag.Diagnostics {
+	flexClusterName := flexCluster.GetName()
+	// TODO: once decision has been taken, effective_cluster_type needs to be populated with flexCluster.GetClusterType()
+	if err := d.Set("cluster_type", flexCluster.ProviderSettings.GetProviderName()); err != nil { //TODO: to be confirmed
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "cluster_type", flexClusterName, err))
+	}
+
+	if err := d.Set("backup_enabled", flexCluster.BackupSettings.GetEnabled()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "backup_enabled", flexClusterName, err))
+	}
+
+	if err := d.Set("connection_strings", flexcluster.FlattenFlexConnectionStrings(flexCluster.ConnectionStrings)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "connection_strings", flexClusterName, err))
+	}
+
+	if err := d.Set("create_date", conversion.TimePtrToStringPtr(flexCluster.CreateDate)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "create_date", flexClusterName, err))
+	}
+
+	if err := d.Set("mongo_db_version", flexCluster.GetMongoDBVersion()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "mongo_db_version", flexClusterName, err))
+	}
+
+	if err := d.Set("replication_specs", flexcluster.FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "replication_specs", flexClusterName, err))
+	}
+
+	if err := d.Set("name", flexCluster.GetName()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "name", flexClusterName, err))
+	}
+
+	if err := d.Set("cluster_id", flexCluster.GetId()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "cluster_id", flexClusterName, err))
+	}
+
+	if err := d.Set("project_id", flexCluster.GetGroupId()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "project_id", flexClusterName, err))
+	}
+
+	if err := d.Set("state_name", flexCluster.GetStateName()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "state_name", flexClusterName, err))
+	}
+
+	if err := d.Set("tags", flattenTags(flexCluster.Tags)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "tags", flexClusterName, err))
+	}
+
+	if err := d.Set("termination_protection_enabled", flexCluster.GetTerminationProtectionEnabled()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "termination_protection_enabled", flexClusterName, err))
+	}
+
+	if err := d.Set("version_release_system", flexCluster.GetVersionReleaseSystem()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "version_release_system", flexClusterName, err))
+	}
+
+	return nil
 }

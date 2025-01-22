@@ -149,3 +149,23 @@ func NewAtlasCreateReqSDKv2(d *schema.ResourceData, replicationSpecs *[]admin.Re
 		Tags:                         conversion.ExpandTagsFromSetSchema(d),
 	}
 }
+
+func FlattenFlexConnectionStrings(str *admin.FlexConnectionStrings20241113) []map[string]any {
+	return []map[string]any{
+		{
+			"standard":     str.GetStandard(),
+			"standard_srv": str.GetStandardSrv(),
+		},
+	}
+}
+
+func FlattenFlexProviderSettingsIntoReplicationSpecs(providerSettings admin.FlexProviderSettings20241113) []map[string]any {
+	return []map[string]any{
+		{
+			"provider_name":         providerSettings.GetProviderName(),
+			"backing_provider_name": providerSettings.GetBackingProviderName(),
+			"region_name":           providerSettings.GetRegionName(),
+			"disk_size_gb":          providerSettings.GetDiskSizeGB(),
+		},
+	}
+}
