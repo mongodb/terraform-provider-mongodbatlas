@@ -96,3 +96,12 @@ func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 	}
 	return configLegacy, configNew
 }
+
+func tenantUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, ids *ClusterReader, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
+	_, _, err := client.AtlasV2.ClustersApi.UpgradeSharedCluster(ctx, ids.ProjectID, req).Execute()
+	if err != nil {
+		diags.AddError(errorTenantUpgrade, defaultAPIErrorDetails(ids.ClusterName, err))
+		return nil
+	}
+	return AwaitChanges(ctx, client, ids, operationTenantUpgrade, diags)
+}
