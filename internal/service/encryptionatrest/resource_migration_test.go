@@ -30,7 +30,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
-		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.26.0") // require_private_networking introduced in this version
+		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.27.0") // require_private_networking introduced in this version
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -199,7 +199,7 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
 		}
 		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
-		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.26.0") // require_private_networking introduced in this version
+		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.27.0") // require_private_networking introduced in this version
 	)
 
 	resource.Test(t, resource.TestCase{
