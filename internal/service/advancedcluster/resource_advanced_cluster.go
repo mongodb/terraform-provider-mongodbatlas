@@ -430,9 +430,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
 		}
 	}
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	client := meta.(*config.MongoDBClient)
+	connV220240530 := client.AtlasV220240530
+	connV220240805 := client.AtlasV220240805
+	connV2 := client.AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
 
@@ -533,7 +534,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	if diags := AwaitChanges(ctx, connV2, projectID, clusterName, operationCreate, timeout); diags.HasError() {
+	if diags := AwaitChanges(ctx, client, projectID, clusterName, operationCreate, timeout); diags.HasError() {
 		return diags
 	}
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
@@ -572,7 +573,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if waitForChanges {
-		if diags := AwaitChanges(ctx, connV2, projectID, clusterName, operationCreateFinal, timeout); diags.HasError() {
+		if diags := AwaitChanges(ctx, client, projectID, clusterName, operationCreateFinal, timeout); diags.HasError() {
 			return diags
 		}
 	}
@@ -820,7 +821,8 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 }
 
 func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	client := meta.(*config.MongoDBClient)
+	connV2 := client.AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -841,8 +843,9 @@ func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenan
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	client := meta.(*config.MongoDBClient)
+	connV220240530 := client.AtlasV220240530
+	connV2 := client.AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -893,7 +896,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			waitOnUpdate = true
 		}
 		if waitOnUpdate {
-			if diags := AwaitChanges(ctx, connV2, projectID, clusterName, operationUpdateLegacy, timeout); diags.HasError() {
+			if diags := AwaitChanges(ctx, client, projectID, clusterName, operationUpdateLegacy, timeout); diags.HasError() {
 				return diags
 			}
 		}
@@ -910,7 +913,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
-			if diags := AwaitChanges(ctx, connV2, projectID, clusterName, operationUpdate, timeout); diags.HasError() {
+			if diags := AwaitChanges(ctx, client, projectID, clusterName, operationUpdate, timeout); diags.HasError() {
 				return diags
 			}
 		}

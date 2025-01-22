@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -17,10 +18,17 @@ var (
 	RetryMinTimeout      = 1 * time.Minute
 	RetryDelay           = 30 * time.Second
 	RetryPollInterval    = 30 * time.Second
-	AwaitDeleteOperation = "delete"
+	AwaitDeleteOperation = operationDelete
 )
 
-func AwaitChanges(ctx context.Context, api admin.ClustersApi, projectID, clusterName, lastOperation string, timeoutDuration time.Duration, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
+type ClusterReader struct {
+	ProjectID   string
+	ClusterName string
+	Timeout     time.Duration
+}
+
+func AwaitChanges(ctx context.Context, client *config.MongoDBClient, reader *ClusterReader, lastOperation string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
+	api := client.AtlasV2.ClustersApi
 	targetState := retrystrategy.RetryStrategyIdleState
 	extraPending := []string{}
 	isDelete := lastOperation == AwaitDeleteOperation
@@ -28,7 +36,8 @@ func AwaitChanges(ctx context.Context, api admin.ClustersApi, projectID, cluster
 		targetState = retrystrategy.RetryStrategyDeletedState
 		extraPending = append(extraPending, retrystrategy.RetryStrategyIdleState)
 	}
-	stateConf := createStateChangeConfig(ctx, api, projectID, clusterName, targetState, timeoutDuration, extraPending...)
+	clusterName := reader.ClusterName
+	stateConf := createStateChangeConfig(ctx, api, reader.ProjectID, clusterName, targetState, reader.Timeout, extraPending...)
 	clusterAny, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && isDelete {
