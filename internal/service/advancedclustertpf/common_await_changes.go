@@ -25,13 +25,14 @@ type ClusterReader struct {
 	ProjectID   string
 	ClusterName string
 	Timeout     time.Duration
+	IsDelete    bool
 }
 
 func AwaitChanges(ctx context.Context, client *config.MongoDBClient, reader *ClusterReader, lastOperation string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
 	api := client.AtlasV2.ClustersApi
 	targetState := retrystrategy.RetryStrategyIdleState
 	extraPending := []string{}
-	isDelete := lastOperation == AwaitDeleteOperation
+	isDelete := reader.IsDelete
 	if isDelete {
 		targetState = retrystrategy.RetryStrategyDeletedState
 		extraPending = append(extraPending, retrystrategy.RetryStrategyIdleState)
