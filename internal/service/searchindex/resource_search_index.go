@@ -221,7 +221,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("analyzers") {
-		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
+		analyzers, err := UnmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
 		if err != nil {
 			return err
 		}
@@ -417,7 +417,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		searchIndexRequest.Definition.Fields = conversion.ToAnySlicePointer(&fields)
 	} else {
-		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
+		analyzers, err := UnmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
 		if err != nil {
 			return err
 		}

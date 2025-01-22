@@ -29,7 +29,7 @@ func TestAccLDAPVerify_withConfiguration_CACertificate(t *testing.T) {
 		password      = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port          = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
 		caCertificate = os.Getenv("MONGODB_ATLAS_LDAP_CA_CERTIFICATE")
-		projectID, _  = acc.ClusterNameExecution(t)
+		projectID, _  = acc.ClusterNameExecution(t, false)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -65,7 +65,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
 		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		port         = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
-		projectID, _ = acc.ClusterNameExecution(tb) // cluster needed to avoid error: No clusters available to perform LDAP connectivity verification
+		projectID, _ = acc.ClusterNameExecution(tb, false) // cluster needed to avoid error: No clusters available to perform LDAP connectivity verification
 	)
 
 	return &resource.TestCase{

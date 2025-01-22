@@ -1,15 +1,11 @@
 package onlinearchive_test
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -43,9 +39,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: clusterTerraformStr,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					populateWithSampleData(clusterResourceName, projectID, clusterName),
-				),
+				Check:  acc.PopulateWithSampleDataTestCheck(projectID, clusterName),
 			},
 			{
 				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 7),
@@ -141,9 +135,7 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: clusterTerraformStr,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					populateWithSampleData(clusterResourceName, projectID, clusterName),
-				),
+				Check:  acc.PopulateWithSampleDataTestCheck(projectID, clusterName),
 			},
 			{
 				Config: configWithoutSchedule(clusterTerraformStr, clusterResourceName),
@@ -190,9 +182,7 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: clusterTerraformStr,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					populateWithSampleData(clusterResourceName, projectID, clusterName),
-				),
+				Check:  acc.PopulateWithSampleDataTestCheck(projectID, clusterName),
 			},
 			{
 				Config: configWithDataProcessRegion(clusterTerraformStr, clusterResourceName, cloudProvider, processRegion),
@@ -237,58 +227,6 @@ func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
 			},
 		},
 	})
-}
-
-// populateWithSampleData adds Sample Data to the cluster otherwise online archive won't work
-func populateWithSampleData(resourceName, projectID, clusterName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-		conn := acc.ConnV2()
-		ctx := context.Background()
-		_, _, err := conn.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			return fmt.Errorf("cluster(%s:%s) does not exist %s", projectID, clusterName, err)
-		}
-		job, _, err := conn.ClustersApi.LoadSampleDataset(context.Background(), projectID, clusterName).Execute()
-		if err != nil {
-			return fmt.Errorf("cluster(%s:%s) loading sample data set error %s", projectID, clusterName, err)
-		}
-		if job == nil {
-			return fmt.Errorf("cluster(%s:%s) loading sample data set error, no job found", projectID, clusterName)
-		}
-		ticker := time.NewTicker(30 * time.Second)
-
-	JOB:
-		for {
-			select {
-			case <-time.After(20 * time.Second):
-				log.Println("timeout elapsed ....")
-			case <-ticker.C:
-				job, _, err = conn.ClustersApi.GetSampleDatasetLoadStatus(ctx, projectID, job.GetId()).Execute()
-				fmt.Println("querying for job ")
-				if err != nil {
-					return fmt.Errorf("cluster(%s:%s) failed to query for job, %s", projectID, clusterName, err)
-				}
-				if job == nil {
-					return fmt.Errorf("cluster(%s:%s) failed to query for job, no job found", projectID, clusterName)
-				}
-				if job.GetState() != "WORKING" {
-					break JOB
-				}
-			}
-		}
-
-		if job.GetState() != "COMPLETED" {
-			return fmt.Errorf("cluster(%s:%s) working sample data set error %s", projectID, job.GetId(), job.GetState())
-		}
-		return nil
-	}
 }
 
 func configWithDailySchedule(clusterTerraformStr, clusterResourceName string, startHour, deleteExpirationDays int) string {
