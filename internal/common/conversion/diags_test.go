@@ -11,7 +11,6 @@ import (
 
 func TestFromTPFDiagsToSDKV2Diags(t *testing.T) {
 	tests := []struct {
-		opts           *conversion.DiagsOptions
 		name           string
 		inputDiags     []diag.Diagnostic
 		expectedOutput sdkv2diag.Diagnostics
@@ -58,32 +57,11 @@ func TestFromTPFDiagsToSDKV2Diags(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "With options",
-			inputDiags: []diag.Diagnostic{
-				diag.NewErrorDiagnostic("Error summary", "Error detail"),
-			},
-			expectedOutput: []sdkv2diag.Diagnostic{
-				{
-					Severity: sdkv2diag.Error,
-					Summary:  "Custom summary",
-					Detail:   "Error detail",
-				},
-			},
-			opts: &conversion.DiagsOptions{
-				Summary: "Custom summary",
-			},
-		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			var result sdkv2diag.Diagnostics
-			if tc.opts != nil {
-				result = conversion.FromTPFDiagsToSDKV2Diags(tc.inputDiags, *tc.opts)
-			} else {
-				result = conversion.FromTPFDiagsToSDKV2Diags(tc.inputDiags)
-			}
+			result := conversion.FromTPFDiagsToSDKV2Diags(tc.inputDiags)
 			assert.Equal(t, tc.expectedOutput, result)
 		})
 	}

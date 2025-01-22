@@ -7,20 +7,8 @@ import (
 	sdkv2diag "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 )
 
-type DiagsOptions struct {
-	Summary string
-}
-
-func FromTPFDiagsToSDKV2Diags(diagsTpf []diag.Diagnostic, opts ...DiagsOptions) sdkv2diag.Diagnostics {
+func FromTPFDiagsToSDKV2Diags(diagsTpf []diag.Diagnostic) sdkv2diag.Diagnostics {
 	var results []sdkv2diag.Diagnostic
-	setSummary := func(existing string) string {
-		for _, opt := range opts {
-			if opt.Summary != "" {
-				return opt.Summary
-			}
-		}
-		return existing
-	}
 	for _, tpfDiag := range diagsTpf {
 		sdkV2Sev := sdkv2diag.Warning
 		if tpfDiag.Severity() == diag.SeverityError {
@@ -28,7 +16,7 @@ func FromTPFDiagsToSDKV2Diags(diagsTpf []diag.Diagnostic, opts ...DiagsOptions) 
 		}
 		results = append(results, sdkv2diag.Diagnostic{
 			Severity: sdkV2Sev,
-			Summary:  setSummary(tpfDiag.Summary()),
+			Summary:  tpfDiag.Summary(),
 			Detail:   tpfDiag.Detail(),
 		})
 	}
