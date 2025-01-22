@@ -35,7 +35,9 @@ const (
 	errorDelete                    = "error deleting advanced cluster (%s): %s"
 	errorUpdate                    = "error updating advanced cluster (%s): %s"
 	errorCreateFlex                = "error creating flex cluster: %s"
-	errorReadFlex                  = "error reading  flex cluster (%s): %s"
+	errorReadFlex                  = "error reading flex cluster (%s): %s"
+	errorUpdateFlex                = "error updating flex cluster: %s"
+	errorUpgradeFlex               = "error upgrading to a flex cluster: %s"
 	errorConfigUpdate              = "error updating advanced cluster configuration options (%s): %s"
 	errorConfigRead                = "error reading advanced cluster configuration options (%s): %s"
 	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"
@@ -112,6 +114,10 @@ func Resource() *schema.Resource {
 			"cluster_type": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"effective_cluster_type": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"connection_strings": SchemaConnectionStrings(),
 			"create_date": {
@@ -735,6 +741,10 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_type", clusterName, err))
 	}
 
+	if err := d.Set("effective_cluster_type", cluster.GetClusterType()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "effective_cluster_type", clusterName, err))
+	}
+
 	if err := d.Set("connection_strings", flattenConnectionStrings(*cluster.ConnectionStrings)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "connection_strings", clusterName, err))
 	}
@@ -867,6 +877,15 @@ func isUsingOldShardingConfiguration(d *schema.ResourceData) bool {
 }
 
 func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	if isFlex(d.Get("cluster_type").(string)) {
+		if flexUpdateRequest := getFlexClusterUpdateRequest(d); flexUpdateRequest != nil {
+			return resourceUpdateFlexCluster(ctx, flexUpdateRequest, d, meta)
+		}
+		if flexUpgradeRequest := getUpgradeToFlexClusterRequest(d); flexUpgradeRequest != nil {
+			return resourceUpgrade(ctx, flexUpgradeRequest, d, meta)
+		}
+		return diag.Errorf("flex cluster update is not supported except for tags and termination_protection_enabled fields")
+	}
 	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
 		return resourceUpgrade(ctx, upgradeRequest, d, meta)
 	}
@@ -1482,11 +1501,43 @@ func isFlex(clusterType string) bool {
 	return clusterType == flexcluster.FlexClusterType
 }
 
+func getFlexClusterUpdateRequest(d *schema.ResourceData) *admin.FlexClusterDescriptionUpdate20241113 {
+	if d.HasChange("tags") || d.HasChange("termination_protection_enabled") &&
+		(!d.HasChange("cluster_type") && !d.HasChange("replication_specs") && !d.HasChange("project_id") && !d.HasChange("name")) {
+		return &admin.FlexClusterDescriptionUpdate20241113{
+			Tags:                         conversion.ExpandTagsFromSetSchema(d),
+			TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
+		}
+	}
+	return nil
+}
+
+func getUpgradeToFlexClusterRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+	return nil
+}
+
+func resourceUpdateFlexCluster(ctx context.Context, flexUpdateRequest *admin.FlexClusterDescriptionUpdate20241113, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	ids := conversion.DecodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	_, err := flexcluster.UpdateFlexCluster(ctx, projectID, clusterName, flexUpdateRequest, connV2.FlexClustersApi)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorUpdateFlex, err))
+	}
+
+	return resourceRead(ctx, d, meta)
+}
+
 func setFlexFields(d *schema.ResourceData, flexCluster *admin.FlexClusterDescription20241113) diag.Diagnostics {
 	flexClusterName := flexCluster.GetName()
-	// TODO: once decision has been taken, effective_cluster_type needs to be populated with flexCluster.GetClusterType()
-	if err := d.Set("cluster_type", flexCluster.ProviderSettings.GetProviderName()); err != nil { //TODO: to be confirmed
+	if err := d.Set("cluster_type", flexCluster.ProviderSettings.GetProviderName()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "cluster_type", flexClusterName, err))
+	}
+
+	if err := d.Set("effective_cluster_type", flexCluster.GetClusterType()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "effective_cluster_type", flexClusterName, err))
 	}
 
 	if err := d.Set("backup_enabled", flexCluster.BackupSettings.GetEnabled()); err != nil {

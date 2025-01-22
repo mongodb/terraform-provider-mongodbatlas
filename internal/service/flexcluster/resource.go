@@ -231,3 +231,21 @@ func GetFlexCluster(ctx context.Context, projectID, clusterName string, client a
 	}
 	return flexCluster, nil
 }
+
+func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionUpdate20241113, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
+	_, _, err := client.UpdateFlexCluster(ctx, projectID, clusterName, flexClusterReq).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: projectID,
+		Name:    clusterName,
+	}
+
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState})
+	if err != nil {
+		return nil, err
+	}
+	return flexClusterResp, nil
+}
