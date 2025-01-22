@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -60,6 +61,7 @@ type MockRoundTripper struct {
 	g    *goldie.Goldie
 	data *MockHTTPData
 
+	lock                 sync.Mutex // as requests are in parallel, there is a chance of concurrent modification while reading/updating variables
 	usedResponses        map[string]int
 	foundsDiffs          map[int]string
 	currentStepIndex     int
@@ -188,6 +190,8 @@ func (r *MockRoundTripper) CheckStepRequests(_ *terraform.State) error {
 
 func (r *MockRoundTripper) receiveRequest(method string) func(req *http.Request) (*http.Response, error) {
 	return func(req *http.Request) (*http.Response, error) {
+		r.lock.Lock()
+		defer r.lock.Unlock()
 		acceptHeader := req.Header.Get("Accept")
 		version, err := ExtractVersion(acceptHeader)
 		if err != nil {
