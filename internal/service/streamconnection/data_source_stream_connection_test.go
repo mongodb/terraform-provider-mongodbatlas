@@ -49,7 +49,7 @@ func TestAccStreamDSStreamConnection_kafkaSSL(t *testing.T) {
 func TestAccStreamDSStreamConnection_cluster(t *testing.T) {
 	var (
 		dataSourceName         = "data.mongodbatlas_stream_connection.test"
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(t, false)
 		instanceName           = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{

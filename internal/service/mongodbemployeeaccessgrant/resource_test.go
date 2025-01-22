@@ -28,7 +28,7 @@ func TestAccMongoDBEmployeeAccessGrant_basic(t *testing.T) {
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	projectID, clusterName := acc.ClusterNameExecution(tb)
+	projectID, clusterName := acc.ClusterNameExecution(tb, false)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -63,7 +63,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 }
 
 func TestAccMongoDBEmployeeAccessGrant_invalidExpirationTime(t *testing.T) {
-	projectID, clusterName := acc.ClusterNameExecution(t)
+	projectID, clusterName := acc.ClusterNameExecution(t, false)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -78,7 +78,7 @@ func TestAccMongoDBEmployeeAccessGrant_invalidExpirationTime(t *testing.T) {
 }
 
 func TestAccMongoDBEmployeeAccessGrant_invalidExpirationTimeUpdate(t *testing.T) {
-	projectID, clusterName := acc.ClusterNameExecution(t)
+	projectID, clusterName := acc.ClusterNameExecution(t, false)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -97,7 +97,7 @@ func TestAccMongoDBEmployeeAccessGrant_invalidExpirationTimeUpdate(t *testing.T)
 }
 
 func TestAccMongoDBEmployeeAccessGrant_invalidGrantType(t *testing.T) {
-	projectID, clusterName := acc.ClusterNameExecution(t)
+	projectID, clusterName := acc.ClusterNameExecution(t, false)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -112,7 +112,7 @@ func TestAccMongoDBEmployeeAccessGrant_invalidGrantType(t *testing.T) {
 }
 
 func TestAccMongoDBEmployeeAccessGrant_invalidGrantTypeUpdate(t *testing.T) {
-	projectID, clusterName := acc.ClusterNameExecution(t)
+	projectID, clusterName := acc.ClusterNameExecution(t, false)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
