@@ -21,9 +21,13 @@ func SetupSharedResources() func() {
 }
 
 func cleanupSharedResources() {
-	if sharedInfo.projectID != "" && sharedInfo.clusterName != "" {
-		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, sharedInfo.projectID)
-		deleteCluster(sharedInfo.projectID, sharedInfo.clusterName)
+	if sharedInfo.clusterName != "" {
+		projectID := sharedInfo.projectID
+		if projectID == "" {
+			projectID = projectIDLocal()
+		}
+		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, projectID)
+		deleteCluster(projectID, sharedInfo.clusterName)
 	}
 
 	if sharedInfo.projectID != "" {
@@ -47,7 +51,7 @@ func ProjectIDExecution(tb testing.TB) string {
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
 
-	if id := projectIDLocal(tb); id != "" {
+	if id := projectIDLocal(); id != "" {
 		return id
 	}
 
