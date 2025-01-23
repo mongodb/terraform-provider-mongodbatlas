@@ -77,6 +77,10 @@ Acceptance and migration tests can reuse projects and clusters in order to be mo
 - Limited to `TestAccMockable*` tests in [`resource_advanced_cluster_test.go`](../internal/service/advancedcluster/resource_advanced_cluster_test.go):
   - `make enable-advancedclustertpf` is run and `export MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true` is set
 - Enabled test cases should always be named with `TestAccMockable` prefix, e.g.: `TestAccMockableAdvancedCluster_tenantUpgrade`
+- To create a new `TestAccMockable` you would need to (see [example commit](https://github.com/mongodb/terraform-provider-mongodbatlas/commit/939244fcab95eca9c4c93993fc1b5118ab8bfddb#diff-f9c590f9ffc351d041a26ff474f91404ff394cbfb83f1e135b415998476ca62aR128))
+  - (1) Write the normal acceptance test
+  - (2) Change the `resource.ParallelTest(t, resource.TestCase)` --> `unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase)`
+    - `mockConfig` is [unit.MockHTTPDataConfig](../internal/testutil/unit/http_mocker.go) can specify sideEffects (e.g., lowering retry interval), select diff conditions (avoid irrelvant POST/PATCHes used as diff), and can be shared across tests within a resource.
 - Running all MacT tests in **replay** mode:
   - `export ACCTEST_PACKAGES=./internal/service/advancedcluster && make testmact`
 - Running all MacT tests in **capture** mode:
@@ -88,16 +92,21 @@ Acceptance and migration tests can reuse projects and clusters in order to be mo
       "HTTP_MOCKER_REPLAY": "true", // MUST BE SET
       "MONGODB_ATLAS_ORG_ID": "111111111111111111111111", // Some tests might require this
       "MONGODB_ATLAS_PROJECT_ID": "111111111111111111111111", // Avoids ProjectIDExecution creating a new project
-      "MONGODB_ATLAS_CLUSTER_NAME": "mocked-cluster", // Avoids ProjectIDExecutionWithCluster creating a new project
+      "MONGODB_ATLAS_CLUSTER_NAME": "mocked-cluster", // Avoids ProjectIDExecutionWithCluster creating a new cluster
       "HTTP_MOCKER_DATA_UPDATE": "true", // (optional) can be used to update `steps.*.diff_requests.*.text` (payloads)
+      // Other test specific variables
     }
   ```
 - Running a single test in **capture** mode:
   - Add `"HTTP_MOCKER_CAPTURE": "true"` to your `go.testEnvVars`
 - Running a test without any `HTTP_MOCKER_CAPTURE` or `HTTP_MOCKER_REPLAY`
   - Ok, will run the test case unmodified.
-- `TF_LOG=debug` can help with debug logs and will also print the Terraform config for each step.
-- What types of updates can I do without having to do a full re-run with **capture**?
+
+### FAQ
+- The Mocked Acceptance Test is failing, how can I debug?
+  - `TF_LOG=debug` can help with debug logs and will also print the Terraform config for each step.
+- How to update the data of existing mocked tests?
+  - Re-run the test with `"HTTP_MOCKER_CAPTURE": "true"`
   - Manually updating the `version` by using find and replace:
     - select the full three lines of the yaml file: (example from [TestAccMockableAdvancedCluster_tenantUpgrade.yaml](../internal/service/advancedcluster/testdata/TestAccMockableAdvancedCluster_tenantUpgrade.yaml))
     - ```yaml
