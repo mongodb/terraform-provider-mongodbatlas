@@ -59,7 +59,7 @@ const (
 	operationFCVUnpinning                        = "FCV unpinning"
 )
 
-func addErrorDiag(diags *diag.Diagnostics, errorLocator string, details string) {
+func addErrorDiag(diags *diag.Diagnostics, errorLocator, details string) {
 	diags.AddError("Error in "+errorLocator, details)
 }
 
