@@ -275,11 +275,11 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				Check:  checkSingleProviderPaused(true, clusterName, false),
 			},
 			{
-				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize),
+				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize), // allows pausing and other change in same apply
 				Check:  checkSingleProviderPaused(true, clusterName, true),
 			},
 			{
-				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize),
+				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1081,7 +1081,6 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 }
 
 func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1102,7 +1101,6 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 }
 
 func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t)
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1135,7 +1133,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		checksSet = []string{
 			"replication_specs.0.container_id.AWS:US_EAST_1",
 		}
-		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, "timeouts.create", "2000s") // timeouts.create is not set on data sources
+		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, "timeouts.create", "6000s") // timeouts.create is not set on data sources
 		checks         = checkAggr(true, checksSet, checksMap, timeoutCheck)
 		afterUpdateMap = map[string]string{
 			"state_name":                    "IDLE",
@@ -1265,7 +1263,7 @@ func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) s
 	return acc.ConvertAdvancedClusterToSchemaV2(t, true, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			timeouts {
-				create = "2000s"
+				create = "6000s"
 			}
 			project_id = %[1]q
 			name = %[2]q
