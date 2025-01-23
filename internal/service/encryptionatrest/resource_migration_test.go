@@ -17,8 +17,6 @@ import (
 )
 
 func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
-
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
@@ -27,7 +25,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 			Enabled:             conversion.Pointer(true),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			RoleId:              conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 		}
 		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
 		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.27.0") // require_private_networking introduced in this version
@@ -196,7 +194,7 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 			SecretAccessKey:     conversion.StringPtr(os.Getenv("AWS_SECRET_ACCESS_KEY")),
 			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			RoleId:              conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 		}
 		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
 		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.27.0") // require_private_networking introduced in this version

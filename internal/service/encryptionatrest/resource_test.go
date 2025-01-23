@@ -28,8 +28,6 @@ const (
 )
 
 func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
-
 	var (
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
 
@@ -37,7 +35,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:                   conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 		awsKmsAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKms)
@@ -46,7 +44,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:                   conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 		awsKmsUpdatedAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKmsUpdated)

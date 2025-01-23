@@ -126,7 +126,6 @@ func TestAccEncryptionAtRestPrivateEndpoint_approveEndpointWithAzureProvider(t *
 }
 
 func TestAccEncryptionAtRestPrivateEndpoint_AWS_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
 	resource.Test(t, *basicTestCaseAWS(t))
 }
 
@@ -139,14 +138,14 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:                   conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 		awsKmsPrivateNetworking = admin.AWSKMSConfiguration{
 			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:                   conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 		region = os.Getenv("AWS_PRIVATE_ENDPOINT_REGION")
