@@ -68,7 +68,7 @@ type CaptureMockConfigClientModifier struct {
 	queryVars     []string
 	responseIndex int
 	stepNumber    int
-	lock          sync.Mutex // as requests are in parallel, there is a chance of concurrent modification while storing round trip variables
+	mu            sync.Mutex // as requests are in parallel, there is a chance of concurrent modification while storing round trip variables
 }
 
 func (c *CaptureMockConfigClientModifier) IncreaseStepNumber() {
@@ -107,8 +107,8 @@ func (c *CaptureMockConfigClientModifier) RoundTrip(req *http.Request) (*http.Re
 		c.t.Logf("error parsing round trip: %s", parseError)
 		return resp, err
 	}
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	addError := c.capturedData.AddRoundtrip(c.t, rt, c.isDiff(rt))
 	if addError != nil {
 		c.t.Logf("error adding round trip: %s", addError)
