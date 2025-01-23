@@ -25,7 +25,7 @@ func ToTFMapOfSlices(ctx context.Context, values map[string][]string) (basetypes
 }
 
 func ToTFMapOfString(ctx context.Context, diags *diag.Diagnostics, values *map[string]string) basetypes.MapValue { //nolint:gocritic // easy usage from sdk fields
-	if values == nil || len(*values) == 0 {
+	if values == nil {
 		return basetypes.NewMapNull(types.StringType)
 	}
 	mapValue, localDiags := types.MapValueFrom(context.Background(), types.StringType, values)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
@@ -21,6 +22,12 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	retainBackups := conversion.NilForUnknown(modelIn.RetainBackupsEnabled, modelIn.RetainBackupsEnabled.ValueBoolPointer())
 	if retainBackups != nil && !modelIn.RetainBackupsEnabled.Equal(modelOut.RetainBackupsEnabled) {
 		modelOut.RetainBackupsEnabled = types.BoolPointerValue(retainBackups)
+	}
+	if modelIn.Tags.IsNull() && len(modelOut.Tags.Elements()) == 0 {
+		modelOut.Tags = basetypes.NewMapNull(types.StringType)
+	}
+	if modelIn.Labels.IsNull() && len(modelOut.Labels.Elements()) == 0 {
+		modelOut.Labels = basetypes.NewMapNull(types.StringType)
 	}
 }
 
