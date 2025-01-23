@@ -31,7 +31,7 @@ func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 		return nil
 	}
 	if pauseAfter {
-		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, waitParams, operationCreate)
+		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, waitParams, operationPauseAfterCreate)
 	}
 	return clusterResp
 }
@@ -98,7 +98,7 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 	return legacyAdvConfig, advConfig, changed
 }
 
-func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configLegacy *admin20240530.ClusterDescriptionProcessArgs, configNew *admin.ClusterDescriptionProcessArgs20240805) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805) {
+func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configLegacy *admin20240530.ClusterDescriptionProcessArgs, configNew *admin.ClusterDescriptionProcessArgs20240805) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805) {
 	var err error
 	if configLegacy == nil {
 		configLegacy, _, err = client.AtlasV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
@@ -117,7 +117,7 @@ func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 	return configLegacy, configNew
 }
 
-func tenantUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
+func TenantUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.ClustersApi.UpgradeSharedCluster(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		diags.AddError(errorTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))

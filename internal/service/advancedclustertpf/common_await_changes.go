@@ -15,10 +15,9 @@ import (
 )
 
 var (
-	RetryMinTimeout      = 1 * time.Minute
-	RetryDelay           = 30 * time.Second
-	RetryPollInterval    = 30 * time.Second
-	AwaitDeleteOperation = operationDelete
+	RetryMinTimeout   = 1 * time.Minute
+	RetryDelay        = 30 * time.Second
+	RetryPollInterval = 30 * time.Second
 )
 
 type ClusterWaitParams struct {

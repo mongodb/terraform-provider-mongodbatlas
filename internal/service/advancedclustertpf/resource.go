@@ -139,7 +139,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig = readIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, legacyAdvConfig, advConfig)
+	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, legacyAdvConfig, advConfig)
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
 	if diags.HasError() {
 		return
@@ -226,7 +226,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if !update.IsZeroValues(patchReq) {
 		upgradeRequest := getTenantUpgradeRequest(stateReq, patchReq)
 		if upgradeRequest != nil {
-			clusterResp = tenantUpgrade(ctx, diags, r.Client, waitParams, upgradeRequest)
+			clusterResp = TenantUpgrade(ctx, diags, r.Client, waitParams, upgradeRequest)
 		} else {
 			if isShardingConfigUpgrade {
 				specs, err := populateIDValuesUsingNewAPI(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), r.Client.AtlasV2.ClustersApi, patchReq.ReplicationSpecs)
@@ -405,7 +405,7 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805) {
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	legacyAdvConfig, advConfig = readIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, legacyAdvConfig, advConfig)
+	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, legacyAdvConfig, advConfig)
 	if diags.HasError() {
 		return
 	}
