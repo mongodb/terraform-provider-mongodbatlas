@@ -98,13 +98,8 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 	return legacyAdvConfig, advConfig, changed
 }
 
-func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, configLegacy *admin20240530.ClusterDescriptionProcessArgs, configNew *admin.ClusterDescriptionProcessArgs20240805) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805) {
-	var (
-		err         error
-		projectID   = waitParams.ProjectID
-		clusterName = waitParams.ClusterName
-	)
-
+func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configLegacy *admin20240530.ClusterDescriptionProcessArgs, configNew *admin.ClusterDescriptionProcessArgs20240805) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805) {
+	var err error
 	if configLegacy == nil {
 		configLegacy, _, err = client.AtlasV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 		if err != nil {
@@ -143,4 +138,34 @@ func PinFCV(ctx context.Context, api admin.ClustersApi, projectID, clusterName, 
 		return err
 	}
 	return nil
+}
+
+func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, retainBackups *bool) {
+	params := &admin.DeleteClusterApiParams{
+		GroupId:       waitParams.ProjectID,
+		ClusterName:   waitParams.ClusterName,
+		RetainBackups: retainBackups,
+	}
+	_, err := client.AtlasV2.ClustersApi.DeleteClusterWithParams(ctx, params).Execute()
+	if err != nil {
+		diags.AddError(errorDelete, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		return
+	}
+	AwaitChanges(ctx, client, waitParams, operationDelete, diags)
+}
+
+func ReadCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, fcvPresentInState bool) *admin.ClusterDescription20240805 {
+	readResp, _, err := client.AtlasV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
+			return nil
+		}
+		diags.AddError(errorReadResource, defaultAPIErrorDetails(clusterName, err))
+		return nil
+	}
+	if fcvPresentInState {
+		newWarnings := GenerateFCVPinningWarningForRead(fcvPresentInState, readResp.FeatureCompatibilityVersionExpirationDate)
+		diags.Append(newWarnings...)
+	}
+	return readResp
 }
