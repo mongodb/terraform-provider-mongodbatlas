@@ -30,9 +30,9 @@ type ExtraAPIInfo struct {
 func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
 	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
-	labels := NewLabelsObjType(ctx, input.Labels, diags)
+	labels := NewLabelsObjType(ctx, diags, input.Labels)
 	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, &apiInfo)
-	tags := NewTagsObjType(ctx, input.Tags, diags)
+	tags := NewTagsObjType(ctx, diags, input.Tags)
 	pinnedFCV := NewPinnedFCVObjType(ctx, input, diags)
 	if diags.HasError() {
 		return nil
@@ -100,22 +100,19 @@ func NewConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnec
 	return objType
 }
 
-func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags *diag.Diagnostics) types.Set {
-	if input == nil {
-		return types.SetNull(LabelsObjType)
-	}
-	tfModels := make([]TFLabelsModel, 0, len(*input))
-	for _, item := range *input {
-		key := conversion.SafeValue(item.Key)
-		value := conversion.SafeValue(item.Value)
-		if key == LegacyIgnoredLabelKey {
-			continue
+func NewLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin.ComponentLabel) types.Map {
+	elms := make(map[string]string)
+	if input != nil {
+		for _, item := range *input {
+			key := conversion.SafeValue(item.Key)
+			value := conversion.SafeValue(item.Value)
+			if key == LegacyIgnoredLabelKey {
+				continue
+			}
+			elms[key] = value
 		}
-		tfModels = append(tfModels, TFLabelsModel{Key: types.StringValue(key), Value: types.StringValue(value)})
 	}
-	setType, diagsLocal := types.SetValueFrom(ctx, LabelsObjType, tfModels)
-	diags.Append(diagsLocal...)
-	return setType
+	return conversion.ToTFMapOfString(ctx, diags, &elms)
 }
 
 func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) types.List {
@@ -235,21 +232,14 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 	return &tfModels
 }
 
-func NewTagsObjType(ctx context.Context, input *[]admin.ResourceTag, diags *diag.Diagnostics) types.Set {
-	if input == nil {
-		// API Response not consistent, even when not set in POST/PATCH `[]` is returned instead of null
-		return types.SetValueMust(TagsObjType, nil)
-	}
-	tfModels := make([]TFTagsModel, len(*input))
-	for i, item := range *input {
-		tfModels[i] = TFTagsModel{
-			Key:   types.StringValue(item.Key),
-			Value: types.StringValue(item.Value),
+func NewTagsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin.ResourceTag) types.Map {
+	elms := make(map[string]string)
+	if input != nil {
+		for _, item := range *input {
+			elms[item.Key] = item.Value
 		}
 	}
-	setType, diagsLocal := types.SetValueFrom(ctx, TagsObjType, tfModels)
-	diags.Append(diagsLocal...)
-	return setType
+	return conversion.ToTFMapOfString(ctx, diags, &elms)
 }
 
 func NewPrivateEndpointObjType(ctx context.Context, input *[]admin.ClusterDescriptionConnectionStringsPrivateEndpoint, diags *diag.Diagnostics) types.List {
