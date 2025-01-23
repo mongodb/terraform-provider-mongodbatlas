@@ -97,7 +97,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 
 func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
 
 		azureKeyVault = admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
