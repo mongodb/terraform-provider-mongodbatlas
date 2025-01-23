@@ -1,14 +1,12 @@
 package advancedclustertpf
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
@@ -55,20 +53,6 @@ func GetAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cl
 		}
 	}
 	return ""
-}
-
-func PinFCV(ctx context.Context, api admin.ClustersApi, projectID, clusterName, expirationDateStr string) error {
-	expirationTime, ok := conversion.StringToTime(expirationDateStr)
-	if !ok {
-		return fmt.Errorf("expiration_date format is incorrect: %s", expirationDateStr)
-	}
-	req := admin.PinFCV{
-		ExpirationDate: &expirationTime,
-	}
-	if _, _, err := api.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
-		return err
-	}
-	return nil
 }
 
 func GenerateFCVPinningWarningForRead(fcvPresentInState bool, apiRespFCVExpirationDate *time.Time) []diag.Diagnostic {
