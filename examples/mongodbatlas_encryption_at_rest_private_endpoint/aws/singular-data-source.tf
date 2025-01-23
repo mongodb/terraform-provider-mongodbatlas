@@ -4,3 +4,6 @@ data "mongodbatlas_encryption_at_rest_private_endpoint" "single" {
   id             = mongodbatlas_encryption_at_rest_private_endpoint.endpoint.id
 }
 
+output "status" {
+  value = data.mongodbatlas_encryption_at_rest_private_endpoint.single.status
+}
