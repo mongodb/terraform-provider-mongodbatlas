@@ -97,7 +97,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 
 func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
+		projectID = acc.ProjectIDExecution(t)
 
 		azureKeyVault = admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
@@ -124,17 +124,14 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
 			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
-			RequirePrivateNetworking: conversion.Pointer(true),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 
 		azureKeyVaultUpdatedAttrMap = acc.ConvertToAzureKeyVaultEARAttrMap(&azureKeyVaultUpdated)
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			acc.PreCheckEncryptionAtRestPrivateEndpoint(t)
-			acc.PreCheckEncryptionAtRestEnvAzureWithUpdate(t)
-		},
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckEncryptionAtRestEnvAzureWithUpdate(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
@@ -149,7 +146,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, true, true),
+				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, false, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
