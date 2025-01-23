@@ -71,8 +71,7 @@ Acceptance and migration tests can reuse projects and clusters in order to be mo
   - Don't assume results are in a certain order, e.g. [resource_network_container_test.go](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/66c44e62c9afe04ffe8be0dbccaec682bab830e6/internal/service/networkcontainer/resource_network_container_test.go#L215).
 
 ## MacT - Mocked Acceptance Tests
-
-- **Experimental** framework for hooking into the HTTP Client used by the Terraform provider and capture/replay traffic.
+**Experimental** framework for hooking into the HTTP Client used by the Terraform provider and capture/replay traffic.
 - Works by mutating a `terraform-plugin-testing/helper/resource.TestCase`
 - Limited to `TestAccMockable*` tests in [`resource_advanced_cluster_test.go`](../internal/service/advancedcluster/resource_advanced_cluster_test.go):
   - `make enable-advancedclustertpf` is run and `export MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true` is set
@@ -81,10 +80,13 @@ Acceptance and migration tests can reuse projects and clusters in order to be mo
   - (1) Write the normal acceptance test
   - (2) Change the `resource.ParallelTest(t, resource.TestCase)` --> `unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase)`
     - `mockConfig` is [unit.MockHTTPDataConfig](../internal/testutil/unit/http_mocker.go) can specify sideEffects (e.g., lowering retry interval), select diff conditions (avoid irrelvant POST/PATCHes used as diff), and can be shared across tests within a resource.
-- Running all MacT tests in **replay** mode:
+
+### How do I run MacT?
+Running a test without the `HTTP_MOCKER_CAPTURE` or `HTTP_MOCKER_REPLAY` will run the test case unmodified.
+
+#### Replay Mode
+- Running all MacT tests in **replay** mode: (`make` target sets env-vars for you)
   - `export ACCTEST_PACKAGES=./internal/service/advancedcluster && make testmact`
-- Running all MacT tests in **capture** mode:
-  - `export ACCTEST_PACKAGES=./internal/service/advancedcluster && make testmact-capture`
 - Running a single test in **replay** mode:
   - Update your test env vars (e.g., `.vscode/settings.json`)
   ```json
@@ -97,30 +99,32 @@ Acceptance and migration tests can reuse projects and clusters in order to be mo
       // Other test specific variables
     }
   ```
+
+#### Capture Mode
+- Running all MacT tests in **capture** mode:
+  - `export ACCTEST_PACKAGES=./internal/service/advancedcluster && make testmact-capture`
 - Running a single test in **capture** mode:
   - Add `"HTTP_MOCKER_CAPTURE": "true"` to your `go.testEnvVars`
-- Running a test without any `HTTP_MOCKER_CAPTURE` or `HTTP_MOCKER_REPLAY`
-  - Ok, will run the test case unmodified.
 
-### FAQ
-- The Mocked Acceptance Test is failing, how can I debug?
-  - `TF_LOG=debug` can help with debug logs and will also print the Terraform config for each step.
-- How to update the data of existing mocked tests?
-  - Re-run the test with `"HTTP_MOCKER_CAPTURE": "true"`
-  - Manually updating the `version` by using find and replace:
-    - select the full three lines of the yaml file: (example from [TestAccMockableAdvancedCluster_tenantUpgrade.yaml](../internal/service/advancedcluster/testdata/TestAccMockableAdvancedCluster_tenantUpgrade.yaml))
-    - ```yaml
-          - path: /api/atlas/v2/groups/{groupId}/clusters
-            method: POST
-            version: '2024-10-23'
-      ```
-    - use cmd+f to find these three lines (in example should show 2 ocurrences)
-    - use cmd+r to replace, paste the same as in find but update the `version`
-    - use replace-all
-  - Debugging payload changes with `HTTP_MOCKER_DATA_UPDATE`:
-    - This will update the `steps.*.diff_requests.*.text` payloads and therefore, also the golden `*.json` files
-    - This can be useful if you are developing some new field and want to check they are included in the payload
-    - Note: Response will not be changed and you might get inconsistent provider result.
+### The Mocked Acceptance Test is failing, how can I debug?
+`TF_LOG=debug` can help with debug logs and will also print the Terraform config for each step.
+
+### How to update the data of existing mocked tests?
+- Re-run the test with `"HTTP_MOCKER_CAPTURE": "true"`
+- Manually updating the `version` by using find and replace:
+  - select the full three lines of the yaml file: (example from [TestAccMockableAdvancedCluster_tenantUpgrade.yaml](../internal/service/advancedcluster/testdata/TestAccMockableAdvancedCluster_tenantUpgrade.yaml))
+  - ```yaml
+        - path: /api/atlas/v2/groups/{groupId}/clusters
+          method: POST
+          version: '2024-10-23'
+    ```
+  - use cmd+f to find these three lines (in example should show 2 ocurrences)
+  - use cmd+r to replace, paste the same as in find but update the `version`
+  - use replace-all
+- Debugging payload changes with `HTTP_MOCKER_DATA_UPDATE`:
+  - This will update the `steps.*.diff_requests.*.text` payloads and therefore, also the golden `*.json` files
+  - This can be useful if you are developing some new field and want to check they are included in the payload
+  - Note: Response will not be changed and you might get inconsistent provider result.
   - Changing golden file manually:
     - This can be useful when the **capture** was run with a different implementation and we are aware of request differences (e.g., explicit `tags=[]` instead of not specified)
     - (1) copy golden file `{file_name}.json` to `{file_name}_manual.json`. NEVER manually edit a golden file without `_manual.json`, the changes will be overwritten on the next run
@@ -128,16 +132,17 @@ Acceptance and migration tests can reuse projects and clusters in order to be mo
     - (2) re-run with `HTTP_MOCKER_DATA_UPDATE`
   - Manually updating any `responses.*.text` is NOT recommended
   - Manually adding request/response is NOT recommended
-- Explain the `{TestName}.yaml` files, e.g., [TestAccMockableAdvancedCluster_tenantUpgrade.yaml](../internal/service/advancedcluster/testdata/TestAccMockableAdvancedCluster_tenantUpgrade.yaml)
-  - Why is there both `request_responses` and `diff_requests` what is the relationship?
-    - `request_responses` and `diff_requests` are both lists of requests with the same structure.
-    - `request_responses` are matched by the [http_mocker_round_tripper](../internal/testutil/unit/http_mocker_round_tripper.go) during **replay**
-    - `diff_requests` are used for the `golden` diffs in the `{test_name}/*.json` files only.
-    - Every `diff_request` will have a duplicate in `request_responses`
-  - What is `response_index`?
-    - A field to ensure the response order is followed.
-    - For example, when updating a cluster, the read is called both before and after the update.
-    - Using the `response_index` we ensure to not include a response until after the `diff_request` has been sent
-  - What is `duplicate_responses`?
-    - A counter increasd for every response that is the same as the previous response.
-    - Not used during replay.
+
+### Explain the `{TestName}.yaml` files, e.g., [TestAccMockableAdvancedCluster_tenantUpgrade.yaml](../internal/service/advancedcluster/testdata/TestAccMockableAdvancedCluster_tenantUpgrade.yaml)
+- Why is there both `request_responses` and `diff_requests` what is the relationship?
+  - `request_responses` and `diff_requests` are both lists of requests with the same structure.
+  - `request_responses` are matched by the [http_mocker_round_tripper](../internal/testutil/unit/http_mocker_round_tripper.go) during **replay**
+  - `diff_requests` are used for the `golden` diffs in the `{test_name}/*.json` files only.
+  - Every `diff_request` will have a duplicate in `request_responses`
+- What is `response_index`?
+  - A field to ensure the response order is followed.
+  - For example, when updating a cluster, the read is called both before and after the update.
+  - Using the `response_index` we ensure to not include a response until after the `diff_request` has been sent
+- What is `duplicate_responses`?
+  - A counter increasd for every response that is the same as the previous response.
+  - Not used during replay.
