@@ -109,6 +109,8 @@ func ConvertAdvancedClusterToSchemaV2(t *testing.T, isAcc bool, def string) stri
 		convertAttrs(t, "bi_connector_config", writeBody, false, hcl.GetAttrVal)
 		convertAttrs(t, "pinned_fcv", writeBody, false, hcl.GetAttrVal)
 		convertAttrs(t, "timeouts", writeBody, false, hcl.GetAttrVal)
+		convertKeyValueAttrs(t, "labels", writeBody)
+		convertKeyValueAttrs(t, "tags", writeBody)
 	}
 	content := parse.Bytes()
 	return string(content)
@@ -142,6 +144,25 @@ func convertAttrs(t *testing.T, name string, writeBody *hclwrite.Body, isList bo
 	} else {
 		assert.Len(t, vals, 1, "can be only one of %s", name)
 		writeBody.SetAttributeValue(name, vals[0])
+	}
+}
+
+func convertKeyValueAttrs(t *testing.T, name string, writeBody *hclwrite.Body) {
+	t.Helper()
+	vals := make(map[string]cty.Value)
+	for {
+		match := writeBody.FirstMatchingBlock(name, nil)
+		if match == nil {
+			break
+		}
+		attrs := hcl.GetAttrVal(t, hcl.GetBlockBody(t, match))
+		key := attrs.GetAttr("key")
+		value := attrs.GetAttr("value")
+		vals[key.AsString()] = value
+		writeBody.RemoveBlock(match) // TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
+	}
+	if len(vals) > 0 {
+		writeBody.SetAttributeValue(name, cty.ObjectVal(vals))
 	}
 }
 
