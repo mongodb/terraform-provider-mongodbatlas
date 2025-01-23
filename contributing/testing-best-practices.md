@@ -110,28 +110,15 @@ Running a test without the `HTTP_MOCKER_CAPTURE` or `HTTP_MOCKER_REPLAY` will ru
 `TF_LOG=debug` can help with debug logs and will also print the Terraform config for each step.
 
 ### How to update the data of existing mocked tests?
-- Re-run the test with `"HTTP_MOCKER_CAPTURE": "true"`
-- Manually updating the `version` by using find and replace:
-  - select the full three lines of the yaml file: (example from [TestAccMockableAdvancedCluster_tenantUpgrade.yaml](../internal/service/advancedcluster/testdata/TestAccMockableAdvancedCluster_tenantUpgrade.yaml))
-  - ```yaml
-        - path: /api/atlas/v2/groups/{groupId}/clusters
-          method: POST
-          version: '2024-10-23'
-    ```
-  - use cmd+f to find these three lines (in example should show 2 ocurrences)
-  - use cmd+r to replace, paste the same as in find but update the `version`
-  - use replace-all
-- Debugging payload changes with `HTTP_MOCKER_DATA_UPDATE`:
-  - This will update the `steps.*.diff_requests.*.text` payloads and therefore, also the golden `*.json` files
-  - This can be useful if you are developing some new field and want to check they are included in the payload
-  - Note: Response will not be changed and you might get inconsistent provider result.
-  - Changing golden file manually:
-    - This can be useful when the **capture** was run with a different implementation and we are aware of request differences (e.g., explicit `tags=[]` instead of not specified)
-    - (1) copy golden file `{file_name}.json` to `{file_name}_manual.json`. NEVER manually edit a golden file without `_manual.json`, the changes will be overwritten on the next run
-      - e.g.: `01_01_POST__api_atlas_v2_groups_{groupId}_clusters_2024-10-23.json` to `01_01_POST__api_atlas_v2_groups_{groupId}_clusters_2024-10-23_manual.json`
-    - (2) re-run with `HTTP_MOCKER_DATA_UPDATE`
-  - Manually updating any `responses.*.text` is NOT recommended
-  - Manually adding request/response is NOT recommended
+It is advised to only run a **single** test at a time when a plural data source is used.
+
+1. Re-run the test with `"HTTP_MOCKER_CAPTURE": "true"`
+   - This should update the `{TestName}.yaml` file, e.g., [TestAccMockableAdvancedCluster_tenantUpgrade.yaml](../internal/service/advancedcluster/testdata/TestAccMockableAdvancedCluster_tenantUpgrade.yaml)
+2. Re-run the test with `"HTTP_MOCKER_REPLAY": "true"`
+   - This should update all the `*.json` files at the start of each step
+     - Code line: [err := r.g.Update(r.t, r.requestFilename(req.idShort(), index), []byte(req.Text))](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/testutil/unit/http_mocker_round_tripper.go#L115)
+   - Never update `*.json` files manually!
+
 
 ### Explain the `{TestName}.yaml` files, e.g., [TestAccMockableAdvancedCluster_tenantUpgrade.yaml](../internal/service/advancedcluster/testdata/TestAccMockableAdvancedCluster_tenantUpgrade.yaml)
 - Why is there both `request_responses` and `diff_requests` what is the relationship?
