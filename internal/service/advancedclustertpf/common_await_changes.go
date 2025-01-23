@@ -43,7 +43,7 @@ func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams 
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && isDelete {
 			return nil
 		}
-		diags.AddError("Error in "+errorLocator, fmt.Sprintf("cluster=%s didn't reach desired state: %s, error: %s", clusterName, targetState, err))
+		addErrorDiag(diags, errorLocator, fmt.Sprintf("cluster=%s didn't reach desired state: %s, error: %s", clusterName, targetState, err))
 		return nil
 	}
 	if isDelete {
@@ -51,7 +51,7 @@ func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams 
 	}
 	cluster, ok := clusterAny.(*admin.ClusterDescription20240805)
 	if !ok {
-		diags.AddError("Error result type in "+errorLocator, fmt.Sprintf("cluster=%s, got unexpected type: %T", clusterName, clusterAny))
+		addErrorDiag(diags, errorLocator, fmt.Sprintf("cluster=%s, got unexpected type: %T", clusterName, clusterAny))
 		return nil
 	}
 	return cluster

@@ -39,16 +39,16 @@ func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 func createCluster20240805(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin20240805.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV220240805.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
-		diags.AddError(errorCreateLegacy20240805, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		addErrorDiag(diags, operationCreate20240805, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, client, waitParams, operationCreateLegacy, diags)
+	return AwaitChanges(ctx, client, waitParams, operationCreate20240805, diags)
 }
 
 func createClusterLatest(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
-		diags.AddError(errorCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		addErrorDiag(diags, operationCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
 	return AwaitChanges(ctx, client, waitParams, operationCreate, diags)
@@ -57,7 +57,7 @@ func createClusterLatest(ctx context.Context, diags *diag.Diagnostics, client *c
 func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, operationName string) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).Execute()
 	if err != nil {
-		diags.AddError(errorUpdate, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		addErrorDiag(diags, operationName, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
 	return AwaitChanges(ctx, client, waitParams, operationName, diags)
@@ -75,7 +75,7 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 		changed = true
 		advConfig, _, err = client.AtlasV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, reqNew).Execute()
 		if err != nil {
-			diags.AddError(errorAdvancedConfUpdate, defaultAPIErrorDetails(clusterName, err))
+			addErrorDiag(diags, operationAdvancedConfigurationUpdate, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
 		}
 		_ = AwaitChanges(ctx, client, waitParams, operationAdvancedConfigurationUpdate, diags)
@@ -87,6 +87,7 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 		changed = true
 		legacyAdvConfig, _, err = client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, reqLegacy).Execute()
 		if err != nil {
+			addErrorDiag(diags, operationAdvancedConfigurationUpdate20240530, defaultAPIErrorDetails(clusterName, err))
 			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
 		}
@@ -120,7 +121,7 @@ func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 func TenantUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.ClustersApi.UpgradeSharedCluster(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
-		diags.AddError(errorTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		addErrorDiag(diags, operationTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
 	return AwaitChanges(ctx, client, waitParams, operationTenantUpgrade, diags)
@@ -148,7 +149,7 @@ func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	}
 	_, err := client.AtlasV2.ClustersApi.DeleteClusterWithParams(ctx, params).Execute()
 	if err != nil {
-		diags.AddError(errorDelete, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		addErrorDiag(diags, operationDelete, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return
 	}
 	AwaitChanges(ctx, client, waitParams, operationDelete, diags)

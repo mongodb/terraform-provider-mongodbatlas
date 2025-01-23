@@ -25,40 +25,28 @@ var _ resource.ResourceWithMoveState = &rs{}
 var _ resource.ResourceWithUpgradeState = &rs{}
 
 const (
-	resourceName                    = "advanced_cluster"
-	errorSchemaDowngrade            = "error operation not permitted, nums_shards from 1 -> > 1"
-	errorPatchPayload               = "error creating patch payload"
-	errorCreate                     = "error creating advanced cluster"
-	operationCreateLegacy           = "create API 20240805"
-	errorCreateLegacy20240805       = "error creating advanced cluster API 20240805"
-	errorDetailDefault              = "cluster name %s. API error detail %s"
-	errorUpdateAdvancedConfigLegacy = "error updating advanced cluster advanced configuration options with legacy API"
-	errorSchemaUpgradeReadIDs       = "error reading IDs from API when upgrading schema"
-	errorReadResource               = "error reading advanced cluster"
-	errorAdvancedConfRead           = "error reading Advanced Configuration"
-	errorAdvancedConfReadLegacy     = "error reading Advanced Configuration from legacy API"
-	errorDelete                     = "error deleting advanced cluster"
-	errorUpdate                     = "error updating advanced cluster"
-	errorUpdateLegacy20240805       = "error updating advanced cluster legacy API 20240805"
-	errorUpdateLegacy20240530       = "error updating advanced cluster legacy API 20240530"
-	errorList                       = "error reading  advanced cluster list"
-	errorListDetail                 = "project ID %s. Error %s"
-	errorTenantUpgrade              = "error upgrading tenant cluster"
-	errorReadLegacy20240530         = "error reading cluster with legacy API 20240530"
-	errorResolveContainerIDs        = "error resolving container IDs"
-	errorRegionPriorities           = "priority values in region_configs must be in descending order"
-	errorAwaitState                 = "error awaiting cluster to reach desired state"
-	errorAwaitStateResultType       = "the result of awaiting cluster wasn't of the expected type"
-	errorAdvancedConfUpdate         = "error updating Advanced Configuration"
-	errorAdvancedConfUpdateLegacy   = "error updating Advanced Configuration from legacy API"
-	errorPinningFCV                 = "error pinning FCV"
-	errorUnpinningFCV               = "error unpinning FCV"
+	resourceName                  = "advanced_cluster"
+	errorSchemaDowngrade          = "error operation not permitted, nums_shards from 1 -> > 1"
+	errorPatchPayload             = "error creating patch payload"
+	errorDetailDefault            = "cluster name %s. API error detail %s"
+	errorSchemaUpgradeReadIDs     = "error reading IDs from API when upgrading schema"
+	errorReadResource             = "error reading advanced cluster"
+	errorAdvancedConfRead         = "error reading Advanced Configuration"
+	errorAdvancedConfReadLegacy   = "error reading Advanced Configuration from legacy API"
+	errorUpdateLegacy20240530     = "error updating advanced cluster legacy API 20240530"
+	errorList                     = "error reading  advanced cluster list"
+	errorListDetail               = "project ID %s. Error %s"
+	errorReadLegacy20240530       = "error reading cluster with legacy API 20240530"
+	errorResolveContainerIDs      = "error resolving container IDs"
+	errorRegionPriorities         = "priority values in region_configs must be in descending order"
+	errorAdvancedConfUpdateLegacy = "error updating Advanced Configuration from legacy API"
 
 	DeprecationOldSchemaAction                   = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 	defaultTimeout                               = 3 * time.Hour
 	ErrorCodeClusterNotFound                     = "CLUSTER_NOT_FOUND"
 	operationUpdate                              = "update"
 	operationCreate                              = "create"
+	operationCreate20240805                      = "create (legacy)"
 	operationPauseAfterCreate                    = "pause after create"
 	operationDelete                              = "delete"
 	operationAdvancedConfigurationUpdate20240530 = "update advanced configuration (legacy)"
@@ -70,6 +58,10 @@ const (
 	operationFCVPinning                          = "FCV pinning"
 	operationFCVUnpinning                        = "FCV unpinning"
 )
+
+func addErrorDiag(diags *diag.Diagnostics, errorLocator string, details string) {
+	diags.AddError("Error in "+errorLocator, details)
+}
 
 func defaultAPIErrorDetails(clusterName string, err error) string {
 	return fmt.Sprintf(errorDetailDefault, clusterName, err.Error())
@@ -306,14 +298,14 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 			return nil
 		}
 		if err := PinFCV(ctx, api, projectID, clusterName, fcvModel.ExpirationDate.ValueString()); err != nil {
-			diags.AddError(errorUnpinningFCV, defaultAPIErrorDetails(clusterName, err))
+			addErrorDiag(diags, operationFCVPinning, defaultAPIErrorDetails(clusterName, err))
 			return nil
 		}
 		return AwaitChanges(ctx, r.Client, waitParams, operationFCVPinning, diags)
 	}
 	// pinned_fcv has been removed from the config so unpin method is called
 	if _, _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
-		diags.AddError(errorUnpinningFCV, defaultAPIErrorDetails(clusterName, err))
+		addErrorDiag(diags, operationFCVUnpinning, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
 	return AwaitChanges(ctx, r.Client, waitParams, operationFCVUnpinning, diags)
