@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.26.0 (January 23, 2025)
+
 FEATURES:
 
 * **New Data Source:** `mongodbatlas_stream_privatelink_endpoint` ([#2897](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2897))
