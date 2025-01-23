@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
@@ -287,30 +286,6 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	conversion.ImportStateProjectIDClusterName(ctx, req, resp, "project_id", "name")
-}
-
-func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, state *TFModel, respState *tfsdk.State) *TFModel {
-	clusterName := state.Name.ValueString()
-	projectID := state.ProjectID.ValueString()
-	api := r.Client.AtlasV2.ClustersApi
-	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
-			respState.RemoveResource(ctx)
-			return nil
-		}
-		diags.AddError(errorReadResource, defaultAPIErrorDetails(clusterName, err))
-		return nil
-	}
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, state, false)
-	if diags.HasError() {
-		return nil
-	}
-	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, nil, nil)
-	if diags.HasError() {
-		return nil
-	}
-	return modelOut
 }
 
 func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
