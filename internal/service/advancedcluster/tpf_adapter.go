@@ -18,9 +18,9 @@ func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams 
 	return conversion.FromTPFDiagsToSDKV2Diags(*diags)
 }
 
-func CreateClusterFull(ctx context.Context, diags *sdkv2diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *tpf.ClusterWaitParams, usingOldShardingConfiguration bool) *admin.ClusterDescription20240805 {
+func CreateCluster(ctx context.Context, diags *sdkv2diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *tpf.ClusterWaitParams, usingOldShardingConfiguration bool) *admin.ClusterDescription20240805 {
 	diagsTPF := new(diag.Diagnostics)
-	cluster := tpf.CreateClusterFull(ctx, diagsTPF, client, req, waitParams, usingOldShardingConfiguration)
+	cluster := tpf.CreateCluster(ctx, diagsTPF, client, req, waitParams, usingOldShardingConfiguration)
 	localDiags := conversion.FromTPFDiagsToSDKV2Diags(*diagsTPF)
 	*diags = append(*diags, localDiags...)
 	return cluster

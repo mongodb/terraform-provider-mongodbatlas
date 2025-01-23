@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
-func CreateClusterFull(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, usingOldShardingConfiguration bool) *admin.ClusterDescription20240805 {
+func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, usingOldShardingConfiguration bool) *admin.ClusterDescription20240805 {
 	var (
 		pauseAfter  = req.GetPaused()
 		clusterResp *admin.ClusterDescription20240805
@@ -23,9 +23,9 @@ func CreateClusterFull(ctx context.Context, diags *diag.Diagnostics, client *con
 	}
 	if usingOldShardingConfiguration {
 		legacyReq := ConvertClusterDescription20241023to20240805(req)
-		clusterResp = CreateCluster20240805(ctx, diags, client, legacyReq, waitParams)
+		clusterResp = createCluster20240805(ctx, diags, client, legacyReq, waitParams)
 	} else {
-		clusterResp = CreateCluster(ctx, diags, client, req, waitParams)
+		clusterResp = createClusterLatest(ctx, diags, client, req, waitParams)
 	}
 	if diags.HasError() {
 		return nil
@@ -36,7 +36,7 @@ func CreateClusterFull(ctx context.Context, diags *diag.Diagnostics, client *con
 	return clusterResp
 }
 
-func CreateCluster20240805(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin20240805.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+func createCluster20240805(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin20240805.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV220240805.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		diags.AddError(errorCreateLegacy20240805, defaultAPIErrorDetails(waitParams.ClusterName, err))
@@ -45,7 +45,7 @@ func CreateCluster20240805(ctx context.Context, diags *diag.Diagnostics, client 
 	return AwaitChanges(ctx, client, waitParams, operationCreateLegacy, diags)
 }
 
-func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+func createClusterLatest(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		diags.AddError(errorCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))

@@ -519,7 +519,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Timeout:     d.Timeout(schema.TimeoutCreate),
 	}
 	diags := new(diag.Diagnostics)
-	cluster := CreateClusterFull(ctx, diags, client, params, waitParams, isUsingOldShardingConfiguration(d))
+	cluster := CreateCluster(ctx, diags, client, params, waitParams, isUsingOldShardingConfiguration(d))
 	if diags.HasError() {
 		return *diags
 	}
