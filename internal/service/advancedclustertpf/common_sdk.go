@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
-func CreateClusterFull(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, reader *ClusterReader, usingOldShardingConfiguration bool) *admin.ClusterDescription20240805 {
+func CreateClusterFull(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, usingOldShardingConfiguration bool) *admin.ClusterDescription20240805 {
 	var (
 		pauseAfter  = req.GetPaused()
 		clusterResp *admin.ClusterDescription20240805
@@ -23,53 +23,53 @@ func CreateClusterFull(ctx context.Context, diags *diag.Diagnostics, client *con
 	}
 	if usingOldShardingConfiguration {
 		legacyReq := ConvertClusterDescription20241023to20240805(req)
-		clusterResp = CreateCluster20240805(ctx, diags, client, legacyReq, reader)
+		clusterResp = CreateCluster20240805(ctx, diags, client, legacyReq, waitParams)
 	} else {
-		clusterResp = CreateCluster(ctx, diags, client, req, reader)
+		clusterResp = CreateCluster(ctx, diags, client, req, waitParams)
 	}
 	if diags.HasError() {
 		return nil
 	}
 	if pauseAfter {
-		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, reader, operationCreate)
+		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, waitParams, operationCreate)
 	}
 	return clusterResp
 }
 
-func CreateCluster20240805(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin20240805.ClusterDescription20240805, reader *ClusterReader) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV220240805.ClustersApi.CreateCluster(ctx, reader.ProjectID, req).Execute()
+func CreateCluster20240805(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin20240805.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+	_, _, err := client.AtlasV220240805.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
-		diags.AddError(errorCreateLegacy20240805, defaultAPIErrorDetails(reader.ClusterName, err))
+		diags.AddError(errorCreateLegacy20240805, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, client, reader, operationCreateLegacy, diags)
+	return AwaitChanges(ctx, client, waitParams, operationCreateLegacy, diags)
 }
 
-func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, reader *ClusterReader) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, reader.ProjectID, req).Execute()
+func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
-		diags.AddError(errorCreate, defaultAPIErrorDetails(reader.ClusterName, err))
+		diags.AddError(errorCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, client, reader, operationCreate, diags)
+	return AwaitChanges(ctx, client, waitParams, operationCreate, diags)
 }
 
-func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, reader *ClusterReader, operationName string) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, reader.ProjectID, reader.ClusterName, req).Execute()
+func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, operationName string) *admin.ClusterDescription20240805 {
+	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).Execute()
 	if err != nil {
-		diags.AddError(errorUpdate, defaultAPIErrorDetails(reader.ClusterName, err))
+		diags.AddError(errorUpdate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, client, reader, operationName, diags)
+	return AwaitChanges(ctx, client, waitParams, operationName, diags)
 }
 
-func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, reqLegacy *admin20240530.ClusterDescriptionProcessArgs, reqNew *admin.ClusterDescriptionProcessArgs20240805, reader *ClusterReader) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
+func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, reqLegacy *admin20240530.ClusterDescriptionProcessArgs, reqNew *admin.ClusterDescriptionProcessArgs20240805, waitParams *ClusterWaitParams) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
 	var (
 		err             error
 		advConfig       *admin.ClusterDescriptionProcessArgs20240805
 		legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
-		projectID       = reader.ProjectID
-		clusterName     = reader.ClusterName
+		projectID       = waitParams.ProjectID
+		clusterName     = waitParams.ClusterName
 	)
 	if !update.IsZeroValues(reqNew) {
 		changed = true
@@ -78,7 +78,7 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 			diags.AddError(errorAdvancedConfUpdate, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
 		}
-		_ = AwaitChanges(ctx, client, reader, operationAdvancedConfigurationUpdate, diags)
+		_ = AwaitChanges(ctx, client, waitParams, operationAdvancedConfigurationUpdate, diags)
 		if diags.HasError() {
 			return nil, nil, false
 		}
@@ -90,7 +90,7 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
 		}
-		_ = AwaitChanges(ctx, client, reader, operationAdvancedConfigurationUpdate20240530, diags)
+		_ = AwaitChanges(ctx, client, waitParams, operationAdvancedConfigurationUpdate20240530, diags)
 		if diags.HasError() {
 			return nil, nil, false
 		}
@@ -98,11 +98,11 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 	return legacyAdvConfig, advConfig, changed
 }
 
-func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, reader *ClusterReader, configLegacy *admin20240530.ClusterDescriptionProcessArgs, configNew *admin.ClusterDescriptionProcessArgs20240805) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805) {
+func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, configLegacy *admin20240530.ClusterDescriptionProcessArgs, configNew *admin.ClusterDescriptionProcessArgs20240805) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805) {
 	var (
 		err         error
-		projectID   = reader.ProjectID
-		clusterName = reader.ClusterName
+		projectID   = waitParams.ProjectID
+		clusterName = waitParams.ClusterName
 	)
 
 	if configLegacy == nil {
@@ -122,13 +122,13 @@ func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 	return configLegacy, configNew
 }
 
-func tenantUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, reader *ClusterReader, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersApi.UpgradeSharedCluster(ctx, reader.ProjectID, req).Execute()
+func tenantUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
+	_, _, err := client.AtlasV2.ClustersApi.UpgradeSharedCluster(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
-		diags.AddError(errorTenantUpgrade, defaultAPIErrorDetails(reader.ClusterName, err))
+		diags.AddError(errorTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, client, reader, operationTenantUpgrade, diags)
+	return AwaitChanges(ctx, client, waitParams, operationTenantUpgrade, diags)
 }
 
 func PinFCV(ctx context.Context, api admin.ClustersApi, projectID, clusterName, expirationDateStr string) error {

@@ -513,20 +513,20 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
-	reader := &advancedclustertpf.ClusterReader{
+	waitParams := &advancedclustertpf.ClusterWaitParams{
 		ProjectID:   projectID,
 		ClusterName: clusterName,
 		Timeout:     d.Timeout(schema.TimeoutCreate),
 	}
 	diags := new(diag.Diagnostics)
-	cluster := CreateClusterFull(ctx, diags, client, params, reader, isUsingOldShardingConfiguration(d))
+	cluster := CreateClusterFull(ctx, diags, client, params, waitParams, isUsingOldShardingConfiguration(d))
 	if diags.HasError() {
 		return *diags
 	}
 	if ac, ok := d.GetOk("advanced_configuration"); ok {
 		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
 			params20240530, params := expandProcessArgs(d, aclist[0].(map[string]any), params.MongoDBMajorVersion)
-			_, _, _ = UpdateAdvancedConfiguration(ctx, diags, client, &params20240530, &params, reader)
+			_, _, _ = UpdateAdvancedConfiguration(ctx, diags, client, &params20240530, &params, waitParams)
 			if diags.HasError() {
 				return *diags
 			}
@@ -539,7 +539,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
-		if diags := AwaitChanges(ctx, client, reader, operationCreateFinal); diags.HasError() {
+		if diags := AwaitChanges(ctx, client, waitParams, operationCreateFinal); diags.HasError() {
 			return diags
 		}
 	}
@@ -814,7 +814,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
-	reader := &advancedclustertpf.ClusterReader{
+	waitParams := &advancedclustertpf.ClusterWaitParams{
 		ProjectID:   projectID,
 		ClusterName: clusterName,
 		Timeout:     d.Timeout(schema.TimeoutUpdate),
@@ -866,7 +866,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			waitOnUpdate = true
 		}
 		if waitOnUpdate {
-			if diags := AwaitChanges(ctx, client, reader, operationUpdateLegacy); diags.HasError() {
+			if diags := AwaitChanges(ctx, client, waitParams, operationUpdateLegacy); diags.HasError() {
 				return diags
 			}
 		}
@@ -883,7 +883,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
-			if diags := AwaitChanges(ctx, client, reader, operationUpdate); diags.HasError() {
+			if diags := AwaitChanges(ctx, client, waitParams, operationUpdate); diags.HasError() {
 				return diags
 			}
 		}

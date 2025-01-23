@@ -62,7 +62,7 @@ const (
 	operationCreate                              = "create"
 	operationPauseAfterCreate                    = "pause after create"
 	operationDelete                              = "delete"
-	operationAdvancedConfigurationUpdate20240530 = "update advanced configuration 20240530"
+	operationAdvancedConfigurationUpdate20240530 = "update advanced configuration (legacy)"
 	operationAdvancedConfigurationUpdate         = "update advanced configuration"
 	operationTenantUpgrade                       = "tenant upgrade"
 	operationPauseAfterUpdate                    = "pause after update"
@@ -137,14 +137,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	reader := resolveClusterReader(ctx, &plan, diags, operationUpdate)
+	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
 	if diags.HasError() {
 		return
 	}
 	var clusterResp *admin.ClusterDescription20240805
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	clusterResp = r.applyPinnedFCVChanges(ctx, diags, &state, &plan, reader)
+	clusterResp = r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -179,7 +179,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if !update.IsZeroValues(patchReq) {
 		upgradeRequest := getTenantUpgradeRequest(stateReq, patchReq)
 		if upgradeRequest != nil {
-			clusterResp = tenantUpgrade(ctx, diags, r.Client, reader, upgradeRequest)
+			clusterResp = tenantUpgrade(ctx, diags, r.Client, waitParams, upgradeRequest)
 		} else {
 			if isShardingConfigUpgrade {
 				specs, err := populateIDValuesUsingNewAPI(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), r.Client.AtlasV2.ClustersApi, patchReq.ReplicationSpecs)
@@ -189,7 +189,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 				}
 				patchReq.ReplicationSpecs = specs
 			}
-			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq, reader)
+			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq, waitParams)
 		}
 		if diags.HasError() {
 			return
@@ -200,7 +200,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, reader)
+	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -229,7 +229,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	reader := resolveClusterReader(ctx, &state, diags, operationDelete)
+	waitParams := resolveClusterWaitParams(ctx, &state, diags, operationDelete)
 	if diags.HasError() {
 		return
 	}
@@ -248,7 +248,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		diags.AddError(errorDelete, defaultAPIErrorDetails(clusterName, err))
 		return
 	}
-	AwaitChanges(ctx, r.Client, reader, operationDelete, diags)
+	AwaitChanges(ctx, r.Client, waitParams, operationDelete, diags)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -260,22 +260,22 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if diags.HasError() {
 		return nil
 	}
-	reader := resolveClusterReader(ctx, plan, diags, operationCreate)
+	waitParams := resolveClusterWaitParams(ctx, plan, diags, operationCreate)
 	if diags.HasError() {
 		return nil
 	}
-	clusterResp := CreateClusterFull(ctx, diags, r.Client, latestReq, reader, usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags))
+	clusterResp := CreateClusterFull(ctx, diags, r.Client, latestReq, waitParams, usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags))
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return nil
 	}
-	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, reader)
+	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, waitParams)
 	if diags.HasError() {
 		return nil
 	}
-	if changedCluster := r.applyPinnedFCVChanges(ctx, diags, &TFModel{}, plan, reader); changedCluster != nil {
+	if changedCluster := r.applyPinnedFCVChanges(ctx, diags, &TFModel{}, plan, waitParams); changedCluster != nil {
 		clusterResp = changedCluster
 	}
 	if diags.HasError() {
@@ -286,7 +286,7 @@ func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagn
 	if diags.HasError() {
 		return nil
 	}
-	legacyAdvConfig, advConfig = readIfUnsetAdvancedConfiguration(ctx, diags, r.Client, reader, legacyAdvConfig, advConfig)
+	legacyAdvConfig, advConfig = readIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams, legacyAdvConfig, advConfig)
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
 	if diags.HasError() {
 		return nil
@@ -320,11 +320,11 @@ func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, state *TF
 	return modelOut
 }
 
-func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, reader *ClusterReader) *admin.ClusterDescription20240805 {
+func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	var (
 		api         = r.Client.AtlasV2.ClustersApi
-		projectID   = reader.ProjectID
-		clusterName = reader.ClusterName
+		projectID   = waitParams.ProjectID
+		clusterName = waitParams.ClusterName
 	)
 	if state.PinnedFCV.Equal(plan.PinnedFCV) {
 		return nil
@@ -341,22 +341,22 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 			diags.AddError(errorUnpinningFCV, defaultAPIErrorDetails(clusterName, err))
 			return nil
 		}
-		return AwaitChanges(ctx, r.Client, reader, operationFCVPinning, diags)
+		return AwaitChanges(ctx, r.Client, waitParams, operationFCVPinning, diags)
 	}
 	// pinned_fcv has been removed from the config so unpin method is called
 	if _, _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 		diags.AddError(errorUnpinningFCV, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, r.Client, reader, operationFCVUnpinning, diags)
+	return AwaitChanges(ctx, r.Client, waitParams, operationFCVUnpinning, diags)
 }
 
-func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805, reader *ClusterReader) *admin.ClusterDescription20240805 {
+func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	// paused = `false` is sent in an isolated request before other changes to avoid error from API: Cannot update cluster while it is paused or being paused.
 	var result *admin.ClusterDescription20240805
 	if patchReq.Paused != nil && !patchReq.GetPaused() {
 		patchReq.Paused = nil
-		_ = updateCluster(ctx, diags, r.Client, &resumeRequest, reader, operationResumeBeforeUpdate)
+		_ = updateCluster(ctx, diags, r.Client, &resumeRequest, waitParams, operationResumeBeforeUpdate)
 	}
 
 	// paused = `true` is sent in an isolated request after other changes have been applied to avoid error from API: Cannot update and pause cluster at the same time
@@ -374,15 +374,15 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 		}
 		patchReq.ReplicationSpecs = nil // Already updated by 2023-02-01 API
 		if update.IsZeroValues(patchReq) && !pauseAfterOtherChanges {
-			return AwaitChanges(ctx, r.Client, reader, operationReplicationSpecsUpdateLegacy, diags)
+			return AwaitChanges(ctx, r.Client, waitParams, operationReplicationSpecsUpdateLegacy, diags)
 		}
 	}
 
 	// latest API can be used safely because if old sharding config is used replication specs will not be included in this request
-	result = updateCluster(ctx, diags, r.Client, patchReq, reader, operationUpdate)
+	result = updateCluster(ctx, diags, r.Client, patchReq, waitParams, operationUpdate)
 
 	if pauseAfterOtherChanges {
-		result = updateCluster(ctx, diags, r.Client, &pauseRequest, reader, operationPauseAfterUpdate)
+		result = updateCluster(ctx, diags, r.Client, &pauseRequest, waitParams, operationPauseAfterUpdate)
 	}
 	return result
 }
@@ -437,8 +437,8 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805) {
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	reader := &ClusterReader{ProjectID: projectID, ClusterName: clusterName, Timeout: defaultTimeout} // timeout is not used
-	legacyAdvConfig, advConfig = readIfUnsetAdvancedConfiguration(ctx, diags, client, reader, legacyAdvConfig, advConfig)
+	waitParams := &ClusterWaitParams{ProjectID: projectID, ClusterName: clusterName, Timeout: defaultTimeout} // timeout is not used
+	legacyAdvConfig, advConfig = readIfUnsetAdvancedConfiguration(ctx, diags, client, waitParams, legacyAdvConfig, advConfig)
 	if diags.HasError() {
 		return
 	}
@@ -451,14 +451,14 @@ func warningIfFCVExpiredOrUnpinnedExternally(diags *diag.Diagnostics, state *TFM
 	diags.Append(newWarnings...)
 }
 
-func resolveClusterReader(ctx context.Context, model *TFModel, diags *diag.Diagnostics, operation string) *ClusterReader {
+func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.Diagnostics, operation string) *ClusterWaitParams {
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
 	operationTimeout := resolveTimeout(ctx, &model.Timeouts, operation, diags)
 	if diags.HasError() {
 		return nil
 	}
-	return &ClusterReader{
+	return &ClusterWaitParams{
 		ProjectID:   projectID,
 		ClusterName: clusterName,
 		Timeout:     operationTimeout,
