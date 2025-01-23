@@ -7,9 +7,13 @@ To learn more about existing limitations, see [Manage Customer Keys with Azure K
 
 ## Example Usages
 
--> **NOTE:** Only Azure Key Vault with Azure Private Link is supported at this time.
+-> **NOTE:** Only Azure Key Vault with Azure Private Link and AWS KMS over AWS PrivateLink is supported at this time.
 
+### Encryption At Rest Azure Key Vault Private Endpoint
 {{ tffile ("examples/mongodbatlas_encryption_at_rest_private_endpoint/azure/plural-data-source.tf") }}
+
+### Encryption At Rest AWS KMS Private Endpoint
+{{ tffile ("examples/mongodbatlas_encryption_at_rest_private_endpoint/aws/plural-data-source.tf") }}
 
 {{ .SchemaMarkdown | trimspace }}
 

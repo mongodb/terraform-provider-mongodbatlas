@@ -7,8 +7,9 @@ To learn more about existing limitations, see [Manage Customer Keys with Azure K
 
 ## Example Usages
 
--> **NOTE:** Only Azure Key Vault with Azure Private Link is supported at this time.
+-> **NOTE:** Only Azure Key Vault with Azure Private Link and AWS KMS over AWS PrivateLink is supported at this time.
 
+### Encryption At Rest Azure Key Vault Private Endpoint
 ```terraform
 data "mongodbatlas_encryption_at_rest_private_endpoint" "single" {
   project_id     = var.atlas_project_id
@@ -18,6 +19,15 @@ data "mongodbatlas_encryption_at_rest_private_endpoint" "single" {
 
 output "endpoint_connection_name" {
   value = data.mongodbatlas_encryption_at_rest_private_endpoint.single.private_endpoint_connection_name
+}
+```
+
+### Encryption At Rest AWS KMS Private Endpoint
+```terraform
+data "mongodbatlas_encryption_at_rest_private_endpoint" "single" {
+  project_id     = var.atlas_project_id
+  cloud_provider = "AWS"
+  id             = mongodbatlas_encryption_at_rest_private_endpoint.endpoint.id
 }
 ```
 
