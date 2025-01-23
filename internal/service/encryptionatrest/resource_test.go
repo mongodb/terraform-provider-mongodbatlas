@@ -97,7 +97,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 
 func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
+		projectID = acc.ProjectIDExecution(t)
 
 		azureKeyVault = admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
@@ -244,9 +244,10 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 		awsKeyName           = acc.RandomName()
 		awsKms               = admin.AWSKMSConfiguration{
-			Enabled:             conversion.Pointer(true),
-			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Enabled:                  conversion.Pointer(true),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 	)
 
@@ -605,7 +606,8 @@ resource "mongodbatlas_encryption_at_rest" "test" {
     customer_master_key_id = %[3]q
 	region                 = %[2]q
     role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+	require_private_networking = %[4]t
   }
 }
-	`, awsEar.GetEnabled(), awsEar.GetRegion(), awsEar.GetCustomerMasterKeyID())
+	`, awsEar.GetEnabled(), awsEar.GetRegion(), awsEar.GetCustomerMasterKeyID(), awsEar.GetRequirePrivateNetworking())
 }

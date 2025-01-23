@@ -67,19 +67,7 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 				ProjectID:                     types.StringValue(testProjectID),
 			},
 		},
-	}
-
-	for testName, tc := range testCases {
-		t.Run(testName, func(t *testing.T) {
-			resultModel := encryptionatrestprivateendpoint.NewTFEarPrivateEndpoint(tc.SDKResp, testProjectID)
-			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
-		})
-	}
-}
-
-// PrivateEndpointConnectionName is not returned for AWS
-func TestEncryptionAtRestPrivateEndpointSDKToTFModel_noPEConnectionName(t *testing.T) {
-	testCases := map[string]sdkToTFModelTestCase{
+		// PrivateEndpointConnectionName is not returned for AWS
 		"nil PrivateEndpointConnectionName": {
 			SDKResp: admin.EARPrivateEndpoint{
 				CloudProvider: admin.PtrString(testCloudProvider),
