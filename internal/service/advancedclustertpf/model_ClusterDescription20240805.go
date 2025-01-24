@@ -104,8 +104,8 @@ func NewLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]adm
 	elms := make(map[string]string)
 	if input != nil {
 		for _, item := range *input {
-			key := conversion.SafeValue(item.Key)
-			value := conversion.SafeValue(item.Value)
+			key := item.GetKey()
+			value := item.GetValue()
 			if key == LegacyIgnoredLabelKey {
 				continue
 			}
@@ -236,7 +236,7 @@ func NewTagsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin
 	elms := make(map[string]string)
 	if input != nil {
 		for _, item := range *input {
-			elms[item.Key] = item.Value
+			elms[item.GetKey()] = item.GetValue()
 		}
 	}
 	return conversion.ToTFMapOfString(ctx, diags, &elms)

@@ -62,9 +62,6 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 }
 
 func newComponentLabel(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ComponentLabel {
-	if input.IsUnknown() {
-		return nil
-	}
 	elms := make(map[string]types.String, len(input.Elements()))
 	localDiags := input.ElementsAs(ctx, &elms, false)
 	diags.Append(localDiags...)
@@ -116,9 +113,6 @@ func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
 }
 
 func newResourceTag(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ResourceTag {
-	if input.IsUnknown() {
-		return nil
-	}
 	elms := make(map[string]types.String, len(input.Elements()))
 	localDiags := input.ElementsAs(ctx, &elms, false)
 	diags.Append(localDiags...)
