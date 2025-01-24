@@ -14,7 +14,6 @@ var (
 	resourceName         = "mongodbatlas_flex_cluster.test"
 	dataSourceName       = "data.mongodbatlas_flex_cluster.test"
 	dataSourcePluralName = "data.mongodbatlas_flex_clusters.test"
-	DataSources          = ``
 )
 
 func TestAccFlexClusterRS_basic(t *testing.T) {
