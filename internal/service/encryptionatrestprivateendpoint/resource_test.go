@@ -148,7 +148,7 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(true),
 		}
-		region = os.Getenv("AWS_PRIVATE_ENDPOINT_REGION")
+		region = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
 	)
 
 	return &resource.TestCase{
