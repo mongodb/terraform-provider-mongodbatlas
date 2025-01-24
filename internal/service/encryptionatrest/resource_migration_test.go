@@ -182,8 +182,6 @@ func TestMigEncryptionAtRest_basicGCP(t *testing.T) {
 }
 
 func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
-
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
