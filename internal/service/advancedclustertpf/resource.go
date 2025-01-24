@@ -41,6 +41,7 @@ const (
 	errorResolveContainerIDs      = "error resolving container IDs"
 	errorRegionPriorities         = "priority values in region_configs must be in descending order"
 	errorAdvancedConfUpdateLegacy = "error updating Advanced Configuration from legacy API"
+	replicationSpecsTFModelName   = "ReplicationSpecs"
 
 	DeprecationOldSchemaAction                   = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 	defaultTimeout                               = 3 * time.Hour
@@ -113,7 +114,18 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
-	useRemoteForUnknown(ctx, diags, &plan, remoteModel)
+	patchReq, upgradeRequest := findClusterDiff(ctx, &state, &plan, diags, &update.PatchOptions{})
+	keepUnknown := []string{"ConnectionStrings"} // Names must match the TFModel struct names
+	if upgradeRequest != nil {
+		// TenantUpgrade changes a few root level fields that are normally ok to use remote values for
+		keepUnknown = append(keepUnknown, "DiskSizeGB", "ClusterID", replicationSpecsTFModelName, "BackupEnabled", "CreateDate")
+	}
+	if !update.IsZeroValues(patchReq) {
+		if patchReq.ReplicationSpecs != nil {
+			keepUnknown = append(keepUnknown, replicationSpecsTFModelName, "DiskSizeGB") // Not safe to set DiskSizeGB when updating replication specs
+		}
+	}
+	useRemoteForUnknown(ctx, diags, &plan, remoteModel, keepUnknown)
 	if diags.HasError() {
 		return
 	}

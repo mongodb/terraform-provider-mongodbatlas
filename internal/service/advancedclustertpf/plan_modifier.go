@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -47,7 +48,7 @@ func HasUnknowns(obj any) bool {
 	return false
 }
 
-func CopyUnknowns(ctx context.Context, src, dest any) {
+func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 	valSrc := reflect.ValueOf(src)
 	valDest := reflect.ValueOf(dest)
 	if valSrc.Kind() != reflect.Ptr || valDest.Kind() != reflect.Ptr {
@@ -63,6 +64,9 @@ func CopyUnknowns(ctx context.Context, src, dest any) {
 	for i := range typeDest.NumField() {
 		fieldDest := typeDest.Field(i)
 		name := fieldDest.Name
+		if slices.Contains(keepUnknown, name) {
+			continue
+		}
 		_, found := typeSrc.FieldByName(name)
 		if !found {
 			continue
@@ -79,8 +83,13 @@ func CopyUnknowns(ctx context.Context, src, dest any) {
 	}
 }
 
-func useRemoteForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, remoteModel *TFModel) {
-	CopyUnknowns(ctx, remoteModel, plan)
+func useRemoteForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, remoteModel *TFModel, keepUnknown []string) {
+	CopyUnknowns(ctx, remoteModel, plan, keepUnknown)
+	if slices.Contains(keepUnknown, replicationSpecsTFModelName) {
+		return
+	}
+	// Nested fields are not supported by CopyUnknowns unless the whole field is Unknown.
+	// Therefore, we need to handle replication_specs and partially unknown fields such as region_configs.(electable_specs|auto_scaling) manually.
 	planReplicationSpecsElements := plan.ReplicationSpecs.Elements()
 	readModelReplicationSpecsElements := remoteModel.ReplicationSpecs.Elements()
 	if len(planReplicationSpecsElements) != len(readModelReplicationSpecsElements) {
@@ -99,7 +108,7 @@ func useRemoteForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, rem
 	for i := range planReplicationSpecs {
 		replicationSpecRemote := &remoteReplicationSpecs[i]
 		replicationSpecPlan := &planReplicationSpecs[i]
-		CopyUnknowns(ctx, replicationSpecRemote, replicationSpecPlan)
+		CopyUnknowns(ctx, replicationSpecRemote, replicationSpecPlan, keepUnknown)
 		fillInUnknownsInRegionConfigs(ctx, replicationSpecRemote, replicationSpecPlan, diags)
 		if diags.HasError() {
 			return
@@ -143,7 +152,7 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote, r
 				diags.Append(localDiags...)
 				return
 			}
-			CopyUnknowns(ctx, remoteElectableSpecs, planElectableSpecs)
+			CopyUnknowns(ctx, remoteElectableSpecs, planElectableSpecs, []string{})
 			newElectableSpecs, localDiags := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, planElectableSpecs)
 			if localDiags.HasError() {
 				diags.Append(localDiags...)
@@ -162,7 +171,7 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote, r
 				diags.Append(localDiags...)
 				return
 			}
-			CopyUnknowns(ctx, autoScalingRemote, autoScalingPlan)
+			CopyUnknowns(ctx, autoScalingRemote, autoScalingPlan, []string{})
 			newAutoScaling, localDiags := types.ObjectValueFrom(ctx, AutoScalingObjType.AttrTypes, autoScalingPlan)
 			if localDiags.HasError() {
 				diags.Append(localDiags...)
@@ -170,7 +179,7 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote, r
 			}
 			planRegionConfig.AutoScaling = newAutoScaling
 		}
-		CopyUnknowns(ctx, remoteRegionConfig, planRegionConfig)
+		CopyUnknowns(ctx, remoteRegionConfig, planRegionConfig, []string{})
 	}
 	newRegionConfig, localDiags := types.ListValueFrom(ctx, RegionConfigsObjType, planRegionConfigs)
 	if localDiags.HasError() {
