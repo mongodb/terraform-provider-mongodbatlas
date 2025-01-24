@@ -8,9 +8,9 @@ import (
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
@@ -26,41 +26,43 @@ var _ resource.ResourceWithMoveState = &rs{}
 var _ resource.ResourceWithUpgradeState = &rs{}
 
 const (
-	resourceName                    = "advanced_cluster"
-	errorSchemaDowngrade            = "error operation not permitted, nums_shards from 1 -> > 1"
-	errorPatchPayload               = "error creating patch payload"
-	errorCreate                     = "error creating advanced cluster"
-	errorDetailDefault              = "cluster name %s. API error detail %s"
-	errorUpdateAdvancedConfigLegacy = "error updating advanced cluster advanced configuration options with legacy API"
-	errorSchemaUpgradeReadIDs       = "error reading IDs from API when upgrading schema"
-	errorReadResource               = "error reading advanced cluster"
-	errorAdvancedConfRead           = "error reading Advanced Configuration"
-	errorAdvancedConfReadLegacy     = "error reading Advanced Configuration from legacy API"
-	errorDelete                     = "error deleting advanced cluster"
-	errorUpdate                     = "error updating advanced cluster"
-	errorUpdateLegacy20240805       = "error updating advanced cluster legacy API 20240805"
-	errorUpdateLegacy20240530       = "error updating advanced cluster legacy API 20240530"
-	errorList                       = "error reading  advanced cluster list"
-	errorListDetail                 = "project ID %s. Error %s"
-	errorTenantUpgrade              = "error upgrading tenant cluster"
-	errorReadLegacy20240530         = "error reading cluster with legacy API 20240530"
-	errorResolveContainerIDs        = "error resolving container IDs"
-	errorRegionPriorities           = "priority values in region_configs must be in descending order"
-	errorUnknownChangeReason        = "unknown change reason"
-	errorAwaitState                 = "error awaiting cluster to reach desired state"
-	errorAwaitStateResultType       = "the result of awaiting cluster wasn't of the expected type"
-	errorAdvancedConfUpdate         = "error updating Advanced Configuration"
-	errorAdvancedConfUpdateLegacy   = "error updating Advanced Configuration from legacy API"
-	errorPinningFCV                 = "error pinning FCV"
-	errorUnpinningFCV               = "error unpinning FCV"
+	resourceName                  = "advanced_cluster"
+	errorSchemaDowngrade          = "error operation not permitted, nums_shards from 1 -> > 1"
+	errorPatchPayload             = "error creating patch payload"
+	errorDetailDefault            = "cluster name %s. API error detail %s"
+	errorSchemaUpgradeReadIDs     = "error reading IDs from API when upgrading schema"
+	errorReadResource             = "error reading advanced cluster"
+	errorAdvancedConfRead         = "error reading Advanced Configuration"
+	errorAdvancedConfReadLegacy   = "error reading Advanced Configuration from legacy API"
+	errorUpdateLegacy20240530     = "error updating advanced cluster legacy API 20240530"
+	errorList                     = "error reading  advanced cluster list"
+	errorListDetail               = "project ID %s. Error %s"
+	errorReadLegacy20240530       = "error reading cluster with legacy API 20240530"
+	errorResolveContainerIDs      = "error resolving container IDs"
+	errorRegionPriorities         = "priority values in region_configs must be in descending order"
+	errorAdvancedConfUpdateLegacy = "error updating Advanced Configuration from legacy API"
 
-	DeprecationOldSchemaAction = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
-	defaultTimeout             = 3 * time.Hour
-	ErrorCodeClusterNotFound   = "CLUSTER_NOT_FOUND"
-	changeReasonUpdate         = "update"
-	changeReasonCreate         = "create"
-	changeReasonDelete         = "delete"
+	DeprecationOldSchemaAction                   = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
+	defaultTimeout                               = 3 * time.Hour
+	ErrorCodeClusterNotFound                     = "CLUSTER_NOT_FOUND"
+	operationUpdate                              = "update"
+	operationCreate                              = "create"
+	operationCreate20240805                      = "create (legacy)"
+	operationPauseAfterCreate                    = "pause after create"
+	operationDelete                              = "delete"
+	operationAdvancedConfigurationUpdate20240530 = "update advanced configuration (legacy)"
+	operationAdvancedConfigurationUpdate         = "update advanced configuration"
+	operationTenantUpgrade                       = "tenant upgrade"
+	operationPauseAfterUpdate                    = "pause after update"
+	operationResumeBeforeUpdate                  = "resume before update"
+	operationReplicationSpecsUpdateLegacy        = "update replication specs legacy"
+	operationFCVPinning                          = "FCV pinning"
+	operationFCVUnpinning                        = "FCV unpinning"
 )
+
+func addErrorDiag(diags *diag.Diagnostics, errorLocator, details string) {
+	diags.AddError("Error in "+errorLocator, details)
+}
 
 func defaultAPIErrorDetails(clusterName string, err error) string {
 	return fmt.Sprintf(errorDetailDefault, clusterName, err.Error())
@@ -100,10 +102,43 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	model := r.createCluster(ctx, &plan, diags)
-	if model != nil {
-		diags.Append(resp.State.Set(ctx, model)...)
+	latestReq := normalizeFromTFModel(ctx, &plan, diags, true)
+	if diags.HasError() {
+		return
 	}
+	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationCreate)
+	if diags.HasError() {
+		return
+	}
+	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams, usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags))
+	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
+	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	if diags.HasError() {
+		return
+	}
+	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, waitParams)
+	if diags.HasError() {
+		return
+	}
+	if changedCluster := r.applyPinnedFCVChanges(ctx, diags, &TFModel{}, &plan, waitParams); changedCluster != nil {
+		clusterResp = changedCluster
+	}
+	if diags.HasError() {
+		return
+	}
+
+	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan, false)
+	if diags.HasError() {
+		return
+	}
+	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, legacyAdvConfig, advConfig)
+	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
+	if diags.HasError() {
+		return
+	}
+	AddAdvancedConfig(ctx, modelOut, advConfig, legacyAdvConfig, diags)
+	diags.Append(resp.State.Set(ctx, modelOut)...)
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -113,10 +148,25 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if diags.HasError() {
 		return
 	}
-	model := r.readCluster(ctx, diags, &state, &resp.State)
-	if model != nil {
-		diags.Append(resp.State.Set(ctx, model)...)
+	clusterName := state.Name.ValueString()
+	projectID := state.ProjectID.ValueString()
+	readResp := ReadCluster(ctx, diags, r.Client, projectID, clusterName, !state.PinnedFCV.IsNull())
+	if diags.HasError() {
+		return
 	}
+	if readResp == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, &state, false)
+	if diags.HasError() {
+		return
+	}
+	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, nil, nil)
+	if diags.HasError() {
+		return
+	}
+	diags.Append(resp.State.Set(ctx, modelOut)...)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -127,11 +177,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-
+	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
+	if diags.HasError() {
+		return
+	}
 	var clusterResp *admin.ClusterDescription20240805
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	clusterResp = r.applyPinnedFCVChanges(ctx, diags, &state, &plan)
+	clusterResp = r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -166,7 +219,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if !update.IsZeroValues(patchReq) {
 		upgradeRequest := getTenantUpgradeRequest(stateReq, patchReq)
 		if upgradeRequest != nil {
-			clusterResp = r.applyTenantUpgrade(ctx, &plan, upgradeRequest, diags)
+			clusterResp = TenantUpgrade(ctx, diags, r.Client, waitParams, upgradeRequest)
 		} else {
 			if isShardingConfigUpgrade {
 				specs, err := populateIDValuesUsingNewAPI(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), r.Client.AtlasV2.ClustersApi, patchReq.ReplicationSpecs)
@@ -176,13 +229,18 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 				}
 				patchReq.ReplicationSpecs = specs
 			}
-			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq)
+			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq, waitParams)
 		}
 		if diags.HasError() {
 			return
 		}
 	}
-	legacyAdvConfig, advConfig, advConfigChanged := r.applyAdvancedConfigurationChanges(ctx, diags, &state, &plan)
+	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	if diags.HasError() {
+		return
+	}
+	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -211,186 +269,55 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	clusterName := state.Name.ValueString()
-	projectID := state.ProjectID.ValueString()
-	api := r.Client.AtlasV2.ClustersApi
-	params := &admin.DeleteClusterApiParams{
-		GroupId:     projectID,
-		ClusterName: clusterName,
-	}
-	if retainBackups := conversion.NilForUnknown(state.RetainBackupsEnabled, state.RetainBackupsEnabled.ValueBoolPointer()); retainBackups != nil {
-		params.RetainBackups = retainBackups
-	}
-	_, err := api.DeleteClusterWithParams(ctx, params).Execute()
-	if err != nil {
-		diags.AddError(errorDelete, defaultAPIErrorDetails(clusterName, err))
+	waitParams := resolveClusterWaitParams(ctx, &state, diags, operationDelete)
+	if diags.HasError() {
 		return
 	}
-	_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &state.Timeouts, diags, projectID, clusterName, changeReasonDelete)
+	retainBackups := conversion.NilForUnknown(state.RetainBackupsEnabled, state.RetainBackupsEnabled.ValueBoolPointer())
+	DeleteCluster(ctx, diags, r.Client, waitParams, retainBackups)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	conversion.ImportStateProjectIDClusterName(ctx, req, resp, "project_id", "name")
 }
 
-func (r *rs) createCluster(ctx context.Context, plan *TFModel, diags *diag.Diagnostics) *TFModel {
-	latestReq := normalizeFromTFModel(ctx, plan, diags, true)
-	if diags.HasError() {
-		return nil
-	}
+func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	var (
-		projectID   = plan.ProjectID.ValueString()
-		clusterName = plan.Name.ValueString()
-		api20240805 = r.Client.AtlasV220240805.ClustersApi
 		api         = r.Client.AtlasV2.ClustersApi
-		err         error
-		pauseAfter  = latestReq.GetPaused()
+		projectID   = waitParams.ProjectID
+		clusterName = waitParams.ClusterName
 	)
-	if pauseAfter {
-		latestReq.Paused = nil
-	}
-	if usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
-		legacyReq := ConvertClusterDescription20241023to20240805(latestReq)
-		_, _, err = api20240805.CreateCluster(ctx, projectID, legacyReq).Execute()
-	} else {
-		_, _, err = api.CreateCluster(ctx, projectID, latestReq).Execute()
-	}
-	if err != nil {
-		diags.AddError(errorCreate, defaultAPIErrorDetails(clusterName, err))
+	if state.PinnedFCV.Equal(plan.PinnedFCV) {
 		return nil
 	}
-	clusterResp := AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonCreate)
-	if diags.HasError() {
-		return nil
-	}
-	if pauseAfter {
-		clusterResp = r.updateAndWait(ctx, &pauseRequest, diags, plan)
-	}
-	emptyState := &TFModel{AdvancedConfiguration: types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)}
-	legacyAdvConfig, advConfig, _ := r.applyAdvancedConfigurationChanges(ctx, diags, emptyState, plan)
-	if diags.HasError() {
-		return nil
-	}
-	if changedCluster := r.applyPinnedFCVChanges(ctx, diags, emptyState, plan); changedCluster != nil {
-		clusterResp = changedCluster
-	}
-	if diags.HasError() {
-		return nil
-	}
-
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, clusterResp, plan, false)
-	if diags.HasError() {
-		return nil
-	}
-	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
-	if diags.HasError() {
-		return nil
-	}
-
-	return modelOut
-}
-
-func (r *rs) readCluster(ctx context.Context, diags *diag.Diagnostics, state *TFModel, respState *tfsdk.State) *TFModel {
-	clusterName := state.Name.ValueString()
-	projectID := state.ProjectID.ValueString()
-	api := r.Client.AtlasV2.ClustersApi
-	readResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
-			respState.RemoveResource(ctx)
+	isFCVPresentInConfig := !plan.PinnedFCV.IsNull()
+	if isFCVPresentInConfig {
+		fcvModel := &TFPinnedFCVModel{}
+		// pinned_fcv has been defined or updated expiration date
+		if localDiags := plan.PinnedFCV.As(ctx, fcvModel, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
+			diags.Append(localDiags...)
 			return nil
 		}
-		diags.AddError(errorReadResource, defaultAPIErrorDetails(clusterName, err))
+		if err := PinFCV(ctx, api, projectID, clusterName, fcvModel.ExpirationDate.ValueString()); err != nil {
+			addErrorDiag(diags, operationFCVPinning, defaultAPIErrorDetails(clusterName, err))
+			return nil
+		}
+		return AwaitChanges(ctx, r.Client, waitParams, operationFCVPinning, diags)
+	}
+	// pinned_fcv has been removed from the config so unpin method is called
+	if _, _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
+		addErrorDiag(diags, operationFCVUnpinning, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
-	warningIfFCVExpiredOrUnpinnedExternally(diags, state, readResp)
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, state, false)
-	if diags.HasError() {
-		return nil
-	}
-	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, nil, nil)
-	if diags.HasError() {
-		return nil
-	}
-	return modelOut
+	return AwaitChanges(ctx, r.Client, waitParams, operationFCVUnpinning, diags)
 }
 
-func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) *admin.ClusterDescription20240805 {
-	var (
-		api         = r.Client.AtlasV2.ClustersApi
-		projectID   = plan.ProjectID.ValueString()
-		clusterName = plan.Name.ValueString()
-	)
-	if !state.PinnedFCV.Equal(plan.PinnedFCV) {
-		isFCVPresentInConfig := !plan.PinnedFCV.IsNull()
-		if isFCVPresentInConfig {
-			fcvModel := &TFPinnedFCVModel{}
-			// pinned_fcv has been defined or updated expiration date
-			if localDiags := plan.PinnedFCV.As(ctx, fcvModel, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
-				diags.Append(localDiags...)
-				return nil
-			}
-			if err := PinFCV(ctx, api, projectID, clusterName, fcvModel.ExpirationDate.ValueString()); err != nil {
-				diags.AddError(errorUnpinningFCV, defaultAPIErrorDetails(clusterName, err))
-				return nil
-			}
-		} else {
-			// pinned_fcv has been removed from the config so unpin method is called
-			if _, _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
-				diags.AddError(errorUnpinningFCV, defaultAPIErrorDetails(clusterName, err))
-				return nil
-			}
-		}
-		// ensures cluster is in IDLE state before continuing with other changes
-		return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
-	}
-	return nil
-}
-
-func (r *rs) applyAdvancedConfigurationChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
-	var (
-		api             = r.Client.AtlasV2.ClustersApi
-		projectID       = plan.ProjectID.ValueString()
-		clusterName     = plan.Name.ValueString()
-		err             error
-		advConfig       *admin.ClusterDescriptionProcessArgs20240805
-		legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs
-	)
-	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	if !update.IsZeroValues(patchReqProcessArgs) {
-		changed = true
-		advConfig, _, err = api.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgs).Execute()
-		if err != nil {
-			diags.AddError(errorAdvancedConfUpdate, defaultAPIErrorDetails(clusterName, err))
-			return nil, nil, false
-		}
-		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
-		if diags.HasError() {
-			return nil, nil, false
-		}
-	}
-	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
-	if !update.IsZeroValues(patchReqProcessArgsLegacy) {
-		changed = true
-		legacyAdvConfig, _, err = r.Client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, patchReqProcessArgsLegacy).Execute()
-		if err != nil {
-			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
-			return nil, nil, false
-		}
-		_ = AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
-		if diags.HasError() {
-			return nil, nil, false
-		}
-	}
-	return legacyAdvConfig, advConfig, changed
-}
-
-func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
+func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	// paused = `false` is sent in an isolated request before other changes to avoid error from API: Cannot update cluster while it is paused or being paused.
 	var result *admin.ClusterDescription20240805
 	if patchReq.Paused != nil && !patchReq.GetPaused() {
 		patchReq.Paused = nil
-		_ = r.updateAndWait(ctx, &resumeRequest, diags, plan)
+		_ = updateCluster(ctx, diags, r.Client, &resumeRequest, waitParams, operationResumeBeforeUpdate)
 	}
 
 	// paused = `true` is sent in an isolated request after other changes have been applied to avoid error from API: Cannot update and pause cluster at the same time
@@ -408,15 +335,15 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 		}
 		patchReq.ReplicationSpecs = nil // Already updated by 2023-02-01 API
 		if update.IsZeroValues(patchReq) && !pauseAfterOtherChanges {
-			return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &plan.Timeouts, diags, plan.ProjectID.ValueString(), plan.Name.ValueString(), changeReasonUpdate)
+			return AwaitChanges(ctx, r.Client, waitParams, operationReplicationSpecsUpdateLegacy, diags)
 		}
 	}
 
 	// latest API can be used safely because if old sharding config is used replication specs will not be included in this request
-	result = r.updateAndWait(ctx, patchReq, diags, plan)
+	result = updateCluster(ctx, diags, r.Client, patchReq, waitParams, operationUpdate)
 
 	if pauseAfterOtherChanges {
-		result = r.updateAndWait(ctx, &pauseRequest, diags, plan)
+		result = updateCluster(ctx, diags, r.Client, &pauseRequest, waitParams, operationPauseAfterUpdate)
 	}
 	return result
 }
@@ -452,31 +379,6 @@ func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFMo
 	}
 }
 
-func (r *rs) updateAndWait(ctx context.Context, patchReq *admin.ClusterDescription20240805, diags *diag.Diagnostics, tfModel *TFModel) *admin.ClusterDescription20240805 {
-	api := r.Client.AtlasV2.ClustersApi
-	projectID := tfModel.ProjectID.ValueString()
-	clusterName := tfModel.Name.ValueString()
-	_, _, err := api.UpdateCluster(ctx, projectID, clusterName, patchReq).Execute()
-	if err != nil {
-		diags.AddError(errorUpdate, defaultAPIErrorDetails(clusterName, err))
-		return nil
-	}
-	return AwaitChanges(ctx, r.Client.AtlasV2.ClustersApi, &tfModel.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
-}
-
-func (r *rs) applyTenantUpgrade(ctx context.Context, plan *TFModel, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
-	api := r.Client.AtlasV2.ClustersApi
-	projectID := plan.ProjectID.ValueString()
-	clusterName := plan.Name.ValueString()
-	upgradeRequest.Name = clusterName
-	_, _, err := api.UpgradeSharedCluster(ctx, projectID, upgradeRequest).Execute()
-	if err != nil {
-		diags.AddError(errorTenantUpgrade, defaultAPIErrorDetails(clusterName, err))
-		return nil
-	}
-	return AwaitChanges(ctx, api, &plan.Timeouts, diags, projectID, clusterName, changeReasonUpdate)
-}
-
 func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel, forceLegacySchema bool) (*TFModel, *ExtraAPIInfo) {
 	extraInfo := resolveAPIInfo(ctx, diags, client, modelIn, clusterResp, forceLegacySchema)
 	if diags.HasError() {
@@ -494,30 +396,47 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 }
 
 func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805) {
-	api := client.AtlasV2.ClustersApi
-	api20240530 := client.AtlasV220240530.ClustersApi
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	var err error
-	if legacyAdvConfig == nil {
-		legacyAdvConfig, _, err = api20240530.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			diags.AddError(errorAdvancedConfReadLegacy, defaultAPIErrorDetails(clusterName, err))
-			return
-		}
-	}
-	if advConfig == nil {
-		advConfig, _, err = api.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			diags.AddError(errorAdvancedConfRead, defaultAPIErrorDetails(clusterName, err))
-			return
-		}
+	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, legacyAdvConfig, advConfig)
+	if diags.HasError() {
+		return
 	}
 	AddAdvancedConfig(ctx, model, advConfig, legacyAdvConfig, diags)
 }
 
-func warningIfFCVExpiredOrUnpinnedExternally(diags *diag.Diagnostics, state *TFModel, clusterResp *admin.ClusterDescription20240805) {
-	fcvPresentInState := !state.PinnedFCV.IsNull()
-	newWarnings := GenerateFCVPinningWarningForRead(fcvPresentInState, clusterResp.FeatureCompatibilityVersionExpirationDate)
-	diags.Append(newWarnings...)
+func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.Diagnostics, operation string) *ClusterWaitParams {
+	projectID := model.ProjectID.ValueString()
+	clusterName := model.Name.ValueString()
+	operationTimeout := resolveTimeout(ctx, &model.Timeouts, operation, diags)
+	if diags.HasError() {
+		return nil
+	}
+	return &ClusterWaitParams{
+		ProjectID:   projectID,
+		ClusterName: clusterName,
+		Timeout:     operationTimeout,
+		IsDelete:    operation == operationDelete,
+	}
+}
+
+func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string, diags *diag.Diagnostics) time.Duration {
+	var (
+		timeoutDuration time.Duration
+		localDiags      diag.Diagnostics
+	)
+	switch operationName {
+	case operationCreate:
+		timeoutDuration, localDiags = t.Create(ctx, defaultTimeout)
+		diags.Append(localDiags...)
+	case operationUpdate:
+		timeoutDuration, localDiags = t.Update(ctx, defaultTimeout)
+		diags.Append(localDiags...)
+	case operationDelete:
+		timeoutDuration, localDiags = t.Delete(ctx, defaultTimeout)
+		diags.Append(localDiags...)
+	default:
+		timeoutDuration = defaultTimeout
+	}
+	return timeoutDuration
 }
