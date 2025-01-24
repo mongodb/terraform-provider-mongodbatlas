@@ -221,7 +221,7 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 		containerIDs := selectContainerIDs(&item, apiInfo.ContainerIDs)
 		tfModels = append(tfModels, TFReplicationSpecsModel{
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &containerIDs),
-			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
+			ExternalId:    types.StringValue(""), // Not meaningful with legacy schema
 			Id:            types.StringValue(legacyID),
 			RegionConfigs: regionConfigs,
 			NumShards:     types.Int64Value(numShards),
