@@ -94,6 +94,11 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 		return
 	}
 	setOptionalModelAttrs(ctx, stateObj, model)
+
+	// Set tags and labels to null instead of empty so there is no plan change if there are no tags or labels when Read is called.
+	model.Tags = types.MapNull(types.StringType)
+	model.Labels = types.MapNull(types.StringType)
+
 	diags.Append(stateOut.Set(ctx, model)...)
 }
 
