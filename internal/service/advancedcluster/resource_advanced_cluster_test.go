@@ -590,15 +590,15 @@ func TestAccClusterAdvancedCluster_withTags(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "tags"),
-				Check:  checkKeyValueBlocks(true, clusterName, "tags"),
+				Check:  checkKeyValueBlocks(true, true, "tags"),
 			},
 			{
 				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2),
-				Check:  checkKeyValueBlocks(true, clusterName, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2),
+				Check:  checkKeyValueBlocks(true, true, "tags", acc.ClusterTagsMap1, acc.ClusterTagsMap2),
 			},
 			{
 				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "tags", acc.ClusterTagsMap3),
-				Check:  checkKeyValueBlocks(true, clusterName, "tags", acc.ClusterTagsMap3),
+				Check:  checkKeyValueBlocks(true, true, "tags", acc.ClusterTagsMap3),
 			},
 		},
 	})
@@ -618,15 +618,15 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "labels"),
-				Check:  checkKeyValueBlocks(true, clusterName, "labels"),
+				Check:  checkKeyValueBlocks(true, true, "labels"),
 			},
 			{
 				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2),
-				Check:  checkKeyValueBlocks(true, clusterName, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2),
+				Check:  checkKeyValueBlocks(true, true, "labels", acc.ClusterLabelsMap1, acc.ClusterLabelsMap2),
 			},
 			{
 				Config: configWithKeyValueBlocks(t, true, orgID, projectName, clusterName, "labels", acc.ClusterLabelsMap3),
-				Check:  checkKeyValueBlocks(true, clusterName, "labels", acc.ClusterLabelsMap3),
+				Check:  checkKeyValueBlocks(true, true, "labels", acc.ClusterLabelsMap3),
 			},
 		},
 	})
@@ -1134,15 +1134,14 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			"replication_specs.0.container_id.AWS:US_EAST_1",
 		}
 		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, "timeouts.create", "6000s") // timeouts.create is not set on data sources
+		tagsLabelsMap  = map[string]string{"key": "env", "value": "test"}
+		tagsCheck      = checkKeyValueBlocks(true, false, "tags", tagsLabelsMap)
+		labelsCheck    = checkKeyValueBlocks(true, false, "labels", tagsLabelsMap)
 		checks         = checkAggr(true, checksSet, checksMap, timeoutCheck)
 		afterUpdateMap = map[string]string{
 			"state_name":                    "IDLE",
 			"backup_enabled":                "true",
 			"bi_connector_config.0.enabled": "true",
-			"labels.0.key":                  "env",
-			"labels.0.value":                "test",
-			"tags.0.key":                    "env",
-			"tags.0.value":                  "test",
 			"mongo_db_major_version":        "8.0",
 			"pit_enabled":                   "true",
 			"redact_client_log_data":        "true",
@@ -1162,7 +1161,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			"advanced_configuration.0.custom_openssl_cipher_config_tls12.#":                           "1",
 			"advanced_configuration.0.default_max_time_ms":                                            "65",
 		}
-		checksUpdate = checkAggr(true, checksSet, afterUpdateMap, timeoutCheck)
+		checksUpdate = checkAggr(true, checksSet, afterUpdateMap, timeoutCheck, tagsCheck, labelsCheck)
 		fullUpdate   = `
 	backup_enabled = true
 	bi_connector_config {
@@ -1479,28 +1478,60 @@ func configWithKeyValueBlocks(t *testing.T, isAcc bool, orgID, projectName, clus
 	`, orgID, projectName, clusterName, extraConfig)) + dataSourcesTFNewSchema
 }
 
-func checkKeyValueBlocks(isAcc bool, clusterName, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
+func checkKeyValueBlocks(isAcc, includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
+	if config.AdvancedClusterV2Schema() {
+		return checkKeyValueBlocksSchemaV2(isAcc, includeDataSources, blockName, blocks...)
+	}
 	const pluralPrefix = "results.0."
 	lenStr := strconv.Itoa(len(blocks))
-	keyHash := fmt.Sprintf("%s.#", blockName)
-	keyStar := fmt.Sprintf("%s.*", blockName)
+	keyHash := blockName + ".#"
+	keyStar := blockName + ".*"
 	checks := []resource.TestCheckFunc{
 		acc.TestCheckResourceAttrSchemaV2(isAcc, resourceName, keyHash, lenStr),
-		acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourceName, keyHash, lenStr),
-		acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourcePluralName, pluralPrefix+keyHash, lenStr),
+	}
+	if includeDataSources {
+		checks = append(checks,
+			acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourceName, keyHash, lenStr),
+			acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourcePluralName, pluralPrefix+keyHash, lenStr))
 	}
 	for _, block := range blocks {
 		checks = append(checks,
 			acc.TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc, resourceName, keyStar, block),
-			acc.TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc, dataSourceName, keyStar, block),
-			acc.TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc, dataSourcePluralName, pluralPrefix+keyStar, block))
+		)
+		if includeDataSources {
+			checks = append(checks,
+				acc.TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc, dataSourceName, keyStar, block),
+				acc.TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc, dataSourcePluralName, pluralPrefix+keyStar, block))
+		}
 	}
-	return checkAggr(isAcc,
-		[]string{"project_id"},
-		map[string]string{
-			"name": clusterName,
-		},
-		checks...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func checkKeyValueBlocksSchemaV2(isAcc, includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
+	const pluralPrefix = "results.0."
+	lenStr := strconv.Itoa(len(blocks))
+	keyPct := blockName + ".%"
+	checks := []resource.TestCheckFunc{
+		acc.TestCheckResourceAttrSchemaV2(isAcc, resourceName, keyPct, lenStr),
+	}
+	if includeDataSources {
+		checks = append(checks,
+			acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourceName, keyPct, lenStr),
+			acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourcePluralName, pluralPrefix+keyPct, lenStr))
+	}
+	for _, block := range blocks {
+		key := blockName + "." + block["key"]
+		value := block["value"]
+		checks = append(checks,
+			acc.TestCheckResourceAttrSchemaV2(isAcc, resourceName, key, value),
+		)
+		if includeDataSources {
+			checks = append(checks,
+				acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourceName, key, value),
+				acc.TestCheckResourceAttrSchemaV2(isAcc, dataSourcePluralName, pluralPrefix+key, value))
+		}
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func configReplicaSetAWSProvider(t *testing.T, isAcc bool, projectID, name string, diskSizeGB, nodeCountElectable int) string {
