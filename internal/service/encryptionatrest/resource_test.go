@@ -36,7 +36,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
-			RequirePrivateNetworking: conversion.Pointer(true),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 		awsKmsAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKms)
 
@@ -45,18 +45,18 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
-			RequirePrivateNetworking: conversion.Pointer(false),
+			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 		awsKmsUpdatedAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKmsUpdated)
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:                 func() { acc.PreCheckAwsEnv(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAwsKms(projectID, &awsKms, true, true),
+				Config: acc.ConfigAwsKms(projectID, &awsKms, true, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -234,26 +234,36 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t) // needs AWS configuration
 	var (
-		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID            = acc.ProjectIDExecution(t)
 		awsIAMRoleName       = acc.RandomIAMRole()
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 		awsKeyName           = acc.RandomName()
 		awsKms               = admin.AWSKMSConfiguration{
-			Enabled:                  conversion.Pointer(true),
-			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			RequirePrivateNetworking: conversion.Pointer(true),
+			Enabled:             conversion.Pointer(true),
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 		}
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:                 func() { acc.PreCheckAwsEnv(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					acc.CheckEARExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.customer_master_key_id", awsKms.GetCustomerMasterKeyID()),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.egion", awsKms.GetRegion()),
+					resource.TestCheckResourceAttrSet(resourceName, "aws_kms_config.0.role_id"),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
+
+					resource.TestCheckNoResourceAttr(resourceName, "azure_key_vault_config.#"),
+					resource.TestCheckNoResourceAttr(resourceName, "google_cloud_kms_config.#"),
+				),
 			},
 			{
 				ResourceName:      resourceName,

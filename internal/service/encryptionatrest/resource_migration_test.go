@@ -32,7 +32,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:     func() { acc.PreCheckAwsEnv(t) },
 		CheckDestroy: acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -70,7 +70,7 @@ func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:     func() { acc.PreCheckAwsEnv(t) },
 		CheckDestroy: acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -201,7 +201,7 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:     func() { acc.PreCheckAwsEnv(t) },
 		CheckDestroy: acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{

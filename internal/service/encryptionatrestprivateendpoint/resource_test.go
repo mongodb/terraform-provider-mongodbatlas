@@ -152,7 +152,7 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckEncryptionAtRestEnvAWS(tb) },
+		PreCheck:                 func() { acc.PreCheckEncryptionAtRestEnvAWS(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
