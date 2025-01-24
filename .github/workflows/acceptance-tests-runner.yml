@@ -626,7 +626,7 @@ jobs:
   encryption:
     needs: [ change-detection, get-provider-version ]
     concurrency:
-      group: ${{ github.repository }}-global-concurrency
+      group: ${{ github.repository }}-global-ear-concurrency
     if: ${{ needs.change-detection.outputs.encryption == 'true' || inputs.test_group == 'encryption' }}
     runs-on: ubuntu-latest
     permissions: {}
