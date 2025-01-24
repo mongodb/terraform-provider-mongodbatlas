@@ -1492,8 +1492,9 @@ func isFlex(clusterType string) bool {
 }
 
 func getFlexClusterUpdateRequest(d *schema.ResourceData) *admin.FlexClusterDescriptionUpdate20241113 {
-	if d.HasChange("tags") || d.HasChange("termination_protection_enabled") &&
-		(!d.HasChange("cluster_type") && !d.HasChange("replication_specs") && !d.HasChange("project_id") && !d.HasChange("name")) {
+	updatableAttrHaveBeenUpdated := d.HasChange("tags") || d.HasChange("termination_protection_enabled")
+	nonUpdatableAttrHaveNotBeenUpdated := !d.HasChange("cluster_type") && !d.HasChange("replication_specs") && !d.HasChange("project_id") && !d.HasChange("name")
+	if updatableAttrHaveBeenUpdated && nonUpdatableAttrHaveNotBeenUpdated {
 		return &admin.FlexClusterDescriptionUpdate20241113{
 			Tags:                         conversion.ExpandTagsFromSetSchema(d),
 			TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
