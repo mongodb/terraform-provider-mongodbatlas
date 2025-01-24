@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -20,52 +20,44 @@ var (
 	RetryPollInterval = 30 * time.Second
 )
 
-func AwaitChanges(ctx context.Context, api admin.ClustersApi, t *timeouts.Value, diags *diag.Diagnostics, projectID, clusterName, changeReason string) (cluster *admin.ClusterDescription20240805) {
-	var (
-		timeoutDuration time.Duration
-		localDiags      diag.Diagnostics
-		targetState     = retrystrategy.RetryStrategyIdleState
-		extraPending    = []string{}
-	)
-	switch changeReason {
-	case changeReasonCreate:
-		timeoutDuration, localDiags = t.Create(ctx, defaultTimeout)
-		diags.Append(localDiags...)
-	case changeReasonUpdate:
-		timeoutDuration, localDiags = t.Update(ctx, defaultTimeout)
-		diags.Append(localDiags...)
-	case changeReasonDelete:
-		timeoutDuration, localDiags = t.Delete(ctx, defaultTimeout)
-		diags.Append(localDiags...)
+type ClusterWaitParams struct {
+	ProjectID   string
+	ClusterName string
+	Timeout     time.Duration
+	IsDelete    bool
+}
+
+func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
+	api := client.AtlasV2.ClustersApi
+	targetState := retrystrategy.RetryStrategyIdleState
+	extraPending := []string{}
+	isDelete := waitParams.IsDelete
+	if isDelete {
 		targetState = retrystrategy.RetryStrategyDeletedState
 		extraPending = append(extraPending, retrystrategy.RetryStrategyIdleState)
-	default:
-		diags.AddError(errorUnknownChangeReason, "unknown change reason "+changeReason)
 	}
-	if diags.HasError() {
-		return nil
-	}
-	stateConf := CreateStateChangeConfig(ctx, api, projectID, clusterName, targetState, timeoutDuration, extraPending...)
+	clusterName := waitParams.ClusterName
+	stateConf := createStateChangeConfig(ctx, api, waitParams.ProjectID, clusterName, targetState, waitParams.Timeout, extraPending...)
 	clusterAny, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && changeReason == changeReasonDelete {
+		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && isDelete {
 			return nil
 		}
-		diags.AddError(errorAwaitState, fmt.Sprintf("change reason: %s, desired state: %s, error: %s", changeReason, targetState, err))
+		addErrorDiag(diags, errorLocator, fmt.Sprintf("cluster=%s didn't reach desired state: %s, error: %s", clusterName, targetState, err))
 		return nil
 	}
-	if targetState == retrystrategy.RetryStrategyDeletedState {
+	if isDelete {
 		return nil
 	}
 	cluster, ok := clusterAny.(*admin.ClusterDescription20240805)
 	if !ok {
-		diags.AddError(errorAwaitStateResultType, fmt.Sprintf("unexpected type: %T", clusterAny))
+		addErrorDiag(diags, errorLocator, fmt.Sprintf("cluster=%s, got unexpected type: %T", clusterName, clusterAny))
 		return nil
 	}
 	return cluster
 }
 
-func CreateStateChangeConfig(ctx context.Context, api admin.ClustersApi, projectID, name, targetState string, timeout time.Duration, extraPending ...string) retry.StateChangeConf {
+func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, projectID, name, targetState string, timeout time.Duration, extraPending ...string) retry.StateChangeConf {
 	return retry.StateChangeConf{
 		Pending: slices.Concat([]string{
 			retrystrategy.RetryStrategyCreatingState,
