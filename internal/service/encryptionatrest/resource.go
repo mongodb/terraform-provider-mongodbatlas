@@ -302,7 +302,7 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	encryptionAtRestPlanNew := NewTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp.(*admin.EncryptionAtRest))
 	resetDefaultsFromConfigOrState(ctx, encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
 
-	// set state to fully populated data
+	// set state to fully populated data - temp remove
 	diags := resp.State.Set(ctx, encryptionAtRestPlanNew)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
