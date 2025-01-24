@@ -300,7 +300,7 @@ func checkBasic(projectID, cloudProvider, region string, expectApproved bool) re
 	}
 	attrsSet := []string{"id"}
 	if cloudProvider == "AZURE" {
-		attrsSet = []string{"id", "private_endpoint_connection_name"}
+		attrsSet = append(attrsSet, "private_endpoint_connection_name")
 	}
 
 	return acc.CheckRSAndDS(
