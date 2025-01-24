@@ -218,49 +218,22 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-
-	stateUsingLegacy := usingLegacyShardingConfig(ctx, state.ReplicationSpecs, diags)
-	planUsingLegacy := usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags)
-	if planUsingLegacy && !stateUsingLegacy {
-		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
-		return
+	patchOptions := update.PatchOptions{
+		IgnoreInStatePrefix: []string{"regionConfigs"},
+		IgnoreInStateSuffix: []string{"zoneId"}, // replication_spec.*.zone_id doesn't have to be included, the API will do its best to create a minimal change
 	}
-	isShardingConfigUpgrade := stateUsingLegacy && !planUsingLegacy
-	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
-	planReq := normalizeFromTFModel(ctx, &plan, diags, isShardingConfigUpgrade)
+	patchReq, upgradeReq := findClusterDiff(ctx, &state, &plan, diags, &patchOptions)
 	if diags.HasError() {
 		return
 	}
-
-	patchOptions := update.PatchOptions{
-		IgnoreInStatePrefix: []string{"regionConfigs"},
-		IgnoreInStateSuffix: []string{"id", "zoneId"}, // replication_spec.*.zone_id|id doesn't have to be included, the API will do its best to create a minimal change
-	}
-	if findNumShardsUpdates(ctx, &state, &plan, diags) != nil {
-		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
-		// `num_shards` updates is only in the legacy ClusterDescription
-		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
-	}
-	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
-	if err != nil {
-		diags.AddError(errorPatchPayload, err.Error())
-		return
+	if upgradeReq != nil {
+		clusterResp = TenantUpgrade(ctx, diags, r.Client, waitParams, upgradeReq)
+		if diags.HasError() {
+			return
+		}
 	}
 	if !update.IsZeroValues(patchReq) {
-		upgradeRequest := getTenantUpgradeRequest(stateReq, patchReq)
-		if upgradeRequest != nil {
-			clusterResp = TenantUpgrade(ctx, diags, r.Client, waitParams, upgradeRequest)
-		} else {
-			if isShardingConfigUpgrade {
-				specs, err := populateIDValuesUsingNewAPI(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), r.Client.AtlasV2.ClustersApi, patchReq.ReplicationSpecs)
-				if err != nil {
-					diags.AddError(errorSchemaUpgradeReadIDs, defaultAPIErrorDetails(plan.Name.ValueString(), err))
-					return
-				}
-				patchReq.ReplicationSpecs = specs
-			}
-			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq, waitParams)
-		}
+		clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq, waitParams)
 		if diags.HasError() {
 			return
 		}
@@ -469,4 +442,37 @@ func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 		timeoutDuration = defaultTimeout
 	}
 	return timeoutDuration
+}
+
+func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, options *update.PatchOptions) (*admin.ClusterDescription20240805, *admin.LegacyAtlasTenantClusterUpgradeRequest) {
+	stateUsingLegacy := usingLegacyShardingConfig(ctx, state.ReplicationSpecs, diags)
+	planUsingLegacy := usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags)
+	if planUsingLegacy && !stateUsingLegacy {
+		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
+		return nil, nil
+	}
+	isShardingConfigUpgrade := stateUsingLegacy && !planUsingLegacy
+	stateReq := normalizeFromTFModel(ctx, state, diags, false)
+	planReq := normalizeFromTFModel(ctx, plan, diags, isShardingConfigUpgrade)
+	if diags.HasError() {
+		return nil, nil
+	}
+	if findNumShardsUpdates(ctx, state, plan, diags) != nil {
+		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
+		// `num_shards` updates is only in the legacy ClusterDescription
+		options.ForceUpdateAttr = append(options.ForceUpdateAttr, "replicationSpecs")
+	}
+	patchReq, err := update.PatchPayload(stateReq, planReq, *options)
+	if err != nil {
+		diags.AddError(errorPatchPayload, err.Error())
+		return nil, nil
+	}
+	if update.IsZeroValues(patchReq) { // No changes to cluster
+		return nil, nil
+	}
+	upgradeRequest := getTenantUpgradeRequest(stateReq, patchReq)
+	if upgradeRequest != nil {
+		return nil, upgradeRequest
+	}
+	return patchReq, nil
 }
