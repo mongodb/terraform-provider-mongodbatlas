@@ -58,7 +58,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAwsKms(projectID, &awsKms, true, true),
+				Config: acc.ConfigAwsKms(projectID, &awsKms, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -72,7 +72,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 				),
 			},
 			{
-				Config: configAwsKms(projectID, &awsKmsUpdated, true, true),
+				Config: acc.ConfigAwsKms(projectID, &awsKmsUpdated, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -241,9 +241,10 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 		awsKeyName           = acc.RandomName()
 		awsKms               = admin.AWSKMSConfiguration{
-			Enabled:             conversion.Pointer(true),
-			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Enabled:                  conversion.Pointer(true),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 	)
 
@@ -501,32 +502,6 @@ func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
 	}
 }
 
-func configAwsKms(projectID string, aws *admin.AWSKMSConfiguration, useDatasource, useRequirePrivateNetworking bool) string {
-	requirePrivateNetworkingStr := ""
-	if useRequirePrivateNetworking {
-		requirePrivateNetworkingStr = fmt.Sprintf("require_private_networking = %t", aws.GetRequirePrivateNetworking())
-	}
-	config := fmt.Sprintf(`
-		resource "mongodbatlas_encryption_at_rest" "test" {
-			project_id = %[1]q
-
-		  aws_kms_config {
-				enabled                = %[2]t
-				customer_master_key_id = %[3]q
-				region                 = %[4]q
-				role_id              = %[5]q
-				
-				%[6]s
-			}
-		}
-	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId(), requirePrivateNetworkingStr)
-
-	if useDatasource {
-		return fmt.Sprintf(`%s %s`, config, acc.EARDatasourceConfig())
-	}
-	return config
-}
-
 func configGoogleCloudKms(projectID string, google *admin.GoogleCloudKMS, useDatasource bool) string {
 	config := fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
@@ -628,7 +603,8 @@ resource "mongodbatlas_encryption_at_rest" "test" {
     customer_master_key_id = %[3]q
 	region                 = %[2]q
     role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+	require_private_networking = %[4]t
   }
 }
-	`, awsEar.GetEnabled(), awsEar.GetRegion(), awsEar.GetCustomerMasterKeyID())
+	`, awsEar.GetEnabled(), awsEar.GetRegion(), awsEar.GetCustomerMasterKeyID(), awsEar.GetRequirePrivateNetworking())
 }
