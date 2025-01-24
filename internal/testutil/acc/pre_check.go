@@ -242,7 +242,7 @@ func PreCheckAwsEnv(tb testing.TB) {
 
 func PreCheckEncryptionAtRestEnvAWS(tb testing.TB) {
 	tb.Helper()
-	PreCheckBasic(tb) // temp
+	PreCheckBasic(tb)
 
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
 		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" ||
