@@ -1287,19 +1287,18 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.RetainBackups = conversion.Pointer(v.(bool))
 	}
 
-	isFlex := false
-	_, err := connV2.ClustersApi.DeleteClusterWithParams(ctx, params).Execute()
-	if err != nil {
-		if isFlex = admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API"); !isFlex { // if cluster is flex we need to call different API
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		}
-	}
-	if isFlex {
+	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil)
+
+	if isFlex((*replicationSpecs)[0].GetRegionConfigs()[0].GetProviderName()) {
 		err := flexcluster.DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorDeleteFlex, clusterName, err))
 		}
 		return nil
+	}
+	_, err := connV2.ClustersApi.DeleteClusterWithParams(ctx, params).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorDelete, clusterName, err))
 	}
 
 	log.Println("[INFO] Waiting for MongoDB ClusterAdvanced to be destroyed")
