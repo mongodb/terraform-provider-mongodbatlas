@@ -3,12 +3,14 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
@@ -23,6 +25,7 @@ var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 var _ resource.ResourceWithMoveState = &rs{}
 var _ resource.ResourceWithUpgradeState = &rs{}
+var _ resource.ResourceWithModifyPlan = &rs{}
 
 const (
 	resourceName                  = "advanced_cluster"
@@ -87,6 +90,117 @@ func Resource() resource.Resource {
 
 type rs struct {
 	config.RSCommon
+}
+
+var counter = 0
+
+func IsUnknown(obj reflect.Value) *bool {
+	// Get the reflect.Value of the object
+	// v := reflect.ValueOf(obj)
+
+	// Check if the method exists
+	method := obj.MethodByName("IsUnknown")
+	if !method.IsValid() {
+		fmt.Printf("Method IsUnknown does not exist on %v\n", obj)
+		return nil
+	}
+
+	// Invoke the method and get the results
+	results := method.Call([]reflect.Value{})
+
+	// Process the results
+	if len(results) > 0 {
+		result := results[0]
+		fmt.Printf("Result of IsUnknown(): %v\n", result.Interface())
+		response := result.Interface().(bool)
+		return &response
+	}
+	return nil
+}
+
+func HasUnknowns(obj any) bool {
+	valObj := reflect.ValueOf(obj)
+	if valObj.Kind() != reflect.Ptr {
+		panic("params must be pointer")
+	}
+	valObj = valObj.Elem()
+	if valObj.Kind() != reflect.Struct {
+		panic("params must be pointer to struct")
+	}
+	typeObj := valObj.Type()
+	for i := range typeObj.NumField() {
+		field := valObj.Field(i)
+		isUnknownP := IsUnknown(field)
+		if isUnknownP != nil && *isUnknownP {
+			return true
+		}
+	}
+	return false
+}
+
+func CopyUnknowns(ctx context.Context, src, dest any) {
+	valSrc := reflect.ValueOf(src)
+	valDest := reflect.ValueOf(dest)
+	if valSrc.Kind() != reflect.Ptr || valDest.Kind() != reflect.Ptr {
+		panic("params must be pointers")
+	}
+	valSrc = valSrc.Elem()
+	valDest = valDest.Elem()
+	if valSrc.Kind() != reflect.Struct || valDest.Kind() != reflect.Struct {
+		panic("params must be pointers to structs")
+	}
+	typeSrc := valSrc.Type()
+	typeDest := valDest.Type()
+	for i := range typeDest.NumField() {
+		fieldDest := typeDest.Field(i)
+		name := fieldDest.Name
+		_, found := typeSrc.FieldByName(name)
+		if !found {
+			continue
+		}
+		// IsUnknown(valDest.Field(i).Addr()
+		isUnknownP := IsUnknown(valDest.Field(i))
+		if isUnknownP != nil && !*isUnknownP {
+			continue
+		}
+		tflog.Info(ctx, fmt.Sprintf("Copying unknown field: %s", name))
+		valDest.Field(i).Set(valSrc.FieldByName(name))
+	}
+}
+
+func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	counter++
+	tflog.Info(ctx, fmt.Sprintf("In Modify plan call @ beginning, counter=%d", counter))
+	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Can be null in case of destroy
+		return
+	}
+	var config, plan, state TFModel
+	diags := &resp.Diagnostics
+	diags.Append(req.Plan.Get(ctx, &plan)...)
+	diags.Append(req.State.Get(ctx, &state)...)
+	diags.Append(req.Config.Get(ctx, &config)...)
+	if diags.HasError() {
+		return
+	}
+	advancedConfigPlanIsUnknown := plan.AdvancedConfiguration.IsUnknown()
+	advancedConfigConfigIsNull := config.AdvancedConfiguration.IsNull()
+	tflog.Info(ctx, fmt.Sprintf("In Modify plan call with state, advancedConfigIsUnknown: %t, counter=%d, advancedConfigIsNull=%t (in config)", advancedConfigPlanIsUnknown, counter, advancedConfigConfigIsNull))
+	if !HasUnknowns(&plan) {
+		tflog.Info(ctx, "No unknowns in plan, early return")
+		return
+	}
+	onlineCluster := ReadCluster(ctx, diags, r.Client, plan.ProjectID.ValueString(), plan.Name.ValueString(), false)
+	if onlineCluster == nil {
+		return
+	}
+	readModel, _ := getBasicClusterModel(ctx, diags, r.Client, onlineCluster, &plan, false)
+	updateModelAdvancedConfig(ctx, diags, r.Client, readModel, nil, nil)
+	if diags.HasError() {
+		return
+	}
+	CopyUnknowns(ctx, readModel, &plan)
+	diags.Append(resp.Plan.Set(ctx, plan)...)
+
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -177,7 +291,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
-	if diags.HasError() {
+	if diags.HasError() || true {
 		return
 	}
 	var clusterResp *admin.ClusterDescription20240805
