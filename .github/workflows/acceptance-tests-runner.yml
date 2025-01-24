@@ -104,7 +104,10 @@ on:
       confluent_cloud_privatelink_access_id:
         type: string
         required: true
-      aws_customer_master_key_id:
+      aws_ear_role_id:
+        type: string
+        required: true
+      mongodb_atlas_project_ear_pe_aws_id:
         type: string
         required: true
     secrets: # all secrets are passed explicitly in this workflow
@@ -180,9 +183,7 @@ on:
         required: true
       confluent_cloud_api_secret:
         required: true
-      aws_ear_role_id:
-        required: true
-      mongodb_atlas_project_ear_pe_aws_id:
+      aws_customer_master_key_id:
         required: true
           
 env:
