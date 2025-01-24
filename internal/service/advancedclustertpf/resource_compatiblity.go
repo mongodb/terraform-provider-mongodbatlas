@@ -97,7 +97,7 @@ func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription2024
 	rootDiskSize := conversion.NilForUnknown(model.DiskSizeGB, model.DiskSizeGB.ValueFloat64Pointer())
 	regionRootDiskSize := findRegionRootDiskSize(latestModel.ReplicationSpecs)
 	if rootDiskSize != nil && regionRootDiskSize != nil && (*regionRootDiskSize-*rootDiskSize) > 0.01 {
-		errMsg := "disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)"
+		errMsg := fmt.Sprintf("disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)", *rootDiskSize, *regionRootDiskSize)
 		diags.AddError(errMsg, errMsg)
 		return nil
 	}
