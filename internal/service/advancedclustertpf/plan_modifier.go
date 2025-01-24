@@ -82,7 +82,7 @@ func CopyUnknowns(ctx context.Context, src, dest any) {
 }
 
 func useRemoteForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, remoteModel *TFModel) {
-	CopyUnknowns(ctx, remoteModel, &plan)
+	CopyUnknowns(ctx, remoteModel, plan)
 	planReplicationSpecsElements := plan.ReplicationSpecs.Elements()
 	readModelReplicationSpecsElements := remoteModel.ReplicationSpecs.Elements()
 	if len(planReplicationSpecsElements) != len(readModelReplicationSpecsElements) {

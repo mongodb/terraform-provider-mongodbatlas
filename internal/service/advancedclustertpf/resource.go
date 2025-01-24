@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
@@ -91,27 +90,18 @@ type rs struct {
 	config.RSCommon
 }
 
-var counter = 0
-
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	counter++
-	tflog.Info(ctx, fmt.Sprintf("In Modify plan call @ beginning, counter=%d", counter))
 	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Can be null in case of destroy
 		return
 	}
-	var config, plan, state TFModel
+	var plan, state TFModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
-	diags.Append(req.Config.Get(ctx, &config)...)
 	if diags.HasError() {
 		return
 	}
-	advancedConfigPlanIsUnknown := plan.AdvancedConfiguration.IsUnknown()
-	advancedConfigConfigIsNull := config.AdvancedConfiguration.IsNull()
-	tflog.Info(ctx, fmt.Sprintf("In Modify plan call with state, advancedConfigIsUnknown: %t, counter=%d, advancedConfigIsNull=%t (in config)", advancedConfigPlanIsUnknown, counter, advancedConfigConfigIsNull))
 	if !HasUnknowns(&plan) {
-		tflog.Info(ctx, "No unknowns in plan, early return")
 		return
 	}
 	remoteCluster := ReadCluster(ctx, diags, r.Client, plan.ProjectID.ValueString(), plan.Name.ValueString(), false)
