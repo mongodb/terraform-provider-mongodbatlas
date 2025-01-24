@@ -12,19 +12,17 @@ import (
 )
 
 func IsUnknown(obj reflect.Value) *bool {
-	// Check if the method exists
 	method := obj.MethodByName("IsUnknown")
-	if !method.IsValid() {
-		fmt.Printf("Method IsUnknown does not exist on %v\n", obj)
+	if !method.IsValid() { // Method not found
 		return nil
 	}
-	// Invoke the method and get the results
 	results := method.Call([]reflect.Value{})
 	if len(results) > 0 {
 		result := results[0]
-		fmt.Printf("Result of IsUnknown(): %v\n", result.Interface())
-		response := result.Interface().(bool)
-		return &response
+		response, ok := result.Interface().(bool)
+		if ok {
+			return &response
+		}
 	}
 	return nil
 }
@@ -70,7 +68,7 @@ func CopyUnknowns(ctx context.Context, src, dest any) {
 			continue
 		}
 		isUnknownP := IsUnknown(valDest.Field(i))
-		if isUnknownP != nil && !*isUnknownP {
+		if isUnknownP == nil || !*isUnknownP {
 			continue
 		}
 		if !valDest.Field(i).CanSet() {
@@ -115,7 +113,7 @@ func useRemoteForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, rem
 	plan.ReplicationSpecs = newReplicationSpecs
 }
 
-func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote *TFReplicationSpecsModel, replicationSpecPlan *TFReplicationSpecsModel, diags *diag.Diagnostics) {
+func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote, replicationSpecPlan *TFReplicationSpecsModel, diags *diag.Diagnostics) {
 	regionConfigsRemoteElements := replicationSpecRemote.RegionConfigs.Elements()
 	regionConfigsPlanElements := replicationSpecPlan.RegionConfigs.Elements()
 	if len(regionConfigsRemoteElements) != len(regionConfigsPlanElements) {
@@ -134,7 +132,7 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote *T
 	for j := range regionConfigsPlanElements {
 		remoteRegionConfig := &remoteRegionConfigs[j]
 		planRegionConfig := &planRegionConfigs[j]
-		if !planRegionConfig.ElectableSpecs.IsNull() {
+		if !planRegionConfig.ElectableSpecs.IsNull() && !planRegionConfig.ElectableSpecs.IsUnknown() {
 			planElectableSpecs := &TFSpecsModel{}
 			if localDiags := planRegionConfig.ElectableSpecs.As(ctx, planElectableSpecs, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
 				diags.Append(localDiags...)
@@ -152,6 +150,8 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote *T
 				return
 			}
 			planRegionConfig.ElectableSpecs = newElectableSpecs
+		}
+		if !planRegionConfig.AutoScaling.IsNull() && !planRegionConfig.AutoScaling.IsUnknown() {
 			autoScalingPlan := &TFAutoScalingModel{}
 			if localDiags := planRegionConfig.AutoScaling.As(ctx, autoScalingPlan, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
 				diags.Append(localDiags...)
@@ -169,7 +169,6 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote *T
 				return
 			}
 			planRegionConfig.AutoScaling = newAutoScaling
-
 		}
 		CopyUnknowns(ctx, remoteRegionConfig, planRegionConfig)
 	}
@@ -179,5 +178,4 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote *T
 		return
 	}
 	replicationSpecPlan.RegionConfigs = newRegionConfig
-	return
 }

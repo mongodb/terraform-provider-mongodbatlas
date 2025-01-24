@@ -208,7 +208,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
-	if diags.HasError() || true {
+	if diags.HasError() {
 		return
 	}
 	var clusterResp *admin.ClusterDescription20240805
