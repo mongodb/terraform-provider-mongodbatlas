@@ -5,18 +5,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
