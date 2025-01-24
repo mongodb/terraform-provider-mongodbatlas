@@ -2890,7 +2890,8 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 	if withTags {
 		tags = `
 			tags {
-				"testKey" = "testValue"
+				key = "testKey"
+				value = "testValue"
 			}`
 	}
 	return fmt.Sprintf(`
@@ -2903,7 +2904,7 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 					provider_name = "FLEX"
 					backing_provider_name = %[3]q
 					region_name = %[4]q
-					priority      = 7
+					priority      = 0
 				}
 			}
 			%[5]s
@@ -2932,10 +2933,16 @@ func TestAccClusterFlexCluster_basic(t *testing.T) {
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", true),
 			},
 			{
+				Config:            configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", true),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_2", true),
 				ExpectError: regexp.MustCompile("flex cluster update is not supported except for tags and termination_protection_enabled fields"),
 			},
-			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -2978,8 +2985,9 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 		"provider_settings.provider_name",
 	}
 	if tagsCheck {
-		attrMapFlex["tags.0.testKey"] = "testValue"
-		attrMapAdvCluster["tags.0.testKey"] = "testValue"
+		attrMapFlex["tags.testKey"] = "testValue"
+		attrMapAdvCluster["tags.0.key"] = "testKey"
+		attrMapAdvCluster["tags.0.value"] = "testValue"
 	}
 	pluralMap := map[string]string{
 		"project_id": projectID,

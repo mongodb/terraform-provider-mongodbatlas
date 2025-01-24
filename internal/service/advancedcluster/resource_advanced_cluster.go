@@ -876,7 +876,9 @@ func isUsingOldShardingConfiguration(d *schema.ResourceData) bool {
 }
 
 func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	if isFlex(d.Get("cluster_type").(string)) {
+	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil)
+
+	if isFlex((*replicationSpecs)[0].GetRegionConfigs()[0].GetProviderName()) {
 		if flexUpdateRequest := getFlexClusterUpdateRequest(d); flexUpdateRequest != nil {
 			return resourceUpdateFlexCluster(ctx, flexUpdateRequest, d, meta)
 		}
@@ -1364,23 +1366,36 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, err
 	}
 
+	isFlex := false
 	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, *projectID, *name).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
+		if isFlex = admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API"); !isFlex { // if cluster is flex we need to call different API
+			return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
+		}
+	}
+	clusterID := cluster.GetId()
+	clusterName := cluster.GetName()
+	if isFlex {
+		flexCluster, err := flexcluster.GetFlexCluster(ctx, *projectID, *name, connV2.FlexClustersApi)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't import flex cluster %s in project %s, error: %s", *name, *projectID, err)
+		}
+		clusterID = flexCluster.GetId()
+		clusterName = flexCluster.GetName()
 	}
 
-	if err := d.Set("project_id", cluster.GetGroupId()); err != nil {
+	if err := d.Set("project_id", clusterID); err != nil {
 		log.Printf(ErrorClusterAdvancedSetting, "project_id", cluster.GetId(), err)
 	}
 
-	if err := d.Set("name", cluster.GetName()); err != nil {
+	if err := d.Set("name", clusterName); err != nil {
 		log.Printf(ErrorClusterAdvancedSetting, "name", cluster.GetId(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   cluster.GetId(),
+		"cluster_id":   clusterID,
 		"project_id":   *projectID,
-		"cluster_name": cluster.GetName(),
+		"cluster_name": clusterName,
 	}))
 
 	return []*schema.ResourceData{d}, nil
@@ -1569,7 +1584,7 @@ func setFlexFields(d *schema.ResourceData, flexCluster *admin.FlexClusterDescrip
 		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "mongo_db_version", flexClusterName, err))
 	}
 
-	if err := d.Set("replication_specs", flexcluster.FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings)); err != nil {
+	if err := d.Set("replication_specs", flexcluster.FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings, conversion.Pointer(d.Get("replication_specs.0.region_configs.0.priority").(int)))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "replication_specs", flexClusterName, err))
 	}
 
