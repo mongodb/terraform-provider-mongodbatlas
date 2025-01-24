@@ -411,7 +411,7 @@ func FormatMongoDBMajorVersion(val any) string {
 func flattenLabels(l []admin.ComponentLabel) []map[string]string {
 	labels := make([]map[string]string, 0, len(l))
 	for _, item := range l {
-		if item.GetKey() == ignoreLabel {
+		if item.GetKey() == advancedclustertpf.LegacyIgnoredLabelKey {
 			continue
 		}
 		labels = append(labels, map[string]string{
@@ -960,8 +960,8 @@ func expandLabelSliceFromSetSchema(d *schema.ResourceData) ([]admin.ComponentLab
 	for i, val := range list.List() {
 		v := val.(map[string]any)
 		key := v["key"].(string)
-		if key == ignoreLabel {
-			return nil, diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+		if key == advancedclustertpf.LegacyIgnoredLabelKey {
+			return nil, diag.FromErr(advancedclustertpf.ErrLegacyIgnoreLabel)
 		}
 		res[i] = admin.ComponentLabel{
 			Key:   conversion.StringPtr(key),
@@ -1024,7 +1024,7 @@ func expandAdvancedReplicationSpecOldSDK(tfMap map[string]any) *admin20240530.Re
 	apiObject := &admin20240530.ReplicationSpec{
 		NumShards:     conversion.Pointer(tfMap["num_shards"].(int)),
 		ZoneName:      conversion.StringPtr(tfMap["zone_name"].(string)),
-		RegionConfigs: convertRegionConfigSliceToOldSDK(expandRegionConfigs(tfMap["region_configs"].([]any), nil)),
+		RegionConfigs: advancedclustertpf.ConvertRegionConfigSlice20241023to20240530(expandRegionConfigs(tfMap["region_configs"].([]any), nil)),
 	}
 	if tfMap["id"].(string) != "" {
 		apiObject.Id = conversion.StringPtr(tfMap["id"].(string))

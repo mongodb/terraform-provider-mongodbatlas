@@ -32,6 +32,12 @@ help:
 build: fmt fmtcheck ## Generate the binary in ./bin
 	go build -ldflags "$(LINKER_FLAGS)" -o $(DESTINATION)
 
+.PHONY: clean-atlas-org
+clean-atlas-org: ## Run a test to clean all projects and pending resources in an Atlas org, supports export DRY_RUN=false (default=true)
+	@$(eval export MONGODB_ATLAS_CLEAN_ORG?=true)
+	@$(eval export DRY_RUN?=true)
+	go test -count=1 'github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean' -timeout 3600s -parallel=250 -run 'TestCleanProjectAndClusters' -v -ldflags="$(LINKER_FLAGS)"
+
 .PHONY: test
 test: fmtcheck ## Run unit tests
 	go test ./... -timeout=30s -parallel=4 -race
@@ -43,6 +49,7 @@ testmact: ## Run MacT tests (mocked acc tests)
 	@$(eval export HTTP_MOCKER_CAPTURE?=false)
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
+	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
 	@$(eval export MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA?=true)
 	@if [ "$(ACCTEST_PACKAGES)" = "./..." ]; then \
 		echo "Error: ACCTEST_PACKAGES must be explicitly set for testmact target, './...' is not allowed"; \

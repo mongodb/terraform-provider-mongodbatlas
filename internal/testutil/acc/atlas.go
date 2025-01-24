@@ -86,7 +86,7 @@ func ProjectID(tb testing.TB, name string) string {
 	tb.Helper()
 	SkipInUnitTest(tb)
 
-	if id := projectIDLocal(tb); id != "" {
+	if id := projectIDLocal(); id != "" {
 		return id
 	}
 
@@ -96,25 +96,6 @@ func ProjectID(tb testing.TB, name string) string {
 	return id
 }
 
-func projectIDLocal(tb testing.TB) string {
-	tb.Helper()
-	id := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	if id == "" {
-		return ""
-	}
-	tb.Logf("Using MONGODB_ATLAS_PROJECT_ID: %s", id)
-	return id
-}
-
-func clusterNameLocal(tb testing.TB) string {
-	tb.Helper()
-	name := os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
-	if name == "" {
-		return ""
-	}
-	if InCI() {
-		tb.Fatal("MONGODB_ATLAS_CLUSTER_NAME can't be used in CI")
-	}
-	tb.Logf("Using MONGODB_ATLAS_CLUSTER_NAME: %s", name)
-	return name
+func projectIDLocal() string {
+	return os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 }
