@@ -160,12 +160,37 @@ func FlattenFlexConnectionStrings(str *admin.FlexConnectionStrings20241113) []ma
 }
 
 func FlattenFlexProviderSettingsIntoReplicationSpecs(providerSettings admin.FlexProviderSettings20241113) []map[string]any {
-	return []map[string]any{
+	tfMaps := []map[string]any{{}}
+	tfMaps[0]["region_configs"] = []map[string]any{
 		{
 			"provider_name":         providerSettings.GetProviderName(),
 			"backing_provider_name": providerSettings.GetBackingProviderName(),
 			"region_name":           providerSettings.GetRegionName(),
-			"disk_size_gb":          providerSettings.GetDiskSizeGB(),
 		},
 	}
+	return tfMaps
+}
+
+func FlattenFlexClustersToAdvancedClusters(flexClusters *[]admin.FlexClusterDescription20241113) []map[string]any {
+	if flexClusters == nil {
+		return nil
+	}
+	results := make([]map[string]any, len(*flexClusters))
+	for i := range *flexClusters {
+		flexCluster := &(*flexClusters)[i]
+		results[i] = map[string]any{
+			"cluster_type":                   flexCluster.GetClusterType(),
+			"backup_enabled":                 flexCluster.BackupSettings.GetEnabled(),
+			"connection_strings":             FlattenFlexConnectionStrings(flexCluster.ConnectionStrings),
+			"create_date":                    conversion.TimePtrToStringPtr(flexCluster.CreateDate),
+			"mongo_db_version":               flexCluster.GetMongoDBVersion(),
+			"replication_specs":              FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings),
+			"name":                           flexCluster.GetName(),
+			"state_name":                     flexCluster.GetStateName(),
+			"tags":                           conversion.FlattenTags(flexCluster.GetTags()),
+			"termination_protection_enabled": flexCluster.GetTerminationProtectionEnabled(),
+			"version_release_system":         flexCluster.GetVersionReleaseSystem(),
+		}
+	}
+	return results
 }

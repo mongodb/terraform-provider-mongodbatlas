@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -244,4 +245,22 @@ func DeleteFlexCluster(ctx context.Context, projectID, clusterName string, clien
 	}
 
 	return WaitStateTransitionDelete(ctx, flexClusterParams, client)
+}
+
+func ListFlexClusters(ctx context.Context, projectID string, client admin.FlexClustersApi) (*[]admin.FlexClusterDescription20241113, error) {
+	params := admin.ListFlexClustersApiParams{
+		GroupId: projectID,
+	}
+
+	flexClusters, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.FlexClusterDescription20241113], *http.Response, error) {
+		request := client.ListFlexClustersWithParams(ctx, &params)
+		request = request.PageNum(pageNum)
+		return request.Execute()
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &flexClusters, nil
 }

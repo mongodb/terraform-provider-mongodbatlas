@@ -116,10 +116,6 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"effective_cluster_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"connection_strings": SchemaConnectionStrings(),
 			"create_date": {
 				Type:     schema.TypeString,
@@ -440,10 +436,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
+	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil)
 
-	if isFlex(d.Get("cluster_type").(string)) {
+	if isFlex((*replicationSpecs)[0].GetRegionConfigs()[0].GetProviderName()) {
 		clusterName := d.Get("name").(string)
-		flexClusterReq := flexcluster.NewAtlasCreateReqSDKv2(d, expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil))
+		flexClusterReq := flexcluster.NewAtlasCreateReqSDKv2(d, replicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreateFlex, err))
@@ -649,6 +646,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorReadFlex, clusterName, err))
 		}
 		diags := setFlexFields(d, flexClusterResp)
+
+		if err := d.Set("cluster_id", flexClusterResp.GetId()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "cluster_id", clusterName, err))
+		}
+
 		if diags.HasError() {
 			return diags
 		}
@@ -740,10 +742,6 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 
 	if err := d.Set("cluster_type", cluster.GetClusterType()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "cluster_type", clusterName, err))
-	}
-
-	if err := d.Set("effective_cluster_type", cluster.GetClusterType()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "effective_cluster_type", clusterName, err))
 	}
 
 	if err := d.Set("connection_strings", flattenConnectionStrings(*cluster.ConnectionStrings)); err != nil {
@@ -1551,12 +1549,8 @@ func resourceUpdateFlexCluster(ctx context.Context, flexUpdateRequest *admin.Fle
 
 func setFlexFields(d *schema.ResourceData, flexCluster *admin.FlexClusterDescription20241113) diag.Diagnostics {
 	flexClusterName := flexCluster.GetName()
-	if err := d.Set("cluster_type", flexCluster.ProviderSettings.GetProviderName()); err != nil {
+	if err := d.Set("cluster_type", flexCluster.GetClusterType()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "cluster_type", flexClusterName, err))
-	}
-
-	if err := d.Set("effective_cluster_type", flexCluster.GetClusterType()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "effective_cluster_type", flexClusterName, err))
 	}
 
 	if err := d.Set("backup_enabled", flexCluster.BackupSettings.GetEnabled()); err != nil {
@@ -1583,10 +1577,6 @@ func setFlexFields(d *schema.ResourceData, flexCluster *admin.FlexClusterDescrip
 		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "name", flexClusterName, err))
 	}
 
-	if err := d.Set("cluster_id", flexCluster.GetId()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "cluster_id", flexClusterName, err))
-	}
-
 	if err := d.Set("project_id", flexCluster.GetGroupId()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "project_id", flexClusterName, err))
 	}
@@ -1606,6 +1596,5 @@ func setFlexFields(d *schema.ResourceData, flexCluster *admin.FlexClusterDescrip
 	if err := d.Set("version_release_system", flexCluster.GetVersionReleaseSystem()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "version_release_system", flexClusterName, err))
 	}
-
 	return nil
 }
