@@ -121,6 +121,9 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		// TenantUpgrade changes a few root level fields that are normally ok to use remote values for
 		keepUnknown = append(keepUnknown, "DiskSizeGB", "ClusterID", replicationSpecsTFModelName, "BackupEnabled", "CreateDate")
 	}
+	if patchReq.MongoDBMajorVersion != nil {
+		keepUnknown = append(keepUnknown, "MongoDBVersion") // Not safe to set MongoDBVersion when updating MongoDBMajorVersion
+	}
 	if !update.IsZeroValues(patchReq) {
 		if patchReq.ReplicationSpecs != nil {
 			keepUnknown = append(keepUnknown, replicationSpecsTFModelName, "DiskSizeGB") // Not safe to set DiskSizeGB when updating replication specs
