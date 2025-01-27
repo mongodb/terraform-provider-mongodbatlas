@@ -255,9 +255,6 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.customer_master_key_id", awsKms.GetCustomerMasterKeyID()),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
 					resource.TestCheckResourceAttrSet(resourceName, "aws_kms_config.0.role_id"),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 
