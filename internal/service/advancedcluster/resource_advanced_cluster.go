@@ -446,7 +446,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if isFlex(replicationSpecs) {
 		clusterName := d.Get("name").(string)
-		flexClusterReq := flexcluster.NewAtlasCreateReqSDKv2(d, replicationSpecs)
+		flexClusterReq := NewFlexCreateReq(d, replicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreateFlex, err))
