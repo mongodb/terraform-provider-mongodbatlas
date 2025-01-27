@@ -126,7 +126,6 @@ func TestAccEncryptionAtRestPrivateEndpoint_approveEndpointWithAzureProvider(t *
 }
 
 func TestAccEncryptionAtRestPrivateEndpoint_AWS_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
 	resource.Test(t, *basicTestCaseAWS(t))
 }
 
@@ -139,21 +138,21 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:                   conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 		awsKmsPrivateNetworking = admin.AWSKMSConfiguration{
 			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:                   conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(true),
 		}
-		region = os.Getenv("AWS_PRIVATE_ENDPOINT_REGION")
+		region = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
 	)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckEncryptionAtRestEnvAWS(tb) },
+		PreCheck:                 func() { acc.PreCheckEncryptionAtRestEnvAWS(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -300,7 +299,7 @@ func checkBasic(projectID, cloudProvider, region string, expectApproved bool) re
 	}
 	attrsSet := []string{"id"}
 	if cloudProvider == "AZURE" {
-		attrsSet = []string{"id", "private_endpoint_connection_name"}
+		attrsSet = append(attrsSet, "private_endpoint_connection_name")
 	}
 
 	return acc.CheckRSAndDS(

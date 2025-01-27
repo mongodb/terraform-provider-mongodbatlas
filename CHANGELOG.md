@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.26.0 (January 23, 2025)
+
 FEATURES:
 
 * **New Data Source:** `mongodbatlas_stream_privatelink_endpoint` ([#2897](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2897))
@@ -10,6 +12,10 @@ ENHANCEMENTS:
 
 * resource/mongodbatlas_backup_compliance_policy: Adds support for disabling Backup Compliance Policy on resource delete ([#2953](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2953))
 * resource/mongodbatlas_stream_connection: Supports Privatelink networking access type for Kafka Stream Connections ([#2940](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2940))
+
+BUG FIXES:
+
+* resource/mongodbatlas_search_index: Don't send empty `analyzers` attribute to Atlas ([#2994](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2994))
 
 ## 1.25.0 (January 07, 2025)
 

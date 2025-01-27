@@ -143,7 +143,7 @@ func testCaseCluster(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		resourceName           = "mongodbatlas_stream_connection.test"
-		projectID, clusterName = acc.ClusterNameExecution(t)
+		projectID, clusterName = acc.ClusterNameExecution(t, false)
 		instanceName           = acc.RandomName()
 	)
 	return &resource.TestCase{

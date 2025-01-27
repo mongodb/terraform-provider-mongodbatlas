@@ -86,7 +86,7 @@ func ProjectID(tb testing.TB, name string) string {
 	tb.Helper()
 	SkipInUnitTest(tb)
 
-	if id := projectIDLocal(tb); id != "" {
+	if id := projectIDLocal(); id != "" {
 		return id
 	}
 
@@ -96,12 +96,6 @@ func ProjectID(tb testing.TB, name string) string {
 	return id
 }
 
-func projectIDLocal(tb testing.TB) string {
-	tb.Helper()
-	id := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	if id == "" {
-		return ""
-	}
-	tb.Logf("Using MONGODB_ATLAS_PROJECT_ID: %s", id)
-	return id
+func projectIDLocal() string {
+	return os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 }
