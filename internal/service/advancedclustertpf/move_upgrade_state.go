@@ -65,7 +65,7 @@ var stateAttrs = map[string]tftypes.Type{
 	},
 }
 
-func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfprotov6.RawState, stateOut *tfsdk.State, allowLegacySchema bool) {
+func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfprotov6.RawState, stateOut *tfsdk.State, allowOldShardingConfig bool) {
 	rawStateValue, err := stateIn.UnmarshalWithOpts(tftypes.Object{
 		AttributeTypes: stateAttrs,
 	}, tfprotov6.UnmarshalOpts{ValueFromJSONOpts: tftypes.ValueFromJSONOpts{IgnoreUndefinedAttributes: true}})
@@ -94,8 +94,8 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 		return
 	}
 	setOptionalModelAttrs(ctx, stateObj, model)
-	if allowLegacySchema { // don't use legacy schema when moving from cluster, use always new ISS schema
-		setOptionalReplicationSpecsAttrs(ctx, stateObj, model)
+	if allowOldShardingConfig { // use always new sharding config when moving from cluster
+		setReplicationSpecNumShardsAttr(ctx, stateObj, model)
 	}
 	// Set tags and labels to null instead of empty so there is no plan change if there are no tags or labels when Read is called.
 	model.Tags = types.MapNull(types.StringType)
@@ -158,7 +158,7 @@ func setOptionalModelAttrs(ctx context.Context, stateObj map[string]tftypes.Valu
 	}
 }
 
-func setOptionalReplicationSpecsAttrs(ctx context.Context, stateObj map[string]tftypes.Value, model *TFModel) {
+func setReplicationSpecNumShardsAttr(ctx context.Context, stateObj map[string]tftypes.Value, model *TFModel) {
 	specsVal := getAttrFromStateObj[[]tftypes.Value](stateObj, "replication_specs")
 	if specsVal == nil {
 		return
