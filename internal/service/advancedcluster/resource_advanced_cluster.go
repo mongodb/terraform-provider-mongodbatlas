@@ -436,7 +436,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil)
+
+	var rootDiskSizeGB *float64
+	if v, ok := d.GetOk("disk_size_gb"); ok {
+		rootDiskSizeGB = conversion.Pointer(v.(float64))
+	}
+
+	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB)
 
 	if isFlex((*replicationSpecs)[0].GetRegionConfigs()[0].GetProviderName()) {
 		clusterName := d.Get("name").(string)
@@ -455,15 +461,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return resourceRead(ctx, d, meta)
 	}
 
-	var rootDiskSizeGB *float64
-	if v, ok := d.GetOk("disk_size_gb"); ok {
-		rootDiskSizeGB = conversion.Pointer(v.(float64))
-	}
-
 	params := &admin.ClusterDescription20240805{
 		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
 		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
-		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB),
+		ReplicationSpecs: replicationSpecs,
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {

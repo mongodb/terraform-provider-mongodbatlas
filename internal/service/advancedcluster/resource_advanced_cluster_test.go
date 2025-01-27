@@ -2847,13 +2847,7 @@ func TestAccClusterFlexCluster_basic(t *testing.T) {
 				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", true),
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", true),
 			},
-			{
-				Config:            configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", true),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			acc.TestStepImportCluster(resourceName),
 			{
 				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_2", true),
 				ExpectError: regexp.MustCompile("flex cluster update is not supported except for tags and termination_protection_enabled fields"),
