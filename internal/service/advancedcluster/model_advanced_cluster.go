@@ -1225,19 +1225,3 @@ func flattenAdvancedReplicationSpecOldShardingConfig(ctx context.Context, apiObj
 
 	return tfMap, nil
 }
-
-func NewFlexCreateReq(d *schema.ResourceData, replicationSpecs *[]admin.ReplicationSpec20240805) *admin.FlexClusterDescriptionCreate20241113 {
-	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
-		return nil
-	}
-	regionConfigs := (*replicationSpecs)[0].GetRegionConfigs()[0]
-	return &admin.FlexClusterDescriptionCreate20241113{
-		Name: d.Get("name").(string),
-		ProviderSettings: admin.FlexProviderSettingsCreate20241113{
-			BackingProviderName: regionConfigs.GetBackingProviderName(),
-			RegionName:          regionConfigs.GetRegionName(),
-		},
-		TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
-		Tags:                         conversion.ExpandTagsFromSetSchema(d),
-	}
-}

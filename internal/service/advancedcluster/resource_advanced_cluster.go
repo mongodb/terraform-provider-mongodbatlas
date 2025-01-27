@@ -861,13 +861,13 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil)
 
 	if isFlex(replicationSpecs) {
-		if flexUpdateRequest := getFlexClusterUpdateRequest(d); flexUpdateRequest != nil {
-			return resourceUpdateFlexCluster(ctx, flexUpdateRequest, d, meta)
+		if isValidUpgradeToFlex(d) {
+			return resourceUpgrade(ctx, getUpgradeToFlexClusterRequest(), d, meta)
 		}
-		if flexUpgradeRequest := getUpgradeToFlexClusterRequest(d); flexUpgradeRequest != nil {
-			return resourceUpgrade(ctx, flexUpgradeRequest, d, meta)
+		if isValidUpdateOfFlex(d) {
+			return resourceUpdateFlexCluster(ctx, getFlexClusterUpdateRequest(d), d, meta)
 		}
-		return diag.Errorf("flex cluster update is not supported except for tags and termination_protection_enabled fields")
+		diag.Errorf("flex cluster update is not supported except for tags and termination_protection_enabled fields")
 	}
 	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
 		return resourceUpgrade(ctx, upgradeRequest, d, meta)
@@ -1498,30 +1498,6 @@ func isFlex(replicationSpecs *[]admin.ReplicationSpec20240805) bool {
 	}
 	regionConfig := replicationSpec.GetRegionConfigs()[0]
 	return regionConfig.GetProviderName() == flexcluster.FlexClusterType
-}
-
-func getFlexClusterUpdateRequest(d *schema.ResourceData) *admin.FlexClusterDescriptionUpdate20241113 {
-	updatableAttrHaveBeenUpdated := d.HasChange("tags") || d.HasChange("termination_protection_enabled")
-	nonUpdatableAttrHaveNotBeenUpdated := !d.HasChange("cluster_type") && !d.HasChange("replication_specs") && !d.HasChange("project_id") && !d.HasChange("name")
-	if updatableAttrHaveBeenUpdated && nonUpdatableAttrHaveNotBeenUpdated {
-		return &admin.FlexClusterDescriptionUpdate20241113{
-			Tags:                         conversion.ExpandTagsFromSetSchema(d),
-			TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
-		}
-	}
-	return nil
-}
-
-func getUpgradeToFlexClusterRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUpgradeRequest {
-	// WIP: will be finished as part of CLOUDP-296220, added simple check for now for local testing and avoid warnings
-	if d.HasChange("cluster_type") && d.Get("cluster_type").(string) == flexcluster.FlexClusterType {
-		return &admin.LegacyAtlasTenantClusterUpgradeRequest{
-			ProviderSettings: &admin.ClusterProviderSettings{
-				ProviderName: flexcluster.FlexClusterType,
-			},
-		}
-	}
-	return nil
 }
 
 func resourceUpdateFlexCluster(ctx context.Context, flexUpdateRequest *admin.FlexClusterDescriptionUpdate20241113, d *schema.ResourceData, meta any) diag.Diagnostics {
