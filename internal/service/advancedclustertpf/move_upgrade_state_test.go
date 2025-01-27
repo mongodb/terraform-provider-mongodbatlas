@@ -148,7 +148,6 @@ func configMoveBasic(projectID, clusterName string, numShards int) string {
 			name = %[2]q
 			cluster_type = %[3]q
 			replication_specs = [%[4]s]
-			}]
 		}
 	`, projectID, clusterName, clusterTypeStr, strings.Join(replicationSpecsStr, ","))
 }
