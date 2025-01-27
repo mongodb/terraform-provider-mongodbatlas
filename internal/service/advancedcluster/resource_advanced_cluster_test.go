@@ -2853,7 +2853,7 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 					provider_name = "FLEX"
 					backing_provider_name = %[3]q
 					region_name = %[4]q
-					priority      = 0
+					priority      = 7
 				}
 			}
 			%[5]s
