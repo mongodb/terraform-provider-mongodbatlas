@@ -245,10 +245,9 @@ func testCaseWithRoleBasicAWS(t *testing.T) *resource.TestCase {
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 		awsKeyName           = acc.RandomName()
 		awsKms               = admin.AWSKMSConfiguration{
-			Enabled:                  conversion.Pointer(true),
-			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			RequirePrivateNetworking: conversion.Pointer(true),
+			Enabled:             conversion.Pointer(true),
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 		}
 	)
 
