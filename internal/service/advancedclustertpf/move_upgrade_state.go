@@ -34,10 +34,12 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 	if req.SourceTypeName != "mongodbatlas_cluster" || !strings.HasSuffix(req.SourceProviderAddress, "/mongodbatlas") {
 		return
 	}
+	// Use always new sharding config when moving from cluster to adv_cluster
 	setStateResponse(ctx, &resp.Diagnostics, req.SourceRawState, &resp.TargetState, false)
 }
 
 func stateUpgraderFromV1(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+	// Use same sharding config as in SDKv2 when upgrading to TPF
 	setStateResponse(ctx, &resp.Diagnostics, req.RawState, &resp.State, true)
 }
 
@@ -94,7 +96,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 		return
 	}
 	setOptionalModelAttrs(ctx, stateObj, model)
-	if allowOldShardingConfig { // use always new sharding config when moving from cluster
+	if allowOldShardingConfig {
 		setReplicationSpecNumShardsAttr(ctx, stateObj, model)
 	}
 	// Set tags and labels to null instead of empty so there is no plan change if there are no tags or labels when Read is called.
