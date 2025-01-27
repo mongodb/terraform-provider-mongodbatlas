@@ -46,6 +46,13 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 	})
 }
 
+func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
+	acc.SkipTestForCI(t) // needs AWS configuration
+	mig.SkipIfVersionBelow(t, "1.27.0")
+
+	mig.CreateTestAndRunUseExternalProviderNonParallel(t, testCaseWithRoleBasicAWS(t), mig.ExternalProvidersWithAWS(), nil)
+}
+
 func TestMigEncryptionAtRest_basicAzure(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"

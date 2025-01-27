@@ -232,7 +232,13 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 }
 
 func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
+	acc.SkipTestForCI(t) // needs AWS configuration. This test case is similar to TestAccEncryptionAtRest_basicAWS except that it creates it's own AWS resources such as IAM roles, cloud provider access, etc so we don't need to run this in CI but may be used for local testing.
+
+	resource.Test(t, *testCaseWithRoleBasicAWS(t))
+}
+
+func testCaseWithRoleBasicAWS(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		projectID            = acc.ProjectIDExecution(t)
 		awsIAMRoleName       = acc.RandomIAMRole()
@@ -245,7 +251,7 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 		}
 	)
 
-	resource.Test(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckAwsEnv(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -269,7 +275,7 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	})
+	}
 }
 
 var (
