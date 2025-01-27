@@ -22,6 +22,18 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	if retainBackups != nil && !modelIn.RetainBackupsEnabled.Equal(modelOut.RetainBackupsEnabled) {
 		modelOut.RetainBackupsEnabled = types.BoolPointerValue(retainBackups)
 	}
+	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
+	overrideMapStringWithPrevStateValue(&modelIn.Tags, &modelOut.Tags)
+}
+func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
+	if mapIn == nil || mapOut == nil || len(mapOut.Elements()) > 0 {
+		return
+	}
+	if mapIn.IsNull() {
+		*mapOut = types.MapNull(types.StringType)
+	} else {
+		*mapOut = types.MapValueMust(types.StringType, nil)
+	}
 }
 
 func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) map[string]int64 {

@@ -126,6 +126,16 @@ func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
 					value = "Value Label 3"
   			}
 
+				labels {
+					key   = "label"
+					value = "labelvalue"
+  			}
+
+				tags {
+					key   = "tag"
+					value = "tagvalue"
+  			}
+
 				advanced_configuration  {
 					fail_index_key_too_long              = false
 					javascript_enabled                   = true
@@ -155,31 +165,13 @@ func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
 				cluster_type = "SHARDED"
 
 
+
+
+
+
+
 				
- 				tags {
-					key   = "Key Tag 2"
-					value = "Value Tag 2"
-  			}
 
- 				labels {
-					key   = "Key Label 1"
-					value = "Value Label 1"
-  			}
-
-				tags {
-					key   = "Key Tag 1"
-					value = "Value Tag 1"
-			  }
-
- 				labels {
-					key   = "Key Label 2"
-					value = "Value Label 2"
-  			}
-
- 				labels {
-					key   = "Key Label 3"
-					value = "Value Label 3"
-  			}
 
 
 				replication_specs = [{
@@ -242,6 +234,17 @@ func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
 				timeouts = {
 					create = "5m"
 				}
+ 				labels = {
+					"Key Label 1" = "Value Label 1"
+					"Key Label 2" = "Value Label 2"
+					"Key Label 3" = "Value Label 3"
+					label = "labelvalue"
+  			}
+				tags = {
+					"Key Tag 1" = "Value Tag 1"
+					"Key Tag 2" = "Value Tag 2"
+					tag = "tagvalue"
+  			}
 			}
  		`
 	)
