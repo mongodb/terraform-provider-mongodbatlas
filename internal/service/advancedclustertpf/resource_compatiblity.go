@@ -69,8 +69,8 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 	}
 }
 
-// instead of using `num_shards` explode the replication specs, and set disk_size_gb
-func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics, shouldExplodeNumShards bool) *admin.ClusterDescription20240805 {
+// instead of using `num_shards` expand the replication specs, and set disk_size_gb
+func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics, shouldExpandNumShards bool) *admin.ClusterDescription20240805 {
 	latestModel := NewAtlasReq(ctx, model, diags)
 	if diags.HasError() {
 		return nil
@@ -80,8 +80,8 @@ func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagn
 		return nil
 	}
 	usingLegacySchema := isNumShardsGreaterThanOne(counts)
-	if usingLegacySchema && shouldExplodeNumShards {
-		explodeNumShards(latestModel, counts)
+	if usingLegacySchema && shouldExpandNumShards {
+		expandNumShards(latestModel, counts)
 	}
 	diskSize := normalizeDiskSize(model, latestModel, diags)
 	if diags.HasError() {
@@ -108,7 +108,7 @@ func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription2024
 	return rootDiskSize
 }
 
-func explodeNumShards(req *admin.ClusterDescription20240805, counts []int64) {
+func expandNumShards(req *admin.ClusterDescription20240805, counts []int64) {
 	specs := req.GetReplicationSpecs()
 	newSpecs := []admin.ReplicationSpec20240805{}
 	for i, spec := range specs {
