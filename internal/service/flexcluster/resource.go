@@ -12,12 +12,16 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const resourceName = "flex_cluster"
-const ErrorUpdateNotAllowed = "update not allowed"
+const (
+	resourceName          = "flex_cluster"
+	ErrorUpdateNotAllowed = "update not allowed"
+	FlexClusterType       = "FLEX"
+)
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
@@ -56,20 +60,9 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	clusterName := tfModel.Name.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.FlexClustersApi.CreateFlexCluster(ctx, projectID, flexClusterReq).Execute()
+	flexClusterResp, err := CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 	if err != nil {
-		resp.Diagnostics.AddError("error creating resource", err.Error())
-		return
-	}
-
-	flexClusterParams := &admin.GetFlexClusterApiParams{
-		GroupId: projectID,
-		Name:    clusterName,
-	}
-
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{retrystrategy.RetryStrategyCreatingState}, []string{retrystrategy.RetryStrategyIdleState})
-	if err != nil {
-		resp.Diagnostics.AddError("error waiting for resource to be created", err.Error())
+		resp.Diagnostics.AddError("error creating the resource", err.Error())
 		return
 	}
 
@@ -134,20 +127,10 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	clusterName := plan.Name.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.FlexClustersApi.UpdateFlexCluster(ctx, projectID, plan.Name.ValueString(), flexClusterReq).Execute()
+
+	flexClusterResp, err := UpdateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
-		return
-	}
-
-	flexClusterParams := &admin.GetFlexClusterApiParams{
-		GroupId: projectID,
-		Name:    clusterName,
-	}
-
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState})
-	if err != nil {
-		resp.Diagnostics.AddError("error waiting for resource to be updated", err.Error())
 		return
 	}
 
@@ -172,18 +155,11 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 
 	connV2 := r.Client.AtlasV2
-	if _, _, err := connV2.FlexClustersApi.DeleteFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString()).Execute(); err != nil {
+
+	err := DeleteFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString(), connV2.FlexClustersApi)
+
+	if err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
-		return
-	}
-
-	flexClusterParams := &admin.GetFlexClusterApiParams{
-		GroupId: flexClusterState.ProjectId.ValueString(),
-		Name:    flexClusterState.Name.ValueString(),
-	}
-
-	if err := WaitStateTransitionDelete(ctx, flexClusterParams, connV2.FlexClustersApi); err != nil {
-		resp.Diagnostics.AddError("error waiting for resource to be deleted", err.Error())
 		return
 	}
 }
@@ -212,4 +188,79 @@ func splitFlexClusterImportID(id string) (projectID, clusterName *string, err er
 	clusterName = &parts[2]
 
 	return
+}
+
+func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionCreate20241113, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
+	_, _, err := client.CreateFlexCluster(ctx, projectID, flexClusterReq).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: projectID,
+		Name:    clusterName,
+	}
+
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyCreatingState}, []string{retrystrategy.RetryStrategyIdleState})
+	if err != nil {
+		return nil, err
+	}
+	return flexClusterResp, nil
+}
+
+func GetFlexCluster(ctx context.Context, projectID, clusterName string, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
+	flexCluster, _, err := client.GetFlexCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return nil, err
+	}
+	return flexCluster, nil
+}
+
+func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionUpdate20241113, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
+	_, _, err := client.UpdateFlexCluster(ctx, projectID, clusterName, flexClusterReq).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: projectID,
+		Name:    clusterName,
+	}
+
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState})
+	if err != nil {
+		return nil, err
+	}
+	return flexClusterResp, nil
+}
+
+func DeleteFlexCluster(ctx context.Context, projectID, clusterName string, client admin.FlexClustersApi) error {
+	if _, _, err := client.DeleteFlexCluster(ctx, projectID, clusterName).Execute(); err != nil {
+		return err
+	}
+
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: projectID,
+		Name:    clusterName,
+	}
+
+	return WaitStateTransitionDelete(ctx, flexClusterParams, client)
+}
+
+func ListFlexClusters(ctx context.Context, projectID string, client admin.FlexClustersApi) (*[]admin.FlexClusterDescription20241113, error) {
+	params := admin.ListFlexClustersApiParams{
+		GroupId: projectID,
+	}
+
+	flexClusters, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.FlexClusterDescription20241113], *http.Response, error) {
+		request := client.ListFlexClustersWithParams(ctx, &params)
+		request = request.PageNum(pageNum)
+		return request.Execute()
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &flexClusters, nil
 }

@@ -1,19 +1,16 @@
 package flexcluster_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 var (
-	resourceType         = "mongodbatlas_flex_cluster"
 	resourceName         = "mongodbatlas_flex_cluster.test"
 	dataSourceName       = "data.mongodbatlas_flex_cluster.test"
 	dataSourcePluralName = "data.mongodbatlas_flex_clusters.test"
@@ -41,7 +38,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             acc.CheckDestroyFlexCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, clusterName, provider, region, true, false),
@@ -54,7 +51,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 			{
 				Config:            configBasic(projectID, clusterName, provider, region, true, true),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportStateIdFunc: acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -77,7 +74,7 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             acc.CheckDestroyFlexCluster,
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, clusterName, provider, region, false, false),
@@ -122,17 +119,12 @@ func configBasic(projectID, clusterName, provider, region string, terminationPro
 			termination_protection_enabled = %[5]t
 			%[6]s
 		}
-		data "mongodbatlas_flex_cluster" "test" {
-			project_id = mongodbatlas_flex_cluster.test.project_id
-			name       = mongodbatlas_flex_cluster.test.name
-		}
-		data "mongodbatlas_flex_clusters" "test" {
-			project_id = mongodbatlas_flex_cluster.test.project_id
-		}`, projectID, clusterName, provider, region, terminationProtectionEnabled, tagsConfig)
+		%[7]s
+		`, projectID, clusterName, provider, region, terminationProtectionEnabled, tagsConfig, acc.FlexDataSource)
 }
 
 func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabled, tagsCheck bool) resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{checkExists()}
+	checks := []resource.TestCheckFunc{acc.CheckExistsFlexCluster()}
 	attrMap := map[string]string{
 		"project_id":                     projectID,
 		"name":                           clusterName,
@@ -158,45 +150,4 @@ func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabl
 	}
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
-}
-
-func checkExists() resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		for _, rs := range s.RootModule().Resources {
-			if rs.Type == resourceType {
-				projectID := rs.Primary.Attributes["project_id"]
-				name := rs.Primary.Attributes["name"]
-				_, _, err := acc.ConnV2().FlexClustersApi.GetFlexCluster(context.Background(), projectID, name).Execute()
-				if err != nil {
-					return fmt.Errorf("flex cluster (%s:%s) not found", projectID, name)
-				}
-			}
-		}
-		return nil
-	}
-}
-
-func checkDestroy(state *terraform.State) error {
-	for _, rs := range state.RootModule().Resources {
-		if rs.Type == resourceType {
-			projectID := rs.Primary.Attributes["project_id"]
-			name := rs.Primary.Attributes["name"]
-			_, _, err := acc.ConnV2().FlexClustersApi.GetFlexCluster(context.Background(), projectID, name).Execute()
-			if err == nil {
-				return fmt.Errorf("flex cluster (%s:%s) still exists", projectID, name)
-			}
-		}
-	}
-	return nil
-}
-
-func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"]), nil
-	}
 }

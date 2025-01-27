@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_advanced_cluster: Supports flex clusters
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_cluster: Supports flex clusters
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_clusters: Supports flex clusters
+```
