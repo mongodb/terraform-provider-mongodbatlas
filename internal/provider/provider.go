@@ -430,8 +430,6 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		project.PluralDataSource,
 		databaseuser.DataSource,
 		databaseuser.PluralDataSource,
-		databaseuserv2.DataSource,
-		databaseuserv2.PluralDataSource,
 		alertconfiguration.DataSource,
 		alertconfiguration.PluralDataSource,
 		projectipaccesslist.DataSource,
