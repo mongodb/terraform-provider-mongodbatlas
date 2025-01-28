@@ -867,7 +867,7 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 		if isValidUpdateOfFlex(d) {
 			return resourceUpdateFlexCluster(ctx, getFlexClusterUpdateRequest(d), d, meta)
 		}
-		diag.Errorf("flex cluster update is not supported except for tags and termination_protection_enabled fields")
+		return diag.Errorf("flex cluster update is not supported except for tags and termination_protection_enabled fields")
 	}
 	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
 		return resourceUpgrade(ctx, upgradeRequest, d, meta)
@@ -1351,7 +1351,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		clusterName = flexCluster.GetName()
 	}
 
-	if err := d.Set("project_id", clusterID); err != nil {
+	if err := d.Set("project_id", projectID); err != nil {
 		log.Printf(ErrorClusterAdvancedSetting, "project_id", cluster.GetId(), err)
 	}
 
