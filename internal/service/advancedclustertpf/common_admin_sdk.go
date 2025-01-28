@@ -173,23 +173,23 @@ func ReadCluster(ctx context.Context, diags *diag.Diagnostics, client *config.Mo
 	return readResp
 }
 
-func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, clusterName string, client *admin.APIClient) (isFlex bool, clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113, err error) {
+func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, clusterName string, client *admin.APIClient) (isFlex bool, clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113) {
 	clusterDesc, resp, err := client.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			return false, nil, nil, nil
+			return false, nil, nil
 		}
 		if isFlex = admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API"); !isFlex {
 			diags.AddError(errorReadResource, defaultAPIErrorDetails(clusterName, err))
-			return false, nil, nil, err
+			return false, nil, nil
 		}
 	}
 	if isFlex {
 		flexClusterResp, err = flexcluster.GetFlexCluster(ctx, projectID, clusterName, client.FlexClustersApi)
 		if err != nil {
 			diags.AddError(fmt.Sprintf(flexcluster.ErrorReadFlex, clusterName, err), defaultAPIErrorDetails(clusterName, err))
-			return true, nil, nil, err
+			return true, nil, nil
 		}
 	}
-	return isFlex, clusterDesc, flexClusterResp, nil
+	return isFlex, clusterDesc, flexClusterResp
 }

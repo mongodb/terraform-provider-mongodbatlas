@@ -294,9 +294,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	diags := diag.Diagnostics{}
 	diagsFramework := ConvertV2DiagsToFrameworkDiags(diags)
-	isFlex, clusterDesc, flexClusterResp, err := advancedclustertpf.GetClusterDetails(ctx, diagsFramework, projectID, clusterName, connV2)
+	isFlex, clusterDesc, flexClusterResp := advancedclustertpf.GetClusterDetails(ctx, diagsFramework, projectID, clusterName, connV2)
 	diags = ConvertFrameworkDiagsToV2Diags(*diagsFramework)
-	if err != nil {
+	if diags.HasError() {
 		return diags
 	}
 
