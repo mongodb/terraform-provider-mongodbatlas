@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	sdkv2Diag "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -174,21 +173,23 @@ func ReadCluster(ctx context.Context, diags *diag.Diagnostics, client *config.Mo
 	return readResp
 }
 
-func GetClusterDetails(ctx context.Context, projectID, clusterName string, client *admin.APIClient) (isFlex bool, clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113, diags sdkv2Diag.Diagnostics, err error) {
+func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, clusterName string, client *admin.APIClient) (isFlex bool, clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113, err error) {
 	clusterDesc, resp, err := client.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			return false, nil, nil, nil, nil
+			return false, nil, nil, nil
 		}
 		if isFlex = admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API"); !isFlex {
-			return false, nil, nil, sdkv2Diag.FromErr(fmt.Errorf("error reading  advanced cluster (%s): %s", clusterName, err)), err
+			diags.AddError(errorReadResource, defaultAPIErrorDetails(clusterName, err))
+			return false, nil, nil, err
 		}
 	}
 	if isFlex {
 		flexClusterResp, err = flexcluster.GetFlexCluster(ctx, projectID, clusterName, client.FlexClustersApi)
 		if err != nil {
-			return true, nil, nil, sdkv2Diag.FromErr(fmt.Errorf(flexcluster.ErrorReadFlex, clusterName, err)), err
+			diags.AddError(fmt.Sprintf(flexcluster.ErrorReadFlex, clusterName, err), defaultAPIErrorDetails(clusterName, err))
+			return true, nil, nil, err
 		}
 	}
-	return isFlex, clusterDesc, flexClusterResp, nil, nil
+	return isFlex, clusterDesc, flexClusterResp, nil
 }
