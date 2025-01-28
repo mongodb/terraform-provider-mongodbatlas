@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	databaseUserResourceName = "database_user"
+	databaseUserResourceName = "database_user_v1"
 	ErrorImportFormat        = "import format error: to import a Database User, use the format {project_id}-{username}-{auth_database_name} OR {project_id}/{username}/{auth_database_name}"
 )
 
