@@ -31,6 +31,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuserv2"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -429,6 +430,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		project.PluralDataSource,
 		databaseuser.DataSource,
 		databaseuser.PluralDataSource,
+		databaseuserv2.DataSource,
+		databaseuserv2.PluralDataSource,
 		alertconfiguration.DataSource,
 		alertconfiguration.PluralDataSource,
 		projectipaccesslist.DataSource,
@@ -471,6 +474,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		project.Resource,
 		encryptionatrest.Resource,
 		databaseuser.Resource,
+		databaseuserv2.Resource,
 		alertconfiguration.Resource,
 		projectipaccesslist.Resource,
 		searchdeployment.Resource,

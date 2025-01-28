@@ -229,6 +229,7 @@ jobs:
       cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
       config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
+      config2: ${{ steps.filter.outputs.config2 == 'true' || env.mustTrigger == 'true' }}
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
@@ -274,20 +275,9 @@ jobs:
           cluster_outage_simulation:
             - 'internal/service/clusteroutagesimulation/*.go'  
           config:
-            - 'internal/service/alertconfiguration/*.go'
-            - 'internal/service/apikey/*.go'
-            - 'internal/service/atlasuser/*.go'
-            - 'internal/service/cloudprovideraccess/*.go'
-            - 'internal/service/customdbrole/*.go'
-            - 'internal/service/customdnsconfigurationclusteraws/*.go'
             - 'internal/service/databaseuser/*.go'
-            - 'internal/service/maintenancewindow/*.go'
-            - 'internal/service/organization/*.go'
-            - 'internal/service/orginvitation/*.go'
-            - 'internal/service/projectapikey/*.go'
-            - 'internal/service/rolesorgid/*.go'
-            - 'internal/service/team/*.go'
-            - 'internal/service/thirdpartyintegration/*.go'
+          config2:
+            - 'internal/service/databaseuserv2/*.go'
           encryption:
             - 'internal/service/encryptionatrest/*.go' 
             - 'internal/service/encryptionatrestprivateendpoint/*.go'
@@ -606,23 +596,41 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: |
-            ./internal/service/alertconfiguration
-            ./internal/service/atlasuser
-            ./internal/service/cloudprovideraccess
-            ./internal/service/customdbrole
-            ./internal/service/customdnsconfigurationclusteraws
-            ./internal/service/databaseuser
-            ./internal/service/maintenancewindow
-            ./internal/service/organization
-            ./internal/service/orginvitation
-            ./internal/service/projectapikey
-            ./internal/service/apikey
-            ./internal/service/rolesorgid
-            ./internal/service/team
-            ./internal/service/thirdpartyintegration
+          ACCTEST_PACKAGES: ./internal/service/databaseuser
         run: make testacc
 
+  config2:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.config2 == 'true' || inputs.test_group == 'config2' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
+          MONGODB_ATLAS_USERNAME: ${{ vars.MONGODB_ATLAS_USERNAME }}
+          MONGODB_ATLAS_USERNAME_2: ${{ vars.MONGODB_ATLAS_USERNAME_2 }}
+          AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
+          AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+          AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
+          AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_PACKAGES: ./internal/service/databaseuserv2
+        run: make testacc
+        
   encryption:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.encryption == 'true' || inputs.test_group == 'encryption' }}
