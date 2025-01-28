@@ -8,7 +8,7 @@ import (
 
 func ConfigDatabaseUserBasic(projectID, username, roleName, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_database_user" "test" {
+		resource "mongodbatlas_database_user_v1" "test" {
 			project_id         = %[1]q
 			username           = %[2]q
 			password           = "test-acc-password"
@@ -29,7 +29,7 @@ func ConfigDatabaseUserBasic(projectID, username, roleName, keyLabel, valueLabel
 
 func ConfigDatabaseUserWithX509Type(projectID, username, x509Type, roleName, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_database_user" "test" {
+		resource "mongodbatlas_database_user_v1" "test" {
 			project_id         = %[1]q
 			username           = %[2]q
 			x509_type          = %[3]q
@@ -60,7 +60,7 @@ func ConfigDatabaseUserWithLabels(projectID, username, roleName string, labels [
 	}
 
 	return fmt.Sprintf(`
-		resource "mongodbatlas_database_user" "test" {
+		resource "mongodbatlas_database_user_v1" "test" {
 			project_id         = %[1]q
 			username           = %[2]q
 			password           = "test-acc-password"
@@ -99,7 +99,7 @@ func ConfigDatabaseUserWithRoles(projectID, username, password string, rolesArr 
 	}
 
 	return fmt.Sprintf(`
-		resource "mongodbatlas_database_user" "test" {
+		resource "mongodbatlas_database_user_v1" "test" {
 			project_id         = %[1]q
 			username           = %[2]q
 			password           = %[3]q
@@ -112,7 +112,7 @@ func ConfigDatabaseUserWithRoles(projectID, username, password string, rolesArr 
 
 func ConfigDatabaseUserWithAWSIAMType(projectID, username, roleName, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_database_user" "test" {
+		resource "mongodbatlas_database_user_v1" "test" {
 			project_id         = %[1]q
 			username           = %[2]q
 			aws_iam_type       = "USER"
@@ -143,7 +143,7 @@ func ConfigDatabaseUserWithScopes(projectID, username, password, roleName string
 	}
 
 	return fmt.Sprintf(`
-		resource "mongodbatlas_database_user" "test" {
+		resource "mongodbatlas_database_user_v1" "test" {
 			project_id         = %[1]q
 			username           = %[2]q
 			password           = %[3]q
@@ -161,7 +161,7 @@ func ConfigDatabaseUserWithScopes(projectID, username, password, roleName string
 
 func ConfigDatabaseUserWithLDAPAuthType(projectID, username, roleName, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_database_user" "test" {
+		resource "mongodbatlas_database_user_v1" "test" {
 			project_id         = %[1]q
 			username           = %[2]q
 			ldap_auth_type     = "USER"
@@ -182,7 +182,7 @@ func ConfigDatabaseUserWithLDAPAuthType(projectID, username, roleName, keyLabel,
 
 func ConfigDataBaseUserWithOIDCAuthType(projectID, username, authType, databaseName, roleName string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_database_user" "test" {
+	resource "mongodbatlas_database_user_v1" "test" {
 		project_id         = %[1]q
 		username           = %[2]q
 		oidc_auth_type     = %[3]q

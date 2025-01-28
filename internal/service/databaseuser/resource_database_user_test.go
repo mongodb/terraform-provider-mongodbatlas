@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	resourceName         = "mongodbatlas_database_user.test"
+	resourceName         = "mongodbatlas_database_user_v1.test"
 	dataSourceName       = "data.mongodbatlas_database_user.test"
 	dataSourcePluralName = "data.mongodbatlas_database_users.test"
 )
@@ -567,7 +567,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 
 func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_database_user" {
+		if rs.Type != "mongodbatlas_database_user_v1" {
 			continue
 		}
 
