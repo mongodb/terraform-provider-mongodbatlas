@@ -629,13 +629,17 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	diags := diag.Diagnostics{}
 	diagsFramework := ConvertV2DiagsToFrameworkDiags(diags)
-	isFlex, cluster, flexClusterResp := advancedclustertpf.GetClusterDetails(ctx, diagsFramework, projectID, clusterName, connV2)
+	cluster, flexClusterResp := advancedclustertpf.GetClusterDetails(ctx, diagsFramework, projectID, clusterName, connV2)
 	diags = ConvertFrameworkDiagsToV2Diags(*diagsFramework)
 	if diags.HasError() {
 		return diags
 	}
+	if flexClusterResp == nil && cluster == nil {
+		d.SetId("")
+		return nil
+	}
 
-	if isFlex {
+	if flexClusterResp != nil {
 		diags := setFlexFields(d, flexClusterResp)
 		if err := d.Set("cluster_id", flexClusterResp.GetId()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "cluster_id", clusterName, err))
