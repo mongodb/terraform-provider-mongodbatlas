@@ -3,11 +3,15 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	sdkv2Diag "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -169,4 +173,24 @@ func ReadCluster(ctx context.Context, diags *diag.Diagnostics, client *config.Mo
 		diags.Append(newWarnings...)
 	}
 	return readResp
+}
+
+func GetClusterDetails(ctx context.Context, d *schema.ResourceData, projectID, clusterName string, client *admin.APIClient) (isFlex bool, clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113, diags sdkv2Diag.Diagnostics, err error) {
+	clusterDesc, resp, err := client.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return false, nil, nil, nil, nil
+		}
+		if isFlex = admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API"); !isFlex {
+			return false, nil, nil, sdkv2Diag.FromErr(fmt.Errorf("error reading  advanced cluster (%s): %s", clusterName, err)), err
+		}
+	}
+	if isFlex {
+		clusterName := d.Get("name").(string)
+		flexClusterResp, err = flexcluster.GetFlexCluster(ctx, projectID, clusterName, client.FlexClustersApi)
+		if err != nil {
+			return true, nil, nil, sdkv2Diag.FromErr(fmt.Errorf(flexcluster.ErrorReadFlex, clusterName, err)), err
+		}
+	}
+	return isFlex, clusterDesc, flexClusterResp, nil, nil
 }

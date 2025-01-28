@@ -35,11 +35,6 @@ const (
 	errorRead                      = "error reading  advanced cluster (%s): %s"
 	errorDelete                    = "error deleting advanced cluster (%s): %s"
 	errorUpdate                    = "error updating advanced cluster (%s): %s"
-	errorCreateFlex                = "error creating flex cluster: %s"
-	errorReadFlex                  = "error reading flex cluster (%s): %s"
-	errorUpdateFlex                = "error updating flex cluster: %s"
-	errorUpgradeFlex               = "error upgrading to a flex cluster: %s"
-	errorDeleteFlex                = "error deleting a flex cluster (%s): %s"
 	errorConfigUpdate              = "error updating advanced cluster configuration options (%s): %s"
 	errorConfigRead                = "error reading advanced cluster configuration options (%s): %s"
 	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"
@@ -449,7 +444,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		flexClusterReq := NewFlexCreateReq(d, replicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorCreateFlex, err))
+			return diag.FromErr(fmt.Errorf(flexcluster.ErrorCreateFlex, err))
 		}
 
 		d.SetId(conversion.EncodeStateID(map[string]string{
@@ -631,29 +626,16 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	clusterName := ids["cluster_name"]
 
 	var replicationSpecs []map[string]any
-	isFlex := false
-	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	isFlex, cluster, flexClusterResp, diags, err := advancedclustertpf.GetClusterDetails(ctx, d, projectID, clusterName, connV2)
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
-			return nil
-		}
-		if isFlex = admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API"); !isFlex { // if cluster is flex we need to call different API
-			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
-		}
+		return diags
 	}
-	if isFlex {
-		clusterName := d.Get("name").(string)
-		flexClusterResp, err := flexcluster.GetFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorReadFlex, clusterName, err))
-		}
-		diags := setFlexFields(d, flexClusterResp)
 
+	if isFlex {
+		diags := setFlexFields(d, flexClusterResp)
 		if err := d.Set("cluster_id", flexClusterResp.GetId()); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "cluster_id", clusterName, err))
 		}
-
 		if diags.HasError() {
 			return diags
 		}
@@ -682,7 +664,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	warning := WarningIfFCVExpiredOrUnpinnedExternally(d, cluster) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
-	diags := setRootFields(d, cluster, true)
+	diags = setRootFields(d, cluster, true)
 	if diags.HasError() {
 		return diags
 	}
@@ -1293,7 +1275,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if isFlex(replicationSpecs) {
 		err := flexcluster.DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorDeleteFlex, clusterName, err))
+			return diag.FromErr(fmt.Errorf(flexcluster.ErrorDeleteFlex, clusterName, err))
 		}
 		return nil
 	}
@@ -1508,7 +1490,7 @@ func resourceUpdateFlexCluster(ctx context.Context, flexUpdateRequest *admin.Fle
 
 	_, err := flexcluster.UpdateFlexCluster(ctx, projectID, clusterName, flexUpdateRequest, connV2.FlexClustersApi)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorUpdateFlex, err))
+		return diag.FromErr(fmt.Errorf(flexcluster.ErrorUpdateFlex, err))
 	}
 
 	return resourceRead(ctx, d, meta)

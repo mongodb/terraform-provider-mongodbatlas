@@ -21,6 +21,11 @@ const (
 	resourceName          = "flex_cluster"
 	ErrorUpdateNotAllowed = "update not allowed"
 	FlexClusterType       = "FLEX"
+	ErrorCreateFlex       = "error creating flex cluster: %s"
+	ErrorReadFlex         = "error reading flex cluster (%s): %s"
+	ErrorUpdateFlex       = "error updating flex cluster: %s"
+	ErrorUpgradeFlex      = "error upgrading to a flex cluster: %s"
+	ErrorDeleteFlex       = "error deleting a flex cluster (%s): %s"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
