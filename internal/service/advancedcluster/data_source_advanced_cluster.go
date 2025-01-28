@@ -292,7 +292,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		useReplicationSpecPerShard = v.(bool)
 	}
 
-	isFlex, clusterDesc, flexClusterResp, diags, err := advancedclustertpf.GetClusterDetails(ctx, d, projectID, clusterName, connV2)
+	isFlex, clusterDesc, flexClusterResp, diags, err := advancedclustertpf.GetClusterDetails(ctx, projectID, clusterName, connV2)
 	if err != nil {
 		return diags
 	}

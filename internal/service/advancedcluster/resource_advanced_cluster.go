@@ -626,7 +626,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	clusterName := ids["cluster_name"]
 
 	var replicationSpecs []map[string]any
-	isFlex, cluster, flexClusterResp, diags, err := advancedclustertpf.GetClusterDetails(ctx, d, projectID, clusterName, connV2)
+	isFlex, cluster, flexClusterResp, diags, err := advancedclustertpf.GetClusterDetails(ctx, projectID, clusterName, connV2)
 	if err != nil {
 		return diags
 	}

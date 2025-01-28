@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	sdkv2Diag "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -175,7 +174,7 @@ func ReadCluster(ctx context.Context, diags *diag.Diagnostics, client *config.Mo
 	return readResp
 }
 
-func GetClusterDetails(ctx context.Context, d *schema.ResourceData, projectID, clusterName string, client *admin.APIClient) (isFlex bool, clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113, diags sdkv2Diag.Diagnostics, err error) {
+func GetClusterDetails(ctx context.Context, projectID, clusterName string, client *admin.APIClient) (isFlex bool, clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113, diags sdkv2Diag.Diagnostics, err error) {
 	clusterDesc, resp, err := client.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -186,7 +185,6 @@ func GetClusterDetails(ctx context.Context, d *schema.ResourceData, projectID, c
 		}
 	}
 	if isFlex {
-		clusterName := d.Get("name").(string)
 		flexClusterResp, err = flexcluster.GetFlexCluster(ctx, projectID, clusterName, client.FlexClustersApi)
 		if err != nil {
 			return true, nil, nil, sdkv2Diag.FromErr(fmt.Errorf(flexcluster.ErrorReadFlex, clusterName, err)), err
