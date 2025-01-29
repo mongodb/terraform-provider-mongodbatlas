@@ -12,16 +12,10 @@ import (
 )
 
 func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue types.String, dbUserModel *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
-	var rolesModel []*TfRoleModel
 	var labelsModel []*TfLabelModel
 	var scopesModel []*TfScopeModel
 
-	diags := dbUserModel.Roles.ElementsAs(ctx, &rolesModel, false)
-	if diags.HasError() {
-		return nil, diags
-	}
-
-	diags = dbUserModel.Labels.ElementsAs(ctx, &labelsModel, false)
+	diags := dbUserModel.Labels.ElementsAs(ctx, &labelsModel, false)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -39,7 +33,6 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue types.String
 		OidcAuthType: dbUserModel.OIDCAuthType.ValueStringPointer(),
 		LdapAuthType: dbUserModel.LDAPAuthType.ValueStringPointer(),
 		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
-		Roles:        NewMongoDBAtlasRoles(rolesModel),
 		Labels:       NewMongoDBAtlasLabels(labelsModel),
 		Scopes:       NewMongoDBAtlasScopes(scopesModel),
 	}
@@ -52,11 +45,6 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue types.String
 }
 
 func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserModel, diag.Diagnostics) {
-	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, NewTFRolesModel(dbUser.GetRoles()))
-	if diagnostic.HasError() {
-		return nil, diagnostic
-	}
-
 	labelsSet, diagnostic := types.SetValueFrom(ctx, LabelObjectType, NewTFLabelsModel(dbUser.GetLabels()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
@@ -82,7 +70,6 @@ func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbU
 		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
 		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
 		AWSIAMType:       types.StringValue(dbUser.GetAwsIAMType()),
-		Roles:            rolesSet,
 		Labels:           labelsSet,
 		Scopes:           scopesSet,
 	}

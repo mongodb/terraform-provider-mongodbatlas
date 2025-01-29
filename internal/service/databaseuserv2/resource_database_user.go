@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -51,7 +50,6 @@ type TfDatabaseUserModel struct {
 	OIDCAuthType     types.String `tfsdk:"oidc_auth_type"`
 	LDAPAuthType     types.String `tfsdk:"ldap_auth_type"`
 	AWSIAMType       types.String `tfsdk:"aws_iam_type"`
-	Roles            types.Set    `tfsdk:"roles"`
 	Labels           types.Set    `tfsdk:"labels"`
 	Scopes           types.Set    `tfsdk:"scopes"`
 }
@@ -154,24 +152,6 @@ func (r *databaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 		},
 		Blocks: map[string]schema.Block{
-			"roles": schema.SetNestedBlock{
-				Validators: []validator.Set{
-					setvalidator.IsRequired(),
-				},
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"collection_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"database_name": schema.StringAttribute{
-							Required: true,
-						},
-						"role_name": schema.StringAttribute{
-							Required: true,
-						},
-					},
-				},
-			},
 			"labels": schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{

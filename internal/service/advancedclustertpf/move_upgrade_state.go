@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -31,9 +30,6 @@ func (r *rs) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader 
 }
 
 func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
-	if req.SourceTypeName != "mongodbatlas_cluster" || !strings.HasSuffix(req.SourceProviderAddress, "/mongodbatlas") {
-		return
-	}
 	// Use always new sharding config when moving from cluster to adv_cluster
 	setStateResponse(ctx, &resp.Diagnostics, req.SourceRawState, &resp.TargetState, false)
 }
