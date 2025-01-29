@@ -135,7 +135,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	flexClusterResp, err := UpdateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 	if err != nil {
-		resp.Diagnostics.AddError("error updating resource", err.Error())
+		resp.Diagnostics.AddError("error updating the resource", err.Error())
 		return
 	}
 
@@ -164,7 +164,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	err := DeleteFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString(), connV2.FlexClustersApi)
 
 	if err != nil {
-		resp.Diagnostics.AddError("error deleting resource", err.Error())
+		resp.Diagnostics.AddError("error deleting the resource", err.Error())
 		return
 	}
 }
