@@ -1,26 +1,18 @@
 package advancedcluster
 
 import (
-	frameworkdiag "github.com/hashicorp/terraform-plugin-framework/diag"
+	"context"
+
+	fwdiag "github.com/hashicorp/terraform-plugin-framework/diag"
 	v2diag "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
-func ConvertV2DiagsToFrameworkDiags(v2Diags v2diag.Diagnostics) *frameworkdiag.Diagnostics {
-	var diags frameworkdiag.Diagnostics
-	for _, v2Diag := range v2Diags {
-		diags.AddError(v2Diag.Summary, v2Diag.Detail)
-	}
-	return &diags
-}
-
-func ConvertFrameworkDiagsToV2Diags(diags frameworkdiag.Diagnostics) v2diag.Diagnostics {
-	var v2Diags v2diag.Diagnostics
-	for _, diag := range diags {
-		v2Diags = append(v2Diags, v2diag.Diagnostic{
-			Severity: v2diag.Severity(diag.Severity()),
-			Summary:  diag.Summary(),
-			Detail:   diag.Detail(),
-		})
-	}
-	return v2Diags
+func GetClusterDetails(ctx context.Context, client *config.MongoDBClient, projectID, clusterName string) (cluster *admin.ClusterDescription20240805, flexCluster *admin.FlexClusterDescription20241113, diags v2diag.Diagnostics) {
+	fwdiags := fwdiag.Diagnostics{}
+	cluster, flexCluster = advancedclustertpf.GetClusterDetails(ctx, &fwdiags, projectID, clusterName, client)
+	return cluster, flexCluster, conversion.FromTPFDiagsToSDKV2Diags(fwdiags)
 }

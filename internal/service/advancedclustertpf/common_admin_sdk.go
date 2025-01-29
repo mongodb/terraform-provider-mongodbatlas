@@ -173,9 +173,9 @@ func ReadCluster(ctx context.Context, diags *diag.Diagnostics, client *config.Mo
 	return readResp
 }
 
-func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, clusterName string, client *admin.APIClient) (clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113) {
+func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, clusterName string, client *config.MongoDBClient) (clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113) {
 	isFlex := false
-	clusterDesc, resp, err := client.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	clusterDesc, resp, err := client.AtlasV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil, nil
@@ -186,7 +186,7 @@ func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, 
 		}
 	}
 	if isFlex {
-		flexClusterResp, err = flexcluster.GetFlexCluster(ctx, projectID, clusterName, client.FlexClustersApi)
+		flexClusterResp, err = flexcluster.GetFlexCluster(ctx, projectID, clusterName, client.AtlasV2.FlexClustersApi)
 		if err != nil {
 			diags.AddError(fmt.Sprintf(flexcluster.ErrorReadFlex, clusterName, err), defaultAPIErrorDetails(clusterName, err))
 			return nil, nil

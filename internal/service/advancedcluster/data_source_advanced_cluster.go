@@ -9,7 +9,6 @@ import (
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
 func DataSource() *schema.Resource {
@@ -280,8 +279,9 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	client := meta.(*config.MongoDBClient)
+	connV220240530 := client.AtlasV220240530
+	connV2 := client.AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
@@ -291,19 +291,13 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if v, ok := d.GetOk("use_replication_spec_per_shard"); ok {
 		useReplicationSpecPerShard = v.(bool)
 	}
-
-	diags := diag.Diagnostics{}
-	diagsFramework := ConvertV2DiagsToFrameworkDiags(diags)
-	clusterDesc, flexClusterResp := advancedclustertpf.GetClusterDetails(ctx, diagsFramework, projectID, clusterName, connV2)
-	diags = ConvertFrameworkDiagsToV2Diags(*diagsFramework)
+	clusterDesc, flexClusterResp, diags := GetClusterDetails(ctx, client, projectID, clusterName)
 	if diags.HasError() {
 		return diags
 	}
-
 	if flexClusterResp == nil && clusterDesc == nil {
 		return nil
 	}
-
 	if flexClusterResp != nil {
 		diags := setFlexFields(d, flexClusterResp)
 		if diags.HasError() {

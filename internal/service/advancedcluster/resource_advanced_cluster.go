@@ -619,18 +619,15 @@ func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	client := meta.(*config.MongoDBClient)
+	connV220240530 := client.AtlasV220240530
+	connV2 := client.AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
 	var replicationSpecs []map[string]any
-
-	diags := diag.Diagnostics{}
-	diagsFramework := ConvertV2DiagsToFrameworkDiags(diags)
-	cluster, flexClusterResp := advancedclustertpf.GetClusterDetails(ctx, diagsFramework, projectID, clusterName, connV2)
-	diags = ConvertFrameworkDiagsToV2Diags(*diagsFramework)
+	cluster, flexClusterResp, diags := GetClusterDetails(ctx, client, projectID, clusterName)
 	if diags.HasError() {
 		return diags
 	}
