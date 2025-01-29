@@ -407,8 +407,9 @@ func schemaSpecs() *schema.Schema {
 					Computed: true,
 				},
 				"instance_size": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:             schema.TypeString,
+					Required:         true,
+					ValidateDiagFunc: validate.InstanceSizeNameValidator(),
 				},
 				"node_count": {
 					Type:     schema.TypeInt,
