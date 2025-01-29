@@ -14,8 +14,9 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceRead,
-		Schema:      dataSourceSchema(),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationDataSourceByDateWithExternalLink, "January 2026", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
+		ReadContext:        dataSourceRead,
+		Schema:             dataSourceSchema(),
 	}
 }
 

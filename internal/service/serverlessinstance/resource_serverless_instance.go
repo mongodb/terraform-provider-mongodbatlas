@@ -25,10 +25,11 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCreate,
-		ReadContext:   resourceRead,
-		UpdateContext: resourceUpdate,
-		DeleteContext: resourceDelete,
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationResourceByDateWithExternalLink, "January 2026", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
+		CreateContext:      resourceCreate,
+		ReadContext:        resourceRead,
+		UpdateContext:      resourceUpdate,
+		DeleteContext:      resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
