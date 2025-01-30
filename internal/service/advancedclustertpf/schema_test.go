@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAdvancedCluster_ValidationErrors(t *testing.T) {
+func TestAccAdvancedCluster_ValidationErrors(t *testing.T) {
 	const (
 		projectID   = "111111111111111111111111"
 		clusterName = "test"
