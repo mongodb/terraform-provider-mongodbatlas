@@ -441,7 +441,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if advancedclustertpf.IsFlex(replicationSpecs) {
 		clusterName := d.Get("name").(string)
-		flexClusterReq := NewFlexCreateReq(d, replicationSpecs)
+		flexClusterReq := advancedclustertpf.NewFlexCreateReq(clusterName, d.Get("termination_protection_enabled").(bool), conversion.ExpandTagsFromSetSchema(d), replicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(flexcluster.ErrorCreateFlex, err))

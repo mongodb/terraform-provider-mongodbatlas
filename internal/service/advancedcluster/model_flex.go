@@ -10,22 +10,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
-func NewFlexCreateReq(d *schema.ResourceData, replicationSpecs *[]admin.ReplicationSpec20240805) *admin.FlexClusterDescriptionCreate20241113 {
-	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
-		return nil
-	}
-	regionConfigs := (*replicationSpecs)[0].GetRegionConfigs()[0]
-	return &admin.FlexClusterDescriptionCreate20241113{
-		Name: d.Get("name").(string),
-		ProviderSettings: admin.FlexProviderSettingsCreate20241113{
-			BackingProviderName: regionConfigs.GetBackingProviderName(),
-			RegionName:          regionConfigs.GetRegionName(),
-		},
-		TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
-		Tags:                         conversion.ExpandTagsFromSetSchema(d),
-	}
-}
-
 func isValidUpgradeToFlex(d *schema.ResourceData) bool {
 	if d.HasChange("replication_specs.0.region_configs.0") {
 		oldProviderName, newProviderName := d.GetChange("replication_specs.0.region_configs.0.provider_name")
@@ -46,6 +30,7 @@ func isValidUpdateOfFlex(d *schema.ResourceData) bool {
 	return false
 }
 
+// TODO: refactor this. 1. Move to tpf. Instead of d as parameter, pass tags and bool
 func getFlexClusterUpdateRequest(d *schema.ResourceData) *admin.FlexClusterDescriptionUpdate20241113 {
 	return &admin.FlexClusterDescriptionUpdate20241113{
 		Tags:                         conversion.ExpandTagsFromSetSchema(d),

@@ -18,6 +18,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -106,6 +107,27 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+	if IsFlex(latestReq.ReplicationSpecs) {
+		flexClusterReq := NewFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
+		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, latestReq.GetGroupId(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi)
+		if err != nil {
+			resp.Diagnostics.AddError(flexcluster.ErrorCreateFlex, err.Error())
+			return
+		}
+
+		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexClusterResp)
+		if diags.HasError() {
+			resp.Diagnostics.Append(*diags...)
+			return
+		}
+
+		if conversion.UseNilForEmpty(plan.Tags, newFlexClusterModel.Tags) { //TODO: check if this is needed
+			newFlexClusterModel.Tags = types.MapNull(types.StringType)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+	}
+
 	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationCreate)
 	if diags.HasError() {
 		return
@@ -151,12 +173,16 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	clusterName := state.Name.ValueString()
 	projectID := state.ProjectID.ValueString()
 	readResp := ReadCluster(ctx, diags, r.Client, projectID, clusterName, !state.PinnedFCV.IsNull())
+	cluster, flexCluster := GetClusterDetails(ctx, diags, projectID, clusterName, r.Client)
 	if diags.HasError() {
 		return
 	}
-	if readResp == nil {
+	if cluster == nil && flexCluster == nil {
 		resp.State.RemoveResource(ctx)
 		return
+	}
+	if flexCluster != nil {
+		resp.State.Set(ctx, NewTFModelFlex(ctx, diags, flexCluster))
 	}
 	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, &state, false)
 	if diags.HasError() {
@@ -177,6 +203,21 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+
+	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
+	planReq := normalizeFromTFModel(ctx, &plan, diags, false)
+	if IsFlex(planReq.ReplicationSpecs) {
+		if isValidUpgradeToFlex() {
+			//plan.ProjectID.Equal(state.ProjectID)
+		}
+		if isValidUpdateOfFlex() {
+
+		}
+		diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
+		resp.Diagnostics.Append(*diags...)
+		return
+	}
+
 	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
 	if diags.HasError() {
 		return

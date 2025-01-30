@@ -18,14 +18,15 @@ import (
 )
 
 const (
-	resourceName          = "flex_cluster"
-	ErrorUpdateNotAllowed = "update not allowed"
-	FlexClusterType       = "FLEX"
-	ErrorCreateFlex       = "error creating flex cluster: %s"
-	ErrorReadFlex         = "error reading flex cluster (%s): %s"
-	ErrorUpdateFlex       = "error updating flex cluster: %s"
-	ErrorUpgradeFlex      = "error upgrading to a flex cluster: %s"
-	ErrorDeleteFlex       = "error deleting a flex cluster (%s): %s"
+	resourceName                = "flex_cluster"
+	ErrorUpdateNotAllowed       = "update not allowed"
+	FlexClusterType             = "FLEX"
+	ErrorCreateFlex             = "error creating flex cluster: %s"
+	ErrorReadFlex               = "error reading flex cluster (%s): %s"
+	ErrorUpdateFlex             = "error updating flex cluster: %s"
+	ErrorUpgradeFlex            = "error upgrading to a flex cluster: %s"
+	ErrorDeleteFlex             = "error deleting a flex cluster (%s): %s"
+	ErrorNonUpdatableAttributes = "flex cluster update is not supported except for tags and termination_protection_enabled fields"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
