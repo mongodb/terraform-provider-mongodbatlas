@@ -27,7 +27,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
-var (
+const (
 	resourceName           = "mongodbatlas_advanced_cluster.test"
 	dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
 	dataSourcePluralName   = "data.mongodbatlas_advanced_clusters.test"
@@ -2942,5 +2942,8 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 	checks = acc.AddAttrChecksPrefix(acc.FlexDataSourcePluralName, checks, attrMapFlex, "results.0")
 	checks = acc.AddAttrSetChecksPrefix(acc.FlexDataSourcePluralName, checks, attrSetFlex, "results.0")
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
-	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSetAdvCluster, attrMapAdvCluster, checks...)
+	// Convert string constants to variables so we can take their address
+	ds := dataSourceName
+	dsp := dataSourcePluralName
+	return acc.CheckRSAndDS(resourceName, &ds, &dsp, attrSetAdvCluster, attrMapAdvCluster, checks...)
 }
