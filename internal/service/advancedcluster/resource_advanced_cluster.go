@@ -439,7 +439,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB)
 
-	if isFlex(replicationSpecs) {
+	if advancedclustertpf.IsFlex(replicationSpecs) {
 		clusterName := d.Get("name").(string)
 		flexClusterReq := NewFlexCreateReq(d, replicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
@@ -847,7 +847,7 @@ func isUsingOldShardingConfiguration(d *schema.ResourceData) bool {
 func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil)
 
-	if isFlex(replicationSpecs) {
+	if advancedclustertpf.IsFlex(replicationSpecs) {
 		if isValidUpgradeToFlex(d) {
 			return resourceUpgrade(ctx, getUpgradeToFlexClusterRequest(), d, meta)
 		}
@@ -1277,7 +1277,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil)
 
-	if isFlex(replicationSpecs) {
+	if advancedclustertpf.IsFlex(replicationSpecs) {
 		err := flexcluster.DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(flexcluster.ErrorDeleteFlex, clusterName, err))
@@ -1473,18 +1473,6 @@ func waitForUpdateToFinish(ctx context.Context, connV2 *admin.APIClient, project
 
 	_, err := stateConf.WaitForStateContext(ctx)
 	return err
-}
-
-func isFlex(replicationSpecs *[]admin.ReplicationSpec20240805) bool {
-	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
-		return false
-	}
-	replicationSpec := (*replicationSpecs)[0]
-	if replicationSpec.RegionConfigs == nil || len(replicationSpec.GetRegionConfigs()) == 0 {
-		return false
-	}
-	regionConfig := replicationSpec.GetRegionConfigs()[0]
-	return regionConfig.GetProviderName() == flexcluster.FlexClusterType
 }
 
 func resourceUpdateFlexCluster(ctx context.Context, flexUpdateRequest *admin.FlexClusterDescriptionUpdate20241113, d *schema.ResourceData, meta any) diag.Diagnostics {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
@@ -72,4 +73,16 @@ func GenerateFCVPinningWarningForRead(fcvPresentInState bool, apiRespFCVExpirati
 		}
 	}
 	return nil
+}
+
+func IsFlex(replicationSpecs *[]admin.ReplicationSpec20240805) bool {
+	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
+		return false
+	}
+	replicationSpec := (*replicationSpecs)[0]
+	if replicationSpec.RegionConfigs == nil || len(replicationSpec.GetRegionConfigs()) == 0 {
+		return false
+	}
+	regionConfig := replicationSpec.GetRegionConfigs()[0]
+	return regionConfig.GetProviderName() == flexcluster.FlexClusterType
 }
