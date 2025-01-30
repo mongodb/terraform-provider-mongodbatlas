@@ -67,7 +67,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	flexClusterResp, err := CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 	if err != nil {
-		resp.Diagnostics.AddError("error creating the resource", err.Error())
+		resp.Diagnostics.AddError(ErrorCreateFlex, err.Error())
 		return
 	}
 
@@ -98,7 +98,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		resp.Diagnostics.AddError(ErrorReadFlex, err.Error())
 		return
 	}
 
@@ -135,7 +135,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	flexClusterResp, err := UpdateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 	if err != nil {
-		resp.Diagnostics.AddError("error updating the resource", err.Error())
+		resp.Diagnostics.AddError(ErrorUpdateFlex, err.Error())
 		return
 	}
 
@@ -164,7 +164,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	err := DeleteFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString(), connV2.FlexClustersApi)
 
 	if err != nil {
-		resp.Diagnostics.AddError("error deleting the resource", err.Error())
+		resp.Diagnostics.AddError(ErrorDeleteFlex, err.Error())
 		return
 	}
 }
