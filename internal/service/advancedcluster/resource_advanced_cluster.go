@@ -1313,27 +1313,23 @@ func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	client := meta.(*config.MongoDBClient)
 
 	projectID, name, err := splitSClusterAdvancedImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	isFlex := false
-	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, *projectID, *name).Execute()
-	if err != nil {
-		if isFlex = admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API"); !isFlex { // if cluster is flex we need to call different API
-			return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
-		}
+	cluster, flexCluster, diags := GetClusterDetails(ctx, client, *projectID, *name)
+	if diags.HasError() && len(diags) > 0 { // GetClusterDetails will return a diag with a single error at most
+		return nil, fmt.Errorf("%s: %s", diags[0].Summary, diags[0].Detail)
+	}
+	if flexCluster == nil && cluster == nil { // 404 does not return a diag with an error
+		return nil, fmt.Errorf("%s: %s", diags[0].Summary, diags[0].Detail)
 	}
 	clusterID := cluster.GetId()
 	clusterName := cluster.GetName()
-	if isFlex {
-		flexCluster, err := flexcluster.GetFlexCluster(ctx, *projectID, *name, connV2.FlexClustersApi)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't import flex cluster %s in project %s, error: %s", *name, *projectID, err)
-		}
+	if flexCluster != nil {
 		clusterID = flexCluster.GetId()
 		clusterName = flexCluster.GetName()
 	}
