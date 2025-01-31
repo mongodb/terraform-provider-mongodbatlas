@@ -222,7 +222,7 @@ jobs:
       mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '' )  }}
     outputs: # ensure resources are sorted alphabetically
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
-      advanced_cluster_tpf: ${{ steps.filter.outputs.advanced_cluster_tpf == 'true' || env.mustTrigger == 'true' }}
+      advanced_cluster_tpf: ${{ github.event_name == 'workflow_dispatch' && inputs.test_group == 'advanced_cluster_tpf' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
@@ -367,7 +367,7 @@ jobs:
 
   advanced_cluster_tpf:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf' }}
+    if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' }}
     env:
       MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
     runs-on: ubuntu-latest
