@@ -1,6 +1,6 @@
 forbid (
     principal,
-    action == cloud::Action::"cluster.createEdit",
+    action == ResourcePolicy::Action::"cluster.modify",
     resource
 )
 when
