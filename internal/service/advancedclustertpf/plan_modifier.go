@@ -83,15 +83,15 @@ func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 	}
 }
 
-func useRemoteForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, remoteModel *TFModel, keepUnknown []string) {
-	CopyUnknowns(ctx, remoteModel, plan, keepUnknown)
+func useStateForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, state *TFModel, keepUnknown []string) {
+	CopyUnknowns(ctx, state, plan, keepUnknown)
 	if slices.Contains(keepUnknown, replicationSpecsTFModelName) {
 		return
 	}
 	// Nested fields are not supported by CopyUnknowns unless the whole field is Unknown.
 	// Therefore, we need to handle replication_specs and partially unknown fields such as region_configs.(electable_specs|auto_scaling) manually.
 	planReplicationSpecsElements := plan.ReplicationSpecs.Elements()
-	readModelReplicationSpecsElements := remoteModel.ReplicationSpecs.Elements()
+	readModelReplicationSpecsElements := state.ReplicationSpecs.Elements()
 	if len(planReplicationSpecsElements) != len(readModelReplicationSpecsElements) {
 		return
 	}
@@ -101,7 +101,7 @@ func useRemoteForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, rem
 		return
 	}
 	remoteReplicationSpecs := make([]TFReplicationSpecsModel, len(readModelReplicationSpecsElements))
-	if localDiags := remoteModel.ReplicationSpecs.ElementsAs(ctx, &remoteReplicationSpecs, false); len(localDiags) > 0 {
+	if localDiags := state.ReplicationSpecs.ElementsAs(ctx, &remoteReplicationSpecs, false); len(localDiags) > 0 {
 		diags.Append(localDiags...)
 		return
 	}

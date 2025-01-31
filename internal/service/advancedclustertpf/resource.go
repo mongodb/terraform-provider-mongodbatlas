@@ -106,15 +106,6 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if !HasUnknowns(&plan) {
 		return
 	}
-	remoteCluster := ReadCluster(ctx, diags, r.Client, plan.ProjectID.ValueString(), plan.Name.ValueString(), false)
-	if remoteCluster == nil {
-		return
-	}
-	remoteModel, _ := getBasicClusterModel(ctx, diags, r.Client, remoteCluster, &plan, false)
-	updateModelAdvancedConfig(ctx, diags, r.Client, remoteModel, nil, nil)
-	if diags.HasError() {
-		return
-	}
 	patchReq, upgradeRequest := findClusterDiff(ctx, &state, &plan, diags, &update.PatchOptions{})
 	keepUnknown := []string{"ConnectionStrings"} // Names must match the TFModel struct names
 	if upgradeRequest != nil {
@@ -129,7 +120,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 			keepUnknown = append(keepUnknown, replicationSpecsTFModelName, "DiskSizeGB") // Not safe to set DiskSizeGB when updating replication specs
 		}
 	}
-	useRemoteForUnknown(ctx, diags, &plan, remoteModel, keepUnknown)
+	useStateForUnknown(ctx, diags, &plan, &state, keepUnknown)
 	if diags.HasError() {
 		return
 	}
