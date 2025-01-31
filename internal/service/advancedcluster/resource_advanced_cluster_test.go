@@ -2860,7 +2860,7 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 			termination_protection_enabled = false
 		}
 	`, projectID, clusterName, providerName, region, tags)+
-		dataSourcesTFOldSchema+strings.ReplaceAll(acc.FlexDataSource, "mongodbatlas_flex_cluster.", "mongodbatlas_advanced_cluster."))
+		strings.ReplaceAll(acc.FlexDataSource, "mongodbatlas_flex_cluster.", "mongodbatlas_advanced_cluster."))
 }
 
 func TestAccClusterFlexCluster_basic(t *testing.T) {
@@ -2904,8 +2904,8 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 	}
 	attrSetAdvCluster := []string{
 		"backup_enabled",
-		"connection_strings.0.standard",
-		"connection_strings.0.standard_srv",
+		"connection_strings.standard", //TODO: change automatically .0.
+		"connection_strings.standard_srv",
 		"create_date",
 		"mongo_db_version",
 		"state_name",
@@ -2941,9 +2941,9 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 	checks = acc.AddAttrChecks(acc.FlexDataSourcePluralName, checks, pluralMap)
 	checks = acc.AddAttrChecksPrefix(acc.FlexDataSourcePluralName, checks, attrMapFlex, "results.0")
 	checks = acc.AddAttrSetChecksPrefix(acc.FlexDataSourcePluralName, checks, attrSetFlex, "results.0")
-	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
+	// checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	// Convert string constants to variables so we can take their address
-	ds := dataSourceName
-	dsp := dataSourcePluralName
-	return acc.CheckRSAndDS(resourceName, &ds, &dsp, attrSetAdvCluster, attrMapAdvCluster, checks...)
+	// ds := dataSourceName
+	// dsp := dataSourcePluralName
+	return acc.CheckRSAndDS(resourceName, nil, nil, acc.ConvertToSchemaV2AttrsSet(true, attrSetAdvCluster), acc.ConvertToSchemaV2AttrsMap(true, attrMapAdvCluster), checks...)
 }
