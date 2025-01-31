@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 )
 
 const (
@@ -67,7 +69,7 @@ func refreshFunc(ctx context.Context, projectID, connectionID string, client adm
 			return nil, "", err
 		}
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return &admin.StreamsPrivateLinkConnection{}, retrystrategy.RetryStrategyDeletedState, nil
 			}
 			return nil, "", err
