@@ -12,20 +12,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-func IsUnknown(obj reflect.Value) *bool {
+func IsUnknown(obj reflect.Value) bool {
 	method := obj.MethodByName("IsUnknown")
-	if !method.IsValid() { // Method not found
-		return nil
+	if !method.IsValid() {
+		panic(fmt.Sprintf("IsUnknown method not found for %v", obj))
 	}
 	results := method.Call([]reflect.Value{})
-	if len(results) > 0 {
-		result := results[0]
-		response, ok := result.Interface().(bool)
-		if ok {
-			return &response
-		}
+	if len(results) != 1 {
+		panic(fmt.Sprintf("IsUnknown method must return a single value, got %v", results))
 	}
-	return nil
+	result := results[0]
+	response, ok := result.Interface().(bool)
+	if !ok {
+		panic(fmt.Sprintf("IsUnknown method must return a bool, got %v", result))
+	}
+	return response
 }
 
 func HasUnknowns(obj any) bool {
@@ -40,8 +41,7 @@ func HasUnknowns(obj any) bool {
 	typeObj := valObj.Type()
 	for i := range typeObj.NumField() {
 		field := valObj.Field(i)
-		isUnknownP := IsUnknown(field)
-		if isUnknownP != nil && *isUnknownP {
+		if IsUnknown(field) {
 			return true
 		}
 	}
@@ -71,14 +71,7 @@ func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 			continue
 		}
 		_, found := typeSrc.FieldByName(name)
-		if !found {
-			continue
-		}
-		isUnknownP := IsUnknown(valDest.Field(i))
-		if isUnknownP == nil || !*isUnknownP {
-			continue
-		}
-		if !valDest.Field(i).CanSet() {
+		if !found || !IsUnknown(valDest.Field(i)) || !valDest.Field(i).CanSet() {
 			continue
 		}
 		tflog.Info(ctx, fmt.Sprintf("Copying unknown field: %s", name))
@@ -103,16 +96,16 @@ func useStateForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, stat
 		diags.Append(localDiags...)
 		return
 	}
-	remoteReplicationSpecs := make([]TFReplicationSpecsModel, len(readModelReplicationSpecsElements))
-	if localDiags := state.ReplicationSpecs.ElementsAs(ctx, &remoteReplicationSpecs, false); len(localDiags) > 0 {
+	stateReplicationSpecs := make([]TFReplicationSpecsModel, len(readModelReplicationSpecsElements))
+	if localDiags := state.ReplicationSpecs.ElementsAs(ctx, &stateReplicationSpecs, false); len(localDiags) > 0 {
 		diags.Append(localDiags...)
 		return
 	}
 	for i := range planReplicationSpecs {
-		replicationSpecRemote := &remoteReplicationSpecs[i]
+		replicationSpecState := &stateReplicationSpecs[i]
 		replicationSpecPlan := &planReplicationSpecs[i]
-		CopyUnknowns(ctx, replicationSpecRemote, replicationSpecPlan, keepUnknown)
-		fillInUnknownsInRegionConfigs(ctx, replicationSpecRemote, replicationSpecPlan, diags)
+		CopyUnknowns(ctx, replicationSpecState, replicationSpecPlan, keepUnknown)
+		fillInUnknownsInRegionConfigs(ctx, replicationSpecState, replicationSpecPlan, diags)
 		if diags.HasError() {
 			return
 		}
@@ -125,14 +118,14 @@ func useStateForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, stat
 	plan.ReplicationSpecs = newReplicationSpecs
 }
 
-func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote, replicationSpecPlan *TFReplicationSpecsModel, diags *diag.Diagnostics) {
-	regionConfigsRemoteElements := replicationSpecRemote.RegionConfigs.Elements()
+func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecState, replicationSpecPlan *TFReplicationSpecsModel, diags *diag.Diagnostics) {
+	regionConfigsStateElements := replicationSpecState.RegionConfigs.Elements()
 	regionConfigsPlanElements := replicationSpecPlan.RegionConfigs.Elements()
-	if len(regionConfigsRemoteElements) != len(regionConfigsPlanElements) {
+	if len(regionConfigsStateElements) != len(regionConfigsPlanElements) {
 		return
 	}
-	remoteRegionConfigs := make([]TFRegionConfigsModel, len(regionConfigsRemoteElements))
-	if localDiags := replicationSpecRemote.RegionConfigs.ElementsAs(ctx, &remoteRegionConfigs, false); len(localDiags) > 0 {
+	stateRegionConfigs := make([]TFRegionConfigsModel, len(regionConfigsStateElements))
+	if localDiags := replicationSpecState.RegionConfigs.ElementsAs(ctx, &stateRegionConfigs, false); len(localDiags) > 0 {
 		diags.Append(localDiags...)
 		return
 	}
@@ -142,7 +135,7 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote, r
 		return
 	}
 	for j := range regionConfigsPlanElements {
-		remoteRegionConfig := &remoteRegionConfigs[j]
+		stateRegionConfig := &stateRegionConfigs[j]
 		planRegionConfig := &planRegionConfigs[j]
 		if !planRegionConfig.ElectableSpecs.IsNull() && !planRegionConfig.ElectableSpecs.IsUnknown() {
 			planElectableSpecs := &TFSpecsModel{}
@@ -150,12 +143,12 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote, r
 				diags.Append(localDiags...)
 				return
 			}
-			remoteElectableSpecs := &TFSpecsModel{}
-			if localDiags := remoteRegionConfig.ElectableSpecs.As(ctx, remoteElectableSpecs, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
+			stateElectableSpecs := &TFSpecsModel{}
+			if localDiags := stateRegionConfig.ElectableSpecs.As(ctx, stateElectableSpecs, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
 				diags.Append(localDiags...)
 				return
 			}
-			CopyUnknowns(ctx, remoteElectableSpecs, planElectableSpecs, []string{})
+			CopyUnknowns(ctx, stateElectableSpecs, planElectableSpecs, []string{})
 			newElectableSpecs, localDiags := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, planElectableSpecs)
 			if localDiags.HasError() {
 				diags.Append(localDiags...)
@@ -169,12 +162,12 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote, r
 				diags.Append(localDiags...)
 				return
 			}
-			autoScalingRemote := &TFAutoScalingModel{}
-			if localDiags := remoteRegionConfig.AutoScaling.As(ctx, autoScalingRemote, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
+			autoScalingState := &TFAutoScalingModel{}
+			if localDiags := stateRegionConfig.AutoScaling.As(ctx, autoScalingState, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
 				diags.Append(localDiags...)
 				return
 			}
-			CopyUnknowns(ctx, autoScalingRemote, autoScalingPlan, []string{})
+			CopyUnknowns(ctx, autoScalingState, autoScalingPlan, []string{})
 			newAutoScaling, localDiags := types.ObjectValueFrom(ctx, AutoScalingObjType.AttrTypes, autoScalingPlan)
 			if localDiags.HasError() {
 				diags.Append(localDiags...)
@@ -182,7 +175,7 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecRemote, r
 			}
 			planRegionConfig.AutoScaling = newAutoScaling
 		}
-		CopyUnknowns(ctx, remoteRegionConfig, planRegionConfig, []string{})
+		CopyUnknowns(ctx, stateRegionConfig, planRegionConfig, []string{})
 	}
 	newRegionConfig, localDiags := types.ListValueFrom(ctx, RegionConfigsObjType, planRegionConfigs)
 	if localDiags.HasError() {
