@@ -109,6 +109,7 @@ func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescripti
 		Tags:                         flexCluster.Tags,
 		TerminationProtectionEnabled: flexCluster.TerminationProtectionEnabled,
 		VersionReleaseSystem:         flexCluster.VersionReleaseSystem,
+		ConnectionStrings:            NewClusterConnectionStringsFromFlex(flexCluster.ConnectionStrings),
 	}
 }
 

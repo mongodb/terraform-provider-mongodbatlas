@@ -113,13 +113,12 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		flexClusterReq := NewFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi)
 		if err != nil {
-			resp.Diagnostics.AddError(flexcluster.ErrorCreateFlex, err.Error())
+			diags.AddError(flexcluster.ErrorCreateFlex, err.Error())
 			return
 		}
 
 		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), plan.Timeouts)
 		if diags.HasError() {
-			resp.Diagnostics.Append(*diags...)
 			return
 		}
 
@@ -130,7 +129,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			newFlexClusterModel.Labels = types.MapNull(types.StringType)
 		}
 
-		resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
 
@@ -178,7 +177,6 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	clusterName := state.Name.ValueString()
 	projectID := state.ProjectID.ValueString()
-	readResp := ReadCluster(ctx, diags, r.Client, projectID, clusterName, !state.PinnedFCV.IsNull())
 	cluster, flexCluster := GetClusterDetails(ctx, diags, projectID, clusterName, r.Client)
 	if diags.HasError() {
 		return
@@ -189,9 +187,10 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	if flexCluster != nil {
 		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, nil, state.Timeouts)
-		resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
+	readResp := ReadCluster(ctx, diags, r.Client, projectID, clusterName, !state.PinnedFCV.IsNull())
 	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, &state, false)
 	if diags.HasError() {
 		return
@@ -223,26 +222,26 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if isValidUpgradeToFlex(stateReq, planReq) {
 			flexCluster := FlexUpgrade(ctx, diags, r.Client, waitParams, GetUpgradeToFlexClusterRequest())
 			if diags.HasError() {
-				resp.Diagnostics.Append(*diags...)
+				diags.Append(*diags...)
 				return
 			}
 			newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), state.Timeouts)
-			resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+			diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 			return
 		}
 		if isValidUpdateOfFlex(stateReq, planReq) {
 			flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), GetFlexClusterUpdateRequest(planReq.Tags, planReq.TerminationProtectionEnabled), r.Client.AtlasV2.FlexClustersApi)
 			if err != nil {
 				diags.AddError(flexcluster.ErrorUpdateFlex, err.Error())
-				resp.Diagnostics.Append(*diags...)
+				diags.Append(*diags...)
 				return
 			}
 			newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), state.Timeouts)
-			resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+			diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 			return
 		}
 		diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
-		resp.Diagnostics.Append(*diags...)
+		diags.Append(*diags...)
 		return
 	}
 
