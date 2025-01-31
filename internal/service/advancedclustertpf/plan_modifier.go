@@ -48,6 +48,9 @@ func HasUnknowns(obj any) bool {
 	return false
 }
 
+// CopyUnknowns use reflection to copy unknown fields from src to dest.
+// The alternative without reflection would need to pass every field in a struct.
+// The implementation is similar to internal/common/conversion/model_generation.go#CopyModel
 func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 	valSrc := reflect.ValueOf(src)
 	valDest := reflect.ValueOf(dest)
@@ -85,7 +88,7 @@ func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 
 func useStateForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, state *TFModel, keepUnknown []string) {
 	CopyUnknowns(ctx, state, plan, keepUnknown)
-	if slices.Contains(keepUnknown, replicationSpecsTFModelName) {
+	if slices.Contains(keepUnknown, replicationSpecsTFModelName) { // Early return if replication_specs is in keepUnknown
 		return
 	}
 	// Nested fields are not supported by CopyUnknowns unless the whole field is Unknown.

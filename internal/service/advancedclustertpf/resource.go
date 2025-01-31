@@ -92,6 +92,10 @@ type rs struct {
 	config.RSCommon
 }
 
+// ModifyPlan is called before plan is shown to the user and right before the plan is applied.
+// Why do we need this? Why can't we use planmodifier.UseStateForUnknown in different fields?
+// 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
+// 2. Adding the different UseStateForUnknown is very verbose.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Can be null in case of destroy
 		return
@@ -106,10 +110,11 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if !HasUnknowns(&plan) {
 		return
 	}
-	patchReq, upgradeRequest := findClusterDiff(ctx, &state, &plan, diags, &update.PatchOptions{})
-	keepUnknown := []string{"ConnectionStrings"} // Names must match the TFModel struct names
+	patchReq, upgradeRequest := findClusterDiff(ctx, &state, &plan, diags, &update.PatchOptions{}) // We need the patchReq+upgradeRequest to determine which fields have changed
+	// keepUnknown names must match the TFModel struct names
+	keepUnknown := []string{"ConnectionStrings"} // ConnectionStrings is volatile and should not be copied from state
 	if upgradeRequest != nil {
-		// TenantUpgrade changes a few root level fields that are normally ok to use remote values for
+		// TenantUpgrade changes a few root level fields that are normally ok to use state values for
 		keepUnknown = append(keepUnknown, "DiskSizeGB", "ClusterID", replicationSpecsTFModelName, "BackupEnabled", "CreateDate")
 	}
 	if !update.IsZeroValues(patchReq) {
@@ -117,7 +122,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 			keepUnknown = append(keepUnknown, "MongoDBVersion") // Not safe to set MongoDBVersion when updating MongoDBMajorVersion
 		}
 		if patchReq.ReplicationSpecs != nil {
-			keepUnknown = append(keepUnknown, replicationSpecsTFModelName, "DiskSizeGB") // Not safe to set DiskSizeGB when updating replication specs
+			keepUnknown = append(keepUnknown, replicationSpecsTFModelName, "DiskSizeGB") // Not safe to use root value of DiskSizeGB when updating replication specs
 		}
 	}
 	useStateForUnknown(ctx, diags, &plan, &state, keepUnknown)
