@@ -86,8 +86,7 @@ func useStateForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, stat
 	}
 	// Nested fields are not supported by CopyUnknowns unless the whole field is Unknown.
 	// Therefore, we need to handle replication_specs and partially unknown fields such as region_configs.(electable_specs|auto_scaling) manually.
-	planReplicationSpecs := asTFListModel[TFReplicationSpecsModel](ctx, plan.ReplicationSpecs, diags)
-	stateReplicationSpecs := asTFListModel[TFReplicationSpecsModel](ctx, state.ReplicationSpecs, diags)
+	stateReplicationSpecs, planReplicationSpecs := statePlanTFListModel[TFReplicationSpecsModel](ctx, state.ReplicationSpecs, plan.ReplicationSpecs, diags)
 	if diags.HasError() || len(planReplicationSpecs) != len(stateReplicationSpecs) {
 		return
 	}
@@ -109,8 +108,7 @@ func useStateForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, stat
 }
 
 func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecState, replicationSpecPlan *TFReplicationSpecsModel, diags *diag.Diagnostics) {
-	stateRegionConfigs := asTFListModel[TFRegionConfigsModel](ctx, replicationSpecState.RegionConfigs, diags)
-	planRegionConfigs := asTFListModel[TFRegionConfigsModel](ctx, replicationSpecPlan.RegionConfigs, diags)
+	stateRegionConfigs, planRegionConfigs := statePlanTFListModel[TFRegionConfigsModel](ctx, replicationSpecState.RegionConfigs, replicationSpecPlan.RegionConfigs, diags)
 	if diags.HasError() || len(stateRegionConfigs) != len(planRegionConfigs) {
 		return
 	}
@@ -132,39 +130,49 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecState, re
 
 func useStateForUnknownRegionConfig(ctx context.Context, plan, state *TFRegionConfigsModel, diags *diag.Diagnostics) {
 	if objectIsSet(plan.ElectableSpecs) {
-		planElectableSpecs := asTFObjectModel[TFSpecsModel](ctx, plan.ElectableSpecs, diags)
-		stateElectableSpecs := asTFObjectModel[TFSpecsModel](ctx, state.ElectableSpecs, diags)
+		newElectableSpecs := copyUnknownsFromObject(ctx, diags, state.ElectableSpecs, plan.ElectableSpecs, func(ctx context.Context, newValue TFSpecsModel) (basetypes.ObjectValue, diag.Diagnostics) {
+			return types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newValue)
+		})
 		if diags.HasError() {
-			return
-		}
-		CopyUnknowns(ctx, &stateElectableSpecs, &planElectableSpecs, []string{})
-		newElectableSpecs, localDiags := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, planElectableSpecs)
-		if localDiags.HasError() {
-			diags.Append(localDiags...)
 			return
 		}
 		plan.ElectableSpecs = newElectableSpecs
 	}
 	if objectIsSet(plan.AutoScaling) {
-		autoScalingPlan := asTFObjectModel[TFAutoScalingModel](ctx, plan.AutoScaling, diags)
-		autoScalingState := asTFObjectModel[TFAutoScalingModel](ctx, state.AutoScaling, diags)
+		newAutoScaling := copyUnknownsFromObject(ctx, diags, state.AutoScaling, plan.AutoScaling, func(ctx context.Context, newValue TFAutoScalingModel) (basetypes.ObjectValue, diag.Diagnostics) {
+			return types.ObjectValueFrom(ctx, AutoScalingObjType.AttrTypes, newValue)
+		})
 		if diags.HasError() {
-			return
-		}
-		CopyUnknowns(ctx, &autoScalingState, &autoScalingPlan, []string{})
-		newAutoScaling, localDiags := types.ObjectValueFrom(ctx, AutoScalingObjType.AttrTypes, autoScalingPlan)
-		if localDiags.HasError() {
-			diags.Append(localDiags...)
 			return
 		}
 		plan.AutoScaling = newAutoScaling
 	}
 	CopyUnknowns(ctx, state, plan, []string{})
-	return
+}
+
+func copyUnknownsFromObject[T any](ctx context.Context, diags *diag.Diagnostics, state, plan types.Object, structToObject func(context.Context, T) (basetypes.ObjectValue, diag.Diagnostics)) basetypes.ObjectValue {
+	planElectableSpecs := asTFObjectModel[T](ctx, plan, diags)
+	stateElectableSpecs := asTFObjectModel[T](ctx, state, diags)
+	if diags.HasError() {
+		return basetypes.ObjectValue{}
+	}
+	CopyUnknowns(ctx, &stateElectableSpecs, &planElectableSpecs, []string{})
+	newElectableSpecs, localDiags := structToObject(ctx, planElectableSpecs)
+	if localDiags.HasError() {
+		diags.Append(localDiags...)
+		return basetypes.ObjectValue{}
+	}
+	return newElectableSpecs
 }
 
 func objectIsSet(obj types.Object) bool {
 	return !obj.IsNull() && !obj.IsUnknown()
+}
+
+func statePlanTFListModel[T any](ctx context.Context, stateList, planList types.List, diags *diag.Diagnostics) (state, plan []T) {
+	stateElements := asTFListModel[T](ctx, stateList, diags)
+	planElements := asTFListModel[T](ctx, planList, diags)
+	return stateElements, planElements
 }
 
 func asTFListModel[T any](ctx context.Context, list types.List, diags *diag.Diagnostics) []T {
