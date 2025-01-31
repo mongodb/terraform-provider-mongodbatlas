@@ -243,7 +243,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	_, resp, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
 	if err != nil {
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			return nil
 		}
 

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -54,7 +55,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
 	cluster, httpResp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	if httpResp.StatusCode == http.StatusNotFound {
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 		resp.State.RemoveResource(ctx)
 		return
 	}
@@ -84,7 +85,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
 	_, httpResp, err := connV2.ClustersApi.RevokeMongoDbEmployeeAccess(ctx, projectID, clusterName).Execute()
-	if err != nil && httpResp.StatusCode != http.StatusNotFound {
+	if err != nil && httpResp != nil && httpResp.StatusCode != http.StatusNotFound {
 		resp.Diagnostics.AddError(errorDelete, err.Error())
 		return
 	}
