@@ -781,15 +781,15 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false),
+				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false, false),
 				Check:  checkShardedNewSchema(true, 50, "M10", "M10", nil, nil, false, false),
 			},
 			{
-				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true), // add middle replication spec and transition to asymmetric
+				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true, false), // add middle replication spec and transition to asymmetric
 				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, true),
 			},
 			{
-				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false), // removes middle replication spec
+				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false, false), // removes middle replication spec
 				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, false),
 			},
 		},
@@ -814,7 +814,11 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestC
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false),
+				Config:      configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true),
+				ExpectError: regexp.MustCompile("DISK_SIZE_GB_INCONSISTENT"), // API Error when disk size is not consistent across all shards
+			},
+			{
+				Config: configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_clusters.test-replication-specs-per-shard-false", "results.#", "0"),
@@ -2183,9 +2187,13 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel(isAcc bool, diskSizeGB int) r
 		})
 }
 
-func configShardedNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec bool) string {
+func configShardedNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec, increaseDiskSizeShard2 bool) string {
 	t.Helper()
 	var thirdReplicationSpec string
+	var diskSizeGBShard2 = diskSizeGB
+	if increaseDiskSizeShard2 {
+		diskSizeGBShard2 = diskSizeGB + 10
+	}
 	if includeMiddleSpec {
 		thirdReplicationSpec = fmt.Sprintf(`
 			replication_specs {
@@ -2259,13 +2267,13 @@ func configShardedNewSchema(t *testing.T, isAcc bool, orgID, projectName, name s
 					electable_specs {
 						instance_size = %[5]q
 						node_count    = 3
-						disk_size_gb  = %[9]d
+						disk_size_gb  = %[10]d
 						%[7]s
 					}
 					analytics_specs {
 						instance_size = %[5]q
 						node_count    = 1
-						disk_size_gb  = %[9]d
+						disk_size_gb  = %[10]d
 					}
 					provider_name = "AWS"
 					priority      = 7
@@ -2289,7 +2297,7 @@ func configShardedNewSchema(t *testing.T, isAcc bool, orgID, projectName, name s
 			project_id = mongodbatlas_advanced_cluster.test.project_id
 			use_replication_spec_per_shard = true
 		}
-	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB))
+	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB, diskSizeGBShard2))
 }
 
 func checkShardedNewSchema(isAcc bool, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops *int, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
