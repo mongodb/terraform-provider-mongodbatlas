@@ -51,6 +51,7 @@ const (
 	operationCreate20240805                      = "create (legacy)"
 	operationPauseAfterCreate                    = "pause after create"
 	operationDelete                              = "delete"
+	operationDeleteFlex                          = "flex delete"
 	operationAdvancedConfigurationUpdate20240530 = "update advanced configuration (legacy)"
 	operationAdvancedConfigurationUpdate         = "update advanced configuration"
 	operationTenantUpgrade                       = "tenant upgrade"
@@ -59,6 +60,7 @@ const (
 	operationReplicationSpecsUpdateLegacy        = "update replication specs legacy"
 	operationFCVPinning                          = "FCV pinning"
 	operationFCVUnpinning                        = "FCV unpinning"
+	operationFlexUpgrade                         = "flex upgrade"
 )
 
 func addErrorDiag(diags *diag.Diagnostics, errorLocator, details string) {
@@ -109,23 +111,27 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 	if IsFlex(latestReq.ReplicationSpecs) {
 		flexClusterReq := NewFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
-		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, latestReq.GetGroupId(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi)
+		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi)
 		if err != nil {
 			resp.Diagnostics.AddError(flexcluster.ErrorCreateFlex, err.Error())
 			return
 		}
 
-		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexClusterResp)
+		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), plan.Timeouts)
 		if diags.HasError() {
 			resp.Diagnostics.Append(*diags...)
 			return
 		}
 
-		if conversion.UseNilForEmpty(plan.Tags, newFlexClusterModel.Tags) { //TODO: check if this is needed
+		if conversion.UseNilForEmpty(plan.Tags, newFlexClusterModel.Tags) {
 			newFlexClusterModel.Tags = types.MapNull(types.StringType)
+		}
+		if conversion.UseNilForEmpty(plan.Labels, newFlexClusterModel.Labels) {
+			newFlexClusterModel.Labels = types.MapNull(types.StringType)
 		}
 
 		resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+		return
 	}
 
 	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationCreate)
@@ -182,7 +188,9 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	if flexCluster != nil {
-		resp.State.Set(ctx, NewTFModelFlex(ctx, diags, flexCluster))
+		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, nil, state.Timeouts)
+		resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+		return
 	}
 	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, &state, false)
 	if diags.HasError() {
@@ -206,22 +214,38 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
 	planReq := normalizeFromTFModel(ctx, &plan, diags, false)
-	if IsFlex(planReq.ReplicationSpecs) {
-		if isValidUpgradeToFlex() {
-			//plan.ProjectID.Equal(state.ProjectID)
-		}
-		if isValidUpdateOfFlex() {
+	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
+	if diags.HasError() {
+		return
+	}
 
+	if IsFlex(planReq.ReplicationSpecs) {
+		if isValidUpgradeToFlex(stateReq, planReq) {
+			flexCluster := FlexUpgrade(ctx, diags, r.Client, waitParams, GetUpgradeToFlexClusterRequest())
+			if diags.HasError() {
+				resp.Diagnostics.Append(*diags...)
+				return
+			}
+			newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), state.Timeouts)
+			resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+			return
+		}
+		if isValidUpdateOfFlex(stateReq, planReq) {
+			flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), GetFlexClusterUpdateRequest(planReq.Tags, planReq.TerminationProtectionEnabled), r.Client.AtlasV2.FlexClustersApi)
+			if err != nil {
+				diags.AddError(flexcluster.ErrorUpdateFlex, err.Error())
+				resp.Diagnostics.Append(*diags...)
+				return
+			}
+			newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), state.Timeouts)
+			resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+			return
 		}
 		diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
 		resp.Diagnostics.Append(*diags...)
 		return
 	}
 
-	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
-	if diags.HasError() {
-		return
-	}
 	var clusterResp *admin.ClusterDescription20240805
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
@@ -237,8 +261,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	isShardingConfigUpgrade := stateUsingLegacy && !planUsingLegacy
-	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
-	planReq := normalizeFromTFModel(ctx, &plan, diags, isShardingConfigUpgrade)
+	stateReq = normalizeFromTFModel(ctx, &state, diags, false)
+	planReq = normalizeFromTFModel(ctx, &plan, diags, isShardingConfigUpgrade)
 	if diags.HasError() {
 		return
 	}

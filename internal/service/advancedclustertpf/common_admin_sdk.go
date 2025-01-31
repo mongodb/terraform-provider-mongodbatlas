@@ -151,8 +151,14 @@ func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	}
 	_, err := client.AtlasV2.ClustersApi.DeleteClusterWithParams(ctx, params).Execute()
 	if err != nil {
-		addErrorDiag(diags, operationDelete, defaultAPIErrorDetails(waitParams.ClusterName, err))
-		return
+		if !admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API") {
+			addErrorDiag(diags, operationDelete, defaultAPIErrorDetails(waitParams.ClusterName, err))
+			return
+		}
+		err := flexcluster.DeleteFlexCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, client.AtlasV2.FlexClustersApi)
+		if err != nil {
+			addErrorDiag(diags, operationDeleteFlex, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		}
 	}
 	AwaitChanges(ctx, client, waitParams, operationDelete, diags)
 }
@@ -193,4 +199,18 @@ func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, 
 		}
 	}
 	return clusterDesc, flexClusterResp
+}
+
+func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {
+	//TODO: CLOUDP-296220
+	return nil
+}
+
+func GetUpgradeToFlexClusterRequest() *admin.LegacyAtlasTenantClusterUpgradeRequest {
+	// WIP: will be finished as part of CLOUDP-296220
+	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+		ProviderSettings: &admin.ClusterProviderSettings{
+			ProviderName: flexcluster.FlexClusterType,
+		},
+	}
 }

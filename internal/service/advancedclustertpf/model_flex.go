@@ -3,9 +3,11 @@ package advancedclustertpf
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -25,30 +27,7 @@ func NewFlexCreateReq(clusterName string, terminationProtectionEnabled bool, tag
 	}
 }
 
-func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113) *TFModel {
-	tags := NewTagsObjType(ctx, diags, flexCluster.Tags)
-	replicationSpecs := NewReplicationSpecsObjType(ctx, NewReplicationSpecsFromFlexDescription(flexCluster), diags, &ExtraAPIInfo{UsingLegacySchema: false})
-	connectionStrings := NewConnectionStringsObjType(ctx, NewClusterConnectionStringsFromFlex(flexCluster.ConnectionStrings), diags)
-	if diags.HasError() {
-		return nil
-	}
-	return &TFModel{
-		ClusterType:                  types.StringPointerValue(flexCluster.ClusterType),
-		BackupEnabled:                types.BoolPointerValue(flexCluster.BackupSettings.Enabled),
-		ConnectionStrings:            connectionStrings,
-		CreateDate:                   types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(flexCluster.CreateDate))),
-		MongoDBVersion:               types.StringValue(conversion.SafeValue(flexCluster.MongoDBVersion)),
-		ReplicationSpecs:             replicationSpecs,
-		Name:                         types.StringValue(conversion.SafeValue(flexCluster.Name)),
-		ProjectID:                    types.StringValue(conversion.SafeValue(flexCluster.GroupId)),
-		StateName:                    types.StringValue(conversion.SafeValue(flexCluster.StateName)),
-		Tags:                         tags,
-		TerminationProtectionEnabled: types.BoolPointerValue(flexCluster.TerminationProtectionEnabled),
-		VersionReleaseSystem:         types.StringValue(conversion.SafeValue(flexCluster.VersionReleaseSystem)),
-	}
-}
-
-func NewReplicationSpecsFromFlexDescription(input *admin.FlexClusterDescription20241113) *[]admin.ReplicationSpec20240805 {
+func NewReplicationSpecsFromFlexDescription(input *admin.FlexClusterDescription20241113, priority *int) *[]admin.ReplicationSpec20240805 {
 	if input == nil {
 		return nil
 	}
@@ -59,8 +38,10 @@ func NewReplicationSpecsFromFlexDescription(input *admin.FlexClusterDescription2
 					BackingProviderName: input.ProviderSettings.BackingProviderName,
 					RegionName:          input.ProviderSettings.RegionName,
 					ProviderName:        input.ProviderSettings.ProviderName,
+					Priority:            priority,
 				},
 			},
+			ZoneName: conversion.StringPtr("ZoneName managed by Terraform"),
 		},
 	}
 }
@@ -75,23 +56,64 @@ func NewClusterConnectionStringsFromFlex(connectionStrings *admin.FlexConnection
 	}
 }
 
-// TODO: TFMOdel
-func isValidUpgradeToFlex(state, plan TFModel) bool {
-	// if d.HasChange("replication_specs.0.region_configs.0") {
-	// 	oldProviderName, newProviderName := d.GetChange("replication_specs.0.region_configs.0.provider_name")
-	// 	oldInstanceSize, newInstanceSize := d.GetChange("replication_specs.0.region_configs.0.electable_specs.instance_size")
-	// 	if oldProviderName == constant.TENANT && newProviderName == flexcluster.FlexClusterType && oldInstanceSize != nil && newInstanceSize == nil {
-	// 		return true
-	// 	}
-	// }
+func isValidUpgradeToFlex(stateCluster, planCluster *admin.ClusterDescription20240805) bool {
+	if planCluster.ReplicationSpecs == nil {
+		return false
+	}
+	if stateCluster.ReplicationSpecs == nil {
+		return false
+	}
+	oldRegion := stateCluster.GetReplicationSpecs()[0].GetRegionConfigs()[0]
+	oldProviderName := oldRegion.GetProviderName()
+	oldInstanceSize := oldRegion.ElectableSpecs.InstanceSize
+	newRegion := planCluster.GetReplicationSpecs()[0].GetRegionConfigs()[0]
+	newProviderName := newRegion.GetProviderName()
+	newInstanceSize := newRegion.ElectableSpecs.InstanceSize
+	if oldRegion != newRegion {
+		if oldProviderName == constant.TENANT && newProviderName == flexcluster.FlexClusterType && oldInstanceSize != nil && newInstanceSize == nil {
+			return true
+		}
+	}
 	return false
 }
 
-func isValidUpdateOfFlex(state, plan TFModel) bool {
-	// updatableAttrHaveBeenUpdated := d.HasChange("tags") || d.HasChange("termination_protection_enabled")
-	// nonUpdatableAttrHaveNotBeenUpdated := !d.HasChange("cluster_type") && !d.HasChange("replication_specs") && !d.HasChange("project_id") && !d.HasChange("name")
-	// if updatableAttrHaveBeenUpdated && nonUpdatableAttrHaveNotBeenUpdated {
-	// 	return true
-	// }
+func isValidUpdateOfFlex(stateCluster, planCluster *admin.ClusterDescription20240805) bool {
+	updatableAttrHaveBeenUpdated := stateCluster.Tags == planCluster.Tags || stateCluster.TerminationProtectionEnabled == planCluster.TerminationProtectionEnabled
+	nonUpdatableAttrHaveNotBeenUpdated := stateCluster.ClusterType == planCluster.ClusterType && stateCluster.ReplicationSpecs == planCluster.ReplicationSpecs && stateCluster.GroupId == planCluster.GroupId && stateCluster.Name == planCluster.Name
+	if updatableAttrHaveBeenUpdated && nonUpdatableAttrHaveNotBeenUpdated {
+		return true
+	}
 	return false
+}
+
+func GetFlexClusterUpdateRequest(tags *[]admin.ResourceTag, terminationProtectionEnabled *bool) *admin.FlexClusterDescriptionUpdate20241113 {
+	return &admin.FlexClusterDescriptionUpdate20241113{
+		Tags:                         tags,
+		TerminationProtectionEnabled: terminationProtectionEnabled,
+	}
+}
+
+func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescription20241113, priority *int) *admin.ClusterDescription20240805 {
+	if flexCluster == nil {
+		return nil
+	}
+	return &admin.ClusterDescription20240805{
+		ClusterType:                  flexCluster.ClusterType,
+		BackupEnabled:                flexCluster.BackupSettings.Enabled,
+		CreateDate:                   flexCluster.CreateDate,
+		MongoDBVersion:               flexCluster.MongoDBVersion,
+		ReplicationSpecs:             NewReplicationSpecsFromFlexDescription(flexCluster, priority),
+		Name:                         flexCluster.Name,
+		GroupId:                      flexCluster.GroupId,
+		StateName:                    flexCluster.StateName,
+		Tags:                         flexCluster.Tags,
+		TerminationProtectionEnabled: flexCluster.TerminationProtectionEnabled,
+		VersionReleaseSystem:         flexCluster.VersionReleaseSystem,
+	}
+}
+
+func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, timeout timeouts.Value) *TFModel {
+	model := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), timeout, diags, ExtraAPIInfo{UsingLegacySchema: false})
+	AddAdvancedConfig(ctx, model, nil, nil, diags)
+	return model
 }

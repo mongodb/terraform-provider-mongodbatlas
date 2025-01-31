@@ -1,12 +1,9 @@
 package advancedcluster
 
 import (
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
@@ -28,21 +25,4 @@ func isValidUpdateOfFlex(d *schema.ResourceData) bool {
 		return true
 	}
 	return false
-}
-
-// TODO: refactor this. 1. Move to tpf. Instead of d as parameter, pass tags and bool
-func getFlexClusterUpdateRequest(d *schema.ResourceData) *admin.FlexClusterDescriptionUpdate20241113 {
-	return &admin.FlexClusterDescriptionUpdate20241113{
-		Tags:                         conversion.ExpandTagsFromSetSchema(d),
-		TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
-	}
-}
-
-func getUpgradeToFlexClusterRequest() *admin.LegacyAtlasTenantClusterUpgradeRequest {
-	// WIP: will be finished as part of CLOUDP-296220
-	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
-		ProviderSettings: &admin.ClusterProviderSettings{
-			ProviderName: flexcluster.FlexClusterType,
-		},
-	}
 }

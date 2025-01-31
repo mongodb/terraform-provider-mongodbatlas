@@ -76,13 +76,28 @@ func GenerateFCVPinningWarningForRead(fcvPresentInState bool, apiRespFCVExpirati
 }
 
 func IsFlex(replicationSpecs *[]admin.ReplicationSpec20240805) bool {
-	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
+	regionConfig := getRegionConfig(replicationSpecs)
+	if regionConfig == nil {
 		return false
+	}
+	return regionConfig.GetProviderName() == flexcluster.FlexClusterType
+}
+
+func getRegionConfig(replicationSpecs *[]admin.ReplicationSpec20240805) *admin.CloudRegionConfig20240805 {
+	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
+		return nil
 	}
 	replicationSpec := (*replicationSpecs)[0]
 	if replicationSpec.RegionConfigs == nil || len(replicationSpec.GetRegionConfigs()) == 0 {
-		return false
+		return nil
 	}
-	regionConfig := replicationSpec.GetRegionConfigs()[0]
-	return regionConfig.GetProviderName() == flexcluster.FlexClusterType
+	return &(*replicationSpecs)[0].GetRegionConfigs()[0]
+}
+
+func GetPriorityOfFlexReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec20240805) *int {
+	regionConfig := getRegionConfig(replicationSpecs)
+	if regionConfig == nil {
+		return nil
+	}
+	return regionConfig.Priority
 }
