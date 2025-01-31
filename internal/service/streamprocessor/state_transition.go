@@ -47,7 +47,7 @@ func refreshFunc(ctx context.Context, requestParams *admin.GetStreamProcessorApi
 	return func() (any, string, error) {
 		streamProcessor, resp, err := client.GetStreamProcessorWithParams(ctx, requestParams).Execute()
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return "", DroppedState, err
 			}
 			return nil, FailedState, err

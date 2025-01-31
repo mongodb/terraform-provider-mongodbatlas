@@ -295,7 +295,7 @@ func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetReplicaSet
 		if err != nil {
 			return nil, "failed", err
 		}
-		if resp.StatusCode == http.StatusNotFound {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return "", "DELETED", nil
 		}
 		status := snapshot.GetStatus()

@@ -67,7 +67,7 @@ func refreshFunc(ctx context.Context, projectID, connectionID string, client adm
 			return nil, "", err
 		}
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return &admin.StreamsPrivateLinkConnection{}, retrystrategy.RetryStrategyDeletedState, nil
 			}
 			return nil, "", err

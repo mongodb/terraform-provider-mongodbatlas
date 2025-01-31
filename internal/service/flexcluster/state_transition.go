@@ -49,7 +49,7 @@ func refreshFunc(ctx context.Context, requestParams *admin.GetFlexClusterApiPara
 	return func() (any, string, error) {
 		flexCluster, resp, err := client.GetFlexClusterWithParams(ctx, requestParams).Execute()
 		if err != nil {
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
 			return nil, "", err

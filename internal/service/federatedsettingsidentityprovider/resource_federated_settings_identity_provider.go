@@ -359,7 +359,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	federationSettingsID, idpID := DecodeIDs(d.Id())
 	resp, err := connV2.FederatedAuthenticationApi.DeleteIdentityProvider(ctx, federationSettingsID, idpID).Execute()
 	if err != nil {
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}
