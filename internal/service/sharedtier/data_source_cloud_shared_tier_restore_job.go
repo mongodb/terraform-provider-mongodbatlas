@@ -14,7 +14,7 @@ import (
 // This datasource does not have a resource: we tested it manually
 func DataSourceRestoreJob() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: fmt.Sprintf(constant.DeprecationDataSourceByDateWithExternalLink, "January 2026", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationDataSourceByDateWithExternalLink, constant.ServerlessSharedEOLDate, "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
 		ReadContext:        dataSourceMongoDBAtlasCloudSharedTierRestoreJobsRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {

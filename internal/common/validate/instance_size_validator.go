@@ -16,7 +16,7 @@ func InstanceSizeNameValidator() schema.SchemaValidateDiagFunc {
 		if value == "M2" || value == "M5" {
 			diagError := diag.Diagnostic{
 				Severity: diag.Warning,
-				Summary:  fmt.Sprintf(constant.DeprecationSharedTier, "January 2026", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
+				Summary:  fmt.Sprintf(constant.DeprecationSharedTier, constant.ServerlessSharedEOLDate, "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
 			}
 			diags = append(diags, diagError)
 		}

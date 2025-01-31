@@ -12,4 +12,5 @@ const (
 	DeprecationDataSourceByDateWithExternalLink = "This data source is deprecated and will be removed in %s. For more details see %s."
 	DeprecationParamByDateWithExternalLink      = "This parameter is deprecated and will be removed in %s. For more details see %s."
 	DeprecationSharedTier                       = "Shared-tier instance size are deprecated and will reach End of Life in %s. For more details see %s"
+	ServerlessSharedEOLDate                     = "January 2026"
 )

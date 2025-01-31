@@ -30,7 +30,7 @@ func (d *instanceSizeStringAttributePlanModifier) PlanModifyString(ctx context.C
 	if stateAttributeValue.ValueString() == "M2" || stateAttributeValue.ValueString() == "M5" ||
 		planAttributeValue.ValueString() == "M2" || planAttributeValue.ValueString() == "M5" {
 		resp.Diagnostics.AddWarning(
-			fmt.Sprintf(constant.DeprecationSharedTier, "January 2026", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
+			fmt.Sprintf(constant.DeprecationSharedTier, constant.ServerlessSharedEOLDate, "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
 			req.Path.String(),
 		)
 		return
