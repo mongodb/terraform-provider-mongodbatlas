@@ -814,15 +814,15 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestC
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
+				Config:      configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true),
+				ExpectError: regexp.MustCompile("DISK_SIZE_GB_INCONSISTENT"), // API Error when disk size is not consistent across all shards
+			},
+			{
 				Config: configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_clusters.test-replication-specs-per-shard-false", "results.#", "0"),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD")),
-			},
-			{
-				Config:      configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true),
-				ExpectError: regexp.MustCompile("DISK_SIZE_GB_INCONSISTENT"),
 			},
 		},
 	}
