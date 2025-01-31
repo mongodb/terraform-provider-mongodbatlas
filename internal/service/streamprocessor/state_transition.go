@@ -7,9 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 const (

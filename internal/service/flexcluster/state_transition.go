@@ -5,11 +5,9 @@ import (
 	"errors"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string) (*admin.FlexClusterDescription20241113, error) {
