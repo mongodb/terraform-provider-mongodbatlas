@@ -86,19 +86,9 @@ func useStateForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, stat
 	}
 	// Nested fields are not supported by CopyUnknowns unless the whole field is Unknown.
 	// Therefore, we need to handle replication_specs and partially unknown fields such as region_configs.(electable_specs|auto_scaling) manually.
-	planReplicationSpecsElements := plan.ReplicationSpecs.Elements()
-	readModelReplicationSpecsElements := state.ReplicationSpecs.Elements()
-	if len(planReplicationSpecsElements) != len(readModelReplicationSpecsElements) {
-		return
-	}
-	planReplicationSpecs := make([]TFReplicationSpecsModel, len(planReplicationSpecsElements))
-	if localDiags := plan.ReplicationSpecs.ElementsAs(ctx, &planReplicationSpecs, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return
-	}
-	stateReplicationSpecs := make([]TFReplicationSpecsModel, len(readModelReplicationSpecsElements))
-	if localDiags := state.ReplicationSpecs.ElementsAs(ctx, &stateReplicationSpecs, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
+	planReplicationSpecs := asTFListModel[TFReplicationSpecsModel](ctx, plan.ReplicationSpecs, diags)
+	stateReplicationSpecs := asTFListModel[TFReplicationSpecsModel](ctx, state.ReplicationSpecs, diags)
+	if diags.HasError() || len(planReplicationSpecs) != len(stateReplicationSpecs) {
 		return
 	}
 	for i := range planReplicationSpecs {
@@ -119,63 +109,18 @@ func useStateForUnknown(ctx context.Context, diags *diag.Diagnostics, plan, stat
 }
 
 func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecState, replicationSpecPlan *TFReplicationSpecsModel, diags *diag.Diagnostics) {
-	regionConfigsStateElements := replicationSpecState.RegionConfigs.Elements()
-	regionConfigsPlanElements := replicationSpecPlan.RegionConfigs.Elements()
-	if len(regionConfigsStateElements) != len(regionConfigsPlanElements) {
+	stateRegionConfigs := asTFListModel[TFRegionConfigsModel](ctx, replicationSpecState.RegionConfigs, diags)
+	planRegionConfigs := asTFListModel[TFRegionConfigsModel](ctx, replicationSpecPlan.RegionConfigs, diags)
+	if diags.HasError() || len(stateRegionConfigs) != len(planRegionConfigs) {
 		return
 	}
-	stateRegionConfigs := make([]TFRegionConfigsModel, len(regionConfigsStateElements))
-	if localDiags := replicationSpecState.RegionConfigs.ElementsAs(ctx, &stateRegionConfigs, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return
-	}
-	planRegionConfigs := make([]TFRegionConfigsModel, len(regionConfigsPlanElements))
-	if localDiags := replicationSpecPlan.RegionConfigs.ElementsAs(ctx, &planRegionConfigs, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return
-	}
-	for j := range regionConfigsPlanElements {
+	for j := range planRegionConfigs {
 		stateRegionConfig := &stateRegionConfigs[j]
 		planRegionConfig := &planRegionConfigs[j]
-		if !planRegionConfig.ElectableSpecs.IsNull() && !planRegionConfig.ElectableSpecs.IsUnknown() {
-			planElectableSpecs := &TFSpecsModel{}
-			if localDiags := planRegionConfig.ElectableSpecs.As(ctx, planElectableSpecs, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
-				diags.Append(localDiags...)
-				return
-			}
-			stateElectableSpecs := &TFSpecsModel{}
-			if localDiags := stateRegionConfig.ElectableSpecs.As(ctx, stateElectableSpecs, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
-				diags.Append(localDiags...)
-				return
-			}
-			CopyUnknowns(ctx, stateElectableSpecs, planElectableSpecs, []string{})
-			newElectableSpecs, localDiags := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, planElectableSpecs)
-			if localDiags.HasError() {
-				diags.Append(localDiags...)
-				return
-			}
-			planRegionConfig.ElectableSpecs = newElectableSpecs
+		useStateForUnknownRegionConfig(ctx, planRegionConfig, stateRegionConfig, diags)
+		if diags.HasError() {
+			return
 		}
-		if !planRegionConfig.AutoScaling.IsNull() && !planRegionConfig.AutoScaling.IsUnknown() {
-			autoScalingPlan := &TFAutoScalingModel{}
-			if localDiags := planRegionConfig.AutoScaling.As(ctx, autoScalingPlan, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
-				diags.Append(localDiags...)
-				return
-			}
-			autoScalingState := &TFAutoScalingModel{}
-			if localDiags := stateRegionConfig.AutoScaling.As(ctx, autoScalingState, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
-				diags.Append(localDiags...)
-				return
-			}
-			CopyUnknowns(ctx, autoScalingState, autoScalingPlan, []string{})
-			newAutoScaling, localDiags := types.ObjectValueFrom(ctx, AutoScalingObjType.AttrTypes, autoScalingPlan)
-			if localDiags.HasError() {
-				diags.Append(localDiags...)
-				return
-			}
-			planRegionConfig.AutoScaling = newAutoScaling
-		}
-		CopyUnknowns(ctx, stateRegionConfig, planRegionConfig, []string{})
 	}
 	newRegionConfig, localDiags := types.ListValueFrom(ctx, RegionConfigsObjType, planRegionConfigs)
 	if localDiags.HasError() {
@@ -183,4 +128,59 @@ func fillInUnknownsInRegionConfigs(ctx context.Context, replicationSpecState, re
 		return
 	}
 	replicationSpecPlan.RegionConfigs = newRegionConfig
+}
+
+func useStateForUnknownRegionConfig(ctx context.Context, plan, state *TFRegionConfigsModel, diags *diag.Diagnostics) {
+	if objectIsSet(plan.ElectableSpecs) {
+		planElectableSpecs := asTFObjectModel[TFSpecsModel](ctx, plan.ElectableSpecs, diags)
+		stateElectableSpecs := asTFObjectModel[TFSpecsModel](ctx, state.ElectableSpecs, diags)
+		if diags.HasError() {
+			return
+		}
+		CopyUnknowns(ctx, &stateElectableSpecs, &planElectableSpecs, []string{})
+		newElectableSpecs, localDiags := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, planElectableSpecs)
+		if localDiags.HasError() {
+			diags.Append(localDiags...)
+			return
+		}
+		plan.ElectableSpecs = newElectableSpecs
+	}
+	if objectIsSet(plan.AutoScaling) {
+		autoScalingPlan := asTFObjectModel[TFAutoScalingModel](ctx, plan.AutoScaling, diags)
+		autoScalingState := asTFObjectModel[TFAutoScalingModel](ctx, state.AutoScaling, diags)
+		if diags.HasError() {
+			return
+		}
+		CopyUnknowns(ctx, &autoScalingState, &autoScalingPlan, []string{})
+		newAutoScaling, localDiags := types.ObjectValueFrom(ctx, AutoScalingObjType.AttrTypes, autoScalingPlan)
+		if localDiags.HasError() {
+			diags.Append(localDiags...)
+			return
+		}
+		plan.AutoScaling = newAutoScaling
+	}
+	CopyUnknowns(ctx, state, plan, []string{})
+	return
+}
+
+func objectIsSet(obj types.Object) bool {
+	return !obj.IsNull() && !obj.IsUnknown()
+}
+
+func asTFListModel[T any](ctx context.Context, list types.List, diags *diag.Diagnostics) []T {
+	elements := make([]T, len(list.Elements()))
+	if localDiags := list.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return nil
+	}
+	return elements
+}
+
+func asTFObjectModel[T any](ctx context.Context, obj types.Object, diags *diag.Diagnostics) T {
+	var element T
+	if localDiags := obj.As(ctx, &element, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return element
+	}
+	return element
 }
