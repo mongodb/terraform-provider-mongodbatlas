@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
@@ -117,4 +118,18 @@ func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *a
 	model := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), timeout, diags, ExtraAPIInfo{UsingLegacySchema: false})
 	AddAdvancedConfig(ctx, model, nil, nil, diags)
 	return model
+}
+
+func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {
+	//TODO: CLOUDP-296220
+	return nil
+}
+
+func GetUpgradeToFlexClusterRequest() *admin.LegacyAtlasTenantClusterUpgradeRequest {
+	// WIP: will be finished as part of CLOUDP-296220
+	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+		ProviderSettings: &admin.ClusterProviderSettings{
+			ProviderName: flexcluster.FlexClusterType,
+		},
+	}
 }

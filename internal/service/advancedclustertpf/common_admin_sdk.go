@@ -191,17 +191,3 @@ func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, 
 	}
 	return clusterDesc, flexClusterResp
 }
-
-func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {
-	//TODO: CLOUDP-296220
-	return nil
-}
-
-func GetUpgradeToFlexClusterRequest() *admin.LegacyAtlasTenantClusterUpgradeRequest {
-	// WIP: will be finished as part of CLOUDP-296220
-	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
-		ProviderSettings: &admin.ClusterProviderSettings{
-			ProviderName: flexcluster.FlexClusterType,
-		},
-	}
-}
