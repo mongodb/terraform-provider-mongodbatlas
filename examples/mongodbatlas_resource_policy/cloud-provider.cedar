@@ -4,4 +4,4 @@ forbid (
     resource
 )
 when
-{ context.cluster.cloudProviders.containsAny([cloud::cloudProvider::"${CLOUD_PROVIDER}"]) };
+{ context.cluster.cloudProviders.containsAny([ResourcePolicy::CloudProvider::"${CLOUD_PROVIDER}"]) };
