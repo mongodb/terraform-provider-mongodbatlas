@@ -16,6 +16,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -107,7 +108,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
-	if !HasUnknowns(&plan) {
+	if !schemafunc.HasUnknowns(&plan) {
 		return
 	}
 	patchReq, upgradeRequest := findClusterDiff(ctx, &state, &plan, diags, &update.PatchOptions{}) // We need the patchReq+upgradeRequest to determine which fields have changed
