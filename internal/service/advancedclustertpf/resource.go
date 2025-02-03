@@ -503,6 +503,9 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 		return nil
 	}
 	newFlexModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), timeout)
+	if newFlexModel != nil {
+		newFlexModel.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
+	}
 	overrideAttributesWithPrevStateValue(plan, newFlexModel)
 	return newFlexModel
 }

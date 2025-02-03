@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -116,7 +117,7 @@ func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescripti
 
 func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, timeout timeouts.Value) *TFModel {
 	model := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), timeout, diags, ExtraAPIInfo{UsingLegacySchema: false})
-	AddAdvancedConfig(ctx, model, nil, nil, diags)
+	model.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	return model
 }
 
