@@ -14,8 +14,9 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceRead,
-		Schema:      dataSourceSchema(),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationDataSourceByDateWithExternalLink, constant.ServerlessSharedEOLDate, "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
+		ReadContext:        dataSourceRead,
+		Schema:             dataSourceSchema(),
 	}
 }
 
@@ -90,13 +91,13 @@ func dataSourceSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"continuous_backup_enabled": {
-			Deprecated: fmt.Sprintf(constant.DeprecatioParamByDateWithExternalLink, "March 2025", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
+			Deprecated: fmt.Sprintf(constant.DeprecationParamByDateWithExternalLink, "March 2025", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
 			Type:       schema.TypeBool,
 			Optional:   true,
 			Computed:   true,
 		},
 		"auto_indexing": {
-			Deprecated: fmt.Sprintf(constant.DeprecatioParamByDateWithExternalLink, "March 2025", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
+			Deprecated: fmt.Sprintf(constant.DeprecationParamByDateWithExternalLink, "March 2025", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide"),
 			Type:       schema.TypeBool,
 			Optional:   true,
 			Computed:   true,

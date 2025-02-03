@@ -1,3 +1,9 @@
+---
+subcategory: "Deprecated"    
+---
+
+**WARNING:** This data source is deprecated and will be removed in January 2026. For more details, see [Migration Guide: Transition out of Serverless Instances and Shared-tier clusters](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide).
+
 # Data Source: mongodbatlas_serverless_instance
 
 `mongodbatlas_serverless_instance` describes a single serverless instance. This represents a single serverless instance that have been created.
