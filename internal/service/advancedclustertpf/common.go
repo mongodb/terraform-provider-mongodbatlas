@@ -91,7 +91,7 @@ func getRegionConfig(replicationSpecs *[]admin.ReplicationSpec20240805) *admin.C
 	if replicationSpec.RegionConfigs == nil || len(replicationSpec.GetRegionConfigs()) == 0 {
 		return nil
 	}
-	return &(*replicationSpecs)[0].GetRegionConfigs()[0]
+	return &replicationSpec.GetRegionConfigs()[0]
 }
 
 func GetPriorityOfFlexReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec20240805) *int {

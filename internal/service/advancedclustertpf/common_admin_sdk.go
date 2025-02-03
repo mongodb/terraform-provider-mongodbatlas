@@ -158,32 +158,17 @@ func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 		err := flexcluster.DeleteFlexCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, client.AtlasV2.FlexClustersApi)
 		if err != nil {
 			addErrorDiag(diags, operationDeleteFlex, defaultAPIErrorDetails(waitParams.ClusterName, err))
+			return
 		}
 	}
 	AwaitChanges(ctx, client, waitParams, operationDelete, diags)
 }
 
-func ReadCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, fcvPresentInState bool) *admin.ClusterDescription20240805 {
-	readResp, _, err := client.AtlasV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
-			return nil
-		}
-		diags.AddError(errorReadResource, defaultAPIErrorDetails(clusterName, err))
-		return nil
-	}
-	if fcvPresentInState {
-		newWarnings := GenerateFCVPinningWarningForRead(fcvPresentInState, readResp.FeatureCompatibilityVersionExpirationDate)
-		diags.Append(newWarnings...)
-	}
-	return readResp
-}
-
-func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, clusterName string, client *config.MongoDBClient) (clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113) {
+func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, clusterName string, client *config.MongoDBClient, fcvPresentInState bool) (clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113) {
 	isFlex := false
 	clusterDesc, resp, err := client.AtlasV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if resp != nil && resp.StatusCode == http.StatusNotFound || admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
 			return nil, nil
 		}
 		if isFlex = admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API"); !isFlex {
@@ -191,6 +176,12 @@ func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, 
 			return nil, nil
 		}
 	}
+
+	if !isFlex && fcvPresentInState && clusterDesc != nil {
+		newWarnings := GenerateFCVPinningWarningForRead(fcvPresentInState, clusterDesc.FeatureCompatibilityVersionExpirationDate)
+		diags.Append(newWarnings...)
+	}
+
 	if isFlex {
 		flexClusterResp, err = flexcluster.GetFlexCluster(ctx, projectID, clusterName, client.AtlasV2.FlexClustersApi)
 		if err != nil {

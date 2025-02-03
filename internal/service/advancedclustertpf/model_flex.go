@@ -15,7 +15,7 @@ func NewFlexCreateReq(clusterName string, terminationProtectionEnabled bool, tag
 	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
 		return nil
 	}
-	regionConfigs := (*replicationSpecs)[0].GetRegionConfigs()[0]
+	regionConfigs := getRegionConfig(replicationSpecs)
 	return &admin.FlexClusterDescriptionCreate20241113{
 		Name: clusterName,
 		ProviderSettings: admin.FlexProviderSettingsCreate20241113{

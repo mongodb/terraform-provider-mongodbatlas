@@ -79,6 +79,7 @@ var tpfSingleNestedAttrs = []string{
 	"bi_connector_config",
 	"pinned_fcv",
 	"timeouts",
+	"connection_strings",
 }
 
 func AttrNameToSchemaV2(isAcc bool, name string) string {
