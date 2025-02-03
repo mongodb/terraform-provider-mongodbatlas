@@ -358,10 +358,10 @@ func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admi
 		if err != nil && cluster == nil && resp == nil {
 			return nil, "", err
 		} else if err != nil {
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				return "", "DELETED", nil
 			}
-			if resp.StatusCode == 503 {
+			if resp != nil && resp.StatusCode == 503 {
 				return "", "PENDING", nil
 			}
 			return nil, "", err
@@ -385,10 +385,10 @@ func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID strin
 		}
 
 		if err != nil {
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				return "", "DELETED", nil
 			}
-			if resp.StatusCode == 503 {
+			if resp != nil && resp.StatusCode == 503 {
 				return "", "PENDING", nil
 			}
 			return nil, "", err

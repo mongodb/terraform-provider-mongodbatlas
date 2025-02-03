@@ -252,7 +252,7 @@ func resourceRefreshFunc(ctx context.Context, projectID, requestID string, connV
 	return func() (any, string, error) {
 		ldap, resp, err := connV2.LDAPConfigurationApi.GetLdapConfigurationStatus(ctx, projectID, requestID).Execute()
 		if err != nil {
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				return "", "DELETED", nil
 			}
 			return nil, "", err
