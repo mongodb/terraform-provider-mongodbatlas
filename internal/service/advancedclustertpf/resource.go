@@ -116,19 +116,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			diags.AddError(flexcluster.ErrorCreateFlex, err.Error())
 			return
 		}
-
 		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), plan.Timeouts)
 		if diags.HasError() {
 			return
 		}
-
-		if conversion.UseNilForEmpty(plan.Tags, newFlexClusterModel.Tags) {
-			newFlexClusterModel.Tags = types.MapNull(types.StringType)
-		}
-		if conversion.UseNilForEmpty(plan.Labels, newFlexClusterModel.Labels) {
-			newFlexClusterModel.Labels = types.MapNull(types.StringType)
-		}
-
+		overrideAttributesWithPrevStateValue(&plan, newFlexClusterModel)
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
@@ -187,6 +179,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	if flexCluster != nil {
 		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, nil, state.Timeouts)
+		overrideAttributesWithPrevStateValue(&state, newFlexClusterModel)
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
@@ -237,6 +230,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 				return
 			}
 			newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), state.Timeouts)
+			overrideAttributesWithPrevStateValue(&plan, newFlexClusterModel)
 			diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 			return
 		}
