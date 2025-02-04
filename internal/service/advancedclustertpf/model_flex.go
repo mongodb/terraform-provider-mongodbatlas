@@ -62,8 +62,8 @@ func isValidUpgradeToFlex(stateCluster, planCluster *admin.ClusterDescription202
 	if stateCluster.ReplicationSpecs == nil || planCluster.ReplicationSpecs == nil {
 		return false
 	}
-	oldRegion := stateCluster.GetReplicationSpecs()[0].GetRegionConfigs()[0]
-	newRegion := planCluster.GetReplicationSpecs()[0].GetRegionConfigs()[0]
+	oldRegion := getRegionConfig(stateCluster.ReplicationSpecs)
+	newRegion := getRegionConfig(planCluster.ReplicationSpecs)
 	if oldRegion.ElectableSpecs == nil || newRegion.ElectableSpecs == nil {
 		return false
 	}
