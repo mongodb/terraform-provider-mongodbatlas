@@ -25,7 +25,12 @@ on:
         description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
         type: string
         required: false
-      
+      reduced_tests:
+        description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
+        type: boolean
+        required: false
+        default: false
+        
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -222,7 +227,7 @@ jobs:
       mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '' )  }}
     outputs: # ensure resources are sorted alphabetically
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
-      advanced_cluster_tpf: ${{ github.event_name == 'workflow_dispatch' && inputs.test_group == 'advanced_cluster_tpf' }}
+      advanced_cluster_tpf: ${{ steps.filter.outputs.advanced_cluster_tpf == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
@@ -362,12 +367,13 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
   advanced_cluster_tpf:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' }}
+    if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf' }}
     env:
       MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
     runs-on: ubuntu-latest
@@ -396,6 +402,7 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           HTTP_MOCKER_CAPTURE: 'true'
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
@@ -403,7 +410,7 @@ jobs:
 
   advanced_cluster_tpf_move:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' }}
+    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' && inputs.reduced_tests == false }}
     env:
       MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
     strategy:
