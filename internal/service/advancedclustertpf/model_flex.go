@@ -67,9 +67,15 @@ func isValidUpgradeToFlex(stateCluster, planCluster *admin.ClusterDescription202
 	}
 	oldRegion := stateCluster.GetReplicationSpecs()[0].GetRegionConfigs()[0]
 	oldProviderName := oldRegion.GetProviderName()
+	if oldRegion.ElectableSpecs == nil {
+		return false
+	}
 	oldInstanceSize := oldRegion.ElectableSpecs.InstanceSize
 	newRegion := planCluster.GetReplicationSpecs()[0].GetRegionConfigs()[0]
 	newProviderName := newRegion.GetProviderName()
+	if newRegion.ElectableSpecs == nil {
+		return false
+	}
 	newInstanceSize := newRegion.ElectableSpecs.InstanceSize
 	if oldRegion != newRegion {
 		if oldProviderName == constant.TENANT && newProviderName == flexcluster.FlexClusterType && oldInstanceSize != nil && newInstanceSize == nil {
@@ -79,13 +85,11 @@ func isValidUpgradeToFlex(stateCluster, planCluster *admin.ClusterDescription202
 	return false
 }
 
+// Id and ZoneId in replicationSpecs are not the same (plan *string nil vs state *string "") GroupId same // probably need custom comparison for replication specs
 func isValidUpdateOfFlex(stateCluster, planCluster *admin.ClusterDescription20240805) bool {
-	updatableAttrHaveBeenUpdated := stateCluster.Tags == planCluster.Tags || stateCluster.TerminationProtectionEnabled == planCluster.TerminationProtectionEnabled
-	nonUpdatableAttrHaveNotBeenUpdated := stateCluster.ClusterType == planCluster.ClusterType && stateCluster.ReplicationSpecs == planCluster.ReplicationSpecs && stateCluster.GroupId == planCluster.GroupId && stateCluster.Name == planCluster.Name
-	if updatableAttrHaveBeenUpdated && nonUpdatableAttrHaveNotBeenUpdated {
-		return true
-	}
-	return false
+	updatableAttrHaveBeenUpdated := stateCluster.Tags != planCluster.Tags || stateCluster.TerminationProtectionEnabled != planCluster.TerminationProtectionEnabled
+	nonUpdatableAttrHaveNotBeenUpdated := stateCluster.GetClusterType() == planCluster.GetClusterType() && stateCluster.GetName() == planCluster.GetName() // && stateCluster.GroupId == planCluster.GroupId && stateCluster.ReplicationSpecs == planCluster.ReplicationSpecs
+	return updatableAttrHaveBeenUpdated && nonUpdatableAttrHaveNotBeenUpdated
 }
 
 func GetFlexClusterUpdateRequest(tags *[]admin.ResourceTag, terminationProtectionEnabled *bool) *admin.FlexClusterDescriptionUpdate20241113 {

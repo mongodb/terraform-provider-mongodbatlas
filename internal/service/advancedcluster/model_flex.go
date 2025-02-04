@@ -21,8 +21,5 @@ func isValidUpgradeToFlex(d *schema.ResourceData) bool {
 func isValidUpdateOfFlex(d *schema.ResourceData) bool {
 	updatableAttrHaveBeenUpdated := d.HasChange("tags") || d.HasChange("termination_protection_enabled")
 	nonUpdatableAttrHaveNotBeenUpdated := !d.HasChange("cluster_type") && !d.HasChange("replication_specs") && !d.HasChange("project_id") && !d.HasChange("name")
-	if updatableAttrHaveBeenUpdated && nonUpdatableAttrHaveNotBeenUpdated {
-		return true
-	}
-	return false
+	return updatableAttrHaveBeenUpdated && nonUpdatableAttrHaveNotBeenUpdated
 }

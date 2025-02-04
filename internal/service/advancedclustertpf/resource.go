@@ -178,7 +178,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	if flexCluster != nil {
-		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, nil, state.Timeouts)
+		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &state, diags, false).ReplicationSpecs), state.Timeouts)
 		overrideAttributesWithPrevStateValue(&state, newFlexClusterModel)
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
@@ -503,9 +503,6 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 		return nil
 	}
 	newFlexModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), timeout)
-	if newFlexModel != nil {
-		newFlexModel.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
-	}
 	overrideAttributesWithPrevStateValue(plan, newFlexModel)
 	return newFlexModel
 }

@@ -2929,7 +2929,7 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 	}
 	if tagsCheck {
 		attrMapFlex["tags.testKey"] = "testValue"
-		attrMapAdvCluster["tags.0.key"] = "testKey"
+		attrMapAdvCluster["tags.0.key"] = "testKey" // TODO change condition
 		attrMapAdvCluster["tags.0.value"] = "testValue"
 	}
 	pluralMap := map[string]string{
