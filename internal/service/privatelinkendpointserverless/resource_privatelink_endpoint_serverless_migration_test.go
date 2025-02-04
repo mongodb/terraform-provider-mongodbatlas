@@ -8,6 +8,6 @@ import (
 )
 
 func TestMigServerlessPrivateLinkEndpoint_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // Serverless Instances now create Flex clusters
 	mig.CreateAndRunTest(t, basicTestCase(t))
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func TestMigServerlessPrivateLinkEndpointService_basic(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // Serverless Instances now create Flex clusters
 	var (
 		resourceName   = "mongodbatlas_privatelink_endpoint_service_serverless.test"
 		datasourceName = "data.mongodbatlas_privatelink_endpoint_service_serverless.test"
@@ -41,7 +41,7 @@ func TestMigServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 }
 
 func TestMigServerlessPrivateLinkEndpointService_AWSVPC(t *testing.T) {
-	acc.SkipTestForCI(t)
+	acc.SkipTestForCI(t) // Serverless Instances now create Flex clusters
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint_service_serverless.test"
 		projectID    = acc.ProjectIDExecution(t)
