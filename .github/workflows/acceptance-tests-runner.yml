@@ -410,7 +410,7 @@ jobs:
 
   advanced_cluster_tpf_move:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' && inputs.reduced_tests != true }}
+    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' && inputs.reduced_tests == false }}
     env:
       MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
     strategy:
