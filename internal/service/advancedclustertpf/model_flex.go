@@ -3,11 +3,11 @@ package advancedclustertpf
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -74,31 +74,17 @@ func isValidUpgradeToFlex(stateCluster, planCluster *admin.ClusterDescription202
 		newRegion.ElectableSpecs.InstanceSize == nil
 }
 
-func areReplicationSpecsEqual(stateSpecs, planSpecs []admin.ReplicationSpec20240805) bool {
-	if len(stateSpecs) != 1 || len(planSpecs) != 1 { // for flex clusters replicationSpecs length is always 1
-		return false
-	}
-	return areRegionConfigsEqual(stateSpecs[0].GetRegionConfigs(), planSpecs[0].GetRegionConfigs())
-}
-
-func areRegionConfigsEqual(stateConfigs, planConfigs []admin.CloudRegionConfig20240805) bool {
-	if len(stateConfigs) != 1 || len(planConfigs) != 1 { // for flex clusters regionConfigs length is always 1
-		return false
-	}
-	return stateConfigs[0].GetProviderName() == planConfigs[0].GetProviderName() &&
-		stateConfigs[0].GetRegionName() == planConfigs[0].GetRegionName() &&
-		stateConfigs[0].GetBackingProviderName() == planConfigs[0].GetBackingProviderName() &&
-		stateConfigs[0].GetPriority() == planConfigs[0].GetPriority()
-}
-
 func isValidUpdateOfFlex(stateCluster, planCluster *admin.ClusterDescription20240805) bool {
-	updatableAttrHaveBeenUpdated := stateCluster.Tags != planCluster.Tags ||
-		stateCluster.TerminationProtectionEnabled != planCluster.TerminationProtectionEnabled
-	nonUpdatableAttrHaveNotBeenUpdated := stateCluster.GetClusterType() == planCluster.GetClusterType() &&
-		stateCluster.GetName() == planCluster.GetName() &&
-		stateCluster.GetGroupId() == planCluster.GetGroupId() &&
-		areReplicationSpecsEqual(*stateCluster.ReplicationSpecs, *planCluster.ReplicationSpecs)
-	return updatableAttrHaveBeenUpdated && nonUpdatableAttrHaveNotBeenUpdated
+	patchFlex, err := update.PatchPayload(stateCluster, planCluster)
+	if err != nil {
+		return false
+	}
+	if update.IsZeroValues(patchFlex) { // No updates
+		return false
+	}
+	okUpdatesChanged := patchFlex.Tags != nil || patchFlex.TerminationProtectionEnabled != nil
+	notOkUpdatesChanged := patchFlex.ClusterType != nil && patchFlex.ReplicationSpecs != nil
+	return okUpdatesChanged && !notOkUpdatesChanged
 }
 
 func GetFlexClusterUpdateRequest(tags *[]admin.ResourceTag, terminationProtectionEnabled *bool) *admin.FlexClusterDescriptionUpdate20241113 {
@@ -128,9 +114,13 @@ func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescripti
 	}
 }
 
-func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, timeout timeouts.Value) *TFModel {
-	model := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), timeout, diags, ExtraAPIInfo{UsingLegacySchema: false})
+func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, modelIn *TFModel) *TFModel {
+	model := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), modelIn.Timeouts, diags, ExtraAPIInfo{UsingLegacySchema: false})
+	if diags.HasError() {
+		return nil
+	}
 	model.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
+	overrideAttributesWithPrevStateValue(modelIn, model)
 	return model
 }
 

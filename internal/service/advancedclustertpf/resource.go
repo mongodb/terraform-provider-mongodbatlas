@@ -116,11 +116,10 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			diags.AddError(flexcluster.ErrorCreateFlex, err.Error())
 			return
 		}
-		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), plan.Timeouts)
+		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), &plan)
 		if diags.HasError() {
 			return
 		}
-		overrideAttributesWithPrevStateValue(&plan, newFlexClusterModel)
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
@@ -178,8 +177,10 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	if flexCluster != nil {
-		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &state, diags, false).ReplicationSpecs), state.Timeouts)
-		overrideAttributesWithPrevStateValue(&state, newFlexClusterModel)
+		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &state, diags, false).ReplicationSpecs), &state)
+		if diags.HasError() {
+			return
+		}
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
@@ -212,11 +213,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	if IsFlex(planReq.ReplicationSpecs) {
 		if isValidUpgradeToFlex(stateReq, planReq) {
-			diags.Append(resp.State.Set(ctx, handleFlexUpgrade(ctx, diags, r.Client, waitParams, planReq, state.Timeouts))...)
+			diags.Append(resp.State.Set(ctx, handleFlexUpgrade(ctx, diags, r.Client, waitParams, planReq, &plan))...)
 			return
 		}
 		if isValidUpdateOfFlex(stateReq, planReq) {
-			diags.Append(resp.State.Set(ctx, handleFlexUpdate(ctx, diags, r.Client, &plan, planReq, state.Timeouts))...)
+			diags.Append(resp.State.Set(ctx, handleFlexUpdate(ctx, diags, r.Client, &plan, planReq))...)
 			return
 		}
 		diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
@@ -486,15 +487,15 @@ func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 	return timeoutDuration
 }
 
-func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, planReq *admin.ClusterDescription20240805, timeout timeouts.Value) *TFModel {
+func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, planReq *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
 	flexCluster := FlexUpgrade(ctx, diags, client, waitParams, GetUpgradeToFlexClusterRequest())
 	if diags.HasError() {
 		return nil
 	}
-	return NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), timeout)
+	return NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), modelIn)
 }
 
-func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, planReq *admin.ClusterDescription20240805, timeout timeouts.Value) *TFModel {
+func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, planReq *admin.ClusterDescription20240805) *TFModel {
 	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(),
 		GetFlexClusterUpdateRequest(planReq.Tags, planReq.TerminationProtectionEnabled),
 		client.AtlasV2.FlexClustersApi)
@@ -502,7 +503,10 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 		diags.AddError(flexcluster.ErrorUpdateFlex, err.Error())
 		return nil
 	}
-	newFlexModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), timeout)
+	newFlexModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), plan)
+	if diags.HasError() {
+		return nil
+	}
 	overrideAttributesWithPrevStateValue(plan, newFlexModel)
 	return newFlexModel
 }
