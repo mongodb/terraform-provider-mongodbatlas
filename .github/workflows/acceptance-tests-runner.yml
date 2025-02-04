@@ -409,7 +409,7 @@ jobs:
 
   advanced_cluster_tpf_move:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' }}
+    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' && inputs.reduced_tests != 'true' }}
     env:
       MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
     strategy:
@@ -435,7 +435,7 @@ jobs:
         run: make tools enable-advancedclustertpf  
       - name: Acceptance Tests
         env:
-          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && 'DONT_RUN_MOVE_TESTS' || '^TestAccAdvancedCluster_move' }}
+          ACCTEST_REGEX_RUN: '^TestAccAdvancedCluster_move'
           ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
         run: make testacc
       
