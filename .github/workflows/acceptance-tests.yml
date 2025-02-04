@@ -48,7 +48,7 @@ on:
         type: string
         required: false
       reduced_tests:
-        description: 'If we should only run minimum tests for advanced_cluster, e.g. when calling from a PR or master branch'
+        description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
         type: boolean
         required: false
   
