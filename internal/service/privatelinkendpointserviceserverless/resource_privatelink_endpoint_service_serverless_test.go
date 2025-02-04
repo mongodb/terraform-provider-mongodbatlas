@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // Serverless Instances now create Flex clusters
+	acc.SkipTestForCI(t) // mongodbatlas_serverless_instance now create Flex clusters
 	var (
 		resourceName            = "mongodbatlas_privatelink_endpoint_service_serverless.test"
 		datasourceName          = "data.mongodbatlas_privatelink_endpoint_service_serverless.test"
@@ -66,7 +66,7 @@ func TestAccServerlessPrivateLinkEndpointService_basic(t *testing.T) {
 }
 
 func TestAccServerlessPrivateLinkEndpointService_AWSEndpointCommentUpdate(t *testing.T) {
-	acc.SkipTestForCI(t) // Serverless Instances now create Flex clusters
+	acc.SkipTestForCI(t) // mongodbatlas_serverless_instance now create Flex clusters
 	var (
 		resourceName            = "mongodbatlas_privatelink_endpoint_service_serverless.test"
 		datasourceEndpointsName = "data.mongodbatlas_privatelink_endpoints_service_serverless.test"
