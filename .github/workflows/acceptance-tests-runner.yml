@@ -29,6 +29,7 @@ on:
         description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
         type: boolean
         required: false
+        default: false
         
       mongodb_atlas_org_id:
         type: string
