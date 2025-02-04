@@ -188,10 +188,7 @@ env:
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
   # Only Migration tests are run when a specific previous provider version is set
   # If the name (regex) of the test is set, only that test is run
-  ACCTEST_REGEX_RUN: '^TestDontRunAnyTest' # TEMPORARY
-  ACCTEST_REGEX_RUN_ADV_CLUSTER: ${{ inputs.reduced_tests && '^TestAccMockable' || '^TestDontRunAnyTestNormal' }}  
-  ACCTEST_REGEX_RUN_ADV_CLUSTER_MOVE: ${{ inputs.reduced_tests && '^TestNoRunMoveTests' || '^TestAccAdvancedCluster_moveDontrunNormal' }}
-
+  ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}  
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
   MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
@@ -369,7 +366,7 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ env. ACCTEST_REGEX_RUN_ADV_CLUSTER }}
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
@@ -404,7 +401,7 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           HTTP_MOCKER_CAPTURE: 'true'
-          ACCTEST_REGEX_RUN: ${{ env. ACCTEST_REGEX_RUN_ADV_CLUSTER }}
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
@@ -438,7 +435,7 @@ jobs:
         run: make tools enable-advancedclustertpf  
       - name: Acceptance Tests
         env:
-          ACCTEST_REGEX_RUN: ${{ env.ACCTEST_REGEX_RUN_ADV_CLUSTER_MOVE }}  
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && 'DONT_RUN_MOVE_TESTS' || '^TestAccAdvancedCluster_move' }}
           ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
         run: make testacc
       
