@@ -47,6 +47,10 @@ on:
         description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
         type: string
         required: false
+      reduced_tests:
+        description: 'If we should only run minimum tests for advanced_cluster, e.g. when calling from a PR or master branch'
+        type: boolean
+        required: false
   
 jobs:
   tests:
@@ -96,6 +100,7 @@ jobs:
       ref: ${{ inputs.ref }}
       test_group: ${{ inputs.test_group }}
       test_name: ${{ inputs.test_name }}
+      reduced_tests: ${{ inputs.reduced_tests || false }}
       aws_region_federation: ${{ vars.AWS_REGION_FEDERATION }}
       mongodb_atlas_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
       mongodb_atlas_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}

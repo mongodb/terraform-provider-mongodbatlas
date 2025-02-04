@@ -25,7 +25,11 @@ on:
         description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
         type: string
         required: false
-      
+      reduced_tests:
+        description: 'If we should only run minimum tests for advanced_cluster, e.g. when calling from a PR or master branch'
+        type: boolean
+        required: false
+        
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -184,7 +188,10 @@ env:
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
   # Only Migration tests are run when a specific previous provider version is set
   # If the name (regex) of the test is set, only that test is run
-  ACCTEST_REGEX_RUN: TestDontRunAnyTest # TEMPORARY
+  ACCTEST_REGEX_RUN: '^TestDontRunAnyTest' # TEMPORARY
+  ACCTEST_REGEX_RUN_ADV_CLUSTER: ${{ inputs.reduced_tests && '^TestAccMockable' || '^TestDontRunAnyTestNormal' }}  
+  ACCTEST_REGEX_RUN_ADV_CLUSTER_MOVE: ${{ inputs.reduced_tests && '^TestNoRunMoveTests' || '^TestAccAdvancedCluster_moveDontrunNormal' }}
+
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
   MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
@@ -362,6 +369,7 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: ${{ env. ACCTEST_REGEX_RUN_ADV_CLUSTER }}
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
@@ -396,6 +404,7 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           HTTP_MOCKER_CAPTURE: 'true'
+          ACCTEST_REGEX_RUN: ${{ env. ACCTEST_REGEX_RUN_ADV_CLUSTER }}
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
@@ -429,7 +438,7 @@ jobs:
         run: make tools enable-advancedclustertpf  
       - name: Acceptance Tests
         env:
-          ACCTEST_REGEX_RUN: '^TestAccAdvancedCluster_move'
+          ACCTEST_REGEX_RUN: ${{ env.ACCTEST_REGEX_RUN_ADV_CLUSTER_MOVE }}  
           ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
         run: make testacc
       
