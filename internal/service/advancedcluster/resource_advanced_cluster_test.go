@@ -814,10 +814,6 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestC
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true),
-				ExpectError: regexp.MustCompile("DISK_SIZE_GB_INCONSISTENT"), // API Error when disk size is not consistent across all shards
-			},
-			{
 				Config: configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
@@ -826,6 +822,26 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestC
 			},
 		},
 	}
+}
+
+func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchemaInconsistentDisk(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:      configShardedNewSchema(t, true, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true),
+				ExpectError: regexp.MustCompile("DISK_SIZE_GB_INCONSISTENT"), // API Error when disk size is not consistent across all shards
+			},
+		},
+	})
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemovingShard(t *testing.T) {
