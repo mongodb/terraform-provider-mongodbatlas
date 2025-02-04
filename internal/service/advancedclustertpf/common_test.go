@@ -9,6 +9,8 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
+const Temporary = "ok" // TEMPORARY
+
 func TestAddIDsToReplicationSpecs(t *testing.T) {
 	testCases := map[string]struct {
 		ReplicationSpecs          []admin.ReplicationSpec20240805
