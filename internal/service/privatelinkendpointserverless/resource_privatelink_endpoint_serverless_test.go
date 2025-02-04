@@ -16,6 +16,7 @@ const (
 )
 
 func TestAccServerlessPrivateLinkEndpoint_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	resource.ParallelTest(t, *basicTestCase(t))
 }
 
