@@ -80,6 +80,7 @@ var tpfSingleNestedAttrs = []string{
 	"pinned_fcv",
 	"timeouts",
 	"connection_strings",
+	"tags",
 }
 
 func AttrNameToSchemaV2(isAcc bool, name string) string {
