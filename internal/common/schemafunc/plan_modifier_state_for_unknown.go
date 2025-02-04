@@ -64,8 +64,8 @@ func validateKeepUnknown(keepUnknown []string) {
 // CopyUnknowns use reflection to copy unknown fields from src to dest.
 // The implementation is similar to internal/common/conversion/model_generation.go#CopyModel
 // keepUnknown is a list of fields that should not be copied, should always use the TF config name
-// nestedStructMapping is a map of field names to their type: object, list. (set not implemented yet)
-func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string, nestedStructMapping map[string]string) {
+// nestedStructMapping is a map of field names to their type: object, list. (`set` not implemented yet)
+func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 	validateKeepUnknown(keepUnknown)
 	valSrc := reflect.ValueOf(src)
 	valDest := reflect.ValueOf(dest)
@@ -98,34 +98,33 @@ func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string, nest
 			valDest.Field(i).Set(valSrc.FieldByName(name))
 			continue
 		}
-		nestedType := nestedStructMapping[name]
-		if nestedType != "" {
-			tflog.Info(ctx, fmt.Sprintf("Processing nested field: %s with type %s\n", name, nestedType))
-			nestedSrc := valSrc.FieldByName(name).Interface()
-			nestedDest := valDest.FieldByName(name).Interface()
-			if nestedType == "object" {
-				objValueSrc := nestedSrc.(types.Object)
-				objValueDest := nestedDest.(types.Object)
-				objValueNew := copyUnknownsFromObject(ctx, objValueSrc, objValueDest, keepUnknown)
-				valDest.Field(i).Set(reflect.ValueOf(objValueNew))
-			} else if nestedType == "list" {
-				listValueSrc := nestedSrc.(types.List)
-				listValueDest := nestedDest.(types.List)
-				listValueNew := copyUnknownsFromList(ctx, listValueSrc, listValueDest, keepUnknown)
-				valDest.Field(i).Set(reflect.ValueOf(listValueNew))
-			} else {
-				panic(fmt.Sprintf("nested type not supported yet: %s", nestedType))
-			}
+		nestedSrc := valSrc.FieldByName(name).Interface()
+		nestedDest := valDest.FieldByName(name).Interface()
+		objValueSrc, okSrc := nestedSrc.(types.Object)
+		objValueDest, okDest := nestedDest.(types.Object)
+		if okSrc && okDest {
+			objValueNew := copyUnknownsFromObject(ctx, objValueSrc, objValueDest, keepUnknown)
+			valDest.Field(i).Set(reflect.ValueOf(objValueNew))
+			continue
+		}
+		listValueSrc, okSrc := nestedSrc.(types.List)
+		listValueDest, okDest := nestedDest.(types.List)
+		if okSrc && okDest {
+			listValueNew := copyUnknownsFromList(ctx, listValueSrc, listValueDest, keepUnknown)
+			valDest.Field(i).Set(reflect.ValueOf(listValueNew))
 		}
 	}
 }
 
 func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnknown []string) types.Object {
+	if src.IsNull() || dest.IsNull() {
+		return dest
+	}
 	attributesSrc := src.Attributes()
 	attributesDest := dest.Attributes()
 	newAttributes := map[string]attr.Value{}
 	for name, attr := range attributesDest {
-		if attr.IsUnknown() {
+		if !slices.Contains(keepUnknown, name) && attr.IsUnknown() {
 			newAttributes[name] = attributesSrc[name]
 			tflog.Info(ctx, fmt.Sprintf("Copying unknown field: %s\n", name))
 		} else {
@@ -154,7 +153,7 @@ func copyUnknownsFromList(ctx context.Context, src, dest types.List, keepUnknown
 	srcElements := src.Elements()
 	count := len(srcElements)
 	destElements := dest.Elements()
-	if count != len(destElements) {
+	if count != len(destElements) || src.IsNull() || dest.IsNull() {
 		return dest
 	}
 	new := make([]attr.Value, count)

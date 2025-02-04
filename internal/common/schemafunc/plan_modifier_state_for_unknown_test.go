@@ -138,12 +138,11 @@ func TestCopyUnknowns(t *testing.T) {
 	)
 
 	tests := map[string]struct {
-		src           *TFSimpleModel
-		dest          *TFSimpleModel
-		expectedDest  *TFSimpleModel
-		keepUnknown   []string
-		panicMessage  string
-		structMapping map[string]string
+		src          *TFSimpleModel
+		dest         *TFSimpleModel
+		expectedDest *TFSimpleModel
+		keepUnknown  []string
+		panicMessage string
 	}{
 		"copy unknown basic fields": {
 			src: &TFSimpleModel{
@@ -219,9 +218,6 @@ func TestCopyUnknowns(t *testing.T) {
 				ProjectID:      types.StringValue("src-project"),
 				AdvancedConfig: advancedConfigTrue,
 			},
-			structMapping: map[string]string{
-				"AdvancedConfig": "object",
-			},
 		},
 		"nested unknown fields list": {
 			src: &TFSimpleModel{
@@ -244,9 +240,6 @@ func TestCopyUnknowns(t *testing.T) {
 					types.StringValue("zone1"),
 					[]TFRegionConfig{regionConfigSrc}),
 			},
-			structMapping: map[string]string{
-				"ReplicationSpecs": "list",
-			},
 		},
 		"nested unknown field in spec (list.list.object)": {
 			src: &TFSimpleModel{
@@ -261,9 +254,6 @@ func TestCopyUnknowns(t *testing.T) {
 				ProjectID:        types.StringValue("dest-project"),
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone2"), []TFRegionConfig{regionConfigSrc}),
 			},
-			structMapping: map[string]string{
-				"ReplicationSpecs": "list",
-			},
 		},
 	}
 
@@ -271,12 +261,12 @@ func TestCopyUnknowns(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			if tc.panicMessage != "" {
 				assert.PanicsWithValue(t, tc.panicMessage, func() {
-					schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown, tc.structMapping)
+					schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown)
 				})
 				return
 			}
 
-			schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown, tc.structMapping)
+			schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown)
 			assert.Equal(t, *tc.expectedDest, *tc.dest)
 		})
 	}
