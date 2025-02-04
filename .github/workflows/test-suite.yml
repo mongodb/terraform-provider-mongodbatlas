@@ -56,12 +56,8 @@ jobs:
         run: |
           echo "DAY=$(date +'%a')"
           echo "DAY=$(date +'%a')" >> "$GITHUB_OUTPUT"
-  clean-before:
-    secrets: inherit
-    uses: ./.github/workflows/cleanup-test-env.yml
-
   tests:
-    needs: [clean-before, variables]
+    needs: [variables]
     if: ${{ !cancelled() }}
     strategy:
       max-parallel: 1
@@ -76,48 +72,3 @@ jobs:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.day == 'Sun' && 'qa' }}
-
-  clean-after:
-    needs: tests
-    if: ${{ !cancelled() }}
-    secrets: inherit
-    uses: ./.github/workflows/cleanup-test-env.yml
-  
-  slack-notification:
-    needs: [tests, clean-after]
-    if: ${{ !cancelled() && needs.tests.result == 'failure' && !contains(github.event.inputs.send_notification, 'false') }}
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - name: Send Slack message
-        id: slack
-        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "text": ":red_circle: Test Suite failed (reminder to log failures)",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Test Suite failed (reminder to log failures)* ${{ secrets.SLACK_ONCALL_TAG }}"
-                  }
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": ":github: Failed action"
-                        },
-                        "url": "${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
-                    }
-                ]
-                }
-              ]
-            }
