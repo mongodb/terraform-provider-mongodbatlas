@@ -7,7 +7,7 @@ import (
 )
 
 func newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specs *[]admin.ReplicationSpec20240805, zoneNameNumShards map[string]int64, oldDiskGB *float64, externalIDToLegacyID map[string]string) *admin20240530.AdvancedClusterDescription {
-	newDiskGB := findRegionRootDiskSize(specs)
+	newDiskGB := findFirstRegionDiskSizeGB(specs)
 	if oldDiskGB != nil && newDiskGB != nil && (*newDiskGB-*oldDiskGB) < 0.01 {
 		newDiskGB = nil
 	}

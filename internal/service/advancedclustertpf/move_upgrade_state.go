@@ -34,11 +34,13 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 	if req.SourceTypeName != "mongodbatlas_cluster" || !strings.HasSuffix(req.SourceProviderAddress, "/mongodbatlas") {
 		return
 	}
-	setStateResponse(ctx, &resp.Diagnostics, req.SourceRawState, &resp.TargetState)
+	// Use always new sharding config when moving from cluster to adv_cluster
+	setStateResponse(ctx, &resp.Diagnostics, req.SourceRawState, &resp.TargetState, false)
 }
 
 func stateUpgraderFromV1(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
-	setStateResponse(ctx, &resp.Diagnostics, req.RawState, &resp.State)
+	// Use same sharding config as in SDKv2 when upgrading to TPF
+	setStateResponse(ctx, &resp.Diagnostics, req.RawState, &resp.State, true)
 }
 
 // stateAttrs has the attributes needed from source schema.
@@ -65,7 +67,7 @@ var stateAttrs = map[string]tftypes.Type{
 	},
 }
 
-func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfprotov6.RawState, stateOut *tfsdk.State) {
+func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfprotov6.RawState, stateOut *tfsdk.State, allowOldShardingConfig bool) {
 	rawStateValue, err := stateIn.UnmarshalWithOpts(tftypes.Object{
 		AttributeTypes: stateAttrs,
 	}, tfprotov6.UnmarshalOpts{ValueFromJSONOpts: tftypes.ValueFromJSONOpts{IgnoreUndefinedAttributes: true}})
@@ -94,11 +96,12 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 		return
 	}
 	setOptionalModelAttrs(ctx, stateObj, model)
-
+	if allowOldShardingConfig {
+		setReplicationSpecNumShardsAttr(ctx, stateObj, model)
+	}
 	// Set tags and labels to null instead of empty so there is no plan change if there are no tags or labels when Read is called.
 	model.Tags = types.MapNull(types.StringType)
 	model.Labels = types.MapNull(types.StringType)
-
 	diags.Append(stateOut.Set(ctx, model)...)
 }
 
@@ -155,20 +158,25 @@ func setOptionalModelAttrs(ctx context.Context, stateObj map[string]tftypes.Valu
 	if mongoDBMajorVersion := getAttrFromStateObj[string](stateObj, "mongo_db_major_version"); mongoDBMajorVersion != nil {
 		model.MongoDBMajorVersion = types.StringPointerValue(mongoDBMajorVersion)
 	}
-	if specsVal := getAttrFromStateObj[[]tftypes.Value](stateObj, "replication_specs"); specsVal != nil {
-		var specModels []TFReplicationSpecsModel
-		for _, specVal := range *specsVal {
-			var specObj map[string]tftypes.Value
-			if err := specVal.As(&specObj); err != nil {
-				continue
-			}
-			if specModel := replicationSpecModelWithNumShards(specObj["num_shards"]); specModel != nil {
-				specModels = append(specModels, *specModel)
-			}
+}
+
+func setReplicationSpecNumShardsAttr(ctx context.Context, stateObj map[string]tftypes.Value, model *TFModel) {
+	specsVal := getAttrFromStateObj[[]tftypes.Value](stateObj, "replication_specs")
+	if specsVal == nil {
+		return
+	}
+	var specModels []TFReplicationSpecsModel
+	for _, specVal := range *specsVal {
+		var specObj map[string]tftypes.Value
+		if err := specVal.As(&specObj); err != nil {
+			continue
 		}
-		if len(specModels) > 0 {
-			model.ReplicationSpecs, _ = types.ListValueFrom(ctx, ReplicationSpecsObjType, specModels)
+		if specModel := replicationSpecModelWithNumShards(specObj["num_shards"]); specModel != nil {
+			specModels = append(specModels, *specModel)
 		}
+	}
+	if len(specModels) > 0 {
+		model.ReplicationSpecs, _ = types.ListValueFrom(ctx, ReplicationSpecsObjType, specModels)
 	}
 }
 
