@@ -2843,6 +2843,10 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 				value = "testValue"
 			}`
 	}
+	dataSourceConfig := ""
+	if !config.AdvancedClusterV2Schema() {
+		dataSourceConfig = dataSourcesTFOldSchema
+	}
 	return acc.ConvertAdvancedClusterToSchemaV2(t, true, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
@@ -2859,7 +2863,7 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 			%[5]s
 			termination_protection_enabled = false
 		}
-	`, projectID, clusterName, providerName, region, tags)+
+	`, projectID, clusterName, providerName, region, tags)+dataSourceConfig+
 		strings.ReplaceAll(acc.FlexDataSource, "mongodbatlas_flex_cluster.", "mongodbatlas_advanced_cluster."))
 }
 
@@ -2951,5 +2955,5 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 		ds = conversion.StringPtr(dataSourceName)
 		dsp = conversion.StringPtr(dataSourcePluralName)
 	}
-	return acc.CheckRSAndDS(resourceName, ds, dsp, acc.ConvertToSchemaV2AttrsSet(true, attrSetAdvCluster), acc.ConvertToSchemaV2AttrsMap(true, attrMapAdvCluster), checks...)
+	return acc.CheckRSAndDSSchemaV2(true, resourceName, ds, dsp, attrSetAdvCluster, attrMapAdvCluster, checks...)
 }
