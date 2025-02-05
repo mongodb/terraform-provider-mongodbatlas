@@ -25,7 +25,7 @@ require (
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/mongodb-forks/digest v1.1.0
 	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250203083650-2c9f537aeaab
-	github.com/pb33f/libopenapi v0.20.0
+	github.com/pb33f/libopenapi v0.21.2
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.7.1
 	github.com/stretchr/testify v1.10.0
@@ -118,7 +118,7 @@ require (
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/skeema/knownhosts v1.3.0 // indirect
-	github.com/speakeasy-api/jsonpath v0.3.1 // indirect
+	github.com/speakeasy-api/jsonpath v0.6.1 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
