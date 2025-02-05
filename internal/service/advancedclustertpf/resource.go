@@ -515,6 +515,5 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 	if diags.HasError() {
 		return nil
 	}
-	overrideAttributesWithPrevStateValue(plan, newFlexModel)
 	return newFlexModel
 }
