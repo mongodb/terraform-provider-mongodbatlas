@@ -12,6 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -98,6 +99,11 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		modelOutDS.UseReplicationSpecPerShard = pluralModel.UseReplicationSpecPerShard // attrs not in resource model
 		outs.Results = append(outs.Results, modelOutDS)
 	}
+	flexModels := d.getFlexClustersModels(ctx, diags, projectID, pluralModel)
+	if diags.HasError() {
+		return nil, diags
+	}
+	outs.Results = append(outs.Results, flexModels...)
 	return outs, diags
 }
 func DiagsHasOnlyClusterNotFoundErrors(diags *diag.Diagnostics) bool {
@@ -118,4 +124,34 @@ func ResetClusterNotFoundErrors(diags *diag.Diagnostics) *diag.Diagnostics {
 		newDiags.Append(d)
 	}
 	return newDiags
+}
+
+func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagnostics, projectID string, pluralModel *TFModelPluralDS) []*TFModelDS {
+	var results []*TFModelDS
+
+	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersApi)
+	if err != nil {
+		diags.AddError(errorList, fmt.Sprintf(errorListDetail, projectID, err.Error()))
+		return nil
+	}
+
+	for i := range *listFlexClusters {
+		flexClusterResp := (*listFlexClusters)[i]
+		modelIn := &TFModel{
+			ProjectID: pluralModel.ProjectID,
+			Name:      types.StringValue(flexClusterResp.GetName()),
+		}
+		modelOut := NewTFModelFlex(ctx, diags, &flexClusterResp, nil, modelIn)
+		if diags.HasError() {
+			if DiagsHasOnlyClusterNotFoundErrors(diags) {
+				diags = ResetClusterNotFoundErrors(diags)
+				continue
+			}
+			return nil
+		}
+		modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
+		results = append(results, modelOutDS)
+	}
+
+	return results
 }
