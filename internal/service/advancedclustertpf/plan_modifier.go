@@ -10,7 +10,7 @@ import (
 )
 
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, plan, state *TFModel) {
-	if !schemafunc.HasUnknowns(&plan) {
+	if !schemafunc.HasUnknowns(plan) {
 		return
 	}
 	patchReq, upgradeRequest := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
