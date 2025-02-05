@@ -80,6 +80,9 @@ resource "mongodbatlas_advanced_cluster" "this" {
   - Before: `mongodbatlas_cluster.this.replication_specs[0].container_id` was a flat string, such as: `669644ae01bf814e3d25b963`
   - After: `mongodbatlas_advanced_cluster.this.replication_specs[0].container_id` is a map, such as: `{"AWS:US_EAST_1": "669644ae01bf814e3d25b963"}`
   - If you have a single region you can access the `container_id` directly with: `one(values(mongodbatlas_advanced_cluster.this.replication_specs[0].container_id))`
+- Connection strings:
+  - Before: `srv_address`, `mongo_uri`, `mongo_uri_with_options`, `mongo_uri_updated` attributes were available.
+  - After: They're not available any more, use instead attributes in `connection_strings`.
 
 ## Best Practices Before Migrating
 Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
