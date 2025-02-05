@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Variables
 OPENAPI_URL="https://raw.githubusercontent.com/mongodb/openapi/refs/heads/main/openapi/v2.yaml"
 TEMP_FILE=$(mktemp)
