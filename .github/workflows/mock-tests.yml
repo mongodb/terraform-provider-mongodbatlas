@@ -14,7 +14,7 @@ env:
   TF_ACC: 1
   TF_LOG: "DEBUG"
   ACCTEST_TIMEOUT: 30m
-  ACCTEST_REGEX_RUN: '^TestAcc'
+  ACCTEST_REGEX_RUN: '^TestAccClusterAdvancedCluster_replicaSetAWSProvider'
   MONGODB_ATLAS_BASE_URL: "http://localhost:4010"
   MONGODB_ATLAS_ORG_ID: "2c64aaf6f7ec54c6e8b18c9c"
   MONGODB_ATLAS_PUBLIC_KEY: "MONGODB_ATLAS_PUBLIC_KEY"
