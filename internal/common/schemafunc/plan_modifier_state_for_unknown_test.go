@@ -28,8 +28,8 @@ func (m multipleReturns) IsUnknown() (bool, error) {
 func TestIsUnknown(t *testing.T) {
 	tests := map[string]struct {
 		input        reflect.Value
-		expected     bool
 		panicMessage string
+		expected     bool
 	}{
 		"valid unknown true": {
 			input:    reflect.ValueOf(types.BoolUnknown()),
@@ -109,11 +109,11 @@ var AdvancedConfigObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFSimpleModel struct {
+	ReplicationSpecs types.List   `tfsdk:"replication_specs"`
 	ProjectID        types.String `tfsdk:"project_id"`
 	Name             types.String `tfsdk:"name"`
-	BackupEnabled    types.Bool   `tfsdk:"backup_enabled"`
-	ReplicationSpecs types.List   `tfsdk:"replication_specs"`
 	AdvancedConfig   types.Object `tfsdk:"advanced_config"`
+	BackupEnabled    types.Bool   `tfsdk:"backup_enabled"`
 }
 
 func TestCopyUnknowns(t *testing.T) {
@@ -141,8 +141,8 @@ func TestCopyUnknowns(t *testing.T) {
 		src          *TFSimpleModel
 		dest         *TFSimpleModel
 		expectedDest *TFSimpleModel
-		keepUnknown  []string
 		panicMessage string
+		keepUnknown  []string
 	}{
 		"copy unknown basic fields": {
 			src: &TFSimpleModel{
