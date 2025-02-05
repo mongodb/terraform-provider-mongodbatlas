@@ -25,7 +25,7 @@ func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgrade
 	keepUnknown := []string{"connection_strings"} // ConnectionStrings is volatile and should not be copied from state
 	if upgradeRequest != nil {
 		// TenantUpgrade changes a few root level fields that are normally ok to use state values for
-		keepUnknown = append(keepUnknown, "disk_size_gb", "cluster_id", "replication_specs", "backup_enabeld", "create_date")
+		keepUnknown = append(keepUnknown, "disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date")
 	}
 	if !update.IsZeroValues(patchReq) {
 		if patchReq.MongoDBMajorVersion != nil {
