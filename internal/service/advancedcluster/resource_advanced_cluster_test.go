@@ -2843,10 +2843,6 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 				value = "testValue"
 			}`
 	}
-	dataSourceConfig := ""
-	if !config.AdvancedClusterV2Schema() {
-		dataSourceConfig = dataSourcesTFOldSchema
-	}
 	return acc.ConvertAdvancedClusterToSchemaV2(t, true, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
@@ -2863,7 +2859,7 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 			%[5]s
 			termination_protection_enabled = false
 		}
-	`, projectID, clusterName, providerName, region, tags)+dataSourceConfig+
+	`, projectID, clusterName, providerName, region, tags)+dataSourcesTFOldSchema+
 		strings.ReplaceAll(acc.FlexDataSource, "mongodbatlas_flex_cluster.", "mongodbatlas_advanced_cluster."))
 }
 
@@ -2933,7 +2929,7 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 	if tagsCheck {
 		attrMapFlex["tags.testKey"] = "testValue"
 		tagsMap := map[string]string{"key": "testKey", "value": "testValue"}
-		tagsCheck := checkKeyValueBlocks(true, !config.AdvancedClusterV2Schema(), "tags", tagsMap)
+		tagsCheck := checkKeyValueBlocks(true, true, "tags", tagsMap)
 		checks = append(checks, tagsCheck)
 	}
 	pluralMap := map[string]string{
@@ -2945,12 +2941,8 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 	checks = acc.AddAttrChecks(acc.FlexDataSourcePluralName, checks, pluralMap)
 	checks = acc.AddAttrChecksPrefix(acc.FlexDataSourcePluralName, checks, attrMapFlex, "results.0")
 	checks = acc.AddAttrSetChecksPrefix(acc.FlexDataSourcePluralName, checks, attrSetFlex, "results.0")
-	var ds *string
-	var dsp *string
-	if !config.AdvancedClusterV2Schema() {
-		checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
-		ds = conversion.StringPtr(dataSourceName)
-		dsp = conversion.StringPtr(dataSourcePluralName)
-	}
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
+	ds := conversion.StringPtr(dataSourceName)
+	dsp := conversion.StringPtr(dataSourcePluralName)
 	return acc.CheckRSAndDSSchemaV2(true, resourceName, ds, dsp, attrSetAdvCluster, attrMapAdvCluster, checks...)
 }
