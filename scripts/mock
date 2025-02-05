@@ -1,14 +1,37 @@
 #!/bin/bash
-# Variables
-OPENAPI_URL="https://raw.githubusercontent.com/mongodb/openapi/refs/heads/main/openapi/v2.yaml"
-TEMP_FILE=$(mktemp)
+
+set -e
 
 # Cleanup temp file on script exit
 trap 'rm -f "$TEMP_FILE"' EXIT
 
-# Step 1: Download and modify the spec, saving to temp file
+cd "$(dirname "$0")/.."
+
+OPENAPI_URL="https://raw.githubusercontent.com/mongodb/openapi/refs/heads/main/openapi/v2.yaml"
+TEMP_FILE=$(mktemp)
+
 curl -s "$OPENAPI_URL" |
   yq '(.security) = []' -o=json > "$TEMP_FILE"
 
-# Step 2: Run prism with the temp file
-npx @stoplight/prism-cli mock "$TEMP_FILE"
+echo "==> Starting mock server"
+
+# Run prism mock on the given spec
+if [ "$1" == "--daemon" ]; then
+  npx @stoplight/prism-cli mock "$TEMP_FILE" &> .prism.log &
+
+  # Wait for server to come online
+  echo -n "Waiting for server"
+  while ! grep -q "✖  fatal\|Prism is listening" ".prism.log" ; do
+    echo -n "."
+    sleep 0.1
+  done
+
+  if grep -q "✖  fatal" ".prism.log"; then
+    cat .prism.log
+    exit 1
+  fi
+
+  echo
+else
+  npx @stoplight/prism-cli mock "$TEMP_FILE"
+fi
