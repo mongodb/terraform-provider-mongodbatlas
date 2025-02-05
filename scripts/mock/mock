@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Variables
+OPENAPI_URL="https://raw.githubusercontent.com/mongodb/openapi/refs/heads/main/openapi/v2.yaml"
+TEMP_FILE=$(mktemp)
+
+# Cleanup temp file on script exit
+trap 'rm -f "$TEMP_FILE"' EXIT
+
+# Step 1: Download and modify the spec, saving to temp file
+curl -s "$OPENAPI_URL" |
+  yq '(.security) = []' -o=json > "$TEMP_FILE"
+
+# Step 2: Run prism with the temp file
+npx @stoplight/prism-cli mock "$TEMP_FILE"
