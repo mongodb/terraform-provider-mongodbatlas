@@ -1,6 +1,7 @@
 {
  "replicationSpecs": [
   {
+   "id": "67a3458a42208d6a6e1bb6f1",
    "regionConfigs": [
     {
      "analyticsSpecs": {
@@ -10,13 +11,17 @@
       "nodeCount": 1
      },
      "autoScaling": {
-      "compute": {},
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
       "diskGB": {
        "enabled": true
       }
      },
      "electableSpecs": {
       "diskIOPS": 2000,
+      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 3
@@ -29,6 +34,7 @@
    "zoneName": "ZoneName managed by Terraform"
   },
   {
+   "id": "67a3458a42208d6a6e1bb6f3",
    "regionConfigs": [
     {
      "analyticsSpecs": {
@@ -38,13 +44,17 @@
       "nodeCount": 1
      },
      "autoScaling": {
-      "compute": {},
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
       "diskGB": {
        "enabled": true
       }
      },
      "electableSpecs": {
       "diskIOPS": 1000,
+      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 3

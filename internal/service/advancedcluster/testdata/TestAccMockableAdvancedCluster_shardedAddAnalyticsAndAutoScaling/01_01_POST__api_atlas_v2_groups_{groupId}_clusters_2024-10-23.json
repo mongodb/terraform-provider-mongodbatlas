@@ -1,6 +1,5 @@
 {
  "clusterType": "SHARDED",
- "labels": [],
  "name": "{clusterName}",
  "replicationSpecs": [
   {
@@ -35,6 +34,5 @@
    ],
    "zoneName": "ZoneName managed by Terraform"
   }
- ],
- "tags": []
+ ]
 }
