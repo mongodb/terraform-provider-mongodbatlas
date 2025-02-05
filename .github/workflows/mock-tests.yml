@@ -12,9 +12,9 @@ on:
 
 env:
   TF_ACC: 1
-  TF_LOG: ${{ vars.LOG_LEVEL }}
+  TF_LOG: "DEBUG"
   ACCTEST_TIMEOUT: 30m
-  ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
+  ACCTEST_REGEX_RUN: '^TestAcc'
   MONGODB_ATLAS_BASE_URL: "http://localhost:4010"
   MONGODB_ATLAS_ORG_ID: "MONGODB_ATLAS_ORG_ID"
   MONGODB_ATLAS_PUBLIC_KEY: "MONGODB_ATLAS_PUBLIC_KEY"
