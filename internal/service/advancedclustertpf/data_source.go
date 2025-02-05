@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 var _ datasource.DataSource = &ds{}
@@ -53,18 +52,23 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 	clusterName := modelDS.Name.ValueString()
 	projectID := modelDS.ProjectID.ValueString()
 	useReplicationSpecPerShard := modelDS.UseReplicationSpecPerShard.ValueBool()
-	api := d.Client.AtlasV2.ClustersApi
-	clusterResp, _, err := api.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
-			return nil
-		}
-		diags.AddError(errorReadDatasource, defaultAPIErrorDetails(clusterName, err))
-		return nil
-	}
 	modelIn := &TFModel{
 		ProjectID: modelDS.ProjectID,
 		Name:      modelDS.Name,
+	}
+	clusterResp, flexClusterResp := GetClusterDetails(ctx, diags, projectID, clusterName, d.Client, false)
+	if diags.HasError() {
+		return nil
+	}
+	if flexClusterResp == nil && clusterResp == nil {
+		return nil
+	}
+	if flexClusterResp != nil {
+		modelOut := NewTFModelFlex(ctx, diags, flexClusterResp, nil, modelIn)
+		if diags.HasError() {
+			return nil
+		}
+		return conversion.CopyModel[TFModelDS](modelOut)
 	}
 	modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn, !useReplicationSpecPerShard)
 	if diags.HasError() {
