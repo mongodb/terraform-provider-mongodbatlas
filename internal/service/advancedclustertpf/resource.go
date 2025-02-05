@@ -450,7 +450,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
 		return nil, nil
 	}
-	isShardingConfigUpgrade := stateUsingLegacy && !planUsingLegacy
+	isShardingConfigUpgrade := stateUsingLegacy && !planUsingLegacy // pre-ISS (num_shards > 1) to post-ISS
 	stateReq := normalizeFromTFModel(ctx, state, diags, false)
 	planReq := normalizeFromTFModel(ctx, plan, diags, isShardingConfigUpgrade)
 	if diags.HasError() {
