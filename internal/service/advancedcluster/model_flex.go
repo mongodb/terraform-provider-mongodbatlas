@@ -1,30 +1,11 @@
 package advancedcluster
 
 import (
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
-
-func NewFlexCreateReq(d *schema.ResourceData, replicationSpecs *[]admin.ReplicationSpec20240805) *admin.FlexClusterDescriptionCreate20241113 {
-	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
-		return nil
-	}
-	regionConfigs := (*replicationSpecs)[0].GetRegionConfigs()[0]
-	return &admin.FlexClusterDescriptionCreate20241113{
-		Name: d.Get("name").(string),
-		ProviderSettings: admin.FlexProviderSettingsCreate20241113{
-			BackingProviderName: regionConfigs.GetBackingProviderName(),
-			RegionName:          regionConfigs.GetRegionName(),
-		},
-		TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
-		Tags:                         conversion.ExpandTagsFromSetSchema(d),
-	}
-}
 
 func isValidUpgradeToFlex(d *schema.ResourceData) bool {
 	if d.HasChange("replication_specs.0.region_configs.0") {
@@ -40,24 +21,5 @@ func isValidUpgradeToFlex(d *schema.ResourceData) bool {
 func isValidUpdateOfFlex(d *schema.ResourceData) bool {
 	updatableAttrHaveBeenUpdated := d.HasChange("tags") || d.HasChange("termination_protection_enabled")
 	nonUpdatableAttrHaveNotBeenUpdated := !d.HasChange("cluster_type") && !d.HasChange("replication_specs") && !d.HasChange("project_id") && !d.HasChange("name")
-	if updatableAttrHaveBeenUpdated && nonUpdatableAttrHaveNotBeenUpdated {
-		return true
-	}
-	return false
-}
-
-func getFlexClusterUpdateRequest(d *schema.ResourceData) *admin.FlexClusterDescriptionUpdate20241113 {
-	return &admin.FlexClusterDescriptionUpdate20241113{
-		Tags:                         conversion.ExpandTagsFromSetSchema(d),
-		TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
-	}
-}
-
-func getUpgradeToFlexClusterRequest() *admin.LegacyAtlasTenantClusterUpgradeRequest {
-	// WIP: will be finished as part of CLOUDP-296220
-	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
-		ProviderSettings: &admin.ClusterProviderSettings{
-			ProviderName: flexcluster.FlexClusterType,
-		},
-	}
+	return updatableAttrHaveBeenUpdated && nonUpdatableAttrHaveNotBeenUpdated
 }

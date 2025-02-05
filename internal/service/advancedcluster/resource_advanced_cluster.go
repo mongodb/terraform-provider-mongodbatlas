@@ -442,7 +442,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if advancedclustertpf.IsFlex(replicationSpecs) {
 		clusterName := d.Get("name").(string)
-		flexClusterReq := NewFlexCreateReq(d, replicationSpecs)
+		flexClusterReq := advancedclustertpf.NewFlexCreateReq(clusterName, d.Get("termination_protection_enabled").(bool), conversion.ExpandTagsFromSetSchema(d), replicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(flexcluster.ErrorCreateFlex, err))
@@ -850,10 +850,10 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 
 	if advancedclustertpf.IsFlex(replicationSpecs) {
 		if isValidUpgradeToFlex(d) {
-			return resourceUpgrade(ctx, getUpgradeToFlexClusterRequest(), d, meta)
+			return resourceUpgrade(ctx, advancedclustertpf.GetUpgradeToFlexClusterRequest(), d, meta)
 		}
 		if isValidUpdateOfFlex(d) {
-			return resourceUpdateFlexCluster(ctx, getFlexClusterUpdateRequest(d), d, meta)
+			return resourceUpdateFlexCluster(ctx, advancedclustertpf.GetFlexClusterUpdateRequest(conversion.ExpandTagsFromSetSchema(d), conversion.Pointer(d.Get("termination_protection_enabled").(bool))), d, meta)
 		}
 		return diag.Errorf("flex cluster update is not supported except for tags and termination_protection_enabled fields")
 	}

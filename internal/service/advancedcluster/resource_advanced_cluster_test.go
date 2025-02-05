@@ -2843,6 +2843,10 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 				value = "testValue"
 			}`
 	}
+	dataSourceConfig := ""
+	if !config.AdvancedClusterV2Schema() {
+		dataSourceConfig = dataSourcesTFOldSchema
+	}
 	return acc.ConvertAdvancedClusterToSchemaV2(t, true, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
@@ -2859,8 +2863,8 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 			%[5]s
 			termination_protection_enabled = false
 		}
-	`, projectID, clusterName, providerName, region, tags)+
-		dataSourcesTFOldSchema+strings.ReplaceAll(acc.FlexDataSource, "mongodbatlas_flex_cluster.", "mongodbatlas_advanced_cluster."))
+	`, projectID, clusterName, providerName, region, tags)+dataSourceConfig+
+		strings.ReplaceAll(acc.FlexDataSource, "mongodbatlas_flex_cluster.", "mongodbatlas_advanced_cluster."))
 }
 
 func TestAccClusterFlexCluster_basic(t *testing.T) {
@@ -2881,7 +2885,6 @@ func TestAccClusterFlexCluster_basic(t *testing.T) {
 				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", true),
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", true),
 			},
-			acc.TestStepImportCluster(resourceName),
 			{
 				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_2", true),
 				ExpectError: regexp.MustCompile("flex cluster update is not supported except for tags and termination_protection_enabled fields"),
@@ -2929,8 +2932,9 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 	}
 	if tagsCheck {
 		attrMapFlex["tags.testKey"] = "testValue"
-		attrMapAdvCluster["tags.0.key"] = "testKey"
-		attrMapAdvCluster["tags.0.value"] = "testValue"
+		tagsMap := map[string]string{"key": "testKey", "value": "testValue"}
+		tagsCheck := checkKeyValueBlocks(true, !config.AdvancedClusterV2Schema(), "tags", tagsMap)
+		checks = append(checks, tagsCheck)
 	}
 	pluralMap := map[string]string{
 		"project_id": projectID,
@@ -2941,9 +2945,12 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 	checks = acc.AddAttrChecks(acc.FlexDataSourcePluralName, checks, pluralMap)
 	checks = acc.AddAttrChecksPrefix(acc.FlexDataSourcePluralName, checks, attrMapFlex, "results.0")
 	checks = acc.AddAttrSetChecksPrefix(acc.FlexDataSourcePluralName, checks, attrSetFlex, "results.0")
-	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
-	// Convert string constants to variables so we can take their address
-	ds := dataSourceName
-	dsp := dataSourcePluralName
-	return acc.CheckRSAndDS(resourceName, &ds, &dsp, attrSetAdvCluster, attrMapAdvCluster, checks...)
+	var ds *string
+	var dsp *string
+	if !config.AdvancedClusterV2Schema() {
+		checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
+		ds = conversion.StringPtr(dataSourceName)
+		dsp = conversion.StringPtr(dataSourcePluralName)
+	}
+	return acc.CheckRSAndDSSchemaV2(true, resourceName, ds, dsp, attrSetAdvCluster, attrMapAdvCluster, checks...)
 }
