@@ -31,12 +31,7 @@ func TestAccCluster_basicAWS_simple(t *testing.T) {
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-
-	var (
-		projectID   = acc.ProjectIDExecution(tb)
-		clusterName = acc.RandomClusterName()
-	)
-
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(tb, 3)
 	return &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(tb, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -90,12 +85,7 @@ func TestAccCluster_partial_advancedConf(t *testing.T) {
 }
 func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-
-	var (
-		projectID   = acc.ProjectIDExecution(tb)
-		clusterName = acc.RandomClusterName()
-	)
-
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(tb, 3)
 	return &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(tb, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -167,11 +157,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 
 func basicDefaultWriteReadAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-
-	var (
-		projectID   = acc.ProjectIDExecution(tb)
-		clusterName = acc.RandomClusterName()
-	)
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(tb, 3)
 
 	return &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(tb, nil, projectID, clusterName),
@@ -236,11 +222,7 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 }
 
 func TestAccCluster_emptyAdvancedConf(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-	)
-
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -280,11 +262,7 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 }
 
 func TestAccCluster_basicAdvancedConf(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-	)
-
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -652,9 +630,8 @@ func TestAccCluster_Global(t *testing.T) {
 
 func TestAccCluster_AWSWithLabels(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cluster.aws_with_labels"
-		projectID    = acc.ProjectIDExecution(t)
-		clusterName  = acc.RandomClusterName()
+		resourceName           = "mongodbatlas_cluster.aws_with_labels"
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1006,8 +983,7 @@ func TestAccCluster_withGCPAndContainerID(t *testing.T) {
 
 func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 
 		instanceSize = "M30"
 		minSize      = ""
@@ -1291,10 +1267,7 @@ func TestAccCluster_RegionsConfig(t *testing.T) {
 }
 
 func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-	)
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -1333,10 +1306,7 @@ func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 }
 
 func TestAccCluster_basicAWS_PausedToUnpaused(t *testing.T) {
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-	)
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
