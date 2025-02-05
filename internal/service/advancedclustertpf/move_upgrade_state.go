@@ -87,10 +87,11 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
 		GroupId: projectID,
 		Name:    name,
-	}, getTimeoutFromStateObj(stateObj), diags, ExtraAPIInfo{})
+	}, diags, ExtraAPIInfo{})
 	if diags.HasError() {
 		return
 	}
+	model.Timeouts = getTimeoutFromStateObj(stateObj)
 	AddAdvancedConfig(ctx, model, nil, nil, diags)
 	if diags.HasError() {
 		return

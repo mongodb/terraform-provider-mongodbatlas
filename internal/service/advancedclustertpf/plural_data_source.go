@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -71,11 +70,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	}
 	for i := range list {
 		clusterResp := &list[i]
-		modelIn := &TFModel{
-			ProjectID: pluralModel.ProjectID,
-			Name:      types.StringValue(clusterResp.GetName()),
-		}
-		modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn, !useReplicationSpecPerShard)
+		modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, useReplicationSpecPerShard)
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)

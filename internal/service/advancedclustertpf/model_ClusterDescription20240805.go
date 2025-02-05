@@ -6,7 +6,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -27,7 +26,7 @@ type ExtraAPIInfo struct {
 	ForceLegacySchemaFailed    bool
 }
 
-func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
+func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
 	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, diags, input.Labels)
@@ -66,7 +65,6 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
 		VersionReleaseSystem:             types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
 		PinnedFCV:                        pinnedFCV,
-		Timeouts:                         timeout,
 	}
 }
 

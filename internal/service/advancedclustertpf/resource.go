@@ -151,7 +151,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	modelOut, _ := getBasicClusterModelInfer(ctx, diags, r.Client, clusterResp, &plan)
+	modelOut, _ := getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -181,7 +181,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.State.RemoveResource(ctx)
 		return
 	}
-	modelOut, _ := getBasicClusterModelInfer(ctx, diags, r.Client, readResp, &state)
+	modelOut, _ := getBasicClusterModelResource(ctx, diags, r.Client, readResp, &state)
 	if diags.HasError() {
 		return
 	}
@@ -248,7 +248,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		modelOut = &state
 		overrideAttributesWithPrevStateValue(&plan, modelOut)
 	} else {
-		modelOut, _ = getBasicClusterModelInfer(ctx, diags, r.Client, clusterResp, &plan)
+		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
 		if diags.HasError() {
 			return
 		}
@@ -381,27 +381,31 @@ func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFMo
 	}
 }
 
-func getBasicClusterModelInfer(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) (*TFModel, *ExtraAPIInfo) {
+func getBasicClusterModelResource(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) (*TFModel, *ExtraAPIInfo) {
 	useReplicationSpecPerShard := !usingLegacyShardingConfig(ctx, modelIn.ReplicationSpecs, diags)
 	if diags.HasError() {
 		return nil, nil
 	}
-	return getBasicClusterModel(ctx, diags, client, clusterResp, modelIn, useReplicationSpecPerShard)
+	modelOut, apiInfo := getBasicClusterModel(ctx, diags, client, clusterResp, useReplicationSpecPerShard)
+	if modelOut != nil {
+		modelOut.Timeouts = modelIn.Timeouts
+		overrideAttributesWithPrevStateValue(modelIn, modelOut)
+	}
+	return modelOut, apiInfo
 }
 
-func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel, useReplicationSpecPerShard bool) (*TFModel, *ExtraAPIInfo) {
-	extraInfo := resolveAPIInfo(ctx, diags, client, modelIn, clusterResp, useReplicationSpecPerShard)
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) (*TFModel, *ExtraAPIInfo) {
+	extraInfo := resolveAPIInfo(ctx, diags, client, clusterResp, useReplicationSpecPerShard)
 	if diags.HasError() {
 		return nil, nil
 	}
 	if extraInfo.ForceLegacySchemaFailed { // can't create a model if legacy is forced but cluster does not support it
 		return nil, extraInfo
 	}
-	modelOut := NewTFModel(ctx, clusterResp, modelIn.Timeouts, diags, *extraInfo)
+	modelOut := NewTFModel(ctx, clusterResp, diags, *extraInfo)
 	if diags.HasError() {
 		return nil, nil
 	}
-	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut, extraInfo
 }
 

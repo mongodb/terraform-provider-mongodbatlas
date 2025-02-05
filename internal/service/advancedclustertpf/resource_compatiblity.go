@@ -51,11 +51,11 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 	return planCounts
 }
 
-func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) *ExtraAPIInfo {
+func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterLatest *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) *ExtraAPIInfo {
 	var (
 		api20240530             = client.AtlasV220240530.ClustersApi
-		projectID               = plan.ProjectID.ValueString()
-		clusterName             = plan.Name.ValueString()
+		projectID               = clusterLatest.GetGroupId()
+		clusterName             = clusterLatest.GetName()
 		forceLegacySchemaFailed = false
 	)
 	clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
