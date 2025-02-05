@@ -1293,8 +1293,8 @@ func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) s
 					provider_name = "AWS"
 					region_name     = "US_EAST_1"
 					auto_scaling {
-						compute_scale_down_enabled = false # necessary to have similar SDKv2 request
-						compute_enabled = false # necessary to have similar SDKv2 request
+						compute_scale_down_enabled = false
+						compute_enabled = false
 						disk_gb_enabled = true
 					}
 					electable_specs {
