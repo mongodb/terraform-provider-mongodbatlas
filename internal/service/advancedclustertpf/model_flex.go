@@ -115,13 +115,13 @@ func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescripti
 }
 
 func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, modelIn *TFModel) *TFModel {
-	model := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), modelIn.Timeouts, diags, ExtraAPIInfo{UsingLegacySchema: false})
+	modelOut := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), modelIn.Timeouts, diags, ExtraAPIInfo{UsingLegacySchema: false})
 	if diags.HasError() {
 		return nil
 	}
-	model.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
-	overrideAttributesWithPrevStateValue(modelIn, model)
-	return model
+	modelOut.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
+	overrideAttributesWithPrevStateValue(modelIn, modelOut)
+	return modelOut
 }
 
 func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {

@@ -213,11 +213,19 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	if IsFlex(planReq.ReplicationSpecs) {
 		if isValidUpgradeToFlex(stateReq, planReq) {
-			diags.Append(resp.State.Set(ctx, handleFlexUpgrade(ctx, diags, r.Client, waitParams, planReq, &plan))...)
+			upgradeModel := handleFlexUpgrade(ctx, diags, r.Client, waitParams, planReq, &plan)
+			if diags.HasError() {
+				return
+			}
+			diags.Append(resp.State.Set(ctx, upgradeModel)...)
 			return
 		}
 		if isValidUpdateOfFlex(stateReq, planReq) {
-			diags.Append(resp.State.Set(ctx, handleFlexUpdate(ctx, diags, r.Client, &plan, planReq))...)
+			updateModel := handleFlexUpdate(ctx, diags, r.Client, &plan, planReq)
+			if diags.HasError() {
+				return
+			}
+			diags.Append(resp.State.Set(ctx, updateModel)...)
 			return
 		}
 		diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
