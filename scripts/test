@@ -52,4 +52,4 @@ else
 fi
 
 echo "==> Running tests"
-go test ./... "$@"
+make testacc
