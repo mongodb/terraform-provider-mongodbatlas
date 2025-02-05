@@ -30,7 +30,7 @@
     provider_installation {
 
     dev_overrides {
-      "mongodb/mongodbatlas" = "/Users/yourUser/terraform-provider-mongodbatlas/bin" # path to the provider binary
+      "mongodb/mongodbatlas" = "/Users/<YourUser>/terraform-provider-mongodbatlas/bin" # path to the provider binary
     }
 
     direct {} 
@@ -284,22 +284,22 @@ To do this you can:
     ```terraform
     provider_installation {
       filesystem_mirror {
-        path    = "C:\Users\YourUser\Desktop\Tenant_Upgrade\tf_cache"
+        path    = "C:\Users\<YourUser>\Desktop\Tenant_Upgrade\tf_cache"
         include = ["registry.terraform.io/hashicorp/*"]
       }
       direct {
         exclude = ["registry.terraform.io/hashicorp/*"]
       }
     }
-    plugin_cache_dir = "C:\Users\YourUser\Desktop\Tenant_Upgrade\tf_cache"
+    plugin_cache_dir = "C:\Users\<YourUser>\Desktop\Tenant_Upgrade\tf_cache"
     disable_checkpoint=true
     ```
 -	`cd` back up to original directory and `mv` the `.terraform/providers/registry.terraform.io` directory to `tf_cache` 
 
 -	Create required environment variables (modify accordingly to your own local path directory):
     ```bash
-    export TF_PLUGIN_CACHE_DIR=/mnt/c/Users/YourUser/Desktop/Tenant_Upgrade/tf_cache
-    export TF_CLI_CONFIG_FILE=/mnt/c/Users/YourUser/Desktop/Tenant_Upgrade/tf_cache/terraform.rc
+    export TF_PLUGIN_CACHE_DIR=/mnt/c/Users/<YourUser>/Desktop/Tenant_Upgrade/tf_cache
+    export TF_CLI_CONFIG_FILE=/mnt/c/Users/<YourUser>/Desktop/Tenant_Upgrade/tf_cache/terraform.rc
     ```
 -  Delete the `.terraform` and `.terraform.lock.hcl` directories altogether. At this point you should only have the `tf_cache` directory and the `versions.tf` config file remaining. 
 
