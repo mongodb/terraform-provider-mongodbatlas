@@ -23,7 +23,7 @@ type ExtraAPIInfo struct {
 	ZoneNameNumShards          map[string]int64
 	ZoneNameReplicationSpecIDs map[string]string
 	ContainerIDs               map[string]string
-	UsingLegacySchema          bool
+	UseReplicationSpecPerShard bool
 	ForceLegacySchemaFailed    bool
 }
 
@@ -120,10 +120,10 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 		return types.ListNull(ReplicationSpecsObjType)
 	}
 	var tfModels *[]TFReplicationSpecsModel
-	if apiInfo.UsingLegacySchema {
-		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, apiInfo)
-	} else {
+	if apiInfo.UseReplicationSpecPerShard {
 		tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
+	} else {
+		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, apiInfo)
 	}
 	if diags.HasError() {
 		return types.ListNull(ReplicationSpecsObjType)

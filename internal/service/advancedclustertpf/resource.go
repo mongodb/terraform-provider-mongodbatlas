@@ -151,7 +151,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan, false)
+	modelOut, _ := getBasicClusterModelInfer(ctx, diags, r.Client, clusterResp, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -181,7 +181,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.State.RemoveResource(ctx)
 		return
 	}
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, &state, false)
+	modelOut, _ := getBasicClusterModelInfer(ctx, diags, r.Client, readResp, &state)
 	if diags.HasError() {
 		return
 	}
@@ -248,7 +248,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		modelOut = &state
 		overrideAttributesWithPrevStateValue(&plan, modelOut)
 	} else {
-		modelOut, _ = getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan, false)
+		modelOut, _ = getBasicClusterModelInfer(ctx, diags, r.Client, clusterResp, &plan)
 		if diags.HasError() {
 			return
 		}
@@ -381,8 +381,16 @@ func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFMo
 	}
 }
 
-func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel, forceLegacySchema bool) (*TFModel, *ExtraAPIInfo) {
-	extraInfo := resolveAPIInfo(ctx, diags, client, modelIn, clusterResp, forceLegacySchema)
+func getBasicClusterModelInfer(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) (*TFModel, *ExtraAPIInfo) {
+	useReplicationSpecPerShard := !usingLegacyShardingConfig(ctx, modelIn.ReplicationSpecs, diags)
+	if diags.HasError() {
+		return nil, nil
+	}
+	return getBasicClusterModel(ctx, diags, client, clusterResp, modelIn, useReplicationSpecPerShard)
+}
+
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel, useReplicationSpecPerShard bool) (*TFModel, *ExtraAPIInfo) {
+	extraInfo := resolveAPIInfo(ctx, diags, client, modelIn, clusterResp, useReplicationSpecPerShard)
 	if diags.HasError() {
 		return nil, nil
 	}

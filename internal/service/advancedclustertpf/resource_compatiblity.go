@@ -51,7 +51,7 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 	return planCounts
 }
 
-func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, forceLegacySchema bool) *ExtraAPIInfo {
+func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) *ExtraAPIInfo {
 	var (
 		api20240530             = client.AtlasV220240530.ClustersApi
 		projectID               = plan.ProjectID.ValueString()
@@ -61,7 +61,7 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 	clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
-			forceLegacySchemaFailed = forceLegacySchema
+			forceLegacySchemaFailed = !useReplicationSpecPerShard
 		} else {
 			diags.AddError(errorReadLegacy20240530, defaultAPIErrorDetails(clusterName, err))
 			return nil
@@ -77,7 +77,7 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 		ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
 		ForceLegacySchemaFailed:    forceLegacySchemaFailed,
 		ZoneNameNumShards:          numShardsMapFromOldAPI(clusterRespOld),
-		UsingLegacySchema:          forceLegacySchema || usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags),
+		UseReplicationSpecPerShard: useReplicationSpecPerShard,
 	}
 }
 
