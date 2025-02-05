@@ -13,23 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func IsUnknown(obj reflect.Value) bool {
-	method := obj.MethodByName("IsUnknown")
-	if !method.IsValid() {
-		panic(fmt.Sprintf("IsUnknown method not found for %v", obj))
-	}
-	results := method.Call([]reflect.Value{})
-	if len(results) != 1 {
-		panic(fmt.Sprintf("IsUnknown method must return a single value, got %v", results))
-	}
-	result := results[0]
-	response, ok := result.Interface().(bool)
-	if !ok {
-		panic(fmt.Sprintf("IsUnknown method must return a bool, got %v", result))
-	}
-	return response
-}
-
+// HasUnknowns uses reflection to check if the object has any unknown fields
+// Pass &TFModel{}
+// Will only check the root level attributes
 func HasUnknowns(obj any) bool {
 	valObj := reflect.ValueOf(obj)
 	if valObj.Kind() != reflect.Ptr {
@@ -42,28 +28,16 @@ func HasUnknowns(obj any) bool {
 	typeObj := valObj.Type()
 	for i := range typeObj.NumField() {
 		field := valObj.Field(i)
-		if IsUnknown(field) {
+		if isUnknown(field) {
 			return true
 		}
 	}
 	return false
 }
 
-func validateKeepUnknown(keepUnknown []string) {
-	invalidNames := []string{}
-	for _, name := range keepUnknown {
-		if strings.ToLower(name) != name {
-			invalidNames = append(invalidNames, name)
-		}
-	}
-	if len(invalidNames) > 0 {
-		panic(fmt.Sprintf("keepUnknown names must be lowercase and use TF config format: %v", invalidNames))
-	}
-}
-
 // CopyUnknowns use reflection to copy unknown fields from src to dest.
 // The implementation is similar to internal/common/conversion/model_generation.go#CopyModel
-// keepUnknown is a list of fields that should not be copied, should always use the TF config name
+// keepUnknown is a list of fields that should not be copied, should always use the TF config name (snake_case)
 // nestedStructMapping is a map of field names to their type: object, list. (`set` not implemented yet)
 func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 	validateKeepUnknown(keepUnknown)
@@ -93,7 +67,7 @@ func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 		if !found || !valDest.Field(i).CanSet() {
 			continue
 		}
-		if IsUnknown(valDest.Field(i)) {
+		if isUnknown(valDest.Field(i)) {
 			tflog.Info(ctx, fmt.Sprintf("Copying unknown field: %s\n", name))
 			valDest.Field(i).Set(valSrc.FieldByName(name))
 			continue
@@ -113,6 +87,35 @@ func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 			listValueNew := copyUnknownsFromList(ctx, listValueSrc, listValueDest, keepUnknown)
 			valDest.Field(i).Set(reflect.ValueOf(listValueNew))
 		}
+	}
+}
+
+func isUnknown(obj reflect.Value) bool {
+	method := obj.MethodByName("IsUnknown")
+	if !method.IsValid() {
+		panic(fmt.Sprintf("IsUnknown method not found for %v", obj))
+	}
+	results := method.Call([]reflect.Value{})
+	if len(results) != 1 {
+		panic(fmt.Sprintf("IsUnknown method must return a single value, got %v", results))
+	}
+	result := results[0]
+	response, ok := result.Interface().(bool)
+	if !ok {
+		panic(fmt.Sprintf("IsUnknown method must return a bool, got %v", result))
+	}
+	return response
+}
+
+func validateKeepUnknown(keepUnknown []string) {
+	invalidNames := []string{}
+	for _, name := range keepUnknown {
+		if strings.ToLower(name) != name {
+			invalidNames = append(invalidNames, name)
+		}
+	}
+	if len(invalidNames) > 0 {
+		panic(fmt.Sprintf("keepUnknown names must be lowercase and use TF config format: %v", invalidNames))
 	}
 }
 

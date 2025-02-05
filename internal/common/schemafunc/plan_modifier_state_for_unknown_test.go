@@ -2,7 +2,6 @@ package schemafunc_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -25,30 +24,47 @@ func (m multipleReturns) IsUnknown() (bool, error) {
 	return false, nil
 }
 
-func TestIsUnknown(t *testing.T) {
+type hasUnknownsOk struct {
+	Field types.Bool
+}
+
+type hasUnknownsPanicWrongType struct {
+	Field wrongReturnType
+}
+
+type hasUnknownsPanicMultipleReturn struct {
+	Field multipleReturns
+}
+
+type hasUnknownsPanicMissingMethod struct {
+	Field missingMethodType
+}
+
+func TestHasUnknown(t *testing.T) {
 	tests := map[string]struct {
-		input        reflect.Value
+		input        any
 		panicMessage string
+		inputBool    types.Bool
 		expected     bool
 	}{
 		"valid unknown true": {
-			input:    reflect.ValueOf(types.BoolUnknown()),
-			expected: true,
+			inputBool: types.BoolUnknown(),
+			expected:  true,
 		},
 		"valid unknown false": {
-			input:    reflect.ValueOf(types.BoolValue(true)),
-			expected: false,
+			inputBool: types.BoolValue(true),
+			expected:  false,
 		},
 		"missing IsUnknown method": {
-			input:        reflect.ValueOf(missingMethodType{}),
+			input:        &hasUnknownsPanicMissingMethod{missingMethodType{}},
 			panicMessage: "IsUnknown method not found for {}",
 		},
 		"wrong return type": {
-			input:        reflect.ValueOf(wrongReturnType{}),
+			input:        &hasUnknownsPanicWrongType{wrongReturnType{}},
 			panicMessage: "IsUnknown method must return a bool, got I'm a string!",
 		},
 		"multiple return values": {
-			input:        reflect.ValueOf(multipleReturns{}),
+			input:        &hasUnknownsPanicMultipleReturn{multipleReturns{}},
 			panicMessage: "IsUnknown method must return a single value, got [<bool Value> <error Value>]",
 		},
 	}
@@ -57,12 +73,13 @@ func TestIsUnknown(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			if tc.panicMessage != "" {
 				assert.PanicsWithValue(t, tc.panicMessage, func() {
-					schemafunc.IsUnknown(tc.input)
+					schemafunc.HasUnknowns(tc.input)
 				})
 				return
 			}
 
-			result := schemafunc.IsUnknown(tc.input)
+			wrapper := &hasUnknownsOk{Field: tc.inputBool}
+			result := schemafunc.HasUnknowns(wrapper)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
