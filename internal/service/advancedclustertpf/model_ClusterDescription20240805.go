@@ -22,8 +22,8 @@ type ExtraAPIInfo struct {
 	ZoneNameNumShards          map[string]int64
 	ZoneNameReplicationSpecIDs map[string]string
 	ContainerIDs               map[string]string
-	UseReplicationSpecPerShard bool
-	ForceLegacySchemaFailed    bool
+	UseReplicationSpecPerShard bool // true: ISS schema, false: pre-ISS schema (numShards > 1)
+	ForceLegacySchemaFailed    bool // !UseReplicationSpecPerShard and failed to read from old API
 }
 
 func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
