@@ -122,10 +122,10 @@ func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnk
 	}
 	attributesSrc := src.Attributes()
 	attributesDest := dest.Attributes()
-	newAttributes := map[string]attr.Value{}
+	attributesMerged := map[string]attr.Value{}
 	for name, attr := range attributesDest {
 		if !slices.Contains(keepUnknown, name) && attr.IsUnknown() {
-			newAttributes[name] = attributesSrc[name]
+			attributesMerged[name] = attributesSrc[name]
 			tflog.Info(ctx, fmt.Sprintf("Copying unknown field: %s\n", name))
 		} else {
 			tfListDest, ok := attr.(types.List)
@@ -139,29 +139,29 @@ func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnk
 				newObject := copyUnknownsFromObject(ctx, tfObjectSrc, tfObjectDest, keepUnknown)
 				attr = newObject
 			}
-			newAttributes[name] = attr
+			attributesMerged[name] = attr
 		}
 	}
-	new, diags := types.ObjectValue(src.AttributeTypes(ctx), newAttributes)
+	merged, diags := types.ObjectValue(src.AttributeTypes(ctx), attributesMerged)
 	if diags.HasError() {
 		panic(fmt.Sprintf("Error converting object to model: %v", diags))
 	}
-	return new
+	return merged
 }
 
 func copyUnknownsFromList(ctx context.Context, src, dest types.List, keepUnknown []string) types.List {
 	srcElements := src.Elements()
-	count := len(srcElements)
 	destElements := dest.Elements()
+	count := len(srcElements)
 	if count != len(destElements) || src.IsNull() || dest.IsNull() {
 		return dest
 	}
-	new := make([]attr.Value, count)
+	merged := make([]attr.Value, count)
 	for i := range count {
 		srcObj := srcElements[i].(types.Object)
 		destObj := destElements[i].(types.Object)
 		newObj := copyUnknownsFromObject(ctx, srcObj, destObj, keepUnknown)
-		new[i] = newObj
+		merged[i] = newObj
 	}
-	return types.ListValueMust(dest.ElementType(ctx), new)
+	return types.ListValueMust(dest.ElementType(ctx), merged)
 }
