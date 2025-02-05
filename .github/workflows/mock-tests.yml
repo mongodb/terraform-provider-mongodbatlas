@@ -20,6 +20,6 @@ jobs:
         with:
           go-version-file: 'go.mod'
       - name: Bootstrap
-        run: ./scripts/mock/bootstrap
+        run: ./scripts/bootstrap
       - name: Run tests
-        run: ./scripts/mock/test
+        run: ./scripts/test
