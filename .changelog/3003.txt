@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_flex_cluster: Reaches GA (General Availability)
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_flex_cluster: Reaches GA (General Availability)
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_flex_cluster: Reaches GA (General Availability)
+```

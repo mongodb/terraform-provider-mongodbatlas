@@ -1,0 +1,7 @@
+```release-note:new-datasource
+mongodbatlas_flex_snapshot
+```
+
+```release-note:new-datasource
+mongodbatlas_flex_snapshots
+```

@@ -1,3 +1,9 @@
+---
+subcategory: "Deprecated"    
+---
+
+**WARNING:** This data source is deprecated and will be removed in January 2026. For more details, see [Migration Guide: Transition out of Serverless Instances and Shared-tier clusters](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide).
+
 # Data Source: mongodbatlas_shared_tier_restore_jobs
 
 `mongodbatlas_shared_tier_restore_jobs` provides Cloud Backup Snapshot Restore Jobs data source for Shared Tier Clusters. Gets all the cloud backup snapshot restore jobs for the specified shared tier cluster.

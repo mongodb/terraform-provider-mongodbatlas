@@ -1,3 +1,9 @@
+---
+subcategory: "Deprecated"    
+---
+
+**WARNING:** This resource is deprecated and will be removed in January 2026. For more details, see [Migration Guide: Transition out of Serverless Instances and Shared-tier clusters](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide).
+
 # Resource: mongodbatlas_serverless_instance
 
 `mongodbatlas_serverless_instance` provides a Serverless Instance resource. This allows serverless instances to be created.
