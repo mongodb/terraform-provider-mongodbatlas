@@ -1,0 +1,12 @@
+provider:
+  name: mongodbatlas
+
+data_sources:
+  flex_snapshot:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/snapshots/{snapshotId}
+      method: GET
+  flex_snapshots:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/snapshots
+      method: GET
