@@ -54,7 +54,7 @@ type TFModel struct {
 	Expiration     types.String `tfsdk:"expiration"`
 	FinishTime     types.String `tfsdk:"finish_time"`
 	ProjectId      types.String `tfsdk:"project_id"`
-	MongoDbversion types.String `tfsdk:"mongo_dbversion"`
+	MongoDbversion types.String `tfsdk:"mongo_db_version"`
 	Name           types.String `tfsdk:"name"`
 	ScheduledTime  types.String `tfsdk:"scheduled_time"`
 	SnapshotId     types.String `tfsdk:"snapshot_id"`
