@@ -34,6 +34,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
@@ -452,6 +453,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		streamprivatelinkendpoint.PluralDataSource,
 		flexcluster.DataSource,
 		flexcluster.PluralDataSource,
+		flexsnapshot.DataSource,
+		flexsnapshot.PluralDataSource,
 	}
 	if config.AdvancedClusterV2Schema() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
