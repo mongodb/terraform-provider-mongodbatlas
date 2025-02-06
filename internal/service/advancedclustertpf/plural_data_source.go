@@ -94,7 +94,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		modelOutDS.UseReplicationSpecPerShard = pluralModel.UseReplicationSpecPerShard // attrs not in resource model
 		outs.Results = append(outs.Results, modelOutDS)
 	}
-	flexModels := d.getFlexClustersModels(ctx, diags, projectID, pluralModel)
+	flexModels := d.getFlexClustersModels(ctx, diags, projectID)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -121,7 +121,7 @@ func ResetClusterNotFoundErrors(diags *diag.Diagnostics) *diag.Diagnostics {
 	return newDiags
 }
 
-func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagnostics, projectID string, pluralModel *TFModelPluralDS) []*TFModelDS {
+func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagnostics, projectID string) []*TFModelDS {
 	var results []*TFModelDS
 
 	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersApi)
