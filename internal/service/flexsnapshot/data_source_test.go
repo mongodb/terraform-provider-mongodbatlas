@@ -54,15 +54,15 @@ func configBasic(projectID, clusterName, snapshotID string) string {
 func checksFlexSnapshot() resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{} //TODO: check exists?
 	attrSet := []string{
-		"backup_settings.enabled",
-		"cluster_type",
-		"connection_strings.standard",
-		"create_date",
-		"id",
+		"expiration",
+		"finish_time",
+		"project_id",
 		"mongo_db_version",
-		"state_name",
-		"version_release_system",
-		"provider_settings.provider_name",
+		"name",
+		"scheduled_time",
+		"snapshot_id",
+		"start_time",
+		"status",
 	}
 	pluralMap := []string{
 		"project_id",
