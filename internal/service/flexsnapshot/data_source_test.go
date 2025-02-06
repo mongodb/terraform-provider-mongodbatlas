@@ -67,7 +67,7 @@ func checksFlexSnapshot() resource.TestCheckFunc {
 	pluralMap := []string{
 		"project_id",
 		"name",
-		"results",
+		"results.#",
 	}
 	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, pluralMap...)
 	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrSet...)
