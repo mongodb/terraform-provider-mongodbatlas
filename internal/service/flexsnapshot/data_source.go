@@ -29,7 +29,6 @@ func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *dat
 	resp.Schema = conversion.DataSourceSchemaFromResource(DataSourceSchema(ctx), &conversion.DataSourceSchemaRequest{
 		RequiredFields: []string{"project_id", "name", "snapshot_id"},
 	})
-	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
