@@ -22,8 +22,8 @@ type ExtraAPIInfo struct {
 	ZoneNameNumShards          map[string]int64
 	ZoneNameReplicationSpecIDs map[string]string
 	ContainerIDs               map[string]string
-	UseReplicationSpecPerShard bool // true: ISS schema, false: pre-ISS schema (numShards > 1)
-	ForceLegacySchemaFailed    bool // !UseReplicationSpecPerShard and failed to read from old API
+	UseNewShardingConfig       bool
+	UseOldShardingConfigFailed bool
 }
 
 func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
@@ -118,7 +118,7 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 		return types.ListNull(ReplicationSpecsObjType)
 	}
 	var tfModels *[]TFReplicationSpecsModel
-	if apiInfo.UseReplicationSpecPerShard {
+	if apiInfo.UseNewShardingConfig {
 		tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
 	} else {
 		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, apiInfo)

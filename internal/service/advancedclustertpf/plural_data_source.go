@@ -78,7 +78,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			}
 			return nil, diags
 		}
-		if extraInfo.ForceLegacySchemaFailed {
+		if extraInfo.UseOldShardingConfigFailed {
 			continue
 		}
 		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)

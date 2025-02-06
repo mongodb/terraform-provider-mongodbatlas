@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
-func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, usingOldShardingConfiguration bool) *admin.ClusterDescription20240805 {
+func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, usingNewShardingConfiguration bool) *admin.ClusterDescription20240805 {
 	var (
 		pauseAfter  = req.GetPaused()
 		clusterResp *admin.ClusterDescription20240805
@@ -21,11 +21,11 @@ func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	if pauseAfter {
 		req.Paused = nil
 	}
-	if usingOldShardingConfiguration {
-		legacyReq := ConvertClusterDescription20241023to20240805(req)
-		clusterResp = createCluster20240805(ctx, diags, client, legacyReq, waitParams)
-	} else {
+	if usingNewShardingConfiguration {
 		clusterResp = createClusterLatest(ctx, diags, client, req, waitParams)
+	} else {
+		oldReq := ConvertClusterDescription20241023to20240805(req)
+		clusterResp = createCluster20240805(ctx, diags, client, oldReq, waitParams)
 	}
 	if diags.HasError() {
 		return nil
