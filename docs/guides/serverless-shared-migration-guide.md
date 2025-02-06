@@ -15,7 +15,7 @@ You can migrate from Serverless instances and Shared-tier clusters manually befo
 
 **--> NOTE:** We recommend waiting until March 2025 or later for Serverless instances and Shared-tier clusters to autoconvert.
 
-For Shared-tier clusters, we are working on enhancing the User Experience such that Terraform Atlas Providers users can make even fewer required changes to their scripts from what is shown below. More updates to come over the next few months. For more details reach out to: zuhair.ahmed@mongodb.com
+For Shared-tier clusters, we are working on enhancing the User Experience such that Terraform Atlas Providers users can make even fewer required changes to their scripts from what is shown below. More updates to come over the next few months.
 
 ### Jump to:
 - [Shared-tier to Flex](#from-shared-tier-clusters-to-flex)

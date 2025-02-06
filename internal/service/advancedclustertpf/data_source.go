@@ -52,10 +52,6 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 	clusterName := modelDS.Name.ValueString()
 	projectID := modelDS.ProjectID.ValueString()
 	useReplicationSpecPerShard := modelDS.UseReplicationSpecPerShard.ValueBool()
-	modelIn := &TFModel{
-		ProjectID: modelDS.ProjectID,
-		Name:      modelDS.Name,
-	}
 	clusterResp, flexClusterResp := GetClusterDetails(ctx, diags, projectID, clusterName, d.Client, false)
 	if diags.HasError() {
 		return nil
@@ -64,17 +60,17 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	if flexClusterResp != nil {
-		modelOut := NewTFModelFlex(ctx, diags, flexClusterResp, nil, modelIn)
+		modelOut := NewTFModelFlex(ctx, diags, flexClusterResp, nil)
 		if diags.HasError() {
 			return nil
 		}
 		return conversion.CopyModel[TFModelDS](modelOut)
 	}
-	modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn, !useReplicationSpecPerShard)
+	modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, useReplicationSpecPerShard)
 	if diags.HasError() {
 		return nil
 	}
-	if extraInfo.ForceLegacySchemaFailed {
+	if extraInfo.UseOldShardingConfigFailed {
 		diags.AddError(errorReadDatasourceForceAsymmetric, fmt.Sprintf(errorReadDatasourceForceAsymmetricDetail, clusterName, DeprecationOldSchemaAction))
 		return nil
 	}

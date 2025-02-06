@@ -1235,7 +1235,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 }
 
 func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing.T) {
-	acc.SkipTestForCI(t) // failing due to plan changes
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 8)
 		checksMap              = map[string]string{
@@ -1294,8 +1293,8 @@ func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) s
 					provider_name = "AWS"
 					region_name     = "US_EAST_1"
 					auto_scaling {
-						compute_scale_down_enabled = false # necessary to have similar SDKv2 request
-						compute_enabled = false # necessary to have similar SDKv2 request
+						compute_scale_down_enabled = false
+						compute_enabled = false
 						disk_gb_enabled = true
 					}
 					electable_specs {
