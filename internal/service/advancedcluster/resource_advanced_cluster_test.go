@@ -1235,7 +1235,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 }
 
 func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing.T) {
-	acc.SkipTestForCI(t) // failing due to plan changes
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 8)
 		checksMap              = map[string]string{
