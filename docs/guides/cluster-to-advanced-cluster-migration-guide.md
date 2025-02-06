@@ -10,7 +10,7 @@ page_title: "Migration Guide: Cluster to Advanced Cluster"
 
 ## Main Changes Between `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`
 
-1. Replication Spec Configuration: Supports different node types (electable, analytics, read_only) where hardware configuration can differ between node types.
+1. Replication Spec Configuration: Supports different node types (electable, analytics, read_only) where hardware configuration can differ between node types. `regions_config` is renamed to `region_configs`.
 2. Provider Settings: Moved from the top level to the replication spec allowing you to create multi-cloud clusters.
 3. Auto Scaling: Moved from the top level to the replication spec allowing you to scale replication specs individually.
 4. Backup Configuration: Renamed from `cloud_backup` to `backup_enabled`.
