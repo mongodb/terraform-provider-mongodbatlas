@@ -44,7 +44,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	connV2 := d.Client.AtlasV2
 	flexSnapshots, err := ListFlexSnapshots(ctx, projectID, name, connV2.FlexSnapshotsApi)
 	if err != nil {
-		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		resp.Diagnostics.AddError(errorRead, err.Error())
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModelPluralDS(projectID, name, flexSnapshots))...)

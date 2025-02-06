@@ -8,7 +8,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const resourceName = "flex_snapshot"
+const (
+	resourceName = "flex_snapshot"
+	errorRead    = "error reading flex cluster snapshot"
+)
 
 var _ datasource.DataSource = &ds{}
 var _ datasource.DataSourceWithConfigure = &ds{}
@@ -39,10 +42,9 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	}
 	projectID := tfModel.ProjectId.ValueString()
 	name := tfModel.Name.ValueString()
-	connV2 := d.Client.AtlasV2
-	apiResp, _, err := connV2.FlexSnapshotsApi.GetFlexBackup(ctx, projectID, name, tfModel.SnapshotId.ValueString()).Execute()
+	apiResp, _, err := d.Client.AtlasV2.FlexSnapshotsApi.GetFlexBackup(ctx, projectID, name, tfModel.SnapshotId.ValueString()).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		resp.Diagnostics.AddError(errorRead, err.Error())
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModel(projectID, name, apiResp))...)
