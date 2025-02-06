@@ -115,12 +115,13 @@ func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescripti
 }
 
 func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, modelIn *TFModel) *TFModel {
-	modelOut := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), modelIn.Timeouts, diags, ExtraAPIInfo{UsingLegacySchema: false})
+	modelOut := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), diags, ExtraAPIInfo{UseNewShardingConfig: true})
 	if diags.HasError() {
 		return nil
 	}
 	modelOut.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	overrideAttributesWithPrevStateValue(modelIn, modelOut)
+	modelOut.Timeouts = modelIn.Timeouts
 	return modelOut
 }
 
