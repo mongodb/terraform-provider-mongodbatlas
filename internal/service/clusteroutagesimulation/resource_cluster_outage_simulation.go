@@ -199,7 +199,7 @@ func resourceRefreshFunc(ctx context.Context, clusterName, projectID string, cli
 		outageSimulation, resp, err := client.ClusterOutageSimulationApi.GetOutageSimulation(ctx, projectID, clusterName).Execute()
 
 		if err != nil {
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				return "", "DELETED", nil
 			}
 			return nil, "", err

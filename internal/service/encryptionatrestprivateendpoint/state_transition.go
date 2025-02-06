@@ -67,7 +67,7 @@ func refreshFunc(ctx context.Context, projectID, cloudProvider, endpointID strin
 			return nil, "", err
 		}
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return &admin.EARPrivateEndpoint{}, retrystrategy.RetryStrategyDeletedState, nil
 			}
 			return nil, "", err

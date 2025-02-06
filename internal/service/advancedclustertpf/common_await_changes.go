@@ -88,10 +88,10 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, api admin.
 		}
 
 		if err != nil {
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
-			if resp.StatusCode == 503 {
+			if resp != nil && resp.StatusCode == 503 {
 				return "", retrystrategy.RetryStrategyPendingState, nil
 			}
 			return nil, "", err

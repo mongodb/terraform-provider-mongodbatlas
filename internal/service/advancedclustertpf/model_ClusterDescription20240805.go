@@ -46,7 +46,7 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 		ConfigServerType:                 types.StringValue(conversion.SafeValue(input.ConfigServerType)),
 		ConnectionStrings:                connectionStrings,
 		CreateDate:                       types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
-		DiskSizeGB:                       types.Float64PointerValue(findRegionRootDiskSize(input.ReplicationSpecs)),
+		DiskSizeGB:                       types.Float64PointerValue(findFirstRegionDiskSizeGB(input.ReplicationSpecs)),
 		EncryptionAtRestProvider:         types.StringValue(conversion.SafeValue(input.EncryptionAtRestProvider)),
 		GlobalClusterSelfManagedSharding: types.BoolValue(conversion.SafeValue(input.GlobalClusterSelfManagedSharding)),
 		ProjectID:                        types.StringValue(conversion.SafeValue(input.GroupId)),

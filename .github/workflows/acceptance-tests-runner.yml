@@ -25,7 +25,12 @@ on:
         description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
         type: string
         required: false
-      
+      reduced_tests:
+        description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
+        type: boolean
+        required: false
+        default: false
+        
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -362,6 +367,7 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
@@ -396,6 +402,7 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           HTTP_MOCKER_CAPTURE: 'true'
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
@@ -403,7 +410,7 @@ jobs:
 
   advanced_cluster_tpf_move:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' }}
+    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' && inputs.reduced_tests == false }}
     env:
       MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
     strategy:

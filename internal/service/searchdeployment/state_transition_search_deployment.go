@@ -56,10 +56,10 @@ func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName str
 			return nil, "", err
 		}
 		if err != nil {
-			if resp.StatusCode == 404 && strings.Contains(err.Error(), SearchDeploymentDoesNotExistsError) {
+			if resp != nil && resp.StatusCode == 404 && strings.Contains(err.Error(), SearchDeploymentDoesNotExistsError) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
-			if resp.StatusCode == 503 {
+			if resp != nil && resp.StatusCode == 503 {
 				return "", retrystrategy.RetryStrategyUpdatingState, nil
 			}
 			return nil, "", err

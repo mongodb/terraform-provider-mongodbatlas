@@ -180,7 +180,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	resp, httpResp, err := connV2.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if httpResp.StatusCode == http.StatusNotFound {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
@@ -188,7 +188,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 	oldResp, httpResp, err := connV220240530.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if httpResp.StatusCode == http.StatusNotFound {
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}

@@ -307,7 +307,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	searchIndex, resp, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		// deleted in the backend case
-		if resp.StatusCode == 404 && !d.IsNewResource() {
+		if resp != nil && resp.StatusCode == 404 && !d.IsNewResource() {
 			d.SetId("")
 			return nil
 		}

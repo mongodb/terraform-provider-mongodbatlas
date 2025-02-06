@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAdvancedCluster_ValidationErrors(t *testing.T) {
+func TestAccAdvancedCluster_ValidationErrors(t *testing.T) {
 	const (
 		projectID   = "111111111111111111111111"
 		clusterName = "test"
@@ -18,6 +18,10 @@ func TestAdvancedCluster_ValidationErrors(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
+			{
+				Config:      nullRegionConfigs, // can happen when using moved block, panic: runtime error: invalid memory address or nil pointer dereference
+				ExpectError: regexp.MustCompile("Missing Configuration for Required Attribute"),
+			},
 			{
 				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, true, invalidRegionConfigsPriorities),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
@@ -152,5 +156,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
 			}
 		}
 	}
+}
+`
+var nullRegionConfigs = `
+resource "mongodbatlas_advanced_cluster" "test" {
+	project_id     = "111111111111111111111111"
+	name           = "test-acc-tf-c-2670522663699021050"
+	cluster_type   = "REPLICASET"
+	backup_enabled = false
+
+	replication_specs = [{
+		region_configs = null
+	}]
 }
 `
