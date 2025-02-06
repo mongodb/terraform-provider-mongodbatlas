@@ -725,7 +725,7 @@ func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
 				Config: configShardedOldSchemaMultiCloud(t, true, projectID, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
 				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
 			},
-			acc.TestStepImportCluster(resourceName),
+			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
 		},
 	})
 }
@@ -755,7 +755,7 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isAcc bool) resource.Tes
 					checkGeoShardedOldSchema(isAcc, clusterName, 3, 3, true, false),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
-			acc.TestStepImportCluster(resourceName),
+			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
 		},
 	}
 }
@@ -776,7 +776,7 @@ func TestAccMockableAdvancedCluster_symmetricShardedOldSchemaDiskSizeGBAtElectab
 				Config: configShardedOldSchemaDiskSizeGBElectableLevel(t, true, projectID, clusterName, 55),
 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(true, 55),
 			},
-			acc.TestStepImportCluster(resourceName),
+			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
 		},
 	})
 }
@@ -984,7 +984,7 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, true, orgID, projectName, clusterName, "NODE_TYPE", false),
 				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData(true, "NODE_TYPE", false),
 			},
-			acc.TestStepImportCluster(resourceName),
+			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
 		},
 	})
 }
@@ -1014,7 +1014,7 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 				Config: configPriority(t, true, projectID, clusterName, true, false),
 				Check:  acc.TestCheckResourceAttrSchemaV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
-			acc.TestStepImportCluster(resourceName),
+			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
 		},
 	})
 }
