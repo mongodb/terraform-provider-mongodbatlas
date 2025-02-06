@@ -20,7 +20,7 @@ output "mongodbatlas_flex_snapshot" {
 }
 
 output "mongodbatlas_flex_snapshots" {
-  value = [for snapshot in data.mongodbatlas_flex_snapshot.snapshots.results : snapshot.snapshot_id]
+  value = [for snapshot in data.mongodbatlas_flex_snapshots.snapshots.results : snapshot.snapshot_id]
 }
 ```
 
