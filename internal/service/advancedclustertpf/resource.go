@@ -133,7 +133,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams, usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags))
+	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams, usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags))
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
@@ -151,7 +151,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan, false)
+	modelOut, _ := getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -181,7 +181,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.State.RemoveResource(ctx)
 		return
 	}
-	modelOut, _ := getBasicClusterModel(ctx, diags, r.Client, readResp, &state, false)
+	modelOut, _ := getBasicClusterModelResource(ctx, diags, r.Client, readResp, &state)
 	if diags.HasError() {
 		return
 	}
@@ -215,7 +215,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		IgnoreInStatePrefix: []string{"regionConfigs"},
 		IgnoreInStateSuffix: []string{"zoneId"}, // replication_spec.*.zone_id doesn't have to be included, the API will do its best to create a minimal change
 	}
-	if !usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
 		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
 	}
 	patchReq, upgradeReq := findClusterDiff(ctx, &state, &plan, diags, &patchOptions)
@@ -248,7 +248,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		modelOut = &state
 		overrideAttributesWithPrevStateValue(&plan, modelOut)
 	} else {
-		modelOut, _ = getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan, false)
+		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
 		if diags.HasError() {
 			return
 		}
@@ -329,7 +329,7 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 		pauseAfterOtherChanges = true
 	}
 
-	if usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+	if !usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
 		// With old sharding config we call older API (2023-02-01) for updating replication specs to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
 		r.updateLegacyReplicationSpecs(ctx, state, plan, diags, patchReq.ReplicationSpecs)
 		if diags.HasError() {
@@ -381,19 +381,31 @@ func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFMo
 	}
 }
 
-func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel, forceLegacySchema bool) (*TFModel, *ExtraAPIInfo) {
-	extraInfo := resolveAPIInfo(ctx, diags, client, modelIn, clusterResp, forceLegacySchema)
+func getBasicClusterModelResource(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) (*TFModel, *ExtraAPIInfo) {
+	useReplicationSpecPerShard := usingNewShardingConfig(ctx, modelIn.ReplicationSpecs, diags)
 	if diags.HasError() {
 		return nil, nil
 	}
-	if extraInfo.ForceLegacySchemaFailed { // can't create a model if legacy is forced but cluster does not support it
+	modelOut, apiInfo := getBasicClusterModel(ctx, diags, client, clusterResp, useReplicationSpecPerShard)
+	if modelOut != nil {
+		modelOut.Timeouts = modelIn.Timeouts
+		overrideAttributesWithPrevStateValue(modelIn, modelOut)
+	}
+	return modelOut, apiInfo
+}
+
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) (*TFModel, *ExtraAPIInfo) {
+	extraInfo := resolveAPIInfo(ctx, diags, client, clusterResp, useReplicationSpecPerShard)
+	if diags.HasError() {
+		return nil, nil
+	}
+	if extraInfo.UseOldShardingConfigFailed { // can't create a model if the cluster does not support old sharding config
 		return nil, extraInfo
 	}
-	modelOut := NewTFModel(ctx, clusterResp, modelIn.Timeouts, diags, *extraInfo)
+	modelOut := NewTFModel(ctx, clusterResp, diags, *extraInfo)
 	if diags.HasError() {
 		return nil, nil
 	}
-	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut, extraInfo
 }
 
@@ -444,13 +456,13 @@ func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 }
 
 func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, options *update.PatchOptions) (*admin.ClusterDescription20240805, *admin.LegacyAtlasTenantClusterUpgradeRequest) {
-	stateUsingLegacy := usingLegacyShardingConfig(ctx, state.ReplicationSpecs, diags)
-	planUsingLegacy := usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags)
-	if planUsingLegacy && !stateUsingLegacy {
+	stateUsingNewSharding := usingNewShardingConfig(ctx, state.ReplicationSpecs, diags)
+	planUsingNewSharding := usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags)
+	if stateUsingNewSharding && !planUsingNewSharding {
 		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
 		return nil, nil
 	}
-	isShardingConfigUpgrade := stateUsingLegacy && !planUsingLegacy // pre-ISS (num_shards > 1) to post-ISS
+	isShardingConfigUpgrade := !stateUsingNewSharding && planUsingNewSharding // old sharding config  (num_shards > 1) to new one
 	stateReq := normalizeFromTFModel(ctx, state, diags, false)
 	planReq := normalizeFromTFModel(ctx, plan, diags, isShardingConfigUpgrade)
 	if diags.HasError() {

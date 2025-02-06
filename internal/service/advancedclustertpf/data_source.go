@@ -62,15 +62,11 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		diags.AddError(errorReadDatasource, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
-	modelIn := &TFModel{
-		ProjectID: modelDS.ProjectID,
-		Name:      modelDS.Name,
-	}
-	modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, modelIn, !useReplicationSpecPerShard)
+	modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, useReplicationSpecPerShard)
 	if diags.HasError() {
 		return nil
 	}
-	if extraInfo.ForceLegacySchemaFailed {
+	if extraInfo.UseOldShardingConfigFailed {
 		diags.AddError(errorReadDatasourceForceAsymmetric, fmt.Sprintf(errorReadDatasourceForceAsymmetricDetail, clusterName, DeprecationOldSchemaAction))
 		return nil
 	}

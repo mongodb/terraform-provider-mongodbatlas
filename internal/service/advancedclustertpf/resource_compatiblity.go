@@ -37,7 +37,7 @@ func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
 }
 
 func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) map[string]int64 {
-	if !usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
 		return nil
 	}
 	stateCounts := numShardsMap(ctx, state.ReplicationSpecs, diags)
@@ -51,17 +51,17 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 	return planCounts
 }
 
-func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, forceLegacySchema bool) *ExtraAPIInfo {
+func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterLatest *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) *ExtraAPIInfo {
 	var (
-		api20240530             = client.AtlasV220240530.ClustersApi
-		projectID               = plan.ProjectID.ValueString()
-		clusterName             = plan.Name.ValueString()
-		forceLegacySchemaFailed = false
+		api20240530                = client.AtlasV220240530.ClustersApi
+		projectID                  = clusterLatest.GetGroupId()
+		clusterName                = clusterLatest.GetName()
+		useOldShardingConfigFailed = false
 	)
 	clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
-			forceLegacySchemaFailed = forceLegacySchema
+			useOldShardingConfigFailed = !useReplicationSpecPerShard
 		} else {
 			diags.AddError(errorReadLegacy20240530, defaultAPIErrorDetails(clusterName, err))
 			return nil
@@ -75,9 +75,9 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 	return &ExtraAPIInfo{
 		ContainerIDs:               containerIDs,
 		ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
-		ForceLegacySchemaFailed:    forceLegacySchemaFailed,
+		UseOldShardingConfigFailed: useOldShardingConfigFailed,
 		ZoneNameNumShards:          numShardsMapFromOldAPI(clusterRespOld),
-		UsingLegacySchema:          forceLegacySchema || usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags),
+		UseNewShardingConfig:       useReplicationSpecPerShard,
 	}
 }
 
@@ -155,12 +155,12 @@ func numShardsCounts(ctx context.Context, input types.List, diags *diag.Diagnost
 	return counts
 }
 
-func usingLegacyShardingConfig(ctx context.Context, input types.List, diags *diag.Diagnostics) bool {
+func usingNewShardingConfig(ctx context.Context, input types.List, diags *diag.Diagnostics) bool {
 	counts := numShardsCounts(ctx, input, diags)
 	if diags.HasError() {
-		return false
+		return true
 	}
-	return isNumShardsGreaterThanOne(counts)
+	return !isNumShardsGreaterThanOne(counts)
 }
 
 func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]int64 {
