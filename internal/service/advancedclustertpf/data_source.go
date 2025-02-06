@@ -74,7 +74,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 	if diags.HasError() {
 		return nil
 	}
-	if extraInfo.ForceLegacySchemaFailed {
+	if extraInfo.UseOldShardingConfigFailed {
 		diags.AddError(errorReadDatasourceForceAsymmetric, fmt.Sprintf(errorReadDatasourceForceAsymmetricDetail, clusterName, DeprecationOldSchemaAction))
 		return nil
 	}

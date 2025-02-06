@@ -37,7 +37,7 @@ func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
 }
 
 func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) map[string]int64 {
-	if !usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
 		return nil
 	}
 	stateCounts := numShardsMap(ctx, state.ReplicationSpecs, diags)
@@ -51,17 +51,17 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 	return planCounts
 }
 
-func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, forceLegacySchema bool) *ExtraAPIInfo {
+func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterLatest *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) *ExtraAPIInfo {
 	var (
-		api20240530             = client.AtlasV220240530.ClustersApi
-		projectID               = plan.ProjectID.ValueString()
-		clusterName             = plan.Name.ValueString()
-		forceLegacySchemaFailed = false
+		api20240530                = client.AtlasV220240530.ClustersApi
+		projectID                  = clusterLatest.GetGroupId()
+		clusterName                = clusterLatest.GetName()
+		useOldShardingConfigFailed = false
 	)
 	clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
-			forceLegacySchemaFailed = forceLegacySchema
+			useOldShardingConfigFailed = !useReplicationSpecPerShard
 		} else {
 			diags.AddError(errorReadLegacy20240530, defaultAPIErrorDetails(clusterName, err))
 			return nil
@@ -75,14 +75,14 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 	return &ExtraAPIInfo{
 		ContainerIDs:               containerIDs,
 		ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
-		ForceLegacySchemaFailed:    forceLegacySchemaFailed,
+		UseOldShardingConfigFailed: useOldShardingConfigFailed,
 		ZoneNameNumShards:          numShardsMapFromOldAPI(clusterRespOld),
-		UsingLegacySchema:          forceLegacySchema || usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags),
+		UseNewShardingConfig:       useReplicationSpecPerShard,
 	}
 }
 
-// instead of using `num_shards` explode the replication specs, and set disk_size_gb
-func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics, shoudlExplodeNumShards bool) *admin.ClusterDescription20240805 {
+// instead of using `num_shards` expand the replication specs, and set disk_size_gb
+func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics, shouldExpandNumShards bool) *admin.ClusterDescription20240805 {
 	latestModel := NewAtlasReq(ctx, model, diags)
 	if diags.HasError() {
 		return nil
@@ -92,8 +92,8 @@ func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagn
 		return nil
 	}
 	usingLegacySchema := isNumShardsGreaterThanOne(counts)
-	if usingLegacySchema && shoudlExplodeNumShards {
-		explodeNumShards(latestModel, counts)
+	if usingLegacySchema && shouldExpandNumShards {
+		expandNumShards(latestModel, counts)
 	}
 	normalizeDiskSize(model, latestModel, diags)
 	if diags.HasError() {
@@ -106,7 +106,7 @@ func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription2024
 	rootDiskSize := conversion.NilForUnknown(model.DiskSizeGB, model.DiskSizeGB.ValueFloat64Pointer())
 	regionRootDiskSize := findFirstRegionDiskSizeGB(latestModel.ReplicationSpecs)
 	if rootDiskSize != nil && regionRootDiskSize != nil && (*regionRootDiskSize-*rootDiskSize) > 0.01 {
-		errMsg := "disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)"
+		errMsg := fmt.Sprintf("disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)", *rootDiskSize, *regionRootDiskSize)
 		diags.AddError(errMsg, errMsg)
 		return
 	}
@@ -120,7 +120,7 @@ func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription2024
 	}
 }
 
-func explodeNumShards(req *admin.ClusterDescription20240805, counts []int64) {
+func expandNumShards(req *admin.ClusterDescription20240805, counts []int64) {
 	specs := req.GetReplicationSpecs()
 	newSpecs := []admin.ReplicationSpec20240805{}
 	for i, spec := range specs {
@@ -155,12 +155,12 @@ func numShardsCounts(ctx context.Context, input types.List, diags *diag.Diagnost
 	return counts
 }
 
-func usingLegacyShardingConfig(ctx context.Context, input types.List, diags *diag.Diagnostics) bool {
+func usingNewShardingConfig(ctx context.Context, input types.List, diags *diag.Diagnostics) bool {
 	counts := numShardsCounts(ctx, input, diags)
 	if diags.HasError() {
-		return false
+		return true
 	}
-	return isNumShardsGreaterThanOne(counts)
+	return !isNumShardsGreaterThanOne(counts)
 }
 
 func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]int64 {

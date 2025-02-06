@@ -6,7 +6,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -23,11 +22,11 @@ type ExtraAPIInfo struct {
 	ZoneNameNumShards          map[string]int64
 	ZoneNameReplicationSpecIDs map[string]string
 	ContainerIDs               map[string]string
-	UsingLegacySchema          bool
-	ForceLegacySchemaFailed    bool
+	UseNewShardingConfig       bool
+	UseOldShardingConfigFailed bool
 }
 
-func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
+func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
 	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, diags, input.Labels)
@@ -66,7 +65,6 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
 		VersionReleaseSystem:             types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
 		PinnedFCV:                        pinnedFCV,
-		Timeouts:                         timeout,
 	}
 }
 
@@ -120,10 +118,10 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 		return types.ListNull(ReplicationSpecsObjType)
 	}
 	var tfModels *[]TFReplicationSpecsModel
-	if apiInfo.UsingLegacySchema {
-		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, apiInfo)
-	} else {
+	if apiInfo.UseNewShardingConfig {
 		tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
+	} else {
+		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, apiInfo)
 	}
 	if diags.HasError() {
 		return types.ListNull(ReplicationSpecsObjType)
