@@ -21,9 +21,9 @@ func TestAccFlexSnapshot_basic(t *testing.T) {
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
-		projectID   = acc.RandomName()
+		projectID   = "2c64aaf6f7ec54c6e8b18c9c"
 		clusterName = acc.RandomName()
-		snapshotID  = acc.RandomName()
+		snapshotID  = "2c64aaf6f7ec54c6e8b18c9c"
 	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -40,14 +40,14 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 func configBasic(projectID, clusterName, snapshotID string) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_flex_snapshot" "test" {
-		project_id = %[1]q
-		name = %[2]q
-		snapshot_id = %[3]q
+			project_id = %[1]q
+			name = %[2]q
+			snapshot_id = %[3]q
 		}
 
 		data "mongodbatlas_flex_snapshots" "test" {
-		project_id = %[1]q
-		name =  %[2]q
+			project_id = %[1]q
+			name =  %[2]q
 		}`, projectID, clusterName, snapshotID)
 }
 
