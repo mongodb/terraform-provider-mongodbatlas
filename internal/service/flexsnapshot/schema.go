@@ -61,3 +61,9 @@ type TFModel struct {
 	StartTime      types.String `tfsdk:"start_time"`
 	Status         types.String `tfsdk:"status"`
 }
+
+type TFFlexSnapshotsDSModel struct {
+	ProjectId types.String `tfsdk:"project_id"`
+	Name      types.String `tfsdk:"name"`
+	Results   []TFModel    `tfsdk:"results"`
+}

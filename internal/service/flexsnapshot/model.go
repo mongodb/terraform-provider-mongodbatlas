@@ -7,9 +7,9 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
-func NewTFModel(projectId, name string, apiResp *admin.FlexBackupSnapshot20241113) *TFModel {
+func NewTFModel(projectID, name string, apiResp *admin.FlexBackupSnapshot20241113) *TFModel {
 	return &TFModel{
-		ProjectId:      types.StringValue(projectId),
+		ProjectId:      types.StringValue(projectID),
 		Name:           types.StringValue(name),
 		SnapshotId:     types.StringPointerValue(apiResp.Id),
 		Expiration:     types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.Expiration)),
@@ -18,5 +18,20 @@ func NewTFModel(projectId, name string, apiResp *admin.FlexBackupSnapshot2024111
 		ScheduledTime:  types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.ScheduledTime)),
 		StartTime:      types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.StartTime)),
 		Status:         types.StringPointerValue(apiResp.Status),
+	}
+}
+
+func NewTFModelPluralDS(projectID, name string, apiResp *[]admin.FlexBackupSnapshot20241113) *TFFlexSnapshotsDSModel {
+	if apiResp == nil {
+		return nil
+	}
+	var results []TFModel
+	for _, snapshot := range *apiResp {
+		results = append(results, *NewTFModel(projectID, name, &snapshot))
+	}
+	return &TFFlexSnapshotsDSModel{
+		ProjectId: types.StringValue(projectID),
+		Name:      types.StringValue(name),
+		Results:   results,
 	}
 }
