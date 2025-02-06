@@ -1251,7 +1251,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) retry.StateChangeConf {
 	return retry.StateChangeConf{
-		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
+		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING", "PENDING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
 		Timeout:    timeout,
@@ -1299,7 +1299,7 @@ func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin
 	}
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "PENDING"},
 		Target:     []string{"IDLE"},
 		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, connV2.ClustersApi),
 		Timeout:    timeout,
