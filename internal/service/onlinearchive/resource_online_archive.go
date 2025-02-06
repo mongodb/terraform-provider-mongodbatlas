@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
@@ -266,10 +265,10 @@ func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, arch
 		if err != nil && c == nil && resp == nil {
 			return nil, "", err
 		} else if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if config.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
-			if resp != nil && resp.StatusCode == 503 {
+			if config.StatusServiceUnavailable(resp) {
 				return "", "PENDING", nil
 			}
 			return nil, "", err
@@ -293,7 +292,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	onlineArchive, resp, err := connV2.OnlineArchiveApi.GetOnlineArchive(context.Background(), projectID, archiveID, clusterName).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

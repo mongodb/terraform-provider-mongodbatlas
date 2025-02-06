@@ -3,7 +3,6 @@ package datalakepipeline
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -96,7 +95,7 @@ func dataSourceRunRead(ctx context.Context, d *schema.ResourceData, meta any) di
 
 	run, resp, err := connV2.DataLakePipelinesApi.GetPipelineRun(ctx, projectID, name, pipelineRunID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

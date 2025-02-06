@@ -3,13 +3,13 @@ package flexcluster
 import (
 	"context"
 	"errors"
-	"net/http"
 	"regexp"
+
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -96,7 +96,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	connV2 := r.Client.AtlasV2
 	flexCluster, apiResp, err := connV2.FlexClustersApi.GetFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString()).Execute()
 	if err != nil {
-		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

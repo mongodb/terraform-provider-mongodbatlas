@@ -376,7 +376,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.Errorf("%s : %s : %s", errorSnapshotBackupScheduleRead, ErrorOperationNotPermitted, AsymmetricShardsUnsupportedAction)
 		}
 		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
+			if config.StatusNotFound(resp) {
 				d.SetId("")
 				return nil
 			}
@@ -388,7 +388,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	} else {
 		backupSchedule, resp, err = connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
 		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
+			if config.StatusNotFound(resp) {
 				d.SetId("")
 				return nil
 			}

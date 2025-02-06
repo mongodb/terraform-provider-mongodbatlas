@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -163,7 +162,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	restoreID := ids["snapshot_restore_job_id"]
 	snapshotReq, resp, err := conn.CloudBackupsApi.GetBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

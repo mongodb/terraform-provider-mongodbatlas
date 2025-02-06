@@ -3,7 +3,6 @@ package pushbasedlogexport
 import (
 	"context"
 	"log"
-	"net/http"
 	"slices"
 	"time"
 
@@ -103,7 +102,7 @@ func (r *pushBasedLogExportRS) Read(ctx context.Context, req resource.ReadReques
 	projectID := tfState.ProjectID.ValueString()
 	logConfig, getResp, err := connV2.PushBasedLogExportApi.GetPushBasedLogConfiguration(ctx, projectID).Execute()
 	if err != nil {
-		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

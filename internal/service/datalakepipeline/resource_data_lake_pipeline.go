@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -289,7 +288,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	name := ids["name"]
 
 	pipeline, resp, err := connV2.DataLakePipelinesApi.GetPipeline(ctx, projectID, name).Execute()
-	if resp != nil && resp.StatusCode == http.StatusNotFound {
+	if config.StatusNotFound(resp) {
 		d.SetId("")
 		return nil
 	}

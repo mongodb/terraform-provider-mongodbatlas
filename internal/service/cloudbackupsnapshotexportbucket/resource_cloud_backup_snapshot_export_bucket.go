@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -229,7 +228,7 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 		clustersPaginated, resp, err := client.ClustersApi.ListClusters(ctx, projectID).Execute()
 		if err != nil {
 			// For our purposes, no clusters is equivalent to all changes having been APPLIED
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
+			if config.StatusNotFound(resp) {
 				return "", "APPLIED", nil
 			}
 			return nil, "REPEATING", err
@@ -258,7 +257,7 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 					}
 
 					if err != nil {
-						if resp != nil && resp.StatusCode == http.StatusNotFound {
+						if config.StatusNotFound(resp) {
 							return "", "DELETED", nil
 						}
 

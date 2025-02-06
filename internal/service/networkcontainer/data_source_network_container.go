@@ -3,7 +3,6 @@ package networkcontainer
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -81,7 +80,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	container, resp, err := connV2.NetworkPeeringApi.GetPeeringContainer(ctx, projectID, containerID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			return nil
 		}
 		return diag.FromErr(fmt.Errorf(ErrorContainerRead, containerID, err))

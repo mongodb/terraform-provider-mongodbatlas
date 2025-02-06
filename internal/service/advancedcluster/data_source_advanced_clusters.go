@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -310,7 +309,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 
 	list, resp, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			return nil
 		}
 		return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"reflect"
 	"sort"
 	"time"
@@ -209,7 +208,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	// get project
 	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 	if err != nil {
-		if atlasResp != nil && atlasResp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(atlasResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

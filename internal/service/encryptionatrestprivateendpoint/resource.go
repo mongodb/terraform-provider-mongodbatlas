@@ -3,7 +3,6 @@ package encryptionatrestprivateendpoint
 import (
 	"context"
 	"errors"
-	"net/http"
 	"regexp"
 
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -90,7 +89,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 
 	endpointModel, apiResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
 	if err != nil {
-		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

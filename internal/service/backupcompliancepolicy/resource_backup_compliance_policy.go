@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -283,7 +282,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	policy, resp, err := connV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

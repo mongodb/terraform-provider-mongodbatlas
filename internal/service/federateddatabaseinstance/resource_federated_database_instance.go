@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -402,7 +401,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	dataFederationInstance, resp, err := connV2.DataFederationApi.GetFederatedDatabase(ctx, projectID, name).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

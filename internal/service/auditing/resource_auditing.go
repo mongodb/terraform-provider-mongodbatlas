@@ -3,7 +3,6 @@ package auditing
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -87,7 +86,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	auditing, resp, err := connV2.AuditingApi.GetAuditingConfiguration(ctx, d.Id()).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

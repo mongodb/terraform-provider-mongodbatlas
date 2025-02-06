@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -170,7 +169,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	requestID := ids["request_id"]
 	ldapResp, resp, err := connV2.LDAPConfigurationApi.GetLdapConfigurationStatus(context.Background(), projectID, requestID).Execute()
 	if err != nil || ldapResp == nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -252,7 +251,7 @@ func resourceRefreshFunc(ctx context.Context, projectID, requestID string, connV
 	return func() (any, string, error) {
 		ldap, resp, err := connV2.LDAPConfigurationApi.GetLdapConfigurationStatus(ctx, projectID, requestID).Execute()
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if config.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
 			return nil, "", err

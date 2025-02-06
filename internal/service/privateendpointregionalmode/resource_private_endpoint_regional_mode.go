@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -72,7 +71,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	setting, resp, err := conn.PrivateEndpointServicesApi.GetRegionalizedPrivateEndpointSetting(ctx, projectID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -102,7 +101,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	_, resp, err := conn.PrivateEndpointServicesApi.ToggleRegionalizedPrivateEndpointSetting(ctx, projectID, &settingParam).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == 404 {
+		if config.StatusNotFound(resp) {
 			return nil
 		}
 

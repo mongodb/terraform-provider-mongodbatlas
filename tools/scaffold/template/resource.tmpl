@@ -73,7 +73,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 	// connV2 := r.Client.AtlasV2
 	//if err != nil {
-	//	if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
+	//	if config.StatusNotFound(apiResp) {
 	//		resp.State.RemoveResource(ctx)
 	//		return
 	//	}

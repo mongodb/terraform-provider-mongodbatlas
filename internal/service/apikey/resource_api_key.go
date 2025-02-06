@@ -5,14 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
+
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 func Resource() *schema.Resource {
@@ -67,7 +68,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.CreateApiKey(ctx, orgID, createRequest).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -95,7 +96,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
+		if config.StatusNotFound(resp) || config.StatusBadRequest(resp) {
 			log.Printf("warning API key deleted will recreate: %s \n", err.Error())
 			d.SetId("")
 			return nil

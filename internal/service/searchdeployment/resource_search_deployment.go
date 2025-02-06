@@ -3,12 +3,12 @@ package searchdeployment
 import (
 	"context"
 	"errors"
-	"net/http"
 	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -95,7 +95,7 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	deploymentResp, getResp, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

@@ -3,13 +3,14 @@ package ldapconfiguration
 import (
 	"context"
 	"fmt"
-	"net/http"
+
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 const (
@@ -156,7 +157,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	resp, httpResp, err := connV2.LDAPConfigurationApi.GetLdapConfiguration(context.Background(), d.Id()).Execute()
 	if err != nil {
-		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(httpResp) {
 			d.SetId("")
 			return nil
 		}

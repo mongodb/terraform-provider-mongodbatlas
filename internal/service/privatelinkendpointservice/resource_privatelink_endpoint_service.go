@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
@@ -218,7 +217,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	privateEndpoint, resp, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -375,7 +374,7 @@ func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID
 	return func() (any, string, error) {
 		i, resp, err := client.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if config.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
 

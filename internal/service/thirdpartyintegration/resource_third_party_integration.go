@@ -3,7 +3,6 @@ package thirdpartyintegration
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/go-cty/cty"
@@ -168,7 +167,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 
 	integration, resp, err := connV2.ThirdPartyIntegrationsApi.GetThirdPartyIntegration(ctx, projectID, integrationType).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

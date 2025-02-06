@@ -308,7 +308,7 @@ func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID
 	return func() (any, string, error) {
 		serverlessTenantEndpoint, resp, err := client.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointServiceID).Execute()
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 || resp.StatusCode == 400 {
+			if config.StatusNotFound(resp) || config.StatusBadRequest(resp) {
 				return "", "DELETED", nil
 			}
 
@@ -335,10 +335,10 @@ func resourceListRefreshFunc(ctx context.Context, projectID string, client *admi
 		if err != nil && serverlessInstances == nil && resp == nil {
 			return nil, "", err
 		} else if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if config.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
-			if resp != nil && resp.StatusCode == 503 {
+			if config.StatusServiceUnavailable(resp) {
 				return "", "PENDING", nil
 			}
 			return nil, "", err

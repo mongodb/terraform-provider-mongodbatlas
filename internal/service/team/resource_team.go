@@ -102,7 +102,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	team, resp, err := connV2.TeamsApi.GetTeamById(context.Background(), orgID, teamID).Execute()
 
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

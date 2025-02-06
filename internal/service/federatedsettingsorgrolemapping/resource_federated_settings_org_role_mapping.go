@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -82,7 +81,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationApi.GetRoleMapping(context.Background(), federationSettingsID, roleMappingID, orgID).Execute()
 
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -133,7 +132,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationApi.CreateRoleMapping(ctx, federationSettingsID.(string), orgID.(string), &roleMapping).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
@@ -277,7 +276,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	peer, resp, err := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -444,7 +443,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	peerConn, resp, getErr := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
 	if getErr != nil {
-		if resp != nil && resp.StatusCode == 404 {
+		if config.StatusNotFound(resp) {
 			return nil
 		}
 	}
@@ -544,7 +543,7 @@ func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID str
 	return func() (any, string, error) {
 		c, resp, err := api.GetPeeringConnection(ctx, projectID, peerID).Execute()
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if config.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
 

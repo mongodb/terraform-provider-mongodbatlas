@@ -394,10 +394,10 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *ad
 		if err != nil && instance == nil && resp == nil {
 			return nil, "", err
 		} else if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if config.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
-			if resp != nil && resp.StatusCode == 503 {
+			if config.StatusServiceUnavailable(resp) {
 				return "", "PENDING", nil
 			}
 			return nil, "", err

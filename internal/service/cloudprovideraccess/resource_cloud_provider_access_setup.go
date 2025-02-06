@@ -3,7 +3,6 @@ package cloudprovideraccess
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -111,7 +110,7 @@ func resourceCloudProviderAccessSetupRead(ctx context.Context, d *schema.Resourc
 
 	role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRole(context.Background(), projectID, roleID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

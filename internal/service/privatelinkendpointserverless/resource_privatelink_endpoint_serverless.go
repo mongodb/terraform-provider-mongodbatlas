@@ -246,7 +246,7 @@ func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID
 	return func() (any, string, error) {
 		p, resp, err := client.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, privateLinkID).Execute()
 		if err != nil {
-			if resp != nil && (resp.StatusCode == 404 || resp.StatusCode == 400) {
+			if config.StatusNotFound(resp) || config.StatusBadRequest(resp) {
 				return "", "DELETED", nil
 			}
 			return nil, "REJECTED", err

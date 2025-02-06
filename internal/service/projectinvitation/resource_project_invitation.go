@@ -3,7 +3,6 @@ package projectinvitation
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -94,7 +93,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	projectInvitation, resp, err := connV2.ProjectsApi.GetProjectInvitation(ctx, projectID, invitationID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound { // case 404: deleted in the backend case
+		if config.StatusNotFound(resp) { // case 404: deleted in the backend case
 			d.SetId("")
 			return nil
 		}

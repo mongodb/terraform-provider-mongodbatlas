@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"regexp"
+
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 const StreamProcessorName = "stream_processor"
@@ -131,7 +132,7 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 	instanceName := state.InstanceName.ValueString()
 	streamProcessor, apiResp, err := connV2.StreamsApi.GetStreamProcessor(ctx, projectID, instanceName, state.ProcessorName.ValueString()).Execute()
 	if err != nil {
-		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

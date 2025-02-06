@@ -3,16 +3,15 @@ package streamconnection
 import (
 	"context"
 	"errors"
-	"net/http"
 	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -145,7 +144,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 	connectionName := streamConnectionState.ConnectionName.ValueString()
 	apiResp, getResp, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
 	if err != nil {
-		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

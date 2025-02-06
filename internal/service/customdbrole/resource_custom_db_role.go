@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -157,7 +156,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	customDBRole, resp, err := connV2.CustomDatabaseRolesApi.GetCustomDatabaseRole(ctx, projectID, roleName).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if config.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
