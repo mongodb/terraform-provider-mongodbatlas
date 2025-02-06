@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -133,11 +132,7 @@ func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagno
 
 	for i := range *listFlexClusters {
 		flexClusterResp := (*listFlexClusters)[i]
-		modelIn := &TFModel{
-			ProjectID: pluralModel.ProjectID,
-			Name:      types.StringValue(flexClusterResp.GetName()),
-		}
-		modelOut := NewTFModelFlex(ctx, diags, &flexClusterResp, nil, modelIn)
+		modelOut := NewTFModelFlex(ctx, diags, &flexClusterResp, nil)
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)
@@ -148,6 +143,5 @@ func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagno
 		modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
 		results = append(results, modelOutDS)
 	}
-
 	return results
 }

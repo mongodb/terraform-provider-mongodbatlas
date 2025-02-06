@@ -139,7 +139,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			diags.AddError(flexcluster.ErrorCreateFlex, err.Error())
 			return
 		}
-		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), &plan)
+		newFlexClusterModel := NewTFModelFlexResource(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), &plan)
 		if diags.HasError() {
 			return
 		}
@@ -200,7 +200,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	if flexCluster != nil {
-		newFlexClusterModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &state, diags, false).ReplicationSpecs), &state)
+		newFlexClusterModel := NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &state, diags, false).ReplicationSpecs), &state)
 		if diags.HasError() {
 			return
 		}
@@ -544,7 +544,7 @@ func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *con
 	if diags.HasError() {
 		return nil
 	}
-	return NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), modelIn)
+	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), modelIn)
 }
 
 func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, planReq *admin.ClusterDescription20240805) *TFModel {
@@ -555,7 +555,7 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 		diags.AddError(flexcluster.ErrorUpdateFlex, err.Error())
 		return nil
 	}
-	newFlexModel := NewTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), plan)
+	newFlexModel := NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), plan)
 	if diags.HasError() {
 		return nil
 	}
