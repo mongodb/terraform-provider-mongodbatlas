@@ -15,3 +15,8 @@ variable "cluster_name" {
   type        = string
   default     = "string"
 }
+
+variable "snapshot_id" {
+  description = "Atlas snapshot ID"
+  type        = string
+}
