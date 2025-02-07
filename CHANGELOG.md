@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.26.1 (February 07, 2025)
+
 BUG FIXES:
 
 * resource/mongodbatlas_advanced_cluster: Adds `PENDING` status for update and delete operations ([#3034](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3034))
