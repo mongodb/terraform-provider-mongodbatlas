@@ -8,19 +8,19 @@ import (
 
 func NewTFModel(apiResp *admin.FlexBackupRestoreJob20241113) *TFModel {
 	return &TFModel{
-		ProjectId:                types.StringPointerValue(apiResp.ProjectId),
+		ProjectID:                types.StringPointerValue(apiResp.ProjectId),
 		Name:                     types.StringPointerValue(apiResp.InstanceName),
 		DeliveryType:             types.StringPointerValue(apiResp.DeliveryType),
 		ExpirationDate:           types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.ExpirationDate)),
-		RestoreJobId:             types.StringPointerValue(apiResp.Id),
+		RestoreJobID:             types.StringPointerValue(apiResp.Id),
 		RestoreFinishedDate:      types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.RestoreFinishedDate)),
 		RestoreScheduledDate:     types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.RestoreScheduledDate)),
 		SnapshotFinishedDate:     types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.SnapshotFinishedDate)),
-		SnapshotId:               types.StringPointerValue(apiResp.SnapshotId),
+		SnapshotID:               types.StringPointerValue(apiResp.SnapshotId),
 		SnapshotUrl:              types.StringPointerValue(apiResp.SnapshotUrl),
 		Status:                   types.StringPointerValue(apiResp.Status),
 		TargetDeploymentItemName: types.StringPointerValue(apiResp.TargetDeploymentItemName),
-		TargetProjectId:          types.StringPointerValue(apiResp.TargetProjectId),
+		TargetProjectID:          types.StringPointerValue(apiResp.TargetProjectId),
 	}
 }
 
@@ -33,7 +33,7 @@ func NewTFModelPluralDS(projectID, name string, apiResp *[]admin.FlexBackupResto
 		results = append(results, *NewTFModel(&job))
 	}
 	return &TFFlexRestoreJobsDSModel{
-		ProjectId: types.StringValue(projectID),
+		ProjectID: types.StringValue(projectID),
 		Name:      types.StringValue(name),
 		Results:   results,
 	}

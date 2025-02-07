@@ -69,21 +69,21 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 type TFModel struct {
 	DeliveryType             types.String `tfsdk:"delivery_type"`
 	ExpirationDate           types.String `tfsdk:"expiration_date"`
-	ProjectId                types.String `tfsdk:"project_id"`
-	RestoreJobId             types.String `tfsdk:"restore_job_id"`
+	ProjectID                types.String `tfsdk:"project_id"`
+	RestoreJobID             types.String `tfsdk:"restore_job_id"`
 	Name                     types.String `tfsdk:"name"`
 	RestoreFinishedDate      types.String `tfsdk:"restore_finished_date"`
 	RestoreScheduledDate     types.String `tfsdk:"restore_scheduled_date"`
 	SnapshotFinishedDate     types.String `tfsdk:"snapshot_finished_date"`
-	SnapshotId               types.String `tfsdk:"snapshot_id"`
+	SnapshotID               types.String `tfsdk:"snapshot_id"`
 	SnapshotUrl              types.String `tfsdk:"snapshot_url"`
 	Status                   types.String `tfsdk:"status"`
 	TargetDeploymentItemName types.String `tfsdk:"target_deployment_item_name"`
-	TargetProjectId          types.String `tfsdk:"target_project_id"`
+	TargetProjectID          types.String `tfsdk:"target_project_id"`
 }
 
 type TFFlexRestoreJobsDSModel struct {
-	ProjectId types.String `tfsdk:"project_id"`
+	ProjectID types.String `tfsdk:"project_id"`
 	Name      types.String `tfsdk:"name"`
 	Results   []TFModel    `tfsdk:"results"`
 }

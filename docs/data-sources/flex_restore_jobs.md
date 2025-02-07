@@ -5,9 +5,9 @@
 ## Example Usages
 ```terraform
 data "mongodbatlas_flex_restore_job" "restore_job" {
-  project_id  = var.project_id
-  name        = mongodbatlas_flex_cluster.example-cluster.name
-  snapshot_id = var.restore_job_id
+  project_id     = var.project_id
+  name           = mongodbatlas_flex_cluster.example-cluster.name
+  restore_job_id = var.restore_job_id
 }
 
 data "mongodbatlas_flex_restore_jobs" "restore_jobs" {
