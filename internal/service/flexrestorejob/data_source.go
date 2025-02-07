@@ -1,4 +1,4 @@
-package flexsnapshot
+package flexrestorejob
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	resourceName = "flex_snapshot"
-	errorRead    = "error reading flex cluster snapshot"
+	resourceName = "flex_restore_job"
+	errorRead    = "error reading flex restore job"
 )
 
 var _ datasource.DataSource = &ds{}
@@ -30,7 +30,7 @@ type ds struct {
 
 func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.DataSourceSchemaFromResource(DataSourceSchema(ctx), &conversion.DataSourceSchemaRequest{
-		RequiredFields: []string{"project_id", "name", "snapshot_id"},
+		RequiredFields: []string{"project_id", "name", "restore_job_id"},
 	})
 }
 
@@ -40,12 +40,10 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	projectID := tfModel.ProjectId.ValueString()
-	name := tfModel.Name.ValueString()
-	apiResp, _, err := d.Client.AtlasV2.FlexSnapshotsApi.GetFlexBackup(ctx, projectID, name, tfModel.SnapshotId.ValueString()).Execute()
+	apiResp, _, err := d.Client.AtlasV2.FlexRestoreJobsApi.GetFlexBackupRestoreJob(ctx, tfModel.ProjectId.ValueString(), tfModel.Name.ValueString(), tfModel.RestoreJobId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorRead, err.Error())
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModel(projectID, name, apiResp))...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModel(apiResp))...)
 }

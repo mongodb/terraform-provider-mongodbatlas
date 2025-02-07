@@ -23,7 +23,7 @@ func TestFlexSnapshotSDKToTFModel(t *testing.T) {
 		projectID      = "projectID"
 		name           = "name"
 		id             = "id"
-		mongoDBVersion = "mongoDbVersion"
+		MongoDBVersion = "MongoDBVersion"
 		status         = "status"
 		now            = time.Now()
 	)
@@ -36,7 +36,7 @@ func TestFlexSnapshotSDKToTFModel(t *testing.T) {
 				Expiration:     &now,
 				FinishTime:     &now,
 				Id:             &id,
-				MongoDBVersion: &mongoDBVersion,
+				MongoDBVersion: &MongoDBVersion,
 				ScheduledTime:  &now,
 				StartTime:      &now,
 				Status:         &status,
@@ -47,7 +47,7 @@ func TestFlexSnapshotSDKToTFModel(t *testing.T) {
 				Expiration:     types.StringPointerValue(conversion.TimePtrToStringPtr(&now)),
 				FinishTime:     types.StringPointerValue(conversion.TimePtrToStringPtr(&now)),
 				SnapshotId:     types.StringValue(id),
-				MongoDbversion: types.StringValue(mongoDBVersion),
+				MongoDBVersion: types.StringValue(MongoDBVersion),
 				ScheduledTime:  types.StringPointerValue(conversion.TimePtrToStringPtr(&now)),
 				StartTime:      types.StringPointerValue(conversion.TimePtrToStringPtr(&now)),
 				Status:         types.StringValue(status),

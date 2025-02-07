@@ -14,7 +14,7 @@ func NewTFModel(projectID, name string, apiResp *admin.FlexBackupSnapshot2024111
 		SnapshotId:     types.StringPointerValue(apiResp.Id),
 		Expiration:     types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.Expiration)),
 		FinishTime:     types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.FinishTime)),
-		MongoDbversion: types.StringPointerValue(apiResp.MongoDBVersion),
+		MongoDBVersion: types.StringPointerValue(apiResp.MongoDBVersion),
 		ScheduledTime:  types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.ScheduledTime)),
 		StartTime:      types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.StartTime)),
 		Status:         types.StringPointerValue(apiResp.Status),
