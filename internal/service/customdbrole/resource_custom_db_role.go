@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -157,7 +157,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	customDBRole, resp, err := connV2.CustomDatabaseRolesApi.GetCustomDatabaseRole(ctx, projectID, roleName).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

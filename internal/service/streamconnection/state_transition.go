@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -17,7 +18,7 @@ func DeleteStreamConnection(ctx context.Context, api admin.StreamsApi, projectID
 		if admin.IsErrorCode(err, "STREAM_KAFKA_CONNECTION_IS_DEPLOYING") {
 			return retry.RetryableError(err)
 		}
-		if resp != nil && resp.StatusCode == 404 {
+		if validate.StatusNotFound(resp) {
 			return nil
 		}
 		return retry.NonRetryableError(err)

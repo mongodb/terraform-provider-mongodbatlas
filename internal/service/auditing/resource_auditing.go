@@ -3,11 +3,11 @@ package auditing
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
@@ -87,7 +87,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	auditing, resp, err := connV2.AuditingApi.GetAuditingConfiguration(ctx, d.Id()).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

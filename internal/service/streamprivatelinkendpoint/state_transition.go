@@ -3,11 +3,11 @@ package streamprivatelinkendpoint
 import (
 	"context"
 	"errors"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -67,7 +67,7 @@ func refreshFunc(ctx context.Context, projectID, connectionID string, client adm
 			return nil, "", err
 		}
 		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
+			if validate.StatusNotFound(resp) {
 				return &admin.StreamsPrivateLinkConnection{}, retrystrategy.RetryStrategyDeletedState, nil
 			}
 			return nil, "", err

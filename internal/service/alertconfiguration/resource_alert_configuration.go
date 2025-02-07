@@ -2,7 +2,6 @@ package alertconfiguration
 
 import (
 	"context"
-	"net/http"
 	"reflect"
 	"strings"
 
@@ -22,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -432,7 +432,7 @@ func (r *alertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 	alert, getResp, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID]).Execute()
 	if err != nil {
 		// deleted in the backend case
-		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

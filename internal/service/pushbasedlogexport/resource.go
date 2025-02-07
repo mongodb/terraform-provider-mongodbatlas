@@ -3,7 +3,6 @@ package pushbasedlogexport
 import (
 	"context"
 	"log"
-	"net/http"
 	"slices"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -103,7 +103,7 @@ func (r *pushBasedLogExportRS) Read(ctx context.Context, req resource.ReadReques
 	projectID := tfState.ProjectID.ValueString()
 	logConfig, getResp, err := connV2.PushBasedLogExportApi.GetPushBasedLogConfiguration(ctx, projectID).Execute()
 	if err != nil {
-		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

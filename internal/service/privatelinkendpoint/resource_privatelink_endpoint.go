@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
@@ -166,7 +166,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	privateEndpoint, resp, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpointService(context.Background(), projectID, providerName, privateLinkID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -241,7 +241,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	_, resp, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == 404 {
+		if validate.StatusNotFound(resp) {
 			return nil
 		}
 
@@ -310,7 +310,7 @@ func refreshFunc(ctx context.Context, client *admin.APIClient, projectID, provid
 	return func() (any, string, error) {
 		p, resp, err := client.PrivateEndpointServicesApi.GetPrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
 

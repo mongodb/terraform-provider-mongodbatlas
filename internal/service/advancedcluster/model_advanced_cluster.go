@@ -21,6 +21,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
@@ -358,10 +359,10 @@ func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admi
 		if err != nil && cluster == nil && resp == nil {
 			return nil, "", err
 		} else if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
-			if resp != nil && resp.StatusCode == 503 {
+			if validate.StatusServiceUnavailable(resp) {
 				return "", "PENDING", nil
 			}
 			return nil, "", err
@@ -385,10 +386,10 @@ func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID strin
 		}
 
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
-			if resp != nil && resp.StatusCode == 503 {
+			if validate.StatusServiceUnavailable(resp) {
 				return "", "PENDING", nil
 			}
 			return nil, "", err

@@ -608,7 +608,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -1343,10 +1343,10 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *ad
 		}
 
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
-			if resp != nil && resp.StatusCode == 503 {
+			if validate.StatusServiceUnavailable(resp) {
 				return "", "PENDING", nil
 			}
 			return nil, "", err

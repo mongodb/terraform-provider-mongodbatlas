@@ -12,6 +12,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
 const (
@@ -66,7 +67,7 @@ func refreshFunc(ctx context.Context, projectID string, client admin.PushBasedLo
 			return nil, "", err
 		}
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if validate.StatusNotFound(resp) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
 			return nil, "", err

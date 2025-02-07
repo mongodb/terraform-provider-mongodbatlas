@@ -3,7 +3,6 @@ package encryptionatrestprivateendpoint
 import (
 	"context"
 	"errors"
-	"net/http"
 	"regexp"
 
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -90,7 +90,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 
 	endpointModel, apiResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
 	if err != nil {
-		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

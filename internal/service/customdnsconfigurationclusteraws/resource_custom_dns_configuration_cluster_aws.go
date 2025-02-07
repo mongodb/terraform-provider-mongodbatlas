@@ -3,10 +3,10 @@ package customdnsconfigurationclusteraws
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -62,7 +62,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := d.Id()
 	dnsResp, resp, err := connV2.AWSClustersDNSApi.GetAwsCustomDns(context.Background(), projectID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

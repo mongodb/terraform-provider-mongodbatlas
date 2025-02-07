@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -178,7 +178,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	snapshot, resp, err := connV2.CloudBackupsApi.GetReplicaSetBackup(ctx, groupID, clusterName, snapshotID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -295,7 +295,7 @@ func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetReplicaSet
 		if err != nil {
 			return nil, "failed", err
 		}
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			return "", "DELETED", nil
 		}
 		status := snapshot.GetStatus()

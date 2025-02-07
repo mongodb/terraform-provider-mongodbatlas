@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
@@ -376,7 +377,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.Errorf("%s : %s : %s", errorSnapshotBackupScheduleRead, ErrorOperationNotPermitted, AsymmetricShardsUnsupportedAction)
 		}
 		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
+			if validate.StatusNotFound(resp) {
 				d.SetId("")
 				return nil
 			}
@@ -388,7 +389,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	} else {
 		backupSchedule, resp, err = connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
 		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
+			if validate.StatusNotFound(resp) {
 				d.SetId("")
 				return nil
 			}
