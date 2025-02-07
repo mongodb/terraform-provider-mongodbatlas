@@ -10,7 +10,7 @@ import (
 
 var (
 	dataSourceName       = "data.mongodbatlas_flex_restore_job.test"
-	dataSourcePluralName = "data.mongodbatlas_flex_restore_job.test"
+	dataSourcePluralName = "data.mongodbatlas_flex_restore_jobs.test"
 )
 
 func TestAccFlexRestoreJob_basic(t *testing.T) {
