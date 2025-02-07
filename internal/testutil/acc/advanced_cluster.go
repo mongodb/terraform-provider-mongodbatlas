@@ -61,7 +61,7 @@ func TestStepImportCluster(resourceName string, ignorePrefixFields ...string) re
 	// However, as import doesn't have a previous state to compare with, import will always fill them.
 	// This will make these fields differ in the state, although the plan change won't be shown to the user as they're computed values.
 	if !config.AdvancedClusterV2Schema() {
-		ignorePrefixFields = append(ignorePrefixFields, "replication_specs")
+		ignorePrefixFields = append(ignorePrefixFields, "replication_specs", "id") // TenantUpgrade changes the ID and can make the test flaky
 	}
 	return resource.TestStep{
 		ResourceName:                         resourceName,
