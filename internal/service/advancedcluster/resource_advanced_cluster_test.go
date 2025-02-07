@@ -222,7 +222,7 @@ func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 			},
 			{
 				Config: configReplicaSetMultiCloud(t, isAcc, orgID, projectName, clusterNameUpdated),
-				Check:  checkReplicaSetMultiCloud(isAcc, clusterName, 3),
+				Check:  checkReplicaSetMultiCloud(isAcc, clusterNameUpdated, 3),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
