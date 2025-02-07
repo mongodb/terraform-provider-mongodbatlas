@@ -23,43 +23,43 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the restore job.",
 			},
 			"delivery_type": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Means by which this resource returns the snapshot to the requesting MongoDB Cloud user.",
 			},
 			"expiration_date": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Date and time when the download link no longer works. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 			},
 			"restore_finished_date": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud completed writing this snapshot. MongoDB Cloud changes the status of the restore job to `CLOSED`. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 			},
 			"restore_scheduled_date": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud will restore this snapshot. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 			},
 			"snapshot_finished_date": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud completed writing this snapshot. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 			},
 			"snapshot_id": schema.StringAttribute{
-				Required:            true,
+				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the snapshot to restore.",
 			},
 			"snapshot_url": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Internet address from which you can download the compressed snapshot files. The resource returns this parameter when  `\"deliveryType\" : \"DOWNLOAD\"`.",
 			},
 			"status": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Phase of the restore workflow for this job at the time this resource made this request.",
 			},
 			"target_deployment_item_name": schema.StringAttribute{
-				Required:            true,
+				Computed:            true,
 				MarkdownDescription: "Human-readable label that identifies the instance or cluster on the target project to which you want to restore the snapshot. You can restore the snapshot to another flex cluster or dedicated cluster tier.",
 			},
 			"target_project_id": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the project that contains the instance or cluster to which you want to restore the snapshot.",
 			},
 		},
