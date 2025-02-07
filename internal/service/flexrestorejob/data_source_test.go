@@ -45,7 +45,7 @@ func configBasic(projectID, clusterName, restoreJobID string) string {
 			restore_job_id = %[3]q
 		}
 
-		data "mongodbatlas_flex_restore_job" "test" {
+		data "mongodbatlas_flex_restore_jobs" "test" {
 			project_id = %[1]q
 			name =  %[2]q
 		}`, projectID, clusterName, restoreJobID)
