@@ -46,7 +46,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		resp.Diagnostics.AddError(errorRead, err.Error())
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModelPluralDS(flexRestoreJobs))...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModelPluralDS(projectID, name, flexRestoreJobs))...)
 }
 
 func ListFlexRestoreJobs(ctx context.Context, projectID, name string, client admin.FlexRestoreJobsApi) (*[]admin.FlexBackupRestoreJob20241113, error) {
