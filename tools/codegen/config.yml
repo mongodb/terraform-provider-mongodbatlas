@@ -88,3 +88,15 @@ resources:
       aliases:
         group_id: project_id
       ignores: ["links"]
+
+  flex_restore_job:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs/{restoreJobId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs
+      method: POST
+    schema:
+      aliases:
+        group_id: project_id
+      ignores: ["links"]
