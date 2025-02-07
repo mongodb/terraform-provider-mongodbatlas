@@ -22,7 +22,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, plan, sta
 }
 
 func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, patchReq *admin.ClusterDescription20240805) []string {
-	keepUnknown := []string{"connection_strings"} // ConnectionStrings is volatile and should not be copied from state
+	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	if upgradeRequest != nil {
 		// TenantUpgrade changes a few root level fields that are normally ok to use state values for
 		keepUnknown = append(keepUnknown, "disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date")
