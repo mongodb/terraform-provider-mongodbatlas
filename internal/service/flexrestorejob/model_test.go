@@ -52,7 +52,7 @@ func TestFlexRestoreJobSDKToTFModel(t *testing.T) {
 				Name:                     types.StringValue(instanceName),
 				DeliveryType:             types.StringValue(deliveryType),
 				ExpirationDate:           types.StringPointerValue(conversion.TimePtrToStringPtr(&now)),
-				RestoreJobId:             types.StringValue(id),
+				RestoreJobID:             types.StringValue(id),
 				RestoreFinishedDate:      types.StringPointerValue(conversion.TimePtrToStringPtr(&now)),
 				RestoreScheduledDate:     types.StringPointerValue(conversion.TimePtrToStringPtr(&now)),
 				SnapshotFinishedDate:     types.StringPointerValue(conversion.TimePtrToStringPtr(&now)),

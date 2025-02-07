@@ -70,7 +70,7 @@ type TFModel struct {
 	DeliveryType             types.String `tfsdk:"delivery_type"`
 	ExpirationDate           types.String `tfsdk:"expiration_date"`
 	ProjectID                types.String `tfsdk:"project_id"`
-	RestoreJobId             types.String `tfsdk:"restore_job_id"`
+	RestoreJobID             types.String `tfsdk:"restore_job_id"`
 	Name                     types.String `tfsdk:"name"`
 	RestoreFinishedDate      types.String `tfsdk:"restore_finished_date"`
 	RestoreScheduledDate     types.String `tfsdk:"restore_scheduled_date"`
