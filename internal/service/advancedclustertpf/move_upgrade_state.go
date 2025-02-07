@@ -96,7 +96,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	if diags.HasError() {
 		return
 	}
-	setOptionalModelAttrs(ctx, stateObj, model)
+	setOptionalModelAttrs(stateObj, model)
 	if allowOldShardingConfig {
 		setReplicationSpecNumShardsAttr(ctx, stateObj, model)
 	}
@@ -152,7 +152,7 @@ func getTimeoutFromStateObj(stateObj map[string]tftypes.Value) timeouts.Value {
 	return timeouts.Value{Object: obj}
 }
 
-func setOptionalModelAttrs(ctx context.Context, stateObj map[string]tftypes.Value, model *TFModel) {
+func setOptionalModelAttrs(stateObj map[string]tftypes.Value, model *TFModel) {
 	if retainBackupsEnabled := getAttrFromStateObj[bool](stateObj, "retain_backups_enabled"); retainBackupsEnabled != nil {
 		model.RetainBackupsEnabled = types.BoolPointerValue(retainBackupsEnabled)
 	}

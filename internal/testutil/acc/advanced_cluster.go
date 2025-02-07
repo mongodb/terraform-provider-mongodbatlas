@@ -53,13 +53,15 @@ var (
 func TestStepImportCluster(resourceName string, ignorePrefixFields ...string) resource.TestStep {
 	ignorePrefixFields = append(ignorePrefixFields,
 		"retain_backups_enabled", // This field is TF specific and not returned by Atlas, so Import can't fill it in.
+		"mongo_db_major_version", // Risks plan change of 8 --> 8.0 (always normalized to `major.minor`)
+		"state_name",             // Cluster state can change from IDLE to UPDATING and risks making the test flaky
 	)
 
 	// auto_scaling & specs (electable_specs, read_only_specs, etc.) are only set in state in SDKv2 if present in the definition.
 	// However, as import doesn't have a previous state to compare with, import will always fill them.
 	// This will make these fields differ in the state, although the plan change won't be shown to the user as they're computed values.
 	if !config.AdvancedClusterV2Schema() {
-		ignorePrefixFields = append(ignorePrefixFields, "replication_specs")
+		ignorePrefixFields = append(ignorePrefixFields, "replication_specs", "id") // TenantUpgrade changes the ID and can make the test flaky
 	}
 	return resource.TestStep{
 		ResourceName:                         resourceName,
