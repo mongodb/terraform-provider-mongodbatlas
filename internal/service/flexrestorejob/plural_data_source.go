@@ -39,7 +39,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	projectID := tfModel.ProjectId.ValueString()
+	projectID := tfModel.ProjectID.ValueString()
 	name := tfModel.Name.ValueString()
 	flexRestoreJobs, err := ListFlexRestoreJobs(ctx, projectID, name, d.Client.AtlasV2.FlexRestoreJobsApi)
 	if err != nil {

@@ -48,7 +48,7 @@ func TestFlexRestoreJobSDKToTFModel(t *testing.T) {
 				TargetProjectId:          &targetProjectID,
 			},
 			expectedTFModel: &flexrestorejob.TFModel{
-				ProjectId:                types.StringValue(projectID),
+				ProjectID:                types.StringValue(projectID),
 				Name:                     types.StringValue(instanceName),
 				DeliveryType:             types.StringValue(deliveryType),
 				ExpirationDate:           types.StringPointerValue(conversion.TimePtrToStringPtr(&now)),
@@ -60,7 +60,7 @@ func TestFlexRestoreJobSDKToTFModel(t *testing.T) {
 				SnapshotUrl:              types.StringValue(snapshotURL),
 				Status:                   types.StringValue(status),
 				TargetDeploymentItemName: types.StringValue(targetDeploymentName),
-				TargetProjectId:          types.StringValue(targetProjectID),
+				TargetProjectID:          types.StringValue(targetProjectID),
 			},
 		},
 		"Empty SDK response": {
