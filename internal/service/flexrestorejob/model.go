@@ -16,7 +16,7 @@ func NewTFModel(apiResp *admin.FlexBackupRestoreJob20241113) *TFModel {
 		RestoreFinishedDate:      types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.RestoreFinishedDate)),
 		RestoreScheduledDate:     types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.RestoreScheduledDate)),
 		SnapshotFinishedDate:     types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.SnapshotFinishedDate)),
-		SnapshotId:               types.StringPointerValue(apiResp.SnapshotId),
+		SnapshotID:               types.StringPointerValue(apiResp.SnapshotId),
 		SnapshotUrl:              types.StringPointerValue(apiResp.SnapshotUrl),
 		Status:                   types.StringPointerValue(apiResp.Status),
 		TargetDeploymentItemName: types.StringPointerValue(apiResp.TargetDeploymentItemName),

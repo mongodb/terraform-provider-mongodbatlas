@@ -75,7 +75,7 @@ type TFModel struct {
 	RestoreFinishedDate      types.String `tfsdk:"restore_finished_date"`
 	RestoreScheduledDate     types.String `tfsdk:"restore_scheduled_date"`
 	SnapshotFinishedDate     types.String `tfsdk:"snapshot_finished_date"`
-	SnapshotId               types.String `tfsdk:"snapshot_id"`
+	SnapshotID               types.String `tfsdk:"snapshot_id"`
 	SnapshotUrl              types.String `tfsdk:"snapshot_url"`
 	Status                   types.String `tfsdk:"status"`
 	TargetDeploymentItemName types.String `tfsdk:"target_deployment_item_name"`
