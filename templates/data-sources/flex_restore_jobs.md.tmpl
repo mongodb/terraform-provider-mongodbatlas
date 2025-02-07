@@ -1,0 +1,10 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` returns all flex restore job of a flex cluster.
+
+## Example Usages
+{{ tffile (printf "examples/mongodbatlas_flex_cluster/restore_job.tf" )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Flex Restore Job](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Restore-Jobs/operation/listFlexBackupRestoreJobs) Documentation.

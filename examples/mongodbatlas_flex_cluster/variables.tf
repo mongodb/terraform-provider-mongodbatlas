@@ -20,3 +20,8 @@ variable "snapshot_id" {
   description = "Atlas snapshot ID"
   type        = string
 }
+
+variable "restore_job_id" {
+  description = "Atlas restore job ID"
+  type        = string
+}

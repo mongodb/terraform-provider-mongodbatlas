@@ -24,7 +24,7 @@ func NewTFModel(apiResp *admin.FlexBackupRestoreJob20241113) *TFModel {
 	}
 }
 
-func NewTFModelPluralDS(apiResp *[]admin.FlexBackupRestoreJob20241113) *TFFlexRestoreJobsDSModel {
+func NewTFModelPluralDS(projectID, name string, apiResp *[]admin.FlexBackupRestoreJob20241113) *TFFlexRestoreJobsDSModel {
 	if apiResp == nil {
 		return nil
 	}
@@ -33,6 +33,8 @@ func NewTFModelPluralDS(apiResp *[]admin.FlexBackupRestoreJob20241113) *TFFlexRe
 		results = append(results, *NewTFModel(&job))
 	}
 	return &TFFlexRestoreJobsDSModel{
-		Results: results,
+		ProjectId: types.StringValue(projectID),
+		Name:      types.StringValue(name),
+		Results:   results,
 	}
 }
