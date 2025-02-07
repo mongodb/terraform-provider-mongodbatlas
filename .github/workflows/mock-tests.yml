@@ -14,7 +14,7 @@ env:
   TF_ACC: 1
   TF_LOG: "DEBUG"
   ACCTEST_TIMEOUT: 30m
-  ACCTEST_REGEX_RUN: '^TestAccFlexSnapshot_basic'
+  ACCTEST_REGEX_RUN: '^TestAccFlex'
   MONGODB_ATLAS_BASE_URL: "http://localhost:4010"
   MONGODB_ATLAS_ORG_ID: "2c64aaf6f7ec54c6e8b18c9c"
   MONGODB_ATLAS_PUBLIC_KEY: "MONGODB_ATLAS_PUBLIC_KEY"
@@ -34,5 +34,7 @@ jobs:
         run: ./scripts/bootstrap
       - name: Run tests
         env:
-          ACCTEST_PACKAGES: ./internal/service/flexsnapshot
+          ACCTEST_PACKAGES: |
+            ./internal/service/flexsnapshot
+            ./internal/service/flexrestorejob
         run: ./scripts/test
