@@ -18,6 +18,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -159,7 +160,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	container, resp, err := connV2.NetworkPeeringApi.GetPeeringContainer(ctx, projectID, containerID).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -324,7 +325,7 @@ func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *ad
 		var err error
 		container, res, err := client.NetworkPeeringApi.GetPeeringContainer(ctx, projectID, containerID).Execute()
 		if err != nil {
-			if config.StatusNotFound(res) {
+			if validate.StatusNotFound(res) {
 				return "", "deleted", nil
 			}
 

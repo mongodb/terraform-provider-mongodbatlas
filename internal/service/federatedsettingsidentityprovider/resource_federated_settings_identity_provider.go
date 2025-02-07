@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -151,7 +152,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err != nil {
 		// case 404
 		// deleted in the backend case
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -358,7 +359,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	federationSettingsID, idpID := DecodeIDs(d.Id())
 	resp, err := connV2.FederatedAuthenticationApi.DeleteIdentityProvider(ctx, federationSettingsID, idpID).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

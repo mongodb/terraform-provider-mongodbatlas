@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -71,7 +72,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	setting, resp, err := conn.PrivateEndpointServicesApi.GetRegionalizedPrivateEndpointSetting(ctx, projectID).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -101,7 +102,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	_, resp, err := conn.PrivateEndpointServicesApi.ToggleRegionalizedPrivateEndpointSetting(ctx, projectID, &settingParam).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			return nil
 		}
 

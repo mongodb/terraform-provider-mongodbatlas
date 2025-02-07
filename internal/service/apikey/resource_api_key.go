@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -68,7 +69,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.CreateApiKey(ctx, orgID, createRequest).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -96,7 +97,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) || config.StatusBadRequest(resp) {
+		if validate.StatusNotFound(resp) || validate.StatusBadRequest(resp) {
 			log.Printf("warning API key deleted will recreate: %s \n", err.Error())
 			d.SetId("")
 			return nil

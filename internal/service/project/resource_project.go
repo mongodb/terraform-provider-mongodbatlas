@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -208,7 +209,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	// get project
 	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 	if err != nil {
-		if config.StatusNotFound(atlasResp) {
+		if validate.StatusNotFound(atlasResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

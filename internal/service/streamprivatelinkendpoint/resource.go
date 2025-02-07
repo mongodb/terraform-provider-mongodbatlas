@@ -12,6 +12,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -107,7 +108,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	connV2 := r.Client.AtlasV2
 	streamsPrivateLinkConnection, apiResp, err := connV2.StreamsApi.GetPrivateLinkConnection(ctx, projectID, connectionID).Execute()
 	if err != nil {
-		if config.StatusNotFound(apiResp) {
+		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

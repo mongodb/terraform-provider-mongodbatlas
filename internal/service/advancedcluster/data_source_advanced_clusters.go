@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -309,7 +310,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 
 	list, resp, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			return nil
 		}
 		return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))

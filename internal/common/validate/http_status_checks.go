@@ -1,4 +1,4 @@
-package config
+package validate
 
 import "net/http"
 

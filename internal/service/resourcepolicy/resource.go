@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -106,7 +107,7 @@ func (r *resourcePolicyRS) Read(ctx context.Context, req resource.ReadRequest, r
 	policySDK, apiResp, err := connV2.ResourcePoliciesApi.GetAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute()
 
 	if err != nil {
-		if config.StatusNotFound(apiResp) {
+		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

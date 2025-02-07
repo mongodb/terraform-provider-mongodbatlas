@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -293,7 +294,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	clusterDesc, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			return nil
 		}
 		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))

@@ -13,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -89,7 +90,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 
 	endpointModel, apiResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
 	if err != nil {
-		if config.StatusNotFound(apiResp) {
+		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

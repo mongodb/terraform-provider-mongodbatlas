@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -47,7 +47,7 @@ func refreshFunc(ctx context.Context, requestParams *admin.GetStreamProcessorApi
 	return func() (any, string, error) {
 		streamProcessor, resp, err := client.GetStreamProcessorWithParams(ctx, requestParams).Execute()
 		if err != nil {
-			if config.StatusNotFound(resp) {
+			if validate.StatusNotFound(resp) {
 				return "", DroppedState, err
 			}
 			return nil, FailedState, err

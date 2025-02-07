@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -57,10 +57,10 @@ func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName str
 			return nil, "", err
 		}
 		if err != nil {
-			if config.StatusNotFound(resp) && strings.Contains(err.Error(), SearchDeploymentDoesNotExistsError) {
+			if validate.StatusNotFound(resp) && strings.Contains(err.Error(), SearchDeploymentDoesNotExistsError) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
-			if config.StatusServiceUnavailable(resp) {
+			if validate.StatusServiceUnavailable(resp) {
 				return "", retrystrategy.RetryStrategyUpdatingState, nil
 			}
 			return nil, "", err

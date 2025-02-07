@@ -17,6 +17,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
@@ -246,7 +247,7 @@ func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID
 	return func() (any, string, error) {
 		p, resp, err := client.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, privateLinkID).Execute()
 		if err != nil {
-			if config.StatusNotFound(resp) || config.StatusBadRequest(resp) {
+			if validate.StatusNotFound(resp) || validate.StatusBadRequest(resp) {
 				return "", "DELETED", nil
 			}
 			return nil, "REJECTED", err

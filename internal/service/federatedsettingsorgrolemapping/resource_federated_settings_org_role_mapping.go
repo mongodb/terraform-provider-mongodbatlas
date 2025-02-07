@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
@@ -81,7 +82,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationApi.GetRoleMapping(context.Background(), federationSettingsID, roleMappingID, orgID).Execute()
 
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -132,7 +133,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationApi.CreateRoleMapping(ctx, federationSettingsID.(string), orgID.(string), &roleMapping).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

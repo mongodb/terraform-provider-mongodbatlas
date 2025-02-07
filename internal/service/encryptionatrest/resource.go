@@ -339,7 +339,7 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	encryptionResp, getResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
 	if err != nil {
-		if config.StatusNotFound(getResp) {
+		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

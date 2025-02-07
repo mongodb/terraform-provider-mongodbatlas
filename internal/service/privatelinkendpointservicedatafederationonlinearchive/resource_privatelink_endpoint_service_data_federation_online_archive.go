@@ -103,7 +103,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	privateEndpoint, resp, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -124,7 +124,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	endpointID := ids["endpoint_id"]
 	privateEndpoint, resp, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}

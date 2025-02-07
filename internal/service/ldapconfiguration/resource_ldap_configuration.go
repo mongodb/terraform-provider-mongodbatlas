@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -157,7 +158,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	resp, httpResp, err := connV2.LDAPConfigurationApi.GetLdapConfiguration(context.Background(), d.Id()).Execute()
 	if err != nil {
-		if config.StatusNotFound(httpResp) {
+		if validate.StatusNotFound(httpResp) {
 			d.SetId("")
 			return nil
 		}

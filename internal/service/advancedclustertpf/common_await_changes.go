@@ -7,11 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 var (
@@ -88,10 +91,10 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, api admin.
 		}
 
 		if err != nil {
-			if config.StatusNotFound(resp) {
+			if validate.StatusNotFound(resp) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
-			if config.StatusServiceUnavailable(resp) {
+			if validate.StatusServiceUnavailable(resp) {
 				return "", retrystrategy.RetryStrategyPendingState, nil
 			}
 			return nil, "", err

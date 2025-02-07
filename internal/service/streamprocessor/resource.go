@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -132,7 +133,7 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 	instanceName := state.InstanceName.ValueString()
 	streamProcessor, apiResp, err := connV2.StreamsApi.GetStreamProcessor(ctx, projectID, instanceName, state.ProcessorName.ValueString()).Execute()
 	if err != nil {
-		if config.StatusNotFound(apiResp) {
+		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -55,7 +56,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
 	cluster, httpResp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	if config.StatusNotFound(httpResp) {
+	if validate.StatusNotFound(httpResp) {
 		resp.State.RemoveResource(ctx)
 		return
 	}

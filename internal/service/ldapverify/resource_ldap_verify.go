@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
@@ -169,7 +170,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	requestID := ids["request_id"]
 	ldapResp, resp, err := connV2.LDAPConfigurationApi.GetLdapConfigurationStatus(context.Background(), projectID, requestID).Execute()
 	if err != nil || ldapResp == nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -251,7 +252,7 @@ func resourceRefreshFunc(ctx context.Context, projectID, requestID string, connV
 	return func() (any, string, error) {
 		ldap, resp, err := connV2.LDAPConfigurationApi.GetLdapConfigurationStatus(ctx, projectID, requestID).Execute()
 		if err != nil {
-			if config.StatusNotFound(resp) {
+			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
 			return nil, "", err

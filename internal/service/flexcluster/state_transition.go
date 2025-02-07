@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -50,7 +50,7 @@ func refreshFunc(ctx context.Context, requestParams *admin.GetFlexClusterApiPara
 	return func() (any, string, error) {
 		flexCluster, resp, err := client.GetFlexClusterWithParams(ctx, requestParams).Execute()
 		if err != nil {
-			if config.StatusNotFound(resp) {
+			if validate.StatusNotFound(resp) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
 			return nil, "", err

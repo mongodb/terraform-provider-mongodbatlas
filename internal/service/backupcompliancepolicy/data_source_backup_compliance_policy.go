@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
@@ -237,7 +238,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 
 	policy, resp, err := connV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
-	if config.StatusNotFound(resp) || policy.GetProjectId() == "" {
+	if validate.StatusNotFound(resp) || policy.GetProjectId() == "" {
 		return nil
 	}
 	if err != nil {

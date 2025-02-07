@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -276,7 +277,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	peer, resp, err := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -443,7 +444,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	peerConn, resp, getErr := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
 	if getErr != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			return nil
 		}
 	}
@@ -543,7 +544,7 @@ func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID str
 	return func() (any, string, error) {
 		c, resp, err := api.GetPeeringConnection(ctx, projectID, peerID).Execute()
 		if err != nil {
-			if config.StatusNotFound(resp) {
+			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
 

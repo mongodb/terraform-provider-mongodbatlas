@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -228,7 +229,7 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 		clustersPaginated, resp, err := client.ClustersApi.ListClusters(ctx, projectID).Execute()
 		if err != nil {
 			// For our purposes, no clusters is equivalent to all changes having been APPLIED
-			if config.StatusNotFound(resp) {
+			if validate.StatusNotFound(resp) {
 				return "", "APPLIED", nil
 			}
 			return nil, "REPEATING", err
@@ -257,7 +258,7 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 					}
 
 					if err != nil {
-						if config.StatusNotFound(resp) {
+						if validate.StatusNotFound(resp) {
 							return "", "DELETED", nil
 						}
 

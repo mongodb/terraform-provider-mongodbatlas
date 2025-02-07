@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
@@ -67,7 +67,7 @@ func refreshFunc(ctx context.Context, projectID, cloudProvider, endpointID strin
 			return nil, "", err
 		}
 		if err != nil {
-			if config.StatusNotFound(resp) {
+			if validate.StatusNotFound(resp) {
 				return &admin.EARPrivateEndpoint{}, retrystrategy.RetryStrategyDeletedState, nil
 			}
 			return nil, "", err

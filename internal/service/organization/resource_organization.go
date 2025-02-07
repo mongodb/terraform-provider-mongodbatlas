@@ -13,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -93,7 +94,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	organization, resp, err := conn.OrganizationsApi.CreateOrganization(ctx, newCreateOrganizationRequest(d)).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) && !strings.Contains(err.Error(), "USER_NOT_FOUND") {
+		if validate.StatusNotFound(resp) && !strings.Contains(err.Error(), "USER_NOT_FOUND") {
 			d.SetId("")
 			return nil
 		}
@@ -161,7 +162,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	organization, resp, err := conn.OrganizationsApi.GetOrganization(ctx, orgID).Execute()
 	if err != nil {
-		if config.StatusNotFound(resp) {
+		if validate.StatusNotFound(resp) {
 			log.Printf("warning Organization deleted will recreate: %s \n", err.Error())
 			d.SetId("")
 			return nil
