@@ -1,6 +1,6 @@
 # Module Maintainer - `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
-The purpose of this example is to demonstrate how a Terraform module can help the migration from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
+The purpose of this example is to demonstrate how a Terraform module can help in the migration from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
 The example contains three module versions:
 
 <!-- Update Variable count -->
