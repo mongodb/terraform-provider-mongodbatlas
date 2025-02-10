@@ -390,7 +390,7 @@ This parameter defaults to false.
 Specifies BI Connector for Atlas configuration.
 
 ```terraform
-bi_connector_config {
+bi_connector_config = {
   enabled         = true
   read_preference = "secondary"
 }
@@ -419,7 +419,7 @@ Include **desired options** within advanced_configuration:
 
 ```terraform
 // Nest options within advanced_configuration
- advanced_configuration {
+ advanced_configuration = {
    javascript_enabled                   = false
    minimum_enabled_tls_protocol         = "TLS1_2"
  }
@@ -451,13 +451,10 @@ Include **desired options** within advanced_configuration:
 ### Tags
 
  ```terraform
- tags {
-        key   = "Key 1"
-        value = "Value 1"
-  }
- tags {
-        key   = "Key 2"
-        value = "Value 2"
+ tags = {
+    "Key 1" = "Value 1"
+    "Key 2" = "Value 2"
+    Key3    = "Value 3"
   }
 ```
 
@@ -471,13 +468,10 @@ To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-t
 ### labels
 
  ```terraform
- labels {
-        key   = "Key 1"
-        value = "Value 1"
-  }
- labels {
-        key   = "Key 2"
-        value = "Value 2"
+ labels = {
+    "Key 1" = "Value 1"
+    "Key 2" = "Value 2"
+    Key3    = "Value 3"
   }
 ```
 
@@ -493,30 +487,29 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ```terraform
 //Example Multicloud
-replication_specs {
-  region_configs {
-    electable_specs {
+replication_specs = [{
+  region_configs = [{
+    electable_specs = {
       instance_size = "M10"
       node_count    = 3
     }
-    analytics_specs {
+    analytics_specs = {
       instance_size = "M10"
       node_count    = 1
     }
     provider_name = "AWS"
     priority      = 7
     region_name   = "US_EAST_1"
-  }
-  region_configs {
-    electable_specs {
+  }, {
+    electable_specs = {
       instance_size = "M10"
       node_count    = 2
     }
     provider_name = "GCP"
     priority      = 6
     region_name   = "NORTH_AMERICA_NORTHEAST_1"
-  }
-}
+  }]
+}]
 ```
 
 * `id` - **(DEPRECATED)** Unique identifer of the replication document for a zone in a Global Cluster. This value corresponds to the legacy sharding schema (no independent shard scaling) and is different from the Shard ID you may see in the Atlas UI. This value is not populated (empty string) when a sharded cluster has independently scaled shards.
@@ -681,3 +674,16 @@ See detailed information for arguments and attributes: [MongoDB API Advanced Clu
 ~> **IMPORTANT:**
 <br> &#8226; When a cluster is imported, the resulting schema structure will always return the new schema including `replication_specs` per independent shards of the cluster.
 <br> &#8226;  Note: The first time `terraform apply` command is run **after** updating the configuration of an imported cluster, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
+
+## Move
+
+`mongodbatlas__cluster` resources can be moved to `mongodbatlas_advanced_cluster` in Terraform v1.8 and later, e.g.: 
+
+```terraform
+moved {
+  from = mongodbatlas_cluster.cluster
+  to   = mongodbatlas_advanced_cluster.cluster
+}
+```
+
+More information about moving resources can be found in the Terraform documentation [here](https://developer.hashicorp.com/terraform/language/moved) and [here](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring).
