@@ -20,11 +20,6 @@ variable "cluster_name" {
 
 variable "cluster_type" {
   type = string
-
-  validation {
-    condition     = contains(["REPLICASET", "SHARDED", "GEOSHARDED"], var.cluster_type)
-    error_message = "Valid supported cluster types are \"REPLICASET\", \"SHARDED\" or \"GEOSHARDED\"."
-  }
 }
 
 variable "instance_size" {
