@@ -1,6 +1,8 @@
-# Data Source: mongodbatlas_advanced_clusters
+# Data Source: mongodbatlas_advanced_clusters (schema v2)
 
 `mongodbatlas_advanced_clusters` describes all Advanced Clusters by the provided project_id. The data source requires your Project ID.
+
+This doc is for schema v2 of `mongodbatlas_advanced_clusters`, doc for schema v1 can be found [here](./advanced_clusters). In order to enable this schema, you must set the enviroment variable `MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true`, otherwise schema v1 will be used.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 

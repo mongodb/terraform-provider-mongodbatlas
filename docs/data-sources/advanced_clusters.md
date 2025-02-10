@@ -2,6 +2,8 @@
 
 `mongodbatlas_advanced_clusters` describes all Advanced Clusters by the provided project_id. The data source requires your Project ID.
 
+This doc is for schema v1 of `mongodbatlas_advanced_clusters`, doc for schema v2 can be found [here](./advanced_clusters%2520%2528schema%2520v2%2529).
+
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ~> **IMPORTANT:**
