@@ -1,7 +1,6 @@
 # Module User - `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
 The purpose of this example is to demonstrate the User experience when upgrading `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
-Also, it shows how to use `hcl` to simplify configs for big clusters.
 
 Module Version | `mongodbatlas` version | Config Changes | Plan Changes
 --- | --- | --- | ---
