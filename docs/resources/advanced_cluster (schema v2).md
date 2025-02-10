@@ -29,21 +29,21 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = "PROJECT ID"
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
+      analytics_specs = {
         instance_size = "M10"
         node_count    = 1
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
-    }
-  }
+    }]
+  }]
 }
 ```
 
@@ -55,17 +55,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = {
         instance_size = "M0"
       }
       provider_name         = "TENANT"
       backing_provider_name = "AWS"
       region_name           = "US_EAST_1"
       priority              = 7
-    }
-  }
+    }]
+  }]
 }
 ```
 
@@ -84,16 +84,16 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = {
         instance_size = "M10"
       }
       provider_name         = "AWS"
       region_name           = "US_EAST_1"
       priority              = 7
-    }
-  }
+    }]
+  }]
 }
 ```
 
@@ -104,30 +104,29 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
+      analytics_specs = {
         instance_size = "M10"
         node_count    = 1
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
-    }
-    region_configs {
-      electable_specs {
+      }, {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 2
       }
       provider_name = "GCP"
       priority      = 6
       region_name   = "NORTH_AMERICA_NORTHEAST_1"
-    }
-  }
+    }]
+  }]
 }
 ```
 ### Example of a Multi Cloud Sharded Cluster with 2 shards
@@ -139,51 +138,45 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type = "SHARDED"
   backup_enabled = true
 
-  replication_specs {   # shard 1
-    region_configs { 
-      electable_specs {
+  replication_specs = [{   # shard 1
+    region_configs = [{ 
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
-    }
-
-     region_configs { 
-      electable_specs {
+      }, { 
+      electable_specs = {
         instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
       priority      = 6
       region_name   = "US_EAST_2"
-    }
-	}
-
-  replication_specs {   # shard 2
-    region_configs { 
-      electable_specs {
+    }]
+    }, {   # shard 2
+    region_configs = [{ 
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
-    }
-
-    region_configs { 
-      electable_specs {
+      }, { 
+      electable_specs = {
         instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
       priority      = 6
       region_name   = "US_EAST_2"
-    }
-	}
+    }]
+	}]
 
-  advanced_configuration {
+  advanced_configuration = {
     javascript_enabled                   = true
     oplog_size_mb                        = 991
     sample_refresh_interval_bi_connector = 300
@@ -199,103 +192,89 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type   = "GEOSHARDED"
   backup_enabled = true
 
-  replication_specs { # shard 1 - zone n1
+  replication_specs = [{ # shard 1 - zone n1
     zone_name  = "zone n1"
 
-    region_configs {
-      electable_specs {
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
-    }
-
-    region_configs {
-      electable_specs {
+      }, {
+      electable_specs = {
         instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
       priority      = 6
       region_name   = "US_EAST_2"
-    }
-  }
-
-   replication_specs {  # shard 2 - zone n1
+    }]
+    }, {  # shard 2 - zone n1
     zone_name  = "zone n1"
 
-    region_configs {
-      electable_specs {
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
-    }
-
-    region_configs {
-      electable_specs {
+      }, {
+      electable_specs = {
         instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
       priority      = 6
       region_name   = "US_EAST_2"
-    }
-  }
-
-  replication_specs {  # shard 1 - zone n2
+    }]
+    }, {  # shard 1 - zone n2
     zone_name  = "zone n2"
 
-    region_configs { 
-      electable_specs {
+    region_configs = [{ 
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
-    }
-
-    region_configs {
-      electable_specs {
+      }, {
+      electable_specs = {
         instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
       priority      = 6
       region_name   = "EUROPE_NORTH"
-    }
-  }
-
-  replication_specs {  # shard 2 - zone n2
+    }]
+    }, {  # shard 2 - zone n2
     zone_name  = "zone n2"
 
-    region_configs { 
-      electable_specs {
+    region_configs = [{ 
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
-    }
-
-    region_configs {
-      electable_specs {
+      }, {
+      electable_specs ={
         instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AZURE"
       priority      = 6
       region_name   = "EUROPE_NORTH"
-    }
-  }
+    }]
+  }]
 
-  advanced_configuration {
+  advanced_configuration = {
     javascript_enabled                   = true
     oplog_size_mb                        = 999
     sample_refresh_interval_bi_connector = 300
@@ -308,21 +287,21 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 Standard
 ```terraform
 output "standard" {
-    value = mongodbatlas_advanced_cluster.cluster.connection_strings[0].standard
+    value = mongodbatlas_advanced_cluster.cluster.connection_strings.standard
 }
 # Example return string: standard = "mongodb://cluster-atlas-shard-00-00.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
 ```
 Standard srv
 ```terraform
 output "standard_srv" {
-    value = mongodbatlas_advanced_cluster.cluster.connection_strings[0].standard_srv
+    value = mongodbatlas_advanced_cluster.cluster.connection_strings.standard_srv
 }
 # Example return string: standard_srv = "mongodb+srv://cluster-atlas.ygo1m.mongodb.net"
 ```
 Private with Network peering and Custom DNS AWS enabled
 ```terraform
 output "private" {
-    value = mongodbatlas_advanced_cluster.cluster.connection_strings[0].private
+    value = mongodbatlas_advanced_cluster.cluster.connection_strings.private
 }
 # Example return string: private = "mongodb://cluster-atlas-shard-00-00-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02-pri.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
 private = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
@@ -330,7 +309,7 @@ private = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
 Private srv with Network peering and Custom DNS AWS enabled
 ```terraform
 output "private_srv" {
-    value = mongodbatlas_advanced_cluster.cluster.connection_strings[0].private_srv
+    value = mongodbatlas_advanced_cluster.cluster.connection_strings.private_srv
 }
 # Example return string: private_srv = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
 ```
