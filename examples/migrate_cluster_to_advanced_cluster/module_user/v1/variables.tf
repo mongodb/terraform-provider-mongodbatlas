@@ -78,5 +78,3 @@ variable "replication_specs" {
     }]
   }]
 }
-
-# v3 extra variables (TODO)

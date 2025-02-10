@@ -3,9 +3,8 @@ provider "mongodbatlas" {
   private_key = var.private_key
 }
 
-# v1
 module "cluster" {
-  source = "./v1"
+  source = "../../module_maintainer/v1"
 
   auto_scaling_disk_gb_enabled = var.auto_scaling_disk_gb_enabled
   cluster_name                 = var.cluster_name
