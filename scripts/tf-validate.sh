@@ -14,6 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO: remove this after releasing TPF
+git diff --quiet -- ./internal/config/advanced_cluster_v2_schema.go
+if [ $? -eq 0 ]; then
+  V2_SCHEMA_DISABLED=true
+else
+  V2_SCHEMA_DISABLED=false
+fi
+
+if $V2_SCHEMA_DISABLED; then
+  echo "enabling Advanced Cluster V2 Schema"
+  make enable-advancedclustertpf
+fi
+# end TODO
+
 set -Eeou pipefail
 
 # Delete Terraform execution files so the script can be run multiple times
@@ -40,6 +54,19 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
   echo; echo -e "\e[1;35m===> Example: $DIR <===\e[0m"; echo
   terraform init > /dev/null # supress output as it's very verbose
   terraform fmt -check -recursive
-  terraform validate
+  PARENT_DIR=$(basename $(dirname "$DIR")) # module_maintainer and module_user uses {PARENT_DIR}/vX/main.tf
+  v2_dirs=("module_maintainer" "module_user")
+  if [[ " ${v2_dirs[@]} " =~ " ${PARENT_DIR} " ]]; then
+    MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true terraform validate
+  else
+    terraform validate
+  fi
   popd
 done
+
+# TODO: remove this after releasing TPF
+if $V2_SCHEMA_DISABLED; then
+  echo "restoring Advanced Cluster V2 Schema"
+  git restore ./internal/config/advanced_cluster_v2_schema.go
+fi
+# end TODO
