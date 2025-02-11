@@ -15,7 +15,7 @@ Module Version | `mongodbatlas` version | Config Changes | Plan Changes
 * Terraform CLI >= 1.X
 * Terraform MongoDB Atlas Provider v1.XX.0
 * A MongoDB Atlas account
-* Configure the provider (can also be done with `variables.tfvars`)
+* Configure the provider (can also be done by configuring `public_key` and `private_key` in a `provider.tfvars`)
 
 ```bash
 export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
@@ -23,44 +23,18 @@ export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
 ```
 
 ## Usage
+* These steps show example of calling the modules in [../module_maintainer](../module_maintainer/).
+* To follow the steps and use the same cluster you need to use a remote state or copy the `terraform.tfstate` file when switching from `vx` to `vy` (e.g., `v1` to `v2`)
 
-**Configure `variables.tfvars`:**
-
-```tfvars
-project_id             = "664619d870c247237f4b86a6"
-cluster_name           = "module-cluster"
-cluster_type           = "SHARDED"
-instance_size          = "M10"
-mongo_db_major_version = "8.0"
-provider_name          = "AWS"
-disk_size              = 40
-tags = {
-  env    = "examples"
-  module = "cluster_to_advanced_cluster"
-}
-replication_specs = [
-  {
-    num_shards = 2
-    zone_name  = "Zone 1"
-    regions_config = [
-      {
-        region_name     = "US_EAST_1"
-        electable_nodes = 3
-        priority        = 7
-        read_only_nodes = 0
-      }
-    ]
-  }
-]
-```
-
+### Update `v1_v2.tfvars`
+See the example in [v1_v2.tfvars](v1_v2.tfvars)
 
 ### `v1`
 
 ```bash
 cd v1
 terraform init
-terraform apply -var-file=variables.tfvars
+terraform apply -var-file=../v1_v2.tfvars
 ```
 
 ### `v2`
@@ -69,22 +43,19 @@ terraform apply -var-file=variables.tfvars
 cd v2
 export MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true # necessary for the `moved` block to work
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
-terraform apply -var-file=variables.tfvars # notice the same variables used as in `v1`
+terraform apply -var-file=../v1_v2.tfvars # notice the same variables used as in `v1`
 ```
+
+### Update `v3.tfvars`
+See the example in [v3.tfvars](v3.tfvars)
 
 ### `v3`
-
-**Configure `variables-updated.tfvars`:**
-
-```tfvars
-# TODO: Use the new variables for latest features
-```
 
 ```bash
 cd v3
 export MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true # necessary for the `moved` block to work
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
-terraform apply -var-file=variables-updated.tfvars # updated variables to enable latest mongodb_advanced_cluster features
+terraform apply -var-file=../v3.tfvars # updated variables to enable latest mongodb_advanced_cluster features
 ```
 
 ### Cleanup with `terraform destroy`
