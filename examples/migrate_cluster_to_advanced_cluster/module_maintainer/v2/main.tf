@@ -55,8 +55,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 
 data "mongodbatlas_cluster" "this" {
-  name = mongodbatlas_advanced_cluster.this.name
+  name       = mongodbatlas_advanced_cluster.this.name
   project_id = mongodbatlas_advanced_cluster.this.project_id
 
-  depends_on = [ mongodbatlas_advanced_cluster.this ]
+  depends_on = [mongodbatlas_advanced_cluster.this]
 }
