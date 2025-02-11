@@ -15,8 +15,7 @@
 # limitations under the License.
 
 # TODO: remove this after releasing TPF
-git diff --quiet -- ./internal/config/advanced_cluster_v2_schema.go
-if [ $? -eq 0 ]; then
+if git diff --quiet -- ./internal/config/advanced_cluster_v2_schema.go; then
   V2_SCHEMA_DISABLED=true
 else
   V2_SCHEMA_DISABLED=false
@@ -54,9 +53,18 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
   echo; echo -e "\e[1;35m===> Example: $DIR <===\e[0m"; echo
   terraform init > /dev/null # supress output as it's very verbose
   terraform fmt -check -recursive
-  PARENT_DIR=$(basename $(dirname "$DIR")) # module_maintainer and module_user uses {PARENT_DIR}/vX/main.tf
+
+  PARENT_DIR=$(basename "$(dirname "$DIR")") # module_maintainer and module_user uses {PARENT_DIR}/vX/main.tf
   v2_dirs=("module_maintainer" "module_user")
-  if [[ " ${v2_dirs[@]} " =~ " ${PARENT_DIR} " ]]; then
+  is_v2_dir=false
+  for dir in "${v2_dirs[@]}"; do
+    if [[ $PARENT_DIR =~ $dir ]]; then
+      is_v2_dir=true
+      break
+    fi
+  done
+
+  if $is_v2_dir; then
     MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true terraform validate
   else
     terraform validate
