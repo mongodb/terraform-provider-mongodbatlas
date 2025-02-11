@@ -17,3 +17,7 @@ module "cluster" {
   replication_specs            = var.replication_specs
   tags                         = var.tags
 }
+
+output "mongodb_connection_strings" {
+  value = module.cluster.mongodb_connection_strings
+}
