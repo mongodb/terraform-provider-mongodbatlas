@@ -61,7 +61,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 
 data "mongodbatlas_cluster" "this" {
-  count = local.use_new_replication_specs ? 0 : 1
+  count      = local.use_new_replication_specs ? 0 : 1
   name       = mongodbatlas_advanced_cluster.this.name
   project_id = mongodbatlas_advanced_cluster.this.project_id
 
