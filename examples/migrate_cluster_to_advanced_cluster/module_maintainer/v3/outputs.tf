@@ -14,11 +14,11 @@ output "project_id" {
 }
 
 output "replication_specs" {
-  value       = data.mongodbatlas_cluster.this.replication_specs
-  description = "Replication Specs for cluster"
+  value       = local.use_new_replication_specs ? [] : data.mongodbatlas_cluster.this[0].replication_specs
+  description = "Replication Specs for cluster, will be empty if var.replication_specs_new is set"
 }
 
 output "mongodbatlas_cluster" {
-  value       = data.mongodbatlas_cluster.this
-  description = "Full cluster configuration for mongodbatlas_cluster resource"
+  value       = local.use_new_replication_specs ? null : data.mongodbatlas_cluster.this[0]
+  description = "Full cluster configuration for mongodbatlas_cluster resource, will be null if var.replication_specs_new is set"
 }
