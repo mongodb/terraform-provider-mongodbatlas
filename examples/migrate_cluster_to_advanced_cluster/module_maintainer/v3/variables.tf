@@ -1,14 +1,3 @@
-variable "public_key" {
-  description = "Public API key to authenticate to Atlas"
-  type        = string
-  default     = ""
-}
-variable "private_key" {
-  description = "Private API key to authenticate to Atlas"
-  type        = string
-  default     = ""
-}
-
 # v1 & v2 variables
 variable "project_id" {
   type = string
@@ -28,13 +17,13 @@ variable "mongo_db_major_version" {
 }
 
 # OPTIONAL VARIABLES
-variable "instance_size" { # optional in v3
+variable "instance_size" {
   type    = string
-  default = ""
+  default = "" # optional in v3
 }
-variable "provider_name" { # optional in v3
+variable "provider_name" {
   type    = string
-  default = ""
+  default = "" # optional in v3
 }
 
 variable "disk_size" {
