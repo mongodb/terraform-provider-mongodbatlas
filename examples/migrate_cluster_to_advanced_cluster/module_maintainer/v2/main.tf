@@ -53,3 +53,10 @@ resource "mongodbatlas_advanced_cluster" "this" {
   replication_specs      = local.replication_specs
   tags                   = var.tags
 }
+
+data "mongodbatlas_cluster" "this" {
+  name = mongodbatlas_advanced_cluster.this.name
+  project_id = mongodbatlas_advanced_cluster.this.project_id
+
+  depends_on = [ mongodbatlas_advanced_cluster.this ]
+}
