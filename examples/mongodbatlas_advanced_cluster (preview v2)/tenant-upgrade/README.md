@@ -23,7 +23,7 @@ backing_provider_name       = "AWS"
 provider_instance_size_name = "M2"
 ```
 
-Uncomment `node_count` in the cluster definition and apply with the following `terraform.tfvars` to upgrade the shared tier cluster you just created to dedicated tier:
+Apply with the following `terraform.tfvars` to upgrade the shared tier cluster you just created to dedicated tier:
 ```
 atlas_org_id                = <REDACTED>
 public_key                  = <REDACTED>
