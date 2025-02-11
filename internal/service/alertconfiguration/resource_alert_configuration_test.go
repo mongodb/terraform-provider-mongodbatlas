@@ -430,7 +430,6 @@ func datadogTestCase(t *testing.T) *resource.TestCase {
 		},
 	}
 }
-
 func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 	proxyPort := replay.SetupReplayProxy(t)
 
@@ -444,6 +443,46 @@ func TestAccConfigRSAlertConfiguration_withPagerDuty(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
 		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
 		Steps: []resource.TestStep{
+			{
+				Config: configWithPagerDuty(projectID, serviceKey, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExistsUsingProxy(proxyPort, resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateProjectIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// service key is not returned by api in import operation
+				// integration_id is not returned during Create
+				ImportStateVerifyIgnore: []string{"updated", "notification.0.service_key", "notification.0.integration_id"},
+			},
+		},
+	})
+}
+
+func TestAccConfigRSAlertConfiguration_withEmailToPagerDuty(t *testing.T) {
+	proxyPort := replay.SetupReplayProxy(t)
+
+	var (
+		projectID  = replay.ManageProjectID(t, acc.ProjectIDExecution)
+		serviceKey = dummy32CharKey
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6FactoriesWithProxy(proxyPort),
+		CheckDestroy:             checkDestroyUsingProxy(proxyPort),
+		Steps: []resource.TestStep{
+			{
+				Config: configWithEmail(projectID, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExistsUsingProxy(proxyPort, resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
 			{
 				Config: configWithPagerDuty(projectID, serviceKey, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -846,6 +885,22 @@ func configWithPagerDuty(projectID, serviceKey string, enabled bool) string {
 			}
 		}
 	`, projectID, serviceKey, enabled)
+}
+
+func configWithEmail(projectID string, enabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = %[2]t
+			event_type = "NO_PRIMARY"
+
+			notification {
+				type_name     = "EMAIL"
+				interval_min  = 60
+				email_address = "test@mongodbtest.com"
+			}
+		}
+	`, projectID, enabled)
 }
 
 func configWithPagerDutyIntegrationID(orgID, projectName, serviceKey string) string {
