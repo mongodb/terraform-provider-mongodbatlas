@@ -5,12 +5,12 @@ This example creates a Sharded Cluster with 2 shards defining electable and anal
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.23.0
+* Terraform MongoDB Atlas Provider v1.27.0
 * A MongoDB Atlas account 
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.23.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v1.27.0
 ```
 
 

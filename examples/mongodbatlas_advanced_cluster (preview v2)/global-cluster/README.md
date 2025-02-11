@@ -4,12 +4,12 @@ This example creates a project and a Global Cluster with 2 zones where each zone
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.10.0
+* Terraform MongoDB Atlas Provider v1.27.0
 * A MongoDB Atlas account 
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.10.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v1.27.0
 ```
 
 
