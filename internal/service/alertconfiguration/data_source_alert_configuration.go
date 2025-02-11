@@ -354,7 +354,7 @@ func convertMatcherToCtyValues(matcher admin.StreamsMatcher) map[string]cty.Valu
 	}
 }
 
-func convertMetricThresholdToCtyValues(metric admin.ServerlessMetricThreshold) map[string]cty.Value {
+func convertMetricThresholdToCtyValues(metric admin.FlexClusterMetricThreshold) map[string]cty.Value {
 	var t float64
 	if metric.Threshold != nil {
 		t = *metric.Threshold

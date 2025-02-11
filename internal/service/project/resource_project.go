@@ -418,7 +418,7 @@ func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI adm
 }
 
 func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (bool, error) {
-	response, err := api.GetManagedSlowMs(ctx, projectID).Execute()
+	_, response, err := api.GetManagedSlowMs(ctx, projectID).Execute()
 	if err != nil {
 		return false, err
 	}

@@ -68,12 +68,12 @@ func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.Greate
 	}
 }
 
-func NewMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigModel) *admin.ServerlessMetricThreshold {
+func NewMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigModel) *admin.FlexClusterMetricThreshold {
 	if len(tfMetricThresholdConfigSlice) == 0 {
 		return nil
 	}
 	v := tfMetricThresholdConfigSlice[0]
-	return &admin.ServerlessMetricThreshold{
+	return &admin.FlexClusterMetricThreshold{
 		MetricName: v.MetricName.ValueString(),
 		Operator:   v.Operator.ValueStringPointer(),
 		Threshold:  v.Threshold.ValueFloat64Pointer(),
@@ -192,7 +192,7 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 	return notifications
 }
 
-func NewTFMetricThresholdConfigModel(t *admin.ServerlessMetricThreshold, currStateSlice []TfMetricThresholdConfigModel) []TfMetricThresholdConfigModel {
+func NewTFMetricThresholdConfigModel(t *admin.FlexClusterMetricThreshold, currStateSlice []TfMetricThresholdConfigModel) []TfMetricThresholdConfigModel {
 	if t == nil {
 		return []TfMetricThresholdConfigModel{}
 	}
