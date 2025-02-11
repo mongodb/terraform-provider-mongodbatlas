@@ -1,8 +1,8 @@
-# Data Source: mongodbatlas_advanced_clusters (schema v2)
+# Data Source: mongodbatlas_advanced_cluster (Preview for MongoDB Atlas Provider v2)
 
-`mongodbatlas_advanced_clusters` describes all Advanced Clusters by the provided project_id. The data source requires your Project ID.
+`mongodbatlas_advanced_cluster` describes an Advanced Cluster. The data source requires your Project ID.
 
-This doc is for schema v2 of `mongodbatlas_advanced_clusters`, doc for schema v1 can be found [here](./advanced_clusters). In order to enable this schema, you must set the enviroment variable `MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true`, otherwise schema v1 will be used.
+This doc is for the `Preview for MongoDB Atlas Provider v2` of `mongodbatlas_advanced_cluster`, doc for current version can be found [here](./advanced_cluster). In order to enable the Preview, you must set the enviroment variable `MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true`, otherwise the current version will be used.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
@@ -31,8 +31,9 @@ resource "mongodbatlas_advanced_cluster" "example" {
   }
 }
 
-data "mongodbatlas_advanced_clusters" "example" {
-  project_id = mongodbatlas_advanced_cluster.example.project_id
+data "mongodbatlas_advanced_cluster" "example" {
+	project_id = mongodbatlas_advanced_cluster.example.project_id
+	name 	   = mongodbatlas_advanced_cluster.example.name
 }
 ```
 
@@ -74,7 +75,7 @@ resource "mongodbatlas_advanced_cluster" "example" {
   }
 }
 
-data "mongodbatlas_advanced_cluster" "example-asym" {
+data "mongodbatlas_advanced_cluster" "example" {
   project_id                     = mongodbatlas_advanced_cluster.example.project_id
   name                           = mongodbatlas_advanced_cluster.example.name
   use_replication_spec_per_shard = true
@@ -83,29 +84,26 @@ data "mongodbatlas_advanced_cluster" "example-asym" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get the clusters.
-* `use_replication_spec_per_shard` - (Optional) Set this field to true to allow the data source to use the latest schema representing each shard with an individual `replication_specs` object. This enables representing clusters with independent shard scaling. **Note:** If not set to true, this data source return all clusters except clusters with asymmetric shards.
+* `project_id` - (Required) The unique ID for the project to create the database user.
+* `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed.
+* `use_replication_spec_per_shard` - (Optional) Set this field to true to allow the data source to use the latest schema representing each shard with an individual `replication_specs` object. This enables representing clusters with independent shard scaling.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The cluster ID.
-* `results` - A list where each represents a Cluster. See below for more details.
-
-### Advanced Cluster
-
 * `bi_connector_config` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector_config). **NOTE** Prior version of provider had parameter as `bi_connector`
 * `cluster_type` - Type of the cluster that you want to create.
-* `disk_size_gb` - Capacity, in gigabytes, of the host's root volume. **(DEPRECATED.)** Use `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` instead. To learn more, see the [Migration Guide](../guides/1.18.0-upgrade-guide.html.markdown) for more details.
-* `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE.
+* `disk_size_gb` - Capacity, in gigabytes, of the host's root volume. **(DEPRECATED)** Use `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` instead. To learn more, see the [Migration Guide](../guides/1.18.0-upgrade-guide.html.markdown).
+* `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE. 
 * `tags` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
-* `labels` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels).
+* `labels` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **(DEPRECATED.)** Use `tags` instead.
 * `mongo_db_major_version` - Version of the cluster to deploy.
 * `pinned_fcv` - The pinned Feature Compatibility Version (FCV) with its associated expiration date. See [below](#pinned_fcv).
 * `pit_enabled` - Flag that indicates if the cluster uses Continuous Cloud Backup.
-* `replication_specs` - List of settings that configure your cluster regions. If `use_replication_spec_per_shard = true`, this array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. See [below](#replication_specs)
-* `root_cert_type` - Certificate Authority that MongoDB Atlas clusters use.
+* `replication_specs` - List of settings that configure your cluster regions. If `use_replication_spec_per_shard = true`, this array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. See [below](#replication_specs).
+* `root_cert_type` - Certificate Authority that MongoDB Atlas clusters use. 
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
 * `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
@@ -124,7 +122,7 @@ Specifies BI Connector for Atlas configuration.
 
 ### Tags
 
-Key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
+ Key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
 
 * `key` - Constant that defines the set of the tag.
 * `value` - Variable that belongs to the set of the tag.
@@ -145,7 +143,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 * `id` - **(DEPRECATED)** Unique identifer of the replication document for a zone in a Global Cluster. This value corresponds to the legacy sharding schema (no independent shard scaling) and is different from the Shard ID you may see in the Atlas UI. This value is not populated (empty string) when a sharded cluster has independently scaled shards.
 * `external_id` - Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. This value corresponds to Shard ID displayed in the UI. When using old sharding configuration (replication spec with `num_shards` greater than 1) this value is not populated.
-* `num_shards` - Provide this value if you set a `cluster_type` of SHARDED or GEOSHARDED. **(DEPRECATED.)** To learn more, see the [Migration Guide](../guides/1.18.0-upgrade-guide.html.markdown) for more details.
+* `num_shards` - Provide this value if you set a `cluster_type` of `SHARDED` or `GEOSHARDED`. **(DEPRECATED.)** To learn more, see the [Migration Guide](../guides/1.18.0-upgrade-guide.html.markdown).
 * `region_configs` - Configuration for the hardware specifications for nodes set for a given regionEach `region_configs` object describes the region's priority in elections and the number and type of MongoDB nodes that Atlas deploys to the region. Each `region_configs` object must have either an `analytics_specs` object, `electable_specs` object, or `read_only_specs` object. See [below](#region_configs)
 *  `container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container either created programmatically by the user before any clusters existed in a project or when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 * `zone_name` - Name for the zone in a Global Cluster.
@@ -156,10 +154,10 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 * `analytics_specs` - Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. See [below](#specs)
 * `auto_scaling` - Configuration for the Collection of settings that configures auto-scaling information for the cluster. See [below](#auto_scaling)
-* `analytics_auto_scaling` - Configuration for the Collection of settings that configures analytis-auto-scaling information for the cluster. See [below](#analytics_auto_scaling)
+* `analytics_auto_scaling` - Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. See [below](#analytics_auto_scaling)
 * `backing_provider_name` - Cloud service provider on which you provision the host for a multi-tenant cluster.
 * `electable_specs` - Hardware specifications for electable nodes in the region.
-* `priority` -  Election priority of the region.
+* `priority` -  Election priority of the region. 
 * `provider_name` - Cloud service provider on which the servers are provisioned.
 * `read_only_specs` - Hardware specifications for read-only nodes in the region. See [below](#specs)
 * `region_name` - Physical location of your MongoDB cluster.
@@ -167,29 +165,28 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 ### specs
 
 * `disk_iops` - Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. This parameter defaults to the cluster tier's standard IOPS value.
-* `ebs_volume_type` - Type of storage you want to attach to your AWS-provisioned cluster.
+* `ebs_volume_type` - Type of storage you want to attach to your AWS-provisioned cluster. 
   * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
   * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
-* `instance_size` - Hardware specification for the instance sizes in this region.
+* `instance_size` - Hardware specification for the instance sizes in this region. 
 * `node_count` - Number of nodes of the given type for MongoDB Atlas to deploy to the region.
 * `disk_size_gb` - Storage capacity that the host's root volume possesses expressed in gigabytes. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
 
 ### auto_scaling
 
-* `disk_gb_enabled` - Flag that indicates whether this cluster enables disk auto-scaling.
-* `compute_enabled` - Flag that indicates whether instance size auto-scaling is enabled.
-* `compute_scale_down_enabled` - Flag that indicates whether the instance size may scale down.
-* `compute_min_instance_size` - Minimum instance size to which your cluster can automatically scale (such as M10).
-* `compute_max_instance_size` - Maximum instance size to which your cluster can automatically scale (such as M40).
+* `disk_gb_enabled` - Flag that indicates whether this cluster enables disk auto-scaling. 
+* `compute_enabled` - Flag that indicates whether instance size auto-scaling is enabled. 
+* `compute_scale_down_enabled` - Flag that indicates whether the instance size may scale down. 
+* `compute_min_instance_size` - Minimum instance size to which your cluster can automatically scale (such as M10). 
+* `compute_max_instance_size` - Maximum instance size to which your cluster can automatically scale (such as M40). 
 
 ### analytics_auto_scaling
 
-* `disk_gb_enabled` - Flag that indicates whether this cluster enables disk auto-scaling.
-* `compute_enabled` - Flag that indicates whether instance size auto-scaling is enabled.
-* `compute_scale_down_enabled` - Flag that indicates whether the instance size may scale down.
-* `compute_min_instance_size` - Minimum instance size to which your cluster can automatically scale (such as M10).
-* `compute_max_instance_size` - Maximum instance size to which your cluster can automatically scale (such as M40).
-
+* `disk_gb_enabled` - Flag that indicates whether this cluster enables disk auto-scaling. 
+* `compute_enabled` - Flag that indicates whether instance size auto-scaling is enabled. 
+* `compute_scale_down_enabled` - Flag that indicates whether the instance size may scale down. 
+* `compute_min_instance_size` - Minimum instance size to which your cluster can automatically scale (such as M10). 
+* `compute_max_instance_size` - Maximum instance size to which your cluster can automatically scale (such as M40). 
 #### Advanced Configuration
 
 * `default_read_concern` - [Default level of acknowledgment requested from MongoDB for read operations](https://docs.mongodb.com/manual/reference/read-concern/) set for this cluster. MongoDB 4.4 clusters default to [available](https://docs.mongodb.com/manual/reference/read-concern-available/). **(DEPRECATED.)** MongoDB 5.0 and later clusters default to `local`. To use a custom read concern level, please refer to your driver documentation.
@@ -207,17 +204,16 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 * `oplog_min_retention_hours` - Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.
 * `sample_size_bi_connector` - Number of documents per database to sample when gathering schema information. Defaults to 100. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `sample_refresh_interval_bi_connector` - Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
+* `transaction_lifetime_limit_seconds` - Lifetime, in seconds, of multi-document transactions. Defaults to 60 seconds.
 * `default_max_time_ms` - Default time limit in milliseconds for individual read operations to complete. This option corresponds to the [defaultMaxTimeMS(https://www.mongodb.com/docs/upcoming/reference/cluster-parameters/defaultMaxTimeMS/) cluster parameter. This parameter is supported only for MongoDB version 8.0 and above.
-* `transaction_lifetime_limit_seconds` - (Optional) Lifetime, in seconds, of multi-document transactions. Defaults to 60 seconds.
-* `change_stream_options_pre_and_post_images_expire_after_seconds` - (Optional) The minimum pre- and post-image retention time in seconds. This parameter is only supported for MongoDB version 6.0 and above. Defaults to `-1`(off).
-* `tls_cipher_config_mode` - The TLS cipher suite configuration mode. Valid values include `CUSTOM` or `DEFAULT`. The `DEFAULT` mode uses the default cipher suites. The `CUSTOM` mode allows you to specify custom cipher suites for both TLS 1.2 and TLS 1.3. 
+* `change_stream_options_pre_and_post_images_expire_after_seconds` - (Optional) The minimum pre- and post-image retention time in seconds This parameter is only supported for MongoDB version 6.0 and above. Defaults to `-1`(off).
+* `tls_cipher_config_mode` - The TLS cipher suite configuration mode. Valid values include `CUSTOM` or `DEFAULT`. The `DEFAULT` mode uses the default cipher suites. The `CUSTOM` mode allows you to specify custom cipher suites for both TLS 1.2 and TLS 1.3.
 * `custom_openssl_cipher_config_tls12` - The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.
 
 ### pinned_fcv
 
 * `expiration_date` - Expiration date of the fixed FCV. This value is in the ISO 8601 timestamp format (e.g. "2024-12-04T16:25:00Z").
 * `version` - Feature compatibility version of the cluster.
-
 
 ## Attributes Reference
 
@@ -231,6 +227,15 @@ In addition to all arguments above, the following attributes are exported:
   **NOTE** Connection strings must be returned as a list, therefore to refer to a specific attribute value add index notation. Example: mongodbatlas_advanced_cluster.cluster-test.connection_strings.0.standard_srv
 
   Private connection strings may not be available immediately as the reciprocal connections may not have finalized by end of the Terraform run. If the expected connection string(s) do not contain a value a terraform refresh may need to be performed to obtain the value. One can also view the status of the peered connection in the [Atlas UI](https://docs.atlas.mongodb.com/security-vpc-peering/).
+
+  Ensure `connection_strings` are available following `terraform apply` by adding a `depends_on` relationship to the `advanced_cluster`, ex:
+  ```
+  data "mongodbatlas_advanced_cluster" "example_cluster" {
+    project_id = var.project_id
+    name       = var.cluster_name
+    depends_on = [mongodbatlas_privatelink_endpoint_service.example_endpoint]
+  }
+  ```
 
   - `connection_strings.standard` -   Public mongodb:// connection string for this cluster.
   - `connection_strings.standard_srv` - Public mongodb+srv:// connection string for this cluster. The mongodb+srv protocol tells the driver to look up the seed list of hosts in DNS. Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don’t need to append the seed list or change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn’t  , use connectionStrings.standard.
@@ -248,4 +253,4 @@ In addition to all arguments above, the following attributes are exported:
 * `paused` - Flag that indicates whether the cluster is paused or not.
 * `state_name` - Current state of the cluster. The possible states are:
 
-See detailed information for arguments and attributes: [MongoDB API Advanced Clusters](https://docs.atlas.mongodb.com/reference/api/cluster-advanced/get-all-cluster-advanced/)
+See detailed information for arguments and attributes: [MongoDB API Advanced Cluster](https://docs.atlas.mongodb.com/reference/api/cluster-advanced/get-one-cluster-advanced/)
