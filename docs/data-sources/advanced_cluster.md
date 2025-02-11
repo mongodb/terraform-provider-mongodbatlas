@@ -95,7 +95,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The cluster ID.
 * `bi_connector_config` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector_config). **NOTE** Prior version of provider had parameter as `bi_connector`
 * `cluster_type` - Type of the cluster that you want to create.
-* `disk_size_gb` - Capacity, in gigabytes, of the host's root volume. **(DEPRECATED)** Use `replication_specs.#.region_config.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` instead. To learn more, see the [Migration Guide](../guides/1.18.0-upgrade-guide.html.markdown).
+* `disk_size_gb` - Capacity, in gigabytes, of the host's root volume. **(DEPRECATED)** Use `replication_specs.#.region_configs.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` instead. To learn more, see the [Migration Guide](../guides/1.18.0-upgrade-guide.html.markdown).
 * `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE. 
 * `tags` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 * `labels` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **(DEPRECATED.)** Use `tags` instead.
