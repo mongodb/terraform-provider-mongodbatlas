@@ -495,7 +495,7 @@ func TestAccConfigRSAlertConfiguration_withEmailToPagerDuty(t *testing.T) {
 				ImportStateIdFunc: importStateProjectIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-				// service key is not returned by api in import operation
+				// service_key is not returned by api in import operation
 				// integration_id is not returned during Create
 				ImportStateVerifyIgnore: []string{"updated", "notification.0.service_key", "notification.0.integration_id"},
 			},
