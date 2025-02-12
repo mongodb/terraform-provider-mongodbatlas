@@ -14,7 +14,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         instance_size = var.provider_instance_size_name
       }
       provider_name         = var.provider_name
-      backing_provider_name = var.backing_provider_name # comment out when upgrading
+      backing_provider_name = var.backing_provider_name
       region_name           = "US_EAST_1"
       priority              = 7
     }]

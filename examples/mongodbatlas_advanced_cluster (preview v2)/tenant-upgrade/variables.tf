@@ -17,6 +17,7 @@ variable "provider_name" {
 }
 variable "backing_provider_name" {
   description = "Atlas cluster backing provider name"
+  default     = null
   type        = string
 }
 variable "provider_instance_size_name" {
