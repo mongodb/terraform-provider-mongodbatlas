@@ -1371,6 +1371,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *admin.FlexClusterDescription20241113, error) {
 	request.Name = name
+	request.GroupId = &projectID
 
 	cluster, _, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
 	if err != nil {

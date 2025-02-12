@@ -3,14 +3,17 @@ package advancedclustertpf
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 const defaultPriority int = 7
@@ -66,14 +69,14 @@ func isValidUpgradeToFlex(stateCluster, planCluster *admin.ClusterDescription202
 	}
 	oldRegion := getRegionConfig(stateCluster.ReplicationSpecs)
 	newRegion := getRegionConfig(planCluster.ReplicationSpecs)
-	if oldRegion.ElectableSpecs == nil || newRegion.ElectableSpecs == nil {
-		return false
-	}
+	// if oldRegion.ElectableSpecs == nil || newRegion.ElectableSpecs == nil {
+	// 	return false
+	// }
 	return oldRegion != newRegion &&
 		oldRegion.GetProviderName() == constant.TENANT &&
-		newRegion.GetProviderName() == flexcluster.FlexClusterType &&
-		oldRegion.ElectableSpecs.InstanceSize != nil &&
-		newRegion.ElectableSpecs.InstanceSize == nil
+		newRegion.GetProviderName() == flexcluster.FlexClusterType
+	// oldRegion.ElectableSpecs.InstanceSize != nil &&
+	// newRegion.ElectableSpecs.InstanceSize == nil
 }
 
 func isValidUpdateOfFlex(stateCluster, planCluster *admin.ClusterDescription20240805) bool {
@@ -138,15 +141,36 @@ func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *a
 }
 
 func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {
-	//TODO: CLOUDP-296220
-	return nil
+	_, _, err := client.AtlasV2.ClustersApi.UpgradeSharedCluster(ctx, waitParams.ProjectID, req).Execute()
+	if err != nil {
+		diags.AddError(flexcluster.ErrorUpgradeFlex, err.Error())
+		return nil
+	}
+
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: waitParams.ProjectID,
+		Name:    waitParams.ClusterName,
+	}
+
+	// TODO: see if can reuse same timeout for flex also
+	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client.AtlasV2.FlexClustersApi, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true)
+	if err != nil {
+		diags.AddError(flexcluster.ErrorUpgradeFlex, err.Error())
+		return nil
+	}
+	return flexClusterResp
+
 }
 
-func GetUpgradeToFlexClusterRequest() *admin.LegacyAtlasTenantClusterUpgradeRequest {
-	// WIP: will be finished as part of CLOUDP-296220
+func GetUpgradeToFlexClusterRequest(planReq *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+	regionConfig := getRegionConfig(planReq.ReplicationSpecs)
+
 	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
 		ProviderSettings: &admin.ClusterProviderSettings{
-			ProviderName: flexcluster.FlexClusterType,
+			ProviderName:        flexcluster.FlexClusterType,
+			BackingProviderName: regionConfig.BackingProviderName,
+			InstanceSizeName:    conversion.StringPtr(flexcluster.FlexClusterType),
+			RegionName:          regionConfig.RegionName,
 		},
 	}
 }

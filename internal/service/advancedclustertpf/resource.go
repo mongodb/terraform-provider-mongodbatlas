@@ -540,7 +540,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 }
 
 func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, planReq *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
-	flexCluster := FlexUpgrade(ctx, diags, client, waitParams, GetUpgradeToFlexClusterRequest())
+	flexCluster := FlexUpgrade(ctx, diags, client, waitParams, GetUpgradeToFlexClusterRequest(planReq))
 	if diags.HasError() {
 		return nil
 	}
