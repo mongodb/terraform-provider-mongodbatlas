@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"reflect"
@@ -55,7 +54,6 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 		groupResponse       GroupSettingsResponse
 		ipAddressesResponse IPAddressesResponse
 		name                string
-		getManagedSlowMs    string
 		limitResponse       LimitsResponse
 		expectedError       bool
 	}{
@@ -108,14 +106,6 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			},
 			expectedError: true,
 		},
-		{
-			name:             "Fail to decode getManagedSlowMs response",
-			teamRoleReponse:  successfulTeamRoleResponse,
-			limitResponse:    successfulLimitsResponse,
-			groupResponse:    successfulGroupSettingsResponse,
-			getManagedSlowMs: "not_parsable",
-			expectedError:    true,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -137,12 +127,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			projectsMock.EXPECT().ReturnAllIpAddressesExecute(mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
 
 			perfMock.EXPECT().GetManagedSlowMs(mock.Anything, mock.Anything).Return(admin.GetManagedSlowMsApiRequest{ApiService: perfMock}).Maybe()
-			managedSlowMsJSON := tc.getManagedSlowMs
-			if managedSlowMsJSON == "" {
-				managedSlowMsJSON = "true"
-			}
-			readGetManagedSlowMsResponse := http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(managedSlowMsJSON))}
-			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(false, &readGetManagedSlowMsResponse, nil).Maybe()
+			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(true, nil, nil).Maybe()
 
 			_, err := project.GetProjectPropsFromAPI(context.Background(), projectsMock, teamsMock, perfMock, dummyProjectID, nil)
 
