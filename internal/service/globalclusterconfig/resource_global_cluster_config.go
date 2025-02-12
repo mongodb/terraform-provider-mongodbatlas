@@ -234,7 +234,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if newEntry, exists := newMap[key]; exists {
 				// Modification detected: key exists but value differs.
 				if !reflect.DeepEqual(oldEntry, newEntry) {
-					return diag.FromErr(fmt.Errorf("managed namespace for collection '%s' in db '%s' cannot be modified; remove it and add a new entry instead", oldEntry["collection"], oldEntry["db"]))
+					return diag.FromErr(fmt.Errorf("managed namespace for collection '%s' in db '%s' cannot be modified", oldEntry["collection"], oldEntry["db"]))
 				}
 			} else {
 				toRemove = append(toRemove, oldEntry)
