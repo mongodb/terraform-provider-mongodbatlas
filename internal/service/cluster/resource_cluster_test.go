@@ -1023,41 +1023,6 @@ func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 func TestAccCluster_tenant(t *testing.T) {
 	var (
 		resourceName           = "mongodbatlas_cluster.tenant"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configTenant(projectID, clusterName, "M2", "2"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.CheckExistsCluster(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "2"),
-					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-				),
-			},
-			{
-				Config: configTenantUpdated(projectID, clusterName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.CheckExistsCluster(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
-					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccCluster_tenant_m5(t *testing.T) {
-	var (
-		resourceName           = "mongodbatlas_cluster.tenant"
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
 	)
 
@@ -1073,6 +1038,16 @@ func TestAccCluster_tenant_m5(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "5"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+				),
+			},
+			{
+				Config: configTenantUpdated(projectID, clusterName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					acc.CheckExistsCluster(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 				),
 			},
