@@ -125,7 +125,7 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 	}
 }
 
-func TestAccAdvancedCluster_basicTenant_flexUpgrade(t *testing.T) {
+func TestAccAdvancedCluster_basicTenant(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
 		clusterNameUpdated     = acc.RandomClusterName()
@@ -143,10 +143,26 @@ func TestAccAdvancedCluster_basicTenant_flexUpgrade(t *testing.T) {
 				Config: configTenant(t, true, projectID, clusterNameUpdated, ""),
 				Check:  checkTenant(true, projectID, clusterNameUpdated),
 			},
-			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+func TestAccAdvancedCluster_basicTenant_flexUpgrade(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
 			{
-				Config: configTenantUpgradeToFlex(t, true, projectID, clusterNameUpdated),
-				Check:  checkFlexClusterConfig(projectID, clusterNameUpdated, "AWS", "US_EAST_1", false),
+				Config: configTenant(t, true, projectID, clusterName, ""),
+				Check:  checkTenant(true, projectID, clusterName),
+			},
+			{
+				Config: configTenantUpgradeToFlex(t, true, projectID, clusterName),
+				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false),
 			},
 		},
 	})
