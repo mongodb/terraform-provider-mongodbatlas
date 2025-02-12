@@ -10,8 +10,8 @@ import (
 func isValidUpgradeToFlex(d *schema.ResourceData) bool {
 	if d.HasChange("replication_specs.0.region_configs.0") {
 		oldProviderName, newProviderName := d.GetChange("replication_specs.0.region_configs.0.provider_name")
-		oldInstanceSize, newInstanceSize := d.GetChange("replication_specs.0.region_configs.0.electable_specs.instance_size")
-		if oldProviderName == constant.TENANT && newProviderName == flexcluster.FlexClusterType && oldInstanceSize != nil && newInstanceSize == nil {
+		// oldInstanceSize, newInstanceSize := d.GetChange("replication_specs.0.region_configs.0.electable_specs.0.instance_size")
+		if oldProviderName == constant.TENANT && newProviderName == flexcluster.FlexClusterType {
 			return true
 		}
 	}

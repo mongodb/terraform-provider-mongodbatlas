@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"reflect"
 	"regexp"
 	"strings"
@@ -24,6 +23,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
@@ -850,7 +850,8 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 
 	if advancedclustertpf.IsFlex(replicationSpecs) {
 		if isValidUpgradeToFlex(d) {
-			return resourceUpgrade(ctx, advancedclustertpf.GetUpgradeToFlexClusterRequest(), d, meta)
+			// return resourceUpgrade(ctx, advancedclustertpf.GetUpgradeToFlexClusterRequest(), d, meta)
+			return resourceUpgrade(ctx, GetUpgradeToFlexClusterRequest(d, meta), d, meta)
 		}
 		if isValidUpdateOfFlex(d) {
 			return resourceUpdateFlexCluster(ctx, advancedclustertpf.GetFlexClusterUpdateRequest(conversion.ExpandTagsFromSetSchema(d), conversion.Pointer(d.Get("termination_protection_enabled").(bool))), d, meta)
@@ -863,20 +864,41 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 	return resourceUpdate(ctx, d, meta)
 }
 
+func GetUpgradeToFlexClusterRequest(d *schema.ResourceData, meta any) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+	// WIP: will be finished as part of CLOUDP-296220
+	//  priority 7
+	// oldProviderName, newProviderName := d.GetChange("replication_specs.0.region_configs.0.provider_name")
+	// 	oldInstanceSize, newInstanceSize := d.GetChange("replication_specs.0.region_configs.0.electable_specs.instance_size")
+	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+		ProviderSettings: &admin.ClusterProviderSettings{
+			ProviderName:        flexcluster.FlexClusterType,
+			BackingProviderName: conversion.StringPtr(d.Get("replication_specs.0.region_configs.0.backing_provider_name").(string)),
+			InstanceSizeName:    conversion.StringPtr(flexcluster.FlexClusterType),
+			RegionName:          conversion.StringPtr(d.Get("replication_specs.0.region_configs.0.region_name").(string)),
+		},
+	}
+}
+
 func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	upgradeResponse, _, err := upgradeCluster(ctx, connV2, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
-
+	upgradeClusterResponse, upgradeToFlexResp, err := upgradeCluster(ctx, connV2, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 	}
 
+	var clusterID string
+	if upgradeClusterResponse != nil {
+		clusterID = upgradeClusterResponse.GetId()
+	} else {
+		clusterID = upgradeToFlexResp.GetId()
+	}
+
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   upgradeResponse.GetId(),
+		"cluster_id":   clusterID,
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 	}))
@@ -1352,30 +1374,50 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *http.Response, error) {
+func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *admin.FlexClusterDescription20241113, error) {
 	request.Name = name
 
-	cluster, resp, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
+	cluster, _, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
-		Target:     []string{"IDLE"},
-		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, connV2.ClustersApi),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
+	// TODO: for M0 to Flex upgrade, can check provider_name & maybe need to call Flex GET API
+	// TODO: see if can reuse same timeout for flex also
+	var flexClusterResp *admin.FlexClusterDescription20241113
+	if request.ProviderSettings != nil && request.ProviderSettings.ProviderName == flexcluster.FlexClusterType {
+		flexClusterParams := &admin.GetFlexClusterApiParams{
+			GroupId: projectID,
+			Name:    name,
+		}
+		flexClusterResp, err = flexcluster.WaitStateTransition(ctx, flexClusterParams, connV2.FlexClustersApi, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState})
+		if err != nil {
+			return nil, nil, err
+		}
+		return nil, flexClusterResp, nil
 	}
 
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
+	_, err = WaitStateTransitionClusterUpgrade(ctx, request, connV2.ClustersApi, []string{"CREATING", "UPDATING", "REPAIRING"}, []string{"IDLE"}, timeout)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return cluster, resp, nil
+	// stateConf = &retry.StateChangeConf{
+	// 	Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+	// 	Target:     []string{"IDLE"},
+	// 	Refresh:    UpgradeRefreshFunc(ctx, name, projectID, connV2.ClustersApi),
+	// 	Timeout:    timeout,
+	// 	MinTimeout: 30 * time.Second,
+	// 	Delay:      1 * time.Minute,
+	// }
+
+	// // Wait, catching any errors
+	// _, err = stateConf.WaitForStateContext(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	return cluster, nil, nil
 }
 
 func splitSClusterAdvancedImportID(id string) (projectID, clusterName *string, err error) {

@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
@@ -370,6 +371,30 @@ func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admi
 		state := cluster.GetStateName()
 		return cluster, state, nil
 	}
+}
+
+func WaitStateTransitionClusterUpgrade(ctx context.Context, requestParams *admin.LegacyAtlasTenantClusterUpgradeRequest,
+	client admin.ClustersApi, pendingStates, desiredStates []string, timeout time.Duration) (*admin.ClusterDescription20240805, error) {
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Target:     []string{"IDLE"},
+		Refresh:    UpgradeRefreshFunc(ctx, requestParams.Name, *requestParams.GroupId, client),
+		Timeout:    timeout,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
+
+	result, err := stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if cluster, ok := result.(*admin.ClusterDescription20240805); ok && cluster != nil {
+		return cluster, nil
+	}
+
+	return nil, errors.New("did not obtain valid result when waiting for cluster upgrade state transition")
 }
 
 func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
