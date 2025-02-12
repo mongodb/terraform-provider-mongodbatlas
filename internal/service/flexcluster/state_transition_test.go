@@ -34,12 +34,13 @@ var (
 )
 
 type testCase struct {
-	expectedState *string
-	name          string
-	mockResponses []response
-	desiredStates []string
-	pendingStates []string
-	expectedError bool
+	expectedState   *string
+	name            string
+	mockResponses   []response
+	desiredStates   []string
+	pendingStates   []string
+	expectedError   bool
+	isUpgradeFromM0 bool
 }
 
 func TestFlexClusterStateTransition(t *testing.T) {
@@ -50,20 +51,34 @@ func TestFlexClusterStateTransition(t *testing.T) {
 				{state: &CreatingState, statusCode: sc200},
 				{state: &IdleState, statusCode: sc200},
 			},
-			expectedState: &IdleState,
-			expectedError: false,
-			desiredStates: []string{IdleState},
-			pendingStates: []string{CreatingState},
+			expectedState:   &IdleState,
+			expectedError:   false,
+			desiredStates:   []string{IdleState},
+			pendingStates:   []string{CreatingState},
+			isUpgradeFromM0: false,
+		},
+		{
+			name: "Successful transition to IDLE during cluster (M0) upgrade to Flex",
+			mockResponses: []response{
+				{state: &UpdatingState, statusCode: sc200},
+				{state: &IdleState, statusCode: sc200},
+			},
+			expectedState:   &IdleState,
+			expectedError:   false,
+			desiredStates:   []string{IdleState},
+			pendingStates:   []string{UpdatingState},
+			isUpgradeFromM0: true,
 		},
 		{
 			name: "Error when API returns 5XX",
 			mockResponses: []response{
 				{statusCode: sc500, err: errors.New("Internal server error")},
 			},
-			expectedState: nil,
-			expectedError: true,
-			desiredStates: []string{IdleState},
-			pendingStates: []string{CreatingState},
+			expectedState:   nil,
+			expectedError:   true,
+			desiredStates:   []string{IdleState},
+			pendingStates:   []string{CreatingState},
+			isUpgradeFromM0: false,
 		},
 		{
 			name: "Deleted state when API returns 404",
@@ -71,10 +86,11 @@ func TestFlexClusterStateTransition(t *testing.T) {
 				{state: &DeletingState, statusCode: sc200},
 				{statusCode: sc404, err: errors.New("Not found")},
 			},
-			expectedState: nil,
-			expectedError: true,
-			desiredStates: []string{IdleState},
-			pendingStates: []string{DeletingState},
+			expectedState:   nil,
+			expectedError:   true,
+			desiredStates:   []string{IdleState},
+			pendingStates:   []string{DeletingState},
+			isUpgradeFromM0: false,
 		},
 	}
 
@@ -87,7 +103,7 @@ func TestFlexClusterStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetFlexClusterExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := flexcluster.WaitStateTransition(context.Background(), requestParams, m, tc.pendingStates, tc.desiredStates, false)
+			resp, err := flexcluster.WaitStateTransition(context.Background(), requestParams, m, tc.pendingStates, tc.desiredStates, tc.isUpgradeFromM0)
 			assert.Equal(t, tc.expectedError, err != nil)
 			if resp != nil {
 				assert.Equal(t, *tc.expectedState, *resp.StateName)

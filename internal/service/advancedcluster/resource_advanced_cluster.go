@@ -865,10 +865,6 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 }
 
 func GetUpgradeToFlexClusterRequest(d *schema.ResourceData, meta any) *admin.LegacyAtlasTenantClusterUpgradeRequest {
-	// WIP: will be finished as part of CLOUDP-296220
-	//  priority 7
-	// oldProviderName, newProviderName := d.GetChange("replication_specs.0.region_configs.0.provider_name")
-	// 	oldInstanceSize, newInstanceSize := d.GetChange("replication_specs.0.region_configs.0.electable_specs.instance_size")
 	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
 		ProviderSettings: &admin.ClusterProviderSettings{
 			ProviderName:        flexcluster.FlexClusterType,

@@ -125,7 +125,7 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 	}
 }
 
-func TestAccAdvancedCluster_basicTenant(t *testing.T) {
+func TestAccAdvancedCluster_basicTenant_flexUpgrade(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
 		clusterNameUpdated     = acc.RandomClusterName()
@@ -144,6 +144,10 @@ func TestAccAdvancedCluster_basicTenant(t *testing.T) {
 				Check:  checkTenant(true, projectID, clusterNameUpdated),
 			},
 			acc.TestStepImportCluster(resourceName),
+			{
+				Config: configTenantUpgradeToFlex(t, true, projectID, clusterNameUpdated),
+				Check:  checkFlexClusterConfig(projectID, clusterNameUpdated, "AWS", "US_EAST_1", false),
+			},
 		},
 	})
 }
@@ -1402,6 +1406,27 @@ func configTenant(t *testing.T, isAcc bool, projectID, name, zoneName string) st
 			}
 		}
 	`, projectID, name, zoneNameLine)) + dataSourcesTFNewSchema
+}
+
+func configTenantUpgradeToFlex(t *testing.T, isAcc bool, projectID, name string) string {
+	t.Helper()
+
+	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
+
+			replication_specs {
+				region_configs {
+					provider_name         = "FLEX"
+					backing_provider_name = "AWS"
+					region_name           = "US_EAST_1"
+					priority              = 7
+				}
+			}
+		}
+	`, projectID, name))
 }
 
 func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
