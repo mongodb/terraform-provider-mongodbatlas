@@ -26,12 +26,12 @@ The rest of this document summarizes the different implementations:
   - [`outputs.tf`](#outputstf-2)
 
 
-## Step 1: `v1` Implementation Summary
+## Step 1: Module `v1` Implementation Summary
 This module creates a `mongodbatlas_cluster`
 
 ### [`variables.tf`](v1/variables.tf)
 An abstraction for the `mongodbatlas_cluster` resource:
-- Not all arguments are exposed, but the arguments follows the schema closely
+- Not all arguments are exposed, but the arguments follow the schema closely
 - `disk_size` and `auto_scaling_disk_gb_enabled` are mutually exclusive and validated in the `precondition` in `main.tf`
 
 ### [`main.tf`](v1/main.tf)
@@ -49,7 +49,7 @@ output "mongodbatlas_cluster" {
 }
 ```
 
-## Step 2: `v2` Implementation Changes and Highlights
+## Step 2: Module `v2` Implementation Changes and Highlights
 This module use hcl code to create a `mongodbatlas_advanced_cluster` compatible with the input variables of `v1`.
 It uses a [moved block](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#moved-block-syntax) to support migrating from `mongodbatlas_cluster` without deleting any actual resources.
 
@@ -82,7 +82,7 @@ moved {
   - `mongodbatlas_cluster`, we use the `data.mongodbatlas_cluster.this` to keep the same format
 
 
-## Step 3: `v3` Implementation Changes and Highlights
+## Step 3: Module `v3` Implementation Changes and Highlights
 This module adds variables to support the latest `mongodbatlas_advanced_cluster` features while staying compatible with the old input variables.
 
 ### [`variables.tf`](v3/variables.tf)
