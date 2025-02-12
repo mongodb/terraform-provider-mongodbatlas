@@ -1,7 +1,7 @@
 # Basic Migration from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
-The purpose of this example is to show how a MongoDB Atlas Provider user can migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
-In this example we use specific files, but the same approach can be applied to any workspace with `mongodbatlas_cluster` resource(s).
+The purpose of this example is to show how a `mongodbatlas_cluster` can be migrated to a `mongodbatlas_advanced_cluster`.
+In this example we use specific files, but the same approach can be applied to configuration with `mongodbatlas_cluster` resource(s).
 The main steps are:
 
 - [Create the `mongodbatlas_cluster`](#create-the-mongodbatlas_cluster) (skip if you already have a configuration with one or more `mongodbatlas_cluster` resources)
@@ -11,18 +11,21 @@ The main steps are:
   - [Troubleshooting](#troubleshooting)
 
 ## Create the `mongodbatlas_cluster`
+**Note**: This step is only to demonstrate the migration. If you want to manage a cluster with Terraform, we recommend you use a `mongodbatlas_advanced_cluster` instead.
+
 This step can be skipped if you already have a configuration file with a `mongodbatlas_cluster` created
 
-1. Uncomment the code in [cluster.tf](cluster.tf)
-2. Create a `vars.auto.tfvars` file, for example:
+1. Uncomment the code in [cluster.tf](cluster.tf) and [outputs.tf](outputs.tf) (lines marked with `# BEFORE`)
+2. Comment the code in [advanced_cluster](advanced_cluster.tf) and [outputs.tf](outputs.tf) (lines marked with `# AFTER`)
+3. Create a `vars.auto.tfvars` file, for example:
 ```terraform
 project_id = "{PROJECT_ID}" # replace with your project ID, should be similar to 664619d870c247237f4b86a6
 cluster_name = "cluster-mig-resource"
 instance_size = "M10"
 mongo_db_major_version = "8.0"
 ```
-3. Run `terraform init`
-4. Run `terraform apply`
+4. Run `terraform init`
+5. Run `terraform apply`
 
 ## Use the [Atlas CLI Plugin Terraform](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to create the `mongodbatlas_advanced_cluster` resource
 The CLI Plugin helps you migrate your Terraform configuration file.
