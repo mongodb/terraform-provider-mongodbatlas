@@ -193,7 +193,7 @@ jira-release-version: ## Update Jira version in a release
 
 .PHONY: enable-preview-provider-v2
 enable-preview-provider-v2: ## Enable Preview Provider V2
-	make change-lines filename=./internal/config/advanced_cluster_preview_provider_v2.go find="allowPreviewProviderV2 = false" new="allowPreviewProviderV2 = true"
+	make change-lines filename=./internal/config/preview_provider_v2.go find="allowPreviewProviderV2 = false" new="allowPreviewProviderV2 = true"
 
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:
