@@ -375,7 +375,6 @@ func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admi
 
 func WaitStateTransitionClusterUpgrade(ctx context.Context, requestParams *admin.LegacyAtlasTenantClusterUpgradeRequest,
 	client admin.ClustersApi, pendingStates, desiredStates []string, timeout time.Duration) (*admin.ClusterDescription20240805, error) {
-
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},

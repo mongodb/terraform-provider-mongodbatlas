@@ -850,7 +850,6 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 
 	if advancedclustertpf.IsFlex(replicationSpecs) {
 		if isValidUpgradeToFlex(d) {
-			// return resourceUpgrade(ctx, advancedclustertpf.GetUpgradeToFlexClusterRequest(), d, meta)
 			return resourceUpgrade(ctx, GetUpgradeToFlexClusterRequest(d, meta), d, meta)
 		}
 		if isValidUpdateOfFlex(d) {
@@ -1378,9 +1377,7 @@ func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin
 		return nil, nil, err
 	}
 
-	// TODO: for M0 to Flex upgrade, can check provider_name & maybe need to call Flex GET API
 	// TODO: see if can reuse same timeout for flex also
-	// var flexClusterResp *admin.FlexClusterDescription20241113
 	if request.ProviderSettings != nil && request.ProviderSettings.ProviderName == flexcluster.FlexClusterType {
 		flexCluster, err := waitStateTransitionFlexUpgrade(ctx, connV2.FlexClustersApi, projectID, name)
 		return nil, flexCluster, err
@@ -1390,21 +1387,6 @@ func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin
 	if err != nil {
 		return nil, nil, err
 	}
-
-	// stateConf = &retry.StateChangeConf{
-	// 	Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
-	// 	Target:     []string{"IDLE"},
-	// 	Refresh:    UpgradeRefreshFunc(ctx, name, projectID, connV2.ClustersApi),
-	// 	Timeout:    timeout,
-	// 	MinTimeout: 30 * time.Second,
-	// 	Delay:      1 * time.Minute,
-	// }
-
-	// // Wait, catching any errors
-	// _, err = stateConf.WaitForStateContext(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	return cluster, nil, nil
 }
