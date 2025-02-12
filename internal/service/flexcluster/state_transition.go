@@ -5,16 +5,18 @@ import (
 	"errors"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 )
 
-func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string) (*admin.FlexClusterDescription20241113, error) {
+func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string, isUpgradeFromM0 bool) (*admin.FlexClusterDescription20241113, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    pendingStates,
 		Target:     desiredStates,
-		Refresh:    refreshFunc(ctx, requestParams, client),
+		Refresh:    refreshFunc(ctx, requestParams, client, isUpgradeFromM0),
 		Timeout:    3 * time.Hour,
 		MinTimeout: 3 * time.Second,
 		Delay:      0,
@@ -36,7 +38,7 @@ func WaitStateTransitionDelete(ctx context.Context, requestParams *admin.GetFlex
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyDeletingState},
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
-		Refresh:    refreshFunc(ctx, requestParams, client),
+		Refresh:    refreshFunc(ctx, requestParams, client, false),
 		Timeout:    3 * time.Hour,
 		MinTimeout: 3 * time.Second,
 		Delay:      0,
@@ -45,12 +47,15 @@ func WaitStateTransitionDelete(ctx context.Context, requestParams *admin.GetFlex
 	return err
 }
 
-func refreshFunc(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi) retry.StateRefreshFunc {
+func refreshFunc(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, isUpgradeFromM0 bool) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		flexCluster, resp, err := client.GetFlexClusterWithParams(ctx, requestParams).Execute()
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
+			}
+			if resp != nil && isUpgradeFromM0 && admin.IsErrorCode(err, "CANNOT_USE_NON_FLEX_CLUSTER_IN_FLEX_API") {
+				return "", retrystrategy.RetryStrategyUpdatingState, nil
 			}
 			return nil, "", err
 		}

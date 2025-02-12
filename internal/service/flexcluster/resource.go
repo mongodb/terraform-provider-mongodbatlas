@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"regexp"
 
+	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
@@ -207,7 +208,7 @@ func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 		Name:    clusterName,
 	}
 
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyCreatingState}, []string{retrystrategy.RetryStrategyIdleState})
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyCreatingState}, []string{retrystrategy.RetryStrategyIdleState}, false)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +234,7 @@ func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 		Name:    clusterName,
 	}
 
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState})
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, false)
 	if err != nil {
 		return nil, err
 	}

@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 	"go.mongodb.org/atlas-sdk/v20241113004/mockadmin"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
 var (
@@ -85,7 +87,7 @@ func TestFlexClusterStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetFlexClusterExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := flexcluster.WaitStateTransition(context.Background(), requestParams, m, tc.pendingStates, tc.desiredStates)
+			resp, err := flexcluster.WaitStateTransition(context.Background(), requestParams, m, tc.pendingStates, tc.desiredStates, false)
 			assert.Equal(t, tc.expectedError, err != nil)
 			if resp != nil {
 				assert.Equal(t, *tc.expectedState, *resp.StateName)
