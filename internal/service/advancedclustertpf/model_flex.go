@@ -69,14 +69,10 @@ func isValidUpgradeToFlex(stateCluster, planCluster *admin.ClusterDescription202
 	}
 	oldRegion := getRegionConfig(stateCluster.ReplicationSpecs)
 	newRegion := getRegionConfig(planCluster.ReplicationSpecs)
-	// if oldRegion.ElectableSpecs == nil || newRegion.ElectableSpecs == nil {
-	// 	return false
-	// }
+
 	return oldRegion != newRegion &&
 		oldRegion.GetProviderName() == constant.TENANT &&
 		newRegion.GetProviderName() == flexcluster.FlexClusterType
-	// oldRegion.ElectableSpecs.InstanceSize != nil &&
-	// newRegion.ElectableSpecs.InstanceSize == nil
 }
 
 func isValidUpdateOfFlex(stateCluster, planCluster *admin.ClusterDescription20240805) bool {
@@ -159,7 +155,6 @@ func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.Mo
 		return nil
 	}
 	return flexClusterResp
-
 }
 
 func GetUpgradeToFlexClusterRequest(planReq *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {
