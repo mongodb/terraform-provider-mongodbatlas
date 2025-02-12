@@ -1,23 +1,49 @@
 # Module Maintainer - `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
 The purpose of this example is to demonstrate how a Terraform module can help in the migration from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
-The example contains three module versions:
+The example contains three module versions which represent the three steps of the migration:
 
 <!-- Update Variable count -->
-Version | Purpose | Variables | Resources
+Step | Purpose | Variables | Resources
 --- | --- | --- | ---
-[v1](./v1) | Baseline | 5 | `mongodbatlas_cluster`
-[v2](./v2) | Migrate to advanced_cluster with no change in variables or plan | 5 | `mongodbatlas_advanced_cluster`
-[v3](./v3) | Use the latest features of advanced_cluster | 10 | `mongodbatlas_advanced_cluster`
+[Step 1](./v1) | Baseline | 5 | `mongodbatlas_cluster`
+[Step 2](./v2) | Migrate to advanced_cluster with no change in variables or plan | 5 | `mongodbatlas_advanced_cluster`
+[Step 3](./v3) | Use the latest features of advanced_cluster | 10 | `mongodbatlas_advanced_cluster`
 
-## `v2` Implementation Changes and Highlights
+## Step 1: `v1` Implementation Summary
+This module creates a `mongodbatlas_cluster`
 
-### `variables.tf` unchanged from `v1`
-### `versions.tf`
+### [`variables.tf`](v1/variables.tf)
+An abstraction for the `mongodbatlas_cluster` resource:
+- Not all arguments are exposed, but the arguments follows the schema closely
+- `disk_size` and `auto_scaling_disk_gb_enabled` are mutually exclusive and validated in the `precondition` in `main.tf`
+
+### [`main.tf`](v1/main.tf)
+It uses `dynamic` blocks to represent:
+- `tags`
+- `replication_specs`
+- `regions_config` (nested inside replication_specs)
+
+### [`outputs.tf`](v1/outputs.tf)
+- Expose some attributes of `mongodbatlas_cluster` but also the full resource with `mongodbatlas_cluster` output variable:
+```terraform
+output "mongodbatlas_cluster" {
+  value       = mongodbatlas_cluster.this
+  description = "Full cluster configuration for mongodbatlas_cluster resource"
+}
+```
+
+
+## Step 2: `v2` Implementation Changes and Highlights
+This module use hcl code to create a `mongodbatlas_advanced_cluster` compatible with the input variables of `v1`.
+It uses a [moved block](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#moved-block-syntax) to support migrating from `mongodbatlas_cluster` without deleting any actual resources.
+
+### [`variables.tf`](v2/variables.tf) unchanged from `v1`
+### [`versions.tf`](v2/versions.tf)
 - `required_version` of Terraform CLI bumped to `# todo: minimum moved block supported version` for `moved` block support
 - `mongodbatlas.version` bumped to `# todo: PLACEHOLDER_TPF_RELEASE` for new `mongodbatlas_advanced_cluster` v2 schema support
 
-### `main.tf`
+### [`main.tf`](v2/main.tf)
 <!-- TODO: Update link to (schema v2) docs page -->
 - `locals.replication_specs` an intermediate variable transforming the `variables` to a compatible [replication_specs](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#replication_specs-1) for `mongodbatlas_advanced_cluster`
   - We use the Terraform builtin [range](https://developer.hashicorp.com/terraform/language/functions/range) function (`range(old_spec.num_shards)`) to flatten `num_shards`
@@ -35,20 +61,63 @@ moved {
   - Tags can be passed directly instead of the dynamic block (`tags = var.tags`)
 - Adds `data "mongodbatlas_cluster" "this"` to avoid breaking changes in `outputs.tf` (see below)
 
-### `outputs.tf`
+### [`outputs.tf`](v2/outputs.tf)
 - All outputs can use `mongodbatlas_advanced_cluster` except for
   - `replication_specs`, we use the `data.mongodbatlas_cluster.this.replication_specs` to keep the same format
   - `mongodbatlas_cluster`, we use the `data.mongodbatlas_cluster.this` to keep the same format
 
 
-## `v3` Implementation Changes and Highlights
+## Step 3: `v3` Implementation Changes and Highlights
+This module adds variables to support the latest `mongodbatlas_advanced_cluster` features while staying compatible with the old input variables.
 
-File | Highlights | Code
---- | --- | ---
-variables.tf | • Added `default` | <pre> variable "instance_size" { <br>  type    = string <br>  default = "" # optional in v3 <br>} <br>variable "provider_name" { <br>  type    = string <br>  default = "" # optional in v3 <br>} </pre>
-variables.tf | • Using a default of empty `[]` for `replication_specs` | <pre>variable "replication_specs" {<br>  description = "List of replication specifications in legacy mongodbatlas_cluster format"<br>  default     = []<br>  # everything else the same<br>} </pre>
-variables.tf | • New `replication_specs_new` variable<br> • Usage of `optional` to simplify caller<br> • Using `[]` for default | <pre>variable "replication_specs_new" {<br>  description = "List of replication specifications using new mongodbatlas_advanced_cluster format"<br>  default     = []<br>  type = list(object({<br>    zone_name = optional(string, "Zone 1")<br><br>    region_configs = list(object({<br>      region_name   = string<br>      provider_name = string<br>      priority      = optional(number, 7)<br><br>      auto_scaling = optional(object({<br>        disk_gb_enabled = optional(bool, false)<br>      }), null)<br><br>      read_only_specs = optional(object({<br>        node_count      = number<br>        instance_size   = string<br>        disk_size_gb    = optional(number, null)<br>        ebs_volume_type = optional(string, null)<br>        disk_iops       = optional(number, null)<br>      }), null)<br>      analytics_specs = optional(object({<br>        node_count      = number<br>        instance_size   = string<br>        disk_size_gb    = optional(number, null)<br>        ebs_volume_type = optional(string, null)<br>        disk_iops       = optional(number, null)<br>      }), null)<br>      electable_specs = object({<br>        node_count      = number<br>        instance_size   = string<br>        disk_size_gb    = optional(number, null)<br>        ebs_volume_type = optional(string, null)<br>        disk_iops       = optional(number, null)<br>      })<br>    }))<br>  }))<br>} </pre>
-main.tf | • Add *defaults* to old variables in `locals`<br> • Add `_old` suffix to `locals.replication_specs` | <pre>  old_disk_size     = var.auto_scaling_disk_gb_enabled ? null : var.disk_size<br>  old_instance_size = coalesce(var.instance_size, "M10")<br>  old_provider_name = coalesce(var.provider_name, "AWS")<br>  replication_specs_old = flatten([<br> </pre>
-main.tf | • Add `precondition` for `replication_specs`<br> • Use a conditional for `replication_specs` | <pre>resource "mongodbatlas_advanced_cluster" "this" {<br>  lifecycle {<br><br>    precondition {<br>      condition     = local.use_new_replication_specs &#124;&#124; !(var.auto_scaling_disk_gb_enabled && var.disk_size &gt; 0)<br>      error_message = "Must use either auto_scaling_disk_gb_enabled or disk_size, not both."<br>    }<br>    precondition {<br>      condition     = !((local.use_new_replication_specs && length(var.replication_specs) &gt; 0) &#124;&#124; (!local.use_new_replication_specs && length(var.replication_specs) == 0))<br>      error_message = "Must use either replication_specs_new or replication_specs, not both."<br>    }<br>  }<br><br>  project_id             = var.project_id<br>  name                   = var.cluster_name<br>  cluster_type           = var.cluster_type<br>  mongo_db_major_version = var.mongo_db_major_version<br>  replication_specs      = local.use_new_replication_specs ? var.replication_specs_new : local.replication_specs_old<br>  tags                   = var.tags<br>}<br> </pre>
-main.tf | • Use `count` for data source to avoid error when Asymmetric Shards are used | <pre>data "mongodbatlas_cluster" "this" {<br>  count = local.use_new_replication_specs ? 0 : 1<br>  name       = mongodbatlas_advanced_cluster.this.name<br>  project_id = mongodbatlas_advanced_cluster.this.project_id<br><br>  depends_on = [mongodbatlas_advanced_cluster.this]<br>} </pre>
-outputs.tf | • Update `replication_specs` and `mongodbatlas_cluster` <br>&nbsp;&nbsp; to handle the case when the new schema is used| <pre>output "replication_specs" {<br>  value       = local.use_new_replication_specs ? [] : data.mongodbatlas_cluster.this[0].replication_specs<br>  description = "Replication Specs for cluster, will be empty if var.replication_specs_new is set"<br>}<br><br>output "mongodbatlas_cluster" {<br>  value       = local.use_new_replication_specs ? null : data.mongodbatlas_cluster.this[0]<br>  description = "Full cluster configuration for mongodbatlas_cluster resource, will be null if var.replication_specs_new is set"<br>}<br> </pre>
+### [`variables.tf`](v3/variables.tf)
+- Add `replication_specs_new`, this is almost a full mirror of the `replication_specs` of the latest `mongodbatlas_advanced_cluster` schema
+  - Use a `[]` for default to allow continued usage of the old `replication_specs`
+  - Usage of `optional` to simplify the caller
+- Add `default` to `instance_size` and `provider_name` as these are not required when `replication_specs_new` is used
+- Change `[]` default to `replication_specs` to allow usage of `replication_specs_new`
+
+### [`main.tf`](v3/main.tf)
+- Add *defaults* to old variables in `locals`:
+  - `old_disk_size`
+  - `old_instance_size`
+  - `old_provider_name`
+- Add `_old` suffix to `locals.replication_specs` to make conditional code (see below) more readable
+- Add `precondition` for `replication_specs` to validate only `var.replication_specs_new` or `replication_specs` is used
+```terraform
+    precondition {
+      condition     = !((local.use_new_replication_specs && length(var.replication_specs) > 0) || (!local.use_new_replication_specs && length(var.replication_specs) == 0))
+      error_message = "Must use either replication_specs_new or replication_specs, not both."
+    }
+```
+- Use a conditional for`replication_specs` in `resource "mongodbatlas_advanced_cluster" "this"`:
+```terraform
+  # other attributes...
+  replication_specs      = local.use_new_replication_specs ? var.replication_specs_new : local.replication_specs_old
+  tags                   = var.tags
+}
+```
+- Use `count` for data source to avoid error when Asymmetric Shards are used:
+```terraform
+data "mongodbatlas_cluster" "this" {
+  count      = local.use_new_replication_specs ? 0 : 1 # Not safe when Asymmetric Shards are used
+  name       = mongodbatlas_advanced_cluster.this.name
+  project_id = mongodbatlas_advanced_cluster.this.project_id
+
+  depends_on = [mongodbatlas_advanced_cluster.this]
+}
+```
+
+### [`outputs.tf`](v3/outputs.tf)
+- Update `replication_specs` and `mongodbatlas_cluster` to handle the case when the new schema is used:
+```terraform
+output "replication_specs" {
+  value       = local.use_new_replication_specs ? [] : data.mongodbatlas_cluster.this[0].replication_specs # updated
+  description = "Replication Specs for cluster, will be empty if var.replication_specs_new is set"
+}
+
+output "mongodbatlas_cluster" {
+  value       = local.use_new_replication_specs ? null : data.mongodbatlas_cluster.this[0] # updated
+  description = "Full cluster configuration for mongodbatlas_cluster resource, will be null if var.replication_specs_new is set"
+}
+```
