@@ -283,9 +283,6 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						"interval_min": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"mobile_number": schema.StringAttribute{
 							Optional: true,
