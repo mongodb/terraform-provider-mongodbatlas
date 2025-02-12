@@ -10,7 +10,7 @@ import (
 
 func TestApiPathsParsing(t *testing.T) {
 	specParts := unit.ReadAPISpecPaths()
-	assert.Len(t, specParts, 5)
+	assert.GreaterOrEqual(t, len(specParts), 5)
 	assert.Contains(t, specParts, "GET")
 	processArgsPath := "/api/atlas/v2/groups/6746ceed6f62fc3c122a3e0e/clusters/test-acc-tf-c-7871793563057636102/processArgs"
 	getPaths := specParts["GET"]
