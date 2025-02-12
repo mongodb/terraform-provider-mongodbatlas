@@ -375,7 +375,7 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf' }}
     env:
-      MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
+      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ENABLED: 'true'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -412,7 +412,7 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' && inputs.reduced_tests == false }}
     env:
-      MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
+      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ENABLED: 'true'
     strategy:
       max-parallel: 2
       fail-fast: false
