@@ -390,9 +390,9 @@ jobs:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
       - name: Prepare new advanced_cluster
-        run: make tools enable-advancedclustertpf  
-      - name: Unit tests # delete after allowAdvancedClusterV2Schema is removed
-        run: go test -v ./internal/testutil/acc/advanced_cluster_schema_v2_test.go
+        run: make tools enable-preview-provider-v2  
+      - name: Unit tests # delete after allowPreviewProviderV2 is removed
+        run: go test -v ./internal/testutil/acc/advanced_cluster_preview_provider_v2_test.go
       - name: Mocked Acceptance Tests
         env:
           ACCTEST_REGEX_RUN: '^TestAccMockable'
@@ -433,7 +433,7 @@ jobs:
           terraform_version: ${{ matrix.terraform_version }}
           terraform_wrapper: false  
       - name: Prepare new advanced_cluster
-        run: make tools enable-advancedclustertpf  
+        run: make tools enable-preview-provider-v2  
       - name: Acceptance Tests
         env:
           ACCTEST_REGEX_RUN: '^TestAccAdvancedCluster_move'

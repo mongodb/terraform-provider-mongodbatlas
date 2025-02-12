@@ -191,9 +191,9 @@ check-changelog-entry-file: ## Check a changelog entry file in a PR
 jira-release-version: ## Update Jira version in a release
 	go run ./tools/jira-release-version/*.go
 
-.PHONY: enable-advancedclustertpf
-enable-advancedclustertpf: ## Enable Advanced Cluster V2 Schema
-	make change-lines filename=./internal/config/advanced_cluster_v2_schema.go find="allowAdvancedClusterV2Schema = false" new="allowAdvancedClusterV2Schema = true"
+.PHONY: enable-preview-provider-v2
+enable-preview-provider-v2: ## Enable Preview Provider V2
+	make change-lines filename=./internal/config/advanced_cluster_preview_provider_v2.go find="allowPreviewProviderV2 = false" new="allowPreviewProviderV2 = true"
 
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:

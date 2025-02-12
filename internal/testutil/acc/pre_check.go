@@ -21,8 +21,8 @@ func PreCheckBasic(tb testing.TB) {
 
 func SkipIfAdvancedClusterV2Schema(tb testing.TB) {
 	tb.Helper()
-	if config.AdvancedClusterV2Schema() {
-		tb.Skip("Skipping test in AdvancedClusterV2Schema as implementation is pending or test is not applicable")
+	if config.PreviewProviderV2() {
+		tb.Skip("Skipping test in PreviewProviderV2 as implementation is pending or test is not applicable")
 	}
 }
 

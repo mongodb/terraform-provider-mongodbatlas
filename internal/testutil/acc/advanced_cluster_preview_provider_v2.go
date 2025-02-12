@@ -14,58 +14,58 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func CheckRSAndDSSchemaV2(isAcc bool, resourceName string, dataSourceName, pluralDataSourceName *string, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
-	modifiedSet := ConvertToSchemaV2AttrsSet(isAcc, attrsSet)
-	modifiedMap := ConvertToSchemaV2AttrsMap(isAcc, attrsMap)
+func CheckRSAndDSPreviewProviderV2(isAcc bool, resourceName string, dataSourceName, pluralDataSourceName *string, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	modifiedSet := ConvertToPreviewProviderV2AttrsSet(isAcc, attrsSet)
+	modifiedMap := ConvertToPreviewProviderV2AttrsMap(isAcc, attrsMap)
 	return CheckRSAndDS(resourceName, dataSourceName, pluralDataSourceName, modifiedSet, modifiedMap, extra...)
 }
 
-func TestCheckResourceAttrSchemaV2(isAcc bool, name, key, value string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttr(name, AttrNameToSchemaV2(isAcc, key), value)
+func TestCheckResourceAttrPreviewProviderV2(isAcc bool, name, key, value string) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttr(name, AttrNameToPreviewProviderV2(isAcc, key), value)
 }
 
-func TestCheckResourceAttrSetSchemaV2(isAcc bool, name, key string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(name, AttrNameToSchemaV2(isAcc, key))
+func TestCheckResourceAttrSetPreviewProviderV2(isAcc bool, name, key string) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttrSet(name, AttrNameToPreviewProviderV2(isAcc, key))
 }
 
-func TestCheckResourceAttrWithSchemaV2(isAcc bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrWith(name, AttrNameToSchemaV2(isAcc, key), checkValueFunc)
+func TestCheckResourceAttrWithPreviewProviderV2(isAcc bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttrWith(name, AttrNameToPreviewProviderV2(isAcc, key), checkValueFunc)
 }
 
-func TestCheckTypeSetElemNestedAttrsSchemaV2(isAcc bool, name, key string, values map[string]string) resource.TestCheckFunc {
-	return resource.TestCheckTypeSetElemNestedAttrs(name, AttrNameToSchemaV2(isAcc, key), values)
+func TestCheckTypeSetElemNestedAttrsPreviewProviderV2(isAcc bool, name, key string, values map[string]string) resource.TestCheckFunc {
+	return resource.TestCheckTypeSetElemNestedAttrs(name, AttrNameToPreviewProviderV2(isAcc, key), values)
 }
 
-func AddAttrChecksSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
-	return AddAttrChecks(name, checks, ConvertToSchemaV2AttrsMap(isAcc, mapChecks))
+func AddAttrChecksPreviewProviderV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
+	return AddAttrChecks(name, checks, ConvertToPreviewProviderV2AttrsMap(isAcc, mapChecks))
 }
 
-func AddAttrSetChecksSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
-	return AddAttrSetChecks(name, checks, ConvertToSchemaV2AttrsSet(isAcc, attrNames)...)
+func AddAttrSetChecksPreviewProviderV2(isAcc bool, name string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
+	return AddAttrSetChecks(name, checks, ConvertToPreviewProviderV2AttrsSet(isAcc, attrNames)...)
 }
 
-func AddAttrChecksPrefixSchemaV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string, prefix string, skipNames ...string) []resource.TestCheckFunc {
-	return AddAttrChecksPrefix(name, checks, ConvertToSchemaV2AttrsMap(isAcc, mapChecks), prefix, skipNames...)
+func AddAttrChecksPrefixPreviewProviderV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string, prefix string, skipNames ...string) []resource.TestCheckFunc {
+	return AddAttrChecksPrefix(name, checks, ConvertToPreviewProviderV2AttrsMap(isAcc, mapChecks), prefix, skipNames...)
 }
 
-func ConvertToSchemaV2AttrsMap(isAcc bool, attrsMap map[string]string) map[string]string {
-	if skipSchemaV2Work(isAcc) {
+func ConvertToPreviewProviderV2AttrsMap(isAcc bool, attrsMap map[string]string) map[string]string {
+	if skipPreviewProviderV2Work(isAcc) {
 		return attrsMap
 	}
 	ret := make(map[string]string, len(attrsMap))
 	for name, value := range attrsMap {
-		ret[AttrNameToSchemaV2(isAcc, name)] = value
+		ret[AttrNameToPreviewProviderV2(isAcc, name)] = value
 	}
 	return ret
 }
 
-func ConvertToSchemaV2AttrsSet(isAcc bool, attrsSet []string) []string {
-	if skipSchemaV2Work(isAcc) {
+func ConvertToPreviewProviderV2AttrsSet(isAcc bool, attrsSet []string) []string {
+	if skipPreviewProviderV2Work(isAcc) {
 		return attrsSet
 	}
 	ret := make([]string, 0, len(attrsSet))
 	for _, name := range attrsSet {
-		ret = append(ret, AttrNameToSchemaV2(isAcc, name))
+		ret = append(ret, AttrNameToPreviewProviderV2(isAcc, name))
 	}
 	return ret
 }
@@ -81,8 +81,8 @@ var tpfSingleNestedAttrs = []string{
 	"timeouts",
 }
 
-func AttrNameToSchemaV2(isAcc bool, name string) string {
-	if skipSchemaV2Work(isAcc) {
+func AttrNameToPreviewProviderV2(isAcc bool, name string) string {
+	if skipPreviewProviderV2Work(isAcc) {
 		return name
 	}
 	for _, singleAttrName := range tpfSingleNestedAttrs {
@@ -91,9 +91,9 @@ func AttrNameToSchemaV2(isAcc bool, name string) string {
 	return name
 }
 
-func ConvertAdvancedClusterToSchemaV2(t *testing.T, isAcc bool, def string) string {
+func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, isAcc bool, def string) string {
 	t.Helper()
-	if skipSchemaV2Work(isAcc) {
+	if skipPreviewProviderV2Work(isAcc) {
 		return def
 	}
 	parse := hcl.GetDefParser(t, def)
@@ -116,8 +116,8 @@ func ConvertAdvancedClusterToSchemaV2(t *testing.T, isAcc bool, def string) stri
 	return string(content)
 }
 
-func skipSchemaV2Work(isAcc bool) bool {
-	return !config.AdvancedClusterV2Schema() || !isAcc
+func skipPreviewProviderV2Work(isAcc bool) bool {
+	return !config.PreviewProviderV2() || !isAcc
 }
 
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {

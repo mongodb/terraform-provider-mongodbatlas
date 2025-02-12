@@ -60,7 +60,7 @@ func TestStepImportCluster(resourceName string, ignorePrefixFields ...string) re
 	// auto_scaling & specs (electable_specs, read_only_specs, etc.) are only set in state in SDKv2 if present in the definition.
 	// However, as import doesn't have a previous state to compare with, import will always fill them.
 	// This will make these fields differ in the state, although the plan change won't be shown to the user as they're computed values.
-	if !config.AdvancedClusterV2Schema() {
+	if !config.PreviewProviderV2() {
 		ignorePrefixFields = append(ignorePrefixFields, "replication_specs", "id") // TenantUpgrade changes the ID and can make the test flaky
 	}
 	return resource.TestStep{
@@ -139,7 +139,7 @@ func CheckFCVPinningConfig(isAcc bool, resourceName, dataSourceName, pluralDataS
 
 	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
 
-	return CheckRSAndDSSchemaV2(isAcc, resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
+	return CheckRSAndDSPreviewProviderV2(isAcc, resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
 }
 
 func CheckIndependentShardScalingMode(resourceName, clusterName, expectedMode string) resource.TestCheckFunc {
