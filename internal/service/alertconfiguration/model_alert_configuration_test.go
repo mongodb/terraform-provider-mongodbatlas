@@ -7,7 +7,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 const (
@@ -89,13 +89,13 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 func TestMetricThresholdSDKToTFModel(t *testing.T) {
 	testCases := []struct {
 		name                        string
-		SDKResp                     *admin.ServerlessMetricThreshold
+		SDKResp                     *admin.FlexClusterMetricThreshold
 		currentStateMetricThreshold []alertconfiguration.TfMetricThresholdConfigModel
 		expectedTFModel             []alertconfiguration.TfMetricThresholdConfigModel
 	}{
 		{
 			name: "Complete SDK response",
-			SDKResp: &admin.ServerlessMetricThreshold{
+			SDKResp: &admin.FlexClusterMetricThreshold{
 				MetricName: "ASSERT_REGULAR",
 				Operator:   admin.PtrString(operator),
 				Threshold:  admin.PtrFloat64(threshold),
@@ -338,7 +338,7 @@ func TestThresholdTFModelToSDK(t *testing.T) {
 func TestMetricThresholdTFModelToSDK(t *testing.T) {
 	testCases := []struct {
 		name           string
-		expectedSDKReq *admin.ServerlessMetricThreshold
+		expectedSDKReq *admin.FlexClusterMetricThreshold
 		tfModel        []alertconfiguration.TfMetricThresholdConfigModel
 	}{
 		{
@@ -357,7 +357,7 @@ func TestMetricThresholdTFModelToSDK(t *testing.T) {
 					Mode:       types.StringValue(mode),
 				},
 			},
-			expectedSDKReq: &admin.ServerlessMetricThreshold{
+			expectedSDKReq: &admin.FlexClusterMetricThreshold{
 				MetricName: "ASSERT_REGULAR",
 				Operator:   admin.PtrString(operator),
 				Threshold:  admin.PtrFloat64(threshold),
