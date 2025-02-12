@@ -2,11 +2,10 @@ package alertconfiguration
 
 import (
 	"context"
-	"net/http"
 	"reflect"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -22,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -283,9 +283,6 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						"interval_min": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"mobile_number": schema.StringAttribute{
 							Optional: true,
@@ -432,7 +429,7 @@ func (r *alertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 	alert, getResp, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID]).Execute()
 	if err != nil {
 		// deleted in the backend case
-		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

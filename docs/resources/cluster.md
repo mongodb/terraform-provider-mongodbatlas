@@ -538,7 +538,7 @@ To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-t
 In addition to all arguments above, the following attributes are exported:
 
 * `cluster_id` - The cluster ID.
-*  `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
+* `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
 * `id` -  The Terraform's unique identifier used internally for state management.
 * `mongo_uri` - Base connection string for the cluster. Atlas only displays this field after the cluster is operational, not while it builds the cluster.
 * `mongo_uri_updated` - Lists when the connection string was last updated. The connection string changes, for example, if you change a replica set to a sharded cluster.
@@ -571,6 +571,7 @@ In addition to all arguments above, the following attributes are exported:
     - DELETING
     - DELETED
     - REPAIRING
+* `pinned_fcv.version` - Feature compatibility version of the cluster.
 
 ### Cloud Backup Policy
 

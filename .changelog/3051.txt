@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_alert_configuration: Removes UseStateForUnknown plan modifier for interval_min
+```
