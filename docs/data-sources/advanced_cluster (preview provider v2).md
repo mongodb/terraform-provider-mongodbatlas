@@ -2,7 +2,7 @@
 
 `mongodbatlas_advanced_cluster` describes an Advanced Cluster. The data source requires your Project ID.
 
-This doc is for the `Preview for MongoDB Atlas Provider v2` of `mongodbatlas_advanced_cluster`, doc for current version can be found [here](./advanced_cluster). In order to enable the Preview, you must set the enviroment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`, otherwise the current version will be used.
+This doc is for the **Preview for MongoDB Atlas Provider v2** of `mongodbatlas_advanced_cluster`, doc for current version can be found [here](./advanced_cluster). In order to enable the Preview, you must set the enviroment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`, otherwise the current version will be used.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
