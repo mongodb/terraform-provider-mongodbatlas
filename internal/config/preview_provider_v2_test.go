@@ -8,6 +8,6 @@ import (
 )
 
 func TestAdvancedClusterV2Schema_notEnabled(t *testing.T) {
-	t.Setenv(config.PreviewProviderV2EnvVar, "true")
-	assert.False(t, config.PreviewProviderV2(), "PreviewProviderV2 can't be enabled yet")
+	t.Setenv(config.PreviewProviderV2AdvancedClusterEnvVar, "true")
+	assert.False(t, config.PreviewProviderV2AdvancedCluster(), "PreviewProviderV2AdvancedCluster can't be enabled yet")
 }

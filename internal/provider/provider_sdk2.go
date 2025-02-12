@@ -213,7 +213,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_shared_tier_snapshot":                                         sharedtier.DataSourceSnapshot(),
 		"mongodbatlas_shared_tier_snapshots":                                        sharedtier.PluralDataSourceSnapshot(),
 	}
-	if !config.PreviewProviderV2() {
+	if !config.PreviewProviderV2AdvancedCluster() {
 		dataSourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.DataSource()
 		dataSourcesMap["mongodbatlas_advanced_clusters"] = advancedcluster.PluralDataSource()
 	}
@@ -268,7 +268,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_serverless_instance":                                         serverlessinstance.Resource(),
 		"mongodbatlas_cluster_outage_simulation":                                   clusteroutagesimulation.Resource(),
 	}
-	if !config.PreviewProviderV2() {
+	if !config.PreviewProviderV2AdvancedCluster() {
 		resourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.Resource()
 	}
 	return resourcesMap

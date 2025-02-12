@@ -50,7 +50,7 @@ testmact: ## Run MacT tests (mocked acc tests)
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
-	@$(eval export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ENABLED?=true)
+	@$(eval export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER?=true)
 	@if [ "$(ACCTEST_PACKAGES)" = "./..." ]; then \
 		echo "Error: ACCTEST_PACKAGES must be explicitly set for testmact target, './...' is not allowed"; \
 		exit 1; \
@@ -193,7 +193,7 @@ jira-release-version: ## Update Jira version in a release
 
 .PHONY: enable-preview-provider-v2
 enable-preview-provider-v2: ## Enable Preview Provider V2
-	make change-lines filename=./internal/config/preview_provider_v2.go find="allowPreviewProviderV2 = false" new="allowPreviewProviderV2 = true"
+	make change-lines filename=./internal/config/preview_provider_v2.go find="allowPreviewProviderV2AdvancedCluster = false" new="allowPreviewProviderV2AdvancedCluster = true"
 
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:

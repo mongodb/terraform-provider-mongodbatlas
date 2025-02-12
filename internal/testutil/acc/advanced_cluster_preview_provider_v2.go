@@ -117,7 +117,7 @@ func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, isAcc bool, def str
 }
 
 func skipPreviewProviderV2Work(isAcc bool) bool {
-	return !config.PreviewProviderV2() || !isAcc
+	return !config.PreviewProviderV2AdvancedCluster() || !isAcc
 }
 
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {

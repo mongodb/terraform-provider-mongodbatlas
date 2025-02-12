@@ -375,7 +375,7 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf' }}
     env:
-      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ENABLED: 'true'
+      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -391,7 +391,7 @@ jobs:
           terraform_wrapper: false  
       - name: Prepare new advanced_cluster
         run: make tools enable-preview-provider-v2  
-      - name: Unit tests # delete after allowPreviewProviderV2 is removed
+      - name: Unit tests # delete after allowPreviewProviderV2AdvancedCluster is removed
         run: go test -v ./internal/testutil/acc/advanced_cluster_preview_provider_v2_test.go
       - name: Mocked Acceptance Tests
         env:
@@ -412,7 +412,7 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' && inputs.reduced_tests == false }}
     env:
-      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ENABLED: 'true'
+      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
     strategy:
       max-parallel: 2
       fail-fast: false

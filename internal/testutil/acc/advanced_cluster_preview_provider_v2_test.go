@@ -10,8 +10,8 @@ import (
 )
 
 func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
-	if !config.PreviewProviderV2() {
-		t.Skip("Skipping test as not in PreviewProviderV2")
+	if !config.PreviewProviderV2AdvancedCluster() {
+		t.Skip("Skipping test as not in PreviewProviderV2AdvancedCluster")
 	}
 	attrsMap := map[string]string{
 		"attr":                            "val1",
@@ -45,8 +45,8 @@ func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
 }
 
 func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
-	if !config.PreviewProviderV2() {
-		t.Skip("Skipping test as not in PreviewProviderV2")
+	if !config.PreviewProviderV2AdvancedCluster() {
+		t.Skip("Skipping test as not in PreviewProviderV2AdvancedCluster")
 	}
 	var (
 		input = `
