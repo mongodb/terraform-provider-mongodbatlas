@@ -1,4 +1,4 @@
-# Resource User - `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
+# Basic Migration from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
 The purpose of this example is to show how a MongoDB Atlas Provider user can migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
 In this example we use specific files, but the same approach can be applied to any workspace with `mongodbatlas_cluster` resource(s).
