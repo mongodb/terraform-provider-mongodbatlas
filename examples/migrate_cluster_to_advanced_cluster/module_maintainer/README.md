@@ -11,16 +11,17 @@ Step | Purpose | Variables | Resources
 [Step 3](./v3) | Use the latest features of advanced_cluster | 10 | `mongodbatlas_advanced_cluster`
 
 The rest of this document summarizes the different implementations:
-- [Step 1: `v1` Implementation Summary](#step-1-v1-implementation-summary)
+
+- [Step 1: Module `v1` Implementation Summary](#step-1-module-v1-implementation-summary)
   - [`variables.tf`](#variablestf)
   - [`main.tf`](#maintf)
   - [`outputs.tf`](#outputstf)
-- [Step 2: `v2` Implementation Changes and Highlights](#step-2-v2-implementation-changes-and-highlights)
+- [Step 2: Module `v2` Implementation Changes and Highlights](#step-2-module-v2-implementation-changes-and-highlights)
   - [`variables.tf` unchanged from `v1`](#variablestf-unchanged-from-v1)
   - [`versions.tf`](#versionstf)
   - [`main.tf`](#maintf-1)
   - [`outputs.tf`](#outputstf-1)
-- [Step 3: `v3` Implementation Changes and Highlights](#step-3-v3-implementation-changes-and-highlights)
+- [Step 3: Module `v3` Implementation Changes and Highlights](#step-3-module-v3-implementation-changes-and-highlights)
   - [`variables.tf`](#variablestf-1)
   - [`main.tf`](#maintf-2)
   - [`outputs.tf`](#outputstf-2)
