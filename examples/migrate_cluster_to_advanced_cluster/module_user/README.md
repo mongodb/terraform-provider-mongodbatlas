@@ -1,64 +1,86 @@
 # Module User - `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
-The purpose of this example is to demonstrate the User experience when upgrading `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
+The purpose of this example is to demonstrate the User experience when migrating from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
+Each module call represent a step on the migration path.
+The example focus on the call of the module rather than the module implementation itself (see the [module maintainer README.md](../module_maintainer/README.md) for the implementation details)
 
-Module Version | `mongodbatlas` version | Config Changes | Plan Changes
+Migration Step Code | `mongodbatlas` version | Config Changes | Plan Changes
 --- | --- | --- | ---
-[v1](./v1) | <= PLACEHOLDER_TPF_RELEASE | Baseline configuration | -
-[v2](./v2) | >= PLACEHOLDER_TPF_RELEASE | Only change to `v2` module version | No changes. Only moved.
-[v3](./v3) | >= PLACEHOLDER_TPF_RELEASE | Usage of new variables to support multi-cloud and independent shard scaling | Yes (new features)
+[Step 1](./v1) | `<= 1.27.0` | Baseline configuration | -
+[Step 2](./v2) | `>= 1.27.0` | Only change to `v2` module version | No changes. Only moved.
+[Step 3](./v3) | `>= 1.27.0` | Usage of new variables to support multi-cloud and independent shard scaling | Yes (new features)
+
+
+The rest of this example is a step by step guide on how to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`:
+
+- [Dependencies](#dependencies)
+- [Step 1: Create the `mongodbatlas_cluster` with `v1` of the module](#step-1-create-the-mongodbatlas_cluster-with-v1-of-the-module)
+  - [Update `v1_v2.tfvars`](#update-v1_v2tfvars)
+  - [Run Commands](#run-commands)
+- [Step 2: Upgrade to `mongodbatlas_advanced_cluster` by using `v2` of the module](#step-2-upgrade-to-mongodbatlas_advanced_cluster-by-using-v2-of-the-module)
+- [Step 3: Use the latest `mongodbatlas_advanced_cluster` features by using `v3` of the module](#step-3-use-the-latest-mongodbatlas_advanced_cluster-features-by-using-v3-of-the-module)
+  - [Update `v3.tfvars`](#update-v3tfvars)
+  - [Run commands](#run-commands-1)
+- [Cleanup with `terraform destroy`](#cleanup-with-terraform-destroy)
+
 
 
 ## Dependencies
 <!-- TODO: Update XX versions -->
 <!-- TODO: Update the `versions.tf` inside each vX -->
-* Terraform CLI >= 1.X
-* Terraform MongoDB Atlas Provider v1.XX.0
-* A MongoDB Atlas account
-* Configure the provider (can also be done by configuring `public_key` and `private_key` in a `provider.tfvars`)
+- Terraform CLI >= 1.X
+- Terraform MongoDB Atlas Provider `>=v1.27.0`
+- A MongoDB Atlas account
+- Configure the provider (can also be done by configuring `public_key` and `private_key` in a `provider.tfvars`)
 
 ```bash
 export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
 export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
 ```
 
-## Usage
-* These steps show example of calling the modules in [../module_maintainer](../module_maintainer/).
-* To follow the steps and use the same cluster you need to use a remote state or copy the `terraform.tfstate` file when switching from `vx` to `vy` (e.g., `v1` to `v2`)
+## Step 1: Create the `mongodbatlas_cluster` with `v1` of the module
 
 ### Update `v1_v2.tfvars`
 See the example in [v1_v2.tfvars](v1_v2.tfvars)
 
-### `v1`
-
+### Run Commands
 ```bash
 cd v1
 terraform init
 terraform apply -var-file=../v1_v2.tfvars
 ```
 
-### `v2`
+## Step 2: Upgrade to `mongodbatlas_advanced_cluster` by using `v2` of the module
 
 ```bash
 cd v2
+cp ../v1/terraform.tfstate . # if you are not using a remote state
 export MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true # necessary for the `moved` block to work
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
 terraform apply -var-file=../v1_v2.tfvars # notice the same variables used as in `v1`
 ```
+In the plan output, you should see a line simlar to:
+```text
+# module.cluster.mongodbatlas_cluster.this has moved to module.cluster.mongodbatlas_advanced_cluster.this
+```
+
+
+
+## Step 3: Use the latest `mongodbatlas_advanced_cluster` features by using `v3` of the module
 
 ### Update `v3.tfvars`
 See the example in [v3.tfvars](v3.tfvars)
 
-### `v3`
-
+### Run commands
 ```bash
 cd v3
+cp ../v2/terraform.tfstate . # if you are not using a remote state
 export MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true # necessary for the `moved` block to work
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
 terraform apply -var-file=../v3.tfvars # updated variables to enable latest mongodb_advanced_cluster features
 ```
 
-### Cleanup with `terraform destroy`
+## Cleanup with `terraform destroy`
 
 ```bash
 terraform destroy
