@@ -2,7 +2,6 @@ package project
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"reflect"
@@ -418,14 +417,9 @@ func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI adm
 }
 
 func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (bool, error) {
-	_, response, err := api.GetManagedSlowMs(ctx, projectID).Execute()
+	isEnabled, _, err := api.GetManagedSlowMs(ctx, projectID).Execute()
 	if err != nil {
 		return false, err
-	}
-	var isEnabled bool
-	err = json.NewDecoder(response.Body).Decode(&isEnabled)
-	if err != nil {
-		return false, fmt.Errorf("error reading is_slow_operation_thresholding_enabled body %w", err)
 	}
 	return isEnabled, nil
 }
