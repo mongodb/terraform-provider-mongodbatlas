@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -211,9 +212,92 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return diag.Errorf("Updating a global cluster configuration resource is not allowed as it would " +
-		"leave the index and shard key on the related collection in an inconsistent state.\n" +
-		"Please read our official documentation for more information.")
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	ids := conversion.DecodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	if d.HasChange("managed_namespaces") {
+		old, newMN := d.GetChange("managed_namespaces")
+		oldList := old.(*schema.Set).List()
+		newList := newMN.(*schema.Set).List()
+
+		// Build maps keyed by composite key: "collection:db"
+		oldMap := buildManagedNamespacesMap(oldList)
+		newMap := buildManagedNamespacesMap(newList)
+
+		var toRemove []map[string]any
+		var toAdd []map[string]any
+
+		// Check for modifications or removals
+		for key, oldEntry := range oldMap {
+			if newEntry, exists := newMap[key]; exists {
+				// Modification detected: key exists but value differs.
+				if !reflect.DeepEqual(oldEntry, newEntry) {
+					return diag.FromErr(fmt.Errorf("managed namespace for collection '%s' in db '%s' cannot be modified; remove it and add a new entry instead", oldEntry["collection"], oldEntry["db"]))
+				}
+			} else {
+				toRemove = append(toRemove, oldEntry)
+			}
+		}
+		// Check for pure additions
+		for key, newEntry := range newMap {
+			if _, exists := oldMap[key]; !exists {
+				toAdd = append(toAdd, newEntry)
+			}
+		}
+
+		if len(toRemove) > 0 {
+			if err := removeManagedNamespaces(ctx, connV2, convertInterfaceSlice(toRemove), projectID, clusterName); err != nil {
+				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
+			}
+		}
+		if len(toAdd) > 0 {
+			if err := addManagedNamespaces(ctx, connV2, convertInterfaceSlice(toAdd), projectID, clusterName); err != nil {
+				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
+			}
+		}
+	}
+
+	if d.HasChange("custom_zone_mappings") {
+		old, newZN := d.GetChange("custom_zone_mappings")
+		oldSet := old.(*schema.Set)
+		newSet := newZN.(*schema.Set)
+
+		removed := oldSet.Difference(newSet).List()
+		added := newSet.Difference(oldSet).List()
+
+		if len(removed) > 0 {
+			// Allow deletion only if all mappings are deleted
+			if newSet.Len() == 0 {
+				if _, _, err := connV2.GlobalClustersApi.DeleteAllCustomZoneMappings(ctx, projectID, clusterName).Execute(); err != nil {
+					return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
+				}
+			} else {
+				// Partial deletion is not allowed
+				return diag.FromErr(fmt.Errorf("partial deletion of custom_zone_mappings is not allowed; remove either all mappings or none"))
+			}
+		}
+
+		// Allow addition of new custom_zone_mappings.
+		if len(added) > 0 {
+			if _, _, err := connV2.GlobalClustersApi.CreateCustomZoneMapping(ctx, projectID, clusterName, &admin.CustomZoneMappings{
+				CustomZoneMappings: newCustomZoneMappings(added),
+			}).Execute(); err != nil {
+				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
+			}
+		}
+	}
+	return resourceRead(ctx, d, meta)
+}
+
+// Helper function to convert []map[string]any into []any
+func convertInterfaceSlice(input []map[string]any) []any {
+	var out []any
+	for _, v := range input {
+		out = append(out, v)
+	}
+	return out
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -334,4 +418,38 @@ func newCustomZoneMappings(tfList []any) *[]admin.ZoneMapping {
 	}
 
 	return &apiObjects
+}
+
+func addManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, add []any, projectID, clusterName string) error {
+	for _, m := range add {
+		mn := m.(map[string]any)
+
+		addManagedNamespace := &admin.ManagedNamespaces{
+			Collection:     mn["collection"].(string),
+			Db:             mn["db"].(string),
+			CustomShardKey: mn["custom_shard_key"].(string),
+		}
+		if isCustomShardKeyHashed, okCustomShard := mn["is_custom_shard_key_hashed"]; okCustomShard {
+			addManagedNamespace.IsCustomShardKeyHashed = conversion.Pointer[bool](isCustomShardKeyHashed.(bool))
+		}
+		if isShardKeyUnique, okShard := mn["is_shard_key_unique"]; okShard {
+			addManagedNamespace.IsShardKeyUnique = conversion.Pointer[bool](isShardKeyUnique.(bool))
+		}
+		_, _, err := connV2.GlobalClustersApi.CreateManagedNamespace(ctx, projectID, clusterName, addManagedNamespace).Execute()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// buildManagedNamespacesMap converts a list of managed_namespace entries into a map keyed by "collection:db"
+func buildManagedNamespacesMap(list []any) map[string]map[string]any {
+	namespacesMap := make(map[string]map[string]any)
+	for _, item := range list {
+		m := item.(map[string]any)
+		key := fmt.Sprintf("%s:%s", m["collection"].(string), m["db"].(string))
+		namespacesMap[key] = m
+	}
+	return namespacesMap
 }
