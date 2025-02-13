@@ -55,7 +55,7 @@ terraform apply -var-file=../v1_v2.tfvars
 ```bash
 cd v2
 cp ../v1/terraform.tfstate . # if you are not using a remote state
-export MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true # necessary for the `moved` block to work
+export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true # necessary for the `moved` block to work
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
 terraform apply -var-file=../v1_v2.tfvars # notice the same variables used as in `v1`
 ```
@@ -75,7 +75,7 @@ See the example in [v3.tfvars](v3.tfvars)
 ```bash
 cd v3
 cp ../v2/terraform.tfstate . # if you are not using a remote state
-export MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true # necessary for the `moved` block to work
+export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true # necessary for the `moved` block to work
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
 terraform apply -var-file=../v3.tfvars # updated variables to enable latest mongodb_advanced_cluster features
 ```
