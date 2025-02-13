@@ -55,12 +55,11 @@ The module supports standalone usage when there is no existing `mongodbatlas_clu
 
 ### [`variables.tf`](v2/variables.tf) unchanged from `v1`
 ### [`versions.tf`](v2/versions.tf)
-- `required_version` of Terraform CLI bumped to `# todo: minimum moved block supported version` for `moved` block support
-- `mongodbatlas.version` bumped to `# todo: PLACEHOLDER_TPF_RELEASE` for new `mongodbatlas_advanced_cluster` v2 schema support
+- `required_version` of Terraform CLI bumped to `1.8` for `moved` block [support](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move) between resource types
+- `mongodbatlas.version` bumped to `1.27.0` for new `mongodbatlas_advanced_cluster` v2 schema support
 
 ### [`main.tf`](v2/main.tf)
-<!-- TODO: Update link to (schema v2) docs page -->
-- `locals.replication_specs` an intermediate variable transforming the `variables` to a compatible [replication_specs](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#replication_specs-1) for `mongodbatlas_advanced_cluster`
+- `locals.replication_specs` an intermediate variable transforming the `variables` to a compatible [replication_specs](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_clusters%2520%2528preview%2520provider%2520v2%2529#replication_specs-1) for `mongodbatlas_advanced_cluster`
   - We use the Terraform builtin [range](https://developer.hashicorp.com/terraform/language/functions/range) function (`range(old_spec.num_shards)`) to flatten `num_shards`
   - We expand `read_only_specs` and `electable_specs` into nested attributes
   - We use the `var.provider_name` in the `region_configs.*.instance_size`
