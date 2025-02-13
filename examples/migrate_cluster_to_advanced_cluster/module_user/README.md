@@ -64,14 +64,33 @@ In the plan output, you should see a line simlar to:
 # module.cluster.mongodbatlas_cluster.this has moved to module.cluster.mongodbatlas_advanced_cluster.this
 ```
 
-
-
 ## Step 3: Use the latest `mongodbatlas_advanced_cluster` features by using `v3` of the module
+
+### Update `v3_no_plan_changes`
+See the example in [`v3_no_plan_changes`](v3_no_plan_changes.tfvars)
+The example changes:
+1. Use the new `replication_specs_new` variable
+2. Remove old `replication_specs`, `provider_name`, `instance_size`, `disk_size` variables
+
+### Run `terraform plan` to ensure there are no plan changes
+```bash
+cd v3
+cp ../v2/terraform.tfstate . # if you are not using a remote state
+export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true # necessary for the `moved` block to work
+terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
+terraform plan -var-file=../v3_no_plan_changes.tfvars # updated variables to enable latest mongodb_advanced_cluster features
+```
 
 ### Update `v3.tfvars`
 See the example in [v3.tfvars](v3.tfvars)
+The example changes:
+1. Increase `disk_size_gb` from `40` -> `50`
+2. New `read_only_specs`
+3. Increased `instance_size`:
+   1. In shard 1 from `M10` -> `M30`
+   1. In shard 2 from `M10` -> `M50`
 
-### Run commands
+### Run `terraform apply` to upgrade the cluster to an Asymmetric Sharded Cluster
 ```bash
 cd v3
 cp ../v2/terraform.tfstate . # if you are not using a remote state
