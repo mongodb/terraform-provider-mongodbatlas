@@ -81,6 +81,6 @@ done
 # TODO: remove this after releasing TPF
 if $V2_SCHEMA_DISABLED; then
   echo "restoring Advanced Cluster V2 Schema"
-  git restore ./internal/config/advanced_cluster_v2_schema.go
+  git restore ./internal/config/preview_provider_v2.go
 fi
 # end TODO
