@@ -15,5 +15,6 @@ module "cluster" {
 }
 
 output "mongodb_connection_strings" {
-  value = module.cluster.mongodb_connection_strings
+  description = "Collection of Uniform Resource Locators that point to the MongoDB database."
+  value       = module.cluster.mongodb_connection_strings
 }
