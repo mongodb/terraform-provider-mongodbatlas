@@ -3,12 +3,11 @@
 The purpose of this example is to demonstrate how a Terraform module can help in the migration from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
 The example contains three module versions which represent the three steps of the migration:
 
-<!-- Update Variable count -->
-Step | Purpose | Variables | Resources
+Step | Purpose | Resources
 --- | --- | --- | ---
-[Step 1](./v1) | Baseline | 5 | `mongodbatlas_cluster`
-[Step 2](./v2) | Migrate to advanced_cluster with no change in variables or plan | 5 | `mongodbatlas_advanced_cluster`
-[Step 3](./v3) | Use the latest features of advanced_cluster | 10 | `mongodbatlas_advanced_cluster`
+[Step 1](./v1) | Baseline | `mongodbatlas_cluster`
+[Step 2](./v2) | Migrate to advanced_cluster with no change in variables or plan | `mongodbatlas_advanced_cluster`
+[Step 3](./v3) | Use the latest features of advanced_cluster | `mongodbatlas_advanced_cluster`
 
 The rest of this document summarizes the different implementations:
 
@@ -51,8 +50,7 @@ output "mongodbatlas_cluster" {
 ```
 
 ## Step 2: Module `v2` Implementation Changes and Highlights
-This module use hcl code to create a `mongodbatlas_advanced_cluster` compatible with the input variables of `v1`.
-It uses a [moved block](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#moved-block-syntax) to support migrating from `mongodbatlas_cluster` without deleting any actual resources.
+This module uses HCL code to create a `mongodbatlas_advanced_cluster` resource that is compatible with the input variables of `v1`.
 
 ### [`variables.tf`](v2/variables.tf) unchanged from `v1`
 ### [`versions.tf`](v2/versions.tf)

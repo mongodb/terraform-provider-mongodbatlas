@@ -22,3 +22,8 @@ output "mongodbatlas_cluster" {
   value       = local.use_new_replication_specs ? null : data.mongodbatlas_cluster.this[0]
   description = "Full cluster configuration for mongodbatlas_cluster resource, will be null if var.replication_specs_new is set"
 }
+
+output "mongodbatlas_advanced_cluster" {
+  value       = data.mongodbatlas_cluster.this
+  description = "Full cluster configuration for mongodbatlas_advanced_cluster resource"
+}

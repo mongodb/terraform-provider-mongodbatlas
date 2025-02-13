@@ -5,5 +5,5 @@ terraform {
       version = "~> 1.26" # todo: PLACEHOLDER_TPF_RELEASE
     }
   }
-  required_version = ">= 1.0" # todo: minimum moved block supported version
+  required_version = ">= 1.8"
 }

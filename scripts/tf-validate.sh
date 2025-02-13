@@ -23,7 +23,7 @@ fi
 
 if $V2_SCHEMA_DISABLED; then
   echo "enabling Advanced Cluster V2 Schema"
-  make enable-advancedclustertpf
+  make enable-preview-provider-v2
 fi
 # end TODO
 
