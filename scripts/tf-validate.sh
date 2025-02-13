@@ -50,7 +50,7 @@ EOF
 # Function to check if directory is a V2 schema directory
 is_v2_dir() {
   local parent_dir="$1"
-  local v2_dirs=("module_maintainer" "module_user")
+  local v2_dirs=("module_maintainer" "module_user" "migrate_cluster_to_advanced_cluster")
   
   for dir in "${v2_dirs[@]}"; do
     if [[ $parent_dir =~ $dir ]]; then
