@@ -71,7 +71,7 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
 
   if is_v2_dir "$PARENT_DIR"; then
     echo "v2 schema detected for $DIR"
-    MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true terraform validate
+    MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true terraform validate
   else
     terraform validate
   fi
