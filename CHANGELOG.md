@@ -1,5 +1,16 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_alert_configuration: Removes UseStateForUnknown plan modifier for interval_min ([#3051](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3051))
+
+## 1.26.1 (February 07, 2025)
+
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster: Adds `PENDING` status for update and delete operations ([#3034](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3034))
+* resource/mongodbatlas_cluster: Adds `PENDING` status for update and delete operations ([#3034](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3034))
+
 ## 1.26.0 (January 23, 2025)
 
 FEATURES:

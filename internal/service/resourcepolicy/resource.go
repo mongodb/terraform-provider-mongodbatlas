@@ -4,14 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"regexp"
+
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 var _ resource.ResourceWithConfigure = &resourcePolicyRS{}
@@ -105,7 +107,7 @@ func (r *resourcePolicyRS) Read(ctx context.Context, req resource.ReadRequest, r
 	policySDK, apiResp, err := connV2.ResourcePoliciesApi.GetAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute()
 
 	if err != nil {
-		if apiResp != nil && apiResp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

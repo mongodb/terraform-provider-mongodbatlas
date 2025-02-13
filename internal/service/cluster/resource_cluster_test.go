@@ -9,7 +9,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1023,7 +1023,7 @@ func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 func TestAccCluster_tenant(t *testing.T) {
 	var (
 		resourceName           = "mongodbatlas_cluster.tenant"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1032,12 +1032,12 @@ func TestAccCluster_tenant(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(projectID, clusterName, "M2", "2"),
+				Config: configTenant(projectID, clusterName, "M5", "5"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "2"),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "5"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 				),
 			},
