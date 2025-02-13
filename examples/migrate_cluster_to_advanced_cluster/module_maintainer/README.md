@@ -51,6 +51,7 @@ output "mongodbatlas_cluster" {
 
 ## Step 2: Module `v2` Implementation Changes and Highlights
 This module uses HCL code to create a `mongodbatlas_advanced_cluster` resource that is compatible with the input variables of `v1`.
+The module supports standalone usage when there is no existing `mongodbatlas_cluster` and also upgrading from `v1` using a `moved` block.
 
 ### [`variables.tf`](v2/variables.tf) unchanged from `v1`
 ### [`versions.tf`](v2/versions.tf)
@@ -83,6 +84,8 @@ moved {
 
 ## Step 3: Module `v3` Implementation Changes and Highlights
 This module adds variables to support the latest `mongodbatlas_advanced_cluster` features while staying compatible with the old input variables.
+The module supports standalone usage when there is no existing `mongodbatlas_cluster` and also upgrading from `v1` using a `moved` block.
+The module also supports changing an existing `mongodbatlas_advanced_cluster` created in `v2`.
 
 ### [`variables.tf`](v3/variables.tf)
 - Add `replication_specs_new`, this is almost a full mirror of the `replication_specs` of the latest `mongodbatlas_advanced_cluster` schema
