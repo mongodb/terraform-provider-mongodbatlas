@@ -209,7 +209,7 @@ func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 		Name:    clusterName,
 	}
 
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyCreatingState}, []string{retrystrategy.RetryStrategyIdleState})
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState})
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +235,7 @@ func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 		Name:    clusterName,
 	}
 
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState})
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState})
 	if err != nil {
 		return nil, err
 	}

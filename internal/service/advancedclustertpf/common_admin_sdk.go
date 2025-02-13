@@ -3,16 +3,18 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
-	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
 func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, usingNewShardingConfig bool) *admin.ClusterDescription20240805 {
@@ -168,7 +170,7 @@ func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, 
 	isFlex := false
 	clusterDesc, resp, err := client.AtlasV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound || admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
+		if validate.StatusNotFound(resp) || admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
 			return nil, nil
 		}
 		if isFlex = admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API"); !isFlex {
