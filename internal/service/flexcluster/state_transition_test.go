@@ -10,8 +10,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/mockadmin"
 )
 
 var (

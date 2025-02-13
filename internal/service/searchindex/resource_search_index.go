@@ -12,8 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 const (
@@ -307,7 +308,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	searchIndex, resp, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		// deleted in the backend case
-		if resp != nil && resp.StatusCode == 404 && !d.IsNewResource() {
+		if validate.StatusNotFound(resp) && !d.IsNewResource() {
 			d.SetId("")
 			return nil
 		}

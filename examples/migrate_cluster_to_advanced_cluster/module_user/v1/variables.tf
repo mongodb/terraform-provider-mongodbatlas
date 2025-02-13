@@ -59,7 +59,7 @@ variable "replication_specs" {
       region_name     = string
       electable_nodes = number
       priority        = number
-      read_only_nodes = number
+      read_only_nodes = optional(number, 0)
     }))
   }))
   default = [{
@@ -69,7 +69,6 @@ variable "replication_specs" {
       region_name     = "US_EAST_1"
       electable_nodes = 3
       priority        = 7
-      read_only_nodes = 0
     }]
   }]
 }
