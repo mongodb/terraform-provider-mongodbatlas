@@ -1452,7 +1452,7 @@ func configTenant(t *testing.T, isAcc bool, projectID, name, zoneName string) st
 func configTenantUpgradeToFlex(t *testing.T, isAcc bool, projectID, name string) string {
 	t.Helper()
 
-	return acc.ConvertAdvancedClusterToSchemaV2(t, isAcc, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
