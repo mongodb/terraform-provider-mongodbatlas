@@ -6,7 +6,7 @@
 
 -> **NOTE:** This resource can only be used with Atlas-managed clusters. See doc for `global_cluster_self_managed_sharding` attribute in [`mongodbatlas_advanced_cluster` resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) for more info.
 
-~> **IMPORTANT:** A Global Cluster Configuration can now be updated to add new custom zone mappings and managed namespaces. However, once configured, custom zone mappings cannot be modified or partially deleted (you must remove them all at once), and managed namespaces can be added or removed but cannot be modified. Any update that would change an existing managed namespace will result in an error. [Read more about Global Cluster Configuration](https://www.mongodb.com/docs/atlas/global-clusters/)
+~> **IMPORTANT:** A Global Cluster Configuration can be updated to add new custom zone mappings and managed namespaces. However, once configured, custom zone mappings cannot be modified or partially deleted (you must remove them all at once), and managed namespaces can be added or removed but cannot be modified. Any update that would change an existing managed namespace will result in an error. [Read more about Global Cluster Configuration](https://www.mongodb.com/docs/atlas/global-clusters/)
 
 ## Examples Usage
 
