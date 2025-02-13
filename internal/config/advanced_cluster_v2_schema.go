@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-const AdvancedClusterV2SchemaEnvVar = "MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA"
+const AdvancedClusterV2SchemaEnvVar = "MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER"
 const allowAdvancedClusterV2Schema = false // Don't allow in master branch yet, not in const block to allow automatic change
 
 // Environment variable is read only once to avoid possible changes during runtime
