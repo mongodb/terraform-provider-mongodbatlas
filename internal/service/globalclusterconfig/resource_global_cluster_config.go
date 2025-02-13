@@ -221,41 +221,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		old, newMN := d.GetChange("managed_namespaces")
 		oldList := old.(*schema.Set).List()
 		newList := newMN.(*schema.Set).List()
-
-		// Build maps keyed by composite key: "collection:db"
-		oldMap := buildManagedNamespacesMap(oldList)
-		newMap := buildManagedNamespacesMap(newList)
-
-		var toRemove []map[string]any
-		var toAdd []map[string]any
-
-		// Check for modifications or removals
-		for key, oldEntry := range oldMap {
-			if newEntry, exists := newMap[key]; exists {
-				// Modification detected: key exists but value differs.
-				if !reflect.DeepEqual(oldEntry, newEntry) {
-					return diag.FromErr(fmt.Errorf("managed namespace for collection '%s' in db '%s' cannot be modified", oldEntry["collection"], oldEntry["db"]))
-				}
-			} else {
-				toRemove = append(toRemove, oldEntry)
-			}
-		}
-		// Check for pure additions
-		for key, newEntry := range newMap {
-			if _, exists := oldMap[key]; !exists {
-				toAdd = append(toAdd, newEntry)
-			}
-		}
-
-		if len(toRemove) > 0 {
-			if err := removeManagedNamespaces(ctx, connV2, convertInterfaceSlice(toRemove), projectID, clusterName); err != nil {
-				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
-			}
-		}
-		if len(toAdd) > 0 {
-			if err := addManagedNamespaces(ctx, connV2, convertInterfaceSlice(toAdd), projectID, clusterName); err != nil {
-				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
-			}
+		if err := updateManagedNamespaces(ctx, connV2, projectID, clusterName, oldList, newList); err != nil {
+			return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
 		}
 	}
 
@@ -263,29 +230,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		old, newZN := d.GetChange("custom_zone_mappings")
 		oldSet := old.(*schema.Set)
 		newSet := newZN.(*schema.Set)
-
-		removed := oldSet.Difference(newSet).List()
-		added := newSet.Difference(oldSet).List()
-
-		if len(removed) > 0 {
-			// Allow deletion only if all mappings are deleted
-			if newSet.Len() == 0 {
-				if _, _, err := connV2.GlobalClustersApi.DeleteAllCustomZoneMappings(ctx, projectID, clusterName).Execute(); err != nil {
-					return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
-				}
-			} else {
-				// Partial deletion is not allowed
-				return diag.FromErr(fmt.Errorf("partial deletion of custom_zone_mappings is not allowed; remove either all mappings or none"))
-			}
-		}
-
-		// Allow addition of new custom_zone_mappings.
-		if len(added) > 0 {
-			if _, _, err := connV2.GlobalClustersApi.CreateCustomZoneMapping(ctx, projectID, clusterName, &admin.CustomZoneMappings{
-				CustomZoneMappings: newCustomZoneMappings(added),
-			}).Execute(); err != nil {
-				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
-			}
+		if err := updateCustomZoneMappings(ctx, connV2, projectID, clusterName, oldSet, newSet); err != nil {
+			return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
 		}
 	}
 	return resourceRead(ctx, d, meta)
@@ -452,4 +398,70 @@ func buildManagedNamespacesMap(list []any) map[string]map[string]any {
 		namespacesMap[key] = m
 	}
 	return namespacesMap
+}
+
+// diffManagedNamespaces calculates the difference between old and new managed_namespaces.
+// Returns slices of namespaces to add and remove; errors out on modifications.
+func diffManagedNamespaces(oldList, newList []any) (toAdd, toRemove []map[string]any, err error) {
+	oldMap := buildManagedNamespacesMap(oldList)
+	newMap := buildManagedNamespacesMap(newList)
+	for key, oldEntry := range oldMap {
+		if newEntry, exists := newMap[key]; exists {
+			// Modification is not allowed.
+			if !reflect.DeepEqual(oldEntry, newEntry) {
+				return nil, nil, fmt.Errorf("managed namespace for collection '%s' in db '%s' cannot be modified", oldEntry["collection"], oldEntry["db"])
+			}
+		} else {
+			toRemove = append(toRemove, oldEntry)
+		}
+	}
+	for key, newEntry := range newMap {
+		if _, exists := oldMap[key]; !exists {
+			toAdd = append(toAdd, newEntry)
+		}
+	}
+	return toAdd, toRemove, nil
+}
+
+// updateManagedNamespaces encapsulates diffing and applying removals/additions.
+func updateManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, oldList, newList []any) error {
+	toAdd, toRemove, err := diffManagedNamespaces(oldList, newList)
+	if err != nil {
+		return err
+	}
+	if len(toRemove) > 0 {
+		if err := removeManagedNamespaces(ctx, connV2, convertInterfaceSlice(toRemove), projectID, clusterName); err != nil {
+			return err
+		}
+	}
+	if len(toAdd) > 0 {
+		if err := addManagedNamespaces(ctx, connV2, convertInterfaceSlice(toAdd), projectID, clusterName); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// updateCustomZoneMappings encapsulates diffing and applying changes for custom_zone_mappings.
+func updateCustomZoneMappings(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, oldSet, newSet *schema.Set) error {
+	removed := oldSet.Difference(newSet).List()
+	added := newSet.Difference(oldSet).List()
+
+	if len(removed) > 0 {
+		// Allow deletion only if all mappings are removed.
+		if newSet.Len() != 0 {
+			return fmt.Errorf("partial deletion of custom_zone_mappings is not allowed; remove either all mappings or none")
+		}
+		if _, _, err := connV2.GlobalClustersApi.DeleteAllCustomZoneMappings(ctx, projectID, clusterName).Execute(); err != nil {
+			return err
+		}
+	}
+	if len(added) > 0 {
+		if _, _, err := connV2.GlobalClustersApi.CreateCustomZoneMapping(ctx, projectID, clusterName, &admin.CustomZoneMappings{
+			CustomZoneMappings: newCustomZoneMappings(added),
+		}).Execute(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
