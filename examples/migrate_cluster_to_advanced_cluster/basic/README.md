@@ -1,7 +1,7 @@
 # Basic Migration from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
-The purpose of this example is to show how a `mongodbatlas_cluster` can be migrated to a `mongodbatlas_advanced_cluster`.
-In this example we use specific files, but the same approach can be applied to configuration with `mongodbatlas_cluster` resource(s).
+The purpose of this example is to show how a `mongodbatlas_cluster` resource can be migrated to `mongodbatlas_advanced_cluster`.
+In this example we use specific files, but the same approach can be applied to any configuration file with `mongodbatlas_cluster` resource(s).
 The main steps are:
 
 - [Create the `mongodbatlas_cluster`](#create-the-mongodbatlas_cluster) (skip if you already have a configuration with one or more `mongodbatlas_cluster` resources)
@@ -13,10 +13,10 @@ The main steps are:
 ## Create the `mongodbatlas_cluster`
 **Note**: This step is only to demonstrate the migration. If you want to manage a cluster with Terraform, we recommend you use a `mongodbatlas_advanced_cluster` instead.
 
-This step can be skipped if you already have a configuration file with a `mongodbatlas_cluster` created
+This step can be skipped if you already have a configuration file with a `mongodbatlas_cluster` created.
 
-1. Uncomment the code in [cluster.tf](cluster.tf) and [outputs.tf](outputs.tf) (lines marked with `# BEFORE`)
-2. Comment the code in [advanced_cluster](advanced_cluster.tf) and [outputs.tf](outputs.tf) (lines marked with `# AFTER`)
+1. Uncomment the code in [outputs.tf](outputs.tf) (lines marked with `# BEFORE`) and [cluster.tf](cluster.tf)
+2. Comment the code in [outputs.tf](outputs.tf) (lines marked with `# AFTER`) and [advanced_cluster.tf](advanced_cluster.tf) 
 3. Create a `vars.auto.tfvars` file, for example:
 ```terraform
 project_id = "{PROJECT_ID}" # replace with your project ID, should be similar to 664619d870c247237f4b86a6
@@ -28,7 +28,7 @@ mongo_db_major_version = "8.0"
 5. Run `terraform apply`
 
 ## Use the [Atlas CLI Plugin Terraform](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to create the `mongodbatlas_advanced_cluster` resource
-The CLI Plugin helps you migrate your Terraform configuration file.
+The CLI Plugin helps you convert your existing configuration into one using the `mongodbatlas_advanced_cluster` resource. This step is not required but recommended; alternatively you can write the equivalent configuration on your own.
 1. Ensure you have the Atlas CLI [installed](https://www.mongodb.com/docs/atlas/cli/current/install-atlas-cli/) by running `atlas --version`
    - You should see a multi line output starting with `atlascli version: 1.38.0` (or a later version)
 2. Install the Terraform CLI plugin: `atlas plugin install mongodb-labs/atlas-cli-plugin-terraform`
@@ -37,7 +37,7 @@ The CLI Plugin helps you migrate your Terraform configuration file.
 4. Run `atlas tf clusterToAdvancedCluster --file {CLUSTER_IN}.tf --output {CLUSTER_OUT}.tf`
    1. For example `cluster.tf` for `{CLUSTER_IN}.tf`
    2. For example `advanced_cluster.tf` for `{CLUSTER_OUT}.tf`
-   3. If your config is not supported, try to update your `mongodbatlas_cluster`, or see [TODO: GUIDE]() for alternative migration approaches
+   3. If your config is not supported, see [limtations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform?tab=readme-ov-file#limitations) of the plugin, try to update your `mongodbatlas_cluster`, or see alternatives in the [Migration Guide: Cluster to Advanced Cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide)
 
 ## Manual updates to the Terraform configuration
 1. Ensure all references are updated (see example of updates in [outputs.tf](outputs.tf))
@@ -52,7 +52,7 @@ moved {
 - The [moved block](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#moved-block-syntax) can be kept to record where you have historically moved or renamed an object
 
 ## Perform the Move
-1. Ensure you are using V2 schema: `export MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true`
+1. Ensure you are using V2 schema: `export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`
 2. Run `terraform validate` to ensure there are no missing reference updates. You might see errors like:
    - `Error: Reference to undeclared resource`: You forgot to update the resource type to `mongodbatlas_advanced_cluster`
    ```text
@@ -113,7 +113,7 @@ Terraform will perform the following actions:
 Plan: 0 to add, 1 to change, 0 to destroy.
 ```
 - You might see errors like:
-- `Error: Invalid index`: This is due to type changes and can usually be resolved by removing the `[0]` reference.
+- `Error: Invalid index`: This is due to type changes and can usually be resolved by removing the `[0]` or `.0` reference.
 ```text
 │   on outputs.tf line 3, in output "connection_string_standard":
 │    3:     value = mongodbatlas_advanced_cluster.this.connection_strings[0].standard
