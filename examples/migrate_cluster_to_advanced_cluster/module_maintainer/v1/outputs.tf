@@ -1,6 +1,6 @@
-output "mongodb_raw_connection_strings" {
+output "mongodb_connection_strings" {
   value       = mongodbatlas_cluster.this.connection_strings
-  description = "This is the raw list of MongoDB Atlas connection strings. Note, these do not show the connection mechanism of the database details"
+  description = "These are the MongoDB Atlas connection strings. Note that these do not show the connection mechanism of the database details"
 }
 
 output "cluster_name" {
