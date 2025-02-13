@@ -3,14 +3,16 @@ package advancedclustertpf
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 const defaultPriority int = 7

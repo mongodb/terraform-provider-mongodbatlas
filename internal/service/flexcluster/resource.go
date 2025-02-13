@@ -3,6 +3,7 @@ package flexcluster
 import (
 	"context"
 	"errors"
+	"net/http"
 	"regexp"
 
 	"go.mongodb.org/atlas-sdk/v20241113005/admin"

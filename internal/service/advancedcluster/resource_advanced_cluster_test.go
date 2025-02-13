@@ -2892,7 +2892,7 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 				value = "testValue"
 			}`
 	}
-	return acc.ConvertAdvancedClusterToSchemaV2(t, true, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -2994,5 +2994,5 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	ds := conversion.StringPtr(dataSourceName)
 	dsp := conversion.StringPtr(dataSourcePluralName)
-	return acc.CheckRSAndDSSchemaV2(true, resourceName, ds, dsp, attrSetAdvCluster, attrMapAdvCluster, checks...)
+	return acc.CheckRSAndDSPreviewProviderV2(true, resourceName, ds, dsp, attrSetAdvCluster, attrMapAdvCluster, checks...)
 }
