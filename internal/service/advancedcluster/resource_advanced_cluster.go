@@ -13,7 +13,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -1321,7 +1321,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) retry.StateChangeConf {
 	return retry.StateChangeConf{
-		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
+		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING", "PENDING", "REPEATING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
 		Timeout:    timeout,
@@ -1431,10 +1431,10 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *ad
 		}
 
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
-			if resp != nil && resp.StatusCode == 503 {
+			if validate.StatusServiceUnavailable(resp) {
 				return "", "PENDING", nil
 			}
 			return nil, "", err
@@ -1486,7 +1486,7 @@ func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUp
 
 func waitForUpdateToFinish(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) error {
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "PENDING", "REPEATING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
 		Timeout:    timeout,

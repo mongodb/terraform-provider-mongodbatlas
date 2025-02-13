@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConvertToSchemaV2AttrsMapAndAttrsSet(t *testing.T) {
-	if !config.AdvancedClusterV2Schema() {
-		t.Skip("Skipping test as not in AdvancedClusterV2Schema")
+func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
+	if !config.PreviewProviderV2AdvancedCluster() {
+		t.Skip("Skipping test as not in PreviewProviderV2AdvancedCluster")
 	}
 	attrsMap := map[string]string{
 		"attr":                            "val1",
@@ -31,7 +31,7 @@ func TestConvertToSchemaV2AttrsMapAndAttrsSet(t *testing.T) {
 		"connection_strings.standard":                              "val6",
 		"connection_strings.standard_srv":                          "val6",
 	}
-	actualMap := acc.ConvertToSchemaV2AttrsMap(true, attrsMap)
+	actualMap := acc.ConvertToPreviewProviderV2AttrsMap(true, attrsMap)
 	assert.Equal(t, expectedMap, actualMap)
 
 	attrsSet := make([]string, 0, len(attrsMap))
@@ -42,15 +42,15 @@ func TestConvertToSchemaV2AttrsMapAndAttrsSet(t *testing.T) {
 	for name := range expectedMap {
 		expectedSet = append(expectedSet, name)
 	}
-	actualSet := acc.ConvertToSchemaV2AttrsSet(true, attrsSet)
+	actualSet := acc.ConvertToPreviewProviderV2AttrsSet(true, attrsSet)
 	sort.Strings(expectedSet)
 	sort.Strings(actualSet)
 	assert.Equal(t, expectedSet, actualSet)
 }
 
-func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
-	if !config.AdvancedClusterV2Schema() {
-		t.Skip("Skipping test as not in AdvancedClusterV2Schema")
+func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
+	if !config.PreviewProviderV2AdvancedCluster() {
+		t.Skip("Skipping test as not in PreviewProviderV2AdvancedCluster")
 	}
 	var (
 		input = `
@@ -161,7 +161,7 @@ func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
 				}
 			}	
  		`
-		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToSchemaV2
+		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToPreviewProviderV2
 		expected = `
 			resource "mongodbatlas_advanced_cluster" "cluster2" {
 				project_id   = "MY-PROJECT-ID"
@@ -252,7 +252,7 @@ func TestConvertAdvancedClusterToSchemaV2(t *testing.T) {
 			}
  		`
 	)
-	actual := acc.ConvertAdvancedClusterToSchemaV2(t, true, input)
+	actual := acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, input)
 	acc.AssertEqualHCL(t, expected, actual)
 }
 

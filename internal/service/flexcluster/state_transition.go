@@ -5,11 +5,12 @@ import (
 	"errors"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
 func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string, isUpgradeFromM0 bool) (*admin.FlexClusterDescription20241113, error) {
@@ -51,7 +52,7 @@ func refreshFunc(ctx context.Context, requestParams *admin.GetFlexClusterApiPara
 	return func() (any, string, error) {
 		flexCluster, resp, err := client.GetFlexClusterWithParams(ctx, requestParams).Execute()
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
+			if validate.StatusNotFound(resp) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
 			if resp != nil && isUpgradeFromM0 && admin.IsErrorCode(err, "CANNOT_USE_NON_FLEX_CLUSTER_IN_FLEX_API") {

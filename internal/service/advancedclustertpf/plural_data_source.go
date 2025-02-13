@@ -6,13 +6,15 @@ import (
 	"net/http"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 var _ datasource.DataSource = &pluralDS{}
