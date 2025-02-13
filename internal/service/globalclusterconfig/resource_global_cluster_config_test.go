@@ -157,6 +157,26 @@ func TestAccGlobalClusterConfig_database(t *testing.T) {
 				),
 			},
 			{
+				Config:      configWithDBConfig(&clusterInfo, customZone),
+				ExpectError: regexp.MustCompile("partial deletion of custom_zone_mappings is not allowed; remove either all mappings or none"),
+			},
+			{
+				Config: configWithDBConfig(&clusterInfo, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
+						[]string{"project_id"},
+						map[string]string{
+							"cluster_name":         clusterInfo.Name,
+							"managed_namespaces.#": "5",
+							"managed_namespaces.0.is_custom_shard_key_hashed": "false",
+							"managed_namespaces.0.is_shard_key_unique":        "false",
+							"custom_zone_mapping_zone_id.%":                   "0",
+							"custom_zone_mapping.%":                           "0",
+						}),
+				),
+			},
+			{
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
