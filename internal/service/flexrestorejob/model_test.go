@@ -4,11 +4,13 @@ import (
 	"testing"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexrestorejob"
-	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 type sdkToTFModelTestCase struct {

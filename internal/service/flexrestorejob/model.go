@@ -1,9 +1,11 @@
 package flexrestorejob
 
 import (
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 func NewTFModel(apiResp *admin.FlexBackupRestoreJob20241113) *TFModel {

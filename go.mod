@@ -1,6 +1,6 @@
 module github.com/mongodb/terraform-provider-mongodbatlas
 
-go 1.23.4
+go 1.23.6
 
 require (
 	github.com/andygrunwald/go-jira/v2 v2.0.0-20240116150243-50d59fe116d6
@@ -24,7 +24,7 @@ require (
 	github.com/huandu/xstrings v1.5.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250203083650-2c9f537aeaab
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250210083648-31e2c436c287
 	github.com/pb33f/libopenapi v0.21.2
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.7.1
@@ -34,7 +34,7 @@ require (
 	go.mongodb.org/atlas v0.37.0
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
 	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.0
-	go.mongodb.org/atlas-sdk/v20241113004 v20241113004.1.0
+	go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0
 	go.mongodb.org/realm v0.1.0
 	gopkg.in/yaml.v3 v3.0.1
 )

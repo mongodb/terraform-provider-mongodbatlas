@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
@@ -311,7 +311,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 
 	list, resp, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			return nil
 		}
 		return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))
@@ -323,7 +323,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 
 	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, connV2.FlexClustersApi)
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			return nil
 		}
 		return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))

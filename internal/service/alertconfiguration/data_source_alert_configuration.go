@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 var _ datasource.DataSource = &alertConfigurationDS{}
@@ -354,7 +354,7 @@ func convertMatcherToCtyValues(matcher admin.StreamsMatcher) map[string]cty.Valu
 	}
 }
 
-func convertMetricThresholdToCtyValues(metric admin.ServerlessMetricThreshold) map[string]cty.Value {
+func convertMetricThresholdToCtyValues(metric admin.FlexClusterMetricThreshold) map[string]cty.Value {
 	var t float64
 	if metric.Threshold != nil {
 		t = *metric.Threshold

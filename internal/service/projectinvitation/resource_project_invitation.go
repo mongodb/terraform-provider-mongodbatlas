@@ -3,15 +3,15 @@ package projectinvitation
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 func Resource() *schema.Resource {
@@ -94,7 +94,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	projectInvitation, resp, err := connV2.ProjectsApi.GetProjectInvitation(ctx, projectID, invitationID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound { // case 404: deleted in the backend case
+		if validate.StatusNotFound(resp) { // case 404: deleted in the backend case
 			d.SetId("")
 			return nil
 		}
