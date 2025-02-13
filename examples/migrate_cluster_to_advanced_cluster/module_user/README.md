@@ -19,11 +19,11 @@ The rest of this example is a step by step guide on how to migrate from `mongodb
   - [Run Commands](#run-commands)
 - [Step 2: Upgrade to `mongodbatlas_advanced_cluster` by using `v2` of the module](#step-2-upgrade-to-mongodbatlas_advanced_cluster-by-using-v2-of-the-module)
 - [Step 3: Use the latest `mongodbatlas_advanced_cluster` features by using `v3` of the module](#step-3-use-the-latest-mongodbatlas_advanced_cluster-features-by-using-v3-of-the-module)
+  - [Update `v3_no_plan_changes`](#update-v3_no_plan_changes)
+  - [Run `terraform plan` to ensure there are no plan changes](#run-terraform-plan-to-ensure-there-are-no-plan-changes)
   - [Update `v3.tfvars`](#update-v3tfvars)
-  - [Run commands](#run-commands-1)
+  - [Run `terraform apply` to upgrade the cluster to an Asymmetric Sharded Cluster](#run-terraform-apply-to-upgrade-the-cluster-to-an-asymmetric-sharded-cluster)
 - [Cleanup with `terraform destroy`](#cleanup-with-terraform-destroy)
-
-
 
 ## Dependencies
 <!-- TODO: Update XX versions -->
