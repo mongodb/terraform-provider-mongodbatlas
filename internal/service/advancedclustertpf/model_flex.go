@@ -160,6 +160,7 @@ func GetUpgradeToFlexClusterRequest(planReq *admin.ClusterDescription20240805) *
 	regionConfig := getRegionConfig(planReq.ReplicationSpecs)
 
 	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+		Name: planReq.GetName(),
 		ProviderSettings: &admin.ClusterProviderSettings{
 			ProviderName:        flexcluster.FlexClusterType,
 			BackingProviderName: regionConfig.BackingProviderName,
