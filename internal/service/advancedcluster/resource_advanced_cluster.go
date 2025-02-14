@@ -1533,7 +1533,7 @@ func setFlexFields(d *schema.ResourceData, flexCluster *admin.FlexClusterDescrip
 		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "mongo_db_version", flexClusterName, err))
 	}
 
-	if err := d.Set("replication_specs", flexcluster.FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings, conversion.Pointer(d.Get("replication_specs.0.region_configs.0.priority").(int)))); err != nil {
+	if err := d.Set("replication_specs", flexcluster.FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings, conversion.Pointer(d.Get("replication_specs.0.region_configs.0.priority").(int)), conversion.StringPtr(d.Get("replication_specs.0.zone_name").(string)))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "replication_specs", flexClusterName, err))
 	}
 

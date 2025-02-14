@@ -150,6 +150,8 @@ func TestAccAdvancedCluster_basicTenant(t *testing.T) {
 func TestAccAdvancedCluster_basicTenant_flexUpgrade(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
+		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
+
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -157,11 +159,11 @@ func TestAccAdvancedCluster_basicTenant_flexUpgrade(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(t, true, projectID, clusterName, ""),
+				Config: configTenant(t, true, projectID, clusterName, defaultZoneName),
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: configTenantUpgradeToFlex(t, true, projectID, clusterName),
+				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", defaultZoneName, false),
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false),
 			},
 		},
@@ -1447,27 +1449,6 @@ func configTenant(t *testing.T, isAcc bool, projectID, name, zoneName string) st
 			}
 		}
 	`, projectID, name, zoneNameLine)) + dataSourcesTFNewSchema
-}
-
-func configTenantUpgradeToFlex(t *testing.T, isAcc bool, projectID, name string) string {
-	t.Helper()
-
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
-		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
-			cluster_type = "REPLICASET"
-
-			replication_specs {
-				region_configs {
-					provider_name         = "FLEX"
-					backing_provider_name = "AWS"
-					region_name           = "US_EAST_1"
-					priority              = 7
-				}
-			}
-		}
-	`, projectID, name))
 }
 
 func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
@@ -2923,8 +2904,12 @@ func configFCVPinning(t *testing.T, orgID, projectName, clusterName string, pinn
 	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)) + dataSourcesTFNewSchema
 }
 
-func configFlexCluster(t *testing.T, projectID, clusterName, providerName, region string, withTags bool) string {
+func configFlexCluster(t *testing.T, projectID, clusterName, providerName, region, zoneName string, withTags bool) string {
 	t.Helper()
+	zoneNameLine := ""
+	if zoneName != "" {
+		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
+	}
 	tags := ""
 	if withTags {
 		tags = `
@@ -2945,11 +2930,12 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 					region_name = %[4]q
 					priority      = 7
 				}
+				%[5]s
 			}
-			%[5]s
+			%[6]s
 			termination_protection_enabled = false
 		}
-	`, projectID, clusterName, providerName, region, tags)+dataSourcesTFOldSchema+
+	`, projectID, clusterName, providerName, region, zoneNameLine, tags)+dataSourcesTFOldSchema+
 		strings.ReplaceAll(acc.FlexDataSource, "mongodbatlas_flex_cluster.", "mongodbatlas_advanced_cluster."))
 }
 
@@ -2964,16 +2950,16 @@ func TestAccClusterFlexCluster_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyFlexCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", false),
+				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", false),
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false),
 			},
 			{
-				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", true),
+				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", true),
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", true),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_2", true),
+				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_2", "", true),
 				ExpectError: regexp.MustCompile("flex cluster update is not supported except for tags and termination_protection_enabled fields"),
 			},
 		},

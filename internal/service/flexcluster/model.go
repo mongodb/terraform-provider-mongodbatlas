@@ -3,11 +3,13 @@ package flexcluster
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription20241113) (*TFModel, diag.Diagnostics) {
@@ -141,10 +143,10 @@ func FlattenFlexConnectionStrings(str *admin.FlexConnectionStrings20241113) []ma
 	}
 }
 
-func FlattenFlexProviderSettingsIntoReplicationSpecs(providerSettings admin.FlexProviderSettings20241113, priority *int) []map[string]any {
+func FlattenFlexProviderSettingsIntoReplicationSpecs(providerSettings admin.FlexProviderSettings20241113, priority *int, zoneName *string) []map[string]any {
 	tfMaps := []map[string]any{{}}
-	tfMaps[0]["num_shards"] = 1                              // default value
-	tfMaps[0]["zone_name"] = "ZoneName managed by Terraform" // default value
+	tfMaps[0]["num_shards"] = 1 // default value
+	tfMaps[0]["zone_name"] = zoneName
 	tfMaps[0]["region_configs"] = []map[string]any{
 		{
 			"provider_name":         providerSettings.GetProviderName(),
@@ -169,7 +171,7 @@ func FlattenFlexClustersToAdvancedClusters(flexClusters *[]admin.FlexClusterDesc
 			"connection_strings":             FlattenFlexConnectionStrings(flexCluster.ConnectionStrings),
 			"create_date":                    conversion.TimePtrToStringPtr(flexCluster.CreateDate),
 			"mongo_db_version":               flexCluster.GetMongoDBVersion(),
-			"replication_specs":              FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings, nil),
+			"replication_specs":              FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings, nil, nil),
 			"name":                           flexCluster.GetName(),
 			"state_name":                     flexCluster.GetStateName(),
 			"tags":                           conversion.FlattenTags(flexCluster.GetTags()),
