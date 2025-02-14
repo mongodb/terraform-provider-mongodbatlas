@@ -8,6 +8,8 @@
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
+-> **NOTE:** This data source now also returns Flex clusters.
+
 ## Example Usage
 
 ```terraform
@@ -77,6 +79,34 @@ data "mongodbatlas_advanced_cluster" "example" {
   project_id                     = mongodbatlas_advanced_cluster.example.project_id
   name                           = mongodbatlas_advanced_cluster.example.name
   use_replication_spec_per_shard = true
+}
+```
+
+## Example using Flex cluster
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "example-flex" {
+  project_id   = "<YOUR-PROJECT-ID>"
+  name         = "flex-cluster"
+  cluster_type = "FLEX"
+
+  replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+      }
+      provider_name         = "TENANT"
+      backing_provider_name = "AWS"
+      region_name           = "US_EAST_1"
+      // Ensure the priority is set to 7
+      priority              = 7
+    }
+  }
+}
+
+data "mongodbatlas_advanced_cluster" "example" {
+  project_id = mongodbatlas_advanced_cluster.example-flex.project_id
+  name       = mongodbatlas_advanced_cluster.example-flex.name
 }
 ```
 
