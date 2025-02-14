@@ -101,7 +101,6 @@ resource "mongodbatlas_advanced_cluster" "example-flex" {
 
 data "mongodbatlas_advanced_cluster" "example" {
   project_id = mongodbatlas_advanced_cluster.example-flex.project_id
-  name       = mongodbatlas_advanced_cluster.example-flex.name
 }
 ```
 
