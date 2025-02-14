@@ -5,16 +5,16 @@ locals {
       for shard in range(old_spec.num_shards) : [
         {
           zone_name = old_spec.zone_name
-          region_configs = tolist([
+          region_configs = [
             for region in old_spec.regions_config : {
               region_name   = region.region_name
               provider_name = var.provider_name
+              priority      = region.priority
               electable_specs = {
                 instance_size = var.instance_size
                 node_count    = region.electable_nodes
                 disk_size_gb  = local.disk_size
               }
-              priority = region.priority
               read_only_specs = region.read_only_nodes == 0 ? null : {
                 instance_size = var.instance_size
                 node_count    = region.read_only_nodes
@@ -24,7 +24,7 @@ locals {
                 disk_gb_enabled = true
               } : null
             }
-          ])
+          ]
         }
       ]
     ]
@@ -36,7 +36,6 @@ moved {
   from = mongodbatlas_cluster.this
   to   = mongodbatlas_advanced_cluster.this
 }
-
 
 resource "mongodbatlas_advanced_cluster" "this" {
   lifecycle {
@@ -52,6 +51,16 @@ resource "mongodbatlas_advanced_cluster" "this" {
   mongo_db_major_version = var.mongo_db_major_version
   replication_specs      = local.replication_specs
   tags                   = var.tags
+
+  redact_client_log_data      = true
+  encryption_at_rest_provider = var.encryption_at_rest_provider
+
+  advanced_configuration = {
+    minimum_enabled_tls_protocol       = "TLS1_2"
+    javascript_enabled                 = false
+    tls_cipher_config_mode             = "CUSTOM"
+    custom_openssl_cipher_config_tls12 = ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"]
+  }
 }
 
 data "mongodbatlas_cluster" "this" { # note the usage of `cluster` not `advanced_cluster`, this is to have outputs stay compatible with the v1 module
@@ -59,6 +68,13 @@ data "mongodbatlas_cluster" "this" { # note the usage of `cluster` not `advanced
   project_id = mongodbatlas_advanced_cluster.this.project_id
 
   depends_on = [mongodbatlas_advanced_cluster.this]
+}
+
+resource "mongodbatlas_search_deployment" "search_nodes" {
+  count        = length(var.search_nodes_specs) > 0 ? 1 : 0
+  project_id   = mongodbatlas_advanced_cluster.this.project_id
+  cluster_name = mongodbatlas_advanced_cluster.this.name
+  specs        = var.search_nodes_specs
 }
 
 # OLD cluster configuration:

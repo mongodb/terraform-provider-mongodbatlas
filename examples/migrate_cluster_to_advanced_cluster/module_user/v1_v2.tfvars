@@ -11,15 +11,28 @@ tags = {
 }
 replication_specs = [
   {
-    num_shards = 2
+    num_shards = 4
     zone_name  = "Zone 1"
     regions_config = [
       {
+        read_only_nodes = 0
+        priority        = 7
         region_name     = "US_EAST_1"
         electable_nodes = 3
-        priority        = 7
+      },
+      {
         read_only_nodes = 0
-      }
+        priority        = 6
+        region_name     = "EU_WEST_1"
+        electable_nodes = 2
+      },
     ]
   }
 ]
+search_nodes_specs = [
+  {
+    instance_size = "S20_HIGHCPU_NVME"
+    node_count    = 3
+  }
+]
+encryption_at_rest_provider = "AWS"

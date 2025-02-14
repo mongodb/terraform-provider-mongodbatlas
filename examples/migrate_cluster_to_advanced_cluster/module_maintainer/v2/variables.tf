@@ -53,7 +53,7 @@ variable "replication_specs" {
   type = list(object({
     num_shards = number
     zone_name  = string
-    regions_config = set(object({
+    regions_config = list(object({
       region_name     = string
       electable_nodes = number
       priority        = number
@@ -69,4 +69,19 @@ variable "replication_specs" {
       priority        = 7
     }]
   }]
+}
+variable "search_nodes_specs" {
+  description = "List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element. Valid values for the \"instance_size\" can be found in the MongoDB Atlas API docs - https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Atlas-Search/operation/createAtlasSearchDeployment."
+  type = set(object({
+    instance_size = string
+    node_count    = number
+  }))
+  validation {
+    condition     = length(var.search_nodes_specs) < 2
+    error_message = "You can only define a single element of the specs currently."
+  }
+}
+
+variable "encryption_at_rest_provider" {
+  type = string
 }

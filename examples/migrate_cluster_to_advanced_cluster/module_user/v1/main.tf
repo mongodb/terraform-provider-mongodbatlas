@@ -16,6 +16,9 @@ module "cluster" {
   provider_name                = var.provider_name
   replication_specs            = var.replication_specs
   tags                         = var.tags
+
+  encryption_at_rest_provider = var.encryption_at_rest_provider
+  search_nodes_specs          = var.search_nodes_specs
 }
 
 output "mongodb_connection_strings" {

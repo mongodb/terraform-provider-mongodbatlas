@@ -16,6 +16,10 @@ resource "mongodbatlas_cluster" "this" {
   provider_instance_size_name  = var.instance_size
   provider_name                = var.provider_name
 
+  redact_client_log_data      = true
+  encryption_at_rest_provider = var.encryption_at_rest_provider
+
+
   dynamic "tags" {
     for_each = var.tags
     content {
@@ -41,4 +45,17 @@ resource "mongodbatlas_cluster" "this" {
       }
     }
   }
+  advanced_configuration {
+    minimum_enabled_tls_protocol       = "TLS1_2"
+    javascript_enabled                 = false
+    tls_cipher_config_mode             = "CUSTOM"
+    custom_openssl_cipher_config_tls12 = ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"]
+  }
+}
+
+resource "mongodbatlas_search_deployment" "search_nodes" {
+  count        = length(var.search_nodes_specs) > 0 ? 1 : 0
+  project_id   = mongodbatlas_cluster.this.project_id
+  cluster_name = mongodbatlas_cluster.this.name
+  specs        = var.search_nodes_specs
 }
