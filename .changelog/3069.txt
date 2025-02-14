@@ -1,3 +1,3 @@
 ```release-note:bug
-resource/mongodbatlas_database_user: Don't fail on deleted in the backend case
+resource/mongodbatlas_database_user: Avoid error in read if resource no longer exists
 ```
