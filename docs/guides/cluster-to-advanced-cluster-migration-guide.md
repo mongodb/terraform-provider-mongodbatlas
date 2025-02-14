@@ -194,6 +194,8 @@ The [moved block](https://developer.hashicorp.com/terraform/language/moved) is a
  - Terraform version 1.8 or later is required, more info in the [State Move doc](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move).
  -  **Preview for MongoDB Atlas Provider v2** of `mongodbatlas_advanced_cluster` is required, you can find more info in the [resource doc](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) and the [Migration Guide: Advanced Cluster Preview Provider v2](advanced-cluster-preview-provider-v2).
 
+**Important**: Please keep a backup of the Terraform state before starting the migration. Once the changes are applied, it's not possible to go back to `mongodbatlas_cluster`. If you need to go back, recover the backup of the Terraform state.
+
 The process to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` using the `moved` block is as follows:
 - Before starting, run `terraform plan` to make sure that there are no planned changes.
 - Add the `mongodbatlas_advanced_cluster` resource definition. 
@@ -208,7 +210,7 @@ moved {
   to   = mongodbatlas_advanced_cluster.this
 }
 ```
-- Run `terraform plan` and make sure there are no planned changes, only the moved should be shown. **Important**: Don't apply until planning shows only the moved changes. If it shows other changes, you will need to update the `mongodb_atlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration.
+- Run `terraform plan` and make sure that there are no planned changes, only the moved should be shown. **Important**: Don't apply until planning shows only the moved changes. If it shows other changes, you will need to update the `mongodb_atlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration.
 - Run `terraform apply` to apply the changes. The `mongodbatlas_cluster` resource will be removed from the Terraform state and the `mongodbatlas_advanced_cluster` resource will be added.
 - At this moment you can delete the `moved` block from your configuration file, although it's recommended to keep it to help track the migrations.
 
