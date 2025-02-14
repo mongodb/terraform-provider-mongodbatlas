@@ -88,18 +88,14 @@ data "mongodbatlas_advanced_cluster" "example" {
 resource "mongodbatlas_advanced_cluster" "example-flex" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "flex-cluster"
-  cluster_type = "FLEX"
-
+  cluster_type = "REPLICASET"
+  
   replication_specs {
     region_configs {
-      electable_specs {
-        instance_size = "M10"
-      }
-      provider_name         = "TENANT"
+      provider_name = "FLEX"
       backing_provider_name = "AWS"
-      region_name           = "US_EAST_1"
-      // Ensure the priority is set to 7
-      priority              = 7
+      region_name = "US_EAST_1"
+      priority = 7
     }
   }
 }

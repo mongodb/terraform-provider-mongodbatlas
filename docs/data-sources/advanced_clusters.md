@@ -81,6 +81,30 @@ data "mongodbatlas_advanced_cluster" "example-asym" {
 }
 ```
 
+## Example using Flex cluster
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "example-flex" {
+  project_id   = "<YOUR-PROJECT-ID>"
+  name         = "flex-cluster"
+  cluster_type = "REPLICASET"
+  
+  replication_specs {
+    region_configs {
+      provider_name = "FLEX"
+      backing_provider_name = "AWS"
+      region_name = "US_EAST_1"
+      priority = 7
+    }
+  }
+}
+
+data "mongodbatlas_advanced_cluster" "example" {
+  project_id = mongodbatlas_advanced_cluster.example-flex.project_id
+  name       = mongodbatlas_advanced_cluster.example-flex.name
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to get the clusters.
