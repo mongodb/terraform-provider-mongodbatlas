@@ -121,10 +121,10 @@ tags = {
 }
 ```
 
+## Best Practices Before Migrating
+Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
+
 ### How to migrate
-
-**Important**: Please keep a backup of the Terraform state before starting the migration. Once the changes are applied, it's not possible to go back to current `mongodbatlas_advanced_cluster` without manual changes to the state. If you need to go back, recover the backup of the Terraform state.
-
 The process to migrate from current `mongodbatlas_advanced_cluster` to the one in Preview for MongoDB Atlas Provider v2 is as follows:
 - Before starting, run `terraform plan` to make sure that there are no planned changes.
 - Set environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider v2.

@@ -8,6 +8,9 @@ page_title: "Migration Guide: Cluster to Advanced Cluster"
 
 **Note**: Please look at the section [Moved block](#moved-block) below for an improved migration path. We are also exploring additional migration paths that do not involve Terraform State modifications. If interested to learn more or to test out directly please contact melissa.plunkett@mongodb.com.
 
+## Best Practices Before Migrating
+Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
+
 ## Main Changes Between `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`
 
 1. Replication Spec Configuration: Supports different node types (electable, analytics, read_only) where hardware configuration can differ between node types. `regions_config` is renamed to `region_configs`.
@@ -86,9 +89,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
 - `snapshot_backup_policy`:
   - Before: It was deprecated.
   - After: Use `mongodbatlas_cloud_backup_schedule` resource instead.
-
-## Best Practices Before Migrating
-Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
 
 ## Migration using `terraform plan -generate-config-out=adv_cluster.tf`
 This method uses only [Terraform native tools](https://developer.hashicorp.com/terraform/language/import/generating-configuration) and is ideal if you:
@@ -193,8 +193,6 @@ Using the `project_id` and `cluster.name`, Terraform imports your cluster and us
 The [moved block](https://developer.hashicorp.com/terraform/language/moved) is a Terraform feature that allows to move between resource types. It's conceptually similar to do `removed` and `import` but it's more convenient as it's done in one step, and can be used in `modules`. The main requirements are:
  - Terraform version 1.8 or later is required, more info in the [State Move doc](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move).
  -  Preview for MongoDB Atlas Provider v2 of `mongodbatlas_advanced_cluster` is required, you can find more info in the [resource doc](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) and the [Migration Guide: Advanced Cluster Preview Provider v2](advanced-cluster-preview-provider-v2).
-
-**Important**: Please keep a backup of the Terraform state before starting the migration. Once the changes are applied, it's not possible to go back to `mongodbatlas_cluster`. If you need to go back, recover the backup of the Terraform state.
 
 The process to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` using the `moved` block is as follows:
 - Before starting, run `terraform plan` to make sure that there are no planned changes.
