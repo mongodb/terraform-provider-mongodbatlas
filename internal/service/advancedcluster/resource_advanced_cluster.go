@@ -1383,7 +1383,7 @@ func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin
 		return nil, flexCluster, err
 	}
 
-	_, err = WaitStateTransitionClusterUpgrade(ctx, request, connV2.ClustersApi, []string{"CREATING", "UPDATING", "REPAIRING"}, []string{"IDLE"}, timeout)
+	_, err = WaitStateTransitionClusterUpgrade(ctx, request, connV2.ClustersApi, []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, timeout)
 	if err != nil {
 		return nil, nil, err
 	}
