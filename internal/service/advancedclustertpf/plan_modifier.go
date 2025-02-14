@@ -26,48 +26,6 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	}
 }
 
-func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	// TF Models are used for CopyUnknows, Admin Models are used for PatchPayload (`json` annotations necessary)
-	stateRepSpecs := newReplicationSpec20240805(ctx, state.ReplicationSpecs, diags)
-	stateRepSpecsTF := replicationSpecTFModel(ctx, diags, state.ReplicationSpecs)
-	planRepSpecs := newReplicationSpec20240805(ctx, plan.ReplicationSpecs, diags)
-	planRepSpecsTF := replicationSpecTFModel(ctx, diags, plan.ReplicationSpecs)
-	if diags.HasError() || stateRepSpecs == nil || planRepSpecs == nil {
-		return
-	}
-	planWithUnknowns := []TFReplicationSpecsModel{}
-	for i := range planRepSpecsTF {
-		if i < len(*stateRepSpecs) {
-			stateSpec := (*stateRepSpecs)[i]
-			planSpec := (*planRepSpecs)[i]
-			patchSpec, err := update.PatchPayload(&stateSpec, &planSpec)
-			if err != nil {
-				diags.AddError("error find diff useStateForUnknownsReplicationSpecs", err.Error())
-				return
-			}
-			if update.IsZeroValues(patchSpec) {
-				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], nil)
-			}
-		}
-		planWithUnknowns = append(planWithUnknowns, planRepSpecsTF[i])
-	}
-	listType, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, planWithUnknowns)
-	diags.Append(diagsLocal...)
-	if diags.HasError() {
-		return
-	}
-	plan.ReplicationSpecs = listType
-}
-
-func replicationSpecTFModel(ctx context.Context, diags *diag.Diagnostics, input types.List) []TFReplicationSpecsModel {
-	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
-	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return nil
-	}
-	return elements
-}
-
 func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, patchReq *admin.ClusterDescription20240805) []string {
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	if upgradeRequest != nil {
@@ -83,4 +41,79 @@ func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgrade
 		}
 	}
 	return keepUnknown
+}
+
+func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+	// TF Models are used for CopyUnknows, Admin Models are used for PatchPayload (`json` annotations necessary)
+	stateRepSpecs := newReplicationSpec20240805(ctx, state.ReplicationSpecs, diags)
+	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecs := newReplicationSpec20240805(ctx, plan.ReplicationSpecs, diags)
+	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	if diags.HasError() || stateRepSpecs == nil || planRepSpecs == nil {
+		return
+	}
+	planWithUnknowns := []TFReplicationSpecsModel{}
+	for i := range planRepSpecsTF {
+		if i < len(*stateRepSpecs) {
+			stateSpec := (*stateRepSpecs)[i]
+			planSpec := (*planRepSpecs)[i]
+			patchSpec, err := update.PatchPayload(&stateSpec, &planSpec)
+			if err != nil {
+				diags.AddError("error find diff useStateForUnknownsReplicationSpecs", err.Error())
+				return
+			}
+			if update.IsZeroValues(patchSpec) {
+				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], nil)
+			} else {
+				useStateForUnknownsRegionConfigs(ctx, diags, &stateSpec, &planSpec, &stateRepSpecsTF[i], &planRepSpecsTF[i])
+			}
+		}
+		planWithUnknowns = append(planWithUnknowns, planRepSpecsTF[i])
+	}
+	listType, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, planWithUnknowns)
+	diags.Append(diagsLocal...)
+	if diags.HasError() {
+		return
+	}
+	plan.ReplicationSpecs = listType
+}
+
+func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
+	elements := make([]T, len(input.Elements()))
+	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return nil
+	}
+	return elements
+}
+
+func useStateForUnknownsRegionConfigs(ctx context.Context, diags *diag.Diagnostics, state, plan *admin.ReplicationSpec20240805, stateTF, planTF *TFReplicationSpecsModel) {
+	stateRegionConfigs := state.GetRegionConfigs()
+	stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateTF.RegionConfigs)
+	planRegionConfigs := plan.GetRegionConfigs()
+	planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planTF.RegionConfigs)
+	if diags.HasError() || stateRegionConfigs == nil || planRegionConfigs == nil {
+		return
+	}
+	for i := range planRegionConfigsTF {
+		if i >= len(stateRegionConfigs) {
+			continue
+		}
+		stateSpec := stateRegionConfigs[i]
+		planSpec := planRegionConfigs[i]
+		patchSpec, err := update.PatchPayload(&stateSpec, &planSpec)
+		if err != nil {
+			diags.AddError("error find diff useStateForUnknownsRegionConfigs", err.Error())
+			return
+		}
+		if update.IsZeroValues(patchSpec) {
+			schemafunc.CopyUnknowns(ctx, &stateRegionConfigsTF[i], &planRegionConfigsTF[i], nil)
+		}
+	}
+	listType, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, planRegionConfigsTF)
+	diags.Append(diagsLocal...)
+	if diags.HasError() {
+		return
+	}
+	planTF.RegionConfigs = listType
 }
