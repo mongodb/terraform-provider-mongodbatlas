@@ -4,7 +4,7 @@ page_title: "Migration Guide: Advanced Cluster Preview Provider v2"
 
 # Migration Guide: Advanced Cluster Preview Provider v2
 
-**Objective**: This guides explains the changes introduced in the Preview for MongoDB Atlas Provider v2 `mongodbatlas_advanced_cluster` resource and how to migrate to it.
+**Objective**: This guide explains the changes introduced in the Preview for MongoDB Atlas Provider v2 `mongodbatlas_advanced_cluster` resource and how to migrate to it.
 
  `mongodbatlas_advanced_cluster` in the Preview for MongoDB Atlas Provider v2 is implemented using the recommended [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework). This improves the overall user experience and provides a more consistent and predictable behavior. It supports the latest Terraform features and best practices, including the `moved` block between different resource types, for more info see the [Migration Guide: Cluster to Advanced Cluster](cluster-to-advanced-cluster-migration-guide#moved-block).
 
@@ -63,7 +63,7 @@ replication_specs = [
 ]
 ```
 
-2. Elements `connection_strings`, `timeouts`, `advanced_configuration`, `bi_connector_config`, `pinned_fcv`, `electable_specs`, `read_only_specs`, `analytics_specs`, `auto_scaling` and `analytics_auto_scaling` are now single attribute instead of blocks so they are an object. For example,
+2. Elements `connection_strings`, `timeouts`, `advanced_configuration`, `bi_connector_config`, `pinned_fcv`, `electable_specs`, `read_only_specs`, `analytics_specs`, `auto_scaling` and `analytics_auto_scaling` are now single attributes instead of blocks so they are an object. For example,
 ```terraform 
 advanced_configuration {
   default_write_concern = "majority"
