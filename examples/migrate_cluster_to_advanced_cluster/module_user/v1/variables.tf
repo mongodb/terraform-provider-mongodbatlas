@@ -65,7 +65,7 @@ variable "replication_specs" {
   type = list(object({
     num_shards = number
     zone_name  = string
-    regions_config = set(object({
+    regions_config = list(object({
       region_name     = string
       electable_nodes = number
       priority        = number
