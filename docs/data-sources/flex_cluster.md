@@ -2,6 +2,8 @@
 
 `mongodbatlas_flex_cluster` describes a flex cluster.
 
+**RECOMMENDATION:** We now recommend using the `mongodbatlas_advanced_cluster` data source instead of `mongodbatlas_flex_cluster` data source to retrieve flex clusters. The `mongodbatlas_advanced_cluster` data source not only supports Flex clusters but also supports tenant and dedicated clusters, providing easier transition between different cluster types. For more information, see [Advanced Cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/advanced_cluster) data source.
+
 ## Example Usages
 ```terraform
 resource "mongodbatlas_flex_cluster" "example-cluster" {
