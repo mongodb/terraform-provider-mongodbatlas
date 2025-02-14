@@ -59,11 +59,11 @@ func refreshFunc(ctx context.Context, requestParams *admin.GetFlexClusterApiPara
 	return func() (any, string, error) {
 		flexCluster, resp, err := client.GetFlexClusterWithParams(ctx, requestParams).Execute()
 		if err != nil {
+			if isUpgradeFromM0 && (validate.StatusNotFound(resp) || admin.IsErrorCode(err, "CANNOT_USE_NON_FLEX_CLUSTER_IN_FLEX_API")) {
+				return "", retrystrategy.RetryStrategyUpdatingState, nil
+			}
 			if validate.StatusNotFound(resp) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
-			}
-			if resp != nil && isUpgradeFromM0 && admin.IsErrorCode(err, "CANNOT_USE_NON_FLEX_CLUSTER_IN_FLEX_API") {
-				return "", retrystrategy.RetryStrategyUpdatingState, nil
 			}
 			return nil, "", err
 		}
