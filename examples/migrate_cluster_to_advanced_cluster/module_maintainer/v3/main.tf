@@ -52,12 +52,21 @@ resource "mongodbatlas_advanced_cluster" "this" {
     }
   }
 
-  project_id             = var.project_id
-  name                   = var.cluster_name
-  cluster_type           = var.cluster_type
-  mongo_db_major_version = var.mongo_db_major_version
-  replication_specs      = local.use_new_replication_specs ? var.replication_specs_new : local.replication_specs_old
-  tags                   = var.tags
+  project_id                  = var.project_id
+  name                        = var.cluster_name
+  cluster_type                = var.cluster_type
+  mongo_db_major_version      = var.mongo_db_major_version
+  replication_specs           = local.use_new_replication_specs ? var.replication_specs_new : local.replication_specs_old
+  tags                        = var.tags
+  redact_client_log_data      = true
+  encryption_at_rest_provider = var.encryption_at_rest_provider
+
+  advanced_configuration = {
+    minimum_enabled_tls_protocol       = "TLS1_2"
+    javascript_enabled                 = false
+    tls_cipher_config_mode             = "CUSTOM"
+    custom_openssl_cipher_config_tls12 = ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"]
+  }
 }
 
 data "mongodbatlas_cluster" "this" {
@@ -66,4 +75,11 @@ data "mongodbatlas_cluster" "this" {
   project_id = mongodbatlas_advanced_cluster.this.project_id
 
   depends_on = [mongodbatlas_advanced_cluster.this]
+}
+
+resource "mongodbatlas_search_deployment" "search_nodes" {
+  count        = length(var.search_nodes_specs) > 0 ? 1 : 0
+  project_id   = mongodbatlas_advanced_cluster.this.project_id
+  cluster_name = mongodbatlas_advanced_cluster.this.name
+  specs        = var.search_nodes_specs
 }
