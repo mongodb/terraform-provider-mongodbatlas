@@ -123,7 +123,7 @@ tags = {
 
 ### How to migrate
 
-**Important**: Please keep a backup of the Terraform state before starting the migration. Once the changes are applied, it's not possible to go back to current `mongodbatlas_advanced_cluster`. If you need to go back, recover the backup of the Terraform state.
+**Important**: Please keep a backup of the Terraform state before starting the migration. Once the changes are applied, it's not possible to go back to current `mongodbatlas_advanced_cluster` without manual changes to the state. If you need to go back, recover the backup of the Terraform state.
 
 The process to migrate from current `mongodbatlas_advanced_cluster` to the one in Preview for MongoDB Atlas Provider v2 is as follows:
 - Before starting, run `terraform plan` to make sure that there are no planned changes.
