@@ -99,7 +99,7 @@ resource "mongodbatlas_advanced_cluster" "example-flex" {
   }
 }
 
-data "mongodbatlas_advanced_cluster" "example" {
+data "mongodbatlas_advanced_clusters" "example" {
   project_id = mongodbatlas_advanced_cluster.example-flex.project_id
 }
 ```
