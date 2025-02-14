@@ -1378,9 +1378,8 @@ func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin
 		return nil, nil, err
 	}
 
-	// TODO: see if can reuse same timeout for flex also
 	if request.ProviderSettings != nil && request.ProviderSettings.ProviderName == flexcluster.FlexClusterType {
-		flexCluster, err := waitStateTransitionFlexUpgrade(ctx, connV2.FlexClustersApi, projectID, name)
+		flexCluster, err := waitStateTransitionFlexUpgrade(ctx, connV2.FlexClustersApi, projectID, name, timeout)
 		return nil, flexCluster, err
 	}
 
@@ -1392,12 +1391,12 @@ func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin
 	return cluster, nil, nil
 }
 
-func waitStateTransitionFlexUpgrade(ctx context.Context, client admin.FlexClustersApi, projectID, name string) (*admin.FlexClusterDescription20241113, error) {
+func waitStateTransitionFlexUpgrade(ctx context.Context, client admin.FlexClustersApi, projectID, name string, timeout time.Duration) (*admin.FlexClusterDescription20241113, error) {
 	flexClusterParams := &admin.GetFlexClusterApiParams{
 		GroupId: projectID,
 		Name:    name,
 	}
-	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true)
+	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, &timeout)
 	if err != nil {
 		return nil, err
 	}

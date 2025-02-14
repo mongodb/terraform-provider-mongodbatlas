@@ -13,12 +13,19 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
-func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string, isUpgradeFromM0 bool) (*admin.FlexClusterDescription20241113, error) {
+var (
+	defaultTimeout = 3 * time.Hour
+)
+
+func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string, isUpgradeFromM0 bool, timeout *time.Duration) (*admin.FlexClusterDescription20241113, error) {
+	if timeout == nil {
+		timeout = &defaultTimeout
+	}
 	stateConf := &retry.StateChangeConf{
 		Pending:    pendingStates,
 		Target:     desiredStates,
 		Refresh:    refreshFunc(ctx, requestParams, client, isUpgradeFromM0),
-		Timeout:    3 * time.Hour,
+		Timeout:    *timeout,
 		MinTimeout: 3 * time.Second,
 		Delay:      0,
 	}
