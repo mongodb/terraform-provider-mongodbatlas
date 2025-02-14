@@ -45,7 +45,6 @@ const (
 	errorAdvancedConfUpdateLegacy = "error updating Advanced Configuration from legacy API"
 
 	DeprecationOldSchemaAction                   = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
-	defaultTimeout                               = 3 * time.Hour
 	ErrorCodeClusterNotFound                     = "CLUSTER_NOT_FOUND"
 	operationUpdate                              = "update"
 	operationCreate                              = "create"
@@ -492,16 +491,16 @@ func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 	)
 	switch operationName {
 	case operationCreate:
-		timeoutDuration, localDiags = t.Create(ctx, defaultTimeout)
+		timeoutDuration, localDiags = t.Create(ctx, constant.DefaultTimeout)
 		diags.Append(localDiags...)
 	case operationUpdate:
-		timeoutDuration, localDiags = t.Update(ctx, defaultTimeout)
+		timeoutDuration, localDiags = t.Update(ctx, constant.DefaultTimeout)
 		diags.Append(localDiags...)
 	case operationDelete:
-		timeoutDuration, localDiags = t.Delete(ctx, defaultTimeout)
+		timeoutDuration, localDiags = t.Delete(ctx, constant.DefaultTimeout)
 		diags.Append(localDiags...)
 	default:
-		timeoutDuration = defaultTimeout
+		timeoutDuration = constant.DefaultTimeout
 	}
 	return timeoutDuration
 }

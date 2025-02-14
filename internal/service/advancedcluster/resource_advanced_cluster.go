@@ -886,10 +886,10 @@ func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenan
 	}
 
 	var clusterID string
-	if upgradeClusterResponse != nil {
-		clusterID = upgradeClusterResponse.GetId()
-	} else {
+	if upgradeClusterResponse == nil {
 		clusterID = upgradeToFlexResp.GetId()
+	} else {
+		clusterID = upgradeClusterResponse.GetId()
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

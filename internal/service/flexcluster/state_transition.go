@@ -9,17 +9,15 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
-var (
-	defaultTimeout = 3 * time.Hour
-)
-
 func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string, isUpgradeFromM0 bool, timeout *time.Duration) (*admin.FlexClusterDescription20241113, error) {
 	if timeout == nil {
-		timeout = &defaultTimeout
+		timeout = conversion.Pointer(constant.DefaultTimeout)
 	}
 	stateConf := &retry.StateChangeConf{
 		Pending:    pendingStates,
