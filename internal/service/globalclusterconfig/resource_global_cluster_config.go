@@ -218,8 +218,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterName := ids["cluster_name"]
 
 	if d.HasChange("managed_namespaces") {
-		old, newMN := d.GetChange("managed_namespaces")
-		oldList := old.(*schema.Set).List()
+		oldMN, newMN := d.GetChange("managed_namespaces")
+		oldList := oldMN.(*schema.Set).List()
 		newList := newMN.(*schema.Set).List()
 		if err := updateManagedNamespaces(ctx, connV2, projectID, clusterName, oldList, newList); err != nil {
 			return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
@@ -227,8 +227,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("custom_zone_mappings") {
-		old, newZN := d.GetChange("custom_zone_mappings")
-		oldSet := old.(*schema.Set)
+		oldZN, newZN := d.GetChange("custom_zone_mappings")
+		oldSet := oldZN.(*schema.Set)
 		newSet := newZN.(*schema.Set)
 		if err := updateCustomZoneMappings(ctx, connV2, projectID, clusterName, oldSet, newSet); err != nil {
 			return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
