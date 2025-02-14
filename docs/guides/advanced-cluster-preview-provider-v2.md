@@ -4,7 +4,7 @@ page_title: "Migration Guide: Advanced Cluster Preview Provider v2"
 
 # Migration Guide: Advanced Cluster Preview Provider v2
 
-**Objective**: This guides explains the changes introduced in the  **Preview for MongoDB Atlas Provider v2** `mongodbatlas_advanced_cluster` resource and how to migrate to it.
+**Objective**: This guides explains the changes introduced in the Preview for MongoDB Atlas Provider v2 `mongodbatlas_advanced_cluster` resource and how to migrate to it.
 
  `mongodbatlas_advanced_cluster` in the Preview for MongoDB Atlas Provider v2 is implemented using the recommended [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework). This improves the overall user experience and provides a more consistent and predictable behavior. It supports the latest Terraform features and best practices, including the `moved` block between different resource types, for more info see the [Migration Guide: Cluster to Advanced Cluster](cluster-to-advanced-cluster-migration-guide#moved-block).
 
@@ -12,7 +12,7 @@ The [resource doc](../resources/advanced_cluster%2520%2528preview%2520provider%2
 
 ## Main Changes
 
-1. `replicaciont_specs` and `region_configs` are now `list attributes`  instead of `blocks` so they they are an array of objects. If there is only one object, it still needs to be in an array. For example,
+1. Elements `replication_specs` and `region_configs` are now list attributes instead of blocks so they they are an array of objects. If there is only one object, it still needs to be in an array. For example,
 ```terraform
 replication_specs {
   region_configs {
@@ -63,7 +63,7 @@ replication_specs = [
 ]
 ```
 
-2. `connection_strings`, `timeouts`, `advanced_configuration`, `bi_connector_config`, `pinned_fcv`, `electable_specs`, `read_only_specs`, `analytics_specs`, `auto_scaling` and `analytics_auto_scaling` are now `single attributes` instead of `blocks` so they are an object. For example,
+2. Elements `connection_strings`, `timeouts`, `advanced_configuration`, `bi_connector_config`, `pinned_fcv`, `electable_specs`, `read_only_specs`, `analytics_specs`, `auto_scaling` and `analytics_auto_scaling` are now single attribute instead of blocks so they are an object. For example,
 ```terraform 
 advanced_configuration {
   default_write_concern = "majority"
@@ -77,7 +77,7 @@ advanced_configuration = {
   javascript_enabled    = true
 }  
 ```
-If there are references to them, `[0]` and `.0` are dropped. For example,
+If there are references to them, `[0]` or `.0` are dropped. For example,
 ```terraform
 output "standard" {
     value = mongodbatlas_advanced_cluster.cluster.connection_strings[0].standard
@@ -96,7 +96,7 @@ output "javascript_enabled" {
 }
 ```
 
-3. `tags` and `labels` are now `maps` instead of `blocks`. For example,
+3. Elements `tags` and `labels` are now `maps` instead of `blocks`. For example,
 ```terraform
 tags {
   key   = "env"
@@ -128,6 +128,6 @@ tags = {
 The process to migrate from current `mongodbatlas_advanced_cluster` to the one in Preview for MongoDB Atlas Provider v2 is as follows:
 - Before starting, run `terraform plan` to make sure that there are no planned changes.
 - Set environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider v2.
-- Run `terraform plan` and you'll see errors as there is not a `mongodbatlas_advanced_cluster` definition change yet.
-- Apply changes in previous section until there are no errors and no planned changes. **Important**: Don't apply until plan is empty. If it shows other changes, you will need to update the `mongodb_atlas_advanced_cluster` configuration until it matches the original configuration.
+- Run `terraform plan` and you'll see errors as definition file hasn't been updated yet.
+- Apply definition changes explained in previous section until there are no errors and no planned changes. **Important**: Don't apply until plan is empty. If it shows other changes, you will need to keep updating the `mongodb_atlas_advanced_cluster` configuration until it matches the original configuration.
 - Run `terraform apply` to apply the changes. Although there are no plan changes shown to the user, the `mongodbatlas_advanced_cluster` state will be updated to support the Preview for MongoDB Atlas Provider v2.
