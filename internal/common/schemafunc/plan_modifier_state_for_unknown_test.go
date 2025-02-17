@@ -151,6 +151,11 @@ func TestCopyUnknowns(t *testing.T) {
 			RegionName:   types.StringValue("US_EAST_1"),
 			Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Unknown()}, SpecObjType.AttrTypes),
 		}
+		regionConfigSpecUnknown = TFRegionConfig{
+			ProviderName: types.StringValue("aws"),
+			RegionName:   types.StringValue("US_EAST_1"),
+			Spec:         types.ObjectUnknown(SpecObjType.AttrTypes),
+		}
 		advancedConfigTrue = asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(true)}, AdvancedConfigObjType.AttrTypes)
 	)
 
@@ -183,21 +188,21 @@ func TestCopyUnknowns(t *testing.T) {
 				ProjectID:        types.StringValue("src-project"),
 				Name:             types.StringValue("src-name"),
 				BackupEnabled:    types.BoolValue(true),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc}),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc, regionConfigSrc}),
 				AdvancedConfig:   advancedConfigTrue,
 			},
 			dest: &TFSimpleModel{
 				ProjectID:        types.StringUnknown(),
 				Name:             types.StringUnknown(),
 				BackupEnabled:    types.BoolUnknown(),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown}),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown, regionConfigSpecUnknown}),
 				AdvancedConfig:   types.ObjectUnknown(AdvancedConfigObjType.AttrTypes),
 			},
 			expectedDest: &TFSimpleModel{
 				ProjectID:        types.StringValue("src-project"),
 				Name:             types.StringUnknown(),
 				BackupEnabled:    types.BoolValue(true),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown}),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown, regionConfigNodeCountUnknown}),
 				AdvancedConfig:   types.ObjectUnknown(AdvancedConfigObjType.AttrTypes),
 			},
 			keepUnknown: []string{"name", "advanced_config", "zone_name", "node_count"},
