@@ -47,7 +47,7 @@ jobs:
           go-version-file: 'go.mod'
           cache: false # see https://github.com/golangci/golangci-lint-action/issues/807
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@e60da84bfae8c7920a47be973d75e15710aa8bd7
+        uses: golangci/golangci-lint-action@2226d7cb06a077cd73e56eedd38eecad18e5d837
         with:
           version: v1.62.2 # Also update GOLANGCI_VERSION variable in GNUmakefile when updating this version
       - name: actionlint
