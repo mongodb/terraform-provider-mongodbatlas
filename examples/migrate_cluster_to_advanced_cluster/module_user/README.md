@@ -26,9 +26,7 @@ The rest of this example is a step by step guide on how to migrate from `mongodb
 - [Cleanup with `terraform destroy`](#cleanup-with-terraform-destroy)
 
 ## Dependencies
-<!-- TODO: Update XX versions -->
-<!-- TODO: Update the `versions.tf` inside each vX -->
-- Terraform CLI >= 1.X
+- Terraform CLI >= 1.8
 - Terraform MongoDB Atlas Provider `>=v1.27.0`
 - A MongoDB Atlas account
 - Configure the provider (can also be done by configuring `public_key` and `private_key` in a `provider.tfvars`)

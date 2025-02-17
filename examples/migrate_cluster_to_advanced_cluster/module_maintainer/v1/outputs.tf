@@ -1,6 +1,6 @@
 output "mongodb_connection_strings" {
   value       = mongodbatlas_cluster.this.connection_strings
-  description = "These are the MongoDB Atlas connection strings. Note that these do not show the connection mechanism of the database details"
+  description = "Collection of Uniform Resource Locators that point to the MongoDB database."
 }
 
 output "cluster_name" {
