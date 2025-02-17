@@ -6,7 +6,7 @@ page_title: "Migration Guide: Cluster to Advanced Cluster"
 
 **Objective**: This guide explains how to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource. The data source(s) migration only requires [output changes](#output-changes) as data sources only read clusters.
 
-**Note**: Please look at the section [Moved block](#moved-block) below for an improved migration path. We are also exploring additional migration paths that do not involve Terraform State modifications. If interested to learn more or to test out directly please contact melissa.plunkett@mongodb.com.
+**Note**: Please look at the section [Moved block](#moved-block) below for an improved migration path. We are also exploring additional migration paths. If interested to learn more or to test out directly please contact melissa.plunkett@mongodb.com.
 
 ## Best Practices Before Migrating
 Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
