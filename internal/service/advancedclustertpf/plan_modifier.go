@@ -53,6 +53,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 		return
 	}
 	planWithUnknowns := []TFReplicationSpecsModel{}
+	useIss := clusterUseISS(planRepSpecs)
 	for i := range planRepSpecsTF {
 		if i < len(*stateRepSpecs) {
 			stateSpec := (*stateRepSpecs)[i]
@@ -63,7 +64,10 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 				return
 			}
 			if update.IsZeroValues(patchSpec) {
-				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], []string{"id"}) // Only used for old sharding config
+				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], nil)
+				if useIss {
+					planRepSpecsTF[i].Id = types.StringValue("") // ISS receive ASYMMETRIC_SHARD_UNSUPPORTED error from older cluster API and therefore, the ID should be empty
+				}
 			} else {
 				useStateForUnknownsRegionConfigs(ctx, diags, &stateSpec, &planSpec, &stateRepSpecsTF[i], &planRepSpecsTF[i])
 			}
@@ -124,5 +128,5 @@ func useStateForUnknownsRegionConfig(ctx context.Context, diags *diag.Diagnostic
 	// Based on what is changed this impacts the other reginon configs too
 	// In the same region config, the read_only_specs and electable_specs are the same, so changing instance_size in electable will also change it in read_only_specs
 	// In the sibling region configs, the electable_specs are the same, so changing instance_size in electable will also change it in the sibling region configs
-	schemafunc.CopyUnknowns(ctx, stateTF, planTF, nil)
+	planTF.AnalyticsSpecs = types.ObjectUnknown(SpecsObjType.AttrTypes)
 }
