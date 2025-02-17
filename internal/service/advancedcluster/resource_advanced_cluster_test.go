@@ -141,6 +141,7 @@ func TestAccAdvancedCluster_basicTenant(t *testing.T) {
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
+				// zone name is hardcoded directly as a temporary fix, depends on CLOUDP-300819 or CLOUDP-301101
 				Config: configTenant(t, true, projectID, clusterNameUpdated, "Zone 1"),
 				Check:  checkTenant(true, projectID, clusterNameUpdated),
 			},
