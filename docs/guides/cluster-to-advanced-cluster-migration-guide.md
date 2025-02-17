@@ -89,9 +89,11 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
 
-## Migration using Moved block (preferred)
+## Migration using Moved block (recommended)
 
-The [moved block](https://developer.hashicorp.com/terraform/language/moved) is a Terraform feature that allows to move between resource types. It's conceptually similar to do `removed` and `import` but it's more convenient as it's done in one step, and can be used in `modules`. The main requirements are:
+The [moved block](https://developer.hashicorp.com/terraform/language/moved) is a Terraform feature that allows to move between resource types. It's conceptually similar to do `removed` and `import` but it's more convenient as it's done in one step, and can be used in `modules`. This is our recommended method to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
+
+ The main requirements are:
  - Terraform version 1.8 or later is required, more info in the [State Move doc](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move).
  -  Preview for MongoDB Atlas Provider v2 of `mongodbatlas_advanced_cluster` is required, you can find more info in the [resource doc](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) and the [Migration Guide: Advanced Cluster Preview Provider v2](advanced-cluster-preview-provider-v2).
 
@@ -116,9 +118,12 @@ moved {
 You can find full-detailed examples in [migrate_cluster_to_advanced_cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster).
 
 ## Migration using `terraform plan -generate-config-out=adv_cluster.tf`
+
 This method uses only [Terraform native tools](https://developer.hashicorp.com/terraform/language/import/generating-configuration) and is ideal if you:
 1. Have an existing cluster without any Terraform configuration and want to manage your cluster with Terraform.
 2. Have existing `mongodbatlas_cluster` resource(s) and don't want to use an external script for migrating.
+
+**Note**: We recommend the `moved block` method as it's more convenient and less error-prone. If you continue with this method, you can still use the Preview for MongoDB Atlas Provider v2 by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`.
 
 ### Procedure
 
