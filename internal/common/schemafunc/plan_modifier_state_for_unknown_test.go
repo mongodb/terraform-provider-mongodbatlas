@@ -207,6 +207,24 @@ func TestCopyUnknowns(t *testing.T) {
 			},
 			keepUnknown: []string{"name", "advanced_config", "zone_name", "node_count"},
 		},
+		"respect keepUnknown on object": {
+			src: &TFSimpleModel{
+				ProjectID:        types.StringValue("src-project"),
+				Name:             types.StringValue("src-name"),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc}),
+			},
+			dest: &TFSimpleModel{
+				ProjectID:        types.StringUnknown(),
+				Name:             types.StringUnknown(),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigSpecUnknown}),
+			},
+			expectedDest: &TFSimpleModel{
+				ProjectID:        types.StringValue("src-project"),
+				Name:             types.StringValue("src-name"),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSpecUnknown}),
+			},
+			keepUnknown: []string{"spec"},
+		},
 		"non-pointer input": {
 			src:          &TFSimpleModel{},
 			dest:         nil,
@@ -287,7 +305,6 @@ func TestCopyUnknowns(t *testing.T) {
 				})
 				return
 			}
-
 			schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown)
 			assert.Equal(t, *tc.expectedDest, *tc.dest)
 		})
