@@ -4,7 +4,7 @@ The purpose of this example is to demonstrate how a Terraform module can help in
 The example contains three module versions which represent the three steps of the migration:
 
 Step | Purpose | Resources
---- | --- | --- | ---
+--- | --- | ---
 [Step 1](./v1) | Baseline | `mongodbatlas_cluster`
 [Step 2](./v2) | Migrate to advanced_cluster with no change in variables or plan | `mongodbatlas_advanced_cluster`
 [Step 3](./v3) | Use the latest features of advanced_cluster | `mongodbatlas_advanced_cluster`
