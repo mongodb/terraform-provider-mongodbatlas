@@ -226,10 +226,10 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `policy_item_weekly` - (Optional) Weekly policy item. See [below](#policy_item_weekly)
 * `policy_item_monthly` - (Optional) Monthly policy item. See [below](#policy_item_monthly)
 * `policy_item_yearly` - (Optional) Yearly policy item. See [below](#policy_item_yearly)
-* `auto_export_enabled` - Flag that indicates whether automatic export of cloud backup snapshots to the AWS bucket is enabled. Once enabled, it must be disabled by explicitly setting the value to `false`. Value can be one of the following:
-	* true - enables automatic export of cloud backup snapshots to the AWS bucket
- 	* false - disables automatic export of cloud backup snapshots to the AWS bucket (default)
-* `use_org_and_group_names_in_export_prefix` - Specify true to use organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your S3 bucket after it finishes exporting the snapshots. To learn more about the metadata files that Atlas uploads, see [Export Cloud Backup Snapshot](https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/#std-label-cloud-provider-snapshot-export).
+* `auto_export_enabled` - Flag that indicates whether MongoDB Cloud automatically exports Cloud Backup Snapshots to the Export Bucket. Once enabled, it must be disabled by explicitly setting the value to `false`. Value can be one of the following:
+	* true - Enables automatic export of cloud backup snapshots to the Export Bucket.
+ 	* false - Disables automatic export of cloud backup snapshots to the Export Bucket. (default)
+* `use_org_and_group_names_in_export_prefix` - Specify true to use organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your bucket after it finishes exporting the snapshots. To learn more about the metadata files that Atlas uploads, see [Export Cloud Backup Snapshot](https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/#std-label-cloud-provider-snapshot-export).
 * `copy_settings` - List that contains a document for each copy setting item in the desired backup policy. See [below](#copy_settings)
 * `export` - Policy for automatically exporting Cloud Backup Snapshots. `auto_export_enabled` must be set to true when defining this attribute. See [below](#export)
 ### export
