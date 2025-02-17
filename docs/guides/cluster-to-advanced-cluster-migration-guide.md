@@ -6,7 +6,7 @@ page_title: "Migration Guide: Cluster to Advanced Cluster"
 
 **Objective**: This guide explains how to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource. The data source(s) migration only requires [output changes](#output-changes) as data sources only read clusters.
 
-**Note**: Please look at the section [Moved block](#moved-block) below for an improved migration path. We are also exploring additional migration paths that do not involve Terraform State modifications. If interested to learn more or to test out directly please contact melissa.plunkett@mongodb.com.
+**Note**: Please look at the section [Moved block](#moved-block) below for an improved migration path. We are also exploring additional migration paths. If interested to learn more or to test out directly please contact melissa.plunkett@mongodb.com.
 
 ## Best Practices Before Migrating
 Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
@@ -197,7 +197,7 @@ The [moved block](https://developer.hashicorp.com/terraform/language/moved) is a
 The process to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` using the `moved` block is as follows:
 - Before starting, run `terraform plan` to make sure that there are no planned changes.
 - Add the `mongodbatlas_advanced_cluster` resource definition. 
-  - Make sure environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` is set in order to use the Preview for MongoDB Atlas Provider v2.
+  - Make sure environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` is set in order to use the Preview for MongoDB Atlas Provider v2. You can also define the environment variable in your local development environment so your tools can use the new format and help you with linting and auto-completion.
   - The [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) can be used to generate the `mongodbatlas_advanced_cluster` resource definition. This is the recommended method as it will generate a clean configuration keeping the original Terraform expressions.
   - Alternatively, you can use the `terraform plan -generate-config-out=adv_cluster.tf` method to create the `mongodbatlas_advanced_cluster` resource definition, or create it manually.
 - Comment out or delete the `mongodbatlas_cluster` resource definition.
