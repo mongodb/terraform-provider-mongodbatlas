@@ -123,7 +123,7 @@ This method uses only [Terraform native tools](https://developer.hashicorp.com/t
 1. Have an existing cluster without any Terraform configuration and want to manage your cluster with Terraform.
 2. Have existing `mongodbatlas_cluster` resource(s) and don't want to use an external script for migrating.
 
-**Note**: We recommend the `moved block` method as it's more convenient and less error-prone. If you continue with this method, you can still use the Preview for MongoDB Atlas Provider v2 by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`.
+**Note**: We recommend the `moved block` method as it's more convenient and less error-prone. If you continue with this method, you should still use the Preview for MongoDB Atlas Provider v2 by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` to avoid having to migrate again in the future.
 
 ### Procedure
 
