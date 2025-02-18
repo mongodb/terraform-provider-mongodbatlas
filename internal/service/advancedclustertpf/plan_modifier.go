@@ -76,6 +76,13 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	}
 	planWithUnknowns := []TFReplicationSpecsModel{}
 	useIss := clusterUseISS(planRepSpecs)
+	keepUnknownsAlways := []string{}
+	if useIss { // ISS receive ASYMMETRIC_SHARD_UNSUPPORTED error from older cluster API and therefore, the ID should be empty
+		keepUnknownsAlways = append(keepUnknownsAlways, "id")
+	}
+	if !clusterUseAutoScaling(planRepSpecs) {
+		keepUnknownsAlways = append(keepUnknownsAlways, "auto_scaling")
+	}
 	for i := range planRepSpecsTF {
 		if i < len(*stateRepSpecs) {
 			stateSpec := (*stateRepSpecs)[i]
@@ -86,9 +93,10 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 				return
 			}
 			if update.IsZeroValues(patchSpec) {
-				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], nil)
+				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsAlways)
 			} else {
 				keepUnknownsSpec := slices.Clone(keepUnknowns)
+				keepUnknownsSpec = append(keepUnknownsSpec, keepUnknownsAlways...)
 				if !regionsMatch(&stateSpec, &planSpec) { // If regions are different, we need to keep the container_id unknown
 					keepUnknownsSpec = append(keepUnknownsSpec, "container_id")
 				}
@@ -96,9 +104,6 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 					keepUnknownsSpec = append(keepUnknownsSpec, "ebs_volume_type")
 				}
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsSpec)
-			}
-			if useIss {
-				planRepSpecsTF[i].Id = types.StringValue("") // ISS receive ASYMMETRIC_SHARD_UNSUPPORTED error from older cluster API and therefore, the ID should be empty
 			}
 		}
 		planWithUnknowns = append(planWithUnknowns, planRepSpecsTF[i])
@@ -185,4 +190,18 @@ func getProviders(spec *admin.ReplicationSpec20240805) []string {
 		providers = append(providers, region.GetProviderName())
 	}
 	return providers
+}
+
+func clusterUseAutoScaling(specs *[]admin.ReplicationSpec20240805) bool {
+	if specs == nil {
+		return false
+	}
+	for _, spec := range *specs {
+		for _, regionConfig := range spec.GetRegionConfigs() {
+			if regionConfig.AutoScaling != nil {
+				return true
+			}
+		}
+	}
+	return false
 }
