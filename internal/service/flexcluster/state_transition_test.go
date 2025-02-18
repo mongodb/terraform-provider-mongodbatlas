@@ -136,7 +136,6 @@ func TestFlexClusterStateTransition(t *testing.T) {
 	}
 }
 
-// tmp
 func TestFlexClusterStateTransitionForDelete(t *testing.T) {
 	testCases := []testCase{
 		{
