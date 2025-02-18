@@ -10,6 +10,12 @@ page_title: "Migration Guide: Advanced Cluster Preview Provider v2"
 
 The [resource doc](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) contains all the details about the `mongodbatlas_advanced_cluster` resource in the Preview for MongoDB Atlas Provider v2.
 
+## Enable the Preview for MongoDB Atlas Provider v2 for `mongodbatlas_advanced_cluster`
+
+In order to enable the Preview for MongoDB Atlas Provider v2 for `mongodbatlas_advanced_cluster`, set the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. This will allow you to use the new `mongodbatlas_advanced_cluster` resource. You can also define the environment variable in your local development environment so your tools can use the new format and help you with linting and auto-completion.
+
+This environment variable only affects the `mongodbatlas_advanced_cluster` resource and corresponding data sources, it doesn't affect other resources. `mongodbatlas_advanced_cluster` definition will use the new format and new features like `moved block` from `mongodbatlas_cluster`to `mongodbatlas_advanced_cluster` will be available.
+
 ## Main Changes
 
 1. Elements `replication_specs` and `region_configs` are now list attributes instead of blocks so they they are an array of objects. If there is only one object, it still needs to be in an array. For example,
@@ -128,7 +134,7 @@ Before doing any migration create a backup of your [Terraform state file](https:
 
 The process to migrate from current `mongodbatlas_advanced_cluster` to the one in Preview for MongoDB Atlas Provider v2 is as follows:
 - Before starting, run `terraform plan` to make sure that there are no planned changes.
-- Set environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider v2. You can also define the environment variable in your local development environment so your tools can use the new format and help you with linting and auto-completion.
+- Set environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider v2.
 - Run `terraform plan` and you'll see errors as definition file hasn't been updated yet.
 - Apply definition changes explained in previous section until there are no errors and no planned changes. **Important**: Don't apply until plan is empty. If it shows other changes, you will need to keep updating the `mongodbatlas_advanced_cluster` configuration until it matches the original configuration.
 - Run `terraform apply` to apply the changes. Although there are no plan changes shown to the user, the `mongodbatlas_advanced_cluster` state will be updated to support the Preview for MongoDB Atlas Provider v2.
