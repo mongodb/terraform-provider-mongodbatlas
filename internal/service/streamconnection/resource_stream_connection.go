@@ -46,6 +46,7 @@ type TFStreamConnectionModel struct {
 	Security         types.Object `tfsdk:"security"`
 	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
 	Networking       types.Object `tfsdk:"networking"`
+	AWSLambdaConfig  types.Object `tfsdk:"aws_lambda_config"`
 }
 
 type TFConnectionAuthenticationModel struct {
@@ -98,6 +99,14 @@ var NetworkingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"access": NetworkingAccessObjectType,
 }}
 
+type TFAWSLambdaConfigModel struct {
+	RoleArn types.String `tfsdk:"role_arn"`
+}
+
+var AWSLambdaConfigObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"role_arn": types.StringType,
+}}
+
 func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
@@ -110,7 +119,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := streamConnectionPlan.ProjectID.ValueString()
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	streamConnectionReq, diags := NewStreamConnectionReq(ctx, &streamConnectionPlan)
@@ -139,7 +148,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := streamConnectionState.ProjectID.ValueString()
 	instanceName := streamConnectionState.InstanceName.ValueString()
 	connectionName := streamConnectionState.ConnectionName.ValueString()
@@ -168,7 +177,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := streamConnectionPlan.ProjectID.ValueString()
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	connectionName := streamConnectionPlan.ConnectionName.ValueString()

@@ -8,8 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	//"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
@@ -74,6 +75,16 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 				Type:         networkingAccessModel.Type.ValueStringPointer(),
 				ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
 			},
+		}
+	}
+
+	if !plan.AWSLambdaConfig.IsNull() {
+		awsLambdaConfigModel := &TFAWSLambdaConfigModel{}
+		if diags := plan.AWSLambdaConfig.As(ctx, awsLambdaConfigModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.Aws = &admin.StreamsAWSConnectionBaseConfig{
+			RoleArn: awsLambdaConfigModel.RoleArn.ValueStringPointer(),
 		}
 	}
 
@@ -147,6 +158,17 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 			return nil, diags
 		}
 		connectionModel.Networking = networkingModel
+	}
+
+	connectionModel.AWSLambdaConfig = types.ObjectNull(AWSLambdaConfigObjectType.AttrTypes)
+	if apiResp.Aws != nil {
+		awsLambdaConfig, diags := types.ObjectValueFrom(ctx, AWSLambdaConfigObjectType.AttrTypes, TFAWSLambdaConfigModel{
+			RoleArn: types.StringPointerValue(apiResp.Aws.RoleArn),
+		})
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.AWSLambdaConfig = awsLambdaConfig
 	}
 
 	return &connectionModel, nil

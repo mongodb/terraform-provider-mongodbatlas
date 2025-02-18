@@ -33,6 +33,9 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 * `security` - Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
 
+If `type` is of value `AWSLambda` the following additional attributes are defined:
+* `aws_lambda_config` - The configuration for AWS Lambda connection. See [AWSLambdaConfig](#AWSLambdaConfig)
+
 ### Authentication
 
 * `mechanism` - Style of authentication. Can be one of `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
@@ -55,6 +58,9 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 ### Access
 * `type` - Selected networking type. Either `PUBLIC`, `VPC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
 * `connection_id` - Id of the Private Link connection when type is `PRIVATE_LINK`.
+
+### AWSLambdaConfig
+* `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account. 
 
 To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/getStreamConnection) Documentation.
 The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_instance/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.
