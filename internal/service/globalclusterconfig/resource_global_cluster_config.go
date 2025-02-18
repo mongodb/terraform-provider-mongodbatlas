@@ -237,7 +237,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
-// Helper function to convert []map[string]any into []any
+// convertInterfaceSlice is a helper function that converts []map[string]any into []any
 func convertInterfaceSlice(input []map[string]any) []any {
 	var out []any
 	for _, v := range input {
