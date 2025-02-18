@@ -26,6 +26,7 @@ var (
 	sc500         = conversion.IntPtr(500)
 	sc200         = conversion.IntPtr(200)
 	sc404         = conversion.IntPtr(404)
+	sc400         = conversion.IntPtr(400)
 	clusterName   = "clusterName"
 	requestParams = &admin.GetFlexClusterApiParams{
 		GroupId: "groupId",
@@ -44,6 +45,15 @@ type testCase struct {
 }
 
 func TestFlexClusterStateTransition(t *testing.T) {
+	var (
+		errNonFlexInFlexAPI = admin.ApiError{
+			ErrorCode: "CANNOT_USE_NON_FLEX_CLUSTER_IN_FLEX_API",
+			Error:     400,
+		}
+		genericErr = admin.GenericOpenAPIError{}
+	)
+	genericErr.SetError("error")
+	genericErr.SetModel(errNonFlexInFlexAPI)
 	testCases := []testCase{
 		{
 			name: "Successful transition to IDLE",
@@ -60,6 +70,20 @@ func TestFlexClusterStateTransition(t *testing.T) {
 		{
 			name: "Successful transition to IDLE during cluster (M0) upgrade to Flex",
 			mockResponses: []response{
+				{state: &UpdatingState, statusCode: sc200},
+				{state: &IdleState, statusCode: sc200},
+			},
+			expectedState:   &IdleState,
+			expectedError:   false,
+			desiredStates:   []string{IdleState},
+			pendingStates:   []string{UpdatingState},
+			isUpgradeFromM0: true,
+		},
+		{
+			name: "Error when API returns 404 during cluster (M0) upgrade to Flex",
+			mockResponses: []response{
+				{state: &UpdatingState, statusCode: sc400, err: &genericErr},
+				{state: &UpdatingState, statusCode: sc404, err: errors.New("Not found")},
 				{state: &UpdatingState, statusCode: sc200},
 				{state: &IdleState, statusCode: sc200},
 			},
