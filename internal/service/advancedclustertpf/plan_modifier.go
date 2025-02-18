@@ -2,6 +2,7 @@ package advancedclustertpf
 
 import (
 	"context"
+	"reflect"
 	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -10,8 +11,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
-
-var keepUnknownRegionConfigs = []string{"instance_size", "disk_size_gb", "disk_iops", "node_count", "id", "analytics_specs", "read_only_specs"}
 
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	if !schemafunc.HasUnknowns(plan) {
@@ -23,8 +22,21 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	}
 	keepUnknown := determineKeepUnknowns(upgradeRequest, patchReq)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
+	// `replication_specs` is handled by index to allow:
+	// 1. Using full state for "unchanged" specs
+	// 2. Using partial state for "changed" specs
 	if slices.Contains(keepUnknown, "replication_specs") {
-		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan)
+		// These fields must be kept unknown in the replication_specs[index_of_changes]
+		// *_specs are kept unknown as not having them in the config means that changes in "sibling" region_configs can impact the "computed" spec
+		// read_only_specs also reacts to changes in the electable_specs
+		// disk_size_gb can be change at any level/spec
+		// disk_iops can change based on instance_size changes
+		var keepUnknownReplicationSpecs = []string{"disk_size_gb", "disk_iops", "read_only_specs", "analytics_specs", "electable_specs"}
+		if upgradeRequest != nil {
+			// TenantUpgrade changes many extra fields that are normally ok to use state values for
+			keepUnknownReplicationSpecs = append(keepUnknownReplicationSpecs, "zone_id", "id", "container_id", "external_id", "auto_scaling")
+		}
+		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, keepUnknownReplicationSpecs)
 	}
 }
 
@@ -45,7 +57,7 @@ func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgrade
 	return keepUnknown
 }
 
-func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, keepUnknowns []string) {
 	// TF Models are used for CopyUnknows, Admin Models are used for PatchPayload (`json` annotations necessary)
 	stateRepSpecs := newReplicationSpec20240805(ctx, state.ReplicationSpecs, diags)
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
@@ -68,7 +80,14 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 			if update.IsZeroValues(patchSpec) {
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], nil)
 			} else {
-				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownRegionConfigs)
+				keepUnknownsSpec := slices.Clone(keepUnknowns)
+				if !regionsMatch(&stateSpec, &planSpec) { // If regions are different, we need to keep the container_id unknown
+					keepUnknownsSpec = append(keepUnknownsSpec, "container_id")
+				}
+				if !providersMatch(&stateSpec, &planSpec) { // If providers are different, we need to keep the ebs_volume_type unknown
+					keepUnknownsSpec = append(keepUnknownsSpec, "ebs_volume_type")
+				}
+				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsSpec)
 			}
 			if useIss {
 				planRepSpecsTF[i].Id = types.StringValue("") // ISS receive ASYMMETRIC_SHARD_UNSUPPORTED error from older cluster API and therefore, the ID should be empty
@@ -91,4 +110,32 @@ func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input type
 		return nil
 	}
 	return elements
+}
+
+func regionsMatch(state, plan *admin.ReplicationSpec20240805) bool {
+	regionsState := getRegions(state)
+	regionsPlan := getRegions(plan)
+	return reflect.DeepEqual(regionsState, regionsPlan)
+}
+
+func getRegions(spec *admin.ReplicationSpec20240805) []string {
+	regions := []string{}
+	for _, region := range spec.GetRegionConfigs() {
+		regions = append(regions, region.GetRegionName())
+	}
+	return regions
+}
+
+func providersMatch(state, plan *admin.ReplicationSpec20240805) bool {
+	providersState := getProviders(state)
+	providersPlan := getProviders(plan)
+	return reflect.DeepEqual(providersState, providersPlan)
+}
+
+func getProviders(spec *admin.ReplicationSpec20240805) []string {
+	providers := []string{}
+	for _, region := range spec.GetRegionConfigs() {
+		providers = append(providers, region.GetProviderName())
+	}
+	return providers
 }
