@@ -144,7 +144,7 @@ This method uses only [Terraform native tools](https://developer.hashicorp.com/t
 ```terraform
 import {
   to = mongodbatlas_advanced_cluster.this
-  id = "664619d870c247237f4b86a6-legacy-cluster" # from step 1
+  id = "664619d870c247237f4b86a6-legacy-cluster" # from step 2
 }
 ```
 4. Run `terraform plan -generate-config-out=adv_cluster.tf`. This should generate a `adv_cluster.tf` file and display a message similar to `Plan: 1 to import, 0 to add, 0 to change, 0 to destroy`:
