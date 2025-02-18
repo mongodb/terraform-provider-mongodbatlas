@@ -79,6 +79,9 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	if diags.HasError() {
 		return
 	}
+	if !zoneNamesMatch(stateRepSpecs, planRepSpecs) { // Using zone_id that doesn't match the previous zone_name can lead to errors
+		keepUnknownsAlways = append(keepUnknownsAlways, "zone_id")
+	}
 	if !clusterUseAutoScaling(planRepSpecs) {
 		keepUnknownsAlways = append(keepUnknownsAlways, "auto_scaling")
 	}
@@ -164,4 +167,21 @@ func clusterUseAutoScaling(specs *[]admin.ReplicationSpec20240805) bool {
 		}
 	}
 	return false
+}
+
+func zoneNamesMatch(state, plan *[]admin.ReplicationSpec20240805) bool {
+	zonesState := getZoneNames(state)
+	zonesPlan := getZoneNames(plan)
+	return reflect.DeepEqual(zonesState, zonesPlan)
+}
+
+func getZoneNames(specs *[]admin.ReplicationSpec20240805) []string {
+	zones := []string{}
+	if specs == nil {
+		return zones
+	}
+	for _, spec := range *specs {
+		zones = append(zones, spec.GetZoneName())
+	}
+	return zones
 }
