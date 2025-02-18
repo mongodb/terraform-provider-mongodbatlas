@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -12,8 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 const (
@@ -170,7 +170,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	requestID := ids["request_id"]
 	ldapResp, resp, err := connV2.LDAPConfigurationApi.GetLdapConfigurationStatus(context.Background(), projectID, requestID).Execute()
 	if err != nil || ldapResp == nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -252,7 +252,7 @@ func resourceRefreshFunc(ctx context.Context, projectID, requestID string, connV
 	return func() (any, string, error) {
 		ldap, resp, err := connV2.LDAPConfigurationApi.GetLdapConfigurationStatus(ctx, projectID, requestID).Execute()
 		if err != nil {
-			if resp.StatusCode == 404 {
+			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
 			return nil, "", err

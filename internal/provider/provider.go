@@ -451,7 +451,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		streamprivatelinkendpoint.DataSource,
 		streamprivatelinkendpoint.PluralDataSource,
 	}
-	if config.AdvancedClusterV2Schema() {
+	if config.PreviewProviderV2AdvancedCluster() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
 	}
 	previewDataSources := []func() datasource.DataSource{
@@ -482,7 +482,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		mongodbemployeeaccessgrant.Resource,
 		streamprivatelinkendpoint.Resource,
 	}
-	if config.AdvancedClusterV2Schema() {
+	if config.PreviewProviderV2AdvancedCluster() {
 		resources = append(resources, advancedclustertpf.Resource)
 	}
 	previewResources := []func() resource.Resource{

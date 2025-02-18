@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 type MajorVersionOperator int
@@ -94,28 +94,4 @@ func replicationSpecIDsFromOldAPI(clusterRespOld *admin20240530.AdvancedClusterD
 		zoneNameSpecIDs[spec.GetZoneName()] = spec.GetId()
 	}
 	return zoneNameSpecIDs
-}
-
-// copied from advancedcluster/resource_update_logic.go
-func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2ClusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20240805) (*[]admin.ReplicationSpec20240805, error) {
-	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
-		return replicationSpecs, nil
-	}
-	cluster, _, err := connV2ClusterAPI.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		return nil, err
-	}
-
-	zoneToReplicationSpecsIDs := groupIDsByZone(cluster.GetReplicationSpecs())
-	result := AddIDsToReplicationSpecs(*replicationSpecs, zoneToReplicationSpecsIDs)
-	return &result, nil
-}
-
-// copied from advancedcluster/resource_update_logic.go
-func groupIDsByZone(specs []admin.ReplicationSpec20240805) map[string][]string {
-	result := make(map[string][]string)
-	for _, spec := range specs {
-		result[spec.GetZoneName()] = append(result[spec.GetZoneName()], spec.GetId())
-	}
-	return result
 }

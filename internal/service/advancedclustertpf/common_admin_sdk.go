@@ -10,10 +10,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
-func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, usingOldShardingConfiguration bool) *admin.ClusterDescription20240805 {
+func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, usingNewShardingConfig bool) *admin.ClusterDescription20240805 {
 	var (
 		pauseAfter  = req.GetPaused()
 		clusterResp *admin.ClusterDescription20240805
@@ -21,11 +21,11 @@ func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	if pauseAfter {
 		req.Paused = nil
 	}
-	if usingOldShardingConfiguration {
-		legacyReq := ConvertClusterDescription20241023to20240805(req)
-		clusterResp = createCluster20240805(ctx, diags, client, legacyReq, waitParams)
-	} else {
+	if usingNewShardingConfig {
 		clusterResp = createClusterLatest(ctx, diags, client, req, waitParams)
+	} else {
+		oldReq := ConvertClusterDescription20241023to20240805(req)
+		clusterResp = createCluster20240805(ctx, diags, client, oldReq, waitParams)
 	}
 	if diags.HasError() {
 		return nil

@@ -6,11 +6,11 @@ page_title: "Migration Guide: Cluster to Advanced Cluster"
 
 **Objective**: This guide explains how to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource. The data source(s) migration only requires [output changes](#output-changes) as data sources only read clusters.
 
-**Note**: In addition to below options, we are also actively exploring additional migration paths that do not involve Terraform State modifications. If interested to learn more or to test out directly please contact zuhair.ahmed@mongodb.com.
+**Note**: In addition to below options, we are also actively exploring additional migration paths that do not involve Terraform State modifications. If interested to learn more or to test out directly please contact melissa.plunkett@mongodb.com.
 
 ## Main Changes Between `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`
 
-1. Replication Spec Configuration: Supports different node types (electable, analytics, read_only) where hardware configuration can differ between node types.
+1. Replication Spec Configuration: Supports different node types (electable, analytics, read_only) where hardware configuration can differ between node types. `regions_config` is renamed to `region_configs`.
 2. Provider Settings: Moved from the top level to the replication spec allowing you to create multi-cloud clusters.
 3. Auto Scaling: Moved from the top level to the replication spec allowing you to scale replication specs individually.
 4. Backup Configuration: Renamed from `cloud_backup` to `backup_enabled`.
@@ -76,10 +76,16 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 ### Output Changes
 
+- Connection strings:
+  - Before: `srv_address`, `mongo_uri`, `mongo_uri_with_options` and `mongo_uri_updated` attributes were available.
+  - After: They're not available anymore, use attributes in `connection_strings` instead.
 - `container_id`:
   - Before: `mongodbatlas_cluster.this.replication_specs[0].container_id` was a flat string, such as: `669644ae01bf814e3d25b963`
   - After: `mongodbatlas_advanced_cluster.this.replication_specs[0].container_id` is a map, such as: `{"AWS:US_EAST_1": "669644ae01bf814e3d25b963"}`
   - If you have a single region you can access the `container_id` directly with: `one(values(mongodbatlas_advanced_cluster.this.replication_specs[0].container_id))`
+- `snapshot_backup_policy`:
+  - Before: It was deprecated.
+  - After: Use `mongodbatlas_cloud_backup_schedule` resource instead.
 
 ## Best Practices Before Migrating
 Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).

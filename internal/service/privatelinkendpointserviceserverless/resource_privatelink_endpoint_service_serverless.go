@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -17,6 +17,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -308,7 +309,7 @@ func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID
 	return func() (any, string, error) {
 		serverlessTenantEndpoint, resp, err := client.ServerlessPrivateEndpointsApi.GetServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointServiceID).Execute()
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 || resp.StatusCode == 400 {
+			if validate.StatusNotFound(resp) || validate.StatusBadRequest(resp) {
 				return "", "DELETED", nil
 			}
 
@@ -335,10 +336,10 @@ func resourceListRefreshFunc(ctx context.Context, projectID string, client *admi
 		if err != nil && serverlessInstances == nil && resp == nil {
 			return nil, "", err
 		} else if err != nil {
-			if resp.StatusCode == 404 {
+			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
-			if resp.StatusCode == 503 {
+			if validate.StatusServiceUnavailable(resp) {
 				return "", "PENDING", nil
 			}
 			return nil, "", err

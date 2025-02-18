@@ -16,6 +16,7 @@ const (
 )
 
 func TestAccServerlessPrivateLinkEndpoint_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // mongodbatlas_serverless_instance now create Flex clusters
 	resource.ParallelTest(t, *basicTestCase(t))
 }
 

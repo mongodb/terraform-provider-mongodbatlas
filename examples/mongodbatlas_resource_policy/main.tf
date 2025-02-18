@@ -7,7 +7,7 @@ resource "mongodbatlas_resource_policy" "project_ip_access_list" {
       body = <<EOF
         forbid (
                 principal,
-                action == cloud::Action::"project.edit",
+                action == ResourcePolicy::Action::"project.ipAccessList.modify",
                 resource
         )
                 when {
@@ -40,12 +40,12 @@ data "cedar_policyset" "cloud_region" {
     any_principal = true
     effect        = "forbid"
     action = {
-      type = " cloud::Action"
-      id   = "cluster.createEdit"
+      type = " ResourcePolicy::Action"
+      id   = "cluster.modify"
     }
     any_resource = true
     when {
-      text = "context.cluster.regions.contains(cloud::region::\"gcp:us-east1\")"
+      text = "context.cluster.regions.contains(ResourcePolicy::Region::\"gcp:us-east1\")"
     }
   }
 }

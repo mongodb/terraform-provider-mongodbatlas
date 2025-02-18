@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
@@ -22,10 +22,22 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	if retainBackups != nil && !modelIn.RetainBackupsEnabled.Equal(modelOut.RetainBackupsEnabled) {
 		modelOut.RetainBackupsEnabled = types.BoolPointerValue(retainBackups)
 	}
+	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
+	overrideMapStringWithPrevStateValue(&modelIn.Tags, &modelOut.Tags)
+}
+func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
+	if mapIn == nil || mapOut == nil || len(mapOut.Elements()) > 0 {
+		return
+	}
+	if mapIn.IsNull() {
+		*mapOut = types.MapNull(types.StringType)
+	} else {
+		*mapOut = types.MapValueMust(types.StringType, nil)
+	}
 }
 
 func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) map[string]int64 {
-	if !usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
 		return nil
 	}
 	stateCounts := numShardsMap(ctx, state.ReplicationSpecs, diags)
@@ -39,17 +51,17 @@ func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag
 	return planCounts
 }
 
-func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, clusterLatest *admin.ClusterDescription20240805, forceLegacySchema bool) *ExtraAPIInfo {
+func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterLatest *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) *ExtraAPIInfo {
 	var (
-		api20240530             = client.AtlasV220240530.ClustersApi
-		projectID               = plan.ProjectID.ValueString()
-		clusterName             = plan.Name.ValueString()
-		forceLegacySchemaFailed = false
+		api20240530                = client.AtlasV220240530.ClustersApi
+		projectID                  = clusterLatest.GetGroupId()
+		clusterName                = clusterLatest.GetName()
+		useOldShardingConfigFailed = false
 	)
 	clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
-			forceLegacySchemaFailed = forceLegacySchema
+			useOldShardingConfigFailed = !useReplicationSpecPerShard
 		} else {
 			diags.AddError(errorReadLegacy20240530, defaultAPIErrorDetails(clusterName, err))
 			return nil
@@ -63,14 +75,14 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 	return &ExtraAPIInfo{
 		ContainerIDs:               containerIDs,
 		ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
-		ForceLegacySchemaFailed:    forceLegacySchemaFailed,
+		UseOldShardingConfigFailed: useOldShardingConfigFailed,
 		ZoneNameNumShards:          numShardsMapFromOldAPI(clusterRespOld),
-		UsingLegacySchema:          forceLegacySchema || usingLegacyShardingConfig(ctx, plan.ReplicationSpecs, diags),
+		UseNewShardingConfig:       useReplicationSpecPerShard,
 	}
 }
 
-// instead of using `num_shards` explode the replication specs, and set disk_size_gb
-func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics, shoudlExplodeNumShards bool) *admin.ClusterDescription20240805 {
+// instead of using `num_shards` expand the replication specs, and set disk_size_gb
+func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics, shouldExpandNumShards bool) *admin.ClusterDescription20240805 {
 	latestModel := NewAtlasReq(ctx, model, diags)
 	if diags.HasError() {
 		return nil
@@ -80,35 +92,35 @@ func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagn
 		return nil
 	}
 	usingLegacySchema := isNumShardsGreaterThanOne(counts)
-	if usingLegacySchema && shoudlExplodeNumShards {
-		explodeNumShards(latestModel, counts)
+	if usingLegacySchema && shouldExpandNumShards {
+		expandNumShards(latestModel, counts)
 	}
-	diskSize := normalizeDiskSize(model, latestModel, diags)
+	normalizeDiskSize(model, latestModel, diags)
 	if diags.HasError() {
 		return nil
-	}
-	if diskSize != nil {
-		setDiskSize(latestModel, diskSize)
 	}
 	return latestModel
 }
 
-func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription20240805, diags *diag.Diagnostics) *float64 {
+func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription20240805, diags *diag.Diagnostics) {
 	rootDiskSize := conversion.NilForUnknown(model.DiskSizeGB, model.DiskSizeGB.ValueFloat64Pointer())
-	regionRootDiskSize := findRegionRootDiskSize(latestModel.ReplicationSpecs)
+	regionRootDiskSize := findFirstRegionDiskSizeGB(latestModel.ReplicationSpecs)
 	if rootDiskSize != nil && regionRootDiskSize != nil && (*regionRootDiskSize-*rootDiskSize) > 0.01 {
-		errMsg := "disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)"
+		errMsg := fmt.Sprintf("disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)", *rootDiskSize, *regionRootDiskSize)
 		diags.AddError(errMsg, errMsg)
-		return nil
+		return
 	}
+	diskSize := rootDiskSize
 	// Prefer regionRootDiskSize over rootDiskSize
 	if regionRootDiskSize != nil {
-		return regionRootDiskSize
+		diskSize = regionRootDiskSize
 	}
-	return rootDiskSize
+	if diskSize != nil {
+		setDiskSize(latestModel, diskSize)
+	}
 }
 
-func explodeNumShards(req *admin.ClusterDescription20240805, counts []int64) {
+func expandNumShards(req *admin.ClusterDescription20240805, counts []int64) {
 	specs := req.GetReplicationSpecs()
 	newSpecs := []admin.ReplicationSpec20240805{}
 	for i, spec := range specs {
@@ -143,12 +155,12 @@ func numShardsCounts(ctx context.Context, input types.List, diags *diag.Diagnost
 	return counts
 }
 
-func usingLegacyShardingConfig(ctx context.Context, input types.List, diags *diag.Diagnostics) bool {
+func usingNewShardingConfig(ctx context.Context, input types.List, diags *diag.Diagnostics) bool {
 	counts := numShardsCounts(ctx, input, diags)
 	if diags.HasError() {
-		return false
+		return true
 	}
-	return isNumShardsGreaterThanOne(counts)
+	return !isNumShardsGreaterThanOne(counts)
 }
 
 func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]int64 {
@@ -187,45 +199,62 @@ func isNumShardsGreaterThanOne(counts []int64) bool {
 	return false
 }
 
-func setDiskSize(req *admin.ClusterDescription20240805, size *float64) {
+// setDiskSize use most specific disk size, prefer region > spec > root disk size
+func setDiskSize(req *admin.ClusterDescription20240805, defaultSize *float64) {
 	for i, spec := range req.GetReplicationSpecs() {
+		specSizeDefault := findFirstRegionDiskSizeGB(&[]admin.ReplicationSpec20240805{spec})
+		if specSizeDefault == nil {
+			specSizeDefault = defaultSize
+		}
 		for j := range spec.GetRegionConfigs() {
 			actualConfig := req.GetReplicationSpecs()[i].GetRegionConfigs()[j]
+			regionSize := findRegionDiskSizeGB(&actualConfig)
+			if regionSize == nil {
+				regionSize = specSizeDefault
+			}
 			analyticsSpecs := actualConfig.AnalyticsSpecs
 			if analyticsSpecs != nil {
-				analyticsSpecs.DiskSizeGB = size
+				analyticsSpecs.DiskSizeGB = regionSize
 			}
 			electable := actualConfig.ElectableSpecs
 			if electable != nil {
-				electable.DiskSizeGB = size
+				electable.DiskSizeGB = regionSize
 			}
 			readonly := actualConfig.ReadOnlySpecs
 			if readonly != nil {
-				readonly.DiskSizeGB = size
+				readonly.DiskSizeGB = regionSize
 			}
 		}
 	}
 }
 
-func findRegionRootDiskSize(specs *[]admin.ReplicationSpec20240805) *float64 {
+func findFirstRegionDiskSizeGB(specs *[]admin.ReplicationSpec20240805) *float64 {
 	if specs == nil {
 		return nil
 	}
 	for _, spec := range *specs {
 		for _, regionConfig := range spec.GetRegionConfigs() {
-			analyticsSpecs := regionConfig.AnalyticsSpecs
-			if analyticsSpecs != nil && analyticsSpecs.DiskSizeGB != nil {
-				return analyticsSpecs.DiskSizeGB
-			}
-			electable := regionConfig.ElectableSpecs
-			if electable != nil && electable.DiskSizeGB != nil {
-				return electable.DiskSizeGB
-			}
-			readonly := regionConfig.ReadOnlySpecs
-			if readonly != nil && readonly.DiskSizeGB != nil {
-				return readonly.DiskSizeGB
+			diskSizeGB := findRegionDiskSizeGB(&regionConfig)
+			if diskSizeGB != nil {
+				return diskSizeGB
 			}
 		}
+	}
+	return nil
+}
+
+func findRegionDiskSizeGB(regionConfig *admin.CloudRegionConfig20240805) *float64 {
+	electable := regionConfig.ElectableSpecs
+	if electable != nil && electable.DiskSizeGB != nil {
+		return electable.DiskSizeGB
+	}
+	analyticsSpecs := regionConfig.AnalyticsSpecs
+	if analyticsSpecs != nil && analyticsSpecs.DiskSizeGB != nil {
+		return analyticsSpecs.DiskSizeGB
+	}
+	readonly := regionConfig.ReadOnlySpecs
+	if readonly != nil && readonly.DiskSizeGB != nil {
+		return readonly.DiskSizeGB
 	}
 	return nil
 }

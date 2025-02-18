@@ -3,15 +3,14 @@ package encryptionatrestprivateendpoint
 import (
 	"context"
 	"errors"
-	"net/http"
 	"time"
 
+	// "go.mongodb.org/atlas-sdk/v20241113005/admin"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	// "go.mongodb.org/atlas-sdk/v20241113004/admin"
-
 	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
 const (
@@ -70,7 +69,7 @@ func refreshFunc(ctx context.Context, projectID, cloudProvider, endpointID strin
 			return nil, "", err
 		}
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if validate.StatusNotFound(resp) {
 				return &admin.EARPrivateEndpoint{}, retrystrategy.RetryStrategyDeletedState, nil
 			}
 			return nil, "", err

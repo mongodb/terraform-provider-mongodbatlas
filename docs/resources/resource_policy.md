@@ -2,7 +2,7 @@
 
 `mongodbatlas_resource_policy` provides a Resource Policy resource. The resource lets you create, edit and delete resource policies to prevent misconfigurations and reduce the need for corrective interventions in your organization.
 
--> **NOTE**: Resource Policies are currently in Private Preview. To use this feature, you must take the following actions:
+-> **NOTE**: Resource Policies are currently in Public Preview. To use this feature, you must take the following actions:
 1. Enable the `Atlas Resource Policies` Preview Feature in your organization (contact [MongoDB Support](https://www.mongodb.com/services/support)).
 2. Enable the [Preview Features](https://github.com/mongodb/terraform-provider-mongodbatlas?tab=readme-ov-file#preview-features) when running `terraform` commands.
 
@@ -19,7 +19,7 @@ resource "mongodbatlas_resource_policy" "project_ip_access_list" {
       body = <<EOF
         forbid (
                 principal,
-                action == cloud::Action::"project.edit",
+                action == ResourcePolicy::Action::"project.ipAccessList.modify",
                 resource
         )
                 when {
@@ -52,12 +52,12 @@ data "cedar_policyset" "cloud_region" {
     any_principal = true
     effect        = "forbid"
     action = {
-      type = " cloud::Action"
-      id   = "cluster.createEdit"
+      type = " ResourcePolicy::Action"
+      id   = "cluster.modify"
     }
     any_resource = true
     when {
-      text = "context.cluster.regions.contains(cloud::region::\"gcp:us-east1\")"
+      text = "context.cluster.regions.contains(ResourcePolicy::Region::\"gcp:us-east1\")"
     }
   }
 }

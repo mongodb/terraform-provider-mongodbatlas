@@ -25,7 +25,12 @@ on:
         description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
         type: string
         required: false
-      
+      reduced_tests:
+        description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
+        type: boolean
+        required: false
+        default: false
+        
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -370,6 +375,7 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
@@ -377,7 +383,7 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf' }}
     env:
-      MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
+      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -392,9 +398,9 @@ jobs:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
       - name: Prepare new advanced_cluster
-        run: make tools enable-advancedclustertpf  
-      - name: Unit tests # delete after allowAdvancedClusterV2Schema is removed
-        run: go test -v ./internal/testutil/acc/advanced_cluster_schema_v2_test.go
+        run: make tools enable-preview-provider-v2  
+      - name: Unit tests # delete after allowPreviewProviderV2AdvancedCluster is removed
+        run: go test -v ./internal/testutil/acc/advanced_cluster_preview_provider_v2_test.go
       - name: Mocked Acceptance Tests
         env:
           ACCTEST_REGEX_RUN: '^TestAccMockable'
@@ -404,6 +410,7 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           HTTP_MOCKER_CAPTURE: 'true'
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
@@ -411,9 +418,9 @@ jobs:
 
   advanced_cluster_tpf_move:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' }}
+    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' && inputs.reduced_tests == false }}
     env:
-      MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA: 'true'
+      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
     strategy:
       max-parallel: 2
       fail-fast: false
@@ -434,7 +441,7 @@ jobs:
           terraform_version: ${{ matrix.terraform_version }}
           terraform_wrapper: false  
       - name: Prepare new advanced_cluster
-        run: make tools enable-advancedclustertpf  
+        run: make tools enable-preview-provider-v2  
       - name: Acceptance Tests
         env:
           ACCTEST_REGEX_RUN: '^TestAccAdvancedCluster_move'
