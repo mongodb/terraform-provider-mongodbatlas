@@ -875,18 +875,14 @@ func GetUpgradeToFlexClusterRequest(d *schema.ResourceData, meta any) *admin.Leg
 }
 
 func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, d *schema.ResourceData, meta any) diag.Diagnostics {
-	client := meta.(*config.MongoDBClient)
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
 
-	waitParams := &advancedclustertpf.ClusterWaitParams{
-		ClusterName: ids["cluster_name"],
-		ProjectID:   ids["project_id"],
-		Timeout:     d.Timeout(schema.TimeoutUpdate),
-	}
-
-	upgradeClusterResponse, upgradeToFlexResp, diags := upgradeCluster(ctx, client, upgradeRequest, waitParams)
-	if diags.HasError() {
-		return diags
+	upgradeClusterResponse, upgradeToFlexResp, err := upgradeCluster(ctx, connV2, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 	}
 
 	var clusterID string
@@ -898,8 +894,8 @@ func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenan
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"cluster_id":   clusterID,
-		"project_id":   waitParams.ProjectID,
-		"cluster_name": waitParams.ClusterName,
+		"project_id":   projectID,
+		"cluster_name": clusterName,
 	}))
 
 	return resourceRead(ctx, d, meta)
@@ -1373,37 +1369,34 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func upgradeCluster(ctx context.Context, client *config.MongoDBClient,
-	request *admin.LegacyAtlasTenantClusterUpgradeRequest,
-	waitParams *advancedclustertpf.ClusterWaitParams) (*admin.LegacyAtlasCluster, *admin.FlexClusterDescription20241113, diag.Diagnostics) {
-	connV2 := client.AtlasV2
-	request.Name = waitParams.ClusterName
-	request.GroupId = &waitParams.ProjectID
+func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *admin.FlexClusterDescription20241113, error) {
+	request.Name = name
+	request.GroupId = &projectID
 
-	cluster, _, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, waitParams.ProjectID, request).Execute()
+	cluster, _, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
 	if err != nil {
-		return nil, nil, diag.FromErr(fmt.Errorf(errorUpdate, waitParams.ClusterName, err))
+		return nil, nil, err
 	}
 
 	if request.ProviderSettings != nil && request.ProviderSettings.ProviderName == flexcluster.FlexClusterType {
-		flexCluster, err := waitStateTransitionFlexUpgrade(ctx, connV2.FlexClustersApi, waitParams)
-		return nil, flexCluster, diag.FromErr(fmt.Errorf(errorUpdate, waitParams.ClusterName, err))
+		flexCluster, err := waitStateTransitionFlexUpgrade(ctx, connV2.FlexClustersApi, projectID, name, timeout)
+		return nil, flexCluster, err
 	}
 
-	_, diags := AwaitChanges(ctx, client, waitParams, advancedclustertpf.OperationFlexUpgrade)
-	if diags.HasError() {
-		return nil, nil, diags
+	_, err = WaitStateTransitionClusterUpgrade(ctx, request, connV2.ClustersApi, []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, timeout)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	return cluster, nil, nil
 }
 
-func waitStateTransitionFlexUpgrade(ctx context.Context, client admin.FlexClustersApi, waitParams *advancedclustertpf.ClusterWaitParams) (*admin.FlexClusterDescription20241113, error) {
+func waitStateTransitionFlexUpgrade(ctx context.Context, client admin.FlexClustersApi, projectID, name string, timeout time.Duration) (*admin.FlexClusterDescription20241113, error) {
 	flexClusterParams := &admin.GetFlexClusterApiParams{
-		GroupId: waitParams.ProjectID,
-		Name:    waitParams.ClusterName,
+		GroupId: projectID,
+		Name:    name,
 	}
-	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, &waitParams.Timeout)
+	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, &timeout)
 	if err != nil {
 		return nil, err
 	}

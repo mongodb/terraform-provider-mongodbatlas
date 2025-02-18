@@ -60,7 +60,7 @@ const (
 	operationReplicationSpecsUpdateLegacy        = "update replication specs legacy"
 	operationFCVPinning                          = "FCV pinning"
 	operationFCVUnpinning                        = "FCV unpinning"
-	OperationFlexUpgrade                         = "flex upgrade"
+	operationFlexUpgrade                         = "flex upgrade"
 )
 
 func addErrorDiag(diags *diag.Diagnostics, errorLocator, details string) {

@@ -18,9 +18,3 @@ func GetClusterDetails(ctx context.Context, client *config.MongoDBClient, projec
 	cluster, flexCluster = advancedclustertpf.GetClusterDetails(ctx, &fwdiags, projectID, clusterName, client, false)
 	return cluster, flexCluster, conversion.FromTPFDiagsToSDKV2Diags(fwdiags)
 }
-
-func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams *advancedclustertpf.ClusterWaitParams, errorLocator string) (cluster *admin.ClusterDescription20240805, diags v2diag.Diagnostics) {
-	fwdiags := fwdiag.Diagnostics{}
-	cluster = advancedclustertpf.AwaitChanges(ctx, client, waitParams, advancedclustertpf.OperationFlexUpgrade, &fwdiags)
-	return cluster, conversion.FromTPFDiagsToSDKV2Diags(fwdiags)
-}
