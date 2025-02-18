@@ -112,6 +112,45 @@ func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input type
 	return elements
 }
 
+// clusterUseISS checks if the cluster is using the ISS (Independent Shard Scaling) feature
+func clusterUseISS(specs *[]admin.ReplicationSpec20240805) bool {
+	if specs == nil {
+		return false
+	}
+	specInstancesSizes := map[string]string{}
+	keyElectable := "electable"
+	keyAnalytics := "analytics"
+	keyReadOnly := "readonly"
+	useIss := func(key, instanceSize string) bool {
+		if instanceSize == "" {
+			return false
+		}
+		oldInstanceSize, ok := specInstancesSizes[key]
+		if ok && oldInstanceSize != instanceSize {
+			return true
+		}
+		specInstancesSizes[key] = instanceSize
+		return false
+	}
+	for _, spec := range *specs {
+		for _, regionConfig := range spec.GetRegionConfigs() {
+			electable := regionConfig.GetElectableSpecs()
+			if useIss(keyElectable, electable.GetInstanceSize()) {
+				return true
+			}
+			readOnly := regionConfig.GetReadOnlySpecs()
+			if useIss(keyReadOnly, readOnly.GetInstanceSize()) {
+				return true
+			}
+			analytics := regionConfig.GetAnalyticsSpecs()
+			if useIss(keyAnalytics, analytics.GetInstanceSize()) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func regionsMatch(state, plan *admin.ReplicationSpec20240805) bool {
 	regionsState := getRegions(state)
 	regionsPlan := getRegions(plan)
