@@ -10,40 +10,110 @@ tags = {
 # removed variables: replication_specs, provider_name, instance_size, disk_size
 replication_specs_new = [
   { # shard 1
-    region_configs = [{
+    region_configs = [
+      {
       electable_specs = {
-        disk_size_gb  = 50    # must be the same for all replication specs
-        instance_size = "M30" # changed
+        disk_size_gb  = 40
+        instance_size = "M10"
         node_count    = 3
       }
       priority      = 7
       provider_name = "AWS"
-      read_only_specs = { # new
-        disk_size_gb  = 50
-        instance_size = "M30"
-        node_count    = 1
+      region_name   = "US_EAST_1"
+    },
+    {
+      electable_specs = {
+        disk_size_gb  = 40
+        instance_size = "M10"
+        node_count    = 2
       }
-      region_name = "US_EAST_1"
-    }]
+      priority      = 6
+      provider_name = "AWS"
+      region_name   = "EU_WEST_1"
+    }
+    ]
     zone_name = "Zone 1"
   },
   { # shard 2
-    region_configs = [{
+    region_configs = [
+      {
       electable_specs = {
-        disk_size_gb  = 50
-        instance_size = "M50" # increased from M30
+        disk_size_gb  = 40
+        instance_size = "M30"
         node_count    = 3
       }
       priority      = 7
       provider_name = "AWS"
-      read_only_specs = { # new
-        disk_size_gb  = 50
-        instance_size = "M50"
-        node_count    = 1
+      region_name   = "US_EAST_1"
+    },
+    {
+      electable_specs = {
+        disk_size_gb  = 40
+        instance_size = "M10"
+        node_count    = 2
       }
-      region_name = "US_EAST_1"
-    }]
+      priority      = 6
+      provider_name = "AWS"
+      region_name   = "EU_WEST_1"
+    }
+    ]
+    zone_name = "Zone 1"
+  },
+  { # shard 23
+    region_configs = [
+      {
+      electable_specs = {
+        disk_size_gb  = 40
+        instance_size = "M10"
+        node_count    = 3
+      }
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_EAST_1"
+    },
+    {
+      electable_specs = {
+        disk_size_gb  = 40
+        instance_size = "M10"
+        node_count    = 2
+      }
+      priority      = 6
+      provider_name = "AWS"
+      region_name   = "EU_WEST_1"
+    }
+    ]
+    zone_name = "Zone 1"
+  },
+  { # shard 4
+    region_configs = [
+      {
+      electable_specs = {
+        disk_size_gb  = 40
+        instance_size = "M10"
+        node_count    = 3
+      }
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_EAST_1"
+    },
+    {
+      electable_specs = {
+        disk_size_gb  = 40
+        instance_size = "M10"
+        node_count    = 2
+      }
+      priority      = 6
+      provider_name = "AWS"
+      region_name   = "EU_WEST_1"
+    }
+    ]
     zone_name = "Zone 1"
   },
 ]
-
+search_nodes_specs = [
+  {
+    instance_size = "S20_HIGHCPU_NVME"
+    node_count    = 3
+  }
+]
+encryption_at_rest_provider = "AWS"
