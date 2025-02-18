@@ -8,6 +8,15 @@
       "instanceSize": "M20",
       "nodeCount": 1
      },
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": false
+      }
+     },
      "electableSpecs": {
       "instanceSize": "M10",
       "nodeCount": 3
@@ -17,6 +26,15 @@
      "regionName": "EU_WEST_1"
     },
     {
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": false
+      }
+     },
      "electableSpecs": {
       "instanceSize": "M10",
       "nodeCount": 2
