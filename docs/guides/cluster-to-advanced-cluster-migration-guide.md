@@ -119,9 +119,9 @@ moved {
 
 You can find full-detailed examples in [migrate_cluster_to_advanced_cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster).
 
-## Migration using `terraform plan -generate-config-out=adv_cluster.tf`
+## Migration using import
 
-This method uses only [Terraform native tools](https://developer.hashicorp.com/terraform/language/import/generating-configuration) and is ideal if you:
+This method uses only [Terraform native tools](https://developer.hashicorp.com/terraform/language/import/generating-configuration) and works if you:
 1. Have an existing cluster without any Terraform configuration and want to manage your cluster with Terraform.
 2. Have existing `mongodbatlas_cluster` resource(s) and don't want to use an external script for migrating.
 
@@ -129,15 +129,25 @@ This method uses only [Terraform native tools](https://developer.hashicorp.com/t
 
 ### Procedure
 
-1. Find the import IDs of the clusters you want to migrate: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6-legacy-cluster`
-2. Add an import block per cluster to one of your `.tf` files:
-  ```terraform
-  import {
-    to = mongodbatlas_advanced_cluster.this
-    id = "664619d870c247237f4b86a6-legacy-cluster" # from step 1
+1. If you have an existing `mongodbatlas_cluster` resource, remove it from your configuration and delete it from the state file, e.g.: `terraform state rm mongodbatlas_cluster.this`. Alternatively a `removed block` (available in Terraform 1.7 and later, don't confuse with `moved block`) can be used to delete it from the state file, e.g.:
+```terraform
+  removed {
+    from = mongodbatlas_cluster.this
+
+    lifecycle {
+      destroy = false
+    }
   }
-  ```
-3. Run `terraform plan -generate-config-out=adv_cluster.tf`. This should generate a `adv_cluster.tf` file and display a message similar to `Plan: 1 to import, 0 to add, 0 to change, 0 to destroy`:
+```
+2. Find the import IDs of the clusters you want to migrate: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6-legacy-cluster`
+3. Import it using the `terraform import` command, e.g.: `terraform import mongodbatlas_advanced_cluster.this 664619d870c247237f4b86a6-legacy-cluster`. Alternatively an `import block` can be used (available in Terraform 1.5 and later, can't be used inside modules), e.g.:
+```terraform
+import {
+  to = mongodbatlas_advanced_cluster.this
+  id = "664619d870c247237f4b86a6-legacy-cluster" # from step 1
+}
+```
+4. Run `terraform plan -generate-config-out=adv_cluster.tf`. This should generate a `adv_cluster.tf` file and display a message similar to `Plan: 1 to import, 0 to add, 0 to change, 0 to destroy`:
   ```terraform
   resource "mongodbatlas_advanced_cluster" "this" {
     # ... most attributes are removed for readability of this guide
@@ -201,21 +211,23 @@ This method uses only [Terraform native tools](https://developer.hashicorp.com/t
     }
   }
   ```
-4. Run `terraform apply`. You should see the resource(s) imported: `Apply complete! Resources: 1 imported, 0 added, 0 changed, 0 destroyed.`
-5. Remove the "default" fields. Many fields of this resource are optional. Look for fields with a `null` or `0` value or blocks you didn't specify before, for example:
+Alternatively you can use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition from a `mongodbatlas_cluster` definition. This will generate a clean configuration keeping the original Terraform expressions.
+
+5. Run `terraform apply`. You should see the resource(s) imported: `Apply complete! Resources: 1 imported, 0 added, 0 changed, 0 destroyed.`
+6. Remove the "default" fields. Many fields of this resource are optional. Look for fields with a `null` or `0` value or blocks you didn't specify before, for example:
    - `advanced_configuration`
    - `connection_strings`
    - `cluster_id`
    - `bi_connector_config`
-6. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration will have static values. Look in your previous configuration for:
+7. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration will have static values. Look in your previous configuration for:
    - variables, for example: `var.project_id`
    - Terraform keywords, for example: `for_each`, `count`, and `depends_on`
-7. Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
-8. Update the references from your previous cluster resource: `mongodbatlas_cluster.this.XXXX` to the new `mongodbatlas_advanced_cluster.this.XXX`.
+8. Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
+9. Update the references from your previous cluster resource: `mongodbatlas_cluster.this.XXXX` to the new `mongodbatlas_advanced_cluster.this.XXX`.
    - Double check [output-changes](#output-changes) to ensure the underlying configuration stays unchanged.
-9.  Replace your existing clusters with the ones from `adv_cluster.tf` and run `terraform state rm mongodbatlas_cluster.this`. Without this step, Terraform will create a plan to delete your existing cluster.
-1.  Remove the import block created in step 2.
-2.  Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
+10.  Replace your existing clusters with the ones from `adv_cluster.tf` and run `terraform state rm mongodbatlas_cluster.this`. Without this step, Terraform will create a plan to delete your existing cluster.
+11.  Remove the import block created in step 2.
+22.  Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
 
 ### Terraform Actions
 Using the `project_id` and `cluster.name`, Terraform imports your cluster and uses the new `mongodbatlas_advanced_cluster` schema to generate a configuration file. This file includes all configurable values in the schema, but none of the previous configuration defined for your `mongodbatlas_cluster`. Therefore, the new configuration will likely be a lot more verbose and contain none of your original [Terraform expressions.](https://developer.hashicorp.com/terraform/language/expressions)
