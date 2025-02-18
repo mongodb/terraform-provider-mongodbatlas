@@ -136,11 +136,11 @@ func TestAccAdvancedCluster_basicTenant(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(t, true, projectID, clusterName, ""),
+				Config: configTenant(t, true, projectID, clusterName, "Zone 1"),
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: configTenant(t, true, projectID, clusterNameUpdated, ""),
+				Config: configTenant(t, true, projectID, clusterNameUpdated, "Zone 1"),
 				Check:  checkTenant(true, projectID, clusterNameUpdated),
 			},
 		},
