@@ -186,6 +186,16 @@ func TestPatchReplicationSpecs(t *testing.T) {
 					{ForceUpdateAttr: []string{"replicationSpecs"}},
 				},
 			},
+			"Force changes when forceUpdateAttr set and state==plan": {
+				state: &state,
+				plan:  &state,
+				patchExpected: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &stateReplicationSpecs,
+				},
+				options: []update.PatchOptions{
+					{ForceUpdateAttr: []string{"replicationSpecs"}},
+				},
+			},
 			"Empty array should return no changes": {
 				state: &admin.ClusterDescription20240805{
 					Labels: &[]admin.ComponentLabel{},
