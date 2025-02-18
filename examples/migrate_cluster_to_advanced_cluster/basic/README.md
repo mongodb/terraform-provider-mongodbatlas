@@ -1,17 +1,17 @@
 # Basic Migration from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
-The purpose of this example is to show how a `mongodbatlas_cluster` resource can be migrated to `mongodbatlas_advanced_cluster`.
+The purpose of this example is to show how a `mongodbatlas_cluster` resource can be migrated to `mongodbatlas_advanced_cluster` (see alternatives, and more details in the [cluster to advanced cluster migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).)
 In this example we use specific files, but the same approach can be applied to any configuration file with `mongodbatlas_cluster` resource(s).
 The main steps are:
 
 - [Create the `mongodbatlas_cluster`](#create-the-mongodbatlas_cluster) (skip if you already have a configuration with one or more `mongodbatlas_cluster` resources)
-- [Use the Atlas CLI Plugin Terraform to create the `mongodbatlas_advanced_cluster` resources](#use-the-atlas-cli-plugin-terraform-to-create-the-mongodbatlas_advanced_cluster-resource)
+- [Use the Atlas CLI Plugin Terraform to create the `mongodbatlas_advanced_cluster` configuration](#use-the-atlas-cli-plugin-terraform-to-create-the-mongodbatlas_advanced_cluster-resource)
 - [Manual updates to the Terraform configuration](#manual-updates-to-the-terraform-configuration)
 - [Perform the Move](#perform-the-move)
   - [Troubleshooting](#troubleshooting)
 
 ## Create the `mongodbatlas_cluster`
-**Note**: This step is only to demonstrate the migration. If you want to manage a cluster with Terraform, we recommend you use a `mongodbatlas_advanced_cluster` instead.
+**Note**: This step is only to demonstrate the migration. If you want to manage a cluster with Terraform, we recommend you use a [mongodbatlas_advanced_cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) instead.
 
 This step can be skipped if you already have a configuration file with a `mongodbatlas_cluster` created.
 

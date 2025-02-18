@@ -87,7 +87,7 @@ The module supports standalone usage when there is no existing `mongodbatlas_clu
 The module also supports changing an existing `mongodbatlas_advanced_cluster` created in `v2`.
 
 ### [`variables.tf`](v3/variables.tf)
-- Add `replication_specs_new`, this is almost a full mirror of the `replication_specs` of the latest `mongodbatlas_advanced_cluster` schema
+- Add `replication_specs_new`, this is almost fully equivalent to the [`replication_specs`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529#replication_specs-1) of the latest `mongodbatlas_advanced_cluster` schema
   - Use a `[]` for default to allow continued usage of the old `replication_specs`
   - Usage of `optional` to simplify the caller
 - Add `default` to `instance_size` and `provider_name` as these are not required when `replication_specs_new` is used
