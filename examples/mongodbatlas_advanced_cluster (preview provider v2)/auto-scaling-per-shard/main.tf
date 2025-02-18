@@ -30,29 +30,30 @@ resource "mongodbatlas_advanced_cluster" "test" {
       region_name   = "EU_WEST_1"
     }]
     zone_name = "Zone 1"
-    }, { # second shard
-    region_configs = [{
-      auto_scaling = {
-        compute_enabled           = true
-        compute_max_instance_size = "M60"
-      }
-      analytics_auto_scaling = {
-        compute_enabled           = true
-        compute_max_instance_size = "M60"
-      }
-      electable_specs = {
-        instance_size = "M40"
-        node_count    = 3
-      }
-      analytics_specs = {
-        instance_size = "M40"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-    zone_name = "Zone 1"
+    },
+    { # second shard
+      region_configs = [{
+        auto_scaling = {
+          compute_enabled           = true
+          compute_max_instance_size = "M60"
+        }
+        analytics_auto_scaling = {
+          compute_enabled           = true
+          compute_max_instance_size = "M60"
+        }
+        electable_specs = {
+          instance_size = "M40"
+          node_count    = 3
+        }
+        analytics_specs = {
+          instance_size = "M40"
+          node_count    = 1
+        }
+        provider_name = "AWS"
+        priority      = 7
+        region_name   = "EU_WEST_1"
+      }]
+      zone_name = "Zone 1"
   }]
 
   lifecycle { # avoids non-empty plans as instance size start to scale from initial values
