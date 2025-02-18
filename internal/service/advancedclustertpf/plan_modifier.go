@@ -34,12 +34,6 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 		// auto_scaling can not use state value when a new region_spec/replication_spec is added, the auto_scaling will be empty and we get the AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG error
 		// 	potentially could be included if we check that the region_spec count is the same
 		var keepUnknownReplicationSpecs = []string{"disk_size_gb", "disk_iops", "read_only_specs", "analytics_specs", "electable_specs", "auto_scaling"}
-		if isShardingConfigUpgrade(ctx, state, plan, diags) {
-			keepUnknownReplicationSpecs = append(keepUnknownReplicationSpecs, "id")
-		}
-		if diags.HasError() {
-			return
-		}
 		if upgradeRequest != nil {
 			// TenantUpgrade changes many extra fields that are normally ok to use state values for
 			keepUnknownReplicationSpecs = append(keepUnknownReplicationSpecs, "zone_id", "id", "container_id", "external_id")
@@ -75,10 +69,15 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 		return
 	}
 	planWithUnknowns := []TFReplicationSpecsModel{}
-	useIss := clusterUseISS(planRepSpecs)
 	keepUnknownsAlways := []string{}
-	if useIss { // ISS receive ASYMMETRIC_SHARD_UNSUPPORTED error from older cluster API and therefore, the ID should be empty
+	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
 		keepUnknownsAlways = append(keepUnknownsAlways, "id")
+	}
+	if isShardingConfigUpgrade(ctx, state, plan, diags) {
+		keepUnknownsAlways = append(keepUnknownsAlways, "external_id") // Will be empty in the plan, so we need to keep it unknown
+	}
+	if diags.HasError() {
+		return
 	}
 	if !clusterUseAutoScaling(planRepSpecs) {
 		keepUnknownsAlways = append(keepUnknownsAlways, "auto_scaling")
@@ -123,45 +122,6 @@ func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input type
 		return nil
 	}
 	return elements
-}
-
-// clusterUseISS checks if the cluster is using the ISS (Independent Shard Scaling) feature
-func clusterUseISS(specs *[]admin.ReplicationSpec20240805) bool {
-	if specs == nil {
-		return false
-	}
-	specInstancesSizes := map[string]string{}
-	keyElectable := "electable"
-	keyAnalytics := "analytics"
-	keyReadOnly := "readonly"
-	useIss := func(key, instanceSize string) bool {
-		if instanceSize == "" {
-			return false
-		}
-		oldInstanceSize, ok := specInstancesSizes[key]
-		if ok && oldInstanceSize != instanceSize {
-			return true
-		}
-		specInstancesSizes[key] = instanceSize
-		return false
-	}
-	for _, spec := range *specs {
-		for _, regionConfig := range spec.GetRegionConfigs() {
-			electable := regionConfig.GetElectableSpecs()
-			if useIss(keyElectable, electable.GetInstanceSize()) {
-				return true
-			}
-			readOnly := regionConfig.GetReadOnlySpecs()
-			if useIss(keyReadOnly, readOnly.GetInstanceSize()) {
-				return true
-			}
-			analytics := regionConfig.GetAnalyticsSpecs()
-			if useIss(keyAnalytics, analytics.GetInstanceSize()) {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func regionsMatch(state, plan *admin.ReplicationSpec20240805) bool {
