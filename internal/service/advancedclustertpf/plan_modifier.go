@@ -31,10 +31,18 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 		// read_only_specs also reacts to changes in the electable_specs
 		// disk_size_gb can be change at any level/spec
 		// disk_iops can change based on instance_size changes
-		var keepUnknownReplicationSpecs = []string{"disk_size_gb", "disk_iops", "read_only_specs", "analytics_specs", "electable_specs"}
+		// auto_scaling can not use state value when a new region_spec/replication_spec is added, the auto_scaling will be empty and we get the AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG error
+		// 	potentially could be included if we check that the region_spec count is the same
+		var keepUnknownReplicationSpecs = []string{"disk_size_gb", "disk_iops", "read_only_specs", "analytics_specs", "electable_specs", "auto_scaling"}
+		if isShardingConfigUpgrade(ctx, state, plan, diags) {
+			keepUnknownReplicationSpecs = append(keepUnknownReplicationSpecs, "id")
+		}
+		if diags.HasError() {
+			return
+		}
 		if upgradeRequest != nil {
 			// TenantUpgrade changes many extra fields that are normally ok to use state values for
-			keepUnknownReplicationSpecs = append(keepUnknownReplicationSpecs, "zone_id", "id", "container_id", "external_id", "auto_scaling")
+			keepUnknownReplicationSpecs = append(keepUnknownReplicationSpecs, "zone_id", "id", "container_id", "external_id")
 		}
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, keepUnknownReplicationSpecs)
 	}

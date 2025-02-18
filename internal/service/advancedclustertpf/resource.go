@@ -456,15 +456,12 @@ func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 }
 
 func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, options *update.PatchOptions) (*admin.ClusterDescription20240805, *admin.LegacyAtlasTenantClusterUpgradeRequest) {
-	stateUsingNewSharding := usingNewShardingConfig(ctx, state.ReplicationSpecs, diags)
-	planUsingNewSharding := usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags)
-	if stateUsingNewSharding && !planUsingNewSharding {
-		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
+	isShardingUpgrade := isShardingConfigUpgrade(ctx, state, plan, diags)
+	if diags.HasError() {
 		return nil, nil
-	}
-	isShardingConfigUpgrade := !stateUsingNewSharding && planUsingNewSharding // old sharding config  (num_shards > 1) to new one
+	} // old sharding config  (num_shards > 1) to new one
 	stateReq := normalizeFromTFModel(ctx, state, diags, false)
-	planReq := normalizeFromTFModel(ctx, plan, diags, isShardingConfigUpgrade)
+	planReq := normalizeFromTFModel(ctx, plan, diags, isShardingUpgrade)
 	if diags.HasError() {
 		return nil, nil
 	}
@@ -486,4 +483,14 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		return nil, upgradeRequest
 	}
 	return patchReq, nil
+}
+
+func isShardingConfigUpgrade(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) bool {
+	stateUsingNewSharding := usingNewShardingConfig(ctx, state.ReplicationSpecs, diags)
+	planUsingNewSharding := usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags)
+	if stateUsingNewSharding && !planUsingNewSharding {
+		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
+		return false
+	}
+	return !stateUsingNewSharding && planUsingNewSharding
 }
