@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_global_cluster_config: Supports update operation ([#3060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3060))
+
 BUG FIXES:
 
 * resource/mongodbatlas_alert_configuration: Removes UseStateForUnknown plan modifier for interval_min ([#3051](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3051))
