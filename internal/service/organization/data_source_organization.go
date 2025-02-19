@@ -59,6 +59,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"skip_default_alerts_settings": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -75,6 +79,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err := d.Set("name", organization.GetName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `name`: %s", err))
+	}
+
+	if err := d.Set("skip_default_alerts_settings", organization.GetSkipDefaultAlertsSettings()); err != nil {
+		return diag.Errorf("error setting `skip_default_alerts_settings`: %s", err)
 	}
 
 	if err := d.Set("is_deleted", organization.GetIsDeleted()); err != nil {
