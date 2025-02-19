@@ -8,7 +8,7 @@
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
--> **NOTE:** This data source now also returns Flex clusters.
+-> **NOTE:** This data source also includes Flex clusters.
 
 ## Example Usage
 
