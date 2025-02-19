@@ -99,9 +99,13 @@ func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescripti
 	if flexCluster == nil {
 		return nil
 	}
+	var backupEnabled *bool
+	if flexCluster.BackupSettings != nil {
+		backupEnabled = flexCluster.BackupSettings.Enabled
+	}
 	return &admin.ClusterDescription20240805{
 		ClusterType:                  flexCluster.ClusterType,
-		BackupEnabled:                flexCluster.BackupSettings.Enabled,
+		BackupEnabled:                backupEnabled,
 		CreateDate:                   flexCluster.CreateDate,
 		MongoDBVersion:               flexCluster.MongoDBVersion,
 		ReplicationSpecs:             NewReplicationSpecsFromFlexDescription(flexCluster, priority),
