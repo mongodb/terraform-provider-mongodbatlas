@@ -2,6 +2,8 @@
 
 `mongodbatlas_flex_clusters` returns all flex clusters in a project.
 
+**RECOMMENDATION:** We recommend using the `mongodbatlas_advanced_clusters` data source instead of the `mongodbatlas_flex_clusters` data source to retrieve Flex clusters. The `mongodbatlas_advanced_clusters` data source not only supports Flex clusters, but also supports free and dedicated clusters, providing easier migration between different cluster types. For more information, see the [Advanced Clusters](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/advanced_clusters) data source.
+
 ## Example Usages
 ```terraform
 resource "mongodbatlas_flex_cluster" "example-cluster" {

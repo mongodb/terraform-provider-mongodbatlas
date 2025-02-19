@@ -2,6 +2,8 @@
 
 `mongodbatlas_flex_cluster` provides a Flex Cluster resource. The resource lets you create, update, delete and import a flex cluster.
 
+**RECOMMENDATION:** We recommend using the `mongodbatlas_advanced_cluster` resource instead of the `mongodbatlas_flex_cluster` resource to create and manage Flex clusters. The `mongodbatlas_advanced_cluster` resource not only supports Flex clusters, but also supports tenant and dedicated clusters, providing easier migration between different cluster types. For more information, see the [Advanced Cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) resource.
+
 ## Example Usages
 
 ```terraform
