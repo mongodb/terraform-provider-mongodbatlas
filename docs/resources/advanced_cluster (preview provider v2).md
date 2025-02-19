@@ -20,6 +20,7 @@ More information on considerations for using advanced clusters please see [Consi
 
 -> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
 
+-> **NOTE:** This resource supports Flex clusters. Additionally, you can upgrade [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex) and [Flex clusters to Dedicated](#Example-Flex-Cluster-Upgrade). When creating a Flex cluster, make sure to set the priority value to 7.
 
 ## Example Usage
 
@@ -73,9 +74,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 **NOTE:** There can only be one M0 cluster per project.
 
-**NOTE**: Upgrading the shared tier is supported. Any change from a shared tier cluster (a tenant) to a different instance size will be considered a tenant upgrade. When upgrading from the shared tier, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below. You can upgrade a shared tier cluster only to a single provider on an M10-tier cluster or greater. 
+**NOTE**: Upgrading the tenant cluster to a Flex cluster or a dedicated cluster is supported. When upgrading to a Flex cluster, change the `provider_name` from "TENANT" to "FLEX". See [Example Tenant Cluster Upgrade to Flex](#example-tenant-cluster-upgrade-to-flex) below. When upgrading to a dedicated cluster, change the `provider_name` to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`. See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below. You can upgrade a tenant cluster only to a single provider on an M10-tier cluster or greater.
 
-When upgrading from the shared tier, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
+When upgrading from the tenant, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
 
 
 ### Example Tenant Cluster Upgrade
@@ -96,6 +97,67 @@ resource "mongodbatlas_advanced_cluster" "test" {
       priority              = 7
     }]
   }]
+}
+```
+
+### Example Tenant Cluster Upgrade to Flex
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "example-flex" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+  replication_specs {
+    region_configs {
+      provider_name = "FLEX"
+      backing_provider_name = "AWS"
+      region_name = "US_EAST_1"
+      priority = 7
+    }
+  }
+}
+```
+
+### Example Flex Cluster
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "example-flex" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+  replication_specs {
+    region_configs {
+      provider_name = "FLEX"
+      backing_provider_name = "AWS"
+      region_name = "US_EAST_1"
+      priority = 7
+    }
+  }
+}
+```
+
+**NOTE**: Upgrading the Flex cluster is supported. When upgrading from a Flex cluster, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Flex Cluster Upgrade](#Example-Flex-Cluster-Upgrade) below. You can upgrade a Flex cluster only to a single provider on an M10-tier cluster or greater. 
+
+When upgrading from a flex cluster, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
+
+
+### Example Flex Cluster Upgrade
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+  replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+      }
+      provider_name         = "AWS"
+      region_name           = "US_EAST_1"
+      priority              = 7
+    }
+  }
 }
 ```
 
