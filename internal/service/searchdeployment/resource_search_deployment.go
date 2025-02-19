@@ -8,12 +8,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
-
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 var _ resource.ResourceWithConfigure = &searchDeploymentRS{}
@@ -118,6 +118,42 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
+// func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+// 	var searchDeploymentPlan TFSearchDeploymentRSModel
+// 	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchDeploymentPlan)...)
+// 	if resp.Diagnostics.HasError() {
+// 		return
+// 	}
+
+// 	connV2 := r.Client.AtlasV2
+// 	projectID := searchDeploymentPlan.ProjectID.ValueString()
+// 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
+// 	searchDeploymentReq := NewSearchDeploymentReq(ctx, &searchDeploymentPlan)
+
+// 	// Send update request but DO NOT wait for reindexing
+// 	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
+// 		resp.Diagnostics.AddError("error during search deployment update", err.Error())
+// 		return
+// 	}
+
+// 	// 🚀 Instead of waiting, fetch the latest known state
+// 	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
+// 	if err != nil {
+// 		resp.Diagnostics.AddWarning("warning: unable to fetch latest search deployment state", err.Error())
+// 		deploymentResp = &admin.ApiSearchDeploymentResponse{} // Prevent nil pointer crash
+// 	}
+
+// 	// Ensure we pass a non-nil response to NewTFSearchDeployment
+// 	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, false)
+// 	resp.Diagnostics.Append(diagnostics...)
+// 	if resp.Diagnostics.HasError() {
+// 		return
+// 	}
+// 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
+// }
+
+const defaultNoWaitForStateTransition = false
+
 func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var searchDeploymentPlan TFSearchDeploymentRSModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchDeploymentPlan)...)
@@ -128,12 +164,48 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
+
+	// Determine whether to wait for state transition.
+	// Use the constant default if the parameter is not provided.
+	noWait := defaultNoWaitForStateTransition
+	if !searchDeploymentPlan.NoWaitForStateTransition.IsNull() && !searchDeploymentPlan.NoWaitForStateTransition.IsUnknown() {
+		noWait = searchDeploymentPlan.NoWaitForStateTransition.ValueBool()
+	}
+
+	// Create the API request payload.
 	searchDeploymentReq := NewSearchDeploymentReq(ctx, &searchDeploymentPlan)
+
+	// Send update request.
 	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during search deployment update", err.Error())
 		return
 	}
 
+	if noWait {
+		// If no_wait_for_state_transition is true, skip waiting for state transition.
+		deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			resp.Diagnostics.AddWarning("warning: unable to fetch latest search deployment state", err.Error())
+			// Use an empty response to prevent a nil pointer crash.
+			deploymentResp = &admin.ApiSearchDeploymentResponse{}
+		}
+		newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, false)
+		resp.Diagnostics.Append(diagnostics...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		// Ensure we store all fields in state.
+		newSearchNodeModel.ProjectID = types.StringValue(projectID)
+		newSearchNodeModel.ClusterName = types.StringValue(clusterName)
+		newSearchNodeModel.NoWaitForStateTransition = types.BoolValue(noWait)
+		newSearchNodeModel.Specs = searchDeploymentPlan.Specs
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
+		return
+	}
+
+	// Otherwise, wait for state transition (default behavior).
 	updateTimeout, diags := searchDeploymentPlan.Timeouts.Update(ctx, defaultSearchNodeTimeout)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -145,11 +217,18 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.AddError("error during search deployment update", err.Error())
 		return
 	}
+
 	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, false)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	newSearchNodeModel.ProjectID = types.StringValue(projectID)
+	newSearchNodeModel.ClusterName = types.StringValue(clusterName)
+	newSearchNodeModel.NoWaitForStateTransition = types.BoolValue(noWait)
+	newSearchNodeModel.Specs = searchDeploymentPlan.Specs
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 

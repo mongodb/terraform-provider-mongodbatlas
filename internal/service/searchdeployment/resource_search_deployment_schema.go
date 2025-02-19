@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/ridmagroupby/terraform-provider-mongodbatlas/internal/service/searchdeployment/boolplanmodifier"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -63,17 +64,26 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Update: true,
 				Delete: true,
 			}),
+			"no_wait_for_state_transition": schema.BoolAttribute{
+				Description: "If set to true, Terraform will not wait for the search deployment to reach an idle state (i.e. skip waiting for reindexing) after an update.",
+				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.DefaultBoolValue{Value: false},
+				},
+			},
 		},
 	}
 }
 
 type TFSearchDeploymentRSModel struct {
-	ID          types.String   `tfsdk:"id"`
-	ClusterName types.String   `tfsdk:"cluster_name"`
-	ProjectID   types.String   `tfsdk:"project_id"`
-	Specs       types.List     `tfsdk:"specs"`
-	StateName   types.String   `tfsdk:"state_name"`
-	Timeouts    timeouts.Value `tfsdk:"timeouts"`
+	ID                       types.String   `tfsdk:"id"`
+	ClusterName              types.String   `tfsdk:"cluster_name"`
+	ProjectID                types.String   `tfsdk:"project_id"`
+	Specs                    types.List     `tfsdk:"specs"`
+	StateName                types.String   `tfsdk:"state_name"`
+	Timeouts                 timeouts.Value `tfsdk:"timeouts"`
+	NoWaitForStateTransition types.Bool     `tfsdk:"no_wait_for_state_transition"`
 }
 
 type TFSearchNodeSpecModel struct {
