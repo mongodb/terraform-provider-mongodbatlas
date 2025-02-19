@@ -1,6 +1,6 @@
 # Basic Migration from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
-The purpose of this example is to show how a `mongodbatlas_cluster` resource can be migrated to `mongodbatlas_advanced_cluster` (see alternatives, and more details in the [cluster to advanced cluster migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).)
+This example demonstrates how to migrate a `mongodbatlas_cluster` resource to `mongodbatlas_advanced_cluster` (see alternatives, and more details in the [cluster to advanced cluster migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).)
 In this example we use specific files, but the same approach can be applied to any configuration file with `mongodbatlas_cluster` resource(s).
 The main steps are:
 
