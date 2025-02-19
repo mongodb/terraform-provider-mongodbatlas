@@ -5,6 +5,8 @@
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
+-> **NOTE:** To prevent errors during resource destruction, ensure that no `mongodbatlas_cloud_backup_schedule` resource that defines an automatic export policy references this resource. If you must update related `mongodbatlas_cloud_backup_schedule` resources, make these updates in isolated `terraform apply` operations first, then run the operation that destroys the `mongodbatlas_cloud_backup_snapshot_export_bucket` resource.
+
 ## Example Usage
 
 
