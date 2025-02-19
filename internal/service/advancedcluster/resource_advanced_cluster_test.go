@@ -125,30 +125,6 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 	}
 }
 
-func TestAccAdvancedCluster_basicTenant(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
-		clusterNameUpdated     = acc.RandomClusterName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				// zone name is hardcoded directly as a temporary fix, depends on CLOUDP-300819 or CLOUDP-301101
-				Config: configTenant(t, true, projectID, clusterName, "Zone 1"),
-				Check:  checkTenant(true, projectID, clusterName),
-			},
-			{
-				// zone name is hardcoded directly as a temporary fix, depends on CLOUDP-300819 or CLOUDP-301101
-				Config: configTenant(t, true, projectID, clusterNameUpdated, "Zone 1"),
-				Check:  checkTenant(true, projectID, clusterNameUpdated),
-			},
-		},
-	})
-}
-
 func TestAccAdvancedCluster_basicTenant_flexUpgrade(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
@@ -167,6 +143,10 @@ func TestAccAdvancedCluster_basicTenant_flexUpgrade(t *testing.T) {
 			{
 				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", defaultZoneName, false),
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false),
+			},
+			{
+				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configTenantUpgraded(projectID, clusterName, defaultZoneName)),
+				Check:  checksTenantUpgraded(projectID, clusterName),
 			},
 		},
 	})
