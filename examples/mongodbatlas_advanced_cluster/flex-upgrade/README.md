@@ -30,7 +30,7 @@ public_key                  = <REDACTED>
 private_key                 = <REDACTED>
 provider_name               = "FLEX"
 backing_provider_name       = "AWS"
-
+```
 Apply with the following `terraform.tfvars` to upgrade the flex tier cluster you just created to dedicated tier:
 ```
 atlas_org_id                = "627a9687f7f7f7f774de306f14"
@@ -38,3 +38,4 @@ public_key                  = <REDACTED>
 private_key                 = <REDACTED>
 provider_name               = "AWS"
 provider_instance_size_name = "M10"
+```
