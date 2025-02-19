@@ -22,7 +22,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
@@ -350,40 +349,12 @@ func GetDiskSizeGBFromReplicationSpec(cluster *admin.ClusterDescription20240805)
 	return configs[0].ElectableSpecs.GetDiskSizeGB()
 }
 
-func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admin.ClustersApi) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		cluster, resp, err := client.GetCluster(ctx, projectID, name).Execute()
-
-		if err != nil && strings.Contains(err.Error(), "reset by peer") {
-			return nil, retrystrategy.RetryStrategyRepeatingState, nil
-		}
-
-		if err != nil && cluster == nil && resp == nil {
-			return nil, "", err
-		} else if err != nil {
-			if admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API") {
-				return nil, retrystrategy.RetryStrategyUpdatingState, nil
-			}
-			if validate.StatusNotFound(resp) {
-				return "", retrystrategy.RetryStrategyDeletedState, nil
-			}
-			if validate.StatusServiceUnavailable(resp) {
-				return "", retrystrategy.RetryStrategyPendingState, nil
-			}
-			return nil, "", err
-		}
-
-		state := cluster.GetStateName()
-		return cluster, state, nil
-	}
-}
-
 func WaitStateTransitionClusterUpgrade(ctx context.Context, name, projectID string,
 	client admin.ClustersApi, pendingStates, desiredStates []string, timeout time.Duration) (*admin.ClusterDescription20240805, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    pendingStates,
 		Target:     desiredStates,
-		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, client),
+		Refresh:    advancedclustertpf.ResourceRefreshFunc(ctx, name, projectID, client),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,

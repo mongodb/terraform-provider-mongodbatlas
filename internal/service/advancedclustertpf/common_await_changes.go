@@ -71,7 +71,7 @@ func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, project
 			retrystrategy.RetryStrategyDeletingState,
 		}, extraPending),
 		Target:       []string{targetState},
-		Refresh:      resourceRefreshFunc(ctx, name, projectID, api),
+		Refresh:      ResourceRefreshFunc(ctx, name, projectID, api),
 		Timeout:      timeout,
 		MinTimeout:   RetryMinTimeout,
 		Delay:        RetryDelay,
@@ -79,7 +79,7 @@ func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, project
 	}
 }
 
-func resourceRefreshFunc(ctx context.Context, name, projectID string, api admin.ClustersApi) retry.StateRefreshFunc {
+func ResourceRefreshFunc(ctx context.Context, name, projectID string, api admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		cluster, resp, err := api.GetCluster(ctx, projectID, name).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
@@ -91,6 +91,9 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, api admin.
 		}
 
 		if err != nil {
+			if admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API") {
+				return nil, retrystrategy.RetryStrategyUpdatingState, nil
+			}
 			if validate.StatusNotFound(resp) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
