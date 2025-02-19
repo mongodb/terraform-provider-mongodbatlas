@@ -48,7 +48,7 @@ func NewReplicationSpecsFromFlexDescription(input *admin.FlexClusterDescription2
 					Priority:            priority,
 				},
 			},
-			ZoneName: conversion.StringPtr("ZoneName managed by Terraform"),
+			ZoneName: conversion.StringPtr("Zone 1"),
 		},
 	}
 }
