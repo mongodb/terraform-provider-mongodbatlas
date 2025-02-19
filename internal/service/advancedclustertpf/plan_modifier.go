@@ -26,19 +26,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	// 1. Using full state for "unchanged" specs
 	// 2. Using partial state for "changed" specs
 	if slices.Contains(keepUnknown, "replication_specs") {
-		// These fields must be kept unknown in the replication_specs[index_of_changes]
-		// *_specs are kept unknown as not having them in the config means that changes in "sibling" region_configs can impact the "computed" spec
-		// read_only_specs also reacts to changes in the electable_specs
-		// disk_size_gb can be change at any level/spec
-		// disk_iops can change based on instance_size changes
-		// auto_scaling can not use state value when a new region_spec/replication_spec is added, the auto_scaling will be empty and we get the AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG error
-		// 	potentially could be included if we check that the region_spec count is the same
-		var keepUnknownReplicationSpecs = []string{"disk_size_gb", "disk_iops", "read_only_specs", "analytics_specs", "electable_specs", "auto_scaling"}
-		if upgradeRequest != nil {
-			// TenantUpgrade changes many extra fields that are normally ok to use state values for
-			keepUnknownReplicationSpecs = append(keepUnknownReplicationSpecs, "zone_id", "id", "container_id", "external_id")
-		}
-		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, keepUnknownReplicationSpecs)
+		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, upgradeRequest != nil)
 	}
 }
 
@@ -59,7 +47,7 @@ func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgrade
 	return keepUnknown
 }
 
-func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, keepUnknowns []string) {
+func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, isTenantUpgrade bool) {
 	// TF Models are used for CopyUnknows, Admin Models are used for PatchPayload (`json` annotations necessary)
 	stateRepSpecs := newReplicationSpec20240805(ctx, state.ReplicationSpecs, diags)
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
@@ -69,21 +57,9 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 		return
 	}
 	planWithUnknowns := []TFReplicationSpecsModel{}
-	keepUnknownsAlways := []string{}
-	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
-		keepUnknownsAlways = append(keepUnknownsAlways, "id")
-	}
-	if isShardingConfigUpgrade(ctx, state, plan, diags) {
-		keepUnknownsAlways = append(keepUnknownsAlways, "external_id") // Will be empty in the plan, so we need to keep it unknown
-	}
+	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(ctx, diags, state, plan, stateRepSpecs, planRepSpecs)
 	if diags.HasError() {
 		return
-	}
-	if !zoneNamesMatch(stateRepSpecs, planRepSpecs) { // Using zone_id that doesn't match the previous zone_name can lead to errors
-		keepUnknownsAlways = append(keepUnknownsAlways, "zone_id")
-	}
-	if !clusterUseAutoScaling(planRepSpecs) {
-		keepUnknownsAlways = append(keepUnknownsAlways, "auto_scaling")
 	}
 	for i := range planRepSpecsTF {
 		if i < len(*stateRepSpecs) {
@@ -95,16 +71,9 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 				return
 			}
 			if update.IsZeroValues(patchSpec) {
-				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsAlways)
+				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsUnchangedSpec)
 			} else {
-				keepUnknownsSpec := slices.Clone(keepUnknowns)
-				keepUnknownsSpec = append(keepUnknownsSpec, keepUnknownsAlways...)
-				if !regionsMatch(&stateSpec, &planSpec) { // If regions are different, we need to keep the container_id unknown
-					keepUnknownsSpec = append(keepUnknownsSpec, "container_id")
-				}
-				if !providersMatch(&stateSpec, &planSpec) { // If providers are different, we need to keep the ebs_volume_type unknown
-					keepUnknownsSpec = append(keepUnknownsSpec, "ebs_volume_type")
-				}
+				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, isTenantUpgrade, stateSpec, planSpec)
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsSpec)
 			}
 		}
@@ -116,6 +85,46 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 		return
 	}
 	plan.ReplicationSpecs = listType
+}
+
+func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, isTenantUpgrade bool, stateSpec, planSpec admin.ReplicationSpec20240805) []string {
+	// These fields must be kept unknown in the replication_specs[index_of_changes]
+	// *_specs are kept unknown as not having them in the config means that changes in "sibling" region_configs can impact the "computed" spec
+	// read_only_specs also reacts to changes in the electable_specs
+	// disk_size_gb can be change at any level/spec
+	// disk_iops can change based on instance_size changes
+	// auto_scaling can not use state value when a new region_spec/replication_spec is added, the auto_scaling will be empty and we get the AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG error
+	// 	potentially could be included if we check that the region_spec count is the same
+	var keepUnknowns = []string{"disk_size_gb", "disk_iops", "read_only_specs", "analytics_specs", "electable_specs", "auto_scaling"}
+	if isTenantUpgrade {
+		// TenantUpgrade changes many extra fields that are normally ok to use state values for
+		keepUnknowns = append(keepUnknowns, "zone_id", "id", "container_id", "external_id")
+	}
+	keepUnknowns = append(keepUnknowns, keepUnknownsAlways...)
+	if !regionsMatch(&stateSpec, &planSpec) { // If regions are different, we need to keep the container_id unknown
+		keepUnknowns = append(keepUnknowns, "container_id")
+	}
+	if !providersMatch(&stateSpec, &planSpec) { // If providers are different, we need to keep the ebs_volume_type unknown
+		keepUnknowns = append(keepUnknowns, "ebs_volume_type")
+	}
+	return keepUnknowns
+}
+
+func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, stateRepSpecs, planRepSpecs *[]admin.ReplicationSpec20240805) []string {
+	keepUnknowns := []string{}
+	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
+		keepUnknowns = append(keepUnknowns, "id")
+	}
+	if isShardingConfigUpgrade(ctx, state, plan, diags) {
+		keepUnknowns = append(keepUnknowns, "external_id") // Will be empty in the plan, so we need to keep it unknown
+	}
+	if !zoneNamesMatch(stateRepSpecs, planRepSpecs) { // Using zone_id that doesn't match the previous zone_name can lead to errors
+		keepUnknowns = append(keepUnknowns, "zone_id")
+	}
+	if !clusterUseAutoScaling(planRepSpecs) {
+		keepUnknowns = append(keepUnknowns, "auto_scaling")
+	}
+	return keepUnknowns
 }
 
 func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
