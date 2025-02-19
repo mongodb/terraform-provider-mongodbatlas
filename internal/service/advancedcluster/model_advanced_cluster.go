@@ -22,6 +22,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
@@ -354,17 +355,20 @@ func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admi
 		cluster, resp, err := client.GetCluster(ctx, projectID, name).Execute()
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
-			return nil, "REPEATING", nil
+			return nil, retrystrategy.RetryStrategyRepeatingState, nil
 		}
 
 		if err != nil && cluster == nil && resp == nil {
 			return nil, "", err
 		} else if err != nil {
+			if admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API") {
+				return nil, retrystrategy.RetryStrategyUpdatingState, nil
+			}
 			if validate.StatusNotFound(resp) {
-				return "", "DELETED", nil
+				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
 			if validate.StatusServiceUnavailable(resp) {
-				return "", "PENDING", nil
+				return "", retrystrategy.RetryStrategyPendingState, nil
 			}
 			return nil, "", err
 		}
@@ -374,12 +378,12 @@ func UpgradeRefreshFunc(ctx context.Context, name, projectID string, client admi
 	}
 }
 
-func WaitStateTransitionClusterUpgrade(ctx context.Context, requestParams *admin.LegacyAtlasTenantClusterUpgradeRequest,
+func WaitStateTransitionClusterUpgrade(ctx context.Context, name, projectID string,
 	client admin.ClustersApi, pendingStates, desiredStates []string, timeout time.Duration) (*admin.ClusterDescription20240805, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    pendingStates,
 		Target:     desiredStates,
-		Refresh:    UpgradeRefreshFunc(ctx, requestParams.Name, *requestParams.GroupId, client),
+		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, client),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
