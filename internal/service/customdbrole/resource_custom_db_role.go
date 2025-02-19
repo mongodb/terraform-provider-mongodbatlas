@@ -51,7 +51,7 @@ func Resource() *schema.Resource {
 				),
 			},
 			"actions": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
