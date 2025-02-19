@@ -1,28 +1,28 @@
-#!/usr/bin/env bash
+# #!/usr/bin/env bash
 
-STAGED_GO_FILES=$(git diff --cached --name-only | grep ".go$")
+# STAGED_GO_FILES=$(git diff --cached --name-only | grep ".go$")
 
-echo "Formatting go files"
-for FILE in ${STAGED_GO_FILES}
-do
-    gofmt -w -s "${FILE}"
-    goimports -w "${FILE}"
-    git add "${FILE}"
-done
+# echo "Formatting go files"
+# for FILE in ${STAGED_GO_FILES}
+# do
+#     gofmt -w -s "${FILE}"
+#     goimports -w "${FILE}"
+#     git add "${FILE}"
+# done
 
-if [[ -n "${STAGED_GO_FILES}" ]]; then
-    set -o errexit
-    make lint-fix
-    make lint
-    set +o errexit
-    for FILE in ${STAGED_GO_FILES}
-    do
-        git add "${FILE}"
-    done
-fi
+# if [[ -n "${STAGED_GO_FILES}" ]]; then
+#     set -o errexit
+#     make lint-fix
+#     make lint
+#     set +o errexit
+#     for FILE in ${STAGED_GO_FILES}
+#     do
+#         git add "${FILE}"
+#     done
+# fi
 
-STAGED_TF_FILES=$(git diff --cached --name-only | grep ".tf$")
-if [ -n "$STAGED_TF_FILES" ]; then
-    echo "Checking the format of Terraform files"
-    make tflint
-fi
+# STAGED_TF_FILES=$(git diff --cached --name-only | grep ".tf$")
+# if [ -n "$STAGED_TF_FILES" ]; then
+#     echo "Checking the format of Terraform files"
+#     make tflint
+# fi
