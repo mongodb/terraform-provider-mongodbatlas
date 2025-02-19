@@ -4,14 +4,11 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/spf13/cast"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 type MajorVersionOperator int
@@ -47,13 +44,6 @@ func MajorVersionCompatible(input *string, version float64, operator MajorVersio
 	return &result
 }
 
-func FormatMongoDBMajorVersion(version string) string {
-	if strings.Contains(version, ".") {
-		return version
-	}
-	return fmt.Sprintf("%.1f", cast.ToFloat32(version))
-}
-
 func containerIDKey(providerName, regionName string) string {
 	return fmt.Sprintf("%s:%s", providerName, regionName)
 }
@@ -87,7 +77,7 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 				}
 				responseCache[providerName] = containersResponse
 			}
-			if results := getAdvancedClusterContainerID(containersResponse.GetResults(), &regionConfig); results != "" {
+			if results := GetAdvancedClusterContainerID(containersResponse.GetResults(), &regionConfig); results != "" {
 				containerIDs[key] = results
 			} else {
 				return nil, fmt.Errorf("container id not found for %s", key)
@@ -97,19 +87,6 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 	return containerIDs, nil
 }
 
-// copied from model_advanced_cluster.go
-func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
-	for i, container := range containers {
-		gpc := cluster.GetProviderName() == constant.GCP
-		azure := container.GetProviderName() == cluster.GetProviderName() && container.GetRegion() == cluster.GetRegionName()
-		aws := container.GetRegionName() == cluster.GetRegionName()
-		if gpc || azure || aws {
-			return containers[i].GetId()
-		}
-	}
-	return ""
-}
-
 func replicationSpecIDsFromOldAPI(clusterRespOld *admin20240530.AdvancedClusterDescription) map[string]string {
 	specs := clusterRespOld.GetReplicationSpecs()
 	zoneNameSpecIDs := make(map[string]string, len(specs))
@@ -117,83 +94,4 @@ func replicationSpecIDsFromOldAPI(clusterRespOld *admin20240530.AdvancedClusterD
 		zoneNameSpecIDs[spec.GetZoneName()] = spec.GetId()
 	}
 	return zoneNameSpecIDs
-}
-
-func convertHardwareSpecToOldSDK(hwspec *admin.HardwareSpec20240805) *admin20240530.HardwareSpec {
-	if hwspec == nil {
-		return nil
-	}
-	return &admin20240530.HardwareSpec{
-		DiskIOPS:      hwspec.DiskIOPS,
-		EbsVolumeType: hwspec.EbsVolumeType,
-		InstanceSize:  hwspec.InstanceSize,
-		NodeCount:     hwspec.NodeCount,
-	}
-}
-
-func convertAdvancedAutoScalingSettingsToOldSDK(settings *admin.AdvancedAutoScalingSettings) *admin20240530.AdvancedAutoScalingSettings {
-	if settings == nil {
-		return nil
-	}
-	return &admin20240530.AdvancedAutoScalingSettings{
-		Compute: convertAdvancedComputeAutoScalingToOldSDK(settings.Compute),
-		DiskGB:  convertDiskGBAutoScalingToOldSDK(settings.DiskGB),
-	}
-}
-
-func convertAdvancedComputeAutoScalingToOldSDK(settings *admin.AdvancedComputeAutoScaling) *admin20240530.AdvancedComputeAutoScaling {
-	if settings == nil {
-		return nil
-	}
-	return &admin20240530.AdvancedComputeAutoScaling{
-		Enabled:          settings.Enabled,
-		MaxInstanceSize:  settings.MaxInstanceSize,
-		MinInstanceSize:  settings.MinInstanceSize,
-		ScaleDownEnabled: settings.ScaleDownEnabled,
-	}
-}
-
-func convertDiskGBAutoScalingToOldSDK(settings *admin.DiskGBAutoScaling) *admin20240530.DiskGBAutoScaling {
-	if settings == nil {
-		return nil
-	}
-	return &admin20240530.DiskGBAutoScaling{
-		Enabled: settings.Enabled,
-	}
-}
-
-func convertDedicatedHardwareSpecToOldSDK(spec *admin.DedicatedHardwareSpec20240805) *admin20240530.DedicatedHardwareSpec {
-	if spec == nil {
-		return nil
-	}
-	return &admin20240530.DedicatedHardwareSpec{
-		NodeCount:     spec.NodeCount,
-		DiskIOPS:      spec.DiskIOPS,
-		EbsVolumeType: spec.EbsVolumeType,
-		InstanceSize:  spec.InstanceSize,
-	}
-}
-
-// copied from advancedcluster/resource_update_logic.go
-func populateIDValuesUsingNewAPI(ctx context.Context, projectID, clusterName string, connV2ClusterAPI admin.ClustersApi, replicationSpecs *[]admin.ReplicationSpec20240805) (*[]admin.ReplicationSpec20240805, error) {
-	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
-		return replicationSpecs, nil
-	}
-	cluster, _, err := connV2ClusterAPI.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		return nil, err
-	}
-
-	zoneToReplicationSpecsIDs := groupIDsByZone(cluster.GetReplicationSpecs())
-	result := advancedcluster.AddIDsToReplicationSpecs(*replicationSpecs, zoneToReplicationSpecsIDs)
-	return &result, nil
-}
-
-// copied from advancedcluster/resource_update_logic.go
-func groupIDsByZone(specs []admin.ReplicationSpec20240805) map[string][]string {
-	result := make(map[string][]string)
-	for _, spec := range specs {
-		result[spec.GetZoneName()] = append(result[spec.GetZoneName()], spec.GetId())
-	}
-	return result
 }

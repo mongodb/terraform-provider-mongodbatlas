@@ -14,7 +14,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -26,6 +26,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
 const (
@@ -40,8 +41,7 @@ const (
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
-	ErrorDefaultMaxTimeMinVersion  = "default_max_time_ms can not be set for mongo_db_major_version lower than 8.0"
-	ignoreLabel                    = "Infrastructure Tool"
+	ErrorDefaultMaxTimeMinVersion  = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
 	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
 	V20240530                      = "(v20240530)"
 )
@@ -513,7 +513,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// With old sharding config we call older API (2024-08-05) to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
 	if isUsingOldShardingConfiguration(d) {
 		var cluster20240805 *admin20240805.ClusterDescription20240805
-		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, ConvertClusterDescription20241023to20240805(params)).Execute()
+		cluster20240805, _, err = connV220240805.ClustersApi.CreateCluster(ctx, projectID, advancedclustertpf.ConvertClusterDescription20241023to20240805(params)).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
@@ -552,19 +552,21 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	var waitForChanges bool
 	if v := d.Get("paused").(bool); v {
-		request := &admin20240805.ClusterDescription20240805{
+		request := &admin.ClusterDescription20240805{
 			Paused: conversion.Pointer(v),
 		}
-		// can call latest API (2024-10-23 or newer) as autoscaling property is not specified, using older version just for caution until iss autoscaling epic is done
-		if _, _, err := connV220240805.ClustersApi.UpdateCluster(ctx, projectID, d.Get("name").(string), request).Execute(); err != nil {
+		// can call latest API (2024-10-23 or newer) as replications specs (with nested autoscaling property) is not specified
+		if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, d.Get("name").(string), request).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, d.Get("name").(string), err))
 		}
 		waitForChanges = true
 	}
 
 	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
-		if diags := PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
-			return diags
+		nestedObj := pinnedFCVBlock[0].(map[string]any)
+		expDateStr := cast.ToString(nestedObj["expiration_date"])
+		if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
+			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
 		waitForChanges = true
 	}
@@ -606,7 +608,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
@@ -789,30 +791,9 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 
 func WarningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
 	pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
-	presentInState := len(pinnedFCVBlock) > 0
-	pinIsActive := cluster.FeatureCompatibilityVersionExpirationDate != nil
-	if presentInState && !pinIsActive { // pin is not active but present in state (and potentially in config file)
-		return diag.Diagnostics{
-			diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "FCV pin is no longer active",
-				Detail:   "Please remove `pinned_fcv` from the configuration and apply changes to avoid re-pinning the FCV. Warning can be ignored if `pinned_fcv` block has been removed from the configuration.",
-			},
-		}
-	}
-	if presentInState && pinIsActive {
-		expirationDate := cluster.GetFeatureCompatibilityVersionExpirationDate()
-		if time.Now().After(expirationDate) { // pin is active, present in state, but its expiration date has passed
-			return diag.Diagnostics{
-				diag.Diagnostic{
-					Severity: diag.Warning,
-					Summary:  "FCV pin expiration date has expired",
-					Detail:   "During the next maintenance window FCV will be unpinned. FCV expiration date can be extended, or `pinned_fcv` block can be removed to trigger the unpin immediately.",
-				},
-			}
-		}
-	}
-	return nil
+	fcvPresentInState := len(pinnedFCVBlock) > 0
+	diagsTpf := advancedclustertpf.GenerateFCVPinningWarningForRead(fcvPresentInState, cluster.FeatureCompatibilityVersionExpirationDate)
+	return conversion.FromTPFDiagsToSDKV2Diags(diagsTpf)
 }
 
 // isUsingOldShardingConfiguration is identified if at least one replication spec defines num_shards > 1. This legacy form is from 2023-02-01 API and can only represent symmetric sharded clusters.
@@ -949,11 +930,17 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 				}
+				if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+					return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
+				}
 			}
 			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
 				_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
+				}
+				if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
+					return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 				}
 			}
 		}
@@ -980,8 +967,10 @@ func HandlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 		isFCVPresentInConfig := len(pinnedFCVBlock) > 0
 		if isFCVPresentInConfig {
 			// pinned_fcv has been defined or updated expiration date
-			if diags := PinFCV(ctx, connV2, projectID, clusterName, pinnedFCVBlock[0]); diags.HasError() {
-				return diags
+			nestedObj := pinnedFCVBlock[0].(map[string]any)
+			expDateStr := cast.ToString(nestedObj["expiration_date"])
+			if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
+				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 		} else {
 			// pinned_fcv has been removed from the config so unpin method is called
@@ -993,22 +982,6 @@ func HandlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 		if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 		}
-	}
-	return nil
-}
-
-func PinFCV(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, fcvBlock any) diag.Diagnostics {
-	req := admin.PinFCV{}
-	if nestedObj, ok := fcvBlock.(map[string]any); ok {
-		expDateStrPtr := conversion.StringPtr(cast.ToString(nestedObj["expiration_date"]))
-		expirationTime, ok := conversion.StringPtrToTimePtr(expDateStrPtr)
-		if !ok {
-			return diag.FromErr(fmt.Errorf("expiration_date format is incorrect: %s", *expDateStrPtr))
-		}
-		req.ExpirationDate = expirationTime
-	}
-	if _, _, err := connV2.ClustersApi.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
-		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 	}
 	return nil
 }
@@ -1278,7 +1251,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) retry.StateChangeConf {
 	return retry.StateChangeConf{
-		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
+		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING", "PENDING", "REPEATING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
 		Timeout:    timeout,
@@ -1326,7 +1299,7 @@ func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin
 	}
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "PENDING", "REPEATING"},
 		Target:     []string{"IDLE"},
 		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, connV2.ClustersApi),
 		Timeout:    timeout,
@@ -1370,10 +1343,10 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *ad
 		}
 
 		if err != nil {
-			if resp.StatusCode == 404 {
+			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
-			if resp.StatusCode == 503 {
+			if validate.StatusServiceUnavailable(resp) {
 				return "", "PENDING", nil
 			}
 			return nil, "", err
@@ -1425,7 +1398,7 @@ func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUp
 
 func waitForUpdateToFinish(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) error {
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "PENDING", "REPEATING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
 		Timeout:    timeout,

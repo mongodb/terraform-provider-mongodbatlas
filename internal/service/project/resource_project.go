@@ -2,15 +2,13 @@ package project
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"reflect"
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -20,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -209,7 +208,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	// get project
 	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
 	if err != nil {
-		if atlasResp != nil && atlasResp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(atlasResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -418,14 +417,9 @@ func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI adm
 }
 
 func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (bool, error) {
-	response, err := api.GetManagedSlowMs(ctx, projectID).Execute()
+	isEnabled, _, err := api.GetManagedSlowMs(ctx, projectID).Execute()
 	if err != nil {
 		return false, err
-	}
-	var isEnabled bool
-	err = json.NewDecoder(response.Body).Decode(&isEnabled)
-	if err != nil {
-		return false, fmt.Errorf("error reading is_slow_operation_thresholding_enabled body %w", err)
 	}
 	return isEnabled, nil
 }

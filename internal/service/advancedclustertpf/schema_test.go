@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAdvancedCluster_ValidationErrors(t *testing.T) {
+func TestAccAdvancedCluster_ValidationErrors(t *testing.T) {
 	const (
 		projectID   = "111111111111111111111111"
 		clusterName = "test"
@@ -18,7 +19,11 @@ func TestAdvancedCluster_ValidationErrors(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      acc.ConvertAdvancedClusterToSchemaV2(t, true, invalidRegionConfigsPriorities),
+				Config:      nullRegionConfigs, // can happen when using moved block, panic: runtime error: invalid memory address or nil pointer dereference
+				ExpectError: regexp.MustCompile("Missing Configuration for Required Attribute"),
+			},
+			{
+				Config:      acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, invalidRegionConfigsPriorities),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 			{
@@ -44,6 +49,10 @@ func TestAdvancedCluster_PlanModifierErrors(t *testing.T) {
 			{
 				Config:      configBasic(projectID, clusterName, "advanced_configuration = { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }\nmongo_db_major_version=\"6\""),
 				ExpectError: regexp.MustCompile("`advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds` can only be configured if the mongo_db_major_version is 7.0 or higher"),
+			},
+			{
+				Config:      configBasic(projectID, clusterName, "advanced_configuration = { default_max_time_ms = 100 }\nmongo_db_major_version=\"6\""),
+				ExpectError: regexp.MustCompile("`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"),
 			},
 			{
 				Config:      configBasic(projectID, clusterName, "advanced_configuration = { fail_index_key_too_long = true }"),
@@ -147,5 +156,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
 			}
 		}
 	}
+}
+`
+var nullRegionConfigs = `
+resource "mongodbatlas_advanced_cluster" "test" {
+	project_id     = "111111111111111111111111"
+	name           = "test-acc-tf-c-2670522663699021050"
+	cluster_type   = "REPLICASET"
+	backup_enabled = false
+
+	replication_specs = [{
+		region_configs = null
+	}]
 }
 `

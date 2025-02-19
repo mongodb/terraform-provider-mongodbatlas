@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
@@ -72,10 +72,10 @@ func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics)
 	return fields, nil
 }
 
-func unmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyzer, diag.Diagnostics) {
+func UnmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyzer, diag.Diagnostics) {
 	fields := []admin.AtlasSearchAnalyzer{}
 	if str == "" {
-		return fields, nil
+		return nil, nil // don't send analyzers field to Atlas if empty
 	}
 	dec := json.NewDecoder(bytes.NewReader([]byte(str)))
 	dec.DisallowUnknownFields()

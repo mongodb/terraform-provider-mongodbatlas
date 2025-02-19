@@ -1,9 +1,0 @@
-{
- "changeStreamOptionsPreAndPostImagesExpireAfterSeconds": 100,
- "defaultWriteConcern": "majority",
- "minimumEnabledTlsProtocol": "TLS1_0",
- "noTableScan": true,
- "sampleRefreshIntervalBIConnector": 310,
- "sampleSizeBIConnector": 110,
- "transactionLifetimeLimitSeconds": 300
-}

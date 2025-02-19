@@ -38,7 +38,7 @@ output "expiration_time" {
 
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
 
-# Import 
+## Import 
 The resource can be imported using project ID and cluster name, in the format `PROJECTID-CLUSTERNAME`, e.g.
 
 ```

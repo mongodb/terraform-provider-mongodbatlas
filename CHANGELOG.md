@@ -1,11 +1,48 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_global_cluster_config: Supports update operation ([#3060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3060))
+
+BUG FIXES:
+
+* resource/mongodbatlas_alert_configuration: Removes UseStateForUnknown plan modifier for interval_min ([#3051](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3051))
+* resource/mongodbatlas_database_user: Avoids error in read if resource no longer exists ([#3069](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3069))
+
+## 1.26.1 (February 07, 2025)
+
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster: Adds `PENDING` status for update and delete operations ([#3034](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3034))
+* resource/mongodbatlas_cluster: Adds `PENDING` status for update and delete operations ([#3034](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3034))
+
+## 1.26.0 (January 23, 2025)
+
+FEATURES:
+
+* **New Data Source:** `mongodbatlas_stream_privatelink_endpoint` ([#2897](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2897))
+* **New Data Source:** `mongodbatlas_stream_privatelink_endpoints` ([#2897](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2897))
+* **New Resource:** `mongodbatlas_stream_privatelink_endpoint` ([#2890](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2890))
+
+ENHANCEMENTS:
+
+* resource/mongodbatlas_backup_compliance_policy: Adds support for disabling Backup Compliance Policy on resource delete ([#2953](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2953))
+* resource/mongodbatlas_stream_connection: Supports Privatelink networking access type for Kafka Stream Connections ([#2940](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2940))
+
+BUG FIXES:
+
+* resource/mongodbatlas_search_index: Don't send empty `analyzers` attribute to Atlas ([#2994](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2994))
+
+## 1.25.0 (January 07, 2025)
+
 NOTES:
 
+* resource/mongodbatlas_cloud_backup_snapshot_export_bucket: Deprecates `tenant_id` argument as the `mongodbatlas_cloud_provider_access_authorization.azure.tenant_id` is used instead ([#2932](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2932))
 * resource/mongodbatlas_cloud_backup_snapshot_export_job: Changes `custom_data` changed attribute from required -> optional ([#2929](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2929))
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_project_ip_addresses: Adds support for `future_inbound` and `future_outbound` fields ([#2934](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2934))
 * data-source/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
 * data-source/mongodbatlas_stream_connections: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))
 * resource/mongodbatlas_stream_connection: Adds `networking` attribute ([#2474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2474))

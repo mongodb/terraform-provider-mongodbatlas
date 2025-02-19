@@ -8,23 +8,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 const (
-	connectionName       = "Connection"
-	typeValue            = ""
-	clusterName          = "Cluster0"
-	dummyProjectID       = "111111111111111111111111"
-	instanceName         = "InstanceName"
-	authMechanism        = "PLAIN"
-	authUsername         = "user1"
-	securityProtocol     = "SSL"
-	bootstrapServers     = "localhost:9092,another.host:9092"
-	dbRole               = "customRole"
-	dbRoleType           = "CUSTOM"
-	sampleConnectionName = "sample_stream_solar"
-	networkingType       = "PUBLIC"
+	connectionName            = "Connection"
+	typeValue                 = ""
+	clusterName               = "Cluster0"
+	dummyProjectID            = "111111111111111111111111"
+	instanceName              = "InstanceName"
+	authMechanism             = "PLAIN"
+	authUsername              = "user1"
+	securityProtocol          = "SSL"
+	bootstrapServers          = "localhost:9092,another.host:9092"
+	dbRole                    = "customRole"
+	dbRoleType                = "CUSTOM"
+	sampleConnectionName      = "sample_stream_solar"
+	networkingType            = "PUBLIC"
+	privatelinkNetworkingType = "PRIVATE_LINK"
 )
 
 var configMap = map[string]string{
@@ -264,7 +265,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Config:           tfConfigMap(t, configMap),
 						Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
 						DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-						Networking:       tfNetworkingObject(t, networkingType),
+						Networking:       tfNetworkingObject(t, networkingType, nil),
 					},
 					{
 						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
@@ -485,12 +486,17 @@ func tfDBRoleToExecuteObject(t *testing.T, role, roleType string) types.Object {
 	return auth
 }
 
-func tfNetworkingObject(t *testing.T, networkingType string) types.Object {
+func tfNetworkingObject(t *testing.T, networkingType string, connectionID *string) types.Object {
 	t.Helper()
+	networkingAccessModel, diags := types.ObjectValueFrom(context.Background(), streamconnection.NetworkingAccessObjectType.AttrTypes, streamconnection.TFNetworkingAccessModel{
+		Type:         types.StringValue(networkingType),
+		ConnectionID: types.StringPointerValue(connectionID),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
 	networking, diags := types.ObjectValueFrom(context.Background(), streamconnection.NetworkingObjectType.AttrTypes, streamconnection.TFNetworkingModel{
-		Access: streamconnection.TFNetworkingAccessModel{
-			Type: types.StringValue(networkingType),
-		},
+		Access: networkingAccessModel,
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())

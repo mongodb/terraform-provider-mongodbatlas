@@ -6,11 +6,10 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 const (
@@ -22,18 +21,18 @@ const (
 type ExtraAPIInfo struct {
 	ZoneNameNumShards          map[string]int64
 	ZoneNameReplicationSpecIDs map[string]string
-	RootDiskSize               *float64
 	ContainerIDs               map[string]string
-	UsingLegacySchema          bool
-	ForceLegacySchemaFailed    bool
+	UseNewShardingConfig       bool
+	UseOldShardingConfigFailed bool
 }
 
-func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, timeout timeouts.Value, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
+func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
 	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
-	labels := NewLabelsObjType(ctx, input.Labels, diags)
+	labels := NewLabelsObjType(ctx, diags, input.Labels)
 	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, &apiInfo)
-	tags := NewTagsObjType(ctx, input.Tags, diags)
+	tags := NewTagsObjType(ctx, diags, input.Tags)
+	pinnedFCV := NewPinnedFCVObjType(ctx, input, diags)
 	if diags.HasError() {
 		return nil
 	}
@@ -46,7 +45,7 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 		ConfigServerType:                 types.StringValue(conversion.SafeValue(input.ConfigServerType)),
 		ConnectionStrings:                connectionStrings,
 		CreateDate:                       types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
-		DiskSizeGB:                       types.Float64PointerValue(findRegionRootDiskSize(input.ReplicationSpecs)),
+		DiskSizeGB:                       types.Float64PointerValue(findFirstRegionDiskSizeGB(input.ReplicationSpecs)),
 		EncryptionAtRestProvider:         types.StringValue(conversion.SafeValue(input.EncryptionAtRestProvider)),
 		GlobalClusterSelfManagedSharding: types.BoolValue(conversion.SafeValue(input.GlobalClusterSelfManagedSharding)),
 		ProjectID:                        types.StringValue(conversion.SafeValue(input.GroupId)),
@@ -65,8 +64,7 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, ti
 		Tags:                             tags,
 		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
 		VersionReleaseSystem:             types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
-		PinnedFCV:                        types.ObjectNull(PinnedFCVObjType.AttrTypes), // TODO static object
-		Timeouts:                         timeout,
+		PinnedFCV:                        pinnedFCV,
 	}
 }
 
@@ -100,20 +98,19 @@ func NewConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnec
 	return objType
 }
 
-func NewLabelsObjType(ctx context.Context, input *[]admin.ComponentLabel, diags *diag.Diagnostics) types.Set {
-	if input == nil {
-		return types.SetNull(LabelsObjType)
-	}
-	tfModels := make([]TFLabelsModel, len(*input))
-	for i, item := range *input {
-		tfModels[i] = TFLabelsModel{
-			Key:   types.StringValue(conversion.SafeValue(item.Key)),
-			Value: types.StringValue(conversion.SafeValue(item.Value)),
+func NewLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin.ComponentLabel) types.Map {
+	elms := make(map[string]string)
+	if input != nil {
+		for _, item := range *input {
+			key := item.GetKey()
+			value := item.GetValue()
+			if key == LegacyIgnoredLabelKey {
+				continue
+			}
+			elms[key] = value
 		}
 	}
-	setType, diagsLocal := types.SetValueFrom(ctx, LabelsObjType, tfModels)
-	diags.Append(diagsLocal...)
-	return setType
+	return conversion.ToTFMapOfString(ctx, diags, &elms)
 }
 
 func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) types.List {
@@ -121,10 +118,10 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 		return types.ListNull(ReplicationSpecsObjType)
 	}
 	var tfModels *[]TFReplicationSpecsModel
-	if apiInfo.UsingLegacySchema {
-		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, apiInfo)
-	} else {
+	if apiInfo.UseNewShardingConfig {
 		tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
+	} else {
+		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, apiInfo)
 	}
 	if diags.HasError() {
 		return types.ListNull(ReplicationSpecsObjType)
@@ -132,6 +129,19 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 	listType, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, *tfModels)
 	diags.Append(diagsLocal...)
 	return listType
+}
+
+func NewPinnedFCVObjType(ctx context.Context, cluster *admin.ClusterDescription20240805, diags *diag.Diagnostics) types.Object {
+	if cluster.FeatureCompatibilityVersionExpirationDate == nil {
+		return types.ObjectNull(PinnedFCVObjType.AttrTypes)
+	}
+	tfModel := TFPinnedFCVModel{
+		Version:        types.StringValue(cluster.GetFeatureCompatibilityVersion()),
+		ExpirationDate: types.StringValue(conversion.TimeToString(cluster.GetFeatureCompatibilityVersionExpirationDate())),
+	}
+	objType, diagsLocal := types.ObjectValueFrom(ctx, PinnedFCVObjType.AttrTypes, tfModel)
+	diags.Append(diagsLocal...)
+	return objType
 }
 
 func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) *[]TFReplicationSpecsModel {
@@ -209,7 +219,7 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 		containerIDs := selectContainerIDs(&item, apiInfo.ContainerIDs)
 		tfModels = append(tfModels, TFReplicationSpecsModel{
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &containerIDs),
-			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
+			ExternalId:    types.StringValue(""), // Not meaningful with legacy schema
 			Id:            types.StringValue(legacyID),
 			RegionConfigs: regionConfigs,
 			NumShards:     types.Int64Value(numShards),
@@ -220,21 +230,14 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 	return &tfModels
 }
 
-func NewTagsObjType(ctx context.Context, input *[]admin.ResourceTag, diags *diag.Diagnostics) types.Set {
-	if input == nil {
-		// API Response not consistent, even when not set in POST/PATCH `[]` is returned instead of null
-		return types.SetValueMust(TagsObjType, nil)
-	}
-	tfModels := make([]TFTagsModel, len(*input))
-	for i, item := range *input {
-		tfModels[i] = TFTagsModel{
-			Key:   types.StringValue(item.Key),
-			Value: types.StringValue(item.Value),
+func NewTagsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin.ResourceTag) types.Map {
+	elms := make(map[string]string)
+	if input != nil {
+		for _, item := range *input {
+			elms[item.GetKey()] = item.GetValue()
 		}
 	}
-	setType, diagsLocal := types.SetValueFrom(ctx, TagsObjType, tfModels)
-	diags.Append(diagsLocal...)
-	return setType
+	return conversion.ToTFMapOfString(ctx, diags, &elms)
 }
 
 func NewPrivateEndpointObjType(ctx context.Context, input *[]admin.ClusterDescriptionConnectionStringsPrivateEndpoint, diags *diag.Diagnostics) types.List {

@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -310,7 +310,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 
 	list, resp, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			return nil
 		}
 		return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))
@@ -341,11 +341,12 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 
 		zoneNameToOldReplicationSpecMeta, err := GetReplicationSpecAttributesFromOldAPI(ctx, cluster.GetGroupId(), cluster.GetName(), connV220240530.ClustersApi)
 		if err != nil {
-			if apiError, ok := admin20240530.AsError(err); !ok {
-				return nil, diag.FromErr(err)
-			} else if apiError.GetErrorCode() == "ASYMMETRIC_SHARD_UNSUPPORTED" && !useReplicationSpecPerShard {
+			errNotFound := admin20240530.IsErrorCode(err, "CLUSTER_NOT_FOUND")
+			errAsymmetricUnsupported := admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED")
+			if errNotFound || (errAsymmetricUnsupported && !useReplicationSpecPerShard) {
 				continue
-			} else if apiError.GetErrorCode() != "ASYMMETRIC_SHARD_UNSUPPORTED" {
+			}
+			if !errAsymmetricUnsupported {
 				return nil, diag.FromErr(err)
 			}
 		}

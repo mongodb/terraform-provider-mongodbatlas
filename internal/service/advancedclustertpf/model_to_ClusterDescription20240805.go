@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 const defaultZoneName = "ZoneName managed by Terraform"
@@ -31,7 +31,7 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		ConfigServerManagementMode:       conversion.NilForUnknown(input.ConfigServerManagementMode, input.ConfigServerManagementMode.ValueStringPointer()),
 		EncryptionAtRestProvider:         conversion.NilForUnknown(input.EncryptionAtRestProvider, input.EncryptionAtRestProvider.ValueStringPointer()),
 		GlobalClusterSelfManagedSharding: conversion.NilForUnknown(input.GlobalClusterSelfManagedSharding, input.GlobalClusterSelfManagedSharding.ValueBoolPointer()),
-		Labels:                           newComponentLabel(ctx, input.Labels, diags),
+		Labels:                           newComponentLabel(ctx, diags, input.Labels),
 		MongoDBMajorVersion:              majorVersion,
 		Name:                             input.Name.ValueStringPointer(),
 		Paused:                           conversion.NilForUnknown(input.Paused, input.Paused.ValueBoolPointer()),
@@ -40,7 +40,7 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		ReplicaSetScalingStrategy:        conversion.NilForUnknown(input.ReplicaSetScalingStrategy, input.ReplicaSetScalingStrategy.ValueStringPointer()),
 		ReplicationSpecs:                 newReplicationSpec20240805(ctx, input.ReplicationSpecs, diags),
 		RootCertType:                     conversion.NilForUnknown(input.RootCertType, input.RootCertType.ValueStringPointer()),
-		Tags:                             newResourceTag(ctx, input.Tags, diags),
+		Tags:                             newResourceTag(ctx, diags, input.Tags),
 		TerminationProtectionEnabled:     conversion.NilForUnknown(input.TerminationProtectionEnabled, input.TerminationProtectionEnabled.ValueBoolPointer()),
 		VersionReleaseSystem:             conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
 	}
@@ -60,25 +60,28 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 		ReadPreference: conversion.NilForUnknown(item.ReadPreference, item.ReadPreference.ValueStringPointer()),
 	}
 }
-func newComponentLabel(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ComponentLabel {
-	if input.IsUnknown() {
+
+func newComponentLabel(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ComponentLabel {
+	elms := make(map[string]types.String, len(input.Elements()))
+	localDiags := input.ElementsAs(ctx, &elms, false)
+	diags.Append(localDiags...)
+	if diags.HasError() {
 		return nil
 	}
-	elements := make([]TFLabelsModel, len(input.Elements()))
-	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return nil
-	}
-	resp := make([]admin.ComponentLabel, len(input.Elements()))
-	for i := range elements {
-		item := &elements[i]
-		resp[i] = admin.ComponentLabel{
-			Key:   item.Key.ValueStringPointer(),
-			Value: item.Value.ValueStringPointer(),
+	ret := make([]admin.ComponentLabel, 0, len(input.Elements()))
+	for key, value := range elms {
+		if key == LegacyIgnoredLabelKey {
+			diags.AddError(ErrLegacyIgnoreLabel.Error(), ErrLegacyIgnoreLabel.Error())
+			return nil
 		}
+		ret = append(ret, admin.ComponentLabel{
+			Key:   &key,
+			Value: value.ValueStringPointer(),
+		})
 	}
-	return &resp
+	return &ret
 }
+
 func newReplicationSpec20240805(ctx context.Context, input types.List, diags *diag.Diagnostics) *[]admin.ReplicationSpec20240805 {
 	if input.IsUnknown() || input.IsNull() {
 		return nil
@@ -109,25 +112,23 @@ func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
 	return *zoneName
 }
 
-func newResourceTag(ctx context.Context, input types.Set, diags *diag.Diagnostics) *[]admin.ResourceTag {
-	if input.IsUnknown() {
+func newResourceTag(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ResourceTag {
+	elms := make(map[string]types.String, len(input.Elements()))
+	localDiags := input.ElementsAs(ctx, &elms, false)
+	diags.Append(localDiags...)
+	if diags.HasError() {
 		return nil
 	}
-	elements := make([]TFTagsModel, len(input.Elements()))
-	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return nil
+	ret := make([]admin.ResourceTag, 0, len(input.Elements()))
+	for key, value := range elms {
+		ret = append(ret, admin.ResourceTag{
+			Key:   key,
+			Value: value.ValueString(),
+		})
 	}
-	resp := make([]admin.ResourceTag, len(input.Elements()))
-	for i := range elements {
-		item := &elements[i]
-		resp[i] = admin.ResourceTag{
-			Key:   item.Key.ValueString(),
-			Value: item.Value.ValueString(),
-		}
-	}
-	return &resp
+	return &ret
 }
+
 func newCloudRegionConfig20240805(ctx context.Context, input types.List, diags *diag.Diagnostics) *[]admin.CloudRegionConfig20240805 {
 	if input.IsUnknown() || input.IsNull() {
 		return nil

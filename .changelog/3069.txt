@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_database_user: Avoids error in read if resource no longer exists
+```

@@ -1,6 +1,6 @@
 resource "aws_vpc_endpoint" "vpce_east" {
   vpc_id             = aws_vpc.vpc_east.id
-  service_name       = mongodbatlas_privatelink_endpoint.pe_east.endpoint_service_name
+  service_name       = var.service_name
   vpc_endpoint_type  = "Interface"
   subnet_ids         = [aws_subnet.subnet_east_a.id, aws_subnet.subnet_east_b.id]
   security_group_ids = [aws_security_group.sg_east.id]

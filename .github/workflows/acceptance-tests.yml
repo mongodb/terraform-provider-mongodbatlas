@@ -47,6 +47,10 @@ on:
         description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
         type: string
         required: false
+      reduced_tests:
+        description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
+        type: boolean
+        required: false
   
 jobs:
   tests:
@@ -87,6 +91,8 @@ jobs:
       azure_key_vault_name_updated: ${{ secrets.AZURE_KEY_VAULT_NAME_UPDATED }}
       azure_key_identifier_updated: ${{ secrets.AZURE_KEY_IDENTIFIER_UPDATED }}
       azure_app_secret: ${{ secrets.AZURE_APP_SECRET }}
+      confluent_cloud_api_key: ${{ secrets.CONFLUENT_CLOUD_API_KEY }}
+      confluent_cloud_api_secret: ${{ secrets.CONFLUENT_CLOUD_API_SECRET }}
 
     with:
       terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
@@ -94,6 +100,7 @@ jobs:
       ref: ${{ inputs.ref }}
       test_group: ${{ inputs.test_group }}
       test_name: ${{ inputs.test_name }}
+      reduced_tests: ${{ inputs.reduced_tests || false }}
       aws_region_federation: ${{ vars.AWS_REGION_FEDERATION }}
       mongodb_atlas_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
       mongodb_atlas_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}
@@ -118,3 +125,5 @@ jobs:
       azure_private_endpoint_region: ${{ vars.AZURE_PRIVATE_ENDPOINT_REGION }}
       mongodb_atlas_rp_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_RP_ORG_ID_QA || vars.MONGODB_ATLAS_RP_ORG_ID_DEV }}
       mongodb_atlas_flex_project_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FLEX_PROJECT_ID_QA || vars.MONGODB_ATLAS_FLEX_PROJECT_ID }} 
+      confluent_cloud_network_id: ${{ vars.CONFLUENT_CLOUD_NETWORK_ID }} 
+      confluent_cloud_privatelink_access_id: ${{ vars.CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID }} 

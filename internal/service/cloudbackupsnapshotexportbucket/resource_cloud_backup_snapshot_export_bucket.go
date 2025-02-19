@@ -4,19 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -73,10 +72,9 @@ func Schema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"tenant_id": {
-			Deprecated: fmt.Sprintf(constant.DeprecationParamByVersion, "1.27.0") + " This field is ignored; the `mongodbatlas_cloud_provider_access_authorization.azure.tenant_id` is used instead.",
-			Type:       schema.TypeString,
-			Optional:   true,
-			Computed:   true,
+			Type:     schema.TypeString,
+			Optional: true, // attribute is only used as a computed, this is called out in docs and configuration of optional argument can be eventually removed implying a breaking change. To be removed in https://jira.mongodb.org/browse/CLOUDP-293142
+			Computed: true,
 		},
 	}
 }
@@ -231,7 +229,7 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 		clustersPaginated, resp, err := client.ClustersApi.ListClusters(ctx, projectID).Execute()
 		if err != nil {
 			// For our purposes, no clusters is equivalent to all changes having been APPLIED
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
+			if validate.StatusNotFound(resp) {
 				return "", "APPLIED", nil
 			}
 			return nil, "REPEATING", err
@@ -260,15 +258,15 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 					}
 
 					if err != nil {
-						if resp != nil && resp.StatusCode == http.StatusNotFound {
+						if validate.StatusNotFound(resp) {
 							return "", "DELETED", nil
 						}
 
-						if resp.StatusCode == 404 {
+						if validate.StatusNotFound(resp) {
 							// The cluster no longer exists, consider this equivalent to status APPLIED
 							continue
 						}
-						if resp.StatusCode == 503 {
+						if validate.StatusServiceUnavailable(resp) {
 							return "", "PENDING", nil
 						}
 						return nil, "REPEATING", err

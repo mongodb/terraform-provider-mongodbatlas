@@ -15,13 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
 func resourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
-		Version: 1,
+		Version: 2,
 		Attributes: map[string]schema.Attribute{
 			"accept_data_risks_and_force_replica_set_reconfig": schema.StringAttribute{
 				Optional:            true,
@@ -307,43 +308,21 @@ func resourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"labels": schema.MapAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "Map of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.",
+			},
+			"tags": schema.MapAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.",
+			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Update: true,
 				Delete: true,
 			}),
-		},
-		Blocks: map[string]schema.Block{
-			"labels": schema.SetNestedBlock{
-				MarkdownDescription: "Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.",
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"key": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Key applied to tag and categorize this component.",
-						},
-						"value": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Value set to the Key applied to tag and categorize this component.",
-						},
-					},
-				},
-			},
-			"tags": schema.SetNestedBlock{
-				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.",
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"key": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.",
-						},
-						"value": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.",
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -528,15 +507,32 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				Optional:            true,
 				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 			},
+			"default_max_time_ms": schema.Int64Attribute{
+				Optional:            true,
+				MarkdownDescription: "Default time limit in milliseconds for individual read operations to complete. This parameter is supported only for MongoDB version 8.0 and above.",
+				PlanModifiers: []planmodifier.Int64{
+					PlanMustUseMongoDBVersion(8.0, EqualOrHigher),
+				},
+			},
+			"custom_openssl_cipher_config_tls12": schema.SetAttribute{
+				Optional:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
+			},
+			"tls_cipher_config_mode": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The TLS cipher suite configuration mode. Valid values include `CUSTOM` or `DEFAULT`. The `DEFAULT` mode uses the default cipher suites. The `CUSTOM` mode allows you to specify custom cipher suites for both TLS 1.2 and TLS 1.3. To unset, this should be set back to `DEFAULT`.",
+			},
 		},
 	}
 }
 
 type TFModel struct {
 	DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`
-	Labels                                    types.Set      `tfsdk:"labels"`
+	Labels                                    types.Map      `tfsdk:"labels"`
 	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
-	Tags                                      types.Set      `tfsdk:"tags"`
+	Tags                                      types.Map      `tfsdk:"tags"`
 	StateName                                 types.String   `tfsdk:"state_name"`
 	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
 	CreateDate                                types.String   `tfsdk:"create_date"`
@@ -569,9 +565,9 @@ type TFModel struct {
 // TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig; adds use_replication_spec_per_shard.
 type TFModelDS struct {
 	DiskSizeGB                       types.Float64 `tfsdk:"disk_size_gb"`
-	Labels                           types.Set     `tfsdk:"labels"`
+	Labels                           types.Map     `tfsdk:"labels"`
 	ReplicationSpecs                 types.List    `tfsdk:"replication_specs"`
-	Tags                             types.Set     `tfsdk:"tags"`
+	Tags                             types.Map     `tfsdk:"tags"`
 	ReplicaSetScalingStrategy        types.String  `tfsdk:"replica_set_scaling_strategy"`
 	Name                             types.String  `tfsdk:"name"`
 	AdvancedConfiguration            types.Object  `tfsdk:"advanced_configuration"`
@@ -661,16 +657,6 @@ var EndpointsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"region":        types.StringType,
 }}
 
-type TFLabelsModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
-}
-
-var LabelsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"key":   types.StringType,
-	"value": types.StringType,
-}}
-
 type TFReplicationSpecsModel struct {
 	RegionConfigs types.List   `tfsdk:"region_configs"`
 	ContainerId   types.Map    `tfsdk:"container_id"`
@@ -747,26 +733,19 @@ var SpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"node_count":      types.Int64Type,
 }}
 
-type TFTagsModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
-}
-
-var TagsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"key":   types.StringType,
-	"value": types.StringType,
-}}
-
 type TFAdvancedConfigurationModel struct {
 	OplogMinRetentionHours                                types.Float64 `tfsdk:"oplog_min_retention_hours"`
+	CustomOpensslCipherConfigTls12                        types.Set     `tfsdk:"custom_openssl_cipher_config_tls12"`
 	MinimumEnabledTlsProtocol                             types.String  `tfsdk:"minimum_enabled_tls_protocol"`
 	DefaultWriteConcern                                   types.String  `tfsdk:"default_write_concern"`
 	DefaultReadConcern                                    types.String  `tfsdk:"default_read_concern"`
-	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64   `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
-	OplogSizeMb                                           types.Int64   `tfsdk:"oplog_size_mb"`
+	TlsCipherConfigMode                                   types.String  `tfsdk:"tls_cipher_config_mode"`
 	SampleRefreshIntervalBiconnector                      types.Int64   `tfsdk:"sample_refresh_interval_bi_connector"`
 	SampleSizeBiconnector                                 types.Int64   `tfsdk:"sample_size_bi_connector"`
 	TransactionLifetimeLimitSeconds                       types.Int64   `tfsdk:"transaction_lifetime_limit_seconds"`
+	DefaultMaxTimeMS                                      types.Int64   `tfsdk:"default_max_time_ms"`
+	OplogSizeMb                                           types.Int64   `tfsdk:"oplog_size_mb"`
+	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64   `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
 	JavascriptEnabled                                     types.Bool    `tfsdk:"javascript_enabled"`
 	NoTableScan                                           types.Bool    `tfsdk:"no_table_scan"`
 	FailIndexKeyTooLong                                   types.Bool    `tfsdk:"fail_index_key_too_long"`
@@ -785,6 +764,9 @@ var AdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.T
 	"sample_refresh_interval_bi_connector": types.Int64Type,
 	"sample_size_bi_connector":             types.Int64Type,
 	"transaction_lifetime_limit_seconds":   types.Int64Type,
+	"default_max_time_ms":                  types.Int64Type,
+	"tls_cipher_config_mode":               types.StringType,
+	"custom_openssl_cipher_config_tls12":   types.SetType{ElemType: types.StringType},
 }}
 
 type TFPinnedFCVModel struct {

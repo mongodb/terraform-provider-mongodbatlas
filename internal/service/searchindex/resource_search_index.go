@@ -12,8 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 const (
@@ -221,7 +222,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("analyzers") {
-		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
+		analyzers, err := UnmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
 		if err != nil {
 			return err
 		}
@@ -307,7 +308,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	searchIndex, resp, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		// deleted in the backend case
-		if resp.StatusCode == 404 && !d.IsNewResource() {
+		if validate.StatusNotFound(resp) && !d.IsNewResource() {
 			d.SetId("")
 			return nil
 		}
@@ -417,7 +418,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		searchIndexRequest.Definition.Fields = conversion.ToAnySlicePointer(&fields)
 	} else {
-		analyzers, err := unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
+		analyzers, err := UnmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string))
 		if err != nil {
 			return err
 		}

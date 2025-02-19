@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
@@ -65,9 +65,14 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		if diags := plan.Networking.As(ctx, networkingModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
+		networkingAccessModel := &TFNetworkingAccessModel{}
+		if diags := networkingModel.Access.As(ctx, networkingAccessModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
 		streamConnection.Networking = &admin.StreamsKafkaNetworking{
 			Access: &admin.StreamsKafkaNetworkingAccess{
-				Type: networkingModel.Access.Type.ValueStringPointer(),
+				Type:         networkingAccessModel.Type.ValueStringPointer(),
+				ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
 			},
 		}
 	}
@@ -128,10 +133,15 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 
 	connectionModel.Networking = types.ObjectNull(NetworkingObjectType.AttrTypes)
 	if apiResp.Networking != nil {
+		networkingAccessModel, diags := types.ObjectValueFrom(ctx, NetworkingAccessObjectType.AttrTypes, TFNetworkingAccessModel{
+			Type:         types.StringPointerValue(apiResp.Networking.Access.Type),
+			ConnectionID: types.StringPointerValue(apiResp.Networking.Access.ConnectionId),
+		})
+		if diags.HasError() {
+			return nil, diags
+		}
 		networkingModel, diags := types.ObjectValueFrom(ctx, NetworkingObjectType.AttrTypes, TFNetworkingModel{
-			Access: TFNetworkingAccessModel{
-				Type: types.StringPointerValue(apiResp.Networking.Access.Type),
-			},
+			Access: networkingAccessModel,
 		})
 		if diags.HasError() {
 			return nil, diags

@@ -4,11 +4,13 @@ import (
 	"context"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses"
 )
 
 const (
@@ -28,14 +30,18 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 				Services: &admin.GroupService{
 					Clusters: &[]admin.ClusterIPAddresses{
 						{
-							ClusterName: admin.PtrString("cluster1"),
-							Inbound:     &[]string{"192.168.1.1", "192.168.1.2"},
-							Outbound:    &[]string{"10.0.0.1", "10.0.0.2"},
+							ClusterName:    admin.PtrString("cluster1"),
+							Inbound:        &[]string{"192.168.1.1", "192.168.1.2"},
+							Outbound:       &[]string{"10.0.0.1", "10.0.0.2"},
+							FutureInbound:  &[]string{"192.168.1.1", "192.168.1.2"},
+							FutureOutbound: &[]string{"10.0.0.1", "10.0.0.2"},
 						},
 						{
-							ClusterName: admin.PtrString("cluster2"),
-							Inbound:     &[]string{"192.168.2.1"},
-							Outbound:    &[]string{"10.0.1.1"},
+							ClusterName:    admin.PtrString("cluster2"),
+							Inbound:        &[]string{"192.168.2.1"},
+							Outbound:       &[]string{"10.0.1.1"},
+							FutureInbound:  &[]string{"192.168.2.1"},
+							FutureOutbound: &[]string{"10.0.1.1"},
 						},
 					},
 				},
@@ -53,6 +59,14 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 							types.StringValue("10.0.0.1"),
 							types.StringValue("10.0.0.2"),
 						}),
+						FutureInbound: types.ListValueMust(types.StringType, []attr.Value{
+							types.StringValue("192.168.1.1"),
+							types.StringValue("192.168.1.2"),
+						}),
+						FutureOutbound: types.ListValueMust(types.StringType, []attr.Value{
+							types.StringValue("10.0.0.1"),
+							types.StringValue("10.0.0.2"),
+						}),
 					},
 					{
 						ClusterName: types.StringValue("cluster2"),
@@ -60,6 +74,12 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 							types.StringValue("192.168.2.1"),
 						}),
 						Outbound: types.ListValueMust(types.StringType, []attr.Value{
+							types.StringValue("10.0.1.1"),
+						}),
+						FutureInbound: types.ListValueMust(types.StringType, []attr.Value{
+							types.StringValue("192.168.2.1"),
+						}),
+						FutureOutbound: types.ListValueMust(types.StringType, []attr.Value{
 							types.StringValue("10.0.1.1"),
 						}),
 					},
@@ -72,9 +92,11 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 				Services: &admin.GroupService{
 					Clusters: &[]admin.ClusterIPAddresses{
 						{
-							ClusterName: admin.PtrString("cluster1"),
-							Inbound:     &[]string{},
-							Outbound:    &[]string{},
+							ClusterName:    admin.PtrString("cluster1"),
+							Inbound:        &[]string{},
+							Outbound:       &[]string{},
+							FutureInbound:  &[]string{},
+							FutureOutbound: &[]string{},
 						},
 					},
 				},
@@ -83,9 +105,11 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 				ProjectId: types.StringValue(dummyProjectID),
 				Services: createExpectedServices(t, []projectipaddresses.TFClusterValueModel{
 					{
-						ClusterName: types.StringValue("cluster1"),
-						Inbound:     types.ListValueMust(types.StringType, []attr.Value{}),
-						Outbound:    types.ListValueMust(types.StringType, []attr.Value{}),
+						ClusterName:    types.StringValue("cluster1"),
+						Inbound:        types.ListValueMust(types.StringType, []attr.Value{}),
+						Outbound:       types.ListValueMust(types.StringType, []attr.Value{}),
+						FutureInbound:  types.ListValueMust(types.StringType, []attr.Value{}),
+						FutureOutbound: types.ListValueMust(types.StringType, []attr.Value{}),
 					},
 				}),
 			},

@@ -3,9 +3,10 @@ package projectipaddresses
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"go.mongodb.org/atlas-sdk/v20241113004/admin"
 )
 
 func NewTFProjectIPAddresses(ctx context.Context, ipAddresses *admin.GroupIPAddresses) (*TFProjectIpAddressesModel, diag.Diagnostics) {
@@ -14,11 +15,15 @@ func NewTFProjectIPAddresses(ctx context.Context, ipAddresses *admin.GroupIPAddr
 	for i, cluster := range ipAddresses.Services.GetClusters() {
 		inbound, _ := types.ListValueFrom(ctx, types.StringType, cluster.GetInbound())
 		outbound, _ := types.ListValueFrom(ctx, types.StringType, cluster.GetOutbound())
+		futureInbound, _ := types.ListValueFrom(ctx, types.StringType, cluster.GetFutureInbound())
+		futureOutbound, _ := types.ListValueFrom(ctx, types.StringType, cluster.GetFutureOutbound())
 
 		clusterObjs[i] = TFClusterValueModel{
-			ClusterName: types.StringPointerValue(cluster.ClusterName),
-			Inbound:     inbound,
-			Outbound:    outbound,
+			ClusterName:    types.StringPointerValue(cluster.ClusterName),
+			Inbound:        inbound,
+			Outbound:       outbound,
+			FutureInbound:  futureInbound,
+			FutureOutbound: futureOutbound,
 		}
 	}
 

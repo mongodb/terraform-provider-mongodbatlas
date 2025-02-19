@@ -144,7 +144,7 @@ analyzers = <<-EOF
 EOF
 ```
 
-* `collection_name` - (Required) Name of the collection the index is on.
+* `collection_name` - (Required) Name of the collection the index is on. **NOTE:** The collection must exist before creating the index.
 
 * `database` - (Required) Name of the database the collection is in.
 
