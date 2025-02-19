@@ -262,11 +262,11 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 							return "", "DELETED", nil
 						}
 
-						if resp.StatusCode == 404 {
+						if validate.StatusNotFound(resp) {
 							// The cluster no longer exists, consider this equivalent to status APPLIED
 							continue
 						}
-						if resp.StatusCode == 503 {
+						if validate.StatusServiceUnavailable(resp) {
 							return "", "PENDING", nil
 						}
 						return nil, "REPEATING", err

@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * resource/mongodbatlas_alert_configuration: Removes UseStateForUnknown plan modifier for interval_min ([#3051](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3051))
+* resource/mongodbatlas_database_user: Avoids error in read if resource no longer exists ([#3069](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3069))
 
 ## 1.26.1 (February 07, 2025)
 

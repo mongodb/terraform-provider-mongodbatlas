@@ -296,7 +296,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if diags.HasError() {
 		return diags
 	}
-	if flexClusterResp == nil && clusterDesc == nil {
+	if clusterDesc == nil && flexClusterResp == nil {
 		return nil
 	}
 	if flexClusterResp != nil {

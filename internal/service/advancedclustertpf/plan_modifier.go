@@ -3,12 +3,10 @@ package advancedclustertpf
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, plan, state *TFModel) {

@@ -136,11 +136,13 @@ func TestAccAdvancedCluster_basicTenant(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(t, true, projectID, clusterName, ""),
+				// zone name is hardcoded directly as a temporary fix, depends on CLOUDP-300819 or CLOUDP-301101
+				Config: configTenant(t, true, projectID, clusterName, "Zone 1"),
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: configTenant(t, true, projectID, clusterNameUpdated, ""),
+				// zone name is hardcoded directly as a temporary fix, depends on CLOUDP-300819 or CLOUDP-301101
+				Config: configTenant(t, true, projectID, clusterNameUpdated, "Zone 1"),
 				Check:  checkTenant(true, projectID, clusterNameUpdated),
 			},
 			acc.TestStepImportCluster(resourceName),

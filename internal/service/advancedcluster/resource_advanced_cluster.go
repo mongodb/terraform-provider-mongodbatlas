@@ -632,7 +632,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if diags.HasError() {
 		return diags
 	}
-	if flexClusterResp == nil && cluster == nil {
+	if cluster == nil && flexClusterResp == nil {
 		d.SetId("")
 		return nil
 	}
