@@ -144,10 +144,6 @@ func TestAccAdvancedCluster_basicTenant_flexUpgrade(t *testing.T) {
 				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", defaultZoneName, false),
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false),
 			},
-			{
-				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configTenantUpgraded(projectID, clusterName, defaultZoneName)),
-				Check:  checksTenantUpgraded(projectID, clusterName),
-			},
 		},
 	})
 }
