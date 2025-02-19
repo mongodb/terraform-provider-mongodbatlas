@@ -95,8 +95,8 @@ func newReplicationSpec20240805(ctx context.Context, input types.List, diags *di
 	for i := range elements {
 		item := &elements[i]
 		resp[i] = admin.ReplicationSpec20240805{
-			Id:            conversion.NilForUnknown(item.ExternalId, item.ExternalId.ValueStringPointer()),
-			ZoneId:        conversion.NilForUnknown(item.ZoneId, item.ZoneId.ValueStringPointer()),
+			Id:            conversion.NilForUnknownOrEmptyString(item.ExternalId),
+			ZoneId:        conversion.NilForUnknownOrEmptyString(item.ZoneId),
 			RegionConfigs: newCloudRegionConfig20240805(ctx, item.RegionConfigs, diags),
 			ZoneName:      conversion.StringPtr(resolveZoneNameOrUseDefault(item)),
 		}
