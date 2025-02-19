@@ -14,16 +14,20 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     expiration_date = var.fcv_expiration_date # e.g. format: "2024-11-22T10:50:00Z". Hashicorp time provider https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/offset can be used to compute this string value.
   }
 
-  replication_specs = [{
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M10"
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-  }]
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    }
+  ]
 }
 
 output "feature_compatibility_version" {

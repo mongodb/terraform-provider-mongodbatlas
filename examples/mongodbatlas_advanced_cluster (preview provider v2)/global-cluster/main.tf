@@ -13,40 +13,19 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
   backup_enabled = true
 
-  replication_specs = [{ # shard 1 - zone n1
-    zone_name = "zone n1"
-
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-      },
-      {
-        electable_specs = {
-          instance_size = "M30"
-          node_count    = 2
-        }
-        provider_name = "AZURE"
-        priority      = 6
-        region_name   = "US_EAST_2"
-    }]
-    },
-    { # shard 2 - zone n1
-
+  replication_specs = [
+    { # shard 1 - zone n1
       zone_name = "zone n1"
 
-      region_configs = [{
-        electable_specs = {
-          instance_size = "M30"
-          node_count    = 3
-        }
-        provider_name = "AWS"
-        priority      = 7
-        region_name   = "US_EAST_1"
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
         },
         {
           electable_specs = {
@@ -56,20 +35,47 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
           provider_name = "AZURE"
           priority      = 6
           region_name   = "US_EAST_2"
-      }]
+        }
+      ]
+    },
+    { # shard 2 - zone n1
+
+      zone_name = "zone n1"
+
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        },
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "US_EAST_2"
+        }
+      ]
     },
     { # shard 1 - zone n2
 
       zone_name = "zone n2"
 
-      region_configs = [{
-        electable_specs = {
-          instance_size = "M30"
-          node_count    = 3
-        }
-        provider_name = "AWS"
-        priority      = 7
-        region_name   = "EU_WEST_1"
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
         },
         {
           electable_specs = {
@@ -79,20 +85,22 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
           provider_name = "AZURE"
           priority      = 6
           region_name   = "EUROPE_NORTH"
-      }]
+        }
+      ]
     },
     { # shard 2 - zone n2
 
       zone_name = "zone n2"
 
-      region_configs = [{
-        electable_specs = {
-          instance_size = "M30"
-          node_count    = 3
-        }
-        provider_name = "AWS"
-        priority      = 7
-        region_name   = "EU_WEST_1"
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
         },
         {
           electable_specs = {
@@ -102,8 +110,10 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
           provider_name = "AZURE"
           priority      = 6
           region_name   = "EUROPE_NORTH"
-      }]
-  }]
+        }
+      ]
+    }
+  ]
 
   advanced_configuration = {
     javascript_enabled                   = true
