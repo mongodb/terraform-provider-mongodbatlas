@@ -565,7 +565,7 @@ func flexChanges(planReq, stateReq *admin.ClusterDescription20240805, diags *dia
 	}
 	if isValidUpdateOfFlex(stateReq, planReq) {
 		return false, true
-	}	
+	}
 	diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
 	return false, false
 }
