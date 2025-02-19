@@ -1,5 +1,6 @@
 {
  "clusterType": "REPLICASET",
+ "labels": [],
  "name": "{clusterName}",
  "replicationSpecs": [
   {
@@ -7,8 +8,7 @@
     {
      "backingProviderName": "AWS",
      "electableSpecs": {
-      "instanceSize": "M5",
-      "nodeCount": 0
+      "instanceSize": "M5"
      },
      "priority": 7,
      "providerName": "TENANT",
@@ -17,5 +17,6 @@
    ],
    "zoneName": "Zone 1"
   }
- ]
+ ],
+ "tags": []
 }
