@@ -1,4 +1,5 @@
 {
+ "groupId": "{groupId}",
  "name": "{clusterName}",
  "providerSettings": {
   "instanceSizeName": "M10",
