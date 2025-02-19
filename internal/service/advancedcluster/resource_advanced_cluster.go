@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"reflect"
 	"regexp"
 	"strings"
@@ -24,6 +23,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
@@ -850,7 +850,7 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 
 	if advancedclustertpf.IsFlex(replicationSpecs) {
 		if isValidUpgradeToFlex(d) {
-			return resourceUpgrade(ctx, advancedclustertpf.GetUpgradeToFlexClusterRequest(), d, meta)
+			return resourceUpgrade(ctx, GetUpgradeToFlexClusterRequest(d, meta), d, meta)
 		}
 		if isValidUpdateOfFlex(d) {
 			return resourceUpdateFlexCluster(ctx, advancedclustertpf.GetFlexClusterUpdateRequest(conversion.ExpandTagsFromSetSchema(d), conversion.Pointer(d.Get("termination_protection_enabled").(bool))), d, meta)
@@ -863,20 +863,37 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 	return resourceUpdate(ctx, d, meta)
 }
 
+func GetUpgradeToFlexClusterRequest(d *schema.ResourceData, meta any) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+		ProviderSettings: &admin.ClusterProviderSettings{
+			ProviderName:        flexcluster.FlexClusterType,
+			BackingProviderName: conversion.StringPtr(d.Get("replication_specs.0.region_configs.0.backing_provider_name").(string)),
+			InstanceSizeName:    conversion.StringPtr(flexcluster.FlexClusterType),
+			RegionName:          conversion.StringPtr(d.Get("replication_specs.0.region_configs.0.region_name").(string)),
+		},
+	}
+}
+
 func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	upgradeResponse, _, err := upgradeCluster(ctx, connV2, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
-
+	upgradeClusterResponse, upgradeToFlexResp, err := upgradeCluster(ctx, connV2, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 	}
 
+	var clusterID string
+	if upgradeClusterResponse == nil {
+		clusterID = upgradeToFlexResp.GetId()
+	} else {
+		clusterID = upgradeClusterResponse.GetId()
+	}
+
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   upgradeResponse.GetId(),
+		"cluster_id":   clusterID,
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 	}))
@@ -1352,30 +1369,38 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *http.Response, error) {
+func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *admin.FlexClusterDescription20241113, error) {
 	request.Name = name
+	request.GroupId = &projectID
 
-	cluster, resp, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
+	cluster, _, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "PENDING", "REPEATING"},
-		Target:     []string{"IDLE"},
-		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, connV2.ClustersApi),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
+	if request.ProviderSettings != nil && request.ProviderSettings.ProviderName == flexcluster.FlexClusterType {
+		flexCluster, err := waitStateTransitionFlexUpgrade(ctx, connV2.FlexClustersApi, projectID, name, timeout)
+		return nil, flexCluster, err
 	}
 
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
+	_, err = WaitStateTransitionClusterUpgrade(ctx, request, connV2.ClustersApi, []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, timeout)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return cluster, resp, nil
+	return cluster, nil, nil
+}
+
+func waitStateTransitionFlexUpgrade(ctx context.Context, client admin.FlexClustersApi, projectID, name string, timeout time.Duration) (*admin.FlexClusterDescription20241113, error) {
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: projectID,
+		Name:    name,
+	}
+	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, &timeout)
+	if err != nil {
+		return nil, err
+	}
+	return flexClusterResp, nil
 }
 
 func splitSClusterAdvancedImportID(id string) (projectID, clusterName *string, err error) {
@@ -1508,7 +1533,7 @@ func setFlexFields(d *schema.ResourceData, flexCluster *admin.FlexClusterDescrip
 		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "mongo_db_version", flexClusterName, err))
 	}
 
-	if err := d.Set("replication_specs", flexcluster.FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings, conversion.Pointer(d.Get("replication_specs.0.region_configs.0.priority").(int)))); err != nil {
+	if err := d.Set("replication_specs", flexcluster.FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings, conversion.Pointer(d.Get("replication_specs.0.region_configs.0.priority").(int)), conversion.StringPtr(d.Get("replication_specs.0.zone_name").(string)))); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "replication_specs", flexClusterName, err))
 	}
 
