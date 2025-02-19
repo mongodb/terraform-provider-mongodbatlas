@@ -75,7 +75,7 @@ resource "mongodbatlas_stream_connection" "example-aws-lambda" {
   instance_name   = mongodbatlas_stream_instance.example.instance_name
   connection_name = "AWSLambdaConnection"
   type            = "AWSLambda"
-  aws_lambda_config = {
+  aws             = {
     role_arn = "arn:aws:iam::123456789123:role/lambdaRole"
   }
 }

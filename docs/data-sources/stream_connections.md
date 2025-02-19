@@ -46,7 +46,7 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
 
 If `type` is of value `AWSLambda` the following additional attributes are defined:
-* `aws_lambda_config` - The configuration for AWS Lambda connection. See [AWSLambdaConfig](#AWSLambdaConfig)
+* `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
 
 ### Authentication
 
@@ -71,7 +71,7 @@ If `type` is of value `AWSLambda` the following additional attributes are define
 * `type` - Selected networking type. Either `PUBLIC`, `VPC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
 * `connection_id` - Id of the Private Link connection when type is `PRIVATE_LINK`.
 
-### AWSLambdaConfig
+### AWS
 * `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
 
 To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/listStreamConnections) Documentation.

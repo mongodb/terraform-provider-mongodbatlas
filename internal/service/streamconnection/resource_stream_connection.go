@@ -46,7 +46,7 @@ type TFStreamConnectionModel struct {
 	Security         types.Object `tfsdk:"security"`
 	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
 	Networking       types.Object `tfsdk:"networking"`
-	AWSLambdaConfig  types.Object `tfsdk:"aws_lambda_config"`
+	AWS              types.Object `tfsdk:"aws"`
 }
 
 type TFConnectionAuthenticationModel struct {
@@ -99,11 +99,11 @@ var NetworkingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"access": NetworkingAccessObjectType,
 }}
 
-type TFAWSLambdaConfigModel struct {
+type TFAWSModel struct {
 	RoleArn types.String `tfsdk:"role_arn"`
 }
 
-var AWSLambdaConfigObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var AWSObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"role_arn": types.StringType,
 }}
 

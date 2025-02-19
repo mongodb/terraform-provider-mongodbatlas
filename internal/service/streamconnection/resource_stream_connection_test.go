@@ -235,6 +235,64 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 	})
 }
 
+func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
+	acc.SkipTestForCI(t)
+
+	var (
+		resourceName   = "mongodbatlas_stream_connection.test"
+		projectID      = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID") //test-acc-tf-p-keep-ear-AWS-private-endpoint project has aws integration
+		instanceName   = acc.RandomName()
+		connectionName = acc.RandomName()
+		roleArn        = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN")
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: awsLambdaStreamConnectionConfig(projectID, instanceName, connectionName, roleArn),
+				Check:  awsLambdaStreamConnectionAttributeChecks(resourceName, instanceName, connectionName, roleArn),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccStreamRSStreamConnection_AWSLambdaForLocal(t *testing.T) {
+	acc.SkipTestForCI(t)
+
+	var (
+		resourceName   = "mongodbatlas_stream_connection.test"
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		instanceName   = acc.RandomName()
+		connectionName = os.Getenv("STREAMS_CONNECTION_NAME")
+		roleArn        = os.Getenv("AWS_ROLE_ARN")
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: awsLambdaStreamConnectionConfig(projectID, instanceName, connectionName, roleArn),
+				Check:  awsLambdaStreamConnectionAttributeChecks(resourceName, instanceName, connectionName, roleArn),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 	securityConfig := `
@@ -434,4 +492,35 @@ func configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCI
 		aws_account_id	        = %[4]q
 	}
 `, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer)
+}
+
+func awsLambdaStreamConnectionConfig(projectID, instanceName, connectionName, roleArn string) string {
+	streamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
+
+	return fmt.Sprintf(`
+		%[1]s
+		
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = mongodbatlas_stream_instance.test.project_id
+			instance_name = mongodbatlas_stream_instance.test.instance_name
+		 	connection_name = %[2]q
+		 	type = "AWSLambda"
+            aws = {
+				role_arn = %[3]q
+			}
+		}
+	`, streamInstanceConfig, connectionName, roleArn)
+}
+
+func awsLambdaStreamConnectionAttributeChecks(
+	resourceName, instanceName, connectionName, roleArn string) resource.TestCheckFunc {
+	resourceChecks := []resource.TestCheckFunc{
+		checkStreamConnectionExists(),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
+		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
+		resource.TestCheckResourceAttr(resourceName, "type", "AWSLambda"),
+		resource.TestCheckResourceAttr(resourceName, "aws.role_arn", roleArn),
+	}
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }

@@ -74,7 +74,7 @@ resource "mongodbatlas_stream_connection" "test" {
     instance_name   = "NewInstance"
     connection_name = "AWSLambdaConnection"
     type            = "AWSLambda"
-    aws_lambda_config = {
+    aws             = {
       role_arn = "arn:aws:iam::123456789123:role/lambdaRole"
     }
 }
@@ -100,7 +100,7 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
 
 If `type` is of value `AWSLambda` the following additional attributes are defined:
-* `aws_lambda_config` - The configuration for AWS Lambda connection. See [AWSLambdaConfig](#AWSLambdaConfig)
+* `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
 
 ### Authentication
 
@@ -125,7 +125,7 @@ If `type` is of value `AWSLambda` the following additional attributes are define
 * `type` - Selected networking type. Either `PUBLIC`, `VPC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
 * `connection_id` - Id of the Private Link connection when type is `PRIVATE_LINK`.
 
-### AWSLambdaConfig
+### AWS
 * `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
 
 ## Import

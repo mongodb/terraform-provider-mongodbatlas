@@ -78,13 +78,13 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		}
 	}
 
-	if !plan.AWSLambdaConfig.IsNull() {
-		awsLambdaConfigModel := &TFAWSLambdaConfigModel{}
-		if diags := plan.AWSLambdaConfig.As(ctx, awsLambdaConfigModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+	if !plan.AWS.IsNull() {
+		awsModel := &TFAWSModel{}
+		if diags := plan.AWS.As(ctx, awsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
 		streamConnection.Aws = &admin.StreamsAWSConnectionBaseConfig{
-			RoleArn: awsLambdaConfigModel.RoleArn.ValueStringPointer(),
+			RoleArn: awsModel.RoleArn.ValueStringPointer(),
 		}
 	}
 
@@ -160,15 +160,15 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 		connectionModel.Networking = networkingModel
 	}
 
-	connectionModel.AWSLambdaConfig = types.ObjectNull(AWSLambdaConfigObjectType.AttrTypes)
+	connectionModel.AWS = types.ObjectNull(AWSObjectType.AttrTypes)
 	if apiResp.Aws != nil {
-		awsLambdaConfig, diags := types.ObjectValueFrom(ctx, AWSLambdaConfigObjectType.AttrTypes, TFAWSLambdaConfigModel{
+		aws, diags := types.ObjectValueFrom(ctx, AWSObjectType.AttrTypes, TFAWSModel{
 			RoleArn: types.StringPointerValue(apiResp.Aws.RoleArn),
 		})
 		if diags.HasError() {
 			return nil, diags
 		}
-		connectionModel.AWSLambdaConfig = awsLambdaConfig
+		connectionModel.AWS = aws
 	}
 
 	return &connectionModel, nil

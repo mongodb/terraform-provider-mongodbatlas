@@ -121,7 +121,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 
 			// AWSLambda type
-			"aws_lambda_config": schema.SingleNestedAttribute{
+			"aws": schema.SingleNestedAttribute{
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					"role_arn": schema.StringAttribute{
