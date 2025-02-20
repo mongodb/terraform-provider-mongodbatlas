@@ -9,10 +9,28 @@ import (
 	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
+var keepUnknownTenantUpgrade = []string{"disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date"}
+
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, plan, state *TFModel) {
 	if !schemafunc.HasUnknowns(plan) {
 		return
 	}
+	stateReq := normalizeFromTFModel(ctx, state, diags, false)
+	planReq := normalizeFromTFModel(ctx, plan, diags, false)
+	if diags.HasError() {
+		return
+	}
+	flexUpgrade, _ := flexChanges(planReq, stateReq, diags)
+	if diags.HasError() {
+		return
+	}
+	if flexUpgrade {
+		keepUnknown := []string{"connection_strings", "state_name", "advanced_configuration", "encryption_at_rest_provider", "root_cert_type", "bi_connector_config"}
+		keepUnknown = append(keepUnknown, keepUnknownTenantUpgrade...)
+		schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
+		return
+	}
+
 	patchReq, upgradeRequest, _ := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
 	if diags.HasError() {
 		return
@@ -25,7 +43,7 @@ func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgrade
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	if upgradeRequest != nil {
 		// TenantUpgrade changes a few root level fields that are normally ok to use state values for
-		keepUnknown = append(keepUnknown, "disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date")
+		keepUnknown = append(keepUnknown, keepUnknownTenantUpgrade...)
 	}
 	if !update.IsZeroValues(patchReq) {
 		if patchReq.MongoDBMajorVersion != nil {

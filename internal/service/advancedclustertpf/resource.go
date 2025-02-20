@@ -232,25 +232,20 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-
-	if IsFlex(planReq.ReplicationSpecs) {
-		if isValidUpgradeToFlex(stateReq, planReq) {
-			upgradeModel := handleFlexUpgrade(ctx, diags, r.Client, waitParams, planReq, &plan)
-			if diags.HasError() {
-				return
-			}
-			diags.Append(resp.State.Set(ctx, upgradeModel)...)
-			return
+	flexUpgrade, flexUpdate := flexChanges(planReq, stateReq, diags)
+	if diags.HasError() {
+		return
+	}
+	if flexUpgrade || flexUpdate {
+		var flexOut *TFModel
+		if flexUpgrade {
+			flexOut = handleFlexUpgrade(ctx, diags, r.Client, waitParams, planReq, &plan)
+		} else {
+			flexOut = handleFlexUpdate(ctx, diags, r.Client, &plan, planReq)
 		}
-		if isValidUpdateOfFlex(stateReq, planReq) {
-			updateModel := handleFlexUpdate(ctx, diags, r.Client, &plan, planReq)
-			if diags.HasError() {
-				return
-			}
-			diags.Append(resp.State.Set(ctx, updateModel)...)
-			return
+		if flexOut != nil {
+			diags.Append(resp.State.Set(ctx, flexOut)...)
 		}
-		diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
 		return
 	}
 
@@ -565,4 +560,18 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 		return nil
 	}
 	return newFlexModel
+}
+
+func flexChanges(planReq, stateReq *admin.ClusterDescription20240805, diags *diag.Diagnostics) (isUpgrade, isUpdate bool) {
+	if !IsFlex(planReq.ReplicationSpecs) {
+		return false, false
+	}
+	if isValidUpgradeToFlex(stateReq, planReq) {
+		return true, false
+	}
+	if isValidUpdateOfFlex(stateReq, planReq) {
+		return false, true
+	}
+	diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
+	return false, false
 }
