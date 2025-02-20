@@ -27,7 +27,7 @@ For Shared-tier clusters, we are working on enhancing the User Experience such t
 
 ### Post-Autoconversion Migration Procedure
 
-Shared-tier clusters will automatically convert in January 2025 or later to Flex clusters in Atlas, retaining all data. We recommend that you migrate to a flex cluster managed by `mongodbatlas_advanced_cluster` resource once the autoconversion is done.
+Shared-tier clusters will automatically convert in January 2025 or later to Flex clusters in Atlas, retaining all data. We recommend that you migrate to a Flex cluster managed by `mongodbatlas_advanced_cluster` resource once the autoconversion is done.
 
 The following steps explain how to move your exising Shared-tier cluster resource to a flex cluster using `mongodbatlas_advanced_cluster` resource and does not affect the underlying cluster infrastructure:
 
