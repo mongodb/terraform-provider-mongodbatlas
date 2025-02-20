@@ -30,24 +30,30 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	}
 }
 
-var attributeRootChangeMapping = map[string][]string{
-	"disk_size_gb":      {},
-	"replication_specs": {},
-	"mongo_db_version":  {"mongo_db_major_version"},
-}
-var attributeReplicationSpecChangeMapping = map[string][]string{
-	"disk_size_gb":  {},
-	"provider_name": {"ebs_volume_type"},
-	"instance_size": {"disk_iops"},
-	"region_name":   {"container_id"},
-	"zone_name":     {"zone_id"},
-}
+var (
+	// TenantUpgrade changes many extra fields that are normally ok to use state values for
+	tenantUpgradeRootKeepUnknown            = []string{"disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date"}
+	tenantUpgradeReplicationSpecKeepUnknown = []string{"disk_size_gb", "zone_id", "id", "container_id", "external_id", "auto_scaling", "analytics_specs", "read_only_specs"}
+	attributeRootChangeMapping              = map[string][]string{
+		// disk_size_gb can be change at any level/spec
+		"disk_size_gb":      {},
+		"replication_specs": {},
+		"mongo_db_version":  {"mongo_db_major_version"},
+	}
+	attributeReplicationSpecChangeMapping = map[string][]string{
+		"disk_size_gb":  {},
+		"provider_name": {"ebs_volume_type"},
+		"instance_size": {"disk_iops"}, // disk_iops can change based on instance_size changes
+		"region_name":   {"container_id"},
+		"zone_name":     {"zone_id"},
+	}
+)
 
 func determineKeepUnknownsRoot(upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, attributeChanges *schemafunc.AttributeChanges) []string {
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	if upgradeRequest != nil {
 		// TenantUpgrade changes a few root level fields that are normally ok to use state values for
-		keepUnknown = append(keepUnknown, "disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date")
+		keepUnknown = append(keepUnknown, tenantUpgradeRootKeepUnknown...)
 	}
 	if attributeChanges != nil {
 		keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
@@ -95,20 +101,12 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	plan.ReplicationSpecs = listType
 }
 
+// determineKeepUnknownsChangedReplicationSpec: These fields must be kept unknown in the replication_specs[index_of_changes]
 func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, isTenantUpgrade bool, attributeChanges *schemafunc.AttributeChanges) []string {
-	// These fields must be kept unknown in the replication_specs[index_of_changes]
-	// *_specs are kept unknown as not having them in the config means that changes in "sibling" region_configs can impact the "computed" spec
-	// read_only_specs also reacts to changes in the electable_specs
-	// disk_size_gb can be change at any level/spec
-	// disk_iops can change based on instance_size changes
-	// auto_scaling can not use state value when a new region_spec/replication_spec is added, the auto_scaling will be empty and we get the AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG error
-	// 	potentially could be included if we check that the region_spec count is the same
-	var keepUnknowns = []string{}
+	var keepUnknowns = slices.Clone(keepUnknownsAlways)
 	if isTenantUpgrade {
-		// TenantUpgrade changes many extra fields that are normally ok to use state values for
-		keepUnknowns = append(keepUnknowns, "zone_id", "id", "container_id", "external_id")
+		keepUnknowns = append(keepUnknowns, tenantUpgradeReplicationSpecKeepUnknown...)
 	}
-	keepUnknowns = append(keepUnknowns, keepUnknownsAlways...)
 	return append(keepUnknowns, attributeChanges.KeepUnknown(attributeReplicationSpecChangeMapping)...)
 }
 
