@@ -38,7 +38,7 @@ var (
 		"mongo_db_major_version": {"mongo_db_version"},
 	}
 	attributeReplicationSpecChangeMapping = map[string][]string{
-		// All these fields can exist in specs that are computed, therefore, it is not safe to use them
+		// All these fields can exist in specs that are computed, therefore, it is not safe to use them when they have changed.
 		"disk_iops":       {},
 		"ebs_volume_type": {},
 		"instance_size":   {"disk_iops"},       // disk_iops can change based on instance_size changes
