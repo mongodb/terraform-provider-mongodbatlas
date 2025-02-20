@@ -145,8 +145,8 @@ func TestAccAdvancedCluster_basicTenant_flexUpgrade(t *testing.T) {
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configTenantUpgraded(projectID, clusterName, defaultZoneName)),
-				Check:  checksTenantUpgraded(projectID, clusterName),
+				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configBasicDedicated(projectID, clusterName, defaultZoneName)),
+				Check:  checksBasicDedicated(projectID, clusterName),
 			},
 		},
 	})
@@ -167,8 +167,8 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configTenantUpgraded(projectID, clusterName, defaultZoneName)),
-				Check:  checksTenantUpgraded(projectID, clusterName),
+				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configBasicDedicated(projectID, clusterName, defaultZoneName)),
+				Check:  checksBasicDedicated(projectID, clusterName),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -1446,7 +1446,7 @@ func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
 		pluralChecks...)
 }
 
-func configTenantUpgraded(projectID, name, zoneName string) string {
+func configBasicDedicated(projectID, name, zoneName string) string {
 	zoneNameLine := ""
 	if zoneName != "" {
 		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
@@ -1473,7 +1473,7 @@ func configTenantUpgraded(projectID, name, zoneName string) string {
 	`, projectID, name, zoneNameLine) + dataSourcesTFNewSchema
 }
 
-func checksTenantUpgraded(projectID, name string) resource.TestCheckFunc {
+func checksBasicDedicated(projectID, name string) resource.TestCheckFunc {
 	originalChecks := checkTenant(true, projectID, name)
 	checkMap := map[string]string{
 		"replication_specs.0.region_configs.0.electable_specs.0.node_count":    "3",
