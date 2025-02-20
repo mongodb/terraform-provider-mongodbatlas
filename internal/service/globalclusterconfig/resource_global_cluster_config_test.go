@@ -61,7 +61,7 @@ func basicTestCase(tb testing.TB, checkZoneID, withBackup bool) *resource.TestCa
 			},
 			{
 				Config:      configBasic(&clusterInfo, true, false),
-				ExpectError: regexp.MustCompile("managed namespace for collection 'publishers' in db 'mydata' cannot be modified"),
+				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed"),
 			},
 		},
 	}
@@ -137,44 +137,8 @@ func TestAccGlobalClusterConfig_database(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithDBConfig(&clusterInfo, customZoneUpdated),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					checkZone(0, "US", clusterInfo.ResourceName, true),
-					checkZone(1, "IE", clusterInfo.ResourceName, true),
-					checkZone(2, "DE", clusterInfo.ResourceName, true),
-					checkZone(3, "JP", clusterInfo.ResourceName, true),
-					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
-						[]string{"project_id"},
-						map[string]string{
-							"cluster_name":         clusterInfo.Name,
-							"managed_namespaces.#": "5",
-							"managed_namespaces.0.is_custom_shard_key_hashed": "false",
-							"managed_namespaces.0.is_shard_key_unique":        "false",
-							"custom_zone_mapping_zone_id.%":                   "4",
-							"custom_zone_mapping.%":                           "4",
-						}),
-				),
-			},
-			{
-				Config:      configWithDBConfig(&clusterInfo, customZone),
-				ExpectError: regexp.MustCompile("partial deletion of custom_zone_mappings is not allowed; remove either all mappings or none"),
-			},
-			{
-				Config: configWithDBConfig(&clusterInfo, ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
-						[]string{"project_id"},
-						map[string]string{
-							"cluster_name":         clusterInfo.Name,
-							"managed_namespaces.#": "5",
-							"managed_namespaces.0.is_custom_shard_key_hashed": "false",
-							"managed_namespaces.0.is_shard_key_unique":        "false",
-							"custom_zone_mapping_zone_id.%":                   "0",
-							"custom_zone_mapping.%":                           "0",
-						}),
-				),
+				Config:      configWithDBConfig(&clusterInfo, customZoneUpdated),
+				ExpectError: regexp.MustCompile("Updating a global cluster configuration resource is not allowed"),
 			},
 			{
 				ResourceName:            resourceName,

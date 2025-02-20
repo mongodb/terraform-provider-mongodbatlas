@@ -267,6 +267,7 @@ func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 		// deleted in the backend case
 		if validate.StatusNotFound(httpResponse) {
 			resp.State.RemoveResource(ctx)
+			resp.Diagnostics.AddError("resource not found", err.Error())
 			return
 		}
 		resp.Diagnostics.AddError("error getting database user information", err.Error())

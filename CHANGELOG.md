@@ -1,14 +1,8 @@
 ## (Unreleased)
 
-ENHANCEMENTS:
-
-* resource/mongodbatlas_global_cluster_config: Supports update operation ([#3060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3060))
-
 BUG FIXES:
 
 * resource/mongodbatlas_alert_configuration: Removes UseStateForUnknown plan modifier for interval_min ([#3051](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3051))
-* resource/mongodbatlas_database_user: Avoids error in read if resource no longer exists ([#3069](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3069))
-* resource/mongodbatlas_maintenance_window: Avoids error in creation when `hour_of_day` is set to zero or not defined ([#3086](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3086))
 
 ## 1.26.1 (February 07, 2025)
 

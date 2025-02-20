@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	"github.com/spf13/cast"
@@ -17,7 +16,7 @@ func TestMigConfigMaintenanceWindow_basic(t *testing.T) {
 		projectName = acc.RandomProjectName()
 		dayOfWeek   = 7
 		hourOfDay   = 3
-		config      = configBasic(orgID, projectName, dayOfWeek, conversion.Pointer(hourOfDay))
+		config      = configBasic(orgID, projectName, dayOfWeek, hourOfDay)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

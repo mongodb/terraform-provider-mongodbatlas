@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
 )
@@ -21,7 +20,7 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acc.RandomProjectName()
 		dayOfWeek        = 7
-		hourOfDay        = 0
+		hourOfDay        = 3
 		dayOfWeekUpdated = 4
 		hourOfDayUpdated = 5
 	)
@@ -31,46 +30,50 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				// testing hour_of_day set to 0 during creation phase does not return errors
-				Config: configBasic(orgID, projectName, dayOfWeek, conversion.Pointer(hourOfDay)),
-				Check:  checkBasic(dayOfWeek, hourOfDay),
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
+					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
+				),
 			},
 			{
-				Config: configBasic(orgID, projectName, dayOfWeek, conversion.Pointer(hourOfDayUpdated)),
-				Check:  checkBasic(dayOfWeek, hourOfDayUpdated),
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDayUpdated),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDayUpdated)),
+					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
+				),
 			},
 			{
-				Config: configBasic(orgID, projectName, dayOfWeekUpdated, conversion.Pointer(hourOfDay)),
-				Check:  checkBasic(dayOfWeekUpdated, hourOfDay),
+				Config: configBasic(orgID, projectName, dayOfWeekUpdated, hourOfDay),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeekUpdated)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
+					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
+				),
 			},
 			{
-				Config: configBasic(orgID, projectName, dayOfWeek, conversion.Pointer(hourOfDay)),
-				Check:  checkBasic(dayOfWeek, hourOfDay),
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
+					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccConfigRSMaintenanceWindow_emptyHourOfDay(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		dayOfWeek   = 7
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectName, dayOfWeek, nil),
-				Check:  checkBasic(dayOfWeek, 0),
 			},
 		},
 	})
@@ -132,11 +135,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(orgID, projectName string, dayOfWeek int, hourOfDay *int) string {
-	hourOfDayAttr := ""
-	if hourOfDay != nil {
-		hourOfDayAttr = fmt.Sprintf("hour_of_day = %d", *hourOfDay)
-	}
+func configBasic(orgID, projectName string, dayOfWeek, hourOfDay int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -145,8 +144,8 @@ func configBasic(orgID, projectName string, dayOfWeek int, hourOfDay *int) strin
 		resource "mongodbatlas_maintenance_window" "test" {
 			project_id  = mongodbatlas_project.test.id
 			day_of_week = %[3]d
-			%[4]s
-		}`, orgID, projectName, dayOfWeek, hourOfDayAttr)
+			hour_of_day = %[4]d
+		}`, orgID, projectName, dayOfWeek, hourOfDay)
 }
 
 func configWithAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay int) string {
@@ -161,14 +160,4 @@ func configWithAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay 
 			hour_of_day = %[4]d
 			auto_defer_once_enabled = true
 		}`, orgID, projectName, dayOfWeek, hourOfDay)
-}
-
-func checkBasic(dayOfWeek, hourOfDay int) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		checkExists(resourceName),
-		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
-		resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
-		resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
-	)
 }
