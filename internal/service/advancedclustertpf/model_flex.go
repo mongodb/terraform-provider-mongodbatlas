@@ -16,7 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
-const DefaultPriority int = 7
+const defaultPriority int = 7
 
 func NewFlexCreateReq(clusterName string, terminationProtectionEnabled bool, tags *[]admin.ResourceTag, replicationSpecs *[]admin.ReplicationSpec20240805) *admin.FlexClusterDescriptionCreate20241113 {
 	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
@@ -130,7 +130,7 @@ func NewTFModelFlexResource(ctx context.Context, diags *diag.Diagnostics, flexCl
 
 func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int) *TFModel {
 	if priority == nil {
-		priority = conversion.Pointer(DefaultPriority)
+		priority = conversion.Pointer(defaultPriority)
 	}
 	modelOut := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), diags, ExtraAPIInfo{UseNewShardingConfig: true})
 	if diags.HasError() {
