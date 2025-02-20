@@ -3,10 +3,10 @@ package encryptionatrest
 import (
 	"context"
 
-	// "go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
 func DataSourceSchema(ctx context.Context) schema.Schema {

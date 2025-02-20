@@ -38,7 +38,7 @@ func (d *encryptionAtRestPrivateEndpointDS) Read(ctx context.Context, req dataso
 		return
 	}
 
-	connV2 := d.Client.AtlasPreview // TODO: revert
+	connV2 := d.Client.AtlasV2
 	projectID := earPrivateEndpointConfig.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointConfig.CloudProvider.ValueString()
 	endpointID := earPrivateEndpointConfig.ID.ValueString()
