@@ -27,15 +27,15 @@ For Shared-tier clusters, we are working on enhancing the User Experience such t
 
 ### Post-Autoconversion Migration Procedure
 
-Shared-tier clusters will automatically convert in January 2025 or later to Flex clusters in Atlas, retaining all data. We recommend to migrate to `mongodbatlas_flex_cluster` resource once the autoconversion is done.
+Shared-tier clusters will automatically convert in January 2025 or later to Flex clusters in Atlas, retaining all data. We recommend to migrate to a flex cluster managed by `mongodbatlas_advanced_cluster` resource once the autoconversion is done.
 
-The following steps explain how to move your exising Shared-tier cluster resource to the new `mongodbatlas_flex_cluster` resource and does not affect the underlying cluster infrastructure:
+The following steps explain how to move your exising Shared-tier cluster resource to a flex cluster using `mongodbatlas_advanced_cluster` resource and does not affect the underlying cluster infrastructure:
 
 1. Find the import IDs of the Flex clusters: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6-flexClusterName`
 2. Add an import block per cluster to one of your `.tf` files:
     ```terraform
     import {
-    to = mongodbatlas_flex_cluster.this
+    to = mongodbatlas_advanced_cluster.this
     id = "664619d870c247237f4b86a6-flexClusterName" # from step 1
     }
     ```
@@ -45,9 +45,8 @@ The following steps explain how to move your exising Shared-tier cluster resourc
 6. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
    - variables, for example: `var.project_id`
    - Terraform keywords, for example: `for_each`, `count`, and `depends_on`
-7. Update the references from your previous cluster resource: `mongodbatlas_advanced_cluster.this.X` or `mongodbatlas_cluster.this.X` to the new `mongodbatlas_flex_cluster.this.X`.
-8. Update any shared-tier data source blocks to refer to `mongodbatlas_flex_cluster`.
-9. Replace your existing clusters with the ones from `flex_cluster.tf` and run 
+7. Update the references from your previous cluster resource: `mongodbatlas_advanced_cluster.this.X` or `mongodbatlas_cluster.this.X` to the new `mongodbatlas_advanced_cluster.flex.X`.
+8. Replace your existing clusters with the ones from `flex_cluster.tf` and run 
 
     `terraform state rm mongodbatlas_advanced_cluster.this`
 
@@ -55,8 +54,9 @@ The following steps explain how to move your exising Shared-tier cluster resourc
 
     Without this step, Terraform creates a plan to delete your existing cluster.
 
-10.  Remove the import block created in step 2.
-11.  Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
+9. Remove the import block created in step 2.
+10. Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
+11. Change your usages of `mongodbatlas_shared_tier_restore_job`, `mongodbatlas_shared_tier_restore_jobs`, `mongodbatlas_shared_tier_snapshot` and `mongodbatlas_shared_tier_snapshots` data sources to the new `mongodbatlas_flex_restore_job`, `mongodbatlas_flex_restore_jobs`, `mongodbatlas_flex_snapshot` and `mongodbatlas_flex_snapshot` respectively.
 
 ### Pre-Autoconversion Migration Procedure
 
@@ -172,13 +172,13 @@ The following steps resolve the configuration drift in Terraform without affecti
 
 Given your Serverless Instance fits the constraints of a Flex cluster, it will automatically convert in March 2025 into a Flex cluster in Atlas, retaining all data. We recommend to migrate to `mongodbatlas_flex_cluster` resource once the autoconversion is done.
 
-The following steps explain how to move your exising Serverless instance resource to the new `mongodbatlas_flex_cluster` resource and does not affect the underlying cluster infrastructure:
+The following steps explain how to move your exising Serverless instance resource to a flex cluster using `mongodbatlas_advanced_cluster` resource and does not affect the underlying cluster infrastructure:
 
 1. Find the import IDs of the Flex clusters: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6-flexClusterName`
 2. Add an import block per cluster to one of your `.tf` files:
     ```terraform
     import {
-    to = mongodbatlas_flex_cluster.this
+    to = mongodbatlas_advanced_cluster.flex
     id = "664619d870c247237f4b86a6-flexClusterName" # from step 1
     }
     ```
@@ -188,11 +188,10 @@ The following steps explain how to move your exising Serverless instance resourc
 6. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
    - variables, for example: `var.project_id`
    - Terraform keywords, for example: `for_each`, `count`, and `depends_on`
-7. Update the references from your previous cluster resource: `mongodbatlas_serverless_instance.this.X` to the new `mongodbatlas_flex_cluster.this.X`.
-8. Update any shared-tier data source blocks to refer to `mongodbatlas_flex_cluster`.
-9. Replace your existing clusters with the ones from `flex_cluster.tf` and run `terraform state rm mongodbatlas_serverless_instance.this`. Without this step, Terraform creates a plan to delete your existing cluster.
-10.  Remove the import block created in step 2.
-11.  Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
+7. Update the references from your previous cluster resource: `mongodbatlas_serverless_instance.this.X` to the new `mongodbatlas_advanced_cluster.flex.X`.
+8. Replace your existing clusters with the ones from `flex_cluster.tf` and run `terraform state rm mongodbatlas_serverless_instance.this`. Without this step, Terraform creates a plan to delete your existing cluster.
+9.  Remove the import block created in step 2.
+10.  Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
 
 ### Pre-Autoconversion Migration Procedure
 
