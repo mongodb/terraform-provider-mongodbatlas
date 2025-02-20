@@ -8,7 +8,7 @@
     {
      "backingProviderName": "AWS",
      "electableSpecs": {
-      "instanceSize": "M5"
+      "instanceSize": "M0"
      },
      "priority": 7,
      "providerName": "TENANT",

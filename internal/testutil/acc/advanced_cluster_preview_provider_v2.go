@@ -79,6 +79,8 @@ var tpfSingleNestedAttrs = []string{
 	"bi_connector_config",
 	"pinned_fcv",
 	"timeouts",
+	"connection_strings",
+	"tags",
 }
 
 func AttrNameToPreviewProviderV2(isAcc bool, name string) string {

@@ -19,6 +19,8 @@ func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
 		"prefixbi_connector_config.0":     "val3",
 		"advanced_configuration.0postfix": "val4",
 		"electable_specs.0advanced_configuration.0bi_connector_config.0": "val5",
+		"connection_strings.0.standard":                                  "val6",
+		"connection_strings.0.standard_srv":                              "val6",
 	}
 	expectedMap := map[string]string{
 		"attr":                          "val1",
@@ -26,6 +28,8 @@ func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
 		"prefixbi_connector_config":     "val3",
 		"advanced_configurationpostfix": "val4",
 		"electable_specsadvanced_configurationbi_connector_config": "val5",
+		"connection_strings.standard":                              "val6",
+		"connection_strings.standard_srv":                          "val6",
 	}
 	actualMap := acc.ConvertToPreviewProviderV2AttrsMap(true, attrsMap)
 	assert.Equal(t, expectedMap, actualMap)
