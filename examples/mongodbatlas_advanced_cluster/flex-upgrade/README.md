@@ -21,15 +21,18 @@ private_key                 = <REDACTED>
 provider_name               = "TENANT"
 backing_provider_name       = "AWS"
 provider_instance_size_name = "M0"
+node_count = null
 ```
 
-Apply with the following `terraform.tfvars` to upgrade the free tier cluster you just created to dedicated tier:
+Apply with the following `terraform.tfvars` to upgrade the free tier cluster you just created to flex tier:
 ```
 atlas_org_id                = <YOUR_ORG_ID>
 public_key                  = <REDACTED>
 private_key                 = <REDACTED>
 provider_name               = "FLEX"
 backing_provider_name       = "AWS"
+provider_instance_size_name = null
+node_count = null
 ```
 Apply with the following `terraform.tfvars` to upgrade the flex tier cluster you just created to dedicated tier:
 ```
@@ -37,5 +40,7 @@ atlas_org_id                = <YOUR_ORG_ID>
 public_key                  = <REDACTED>
 private_key                 = <REDACTED>
 provider_name               = "AWS"
+backing_provider_name       = null
 provider_instance_size_name = "M10"
+node_count = 3
 ```
