@@ -131,7 +131,7 @@ func TestAccAdvancedCluster_basicTenant_flexUpgrade_dedicatedUpgrade(t *testing.
 		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
 
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
@@ -154,7 +154,7 @@ func TestAccAdvancedCluster_basicTenant_flexUpgrade_dedicatedUpgrade(t *testing.
 
 func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
 		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
 	)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
