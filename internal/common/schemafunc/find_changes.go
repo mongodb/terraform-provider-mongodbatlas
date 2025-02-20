@@ -10,6 +10,50 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+type AttributeChanges struct {
+	Changes []string
+}
+
+func (a *AttributeChanges) LeafChanges() map[string]bool {
+	leafChanges := map[string]bool{}
+	for _, change := range a.Changes {
+		var leaf string
+		parts := strings.Split(change, ".")
+		if len(parts) == 1 {
+			leaf = parts[0]
+		} else {
+			leaf = parts[len(parts)-1]
+		}
+		if strings.HasSuffix(leaf, "]") {
+			leaf = strings.Split(leaf, "[")[0]
+		}
+		leafChanges[leaf] = true
+	}
+	return leafChanges
+}
+
+func (a *AttributeChanges) AttributeChanged(name string) bool {
+	changes := a.LeafChanges()
+	changed := changes[name]
+	return changed
+}
+
+func (a *AttributeChanges) KeepUnknown(attributeEffectedMapping map[string][]string) []string {
+	keepUnknown := []string{}
+	for attrChanged, affectedAttributes := range attributeEffectedMapping {
+		if a.AttributeChanged(attrChanged) {
+			keepUnknown = append(keepUnknown, attrChanged)
+			keepUnknown = append(keepUnknown, affectedAttributes...)
+		}
+	}
+	return keepUnknown
+}
+
+func FindAttributeChanges(ctx context.Context, src, dest any) AttributeChanges {
+	changes := FindChanges(ctx, src, dest)
+	return AttributeChanges{changes}
+}
+
 // FindChanges TODO: Add description
 func FindChanges(ctx context.Context, src, dest any) []string {
 	valSrc, valDest := validateStructPointers(src, dest)
