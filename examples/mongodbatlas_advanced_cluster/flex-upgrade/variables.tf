@@ -24,3 +24,9 @@ variable "provider_instance_size_name" {
   default     = "M10"
   type        = string
 }
+
+variable "node_count" {
+  description = "Number of nodes in the cluster"
+  default     = 3
+  type        = number
+}
