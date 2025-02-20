@@ -212,11 +212,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	patchOptions := update.PatchOptions{
-		IgnoreInStatePrefix: []string{"replicationSpecs"},
-		IgnoreInStateSuffix: []string{"zoneId"}, // replication_spec.*.zone_id doesn't have to be included, the API will do its best to create a minimal change
-	}
-	if usingNewShardingConfig(ctx, configModel.ReplicationSpecs, diags) {
-		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
+		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
 	patchReq, upgradeReq := findClusterDiff(ctx, &state, &configModel, diags, &patchOptions)
 	if diags.HasError() {
