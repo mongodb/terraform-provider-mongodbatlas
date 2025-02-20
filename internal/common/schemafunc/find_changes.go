@@ -84,12 +84,13 @@ func (a *AttributeChanges) leafChanges(removeIndex bool) map[string]bool {
 	return leafChanges
 }
 
+// FindAttributeChanges: Iterates through TFModel of state+plan and returns AttributeChanges for querying changed attributes
+// The implementation is similar to KeepUnknown, no support for types.Set or types.Tuple yet
 func FindAttributeChanges(ctx context.Context, src, dest any) AttributeChanges {
 	changes := FindChanges(ctx, src, dest)
 	return AttributeChanges{changes}
 }
 
-// FindChanges TODO: Add description
 func FindChanges(ctx context.Context, src, dest any) []string {
 	valSrc, valDest := validateStructPointers(src, dest)
 	typeDest := valDest.Type()
