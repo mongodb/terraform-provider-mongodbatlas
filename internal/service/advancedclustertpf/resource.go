@@ -232,7 +232,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	flexUpgrade, flexUpdate := flexChanges(planReq, stateReq, diags)
+	flexUpgrade, flexUpdate := flexUpgradedUpdated(planReq, stateReq, diags)
 	if diags.HasError() {
 		return
 	}
@@ -562,7 +562,7 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 	return newFlexModel
 }
 
-func flexChanges(planReq, stateReq *admin.ClusterDescription20240805, diags *diag.Diagnostics) (isUpgrade, isUpdate bool) {
+func flexUpgradedUpdated(planReq, stateReq *admin.ClusterDescription20240805, diags *diag.Diagnostics) (isUpgrade, isUpdate bool) {
 	if !IsFlex(planReq.ReplicationSpecs) {
 		return false, false
 	}
