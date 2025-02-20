@@ -31,30 +31,9 @@ Shared-tier clusters will automatically convert in January 2025 or later to Flex
 
 The following steps explain how to move your exising Shared-tier cluster resource to a flex cluster using `mongodbatlas_advanced_cluster` resource and does not affect the underlying cluster infrastructure:
 
-1. Find the import IDs of the Flex clusters: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6-flexClusterName`
-2. Add an import block per cluster to one of your `.tf` files:
-    ```terraform
-    import {
-    to = mongodbatlas_advanced_cluster.this
-    id = "664619d870c247237f4b86a6-flexClusterName" # from step 1
-    }
-    ```
-3. Run `terraform plan -generate-config-out=flex_cluster.tf`. This should generate a `flex_cluster.tf` file with your Flex cluster in it.
-4. Run `terraform apply`. You should see the resource(s) imported: `Apply complete! Resources: 1 imported, 0 added, 0 changed, 0 destroyed.`
-5. Remove the "default" fields. Many fields of this resource are optional. Look for fields with a `null` or `0` value.
-6. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
-   - variables, for example: `var.project_id`
-   - Terraform keywords, for example: `for_each`, `count`, and `depends_on`
-7. Update the references from your previous cluster resource: `mongodbatlas_advanced_cluster.this.X` or `mongodbatlas_cluster.this.X` to the new `mongodbatlas_advanced_cluster.flex.X`.
-8. Replace your existing clusters with the ones from `flex_cluster.tf` and run 
-
-    `terraform state rm mongodbatlas_advanced_cluster.this`
-
-    or `terraform state rm mongodbatlas_cluster.this`. 
-
-    Without this step, Terraform creates a plan to delete your existing cluster.
-
-9. Remove the import block created in step 2.
+1. Change the configuration of your Shared-tier cluster to a Flex cluster. For more details on the exact changes, see [mongodbatlas_advanced_cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#example-tenant-cluster-upgrade-to-flex)
+3. Run `terraform plan` to see the planned changes.
+4. Run `terraform apply`. This will upgrade your Shared-tier cluster to a Flex tier cluster
 10. Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.` 
 11. Change your usages of `mongodbatlas_shared_tier_restore_job`, `mongodbatlas_shared_tier_restore_jobs`, `mongodbatlas_shared_tier_snapshot` and `mongodbatlas_shared_tier_snapshots` data sources to the new `mongodbatlas_flex_restore_job`, `mongodbatlas_flex_restore_jobs`, `mongodbatlas_flex_snapshot` and `mongodbatlas_flex_snapshot` respectively.
 
