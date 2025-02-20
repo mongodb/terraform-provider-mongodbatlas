@@ -406,7 +406,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
   Backup uses:
   [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/#std-label-backup-cloud-provider) for dedicated clusters.
-  [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/#std-label-m2-m5-snapshots) for tenant clusters.
+  [Free Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters
   If "`backup_enabled`" : `false`, the cluster doesn't use Atlas backups.
 
 This parameter defaults to false.
