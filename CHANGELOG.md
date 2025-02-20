@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.27.0 (February 20, 2025)
+
 NOTES:
 
 * data-source/mongodbatlas_serverless_instance: Deprecates data source ([#3012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3012))
