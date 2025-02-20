@@ -2,7 +2,6 @@ package advancedclustertpf
 
 import (
 	"context"
-	"reflect"
 	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -20,21 +19,37 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	if diags.HasError() {
 		return
 	}
-	keepUnknown := determineKeepUnknowns(upgradeRequest, patchReq)
+	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
+	keepUnknown := determineKeepUnknowns(upgradeRequest, patchReq, &attributeChanges)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
 	// `replication_specs` is handled by index to allow:
 	// 1. Using full state for "unchanged" specs
 	// 2. Using partial state for "changed" specs
 	if slices.Contains(keepUnknown, "replication_specs") {
-		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, upgradeRequest != nil)
+		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges, upgradeRequest != nil)
 	}
 }
 
-func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, patchReq *admin.ClusterDescription20240805) []string {
+var attributeRootChangeMapping = map[string][]string{
+	"disk_size_gb":     {},
+	"mongo_db_version": {"mongo_db_major_version"},
+}
+var attributeReplicationSpecChangeMapping = map[string][]string{
+	"disk_size_gb":  {},
+	"provider_name": {"ebs_volume_type"},
+	"instance_size": {"disk_iops"},
+	"region_name":   {"container_id"},
+	"zone_name":     {"zone_id"},
+}
+
+func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, patchReq *admin.ClusterDescription20240805, attributeChanges *schemafunc.AttributeChanges) []string {
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	if upgradeRequest != nil {
 		// TenantUpgrade changes a few root level fields that are normally ok to use state values for
 		keepUnknown = append(keepUnknown, "disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date")
+	}
+	if attributeChanges != nil {
+		keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	}
 	if !update.IsZeroValues(patchReq) {
 		if patchReq.MongoDBMajorVersion != nil {
@@ -47,7 +62,7 @@ func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgrade
 	return keepUnknown
 }
 
-func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, isTenantUpgrade bool) {
+func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges, isTenantUpgrade bool) {
 	// TF Models are used for CopyUnknows, Admin Models are used for PatchPayload (`json` annotations necessary)
 	stateRepSpecs := newReplicationSpec20240805(ctx, state.ReplicationSpecs, diags)
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
@@ -57,7 +72,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 		return
 	}
 	planWithUnknowns := []TFReplicationSpecsModel{}
-	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(ctx, diags, state, plan, stateRepSpecs, planRepSpecs)
+	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(ctx, diags, state, plan)
 	if diags.HasError() {
 		return
 	}
@@ -65,7 +80,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 		if i < len(*stateRepSpecs) {
 			stateSpec := (*stateRepSpecs)[i]
 			planSpec := (*planRepSpecs)[i]
-			patchSpec, err := update.PatchPayload(&stateSpec, &planSpec)
+			patchSpec, err := update.PatchPayload(&stateSpec, &planSpec) // TODO: Replace with attrChanges.listChanges(name, index)
 			if err != nil {
 				diags.AddError("error find diff useStateForUnknownsReplicationSpecs", err.Error())
 				return
@@ -73,7 +88,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 			if update.IsZeroValues(patchSpec) {
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsUnchangedSpec)
 			} else {
-				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, isTenantUpgrade, stateSpec, planSpec)
+				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, isTenantUpgrade, attrChanges)
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsSpec)
 			}
 		}
@@ -87,7 +102,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	plan.ReplicationSpecs = listType
 }
 
-func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, isTenantUpgrade bool, stateSpec, planSpec admin.ReplicationSpec20240805) []string {
+func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, isTenantUpgrade bool, attributeChanges *schemafunc.AttributeChanges) []string {
 	// These fields must be kept unknown in the replication_specs[index_of_changes]
 	// *_specs are kept unknown as not having them in the config means that changes in "sibling" region_configs can impact the "computed" spec
 	// read_only_specs also reacts to changes in the electable_specs
@@ -95,34 +110,23 @@ func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, is
 	// disk_iops can change based on instance_size changes
 	// auto_scaling can not use state value when a new region_spec/replication_spec is added, the auto_scaling will be empty and we get the AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG error
 	// 	potentially could be included if we check that the region_spec count is the same
-	var keepUnknowns = []string{"disk_size_gb", "disk_iops", "read_only_specs", "analytics_specs", "electable_specs", "auto_scaling"}
+	var keepUnknowns = []string{}
 	if isTenantUpgrade {
 		// TenantUpgrade changes many extra fields that are normally ok to use state values for
 		keepUnknowns = append(keepUnknowns, "zone_id", "id", "container_id", "external_id")
 	}
 	keepUnknowns = append(keepUnknowns, keepUnknownsAlways...)
-	if !regionsMatch(&stateSpec, &planSpec) { // If regions are different, we need to keep the container_id unknown
-		keepUnknowns = append(keepUnknowns, "container_id")
-	}
-	if !providersMatch(&stateSpec, &planSpec) { // If providers are different, we need to keep the ebs_volume_type unknown
-		keepUnknowns = append(keepUnknowns, "ebs_volume_type")
-	}
-	return keepUnknowns
+	return append(keepUnknowns, attributeChanges.KeepUnknown(attributeReplicationSpecChangeMapping)...)
 }
 
-func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, stateRepSpecs, planRepSpecs *[]admin.ReplicationSpec20240805) []string {
+func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
 	keepUnknowns := []string{}
+	// Could be set to "" if we are using an ISS cluster
 	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
 		keepUnknowns = append(keepUnknowns, "id")
 	}
 	if isShardingConfigUpgrade(ctx, state, plan, diags) {
 		keepUnknowns = append(keepUnknowns, "external_id") // Will be empty in the plan, so we need to keep it unknown
-	}
-	if !zoneNamesMatch(stateRepSpecs, planRepSpecs) { // Using zone_id that doesn't match the previous zone_name can lead to errors
-		keepUnknowns = append(keepUnknowns, "zone_id")
-	}
-	if !clusterUseAutoScaling(planRepSpecs) {
-		keepUnknowns = append(keepUnknowns, "auto_scaling")
 	}
 	return keepUnknowns
 }
@@ -134,63 +138,4 @@ func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input type
 		return nil
 	}
 	return elements
-}
-
-func regionsMatch(state, plan *admin.ReplicationSpec20240805) bool {
-	regionsState := getRegions(state)
-	regionsPlan := getRegions(plan)
-	return reflect.DeepEqual(regionsState, regionsPlan)
-}
-
-func getRegions(spec *admin.ReplicationSpec20240805) []string {
-	regions := []string{}
-	for _, region := range spec.GetRegionConfigs() {
-		regions = append(regions, region.GetRegionName())
-	}
-	return regions
-}
-
-func providersMatch(state, plan *admin.ReplicationSpec20240805) bool {
-	providersState := getProviders(state)
-	providersPlan := getProviders(plan)
-	return reflect.DeepEqual(providersState, providersPlan)
-}
-
-func getProviders(spec *admin.ReplicationSpec20240805) []string {
-	providers := []string{}
-	for _, region := range spec.GetRegionConfigs() {
-		providers = append(providers, region.GetProviderName())
-	}
-	return providers
-}
-
-func clusterUseAutoScaling(specs *[]admin.ReplicationSpec20240805) bool {
-	if specs == nil {
-		return false
-	}
-	for _, spec := range *specs {
-		for _, regionConfig := range spec.GetRegionConfigs() {
-			if regionConfig.AutoScaling != nil {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func zoneNamesMatch(state, plan *[]admin.ReplicationSpec20240805) bool {
-	zonesState := getZoneNames(state)
-	zonesPlan := getZoneNames(plan)
-	return reflect.DeepEqual(zonesState, zonesPlan)
-}
-
-func getZoneNames(specs *[]admin.ReplicationSpec20240805) []string {
-	zones := []string{}
-	if specs == nil {
-		return zones
-	}
-	for _, spec := range *specs {
-		zones = append(zones, spec.GetZoneName())
-	}
-	return zones
 }
