@@ -193,32 +193,32 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var state, plan TFModel
+	var state, config TFModel
 	diags := &resp.Diagnostics
-	diags.Append(req.Plan.Get(ctx, &plan)...)
+	diags.Append(req.Config.Get(ctx, &config)...)
 	diags.Append(req.State.Get(ctx, &state)...)
 	if diags.HasError() {
 		return
 	}
-	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
+	waitParams := resolveClusterWaitParams(ctx, &config, diags, operationUpdate)
 	if diags.HasError() {
 		return
 	}
 	var clusterResp *admin.ClusterDescription20240805
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	clusterResp = r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams)
+	clusterResp = r.applyPinnedFCVChanges(ctx, diags, &state, &config, waitParams)
 	if diags.HasError() {
 		return
 	}
 	patchOptions := update.PatchOptions{
-		IgnoreInStatePrefix: []string{"regionConfigs"},
+		IgnoreInStatePrefix: []string{"replicationSpecs"},
 		IgnoreInStateSuffix: []string{"zoneId"}, // replication_spec.*.zone_id doesn't have to be included, the API will do its best to create a minimal change
 	}
-	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+	if usingNewShardingConfig(ctx, config.ReplicationSpecs, diags) {
 		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
 	}
-	patchReq, upgradeReq := findClusterDiff(ctx, &state, &plan, diags, &patchOptions)
+	patchReq, upgradeReq := findClusterDiff(ctx, &state, &config, diags, &patchOptions)
 	if diags.HasError() {
 		return
 	}
@@ -229,13 +229,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		}
 	}
 	if !update.IsZeroValues(patchReq) {
-		clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq, waitParams)
+		clusterResp = r.applyClusterChanges(ctx, diags, &state, &config, patchReq, waitParams)
 		if diags.HasError() {
 			return
 		}
 	}
-	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &config.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &config.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return
 	}
@@ -246,9 +246,9 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	var modelOut *TFModel
 	if clusterResp == nil { // no Atlas updates needed but override is still needed (e.g. tags going from nil to [] or vice versa)
 		modelOut = &state
-		overrideAttributesWithPrevStateValue(&plan, modelOut)
+		overrideAttributesWithPrevStateValue(&config, modelOut)
 	} else {
-		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
+		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &config)
 		if diags.HasError() {
 			return
 		}
