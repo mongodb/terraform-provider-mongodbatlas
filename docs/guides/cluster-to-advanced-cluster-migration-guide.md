@@ -113,7 +113,17 @@ moved {
   to   = mongodbatlas_advanced_cluster.this
 }
 ```
-- Run `terraform plan` and make sure that there are no planned changes, only the moved should be shown. **Important**: Don't apply until planning shows only the moved changes. If it shows other changes, you will need to keep updating the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration.
+- Run `terraform plan` and make sure that there are no planned changes, only the moved should be shown. If it shows other changes, you will need to keep updating the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration. This is an example of no planned changes except the move:
+```text
+ # mongodbatlas_cluster.this has moved to mongodbatlas_advanced_cluster.this
+     resource "mongodbatlas_advanced_cluster" "this" {
+         name                                 = "my-cluster"
+         # (24 unchanged attributes hidden)
+     }
+
+ Plan: 0 to add, 0 to change, 0 to destroy.
+```
+
 - Run `terraform apply` to apply the changes. The `mongodbatlas_cluster` resource will be removed from the Terraform state and the `mongodbatlas_advanced_cluster` resource will be added.
 - At this moment you can delete the `moved` block from your configuration file, although it's recommended to keep it to help track the migrations.
 
