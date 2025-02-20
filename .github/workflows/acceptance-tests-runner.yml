@@ -664,6 +664,8 @@ jobs:
           AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.azure_key_vault_name_updated }}
           AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.azure_key_identifier_updated }}
           MONGODB_ATLAS_ENABLE_PREVIEW: ${{ inputs.mongodb_atlas_enable_preview }}
+          MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID: ${{intputs.mongodb_atlas_asp_project_ear_pe_id}}
+          MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN: ${{intputs.mongodb_atlas_asp_project_aws_role_arn}}
         run: make testacc
 
   event_trigger:

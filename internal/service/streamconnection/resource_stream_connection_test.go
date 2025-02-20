@@ -262,35 +262,6 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	})
 }
 
-func TestAccStreamRSStreamConnection_AWSLambdaForLocal(t *testing.T) {
-	acc.SkipTestForCI(t)
-
-	var (
-		resourceName   = "mongodbatlas_stream_connection.test"
-		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		instanceName   = acc.RandomName()
-		connectionName = os.Getenv("STREAMS_CONNECTION_NAME")
-		roleArn        = os.Getenv("AWS_ROLE_ARN")
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             CheckDestroyStreamConnection,
-		Steps: []resource.TestStep{
-			{
-				Config: awsLambdaStreamConnectionConfig(projectID, instanceName, connectionName, roleArn),
-				Check:  awsLambdaStreamConnectionAttributeChecks(resourceName, instanceName, connectionName, roleArn),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 	securityConfig := `
