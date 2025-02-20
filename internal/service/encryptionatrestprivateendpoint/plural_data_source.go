@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
@@ -44,7 +45,7 @@ func (d *encryptionAtRestPrivateEndpointsDS) Read(ctx context.Context, req datas
 	projectID := earPrivateEndpointConfig.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointConfig.CloudProvider.ValueString()
 
-	connV2 := d.Client.AtlasPreview // TODO: revert
+	connV2 := d.Client.AtlasV2
 
 	params := admin.GetEncryptionAtRestPrivateEndpointsForCloudProviderApiParams{
 		GroupId:       projectID,
