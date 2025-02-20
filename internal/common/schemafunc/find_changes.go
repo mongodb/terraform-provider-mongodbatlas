@@ -35,11 +35,30 @@ func (a *AttributeChanges) KeepUnknown(attributeEffectedMapping map[string][]str
 	return keepUnknown
 }
 
+// ListIndexChanged returns true if the list at the given index has changed, false if it was added or removed
+func (a *AttributeChanges) ListIndexChanged(name string, index int) bool {
+	leafChanges := a.leafChanges(false)
+	indexPath := fmt.Sprintf("%s[%d]", name, index)
+	return leafChanges[indexPath]
+}
+
+// NestedListLenChanges accepts a fullPath, e.g., "replication_specs[0].region_configs" and returns true if the length of the nested list has changed
+func (a *AttributeChanges) NestedListLenChanges(fullPath string) bool {
+	addPrefix := fmt.Sprintf("%s[+", fullPath)
+	removePrefix := fmt.Sprintf("%s[-", fullPath)
+	for _, change := range a.Changes {
+		if strings.HasPrefix(change, addPrefix) || strings.HasPrefix(change, removePrefix) {
+			return true
+		}
+	}
+	return false
+}
+
 func (a *AttributeChanges) ListLenChanges(name string) bool {
 	leafChanges := a.leafChanges(false)
 	addPrefix := fmt.Sprintf("%s[+", name)
 	removePrefix := fmt.Sprintf("%s[-", name)
-	for change, _ := range leafChanges {
+	for change := range leafChanges {
 		if strings.HasPrefix(change, addPrefix) || strings.HasPrefix(change, removePrefix) {
 			return true
 		}

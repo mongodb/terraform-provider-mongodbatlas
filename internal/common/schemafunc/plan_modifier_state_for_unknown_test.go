@@ -338,3 +338,11 @@ func newReplicationSpecs(ctx context.Context, zoneName types.String, regionConfi
 	}
 	return types.ListValueMust(ReplicationSpecsObjType, []attr.Value{replicationSpec})
 }
+
+func combineReplicationSpecs(specs ...types.List) types.List {
+	combined := []attr.Value{}
+	for _, spec := range specs {
+		combined = append(combined, spec.Elements()...)
+	}
+	return types.ListValueMust(ReplicationSpecsObjType, combined)
+}

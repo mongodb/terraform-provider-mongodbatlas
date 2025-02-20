@@ -103,6 +103,18 @@ func TestFindChanges(t *testing.T) {
 			},
 			expected: []string{"replication_specs", "replication_specs[-0]"},
 		},
+		"list add root": {
+			src: &TFSimpleModel{
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc}),
+			},
+			dest: &TFSimpleModel{
+				ReplicationSpecs: combineReplicationSpecs(
+					newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc}),
+					newReplicationSpecs(ctx, types.StringValue("zone2"), []TFRegionConfig{regionConfigSrc}),
+				),
+			},
+			expected: []string{"replication_specs", "replication_specs[+1]"},
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -315,6 +327,137 @@ func TestAttributeChanges_ListLenChanges(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			ac := schemafunc.AttributeChanges{Changes: tc.changes}
 			actual := ac.ListLenChanges(tc.name)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+func TestAttributeChanges_ListIndexChanged(t *testing.T) {
+	tests := map[string]struct {
+		name     string
+		changes  []string
+		index    int
+		expected bool
+	}{
+		"empty changes": {
+			name:     "replication_specs",
+			index:    0,
+			changes:  []string{},
+			expected: false,
+		},
+		"list element modified": {
+			name:     "replication_specs",
+			index:    0,
+			changes:  []string{"replication_specs[0]", "replication_specs[0].zone_name"},
+			expected: true,
+		},
+		"list element added": {
+			name:     "replication_specs",
+			index:    0,
+			changes:  []string{"replication_specs[+0]"},
+			expected: false,
+		},
+		"list element removed": {
+			name:     "replication_specs",
+			index:    1,
+			changes:  []string{"replication_specs[-1]"},
+			expected: false,
+		},
+		"different index": {
+			name:     "replication_specs",
+			index:    1,
+			changes:  []string{"replication_specs[0]", "replication_specs[0].zone_name"},
+			expected: false,
+		},
+		"different list name": {
+			name:     "other_specs",
+			index:    0,
+			changes:  []string{"replication_specs[0]", "replication_specs[0].zone_name"},
+			expected: false,
+		},
+		"nested list": {
+			name:     "region_configs",
+			index:    0,
+			changes:  []string{"replication_specs.region_configs[0]", "replication_specs.region_configs[0].priority"},
+			expected: true,
+		},
+		"nested list false": {
+			name:     "region_configs",
+			index:    1,
+			changes:  []string{"replication_specs.region_configs[0]", "replication_specs.region_configs[0].priority"},
+			expected: false,
+		},
+		"index beyond bounds": {
+			name:     "replication_specs",
+			index:    5,
+			changes:  []string{"replication_specs[0]", "replication_specs[1]"},
+			expected: false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			ac := schemafunc.AttributeChanges{Changes: tc.changes}
+			actual := ac.ListIndexChanged(tc.name, tc.index)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+func TestAttributeChanges_NestedListLenChanges(t *testing.T) {
+	tests := map[string]struct {
+		fullPath string
+		changes  []string
+		expected bool
+	}{
+		"empty changes": {
+			fullPath: "replication_specs.region_configs",
+			changes:  []string{},
+			expected: false,
+		},
+		"no nested list changes": {
+			fullPath: "replication_specs.region_configs",
+			changes:  []string{"name", "description", "replication_specs.zone_name"},
+			expected: false,
+		},
+		"add nested element": {
+			fullPath: "replication_specs.region_configs",
+			changes:  []string{"replication_specs.region_configs[+0]", "replication_specs.region_configs.priority"},
+			expected: true,
+		},
+		"add nested element add different index should be false": {
+			fullPath: "replication_specs[0].region_configs",
+			changes:  []string{"replication_specs[1].region_configs[+0]"},
+			expected: false,
+		},
+		"remove nested element": {
+			fullPath: "replication_specs.region_configs",
+			changes:  []string{"replication_specs.region_configs[-1]", "replication_specs.region_configs.region_name"},
+			expected: true,
+		},
+		"mixed list operations": {
+			fullPath: "replication_specs.region_configs",
+			changes: []string{
+				"replication_specs.region_configs[+0]",
+				"replication_specs.region_configs[-1]",
+				"replication_specs.region_configs.priority",
+			},
+			expected: true,
+		},
+		"different path": {
+			fullPath: "other.configs",
+			changes:  []string{"replication_specs.region_configs[+0]", "replication_specs.region_configs[-1]"},
+			expected: false,
+		},
+		"multiple nested levels": {
+			fullPath: "replication_specs.region_configs.zones",
+			changes:  []string{"replication_specs.region_configs.zones[+0]", "replication_specs.region_configs[0].zones.name"},
+			expected: true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			ac := schemafunc.AttributeChanges{Changes: tc.changes}
+			actual := ac.NestedListLenChanges(tc.fullPath)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
