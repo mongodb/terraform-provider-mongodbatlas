@@ -588,7 +588,7 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
 * `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#specs)
 * `auto_scaling` - (Optional) Configuration for the collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#auto_scaling)
 * `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#analytics_auto_scaling)
-* `backing_provider_name` - (Optional) Cloud service provider on which you provision the host for a multi-tenant cluster. Use this only when a `provider_name` is `TENANT` and `instance_size` of a specs is `M2` or `M5`.
+* `backing_provider_name` - (Optional) Cloud service provider on which you provision the host for a multi-tenant cluster. Use this only when a `provider_name` is `TENANT` and `instance_size` of a specs is `M0`.
 * `electable_specs` - (Optional) Hardware specifications for electable nodes in the region. Electable nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you do not specify this option, no electable nodes are deployed to the region. See [below](#specs)
 * `priority` - (Optional)  Election priority of the region. For regions with only read-only nodes, set this value to 0.
   * If you have multiple `region_configs` objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is 7.
@@ -599,7 +599,7 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
   - `AWS` - Amazon AWS
   - `GCP` - Google Cloud Platform
   - `AZURE` - Microsoft Azure
-  - `TENANT` - M0, M2 or M5 multi-tenant cluster. Use `replication_specs.[#].region_configs[#].backing_provider_name` to set the cloud service provider.
+  - `TENANT` - M0 multi-tenant cluster. Use `replication_specs.[#].region_configs[#].backing_provider_name` to set the cloud service provider.
 * `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#specs)
 * `region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 
