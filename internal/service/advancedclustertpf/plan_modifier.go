@@ -20,7 +20,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, plan, sta
 	if diags.HasError() {
 		return
 	}
-	flexUpgrade, _ := flexChanges(planReq, stateReq, diags)
+	flexUpgrade, _ := flexUpgradedUpdated(planReq, stateReq, diags)
 	if diags.HasError() {
 		return
 	}
