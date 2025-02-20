@@ -1,8 +1,8 @@
 ---
-page_title: "Migration Guide: Advanced Cluster Preview Provider v2"
+page_title: "Migration Guide: Advanced Cluster (Preview for MongoDB Atlas Provider v2)"
 ---
 
-# Migration Guide: Advanced Cluster Preview Provider v2
+# Migration Guide: Advanced Cluster (Preview for MongoDB Atlas Provider v2)
 
 **Objective**: This guide explains the changes introduced in the Preview for MongoDB Atlas Provider v2 `mongodbatlas_advanced_cluster` resource and how to migrate to it.
 
