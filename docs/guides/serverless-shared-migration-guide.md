@@ -29,7 +29,7 @@ For Shared-tier clusters, we are working on enhancing the User Experience such t
 
 Shared-tier clusters will automatically convert in January 2025 or later to Flex clusters in Atlas, retaining all data. We recommend that you migrate to a Flex cluster managed by `mongodbatlas_advanced_cluster` resource once the autoconversion is done.
 
-The following steps explain how to move your exising Shared-tier cluster resource to a flex cluster using `mongodbatlas_advanced_cluster` resource and does not affect the underlying cluster infrastructure:
+The following steps explain how to move your exising Shared-tier cluster resource to a Flex cluster using `mongodbatlas_advanced_cluster` resource and does not affect the underlying cluster infrastructure:
 
 1. Change the configuration of your Shared-tier cluster to a Flex cluster. For more details on the exact changes, see the [Example Tenant Cluster Upgrade to Flex](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#example-tenant-cluster-upgrade-to-flex)
 3. Run `terraform plan` to see the planned changes.
