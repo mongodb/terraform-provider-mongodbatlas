@@ -41,25 +41,12 @@ func HasUnknowns(obj any) bool {
 // nestedStructMapping is a map of field names to their type: object, list. (`set` not implemented yet)
 func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 	validateKeepUnknown(keepUnknown)
-	valSrc := reflect.ValueOf(src)
-	valDest := reflect.ValueOf(dest)
-	if valSrc.Kind() != reflect.Ptr || valDest.Kind() != reflect.Ptr {
-		panic(fmt.Sprintf("params must be pointers %T %T\n", src, dest))
-	}
-	valSrc = valSrc.Elem()
-	valDest = valDest.Elem()
-	if valSrc.Kind() != reflect.Struct || valDest.Kind() != reflect.Struct {
-		panic(fmt.Sprintf("params must be pointers to structs: %T, %T and not nil: (%v, %v)\n", src, dest, src, dest))
-	}
+	valSrc, valDest := validateStructPointers(src, dest)
 	typeSrc := valSrc.Type()
 	typeDest := valDest.Type()
 	for i := range typeDest.NumField() {
 		fieldDest := typeDest.Field(i)
-		name := fieldDest.Name
-		tfName := fieldDest.Tag.Get("tfsdk")
-		if tfName == "" {
-			panic(fmt.Sprintf("field %s has no tfsdk tag", name))
-		}
+		name, tfName := fieldNameTFName(&fieldDest)
 		if slices.Contains(keepUnknown, tfName) {
 			continue
 		}
@@ -89,6 +76,29 @@ func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 			continue
 		}
 	}
+}
+
+func fieldNameTFName(fieldDest *reflect.StructField) (name, tfName string) {
+	name = fieldDest.Name
+	tfName = fieldDest.Tag.Get("tfsdk")
+	if tfName == "" {
+		panic(fmt.Sprintf("field %s has no tfsdk tag", name))
+	}
+	return name, tfName
+}
+
+func validateStructPointers(src, dest any) (reflectSrc, reflectDest reflect.Value) {
+	valSrc := reflect.ValueOf(src)
+	valDest := reflect.ValueOf(dest)
+	if valSrc.Kind() != reflect.Ptr || valDest.Kind() != reflect.Ptr {
+		panic(fmt.Sprintf("params must be pointers %T %T\n", src, dest))
+	}
+	valSrc = valSrc.Elem()
+	valDest = valDest.Elem()
+	if valSrc.Kind() != reflect.Struct || valDest.Kind() != reflect.Struct {
+		panic(fmt.Sprintf("params must be pointers to structs: %T, %T and not nil: (%v, %v)\n", src, dest, src, dest))
+	}
+	return valSrc, valDest
 }
 
 func isUnknown(obj reflect.Value) bool {

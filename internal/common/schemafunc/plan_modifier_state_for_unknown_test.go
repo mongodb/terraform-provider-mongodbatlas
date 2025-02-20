@@ -133,32 +133,32 @@ type TFSimpleModel struct {
 	BackupEnabled    types.Bool   `tfsdk:"backup_enabled"`
 }
 
-func TestCopyUnknowns(t *testing.T) {
-	var (
-		ctx             = context.Background()
-		regionConfigSrc = TFRegionConfig{
-			ProviderName: types.StringValue("aws"),
-			RegionName:   types.StringValue("US_EAST_1"),
-			Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Value(3)}, SpecObjType.AttrTypes),
-		}
-		regionConfigDest = TFRegionConfig{
-			ProviderName: types.StringUnknown(),
-			RegionName:   types.StringValue("US_EAST_1"),
-			Spec:         types.ObjectUnknown(SpecObjType.AttrTypes),
-		}
-		regionConfigNodeCountUnknown = TFRegionConfig{
-			ProviderName: types.StringValue("aws"),
-			RegionName:   types.StringValue("US_EAST_1"),
-			Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Unknown()}, SpecObjType.AttrTypes),
-		}
-		regionConfigSpecUnknown = TFRegionConfig{
-			ProviderName: types.StringValue("aws"),
-			RegionName:   types.StringValue("US_EAST_1"),
-			Spec:         types.ObjectUnknown(SpecObjType.AttrTypes),
-		}
-		advancedConfigTrue = asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(true)}, AdvancedConfigObjType.AttrTypes)
-	)
+var (
+	ctx             = context.Background()
+	regionConfigSrc = TFRegionConfig{
+		ProviderName: types.StringValue("aws"),
+		RegionName:   types.StringValue("US_EAST_1"),
+		Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Value(3)}, SpecObjType.AttrTypes),
+	}
+	regionConfigDest = TFRegionConfig{
+		ProviderName: types.StringUnknown(),
+		RegionName:   types.StringValue("US_EAST_1"),
+		Spec:         types.ObjectUnknown(SpecObjType.AttrTypes),
+	}
+	regionConfigNodeCountUnknown = TFRegionConfig{
+		ProviderName: types.StringValue("aws"),
+		RegionName:   types.StringValue("US_EAST_1"),
+		Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Unknown()}, SpecObjType.AttrTypes),
+	}
+	regionConfigSpecUnknown = TFRegionConfig{
+		ProviderName: types.StringValue("aws"),
+		RegionName:   types.StringValue("US_EAST_1"),
+		Spec:         types.ObjectUnknown(SpecObjType.AttrTypes),
+	}
+	advancedConfigTrue = asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(true)}, AdvancedConfigObjType.AttrTypes)
+)
 
+func TestCopyUnknowns(t *testing.T) {
 	tests := map[string]struct {
 		src          *TFSimpleModel
 		dest         *TFSimpleModel
