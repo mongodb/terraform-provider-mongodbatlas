@@ -850,20 +850,23 @@ func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta a
 
 	if advancedclustertpf.IsFlex(replicationSpecs) {
 		if isValidUpgradeToFlex(d) {
-			return resourceUpgrade(ctx, GetUpgradeToFlexClusterRequest(d, meta), d, meta)
+			return resourceUpgrade(ctx, GetUpgradeToFlexClusterRequest(d), nil, d, meta)
 		}
 		if isValidUpdateOfFlex(d) {
 			return resourceUpdateFlexCluster(ctx, advancedclustertpf.GetFlexClusterUpdateRequest(conversion.ExpandTagsFromSetSchema(d), conversion.Pointer(d.Get("termination_protection_enabled").(bool))), d, meta)
 		}
 		return diag.Errorf("flex cluster update is not supported except for tags and termination_protection_enabled fields")
 	}
+	if isUpgradeFromFlex(d) {
+		return resourceUpgrade(ctx, nil, GetUpgradeToDedicatedClusterRequest(d), d, meta)
+	}
 	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
-		return resourceUpgrade(ctx, upgradeRequest, d, meta)
+		return resourceUpgrade(ctx, upgradeRequest, nil, d, meta)
 	}
 	return resourceUpdate(ctx, d, meta)
 }
 
-func GetUpgradeToFlexClusterRequest(d *schema.ResourceData, meta any) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+func GetUpgradeToFlexClusterRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUpgradeRequest {
 	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
 		ProviderSettings: &admin.ClusterProviderSettings{
 			ProviderName:        flexcluster.FlexClusterType,
@@ -874,22 +877,22 @@ func GetUpgradeToFlexClusterRequest(d *schema.ResourceData, meta any) *admin.Leg
 	}
 }
 
-func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, flexUpgradeRequest *admin.AtlasTenantClusterUpgradeRequest20240805, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	upgradeClusterResponse, upgradeToFlexResp, err := upgradeCluster(ctx, connV2, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
+	upgradeToDedicatedResp, upgradeToFlexResp, err := upgradeCluster(ctx, connV2, upgradeRequest, flexUpgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 	}
 
 	var clusterID string
-	if upgradeClusterResponse == nil {
+	if upgradeToDedicatedResp == nil {
 		clusterID = upgradeToFlexResp.GetId()
 	} else {
-		clusterID = upgradeClusterResponse.GetId()
+		clusterID = upgradeToDedicatedResp.GetId()
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -1369,26 +1372,31 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *admin.FlexClusterDescription20241113, error) {
-	request.Name = name
-	request.GroupId = &projectID
+func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, flexRequest *admin.AtlasTenantClusterUpgradeRequest20240805, projectID, name string, timeout time.Duration) (*admin.ClusterDescription20240805, *admin.FlexClusterDescription20241113, error) {
+	if request == nil && flexRequest != nil { // upgrade flex to dedicated
+		_, _, err := connV2.FlexClustersApi.UpgradeFlexCluster(ctx, projectID, flexRequest).Execute()
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		request.Name = name
+		request.GroupId = &projectID
+		_, _, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
+		if err != nil {
+			return nil, nil, err
+		}
 
-	cluster, _, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
+		if request.ProviderSettings != nil && request.ProviderSettings.ProviderName == flexcluster.FlexClusterType {
+			flexCluster, err := waitStateTransitionFlexUpgrade(ctx, connV2.FlexClustersApi, projectID, name, timeout)
+			return nil, flexCluster, err
+		}
+	}
+	upgradedCluster, err := WaitStateTransitionClusterUpgrade(ctx, name, projectID, connV2.ClustersApi, []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, timeout)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if request.ProviderSettings != nil && request.ProviderSettings.ProviderName == flexcluster.FlexClusterType {
-		flexCluster, err := waitStateTransitionFlexUpgrade(ctx, connV2.FlexClustersApi, projectID, name, timeout)
-		return nil, flexCluster, err
-	}
-
-	_, err = WaitStateTransitionClusterUpgrade(ctx, request, connV2.ClustersApi, []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, timeout)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return cluster, nil, nil
+	return upgradedCluster, nil, nil
 }
 
 func waitStateTransitionFlexUpgrade(ctx context.Context, client admin.FlexClustersApi, projectID, name string, timeout time.Duration) (*admin.FlexClusterDescription20241113, error) {

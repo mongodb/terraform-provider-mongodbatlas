@@ -263,9 +263,15 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
 		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
 	}
-	patchReq, upgradeReq := findClusterDiff(ctx, &state, &plan, diags, &patchOptions)
+	patchReq, upgradeReq, upgradeFlexReq := findClusterDiff(ctx, &state, &plan, diags, &patchOptions)
 	if diags.HasError() {
 		return
+	}
+	if upgradeFlexReq != nil {
+		clusterResp = FlexToDedicatedUpgrade(ctx, diags, r.Client, waitParams, upgradeFlexReq)
+		if diags.HasError() {
+			return
+		}
 	}
 	if upgradeReq != nil {
 		clusterResp = TenantUpgrade(ctx, diags, r.Client, waitParams, upgradeReq)
@@ -500,18 +506,18 @@ func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 	return timeoutDuration
 }
 
-func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, options *update.PatchOptions) (*admin.ClusterDescription20240805, *admin.LegacyAtlasTenantClusterUpgradeRequest) {
+func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, options *update.PatchOptions) (*admin.ClusterDescription20240805, *admin.LegacyAtlasTenantClusterUpgradeRequest, *admin.AtlasTenantClusterUpgradeRequest20240805) {
 	stateUsingNewSharding := usingNewShardingConfig(ctx, state.ReplicationSpecs, diags)
 	planUsingNewSharding := usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags)
 	if stateUsingNewSharding && !planUsingNewSharding {
 		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
-		return nil, nil
+		return nil, nil, nil
 	}
 	isShardingConfigUpgrade := !stateUsingNewSharding && planUsingNewSharding // old sharding config  (num_shards > 1) to new one
 	stateReq := normalizeFromTFModel(ctx, state, diags, false)
 	planReq := normalizeFromTFModel(ctx, plan, diags, isShardingConfigUpgrade)
 	if diags.HasError() {
-		return nil, nil
+		return nil, nil, nil
 	}
 	if findNumShardsUpdates(ctx, state, plan, diags) != nil {
 		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
@@ -521,16 +527,16 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	patchReq, err := update.PatchPayload(stateReq, planReq, *options)
 	if err != nil {
 		diags.AddError(errorPatchPayload, err.Error())
-		return nil, nil
+		return nil, nil, nil
 	}
 	if update.IsZeroValues(patchReq) { // No changes to cluster
-		return nil, nil
+		return nil, nil, nil
 	}
-	upgradeRequest := getTenantUpgradeRequest(stateReq, patchReq)
-	if upgradeRequest != nil {
-		return nil, upgradeRequest
+	upgradeRequest, upgradeFlexRequest := getUpgradeRequestsFromTenantAndFlex(stateReq, patchReq)
+	if upgradeRequest != nil || upgradeFlexRequest != nil {
+		return nil, upgradeRequest, upgradeFlexRequest
 	}
-	return patchReq, nil
+	return patchReq, nil, nil
 }
 
 func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, planReq *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
