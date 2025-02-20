@@ -25,6 +25,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, plan, sta
 		return
 	}
 	if flexUpgrade {
+		// The flex cluster API doesn't return the same fields as the tenant API; therefore, computed fields will be `null` after the upgrade
 		keepUnknown := []string{"connection_strings", "state_name", "advanced_configuration", "encryption_at_rest_provider", "root_cert_type", "bi_connector_config"}
 		keepUnknown = append(keepUnknown, keepUnknownTenantUpgrade...)
 		schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
