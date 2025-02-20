@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_advanced_clusters (Preview for MongoDB Atlas Provider v2)
 
-`mongodbatlas_advanced_clusters` describes all Advanced Clusters by the provided project_id. The data source requires your Project ID.
+`mongodbatlas_advanced_clusters` returns all Advanced Clusters for a project_id.
 
 This doc is for the **Preview for MongoDB Atlas Provider v2** of `mongodbatlas_advanced_clusters`, doc for current version can be found [here](./advanced_cluster). In order to enable the Preview, you must set the enviroment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`, otherwise the current version will be used.
 
