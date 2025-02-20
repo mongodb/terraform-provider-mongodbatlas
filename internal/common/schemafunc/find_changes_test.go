@@ -83,7 +83,7 @@ func TestFindChanges(t *testing.T) {
 			dest: &TFSimpleModel{
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc, regionConfigSrc}),
 			},
-			expected: []string{"replication_specs", "replication_specs[0]", "replication_specs[0].region_configs", "replication_specs[0].region_configs[1]"},
+			expected: []string{"replication_specs", "replication_specs[0]", "replication_specs[0].region_configs", "replication_specs[0].region_configs[+1]"},
 		},
 		"list remove": {
 			src: &TFSimpleModel{
@@ -206,12 +206,12 @@ func TestAttributeChanges_AttributeChanged(t *testing.T) {
 }
 func TestAttributeChanges_KeepUnknown(t *testing.T) {
 	tests := map[string]struct {
-		changes                    []string
-		attributeEffectedMapping   map[string][]string
-		expectedKeepUnknownAttrs  []string
+		changes                  []string
+		attributeEffectedMapping map[string][]string
+		expectedKeepUnknownAttrs []string
 	}{
 		"empty mapping": {
-			changes: []string{"name", "description"},
+			changes:                  []string{"name", "description"},
 			attributeEffectedMapping: map[string][]string{},
 			expectedKeepUnknownAttrs: []string{},
 		},
@@ -260,6 +260,62 @@ func TestAttributeChanges_KeepUnknown(t *testing.T) {
 			ac := schemafunc.AttributeChanges{Changes: tc.changes}
 			actual := ac.KeepUnknown(tc.attributeEffectedMapping)
 			assert.ElementsMatch(t, tc.expectedKeepUnknownAttrs, actual)
+		})
+	}
+}
+func TestAttributeChanges_ListLenChanges(t *testing.T) {
+	tests := map[string]struct {
+		name     string
+		changes  []string
+		expected bool
+	}{
+		"empty changes": {
+			name:     "replication_specs",
+			changes:  []string{},
+			expected: false,
+		},
+		"no list changes": {
+			name:     "replication_specs",
+			changes:  []string{"name", "description"},
+			expected: false,
+		},
+		"add element": {
+			name:     "replication_specs",
+			changes:  []string{"replication_specs[+0]", "replication_specs[0].zone_name"},
+			expected: true,
+		},
+		"remove element": {
+			name:     "replication_specs",
+			changes:  []string{"replication_specs[-1]", "replication_specs[0].zone_name"},
+			expected: true,
+		},
+		"modify without length change": {
+			name:     "replication_specs",
+			changes:  []string{"replication_specs[0].zone_name", "replication_specs[0].priority"},
+			expected: false,
+		},
+		"multiple list operations": {
+			name:     "replication_specs",
+			changes:  []string{"replication_specs[+0]", "replication_specs[-1]", "replication_specs[0].zone_name"},
+			expected: true,
+		},
+		"different list name": {
+			name:     "other_list",
+			changes:  []string{"replication_specs[+0]", "replication_specs[-1]"},
+			expected: false,
+		},
+		"nested list": {
+			name:     "region_configs",
+			changes:  []string{"replication_specs.region_configs[+0]", "replication_specs.region_configs[0].region_name"},
+			expected: true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			ac := schemafunc.AttributeChanges{Changes: tc.changes}
+			actual := ac.ListLenChanges(tc.name)
+			assert.Equal(t, tc.expected, actual)
 		})
 	}
 }

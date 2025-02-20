@@ -15,21 +15,7 @@ type AttributeChanges struct {
 }
 
 func (a *AttributeChanges) LeafChanges() map[string]bool {
-	leafChanges := map[string]bool{}
-	for _, change := range a.Changes {
-		var leaf string
-		parts := strings.Split(change, ".")
-		if len(parts) == 1 {
-			leaf = parts[0]
-		} else {
-			leaf = parts[len(parts)-1]
-		}
-		if strings.HasSuffix(leaf, "]") {
-			leaf = strings.Split(leaf, "[")[0]
-		}
-		leafChanges[leaf] = true
-	}
-	return leafChanges
+	return a.leafChanges(true)
 }
 
 func (a *AttributeChanges) AttributeChanged(name string) bool {
@@ -47,6 +33,36 @@ func (a *AttributeChanges) KeepUnknown(attributeEffectedMapping map[string][]str
 		}
 	}
 	return keepUnknown
+}
+
+func (a *AttributeChanges) ListLenChanges(name string) bool {
+	leafChanges := a.leafChanges(false)
+	addPrefix := fmt.Sprintf("%s[+", name)
+	removePrefix := fmt.Sprintf("%s[-", name)
+	for change, _ := range leafChanges {
+		if strings.HasPrefix(change, addPrefix) || strings.HasPrefix(change, removePrefix) {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *AttributeChanges) leafChanges(removeIndex bool) map[string]bool {
+	leafChanges := map[string]bool{}
+	for _, change := range a.Changes {
+		var leaf string
+		parts := strings.Split(change, ".")
+		if len(parts) == 1 {
+			leaf = parts[0]
+		} else {
+			leaf = parts[len(parts)-1]
+		}
+		if removeIndex && strings.HasSuffix(leaf, "]") {
+			leaf = strings.Split(leaf, "[")[0]
+		}
+		leafChanges[leaf] = true
+	}
+	return leafChanges
 }
 
 func FindAttributeChanges(ctx context.Context, src, dest any) AttributeChanges {
@@ -151,7 +167,7 @@ func findChangesInList(ctx context.Context, src, dest types.List, parentPath []s
 		case srcOk && !destOk: // removed from list
 			changes = append(changes, fmt.Sprintf("%s[-%d]", strings.Join(parentPath, "."), i))
 		default: // added to list
-			changes = append(changes, indexPath)
+			changes = append(changes, fmt.Sprintf("%s[+%d]", strings.Join(parentPath, "."), i))
 		}
 	}
 	return changes
