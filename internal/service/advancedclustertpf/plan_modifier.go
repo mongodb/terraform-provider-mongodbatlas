@@ -13,7 +13,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, plan, sta
 	if !schemafunc.HasUnknowns(plan) {
 		return
 	}
-	patchReq, upgradeRequest := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
+	patchReq, upgradeRequest, _ := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
 	if diags.HasError() {
 		return
 	}

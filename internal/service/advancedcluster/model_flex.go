@@ -41,7 +41,7 @@ func GetUpgradeToDedicatedClusterRequest(d *schema.ResourceData) *admin.AtlasTen
 	}
 	return &admin.AtlasTenantClusterUpgradeRequest20240805{
 		Name:             clusterName,
-		ClusterType:      conversion.Pointer("REPLICASET"),
+		ClusterType:      conversion.Pointer(d.Get("cluster_type").(string)),
 		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB),
 	}
 }
