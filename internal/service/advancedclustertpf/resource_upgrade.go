@@ -47,6 +47,6 @@ func getFlexUpgradeRequest(state, patch *admin.ClusterDescription20240805) *admi
 	}
 }
 
-func getUpgradeRequest(state, patch *admin.ClusterDescription20240805) (*admin.LegacyAtlasTenantClusterUpgradeRequest, *admin.AtlasTenantClusterUpgradeRequest20240805) {
+func getUpgradeRequestsFromTenantAndFlex(state, patch *admin.ClusterDescription20240805) (*admin.LegacyAtlasTenantClusterUpgradeRequest, *admin.AtlasTenantClusterUpgradeRequest20240805) {
 	return getTenantUpgradeRequest(state, patch), getFlexUpgradeRequest(state, patch)
 }

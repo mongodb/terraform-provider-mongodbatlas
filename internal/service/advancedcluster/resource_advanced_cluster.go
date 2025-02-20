@@ -883,16 +883,16 @@ func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenan
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	upgradeClusterResponse, upgradeToFlexResp, err := upgradeCluster(ctx, connV2, upgradeRequest, flexUpgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
+	upgradeToDedicatedResp, upgradeToFlexResp, err := upgradeCluster(ctx, connV2, upgradeRequest, flexUpgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 	}
 
 	var clusterID string
-	if upgradeClusterResponse == nil {
+	if upgradeToDedicatedResp == nil {
 		clusterID = upgradeToFlexResp.GetId()
 	} else {
-		clusterID = upgradeClusterResponse.GetId()
+		clusterID = upgradeToDedicatedResp.GetId()
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

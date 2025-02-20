@@ -532,7 +532,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if update.IsZeroValues(patchReq) { // No changes to cluster
 		return nil, nil, nil
 	}
-	upgradeRequest, upgradeFlexRequest := getUpgradeRequest(stateReq, patchReq)
+	upgradeRequest, upgradeFlexRequest := getUpgradeRequestsFromTenantAndFlex(stateReq, patchReq)
 	if upgradeRequest != nil || upgradeFlexRequest != nil {
 		return nil, upgradeRequest, upgradeFlexRequest
 	}
