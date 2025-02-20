@@ -1476,15 +1476,6 @@ func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUp
 
 	currentRegion := (*currentSpecs)[0].GetRegionConfigs()[0]
 	updatedRegion := (*updatedSpecs)[0].GetRegionConfigs()[0]
-	if currentRegion.GetProviderName() == flexcluster.FlexClusterType { // upgrade from flex
-		return &admin.LegacyAtlasTenantClusterUpgradeRequest{
-			ProviderSettings: &admin.ClusterProviderSettings{
-				ProviderName:     updatedRegion.GetProviderName(),
-				InstanceSizeName: updatedRegion.ElectableSpecs.InstanceSize,
-				RegionName:       updatedRegion.RegionName,
-			},
-		}
-	}
 
 	currentSize := conversion.SafeString(currentRegion.ElectableSpecs.InstanceSize)
 

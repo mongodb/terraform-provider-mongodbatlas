@@ -10,6 +10,7 @@ import (
 )
 
 var keepUnknownTenantUpgrade = []string{"disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date"}
+var keepUnknownFlexUpgrade = []string{"disk_size_gb", "encryption_at_rest_provider", "replication_specs", "backup_enabled", "cluster_id", "create_date", "root_cert_type", "bi_connector_config"}
 
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, plan, state *TFModel) {
 	if !schemafunc.HasUnknowns(plan) {
@@ -31,19 +32,23 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, plan, sta
 		return
 	}
 
-	patchReq, upgradeRequest, _ := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
+	patchReq, upgradeRequest, upgradeFlexRequest := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
 	if diags.HasError() {
 		return
 	}
-	keepUnknown := determineKeepUnknowns(upgradeRequest, patchReq)
+	keepUnknown := determineKeepUnknowns(upgradeRequest, upgradeFlexRequest, patchReq)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
 }
 
-func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, patchReq *admin.ClusterDescription20240805) []string {
+func determineKeepUnknowns(upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, upgradeFlexRequest *admin.AtlasTenantClusterUpgradeRequest20240805, patchReq *admin.ClusterDescription20240805) []string {
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	if upgradeRequest != nil {
 		// TenantUpgrade changes a few root level fields that are normally ok to use state values for
 		keepUnknown = append(keepUnknown, keepUnknownTenantUpgrade...)
+	}
+	if upgradeFlexRequest != nil {
+		// FlexToDedicatedUpgrade changes a few root level fields that are normally ok to use state values for
+		keepUnknown = append(keepUnknown, keepUnknownFlexUpgrade...)
 	}
 	if !update.IsZeroValues(patchReq) {
 		if patchReq.MongoDBMajorVersion != nil {
