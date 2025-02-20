@@ -204,3 +204,62 @@ func TestAttributeChanges_AttributeChanged(t *testing.T) {
 		})
 	}
 }
+func TestAttributeChanges_KeepUnknown(t *testing.T) {
+	tests := map[string]struct {
+		changes                    []string
+		attributeEffectedMapping   map[string][]string
+		expectedKeepUnknownAttrs  []string
+	}{
+		"empty mapping": {
+			changes: []string{"name", "description"},
+			attributeEffectedMapping: map[string][]string{},
+			expectedKeepUnknownAttrs: []string{},
+		},
+		"single mapping with match": {
+			changes: []string{"name", "config.type"},
+			attributeEffectedMapping: map[string][]string{
+				"name": {"id", "status"},
+			},
+			expectedKeepUnknownAttrs: []string{"name", "id", "status"},
+		},
+		"multiple mappings with matches": {
+			changes: []string{"name", "type", "config.value"},
+			attributeEffectedMapping: map[string][]string{
+				"name": {"id"},
+				"type": {"category", "version"},
+			},
+			expectedKeepUnknownAttrs: []string{"name", "id", "type", "category", "version"},
+		},
+		"no matching changes": {
+			changes: []string{"description", "status"},
+			attributeEffectedMapping: map[string][]string{
+				"name": {"id"},
+				"type": {"category"},
+			},
+			expectedKeepUnknownAttrs: []string{},
+		},
+		"nested attribute changes": {
+			changes: []string{"config.name", "settings.enabled"},
+			attributeEffectedMapping: map[string][]string{
+				"name":    {"id", "status"},
+				"enabled": {"auth_status"},
+			},
+			expectedKeepUnknownAttrs: []string{"name", "id", "status", "enabled", "auth_status"},
+		},
+		"list attribute changes": {
+			changes: []string{"replication_specs[0].zone_name"},
+			attributeEffectedMapping: map[string][]string{
+				"zone_name": {"priority", "region"},
+			},
+			expectedKeepUnknownAttrs: []string{"zone_name", "priority", "region"},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			ac := schemafunc.AttributeChanges{Changes: tc.changes}
+			actual := ac.KeepUnknown(tc.attributeEffectedMapping)
+			assert.ElementsMatch(t, tc.expectedKeepUnknownAttrs, actual)
+		})
+	}
+}
