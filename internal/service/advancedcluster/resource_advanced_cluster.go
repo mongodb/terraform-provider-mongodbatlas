@@ -1476,7 +1476,6 @@ func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUp
 
 	currentRegion := (*currentSpecs)[0].GetRegionConfigs()[0]
 	updatedRegion := (*updatedSpecs)[0].GetRegionConfigs()[0]
-
 	currentSize := conversion.SafeString(currentRegion.ElectableSpecs.InstanceSize)
 
 	if currentRegion.ElectableSpecs.InstanceSize == updatedRegion.ElectableSpecs.InstanceSize || !IsSharedTier(currentSize) {
