@@ -21,7 +21,7 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acc.RandomProjectName()
 		dayOfWeek        = 7
-		hourOfDay        = 3
+		hourOfDay        = 0
 		dayOfWeekUpdated = 4
 		hourOfDayUpdated = 5
 	)
@@ -31,6 +31,7 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
+				// testing hour_of_day set to 0 during creation phase does not return errors
 				Config: configBasic(orgID, projectName, dayOfWeek, conversion.Pointer(hourOfDay)),
 				Check:  checkBasic(dayOfWeek, hourOfDay),
 			},
@@ -51,25 +52,6 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccConfigRSMaintenanceWindow_explicitZeroForHourOfDay(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		dayOfWeek   = 7
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectName, dayOfWeek, conversion.Pointer(0)),
-				Check:  checkBasic(dayOfWeek, 0),
 			},
 		},
 	})
