@@ -36,8 +36,6 @@ data "mongodbatlas_advanced_clusters" "example" {
 }
 ```
 
-**NOTE:** There can only be one M0 cluster per project.
-
 ## Example using latest sharding configurations with independent shard scaling in the cluster
 
 ```terraform
