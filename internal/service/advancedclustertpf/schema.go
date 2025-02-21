@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
@@ -233,7 +234,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 									"auto_scaling":           AutoScalingSchema(),
 									"backing_provider_name": schema.StringAttribute{
 										Optional:            true,
-										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when **providerName** is `TENANT` and **electableSpecs.instanceSize** is `M0`, `M2` or `M5`.",
+										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when **providerName** is `TENANT` and **electableSpecs.instanceSize** is `M0`.",
 									},
 									"electable_specs": SpecsSchema("Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region."),
 									"priority": schema.Int64Attribute{
@@ -418,8 +419,11 @@ func SpecsSchema(markdownDescription string) schema.SingleNestedAttribute {
 				MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
 			},
 			"instance_size": schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					customplanmodifier.InstanceSizeStringAttributePlanModifier(),
+				},
 				MarkdownDescription: "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.",
 			},
 			"node_count": schema.Int64Attribute{

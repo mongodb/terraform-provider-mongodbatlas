@@ -36,11 +36,31 @@ func minimizeAlways() bool {
 	return getMinimizeLevel() == minimizeLevelAlways
 }
 
+var keepUnknownTenantUpgrade = []string{"disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date"}
+var keepUnknownFlexUpgrade = []string{"disk_size_gb", "encryption_at_rest_provider", "replication_specs", "backup_enabled", "cluster_id", "create_date", "root_cert_type", "bi_connector_config"}
+
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	if !schemafunc.HasUnknowns(plan) {
 		return
 	}
-	_, upgradeRequest := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
+	stateReq := normalizeFromTFModel(ctx, state, diags, false)
+	planReq := normalizeFromTFModel(ctx, plan, diags, false)
+	if diags.HasError() {
+		return
+	}
+	flexUpgrade, _ := flexUpgradedUpdated(planReq, stateReq, diags)
+	if diags.HasError() {
+		return
+	}
+	if flexUpgrade {
+		// The flex cluster API doesn't return the same fields as the tenant API; therefore, computed fields will be `null` after the upgrade
+		keepUnknown := []string{"connection_strings", "state_name", "advanced_configuration", "encryption_at_rest_provider", "root_cert_type", "bi_connector_config"}
+		keepUnknown = append(keepUnknown, keepUnknownTenantUpgrade...)
+		schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
+		return
+	}
+
+	patchReq, upgradeRequest, upgradeFlexRequest := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
 	if diags.HasError() {
 		return
 	}
