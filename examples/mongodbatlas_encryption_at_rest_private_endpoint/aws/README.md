@@ -3,7 +3,7 @@ This example shows how to configure encryption at rest using AWS with customer m
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.27.0 minimum
+* Terraform MongoDB Atlas Provider v1.28.0 minimum
 * A MongoDB Atlas account 
 * Terraform AWS provider
 * An AWS account
