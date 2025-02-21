@@ -136,5 +136,5 @@ The process to migrate from current `mongodbatlas_advanced_cluster` to the one i
 - Before starting, run `terraform plan` to make sure that there are no planned changes.
 - Set environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider v2.
 - Run `terraform plan` and you'll see errors as definition file hasn't been updated yet.
-- Apply definition changes explained in previous section until there are no errors and no planned changes. **Important**: Don't apply until plan is empty. If it shows other changes, you will need to keep updating the `mongodbatlas_advanced_cluster` configuration until it matches the original configuration.
+- Apply definition changes explained on this page until there are no errors and no planned changes. **Important**: Don't apply until the plan is empty. If it shows other changes, you must update the `mongodbatlas_advanced_cluster` configuration until it matches the original configuration.
 - Run `terraform apply` to apply the changes. Although there are no plan changes shown to the user, the `mongodbatlas_advanced_cluster` state will be updated to support the Preview for MongoDB Atlas Provider v2.
