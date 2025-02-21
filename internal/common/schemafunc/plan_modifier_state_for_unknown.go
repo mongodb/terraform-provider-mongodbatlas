@@ -135,6 +135,7 @@ func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnk
 	if src.IsNull() && dest.IsUnknown() {
 		return src
 	}
+	// if state is null we have nothing to copy, if plan is null we shouldn't copy anything
 	if src.IsNull() || dest.IsNull() {
 		return dest
 	}

@@ -25,7 +25,7 @@ func (a *AttributeChanges) AttributeChanged(name string) bool {
 }
 
 func (a *AttributeChanges) KeepUnknown(attributeEffectedMapping map[string][]string) []string {
-	keepUnknown := []string{}
+	var keepUnknown []string
 	for attrChanged, affectedAttributes := range attributeEffectedMapping {
 		if a.AttributeChanged(attrChanged) {
 			keepUnknown = append(keepUnknown, attrChanged)
@@ -71,11 +71,7 @@ func (a *AttributeChanges) leafChanges(removeIndex bool) map[string]bool {
 	for _, change := range a.Changes {
 		var leaf string
 		parts := strings.Split(change, ".")
-		if len(parts) == 1 {
-			leaf = parts[0]
-		} else {
-			leaf = parts[len(parts)-1]
-		}
+		leaf = parts[len(parts)-1]
 		if removeIndex && strings.HasSuffix(leaf, "]") {
 			leaf = strings.Split(leaf, "[")[0]
 		}
@@ -94,7 +90,7 @@ func FindAttributeChanges(ctx context.Context, src, dest any) AttributeChanges {
 func FindChanges(ctx context.Context, src, dest any) []string {
 	valSrc, valDest := validateStructPointers(src, dest)
 	typeDest := valDest.Type()
-	changes := []string{} // Always return an empty list, as nested attributes might be added and then removed
+	changes := []string{} // Always return an empty list, as nested attributes might be added and then removed, which make the test cases fail on nil vs []
 	for i := range typeDest.NumField() {
 		fieldDest := typeDest.Field(i)
 		name, tfName := fieldNameTFName(&fieldDest)
@@ -131,7 +127,7 @@ func FindChanges(ctx context.Context, src, dest any) []string {
 }
 
 func findChangesInObject(ctx context.Context, src, dest types.Object, parentPath []string) []string {
-	changes := []string{}
+	var changes []string
 	attributesSrc := src.Attributes()
 	attributesDest := dest.Attributes()
 	for name, attr := range attributesDest {
