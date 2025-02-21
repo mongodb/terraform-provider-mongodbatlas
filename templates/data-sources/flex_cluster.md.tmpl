@@ -2,7 +2,7 @@
 
 `{{.Name}}` describes a flex cluster.
 
-**NOTE:** Flex Cluster is in Public Preview. In order to use the resource and data sources you need to set the environment variable MONGODB_ATLAS_ENABLE_PREVIEW to true.
+**RECOMMENDATION:** We recommend using the `mongodbatlas_advanced_cluster` data source instead of `mongodbatlas_flex_cluster` data source to retrieve Flex clusters. The `mongodbatlas_advanced_cluster` data source not only supports Flex clusters, but also supports free and dedicated clusters, providing easier migration between different cluster types. For more information, see the [Advanced Cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/advanced_cluster) data source.
 
 ## Example Usages
 {{ tffile (printf "examples/%s/main.tf" .Name )}}

@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_advanced_cluster: This resource can now create, read, update, and delete Flex clusters
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_cluster: This data source can now read Flex clusters
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_clusters: This data source can now read Flex clusters
+```

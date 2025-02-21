@@ -151,8 +151,9 @@ func Resource() *schema.Resource {
 				ConflictsWith: []string{"backup_enabled"},
 			},
 			"provider_instance_size_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validate.InstanceSizeNameValidator(),
 			},
 			"provider_name": {
 				Type:             schema.TypeString,

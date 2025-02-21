@@ -18,6 +18,7 @@ More information on considerations for using advanced clusters please see [Consi
 
 -> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
 
+-> **NOTE:** This resource supports Flex clusters. Additionally, you can upgrade [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex) and [Flex clusters to Dedicated](#Example-Flex-Cluster-Upgrade). When creating a Flex cluster, make sure to set the priority value to 7.
 
 ## Example Usage
 
@@ -69,12 +70,76 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-**NOTE**: Upgrading the shared tier is supported. Any change from a shared tier cluster (a tenant) to a different instance size will be considered a tenant upgrade. When upgrading from the shared tier, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below. You can upgrade a shared tier cluster only to a single provider on an M10-tier cluster or greater. 
+**NOTE**: Upgrading the tenant cluster to a Flex cluster or a dedicated cluster is supported. When upgrading to a Flex cluster, change the `provider_name` from "TENANT" to "FLEX". See [Example Tenant Cluster Upgrade to Flex](#example-tenant-cluster-upgrade-to-flex) below. When upgrading to a dedicated cluster, change the `provider_name` to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below. You can upgrade a tenant cluster only to a single provider on an M10-tier cluster or greater.
 
-When upgrading from the shared tier, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
+When upgrading from the tenant, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
 
 
 ### Example Tenant Cluster Upgrade
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+
+  replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+      }
+      provider_name         = "AWS"
+      region_name           = "US_EAST_1"
+      priority              = 7
+    }
+  }
+}
+```
+
+### Example Tenant Cluster Upgrade to Flex
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "example-flex" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+
+  replication_specs {
+    region_configs {
+      provider_name = "FLEX"
+      backing_provider_name = "AWS"
+      region_name = "US_EAST_1"
+      priority = 7
+    }
+  }
+}
+```
+
+### Example Flex Cluster
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "example-flex" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+
+  replication_specs {
+    region_configs {
+      provider_name = "FLEX"
+      backing_provider_name = "AWS"
+      region_name = "US_EAST_1"
+      priority = 7
+    }
+  }
+}
+```
+
+**NOTE**: Upgrading the Flex cluster is supported. When upgrading from a Flex cluster, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Flex Cluster Upgrade](#Example-Flex-Cluster-Upgrade) below. You can upgrade a Flex cluster only to a single provider on an M10-tier cluster or greater. 
+
+When upgrading from a flex cluster, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
+
+
+### Example Flex Cluster Upgrade
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -363,7 +428,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
   Backup uses:
   [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/#std-label-backup-cloud-provider) for dedicated clusters.
-  [Free Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters
+  [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters.
   If "`backup_enabled`" : `false`, the cluster doesn't use Atlas backups.
 
 This parameter defaults to false.
@@ -670,7 +735,7 @@ In addition to all arguments above, the following attributes are exported:
     - `connection_strings.private_endpoint` - Private endpoint connection strings. Each object describes the connection strings you can use to connect to this cluster through a private endpoint. Atlas returns this parameter only if you deployed a private endpoint to all regions to which you deployed this cluster's nodes.
     - `connection_strings.private_endpoint.#.connection_string` - Private-endpoint-aware `mongodb://`connection string for this private endpoint.
     - `connection_strings.private_endpoint.#.srv_connection_string` - Private-endpoint-aware `mongodb+srv://` connection string for this private endpoint. The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS . Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don't need to: Append the seed list or Change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn't, use `connection_strings.private_endpoint[n].connection_string`
-    - `connection_strings.private_endpoint.#.srv_shard_optimized_connection_string` - Private endpoint-aware connection string optimized for sharded clusters that uses the `mongodb+srv://` protocol to connect to MongoDB Cloud through a private endpoint. If the connection string uses this Uniform Resource Identifier (URI) format, you don't need to change the Uniform Resource Identifier (URI) if the nodes change. Use this Uniform Resource Identifier (URI) format if your application and Atlas cluster support it. If it doesn't, use and consult the documentation for connectionStrings.privateEndpoint[n].srvConnectionString.
+    - `connection_strings.private_endpoint.#.srv_shard_optimized_connection_string` - Private endpoint-aware connection string optimized for sharded clusters that uses the `mongodb+srv://` protocol to connect to MongoDB Cloud through a private endpoint. If the connection string uses this Uniform Resource Identifier (URI) format, you don't need to change the Uniform Resource Identifier (URI) if the nodes change. Use this Uniform Resource Identifier (URI) format if your application and Atlas cluster supports it. If it doesn't, use and consult the documentation for connectionStrings.privateEndpoint[n].srvConnectionString.
     - `connection_strings.private_endpoint.#.type` - Type of MongoDB process that you connect to with the connection strings. Atlas returns `MONGOD` for replica sets, or `MONGOS` for sharded clusters.
     - `connection_strings.private_endpoint.#.endpoints` - Private endpoint through which you connect to Atlas when you use `connection_strings.private_endpoint[n].connection_string` or `connection_strings.private_endpoint[n].srv_connection_string`
     - `connection_strings.private_endpoint.#.endpoints.#.endpoint_id` - Unique identifier of the private endpoint.

@@ -1,13 +1,41 @@
 ## (Unreleased)
 
+## 1.27.0 (February 20, 2025)
+
+NOTES:
+
+* data-source/mongodbatlas_serverless_instance: Deprecates data source ([#3012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3012))
+* data-source/mongodbatlas_serverless_instances: Deprecates data source ([#3012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3012))
+* data-source/mongodbatlas_shared_tier_restore_job: Deprecates data source ([#3012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3012))
+* data-source/mongodbatlas_shared_tier_restore_jobs: Deprecates data source ([#3012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3012))
+* data-source/mongodbatlas_shared_tier_snapshot: Deprecates data source ([#3012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3012))
+* data-source/mongodbatlas_shared_tier_snapshot: Deprecates data source ([#3012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3012))
+* resource/mongodbatlas_advanced_cluster: Deprecates `M2` and `M5` instance size for the attribute `instance_size` inside of `analytics_specs`, `electable_specs` and `read_only_specs` ([#3012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3012))
+* resource/mongodbatlas_cluster: Deprecates `M2` and `M5` instance size values for the attribute `provider_instance_size_name` ([#3012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3012))
+* resource/mongodbatlas_serverless_instance: Deprecates resource ([#3012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3012))
+
+FEATURES:
+
+* **New Data Source:** `mongodbatlas_flex_restore_job` ([#3041](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3041))
+* **New Data Source:** `mongodbatlas_flex_restore_jobs` ([#3041](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3041))
+* **New Data Source:** `mongodbatlas_flex_snapshot` ([#3036](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3036))
+* **New Data Source:** `mongodbatlas_flex_snapshots` ([#3036](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3036))
+
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_advanced_cluster: This data source can now read Flex clusters ([#3001](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3001))
+* data-source/mongodbatlas_advanced_clusters: This data source can now read Flex clusters ([#3001](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3001))
+* data-source/mongodbatlas_flex_cluster: Reaches GA (General Availability) ([#3003](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3003))
+* data-source/mongodbatlas_flex_cluster: Reaches GA (General Availability) ([#3003](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3003))
+* resource/mongodbatlas_advanced_cluster: This resource can now create, read, update, and delete Flex clusters ([#3001](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3001))
+* resource/mongodbatlas_flex_cluster: Reaches GA (General Availability) ([#3003](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3003))
 * resource/mongodbatlas_global_cluster_config: Supports update operation ([#3060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3060))
 
 BUG FIXES:
 
 * resource/mongodbatlas_alert_configuration: Removes UseStateForUnknown plan modifier for interval_min ([#3051](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3051))
 * resource/mongodbatlas_database_user: Avoids error in read if resource no longer exists ([#3069](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3069))
+* resource/mongodbatlas_maintenance_window: Avoids error in creation when `hour_of_day` is set to zero or not defined ([#3086](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3086))
 
 ## 1.26.1 (February 07, 2025)
 
