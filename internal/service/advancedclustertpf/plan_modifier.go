@@ -20,62 +20,13 @@ const (
 	envVarNameMinimize   = "MONGODB_ATLAS_PLAN_MINIMIZE"
 )
 
-func getMinimizeLevel() string {
-	envValue := strings.ToLower(os.Getenv(envVarNameMinimize))
-	if envValue == "" {
-		return minimizeLevelAlways // Experimenting with always to try to find bugs
-	}
-	return envValue
-}
-
-func minimizeNever() bool {
-	return getMinimizeLevel() == minimizeLevelNever
-}
-
-func minimizeAlways() bool {
-	return getMinimizeLevel() == minimizeLevelAlways
-}
-
-var keepUnknownTenantUpgrade = []string{"disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date"}
-var keepUnknownFlexUpgrade = []string{"disk_size_gb", "encryption_at_rest_provider", "replication_specs", "backup_enabled", "cluster_id", "create_date", "root_cert_type", "bi_connector_config"}
-
-func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	if !schemafunc.HasUnknowns(plan) {
-		return
-	}
-	stateReq := normalizeFromTFModel(ctx, state, diags, false)
-	planReq := normalizeFromTFModel(ctx, plan, diags, false)
-	if diags.HasError() {
-		return
-	}
-	flexUpgrade, _ := flexUpgradedUpdated(planReq, stateReq, diags)
-	if diags.HasError() {
-		return
-	}
-	if flexUpgrade {
-		// The flex cluster API doesn't return the same fields as the tenant API; therefore, computed fields will be `null` after the upgrade
-		keepUnknown := []string{"connection_strings", "state_name", "advanced_configuration", "encryption_at_rest_provider", "root_cert_type", "bi_connector_config"}
-		keepUnknown = append(keepUnknown, keepUnknownTenantUpgrade...)
-		schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
-		return
-	}
-
-	patchReq, upgradeRequest, upgradeFlexRequest := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
-	if diags.HasError() {
-		return
-	}
-	isTenantUpgrade := upgradeRequest != nil
-	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
-	keepUnknown := determineKeepUnknownsRoot(attributeChanges, isTenantUpgrade)
-	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
-	if slices.Contains(keepUnknown, "replication_specs") && !minimizeNever() {
-		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges, isTenantUpgrade)
-	}
-}
-
 var (
+	// The flex cluster API doesn't return the same fields as the tenant API; therefore, computed fields will be `null` after the upgrade
+	keepUnknownTenantToFlex      = []string{"connection_strings", "state_name", "advanced_configuration", "encryption_at_rest_provider", "root_cert_type", "bi_connector_config"}
+	tenantUpgradeRootKeepUnknown = []string{"disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date"}
+	// TenantUpgradeToFlex changes many extra fields that are normally ok to use state values for
+	keepUnknownFlexUpgrade = []string{"disk_size_gb", "encryption_at_rest_provider", "replication_specs", "backup_enabled", "cluster_id", "create_date", "root_cert_type", "bi_connector_config"}
 	// TenantUpgrade changes many extra fields that are normally ok to use state values for
-	tenantUpgradeRootKeepUnknown            = []string{"disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date"}
 	tenantUpgradeReplicationSpecKeepUnknown = []string{"disk_size_gb", "zone_id", "id", "container_id", "external_id", "auto_scaling", "analytics_specs", "read_only_specs"}
 	attributeRootChangeMapping              = map[string][]string{
 		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
@@ -94,11 +45,71 @@ var (
 	}
 )
 
-func determineKeepUnknownsRoot(attributeChanges schemafunc.AttributeChanges, isTenantUpgrade bool) []string {
+func getMinimizeLevel() string {
+	envValue := strings.ToLower(os.Getenv(envVarNameMinimize))
+	if envValue == "" {
+		return minimizeLevelAlways // Experimenting with always to try to find bugs
+	}
+	return envValue
+}
+
+func minimizeNever() bool {
+	return getMinimizeLevel() == minimizeLevelNever
+}
+
+func minimizeAlways() bool {
+	return getMinimizeLevel() == minimizeLevelAlways
+}
+
+func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+	if !schemafunc.HasUnknowns(plan) {
+		return
+	}
+	stateReq := normalizeFromTFModel(ctx, state, diags, false)
+	planReq := normalizeFromTFModel(ctx, plan, diags, false)
+	if diags.HasError() {
+		return
+	}
+	flexUpgrade, _ := flexUpgradedUpdated(planReq, stateReq, diags)
+	if diags.HasError() {
+		return
+	}
+	if flexUpgrade {
+		keepUnknownTenantToFlex = append(keepUnknownTenantToFlex, tenantUpgradeRootKeepUnknown...)
+		schemafunc.CopyUnknowns(ctx, state, plan, keepUnknownTenantToFlex)
+		return
+	}
+
+	_, upgradeRequest, upgradeFlexRequest := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
+	if diags.HasError() {
+		return
+	}
+	if upgradeFlexRequest != nil {
+		// The flex cluster API doesn't return the same fields as the tenant API; therefore, computed fields will be `null` after the upgrade
+		keepUnknown := []string{"connection_strings", "state_name", "advanced_configuration", "encryption_at_rest_provider", "root_cert_type", "bi_connector_config"}
+		keepUnknown = append(keepUnknown, tenantUpgradeRootKeepUnknown...)
+		schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
+		return
+	}
+	isFlexUpgrade := upgradeFlexRequest != nil
+	isTenantUpgrade := upgradeRequest != nil
+	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
+	keepUnknown := determineKeepUnknownsRoot(attributeChanges, isTenantUpgrade, isFlexUpgrade)
+	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
+	if slices.Contains(keepUnknown, "replication_specs") && !minimizeNever() {
+		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges, isTenantUpgrade)
+	}
+}
+
+func determineKeepUnknownsRoot(attributeChanges schemafunc.AttributeChanges, isTenantUpgrade, isFlexUpgrade bool) []string {
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	if isTenantUpgrade {
 		// TenantUpgrade changes a few root level fields that are normally ok to use state values for
 		keepUnknown = append(keepUnknown, tenantUpgradeRootKeepUnknown...)
+	}
+	if isFlexUpgrade {
+		// FlexToDedicatedUpgrade changes a few root level fields that are normally ok to use state values for
+		keepUnknown = append(keepUnknown, keepUnknownFlexUpgrade...)
 	}
 	return append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 }
