@@ -18,7 +18,7 @@ This environment variable only affects the `mongodbatlas_advanced_cluster` resou
 
 ## Main Changes
 
-1. Elements `replication_specs` and `region_configs` are now list attributes instead of blocks so they they are an array of objects. If there is only one object, it still needs to be in an array. For example,
+1. Elements `replication_specs` and `region_configs` are now list attributes instead of blocks so they are an array of objects. If there is only one object, it still needs to be in an array. For example,
 ```terraform
 replication_specs {
   region_configs {
