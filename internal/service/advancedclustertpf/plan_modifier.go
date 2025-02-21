@@ -23,7 +23,7 @@ const (
 func getMinimizeLevel() string {
 	envValue := strings.ToLower(os.Getenv(envVarNameMinimize))
 	if envValue == "" {
-		return minimizeLevelDefault
+		return minimizeLevelAlways // Experimenting with always to try to find bugs
 	}
 	return envValue
 }
