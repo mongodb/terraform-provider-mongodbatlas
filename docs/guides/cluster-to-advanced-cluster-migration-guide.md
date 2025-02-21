@@ -94,8 +94,8 @@ Before doing any migration create a backup of your [Terraform state file](https:
 The [moved block](https://developer.hashicorp.com/terraform/language/moved) is a Terraform feature that allows to move between resource types. It's conceptually similar to do `removed` and `import` but it's more convenient as it's done in one step, and can be used in `modules`. This is our recommended method to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
 
  The main requirements are:
- - Terraform version 1.8 or later is required, more info in the [State Move doc](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move).
- - Preview for MongoDB Atlas Provider v2 of `mongodbatlas_advanced_cluster` is required, it is enabled by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. More information can be found in the [resource doc](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) and the [Migration Guide: Advanced Cluster Preview Provider v2](advanced-cluster-preview-provider-v2).
+ - Terraform version 1.8 or later is required, more information in the [State Move page](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move).
+ - Preview for MongoDB Atlas Provider v2 of `mongodbatlas_advanced_cluster` is required, it is enabled by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. More information can be found in the [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) and the [Migration Guide: Advanced Cluster Preview Provider v2](advanced-cluster-preview-provider-v2).
 
 We recommend that you follow another migration process only if you can't meet these requirements.
 

@@ -6,9 +6,9 @@ page_title: "Migration Guide: Advanced Cluster (Preview for MongoDB Atlas Provid
 
 **Objective**: This guide explains the changes introduced for the `mongodbatlas_advanced_cluster` resource in the Preview for MongoDB Atlas Provider v2 of the and how to migrate to it.
 
- `mongodbatlas_advanced_cluster` in the Preview for MongoDB Atlas Provider v2 is implemented using the recommended [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework). This improves the overall user experience and provides a more consistent and predictable behavior. It supports the latest Terraform features and best practices, including support for `moved` block between different resource types, for more info see the [Migration Guide: Cluster to Advanced Cluster](cluster-to-advanced-cluster-migration-guide#moved-block).
+ `mongodbatlas_advanced_cluster` in the Preview for MongoDB Atlas Provider v2 is implemented using the recommended [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework). This improves the overall user experience and provides a more consistent and predictable behavior. It supports the latest Terraform features and best practices, including support for `moved` block between different resource types, for more information see the [Migration Guide: Cluster to Advanced Cluster](cluster-to-advanced-cluster-migration-guide#moved-block).
 
-The [resource doc](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) contains all the details about the `mongodbatlas_advanced_cluster` resource in the Preview for MongoDB Atlas Provider v2.
+The [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) contains all the details about the `mongodbatlas_advanced_cluster` resource in the Preview for MongoDB Atlas Provider v2.
 
 ## Enable the Preview for MongoDB Atlas Provider v2 for `mongodbatlas_advanced_cluster`
 
