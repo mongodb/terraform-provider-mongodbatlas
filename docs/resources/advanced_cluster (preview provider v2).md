@@ -32,21 +32,25 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = "PROJECT ID"
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
-  replication_specs = [{
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs = {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-    }]
-  }]
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 3
+          }
+          analytics_specs = {
+            instance_size = "M10"
+            node_count    = 1
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -58,17 +62,21 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
 
-  replication_specs = [{
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M0"
-      }
-      provider_name         = "TENANT"
-      backing_provider_name = "AWS"
-      region_name           = "US_EAST_1"
-      priority              = 7
-    }]
-  }]
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M0"
+          }
+          provider_name         = "TENANT"
+          backing_provider_name = "AWS"
+          region_name           = "US_EAST_1"
+          priority              = 7
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -85,16 +93,20 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
 
-  replication_specs = [{
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M10"
-      }
-      provider_name         = "AWS"
-      region_name           = "US_EAST_1"
-      priority              = 7
-    }]
-  }]
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+          }
+          provider_name         = "AWS"
+          region_name           = "US_EAST_1"
+          priority              = 7
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -105,14 +117,19 @@ resource "mongodbatlas_advanced_cluster" "example-flex" {
   project_id   = "PROJECT ID"
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
-  replication_specs {
-    region_configs {
-      provider_name = "FLEX"
-      backing_provider_name = "AWS"
-      region_name = "US_EAST_1"
-      priority = 7
+
+  replication_specs = [ 
+    {
+      region_configs = [
+        {
+          provider_name = "FLEX"
+          backing_provider_name = "AWS"
+          region_name = "US_EAST_1"
+          priority = 7
+        }
+      ]
     }
-  }
+  ]
 }
 ```
 
@@ -123,14 +140,19 @@ resource "mongodbatlas_advanced_cluster" "example-flex" {
   project_id   = "PROJECT ID"
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
-  replication_specs {
-    region_configs {
-      provider_name = "FLEX"
-      backing_provider_name = "AWS"
-      region_name = "US_EAST_1"
-      priority = 7
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          provider_name = "FLEX"
+          backing_provider_name = "AWS"
+          region_name = "US_EAST_1"
+          priority = 7
+        }
+      ]
     }
-  }
+  ]
 }
 ```
 
@@ -146,16 +168,21 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = "PROJECT ID"
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-      }
-      provider_name         = "AWS"
-      region_name           = "US_EAST_1"
-      priority              = 7
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+          }
+          provider_name         = "AWS"
+          region_name           = "US_EAST_1"
+          priority              = 7
+        }
+      ]
     }
-  }
+  ]
 }
 ```
 
@@ -166,29 +193,34 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
 
-  replication_specs = [{
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs = {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-      }, {
-      electable_specs = {
-        instance_size = "M10"
-        node_count    = 2
-      }
-      provider_name = "GCP"
-      priority      = 6
-      region_name   = "NORTH_AMERICA_NORTHEAST_1"
-    }]
-  }]
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 3
+          }
+          analytics_specs = {
+            instance_size = "M10"
+            node_count    = 1
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }, 
+        {
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 2
+          }
+          provider_name = "GCP"
+          priority      = 6
+          region_name   = "NORTH_AMERICA_NORTHEAST_1"
+        }
+      ]
+    }
+  ]
 }
 ```
 ### Example of a Multi Cloud Sharded Cluster with 2 shards
@@ -200,43 +232,52 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type = "SHARDED"
   backup_enabled = true
 
-  replication_specs = [{   # shard 1
-    region_configs = [{ 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-      }, { 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
-    }]
-    }, {   # shard 2
-    region_configs = [{ 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-      }, { 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
-    }]
-	}]
+  replication_specs = [
+    {   # shard 1
+      region_configs = [
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }, 
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "US_EAST_2"
+        }
+      ]
+    }, 
+    {   # shard 2
+      region_configs = [
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }, 
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "US_EAST_2"
+        }
+      ]
+    }
+  ]
 
   advanced_configuration = {
     javascript_enabled                   = true
@@ -254,87 +295,103 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type   = "GEOSHARDED"
   backup_enabled = true
 
-  replication_specs = [{ # shard 1 - zone n1
-    zone_name  = "zone n1"
+  replication_specs = [
+    { # shard 1 - zone n1
+      zone_name  = "zone n1"
 
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-      }, {
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
-    }]
-    }, {  # shard 2 - zone n1
-    zone_name  = "zone n1"
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }, 
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "US_EAST_2"
+        }
+      ]
+    }, 
+    {  # shard 2 - zone n1
+      zone_name  = "zone n1"
 
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-      }, {
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
-    }]
-    }, {  # shard 1 - zone n2
-    zone_name  = "zone n2"
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }, 
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "US_EAST_2"
+        }
+      ]
+    }, 
+    {  # shard 1 - zone n2
+      zone_name  = "zone n2"
 
-    region_configs = [{ 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-      }, {
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "EUROPE_NORTH"
-    }]
-    }, {  # shard 2 - zone n2
-    zone_name  = "zone n2"
+      region_configs = [
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }, 
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "EUROPE_NORTH"
+        }
+      ]
+    }, 
+    {  # shard 2 - zone n2
+      zone_name  = "zone n2"
 
-    region_configs = [{ 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-      }, {
-      electable_specs ={
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "EUROPE_NORTH"
-    }]
-  }]
+      region_configs = [
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }, {
+          electable_specs ={
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "EUROPE_NORTH"
+        }
+      ]
+    }
+  ]
 
   advanced_configuration = {
     javascript_enabled                   = true
@@ -406,7 +463,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
   Backup uses:
   [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/#std-label-backup-cloud-provider) for dedicated clusters.
-  [Free Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters
+  [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters.
   If "`backup_enabled`" : `false`, the cluster doesn't use Atlas backups.
 
 This parameter defaults to false.
@@ -549,29 +606,34 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ```terraform
 //Example Multicloud
-replication_specs = [{
-  region_configs = [{
-    electable_specs = {
-      instance_size = "M10"
-      node_count    = 3
-    }
-    analytics_specs = {
-      instance_size = "M10"
-      node_count    = 1
-    }
-    provider_name = "AWS"
-    priority      = 7
-    region_name   = "US_EAST_1"
-  }, {
-    electable_specs = {
-      instance_size = "M10"
-      node_count    = 2
-    }
-    provider_name = "GCP"
-    priority      = 6
-    region_name   = "NORTH_AMERICA_NORTHEAST_1"
-  }]
-}]
+replication_specs = [
+  {
+    region_configs = [
+      {
+        electable_specs = {
+          instance_size = "M10"
+          node_count    = 3
+        }
+        analytics_specs = {
+          instance_size = "M10"
+          node_count    = 1
+        }
+        provider_name = "AWS"
+        priority      = 7
+        region_name   = "US_EAST_1"
+      }, 
+      {
+        electable_specs = {
+          instance_size = "M10"
+          node_count    = 2
+        }
+        provider_name = "GCP"
+        priority      = 6
+        region_name   = "NORTH_AMERICA_NORTHEAST_1"
+      }
+    ]
+  }
+]
 ```
 
 * `id` - **(DEPRECATED)** Unique identifer of the replication document for a zone in a Global Cluster. This value corresponds to the legacy sharding schema (no independent shard scaling) and is different from the Shard ID you may see in the Atlas UI. This value is not populated (empty string) when a sharded cluster has independently scaled shards.
@@ -691,7 +753,7 @@ lifecycle {
 In addition to all arguments above, the following attributes are exported:
 
 * `cluster_id` - The cluster ID.
-*  `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
+* `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
 * `id` -	The Terraform's unique identifier used internally for state management.
 * `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More info in [Connection-strings](https://docs.mongodb.com/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://docs.atlas.mongodb.com/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
 
@@ -721,6 +783,7 @@ In addition to all arguments above, the following attributes are exported:
     - REPAIRING
 * `replication_specs[#].container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 * `config_server_type` Describes a sharded cluster's config server type. Valid values are `DEDICATED` and `EMBEDDED`. To learn more, see the [Sharded Cluster Config Servers documentation](https://dochub.mongodb.org/docs/manual/core/sharded-cluster-config-servers/).
+* `pinned_fcv.version` - Feature compatibility version of the cluster.
 
 
 ## Import
