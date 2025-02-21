@@ -27,20 +27,24 @@ The rest of this document summarizes the different implementations:
 
 
 ## Step 1: Module `v1` Implementation Summary
+
 This module creates a `mongodbatlas_cluster`.
 
 ### [`variables.tf`](v1/variables.tf)
+
 An abstraction for the `mongodbatlas_cluster` resource:
 - Not all arguments are exposed, but the arguments follow the schema closely.
 - `disk_size` and `auto_scaling_disk_gb_enabled` are mutually exclusive and validated in the `precondition` in `main.tf`.
 
 ### [`main.tf`](v1/main.tf)
+
 It uses `dynamic` blocks to represent:
 - `tags`
 - `replication_specs`
 - `regions_config` (nested inside replication_specs)
 
 ### [`outputs.tf`](v1/outputs.tf)
+
 - Expose some attributes of `mongodbatlas_cluster` but also the full resource with `mongodbatlas_cluster` output variable:
 ```terraform
 output "mongodbatlas_cluster" {
@@ -50,19 +54,21 @@ output "mongodbatlas_cluster" {
 ```
 
 ## Step 2: Module `v2` Implementation Changes and Highlights
+
 This module uses HCL code to create a `mongodbatlas_advanced_cluster` resource that is compatible with the input variables of `v1`.
 The module supports standalone usage when there is no existing `mongodbatlas_cluster` and also upgrading from `v1` using a `moved` block.
 
 ### [`variables.tf`](v2/variables.tf) unchanged from `v1`
+
 ### [`versions.tf`](v2/versions.tf)
 - `required_version` of Terraform CLI bumped to `1.8` for `moved` block [support](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move) between resource types.
 - `mongodbatlas.version` bumped to `1.27.0` for new `mongodbatlas_advanced_cluster` v2 schema support.
 
 ### [`main.tf`](v2/main.tf)
-- `locals.replication_specs` an intermediate variable transforming the `variables` to a compatible [replication_specs](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529#replication_specs-1) for `mongodbatlas_advanced_cluster`
+- `locals.replication_specs` an intermediate variable transforming the `variables` to a compatible [replication_specs](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529#replication_specs-1) for `mongodbatlas_advanced_cluster`.
   - We use the Terraform builtin [range](https://developer.hashicorp.com/terraform/language/functions/range) function (`range(old_spec.num_shards)`) to flatten `num_shards`.
   - We expand `read_only_specs` and `electable_specs` into nested attributes.
-  - We use the `var.provider_name` in the `region_configs.*.instance_size`
+  - We use the `var.provider_name` in the `region_configs.*.instance_size`.
 - `moved` block:
 ```terraform
 moved {
@@ -111,7 +117,6 @@ The module also supports changing an existing `mongodbatlas_advanced_cluster` cr
   # other attributes...
   replication_specs      = local.use_new_replication_specs ? var.replication_specs_new : local.replication_specs_old
   tags                   = var.tags
-}
 ```
 - Use `count` for data source to avoid error when Asymmetric Shards are used:
 ```terraform

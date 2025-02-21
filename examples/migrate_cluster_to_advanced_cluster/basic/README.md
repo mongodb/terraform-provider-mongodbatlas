@@ -4,13 +4,14 @@ This example demonstrates how to migrate a `mongodbatlas_cluster` resource to `m
 In this example we use specific files, but the same approach can be applied to any configuration file with `mongodbatlas_cluster` resource(s).
 The main steps are:
 
-1. [Create the `mongodbatlas_cluster`](#create-the-mongodbatlas_cluster) (skip if you already have a configuration with one or more `mongodbatlas_cluster` resources)
-2. [Use the Atlas CLI Plugin Terraform to create the `mongodbatlas_advanced_cluster` configuration](#use-the-atlas-cli-plugin-terraform-to-create-the-mongodbatlas_advanced_cluster-resource)
-3. [Manually update the Terraform configuration](#manual-updates-to-the-terraform-configuration)
-4. [Perform the Move](#perform-the-move)
-   - [Troubleshooting](#troubleshooting)
+1. [Create the `mongodbatlas_cluster`](#create-the-mongodbatlas_cluster) (skip if you already have a configuration with one or more `mongodbatlas_cluster` resources).
+2. [Use the Atlas CLI Plugin Terraform to create the `mongodbatlas_advanced_cluster` configuration](#use-the-atlas-cli-plugin-terraform-to-create-the-mongodbatlas_advanced_cluster-resource).
+3. [Manually update the Terraform configuration](#manual-updates-to-the-terraform-configuration).
+4. [Perform the Move](#perform-the-move).
+   - [Troubleshooting](#troubleshooting).
 
 ## Create the `mongodbatlas_cluster`
+
 **Note**: This step is only to demonstrate the migration. If you want to manage a cluster with Terraform, we recommend you use a [mongodbatlas_advanced_cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) resource instead.
 
 This step can be skipped if you already have a configuration file with a `mongodbatlas_cluster` created.
@@ -28,18 +29,20 @@ mongo_db_major_version = "8.0"
 5. Run `terraform apply`
 
 ## Use the Atlas CLI Plugin Terraform to create the `mongodbatlas_advanced_cluster` resource
+
 The [CLI Plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) helps you convert your existing configuration into one using the `mongodbatlas_advanced_cluster` resource. This step is not required but recommended; alternatively you can write the equivalent configuration on your own.
-1. Ensure you have the Atlas CLI [installed](https://www.mongodb.com/docs/atlas/cli/current/install-atlas-cli/) by running `atlas --version`
-   - You should see a multi line output starting with `atlascli version: 1.38.0` (or a later version)
-2. Install the Terraform CLI plugin: `atlas plugin install mongodb-labs/atlas-cli-plugin-terraform`
-3. Run `atlas terraform` to ensure the plugin was installed correctly
-   - You should see a multi line output starting with `Utilities for Terraform's MongoDB Atlas Provider`
-4. Run `atlas tf clusterToAdvancedCluster --file {CLUSTER_IN}.tf --output {CLUSTER_OUT}.tf`
-   1. For example `cluster.tf` for `{CLUSTER_IN}.tf`
-   2. For example `advanced_cluster.tf` for `{CLUSTER_OUT}.tf`
-   3. If your config is not supported, see [limtations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform?tab=readme-ov-file#limitations) of the plugin, try to update your `mongodbatlas_cluster`, or see alternatives in the [Migration Guide: Cluster to Advanced Cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide)
+1. Ensure you have the Atlas CLI [installed](https://www.mongodb.com/docs/atlas/cli/current/install-atlas-cli/) by running `atlas --version`.
+   - You should see a multi line output starting with `atlascli version: 1.38.0` (or a later version).
+2. Install the Terraform CLI plugin: `atlas plugin install mongodb-labs/atlas-cli-plugin-terraform`.
+3. Run `atlas terraform` to ensure the plugin was installed correctly.
+   - You should see a multi line output starting with `Utilities for Terraform's MongoDB Atlas Provider`.
+4. Run `atlas tf clusterToAdvancedCluster --file {CLUSTER_IN}.tf --output {CLUSTER_OUT}.tf`.
+   1. For example `cluster.tf` for `{CLUSTER_IN}.tf`.
+   2. For example `advanced_cluster.tf` for `{CLUSTER_OUT}.tf`.
+   3. If your config is not supported, see [limtations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform?tab=readme-ov-file#limitations) of the plugin, try to update your `mongodbatlas_cluster`, or see alternatives in the [Migration Guide: Cluster to Advanced Cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
 ## Manual updates to the Terraform configuration
+
 1. Ensure all references are updated (see example of updates in [outputs.tf](outputs.tf))
 2. Comment out the `mongodbatlas_cluster` in `{CLUSTER_IN}.tf`
 3. Add the moved block for each resource migrated in `{CLUSTER_OUT}.tf`
@@ -52,6 +55,7 @@ moved {
 - The [moved block](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#moved-block-syntax) can be kept to record where you have historically moved or renamed an object.
 
 ## Perform the Move
+
 1. Ensure you are using V2 schema: `export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`.
 2. Run `terraform validate` to ensure there are no missing reference updates. You might see errors like:
    - `Error: Reference to undeclared resource`: You forgot to update the resource type to `mongodbatlas_advanced_cluster`
@@ -86,6 +90,7 @@ moved {
    - Type `yes` and hit enter
 
 ### Troubleshooting
+
 - You might see: `Changes to Outputs`, consider where the output is used and take action accordingly.
 ```text
 container_id               = "67a09ae45cc3a60e55b6f42d" -> "67ac794392f9196661de88e1"

@@ -26,10 +26,10 @@ The rest of this example is a step by step guide on how to migrate from `mongodb
 - [Cleanup with `terraform destroy`](#cleanup-with-terraform-destroy)
 
 ## Dependencies
-- Terraform CLI >= 1.8
-- Terraform MongoDB Atlas Provider `>=v1.27.0`
-- A MongoDB Atlas account
-- Configure the provider (can also be done by configuring `public_key` and `private_key` in a `provider.tfvars`)
+- Terraform CLI >= 1.8-
+- Terraform MongoDB Atlas Provider `>=v1.27.0`-
+- A MongoDB Atlas account.
+- Configure the provider (can also be done by configuring `public_key` and `private_key` in a `provider.tfvars`).
 
 ```bash
 export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
@@ -39,7 +39,8 @@ export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
 ## Step 1: Create the `mongodbatlas_cluster` with `v1` of the module
 
 ### Update `v1_v2.tfvars`
-See the example in [v1_v2.tfvars](v1_v2.tfvars)
+
+See the example in [v1_v2.tfvars](v1_v2.tfvars).
 
 ### Run Commands
 ```bash
@@ -65,12 +66,14 @@ In the plan output, you should see a line simlar to:
 ## Step 3: Use the latest `mongodbatlas_advanced_cluster` features by using `v3` of the module
 
 ### Update `v3_no_plan_changes`
-See the example in [`v3_no_plan_changes`](v3_no_plan_changes.tfvars)
+
+See the example in [`v3_no_plan_changes`](v3_no_plan_changes.tfvars).
 The example changes:
-1. Use the new `replication_specs_new` variable
-2. Remove old `replication_specs`, `provider_name`, `instance_size`, `disk_size` variables
+1. Use the new `replication_specs_new` variable.
+2. Remove old `replication_specs`, `provider_name`, `instance_size`, `disk_size` variables.
 
 ### Run `terraform plan` to ensure there are no plan changes
+
 ```bash
 cd v3
 cp ../v2/terraform.tfstate . # if you are not using a remote state
@@ -80,6 +83,7 @@ terraform plan -var-file=../v3_no_plan_changes.tfvars # updated variables to ena
 ```
 
 ### Update `v3.tfvars`
+
 See the example in [v3.tfvars](v3.tfvars)
 The example changes:
 1. Increase `disk_size_gb` from `40` -> `50`
@@ -89,6 +93,7 @@ The example changes:
    1. In shard 2 from `M10` -> `M50`
 
 ### Run `terraform apply` to upgrade the cluster to an Asymmetric Sharded Cluster
+
 ```bash
 cd v3
 cp ../v2/terraform.tfstate . # if you are not using a remote state
