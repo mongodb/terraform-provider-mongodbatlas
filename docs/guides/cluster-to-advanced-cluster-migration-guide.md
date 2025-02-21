@@ -89,7 +89,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
 
-## Migration using Moved block (recommended)
+## Migration using the Moved block (recommended)
 
 The [moved block](https://developer.hashicorp.com/terraform/language/moved) is a Terraform feature that allows to move between resource types. It's conceptually similar to do `removed` and `import` but it's more convenient as it's done in one step, and can be used in `modules`. This is our recommended method to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
 
