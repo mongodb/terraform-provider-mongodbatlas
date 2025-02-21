@@ -2,7 +2,7 @@
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters. The resource requires your Project ID.
 
-This page descrives the **Preview for MongoDB Atlas Provider v2** of `mongodbatlas_advanced_cluster`, the page for the current version can be found [here](./advanced_cluster). In order to enable the Preview, you must set the enviroment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`, otherwise the current version will be used.
+This page describes the **Preview for MongoDB Atlas Provider v2** of `mongodbatlas_advanced_cluster`, the page for the current version can be found [here](./advanced_cluster). In order to enable the Preview, you must set the enviroment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`, otherwise the current version will be used.
 
 To learn more about the new changes, see the [Migration Guide: Advanced Cluster Preview Provider v2](../guides/advanced-cluster-preview-provider-v2).
 
