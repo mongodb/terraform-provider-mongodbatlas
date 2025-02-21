@@ -109,6 +109,12 @@ on:
       confluent_cloud_privatelink_access_id:
         type: string
         required: true
+      aws_ear_role_id:
+        type: string
+        required: true
+      mongodb_atlas_project_ear_pe_aws_id:
+        type: string
+        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -181,6 +187,8 @@ on:
       confluent_cloud_api_key:
         required: true
       confluent_cloud_api_secret:
+        required: true
+      aws_customer_master_key_id:
         required: true
           
 env:
@@ -632,6 +640,8 @@ jobs:
 
   encryption:
     needs: [ change-detection, get-provider-version ]
+    concurrency:
+      group: ${{ github.repository }}-global-ear-concurrency
     if: ${{ needs.change-detection.outputs.encryption == 'true' || inputs.test_group == 'encryption' }}
     runs-on: ubuntu-latest
     permissions: {}
@@ -664,6 +674,12 @@ jobs:
           AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.azure_key_vault_name_updated }}
           AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.azure_key_identifier_updated }}
           MONGODB_ATLAS_ENABLE_PREVIEW: ${{ inputs.mongodb_atlas_enable_preview }}
+          AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_CUSTOMER_MASTER_KEY_ID: ${{ secrets.aws_customer_master_key_id }}
+          MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID: ${{ inputs.mongodb_atlas_project_ear_pe_aws_id }}
+          AWS_EAR_ROLE_ID: ${{ inputs.aws_ear_role_id }}
         run: make testacc
 
   event_trigger:
