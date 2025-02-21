@@ -3,13 +3,38 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"os"
 	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 )
+
+const (
+	minimizeLevelNever   = "never"
+	minimizeLevelDefault = "default"
+	minimizeLevelAlways  = "always"
+	envVarNameMinimize   = "MONGODB_ATLAS_PLAN_MINIMIZE"
+)
+
+func getMinimizeLevel() string {
+	envValue := strings.ToLower(os.Getenv(envVarNameMinimize))
+	if envValue == "" {
+		return minimizeLevelDefault
+	}
+	return envValue
+}
+
+func minimizeNever() bool {
+	return getMinimizeLevel() == minimizeLevelNever
+}
+
+func minimizeAlways() bool {
+	return getMinimizeLevel() == minimizeLevelAlways
+}
 
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	if !schemafunc.HasUnknowns(plan) {
@@ -23,7 +48,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
 	keepUnknown := determineKeepUnknownsRoot(attributeChanges, isTenantUpgrade)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
-	if slices.Contains(keepUnknown, "replication_specs") {
+	if slices.Contains(keepUnknown, "replication_specs") || !minimizeNever() {
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges, isTenantUpgrade)
 	}
 }
@@ -71,7 +96,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	}
 	for i := range planRepSpecsTF {
 		if i < len(stateRepSpecsTF) {
-			if attrChanges.ListIndexChanged("replication_specs", i) {
+			if attrChanges.ListIndexChanged("replication_specs", i) && minimizeAlways() {
 				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, isTenantUpgrade, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsSpec)
 			} else {
