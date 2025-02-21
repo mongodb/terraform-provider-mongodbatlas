@@ -113,7 +113,7 @@ moved {
   to   = mongodbatlas_advanced_cluster.this
 }
 ```
-- Run `terraform plan` and make sure that there are no planned changes, only the moved should be shown. If it shows other changes, you will need to keep updating the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration. This is an example of no planned changes except the move:
+- Run `terraform plan` and make sure that there are no planned changes, only the moved block should be shown. If it shows other changes, update the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration. This is an example of no planned changes except the move:
 ```text
  # mongodbatlas_cluster.this has moved to mongodbatlas_advanced_cluster.this
      resource "mongodbatlas_advanced_cluster" "this" {
