@@ -177,14 +177,14 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ### region_configs
 
-* `analytics_specs` - Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. See [below](#specs)
+* `analytics_specs` - Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. See [below](#specs).
 * `auto_scaling` - Configuration for the Collection of settings that configures auto-scaling information for the cluster. See [below](#auto_scaling).
 * `analytics_auto_scaling` - Configuration for the Collection of settings that configures analytis-auto-scaling information for the cluster. See [below](#analytics_auto_scaling).
 * `backing_provider_name` - Cloud service provider on which you provision the host for a multi-tenant cluster.
 * `electable_specs` - Hardware specifications for electable nodes in the region.
 * `priority` -  Election priority of the region.
 * `provider_name` - Cloud service provider on which the servers are provisioned.
-* `read_only_specs` - Hardware specifications for read-only nodes in the region. See [below](#specs)
+* `read_only_specs` - Hardware specifications for read-only nodes in the region. See [below](#specs).
 * `region_name` - Physical location of your MongoDB cluster.
 
 ### specs
