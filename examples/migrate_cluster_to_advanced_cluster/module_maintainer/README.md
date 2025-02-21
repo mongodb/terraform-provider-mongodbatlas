@@ -1,6 +1,6 @@
 # Module Maintainer - `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
-The purpose of this example is to demonstrate how a Terraform module definition can migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` while minimising impact to its clients.
+The purpose of this example is to demonstrate how a Terraform module definition can migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` while minimizing impact to its clients.
 The example contains three module versions which represent the three steps of the migration:
 
 Step | Purpose | Resources
@@ -27,12 +27,12 @@ The rest of this document summarizes the different implementations:
 
 
 ## Step 1: Module `v1` Implementation Summary
-This module creates a `mongodbatlas_cluster`
+This module creates a `mongodbatlas_cluster`.
 
 ### [`variables.tf`](v1/variables.tf)
 An abstraction for the `mongodbatlas_cluster` resource:
-- Not all arguments are exposed, but the arguments follow the schema closely
-- `disk_size` and `auto_scaling_disk_gb_enabled` are mutually exclusive and validated in the `precondition` in `main.tf`
+- Not all arguments are exposed, but the arguments follow the schema closely.
+- `disk_size` and `auto_scaling_disk_gb_enabled` are mutually exclusive and validated in the `precondition` in `main.tf`.
 
 ### [`main.tf`](v1/main.tf)
 It uses `dynamic` blocks to represent:
@@ -55,13 +55,13 @@ The module supports standalone usage when there is no existing `mongodbatlas_clu
 
 ### [`variables.tf`](v2/variables.tf) unchanged from `v1`
 ### [`versions.tf`](v2/versions.tf)
-- `required_version` of Terraform CLI bumped to `1.8` for `moved` block [support](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move) between resource types
-- `mongodbatlas.version` bumped to `1.27.0` for new `mongodbatlas_advanced_cluster` v2 schema support
+- `required_version` of Terraform CLI bumped to `1.8` for `moved` block [support](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move) between resource types.
+- `mongodbatlas.version` bumped to `1.27.0` for new `mongodbatlas_advanced_cluster` v2 schema support.
 
 ### [`main.tf`](v2/main.tf)
 - `locals.replication_specs` an intermediate variable transforming the `variables` to a compatible [replication_specs](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529#replication_specs-1) for `mongodbatlas_advanced_cluster`
-  - We use the Terraform builtin [range](https://developer.hashicorp.com/terraform/language/functions/range) function (`range(old_spec.num_shards)`) to flatten `num_shards`
-  - We expand `read_only_specs` and `electable_specs` into nested attributes
+  - We use the Terraform builtin [range](https://developer.hashicorp.com/terraform/language/functions/range) function (`range(old_spec.num_shards)`) to flatten `num_shards`.
+  - We expand `read_only_specs` and `electable_specs` into nested attributes.
   - We use the `var.provider_name` in the `region_configs.*.instance_size`
 - `moved` block:
 ```terraform
@@ -71,14 +71,14 @@ moved {
 }
 ```
 - `resource "mongodbatlas_advanced_cluster" "this"`
-  - We reference the `local.replication_specs` as input to `replication_specs` (`replication_specs = local.replication_specs`)
-  - Tags can be passed directly instead of the dynamic block (`tags = var.tags`)
-- Adds `data "mongodbatlas_cluster" "this"` to avoid breaking changes in `outputs.tf` (see below)
+  - We reference the `local.replication_specs` as input to `replication_specs` (`replication_specs = local.replication_specs`).
+  - Tags can be passed directly instead of the dynamic block (`tags = var.tags`).
+- Adds `data "mongodbatlas_cluster" "this"` to avoid breaking changes in `outputs.tf` (see below).
 
 ### [`outputs.tf`](v2/outputs.tf)
-- All outputs can use `mongodbatlas_advanced_cluster` except for
-  - `replication_specs`, we use the `data.mongodbatlas_cluster.this.replication_specs` to keep the same format
-  - `mongodbatlas_cluster`, we use the `data.mongodbatlas_cluster.this` to keep the same format
+- All outputs can use `mongodbatlas_advanced_cluster` except for:
+  - `replication_specs`, which uses `data.mongodbatlas_cluster.this.replication_specs` to keep the same format.
+  - `mongodbatlas_cluster`, which uses the `data.mongodbatlas_cluster.this` to keep the same format.
 
 
 ## Step 3: Module `v3` Implementation Changes and Highlights
@@ -87,19 +87,19 @@ The module supports standalone usage when there is no existing `mongodbatlas_clu
 The module also supports changing an existing `mongodbatlas_advanced_cluster` created in `v2`.
 
 ### [`variables.tf`](v3/variables.tf)
-- Add `replication_specs_new`, this is almost fully equivalent to the [`replication_specs`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529#replication_specs-1) of the latest `mongodbatlas_advanced_cluster` schema
-  - Use a `[]` for default to allow continued usage of the old `replication_specs`
-  - Usage of `optional` to simplify the caller
-- Add `default` to `instance_size` and `provider_name` as these are not required when `replication_specs_new` is used
-- Change `[]` default to `replication_specs` to allow usage of `replication_specs_new`
+- Add `replication_specs_new`. This is almost fully equivalent to the [`replication_specs`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529#replication_specs-1) of the latest `mongodbatlas_advanced_cluster` schema.
+  - Use a `[]` for default to allow continued usage of the old `replication_specs`.
+  - Usage of `optional` to simplify the caller.
+- Add `default` to `instance_size` and `provider_name` as these are not required when `replication_specs_new` is used.
+- Change `[]` default to `replication_specs` to allow usage of `replication_specs_new`.
 
 ### [`main.tf`](v3/main.tf)
 - Add *defaults* to old variables in `locals`:
   - `old_disk_size`
   - `old_instance_size`
   - `old_provider_name`
-- Add `_old` suffix to `locals.replication_specs` to make conditional code (see below) more readable
-- Add `precondition` for `replication_specs` to validate only `var.replication_specs_new` or `replication_specs` is used
+- Add `_old` suffix to `locals.replication_specs` to make conditional code (see below) more readable.
+- Add `precondition` for `replication_specs` to validate only `var.replication_specs_new` or `replication_specs` is used.
 ```terraform
     precondition {
       condition     = !((local.use_new_replication_specs && length(var.replication_specs) > 0) || (!local.use_new_replication_specs && length(var.replication_specs) == 0))
