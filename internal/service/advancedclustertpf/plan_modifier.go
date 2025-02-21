@@ -84,19 +84,12 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	if diags.HasError() {
 		return
 	}
-	if upgradeFlexRequest != nil {
-		// The flex cluster API doesn't return the same fields as the tenant API; therefore, computed fields will be `null` after the upgrade
-		keepUnknown := []string{"connection_strings", "state_name", "advanced_configuration", "encryption_at_rest_provider", "root_cert_type", "bi_connector_config"}
-		keepUnknown = append(keepUnknown, tenantUpgradeRootKeepUnknown...)
-		schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
-		return
-	}
 	isFlexUpgrade := upgradeFlexRequest != nil
 	isTenantUpgrade := upgradeRequest != nil
 	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
 	keepUnknown := determineKeepUnknownsRoot(attributeChanges, isTenantUpgrade, isFlexUpgrade)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
-	if slices.Contains(keepUnknown, "replication_specs") && !minimizeNever() {
+	if slices.Contains(keepUnknown, "replication_specs") && !minimizeNever() && !isFlexUpgrade {
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges, isTenantUpgrade)
 	}
 }
