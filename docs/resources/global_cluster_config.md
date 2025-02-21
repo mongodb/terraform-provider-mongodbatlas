@@ -69,7 +69,7 @@ resource "mongodbatlas_global_cluster_config" "config" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project.
 * `cluster_name` - (Required) The name of the Global Cluster.
 *  `managed_namespaces` - (Optional) Add a managed namespaces to a Global Cluster. For more information about managed namespaces, see [Global Clusters](https://docs.atlas.mongodb.com/reference/api/global-clusters/). See [Managed Namespace](#managed-namespace) below for more details.
 *  `custom_zone_mappings` - (Optional) Each element in the list maps one ISO location code to a zone in your Global Cluster. See [Custom Zone Mapping](#custom-zone-mapping) below for more details.

@@ -41,7 +41,7 @@ data "mongodbatlas_cluster" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project to create the cluster.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed.
 
 ## Attributes Reference

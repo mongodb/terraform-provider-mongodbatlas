@@ -420,7 +420,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique ID for the project to create the database user.
+* `project_id` - (Required) Unique ID for the project to create the cluster.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed. **WARNING** Changing the name will result in destruction of the existing cluster and the creation of a new cluster.
 
 * `backup_enabled` - (Optional) Flag that indicates whether the cluster can perform backups.

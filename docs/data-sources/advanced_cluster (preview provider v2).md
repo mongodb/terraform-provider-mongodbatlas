@@ -121,7 +121,7 @@ data "mongodbatlas_advanced_cluster" "example" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project to create the cluster.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed.
 * `use_replication_spec_per_shard` - (Optional) Set this field to true to allow the data source to use the latest schema representing each shard with an individual `replication_specs` object. This enables representing clusters with independent shard scaling.
 

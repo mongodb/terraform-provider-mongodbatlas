@@ -254,7 +254,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project to create the cluster.
 * `provider_name` - (Required) Cloud service provider on which the servers are provisioned.
 
     The possible values are:
