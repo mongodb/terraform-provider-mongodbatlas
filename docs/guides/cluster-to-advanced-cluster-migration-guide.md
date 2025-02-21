@@ -100,20 +100,20 @@ The [moved block](https://developer.hashicorp.com/terraform/language/moved) is a
 We recommend that you follow another migration process only if you can't meet these requirements.
 
 The process to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` using the `moved` block is as follows:
-- Before starting, run `terraform plan` to make sure that there are no planned changes.
-- Add the `mongodbatlas_advanced_cluster` resource definition. 
+1. Before starting, run `terraform plan` to make sure that there are no planned changes.
+2. Add the `mongodbatlas_advanced_cluster` resource definition. 
   - Set the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider v2. You can also define the environment variable in your local development environment so your tools can use the new format and help you with linting and auto-completion.
   - You can use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition. This is the recommended method as it will generate a clean configuration keeping the original Terraform expressions.
   - Alternatively, you can use the `terraform plan -generate-config-out=adv_cluster.tf` method to create the `mongodbatlas_advanced_cluster` resource definition, or create it manually.
-- Comment out or delete the `mongodbatlas_cluster` resource definition.
-- Add the `moved` block to your configuration file, e.g.:
+3. Comment out or delete the `mongodbatlas_cluster` resource definition.
+4. Add the `moved` block to your configuration file, e.g.:
 ```terraform
 moved {
   from = mongodbatlas_cluster.this
   to   = mongodbatlas_advanced_cluster.this
 }
 ```
-- Run `terraform plan` and make sure that there are no planned changes, only the moved block should be shown. If it shows other changes, update the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration. This is an example of no planned changes except the move:
+5. Run `terraform plan` and make sure that there are no planned changes, only the moved block should be shown. If it shows other changes, update the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration. This is an example of no planned changes except the move:
 ```text
  # mongodbatlas_cluster.this has moved to mongodbatlas_advanced_cluster.this
      resource "mongodbatlas_advanced_cluster" "this" {
@@ -124,8 +124,8 @@ moved {
  Plan: 0 to add, 0 to change, 0 to destroy.
 ```
 
-- Run `terraform apply` to apply the changes. The `mongodbatlas_cluster` resource will be removed from the Terraform state and the `mongodbatlas_advanced_cluster` resource will be added.
-- At this moment you can delete the `moved` block from your configuration file, although it's recommended to keep it to help track the migrations.
+6. Run `terraform apply` to apply the changes. The `mongodbatlas_cluster` resource will be removed from the Terraform state and the `mongodbatlas_advanced_cluster` resource will be added.
+7. At this moment you can delete the `moved` block from your configuration file, although it's recommended to keep it to help track the migrations.
 
 You can find full-detailed examples in [migrate_cluster_to_advanced_cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster).
 

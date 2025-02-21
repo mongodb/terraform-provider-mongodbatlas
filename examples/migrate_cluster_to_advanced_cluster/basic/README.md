@@ -95,7 +95,7 @@ moved {
 ```text
 container_id               = "67a09ae45cc3a60e55b6f42d" -> "67ac794392f9196661de88e1"
 ```
-- If there are any plan changes, try updating the `mongodbatlas_advanced_cluster` in `{CLUSTER_OUT}.tf` manually
+- If there are any Plan Changes, try updating the `mongodbatlas_advanced_cluster` in `{CLUSTER_OUT}.tf` manually.
 - For example the below plan, would require you to explicitly set `backup_enabled = false` in the `mongodbatlas_advanced_cluster.this` resource.
 ```text
 Terraform will perform the following actions:
