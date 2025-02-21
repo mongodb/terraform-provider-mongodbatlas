@@ -95,7 +95,7 @@ The [moved block](https://developer.hashicorp.com/terraform/language/moved) is a
 
  The main requirements are:
  - Terraform version 1.8 or later is required, more info in the [State Move doc](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move).
- - Preview for MongoDB Atlas Provider v2 of `mongodbatlas_advanced_cluster` is required, it is enabled by setting environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. More information can be found in the [resource doc](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) and the [Migration Guide: Advanced Cluster Preview Provider v2](advanced-cluster-preview-provider-v2).
+ - Preview for MongoDB Atlas Provider v2 of `mongodbatlas_advanced_cluster` is required, it is enabled by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. More information can be found in the [resource doc](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) and the [Migration Guide: Advanced Cluster Preview Provider v2](advanced-cluster-preview-provider-v2).
 
 We recommend that you follow another migration process only if you can't meet these requirements.
 
