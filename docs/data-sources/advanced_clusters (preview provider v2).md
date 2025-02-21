@@ -20,17 +20,21 @@ resource "mongodbatlas_advanced_cluster" "example" {
   name         = "cluster-test"
   cluster_type = "REPLICASET"
 
-  replication_specs = [{
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M0"
-      }
-      provider_name         = "TENANT"
-      backing_provider_name = "AWS"
-      region_name           = "US_EAST_1"
-      priority              = 7
-    }]
-  }]
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M0"
+          }
+          provider_name         = "TENANT"
+          backing_provider_name = "AWS"
+          region_name           = "US_EAST_1"
+          priority              = 7
+        }
+      ]
+    }
+  ]
 }
 
 data "mongodbatlas_advanced_clusters" "example" {
@@ -47,29 +51,36 @@ resource "mongodbatlas_advanced_cluster" "example" {
   backup_enabled = false
   cluster_type   = "SHARDED"
 
-  replication_specs = [{    # Sharded cluster with 2 asymmetric shards (M30 and M40)
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        disk_iops     = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-    }, {
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M40"
-        disk_iops     = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-  }]
+  replication_specs = [
+    {    # Sharded cluster with 2 asymmetric shards (M30 and M40)
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            disk_iops     = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    }, 
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M40"
+            disk_iops     = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    }
+  ]
 }
 
 data "mongodbatlas_advanced_cluster" "example-asym" {
@@ -96,6 +107,7 @@ resource "mongodbatlas_advanced_cluster" "example-flex" {
     }
   }
 }
+
 data "mongodbatlas_advanced_clusters" "example" {
   project_id = mongodbatlas_advanced_cluster.example-flex.project_id
 }
