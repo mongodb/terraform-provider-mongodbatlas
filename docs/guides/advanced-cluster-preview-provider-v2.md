@@ -14,7 +14,7 @@ The [resource doc](../resources/advanced_cluster%2520%2528preview%2520provider%2
 
 In order to enable the Preview for MongoDB Atlas Provider v2 for `mongodbatlas_advanced_cluster`, set the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. This will allow you to use the new `mongodbatlas_advanced_cluster` resource. You can also define the environment variable in your local development environment so your tools can use the new format and help you with linting and auto-completion.
 
-This environment variable only affects the `mongodbatlas_advanced_cluster` resource and corresponding data sources, it doesn't affect other resources. `mongodbatlas_advanced_cluster` definition will use the new format and new features like `moved block` from `mongodbatlas_cluster`to `mongodbatlas_advanced_cluster` will be available.
+This environment variable only affects the `mongodbatlas_advanced_cluster` resource and corresponding data sources. It doesn't affect other resources. `mongodbatlas_advanced_cluster` definition will use the new format and new features like `moved block` from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` will be available.
 
 ## Main Changes
 
