@@ -48,7 +48,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
 	keepUnknown := determineKeepUnknownsRoot(attributeChanges, isTenantUpgrade)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
-	if slices.Contains(keepUnknown, "replication_specs") || !minimizeNever() {
+	if slices.Contains(keepUnknown, "replication_specs") && !minimizeNever() {
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges, isTenantUpgrade)
 	}
 }
@@ -96,10 +96,13 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	}
 	for i := range planRepSpecsTF {
 		if i < len(stateRepSpecsTF) {
-			if attrChanges.ListIndexChanged("replication_specs", i) && minimizeAlways() {
+			switch {
+			case attrChanges.ListIndexChanged("replication_specs", i) && minimizeAlways():
 				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, isTenantUpgrade, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsSpec)
-			} else {
+			case attrChanges.ListIndexChanged("replication_specs", i):
+				// If the replication spec is changed, we should not copy the state values unless minimize is set to always
+			default:
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsUnchangedSpec)
 			}
 		}
