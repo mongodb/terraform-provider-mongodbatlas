@@ -467,7 +467,7 @@ Include **desired options** within advanced_configuration:
 * `custom_openssl_cipher_config_tls12` - (Optional) The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.
 
 
-### Tags
+### tags
 
  ```terraform
  tags {

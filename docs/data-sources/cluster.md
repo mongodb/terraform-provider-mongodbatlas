@@ -160,7 +160,7 @@ Physical location of the region.
 
 ### Tags
 
- Key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
+Key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
 
 * `key` - Constant that defines the set of the tag.
 * `value` - Variable that belongs to the set of the tag.
