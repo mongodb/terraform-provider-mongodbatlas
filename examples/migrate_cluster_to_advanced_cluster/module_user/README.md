@@ -2,7 +2,7 @@
 
 The purpose of this example is to demonstrate the experience of adopting a new version of a terraform module definition which internally migrated from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
 Each module call represent a step on the migration path.
-The example focus on the call of the module rather than the module implementation itself (see the [module maintainer README.md](../module_maintainer/README.md) for the implementation details)
+The example focus on the call of the module rather than the module implementation itself (see the [module maintainer README.md](../module_maintainer/README.md) for the implementation details).
 
 Migration Step Code | `mongodbatlas` version | Config Changes | Plan Changes
 --- | --- | --- | ---
