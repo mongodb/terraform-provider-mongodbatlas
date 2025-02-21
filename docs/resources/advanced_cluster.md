@@ -415,7 +415,7 @@ bi_connector_config {
 }
 ```
 
-* `enabled` - (Optional) Specifies whether or not BI Connector for Atlas is enabled on the cluster.l
+* `enabled` - (Optional) Specifies whether or not BI Connector for Atlas is enabled on the cluster.
 *
   - Set to `true` to enable BI Connector for Atlas.
   - Set to `false` to disable BI Connector for Atlas.

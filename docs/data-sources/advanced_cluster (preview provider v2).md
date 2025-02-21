@@ -138,7 +138,7 @@ In addition to all arguments above, the following attributes are exported:
 
 Specifies BI Connector for Atlas configuration.
 
-* `enabled` - Specifies whether or not BI Connector for Atlas is enabled on the cluster.l
+* `enabled` - Specifies whether or not BI Connector for Atlas is enabled on the cluster.
 * `read_preference` - Specifies the read preference to be used by BI Connector for Atlas on the cluster. Each BI Connector for Atlas read preference contains a distinct combination of [readPreference](https://docs.mongodb.com/manual/core/read-preference/) and [readPreferenceTags](https://docs.mongodb.com/manual/core/read-preference/#tag-sets) options. For details on BI Connector for Atlas read preferences, refer to the [BI Connector Read Preferences Table](https://docs.atlas.mongodb.com/tutorial/create-global-writes-cluster/#bic-read-preferences).
 
 ### tags
