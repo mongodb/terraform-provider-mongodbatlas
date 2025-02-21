@@ -13,7 +13,7 @@ func TestMigEncryptionAtRestPrivateEndpoint_Azure_basic(t *testing.T) {
 }
 
 func TestMigEncryptionAtRestPrivateEndpoint_AWS_basic(t *testing.T) {
-	mig.SkipIfVersionBelow(t, "1.27.0")
+	mig.SkipIfVersionBelow(t, "1.28.0")
 	testCase := basicTestCaseAWS(t)
 	mig.CreateAndRunTestNonParallel(t, testCase)
 }
