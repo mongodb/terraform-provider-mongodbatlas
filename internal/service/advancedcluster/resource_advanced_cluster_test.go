@@ -55,6 +55,8 @@ const (
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}`
+	freeInstanceSize   = "M0"
+	sharedInstanceSize = "M2"
 )
 
 var (
@@ -137,7 +139,7 @@ func TestAccAdvancedCluster_basicTenant_flexUpgrade_dedicatedUpgrade(t *testing.
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(t, true, projectID, clusterName, defaultZoneName),
+				Config: configTenant(t, true, projectID, clusterName, defaultZoneName, freeInstanceSize),
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
@@ -147,6 +149,29 @@ func TestAccAdvancedCluster_basicTenant_flexUpgrade_dedicatedUpgrade(t *testing.
 			{
 				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configBasicDedicated(projectID, clusterName, defaultZoneName)),
 				Check:  checksBasicDedicated(projectID, clusterName),
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_sharedTier_flexUpgrade(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
+		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
+
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configTenant(t, true, projectID, clusterName, defaultZoneName, sharedInstanceSize),
+				Check:  checkTenant(true, projectID, clusterName),
+			},
+			{
+				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", defaultZoneName, false),
+				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false),
 			},
 		},
 	})
@@ -163,7 +188,7 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configTenant(t, true, projectID, clusterName, defaultZoneName)),
+				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configTenant(t, true, projectID, clusterName, defaultZoneName, freeInstanceSize)),
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
@@ -1405,7 +1430,7 @@ func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra 
 	return acc.CheckRSAndDSPreviewProviderV2(isAcc, resourceName, admin.PtrString(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
 }
 
-func configTenant(t *testing.T, isAcc bool, projectID, name, zoneName string) string {
+func configTenant(t *testing.T, isAcc bool, projectID, name, zoneName, instanceSize string) string {
 	t.Helper()
 	zoneNameLine := ""
 	if zoneName != "" {
@@ -1420,7 +1445,7 @@ func configTenant(t *testing.T, isAcc bool, projectID, name, zoneName string) st
 			replication_specs {
 				region_configs {
 					electable_specs {
-						instance_size = "M0"
+						instance_size = %[4]q
 					}
 					provider_name         = "TENANT"
 					backing_provider_name = "AWS"
@@ -1430,7 +1455,7 @@ func configTenant(t *testing.T, isAcc bool, projectID, name, zoneName string) st
 				%[3]s
 			}
 		}
-	`, projectID, name, zoneNameLine)) + dataSourcesTFNewSchema
+	`, projectID, name, zoneNameLine, instanceSize)) + dataSourcesTFNewSchema
 }
 
 func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
