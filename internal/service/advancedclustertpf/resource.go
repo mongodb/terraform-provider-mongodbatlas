@@ -108,7 +108,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
-	useStateForUnknowns(ctx, diags, &plan, &state)
+	useStateForUnknowns(ctx, diags, &state, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -218,30 +218,30 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var state, plan TFModel
+	var state, configModel TFModel
 	diags := &resp.Diagnostics
-	diags.Append(req.Plan.Get(ctx, &plan)...)
+	diags.Append(req.Config.Get(ctx, &configModel)...)
 	diags.Append(req.State.Get(ctx, &state)...)
 	if diags.HasError() {
 		return
 	}
 
 	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
-	planReq := normalizeFromTFModel(ctx, &plan, diags, false)
-	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
+	configReq := normalizeFromTFModel(ctx, &configModel, diags, false)
+	waitParams := resolveClusterWaitParams(ctx, &configModel, diags, operationUpdate)
 	if diags.HasError() {
 		return
 	}
-	flexUpgrade, flexUpdate := flexUpgradedUpdated(planReq, stateReq, diags)
+	flexUpgrade, flexUpdate := flexUpgradedUpdated(configReq, stateReq, diags)
 	if diags.HasError() {
 		return
 	}
 	if flexUpgrade || flexUpdate {
 		var flexOut *TFModel
 		if flexUpgrade {
-			flexOut = handleFlexUpgrade(ctx, diags, r.Client, waitParams, planReq, &plan)
+			flexOut = handleFlexUpgrade(ctx, diags, r.Client, waitParams, configReq, &configModel)
 		} else {
-			flexOut = handleFlexUpdate(ctx, diags, r.Client, &plan, planReq)
+			flexOut = handleFlexUpdate(ctx, diags, r.Client, &configModel, configReq)
 		}
 		if flexOut != nil {
 			diags.Append(resp.State.Set(ctx, flexOut)...)
@@ -252,18 +252,17 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	var clusterResp *admin.ClusterDescription20240805
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	clusterResp = r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams)
+	clusterResp = r.applyPinnedFCVChanges(ctx, diags, &state, &configModel, waitParams)
 	if diags.HasError() {
 		return
 	}
 	patchOptions := update.PatchOptions{
-		IgnoreInStatePrefix: []string{"regionConfigs"},
-		IgnoreInStateSuffix: []string{"zoneId"}, // replication_spec.*.zone_id doesn't have to be included, the API will do its best to create a minimal change
+		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
-	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+	if usingNewShardingConfig(ctx, configModel.ReplicationSpecs, diags) {
 		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
 	}
-	patchReq, upgradeReq, upgradeFlexReq := findClusterDiff(ctx, &state, &plan, diags, &patchOptions)
+	patchReq, upgradeReq, upgradeFlexReq := findClusterDiff(ctx, &state, &configModel, diags, &patchOptions)
 	if diags.HasError() {
 		return
 	}
@@ -280,13 +279,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		}
 	}
 	if !update.IsZeroValues(patchReq) {
-		clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, patchReq, waitParams)
+		clusterResp = r.applyClusterChanges(ctx, diags, &state, &configModel, patchReq, waitParams)
 		if diags.HasError() {
 			return
 		}
 	}
-	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &configModel.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &configModel.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return
 	}
@@ -297,9 +296,9 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	var modelOut *TFModel
 	if clusterResp == nil { // no Atlas updates needed but override is still needed (e.g. tags going from nil to [] or vice versa)
 		modelOut = &state
-		overrideAttributesWithPrevStateValue(&plan, modelOut)
+		overrideAttributesWithPrevStateValue(&configModel, modelOut)
 	} else {
-		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
+		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &configModel)
 		if diags.HasError() {
 			return
 		}
@@ -507,15 +506,12 @@ func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 }
 
 func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, options *update.PatchOptions) (*admin.ClusterDescription20240805, *admin.LegacyAtlasTenantClusterUpgradeRequest, *admin.AtlasTenantClusterUpgradeRequest20240805) {
-	stateUsingNewSharding := usingNewShardingConfig(ctx, state.ReplicationSpecs, diags)
-	planUsingNewSharding := usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags)
-	if stateUsingNewSharding && !planUsingNewSharding {
-		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
+	isShardingUpgrade := isShardingConfigUpgrade(ctx, state, plan, diags)
+	if diags.HasError() {
 		return nil, nil, nil
-	}
-	isShardingConfigUpgrade := !stateUsingNewSharding && planUsingNewSharding // old sharding config  (num_shards > 1) to new one
+	} // old sharding config  (num_shards > 1) to new one
 	stateReq := normalizeFromTFModel(ctx, state, diags, false)
-	planReq := normalizeFromTFModel(ctx, plan, diags, isShardingConfigUpgrade)
+	planReq := normalizeFromTFModel(ctx, plan, diags, isShardingUpgrade)
 	if diags.HasError() {
 		return nil, nil, nil
 	}
@@ -574,4 +570,14 @@ func flexUpgradedUpdated(planReq, stateReq *admin.ClusterDescription20240805, di
 	}
 	diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
 	return false, false
+}
+
+func isShardingConfigUpgrade(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) bool {
+	stateUsingNewSharding := usingNewShardingConfig(ctx, state.ReplicationSpecs, diags)
+	planUsingNewSharding := usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags)
+	if stateUsingNewSharding && !planUsingNewSharding {
+		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
+		return false
+	}
+	return !stateUsingNewSharding && planUsingNewSharding
 }
