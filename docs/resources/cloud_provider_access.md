@@ -147,4 +147,4 @@ Conditional
 
 ## Import mongodbatlas_cloud_provider_access_authorization
 
-You can't import the Cloud Provider Access Authorization resource.
+The Cloud Provider Access Authorization resource cannot be imported into Terraform. If this resource needs to be imported, you can safely re-create the resource. If the associated role has already been authorized, issuing a new authorization request will simply succeed without any adverse effects.
