@@ -3,7 +3,7 @@ package team
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 )
 
 func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersApi, existingTeamUsers []admin.CloudAppUser, newUsernames []string, orgID, teamID string) error {
