@@ -195,9 +195,6 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
-
-
-
 func (r *searchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var searchDeploymentState *TFSearchDeploymentRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &searchDeploymentState)...)
