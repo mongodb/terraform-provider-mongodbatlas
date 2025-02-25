@@ -3,9 +3,7 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
-	"os"
 	"slices"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -14,11 +12,6 @@ import (
 )
 
 var (
-	// The flex cluster API doesn't return the same fields as the tenant API; therefore, computed fields will be `null` after the upgrade
-	keepUnknownTenantToFlex      = []string{"connection_strings", "state_name", "advanced_configuration", "encryption_at_rest_provider", "root_cert_type", "bi_connector_config", "mongo_db_major_version"}
-	tenantUpgradeRootKeepUnknown = []string{"disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date"}
-	// TenantUpgradeToFlex changes many extra fields that are normally ok to use state values for
-	keepUnknownFlexUpgrade = []string{"disk_size_gb", "encryption_at_rest_provider", "replication_specs", "backup_enabled", "cluster_id", "create_date", "root_cert_type", "bi_connector_config", "mongo_db_major_version"}
 	// TenantUpgrade changes many extra fields that are normally ok to use state values for
 	tenantUpgradeReplicationSpecKeepUnknown = []string{"disk_size_gb", "zone_id", "id", "container_id", "external_id", "auto_scaling", "analytics_specs", "read_only_specs"}
 	attributeRootChangeMapping              = map[string][]string{
@@ -44,42 +37,21 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	if diags.HasError() {
 		return
 	}
-
-	{
-		tenantToFlex, _ := flexUpgradedUpdated(planReq, stateReq, diags)
-		if diags.HasError() {
-			return
-		}
-		if tenantToFlex {
-			keepUnknownTenantToFlex = append(keepUnknownTenantToFlex, tenantUpgradeRootKeepUnknown...)
-			schemafunc.CopyUnknowns(ctx, state, plan, keepUnknownTenantToFlex)
-			return
-		}
-	}
-
+	isTenantToFlex, _ := flexUpgradedUpdated(planReq, stateReq, diags)
 	diff := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
 	if diags.HasError() {
 		return
 	}
+	if isTenantToFlex || diff.isUpgradeTenant() || diff.isUpgradeFlexToDedicated() {
+		return // Don't do anything in upgrades
+	}
 	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
-	keepUnknown := determineKeepUnknownsRoot(attributeChanges, diff.isUpgradeTenant(), diff.isUpgradeFlex())
+	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
+	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
-	if slices.Contains(keepUnknown, "replication_specs") && !minimizeNever() && !diff.isUpgradeFlex() {
+	if slices.Contains(keepUnknown, "replication_specs") {
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges, diff.isUpgradeTenant())
 	}
-}
-
-func determineKeepUnknownsRoot(attributeChanges schemafunc.AttributeChanges, isUpgradeTenant, isUpgradeFlex bool) []string {
-	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
-	if isUpgradeTenant {
-		// TenantUpgrade changes a few root level fields that are normally ok to use state values for
-		keepUnknown = append(keepUnknown, tenantUpgradeRootKeepUnknown...)
-	}
-	if isUpgradeFlex {
-		// FlexToDedicatedUpgrade changes a few root level fields that are normally ok to use state values for
-		keepUnknown = append(keepUnknown, keepUnknownFlexUpgrade...)
-	}
-	return append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 }
 
 // TODO: last change to use instead of sdk model
@@ -97,11 +69,9 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	for i := range planRepSpecsTF {
 		if i < len(stateRepSpecsTF) {
 			switch {
-			case attrChanges.ListIndexChanged("replication_specs", i) && minimizeAlways():
+			case attrChanges.ListIndexChanged("replication_specs", i):
 				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, isUpgradeTenant, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsSpec)
-			case attrChanges.ListIndexChanged("replication_specs", i):
-				// If the replication spec is changed, we should not copy the state values unless minimize is set to always
 			default:
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsUnchangedSpec)
 			}
