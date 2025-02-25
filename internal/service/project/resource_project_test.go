@@ -613,7 +613,7 @@ func TestAccProject_basic(t *testing.T) {
 				ImportStateIdFunc:       acc.ImportStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"with_default_alerts_settings", "project_owner_id"},
+				ImportStateVerifyIgnore: []string{"project_owner_id"},
 			},
 		},
 	})
@@ -1055,11 +1055,10 @@ func TestAccProject_withTags(t *testing.T) {
 				Check:  tagChecks(tagsOnlyIgnored, "Environment", "NewKey"),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateProjectIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: acc.ImportStateProjectIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
