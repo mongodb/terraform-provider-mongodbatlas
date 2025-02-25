@@ -82,6 +82,8 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Default:  true,
 			},
+			// skip_default_alerts_settings defaults to `true` to prevent Atlas from automatically creating organization-level alerts not explicitly managed through Terraform.
+			// Note that this deviates from the API default of `false` for this attribute.
 			"skip_default_alerts_settings": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -266,7 +268,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizationRequest {
-	skipDefaultAlertsSettings := true // defaulting to true otherwise alerts may be created behind the scenes resulting in drift detection in alert configuration resources
+	// skip_default_alerts_settings defaults to `true` to prevent Atlas from automatically creating organization-level alerts not explicitly managed through Terraform.
+	// Note that this deviates from the API default of `false` for this attribute.
+	skipDefaultAlertsSettings := true
 
 	if v, ok := d.GetOkExists("skip_default_alerts_settings"); ok {
 		skipDefaultAlertsSettings = v.(bool)

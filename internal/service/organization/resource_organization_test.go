@@ -351,10 +351,10 @@ func configBasic(orgOwnerID, name, description, roleNames string, useSkipDefault
 
 	return fmt.Sprintf(`
 	  resource "mongodbatlas_organization" "test" {
-		org_owner_id = "%s"
-		name = "%s"
-		description = "%s"
-		role_names = ["%s"]
+		org_owner_id = %q
+		name = %q
+		description = %q
+		role_names = [%q]
 		
 		%s
 	  }
@@ -364,10 +364,10 @@ func configBasic(orgOwnerID, name, description, roleNames string, useSkipDefault
 func configWithSettings(orgOwnerID, name, description, roleNames, settingsConfig string) string {
 	return fmt.Sprintf(`
 	  resource "mongodbatlas_organization" "test" {
-		org_owner_id = "%s"
-		name = "%s"
-		description = "%s"
-		role_names = ["%s"]
+		org_owner_id = %q
+		name = %q
+		description = %q
+		role_names = [%q]
 		%s
 	  }
 	`, orgOwnerID, name, description, roleNames, settingsConfig)
