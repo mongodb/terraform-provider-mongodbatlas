@@ -12,9 +12,7 @@ import (
 )
 
 var (
-	// TenantUpgrade changes many extra fields that are normally ok to use state values for
-	tenantUpgradeReplicationSpecKeepUnknown = []string{"disk_size_gb", "zone_id", "id", "container_id", "external_id", "auto_scaling", "analytics_specs", "read_only_specs"}
-	attributeRootChangeMapping              = map[string][]string{
+	attributeRootChangeMapping = map[string][]string{
 		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
 		"mongo_db_major_version": {"mongo_db_version"},
@@ -50,12 +48,12 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
 	if slices.Contains(keepUnknown, "replication_specs") {
-		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges, diff.isUpgradeTenant())
+		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
 	}
 }
 
 // TODO: last change to use instead of sdk model
-func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges, isUpgradeTenant bool) {
+func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges) {
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
@@ -70,7 +68,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 		if i < len(stateRepSpecsTF) {
 			switch {
 			case attrChanges.ListIndexChanged("replication_specs", i):
-				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, isUpgradeTenant, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
+				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsSpec)
 			default:
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsUnchangedSpec)
@@ -87,11 +85,8 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 }
 
 // determineKeepUnknownsChangedReplicationSpec: These fields must be kept unknown in the replication_specs[index_of_changes]
-func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, isTenantUpgrade bool, attributeChanges *schemafunc.AttributeChanges, parentPath string) []string {
+func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, attributeChanges *schemafunc.AttributeChanges, parentPath string) []string {
 	var keepUnknowns = slices.Clone(keepUnknownsAlways)
-	if isTenantUpgrade {
-		keepUnknowns = append(keepUnknowns, tenantUpgradeReplicationSpecKeepUnknown...)
-	}
 	if attributeChanges.NestedListLenChanges(parentPath + ".region_configs") {
 		keepUnknowns = append(keepUnknowns, "container_id")
 	}
