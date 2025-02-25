@@ -70,44 +70,46 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	if diags.HasError() {
 		return
 	}
-	flexUpgrade, _ := flexUpgradedUpdated(planReq, stateReq, diags)
-	if diags.HasError() {
-		return
-	}
-	if flexUpgrade {
-		keepUnknownTenantToFlex = append(keepUnknownTenantToFlex, tenantUpgradeRootKeepUnknown...)
-		schemafunc.CopyUnknowns(ctx, state, plan, keepUnknownTenantToFlex)
-		return
+
+	{
+		tenantToFlex, _ := flexUpgradedUpdated(planReq, stateReq, diags)
+		if diags.HasError() {
+			return
+		}
+		if tenantToFlex {
+			keepUnknownTenantToFlex = append(keepUnknownTenantToFlex, tenantUpgradeRootKeepUnknown...)
+			schemafunc.CopyUnknowns(ctx, state, plan, keepUnknownTenantToFlex)
+			return
+		}
 	}
 
-	_, upgradeRequest, upgradeFlexRequest := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
+	diff := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
 	if diags.HasError() {
 		return
 	}
-	isFlexUpgrade := upgradeFlexRequest != nil
-	isTenantUpgrade := upgradeRequest != nil
 	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
-	keepUnknown := determineKeepUnknownsRoot(attributeChanges, isTenantUpgrade, isFlexUpgrade)
+	keepUnknown := determineKeepUnknownsRoot(attributeChanges, diff.isUpgradeTenant(), diff.isUpgradeFlex())
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
-	if slices.Contains(keepUnknown, "replication_specs") && !minimizeNever() && !isFlexUpgrade {
-		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges, isTenantUpgrade)
+	if slices.Contains(keepUnknown, "replication_specs") && !minimizeNever() && !diff.isUpgradeFlex() {
+		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges, diff.isUpgradeTenant())
 	}
 }
 
-func determineKeepUnknownsRoot(attributeChanges schemafunc.AttributeChanges, isTenantUpgrade, isFlexUpgrade bool) []string {
+func determineKeepUnknownsRoot(attributeChanges schemafunc.AttributeChanges, isUpgradeTenant, isUpgradeFlex bool) []string {
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
-	if isTenantUpgrade {
+	if isUpgradeTenant {
 		// TenantUpgrade changes a few root level fields that are normally ok to use state values for
 		keepUnknown = append(keepUnknown, tenantUpgradeRootKeepUnknown...)
 	}
-	if isFlexUpgrade {
+	if isUpgradeFlex {
 		// FlexToDedicatedUpgrade changes a few root level fields that are normally ok to use state values for
 		keepUnknown = append(keepUnknown, keepUnknownFlexUpgrade...)
 	}
 	return append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 }
 
-func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges, isTenantUpgrade bool) {
+// TODO: last change to use instead of sdk model
+func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges, isUpgradeTenant bool) {
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
@@ -122,7 +124,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 		if i < len(stateRepSpecsTF) {
 			switch {
 			case attrChanges.ListIndexChanged("replication_specs", i) && minimizeAlways():
-				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, isTenantUpgrade, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
+				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, isUpgradeTenant, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
 				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsSpec)
 			case attrChanges.ListIndexChanged("replication_specs", i):
 				// If the replication spec is changed, we should not copy the state values unless minimize is set to always
