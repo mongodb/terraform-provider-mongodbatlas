@@ -66,13 +66,11 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	}
 	for i := range planRepSpecsTF {
 		if i < len(stateRepSpecsTF) {
-			switch {
-			case attrChanges.ListIndexChanged("replication_specs", i):
-				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
-				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsSpec)
-			default:
-				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsUnchangedSpec)
+			keepUnknowns := keepUnknownsUnchangedSpec
+			if attrChanges.ListIndexChanged("replication_specs", i) {
+				keepUnknowns = determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
 			}
+			schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknowns)
 		}
 		planWithUnknowns = append(planWithUnknowns, planRepSpecsTF[i])
 	}
