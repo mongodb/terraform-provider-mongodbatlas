@@ -113,39 +113,7 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
-// func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-// 	var searchDeploymentPlan TFSearchDeploymentRSModel
-// 	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchDeploymentPlan)...)
-// 	if resp.Diagnostics.HasError() {
-// 		return
-// 	}
 
-// 	connV2 := r.Client.AtlasV2
-// 	projectID := searchDeploymentPlan.ProjectID.ValueString()
-// 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
-// 	searchDeploymentReq := NewSearchDeploymentReq(ctx, &searchDeploymentPlan)
-
-// 	// Send update request but DO NOT wait for reindexing
-// 	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
-// 		resp.Diagnostics.AddError("error during search deployment update", err.Error())
-// 		return
-// 	}
-
-// 	// 🚀 Instead of waiting, fetch the latest known state
-// 	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
-// 	if err != nil {
-// 		resp.Diagnostics.AddWarning("warning: unable to fetch latest search deployment state", err.Error())
-// 		deploymentResp = &admin.ApiSearchDeploymentResponse{} // Prevent nil pointer crash
-// 	}
-
-// 	// Ensure we pass a non-nil response to NewTFSearchDeployment
-// 	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, false)
-// 	resp.Diagnostics.Append(diagnostics...)
-// 	if resp.Diagnostics.HasError() {
-// 		return
-// 	}
-// 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
-// }
 
 const defaultNoWaitForStateTransition = false
 
@@ -160,12 +128,11 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 
-	// Determine whether to wait for state transition.
-	// Use the constant default if the parameter is not provided.
-	noWait := defaultNoWaitForStateTransition
-	if !searchDeploymentPlan.NoWaitForStateTransition.IsNull() && !searchDeploymentPlan.NoWaitForStateTransition.IsUnknown() {
-		noWait = searchDeploymentPlan.NoWaitForStateTransition.ValueBool()
+	// If no_wait_for_state_transition is not provided, default it to false.
+	if searchDeploymentPlan.NoWaitForStateTransition.IsNull() || searchDeploymentPlan.NoWaitForStateTransition.IsUnknown() {
+		searchDeploymentPlan.NoWaitForStateTransition = types.BoolValue(defaultNoWaitForStateTransition)
 	}
+	noWait := searchDeploymentPlan.NoWaitForStateTransition.ValueBool()
 
 	// Create the API request payload.
 	searchDeploymentReq := NewSearchDeploymentReq(ctx, &searchDeploymentPlan)
@@ -190,9 +157,10 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 			return
 		}
 
-		// Ensure we store all fields in state.
+		// Persist required fields in state.
 		newSearchNodeModel.ProjectID = types.StringValue(projectID)
 		newSearchNodeModel.ClusterName = types.StringValue(clusterName)
+		// Always store the attribute as a concrete boolean value.
 		newSearchNodeModel.NoWaitForStateTransition = types.BoolValue(noWait)
 		newSearchNodeModel.Specs = searchDeploymentPlan.Specs
 
@@ -226,6 +194,9 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
+
+
+
 
 func (r *searchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var searchDeploymentState *TFSearchDeploymentRSModel

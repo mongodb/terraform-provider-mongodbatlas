@@ -3,12 +3,12 @@ package boolplanmodifier
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// DefaultBoolValue is a plan modifier that sets a default boolean value if none is provided.
+// DefaultBoolValue is a plan modifier that sets a default boolean value
+// if the configuration is null or unknown.
 type DefaultBoolValue struct {
 	Value bool
 }
@@ -20,13 +20,13 @@ func (m DefaultBoolValue) Description(ctx context.Context) string {
 	return "If the attribute is not specified, default to the given boolean value."
 }
 
-// MarkdownDescription returns a markdown formatted description of the plan modifier.
+// MarkdownDescription returns a markdown formatted description.
 func (m DefaultBoolValue) MarkdownDescription(ctx context.Context) string {
 	return "If the attribute is not specified, default to the given boolean value."
 }
 
-// Modify sets the plan value to the default if the config value is null or unknown.
-func (m DefaultBoolValue) Modify(ctx context.Context, req planmodifier.ModifyAttributeRequest, resp *planmodifier.ModifyAttributeResponse) {
+// ModifyBool sets the planned value to the default if the configuration is null or unknown.
+func (m DefaultBoolValue) ModifyBool(ctx context.Context, req planmodifier.BoolModifierRequest, resp *planmodifier.BoolModifierResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		resp.PlanValue = types.BoolValue(m.Value)
 	}

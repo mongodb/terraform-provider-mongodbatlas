@@ -11,7 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/ridmagroupby/terraform-provider-mongodbatlas/internal/common/boolplanmodifier/boolplanmodifier"
+	// "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier/defaultvalue"
+
+	// "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/boolplanmodifier"
+
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -65,13 +68,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Delete: true,
 			}),
 			"no_wait_for_state_transition": schema.BoolAttribute{
-				Description: "If set to true, Terraform will not wait for the search deployment to reach an idle state (i.e. skip waiting for reindexing) after an update.",
+				Description: "If set to true, Terraform will not wait for the search deployment to reach an idle state after an update.",
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.DefaultBoolValue{Value: false},
-				},
 			},
+
 		},
 	}
 }
