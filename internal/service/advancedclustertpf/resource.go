@@ -270,8 +270,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	if diff.isUpgradeFlex() {
-		clusterResp = FlexToDedicatedUpgrade(ctx, diags, r.Client, waitParams, diff.upgradeFlexReq)
+	if diff.isUpgradeFlexToDedicated() {
+		clusterResp = FlexToDedicatedUpgrade(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
 		if diags.HasError() {
 			return
 		}
@@ -510,9 +510,9 @@ func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 }
 
 type clusterDiff struct {
-	patchReq         *admin.ClusterDescription20240805
-	upgradeTenantReq *admin.LegacyAtlasTenantClusterUpgradeRequest
-	upgradeFlexReq   *admin.AtlasTenantClusterUpgradeRequest20240805
+	patchReq                  *admin.ClusterDescription20240805
+	upgradeTenantReq          *admin.LegacyAtlasTenantClusterUpgradeRequest
+	upgradeFlexToDedicatedReq *admin.AtlasTenantClusterUpgradeRequest20240805
 }
 
 func (c *clusterDiff) isPatch() bool {
@@ -523,8 +523,8 @@ func (c *clusterDiff) isUpgradeTenant() bool {
 	return c.upgradeTenantReq != nil
 }
 
-func (c *clusterDiff) isUpgradeFlex() bool {
-	return c.upgradeFlexReq != nil
+func (c *clusterDiff) isUpgradeFlexToDedicated() bool {
+	return c.upgradeFlexToDedicatedReq != nil
 }
 
 // TODO: Struct for the response, including tenantToFlex and isUpdate, also payloads?
@@ -551,9 +551,10 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if update.IsZeroValues(patchReq) { // No changes to cluster
 		return clusterDiff{}
 	}
-	upgradeTenantReq, upgradeFlexRequest := getUpgradeRequestsFromTenantAndFlex(stateReq, patchReq)
-	if upgradeTenantReq != nil || upgradeFlexRequest != nil {
-		return clusterDiff{upgradeTenantReq: upgradeTenantReq, upgradeFlexReq: upgradeFlexRequest}
+	upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq)
+	upgradeFlexToDedicatedRequest := getUpgradeFlexToDedicatedRequest(stateReq, patchReq)
+	if upgradeTenantReq != nil || upgradeFlexToDedicatedRequest != nil {
+		return clusterDiff{upgradeTenantReq: upgradeTenantReq, upgradeFlexToDedicatedReq: upgradeFlexToDedicatedRequest}
 	}
 	return clusterDiff{patchReq: patchReq}
 }
@@ -581,7 +582,7 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 	return newFlexModel
 }
 
-func flexUpgradedUpdated(planReq, stateReq *admin.ClusterDescription20240805, diags *diag.Diagnostics) (tenantToFlex, isUpdate bool) {
+func flexUpgradedUpdated(planReq, stateReq *admin.ClusterDescription20240805, diags *diag.Diagnostics) (isTenantToFlex, isUpdate bool) {
 	if !IsFlex(planReq.ReplicationSpecs) {
 		return false, false
 	}
