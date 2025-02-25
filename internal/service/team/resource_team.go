@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -72,12 +72,12 @@ func LegacyTeamsResource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV220241113
 	orgID := d.Get("org_id").(string)
 
 	usernames := conversion.ExpandStringListFromSetSchema(d.Get("usernames").(*schema.Set))
 	teamsResp, _, err := connV2.TeamsApi.CreateTeam(ctx, orgID,
-		&admin.Team{
+		&admin20241113.Team{
 			Name:      d.Get("name").(string),
 			Usernames: usernames,
 		}).Execute()
@@ -94,7 +94,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV220241113
 
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -137,7 +137,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV220241113
 
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -145,7 +145,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("name") {
 		_, _, err := connV2.TeamsApi.RenameTeam(ctx, orgID, teamID,
-			&admin.TeamUpdate{Name: d.Get("name").(string)},
+			&admin20241113.TeamUpdate{Name: d.Get("name").(string)},
 		).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorTeamUpdate, err))
@@ -170,7 +170,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV220241113
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
@@ -178,7 +178,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	err := retry.RetryContext(ctx, 1*time.Hour, func() *retry.RetryError {
 		_, _, err := connV2.TeamsApi.DeleteTeam(ctx, orgID, id).Execute()
 		if err != nil {
-			if admin.IsErrorCode(err, "CANNOT_DELETE_TEAM_ASSIGNED_TO_PROJECT") {
+			if admin20241113.IsErrorCode(err, "CANNOT_DELETE_TEAM_ASSIGNED_TO_PROJECT") {
 				projectID, err := getProjectIDByTeamID(ctx, connV2, id)
 				if err != nil {
 					return retry.NonRetryableError(err)
@@ -232,7 +232,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func getProjectIDByTeamID(ctx context.Context, connV2 *admin.APIClient, teamID string) (string, error) {
+func getProjectIDByTeamID(ctx context.Context, connV2 *admin20241113.APIClient, teamID string) (string, error) {
 	projects, _, err := connV2.ProjectsApi.ListProjects(ctx).Execute()
 	if err != nil {
 		return "", fmt.Errorf("error getting projects information: %s", err)
@@ -254,8 +254,8 @@ func getProjectIDByTeamID(ctx context.Context, connV2 *admin.APIClient, teamID s
 	return "", nil
 }
 
-func listAllTeamUsers(ctx context.Context, connV2 *admin.APIClient, orgID, teamID string) ([]admin.CloudAppUser, error) {
-	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.CloudAppUser], *http.Response, error) {
+func listAllTeamUsers(ctx context.Context, connV2 *admin20241113.APIClient, orgID, teamID string) ([]admin20241113.CloudAppUser, error) {
+	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin20241113.CloudAppUser], *http.Response, error) {
 		request := connV2.TeamsApi.ListTeamUsers(ctx, orgID, teamID)
 		request = request.PageNum(pageNum)
 		return request.Execute()
