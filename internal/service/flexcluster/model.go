@@ -3,11 +3,13 @@ package flexcluster
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription20241113) (*TFModel, diag.Diagnostics) {
@@ -130,4 +132,52 @@ func ConvertProviderSettingsToTF(ctx context.Context, providerSettings admin.Fle
 		return nil, diags
 	}
 	return &providerSettingsObject, nil
+}
+
+func FlattenFlexConnectionStrings(str *admin.FlexConnectionStrings20241113) []map[string]any {
+	return []map[string]any{
+		{
+			"standard":     str.GetStandard(),
+			"standard_srv": str.GetStandardSrv(),
+		},
+	}
+}
+
+func FlattenFlexProviderSettingsIntoReplicationSpecs(providerSettings admin.FlexProviderSettings20241113, priority *int, zoneName *string) []map[string]any {
+	tfMaps := []map[string]any{{}}
+	tfMaps[0]["num_shards"] = 1 // default value
+	tfMaps[0]["zone_name"] = zoneName
+	tfMaps[0]["region_configs"] = []map[string]any{
+		{
+			"provider_name":         providerSettings.GetProviderName(),
+			"backing_provider_name": providerSettings.GetBackingProviderName(),
+			"region_name":           providerSettings.GetRegionName(),
+			"priority":              priority, // no-op for flex clusters, value from config is set in the state to avoid plan changes
+		},
+	}
+	return tfMaps
+}
+
+func FlattenFlexClustersToAdvancedClusters(flexClusters *[]admin.FlexClusterDescription20241113) []map[string]any {
+	if flexClusters == nil {
+		return nil
+	}
+	results := make([]map[string]any, len(*flexClusters))
+	for i := range *flexClusters {
+		flexCluster := &(*flexClusters)[i]
+		results[i] = map[string]any{
+			"cluster_type":                   flexCluster.GetClusterType(),
+			"backup_enabled":                 flexCluster.BackupSettings.GetEnabled(),
+			"connection_strings":             FlattenFlexConnectionStrings(flexCluster.ConnectionStrings),
+			"create_date":                    conversion.TimePtrToStringPtr(flexCluster.CreateDate),
+			"mongo_db_version":               flexCluster.GetMongoDBVersion(),
+			"replication_specs":              FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings, nil, nil),
+			"name":                           flexCluster.GetName(),
+			"state_name":                     flexCluster.GetStateName(),
+			"tags":                           conversion.FlattenTags(flexCluster.GetTags()),
+			"termination_protection_enabled": flexCluster.GetTerminationProtectionEnabled(),
+			"version_release_system":         flexCluster.GetVersionReleaseSystem(),
+		}
+	}
+	return results
 }

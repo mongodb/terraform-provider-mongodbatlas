@@ -45,6 +45,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						Computed:            true,
 						MarkdownDescription: "Flag that indicates whether the Amazon Web Services (AWS) Key Management Service (KMS) encryption key can encrypt and decrypt data.",
 					},
+					"require_private_networking": schema.BoolAttribute{
+						Computed:            true,
+						MarkdownDescription: "Enable connection to your Amazon Web Services (AWS) Key Management Service (KMS) over private networking.",
+					},
 				},
 				Computed:            true,
 				MarkdownDescription: "Amazon Web Services (AWS) KMS configuration details and encryption at rest configuration set for the specified project.",

@@ -101,13 +101,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	params := new(admin.GroupMaintenanceWindow)
 
-	if dayOfWeek, ok := d.GetOk("day_of_week"); ok {
-		params.DayOfWeek = cast.ToInt(dayOfWeek)
-	}
+	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
 
-	if hourOfDay, ok := d.GetOk("hour_of_day"); ok {
-		params.HourOfDay = conversion.Pointer(cast.ToInt(hourOfDay))
-	}
+	hourOfDay := d.Get("hour_of_day")
+	params.HourOfDay = conversion.Pointer(cast.ToInt(hourOfDay)) // during creation of maintenance window hourOfDay needs to be set in PATCH to avoid errors, 0 value is sent when absent
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
 		params.AutoDeferOnceEnabled = conversion.Pointer(autoDeferOnceEnabled.(bool))

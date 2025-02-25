@@ -67,6 +67,44 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 				ProjectID:                     types.StringValue(testProjectID),
 			},
 		},
+		// PrivateEndpointConnectionName is not returned for AWS
+		"nil PrivateEndpointConnectionName": {
+			SDKResp: admin.EARPrivateEndpoint{
+				CloudProvider: admin.PtrString(testCloudProvider),
+				ErrorMessage:  admin.PtrString(""),
+				Id:            admin.PtrString(testID),
+				RegionName:    admin.PtrString(testRegionName),
+				Status:        admin.PtrString(testStatus),
+			},
+			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
+				CloudProvider:                 types.StringValue(testCloudProvider),
+				ErrorMessage:                  types.StringNull(),
+				ID:                            types.StringValue(testID),
+				RegionName:                    types.StringValue(testRegionName),
+				Status:                        types.StringValue(testStatus),
+				PrivateEndpointConnectionName: types.StringNull(),
+				ProjectID:                     types.StringValue(testProjectID),
+			},
+		},
+		"empty PrivateEndpointConnectionName": {
+			SDKResp: admin.EARPrivateEndpoint{
+				CloudProvider:                 admin.PtrString(testCloudProvider),
+				ErrorMessage:                  admin.PtrString(""),
+				Id:                            admin.PtrString(testID),
+				RegionName:                    admin.PtrString(testRegionName),
+				Status:                        admin.PtrString(testStatus),
+				PrivateEndpointConnectionName: admin.PtrString(""),
+			},
+			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
+				CloudProvider:                 types.StringValue(testCloudProvider),
+				ErrorMessage:                  types.StringNull(),
+				ID:                            types.StringValue(testID),
+				RegionName:                    types.StringValue(testRegionName),
+				Status:                        types.StringValue(testStatus),
+				PrivateEndpointConnectionName: types.StringNull(),
+				ProjectID:                     types.StringValue(testProjectID),
+			},
+		},
 	}
 
 	for testName, tc := range testCases {

@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -280,8 +280,9 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	client := meta.(*config.MongoDBClient)
+	connV220240530 := client.AtlasV220240530
+	connV2 := client.AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
@@ -291,14 +292,22 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if v, ok := d.GetOk("use_replication_spec_per_shard"); ok {
 		useReplicationSpecPerShard = v.(bool)
 	}
-
-	clusterDesc, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if validate.StatusNotFound(resp) {
-			return nil
-		}
-		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+	clusterDesc, flexClusterResp, diags := GetClusterDetails(ctx, client, projectID, clusterName)
+	if diags.HasError() {
+		return diags
 	}
+	if clusterDesc == nil && flexClusterResp == nil {
+		return nil
+	}
+	if flexClusterResp != nil {
+		diags := setFlexFields(d, flexClusterResp)
+		if diags.HasError() {
+			return diags
+		}
+		d.SetId(flexClusterResp.GetId())
+		return nil
+	}
+
 	zoneNameToOldReplicationSpecMeta, err := GetReplicationSpecAttributesFromOldAPI(ctx, projectID, clusterName, connV220240530.ClustersApi)
 	if err != nil {
 		if apiError, ok := admin20240530.AsError(err); !ok {
@@ -309,7 +318,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
 		}
 	}
-	diags := setRootFields(d, clusterDesc, false)
+	diags = setRootFields(d, clusterDesc, false)
 	if diags.HasError() {
 		return diags
 	}

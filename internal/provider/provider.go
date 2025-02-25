@@ -34,6 +34,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexrestorejob"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
@@ -450,6 +452,12 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		mongodbemployeeaccessgrant.DataSource,
 		streamprivatelinkendpoint.DataSource,
 		streamprivatelinkendpoint.PluralDataSource,
+		flexcluster.DataSource,
+		flexcluster.PluralDataSource,
+		flexsnapshot.DataSource,
+		flexsnapshot.PluralDataSource,
+		flexrestorejob.DataSource,
+		flexrestorejob.PluralDataSource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
@@ -457,8 +465,6 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 	previewDataSources := []func() datasource.DataSource{
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
-		flexcluster.DataSource,
-		flexcluster.PluralDataSource,
 	} // Data sources not yet in GA
 	if providerEnablePreview {
 		dataSources = append(dataSources, previewDataSources...)
@@ -481,13 +487,13 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		encryptionatrestprivateendpoint.Resource,
 		mongodbemployeeaccessgrant.Resource,
 		streamprivatelinkendpoint.Resource,
+		flexcluster.Resource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		resources = append(resources, advancedclustertpf.Resource)
 	}
 	previewResources := []func() resource.Resource{
 		resourcepolicy.Resource,
-		flexcluster.Resource,
 	} // Resources not yet in GA
 	if providerEnablePreview {
 		resources = append(resources, previewResources...)

@@ -133,27 +133,32 @@ type TFSimpleModel struct {
 	BackupEnabled    types.Bool   `tfsdk:"backup_enabled"`
 }
 
-func TestCopyUnknowns(t *testing.T) {
-	var (
-		ctx             = context.Background()
-		regionConfigSrc = TFRegionConfig{
-			ProviderName: types.StringValue("aws"),
-			RegionName:   types.StringValue("US_EAST_1"),
-			Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Value(3)}, SpecObjType.AttrTypes),
-		}
-		regionConfigDest = TFRegionConfig{
-			ProviderName: types.StringUnknown(),
-			RegionName:   types.StringValue("US_EAST_1"),
-			Spec:         types.ObjectUnknown(SpecObjType.AttrTypes),
-		}
-		regionConfigNodeCountUnknown = TFRegionConfig{
-			ProviderName: types.StringValue("aws"),
-			RegionName:   types.StringValue("US_EAST_1"),
-			Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Unknown()}, SpecObjType.AttrTypes),
-		}
-		advancedConfigTrue = asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(true)}, AdvancedConfigObjType.AttrTypes)
-	)
+var (
+	ctx             = context.Background()
+	regionConfigSrc = TFRegionConfig{
+		ProviderName: types.StringValue("aws"),
+		RegionName:   types.StringValue("US_EAST_1"),
+		Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Value(3)}, SpecObjType.AttrTypes),
+	}
+	regionConfigDest = TFRegionConfig{
+		ProviderName: types.StringUnknown(),
+		RegionName:   types.StringValue("US_EAST_1"),
+		Spec:         types.ObjectUnknown(SpecObjType.AttrTypes),
+	}
+	regionConfigNodeCountUnknown = TFRegionConfig{
+		ProviderName: types.StringValue("aws"),
+		RegionName:   types.StringValue("US_EAST_1"),
+		Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Unknown()}, SpecObjType.AttrTypes),
+	}
+	regionConfigSpecUnknown = TFRegionConfig{
+		ProviderName: types.StringValue("aws"),
+		RegionName:   types.StringValue("US_EAST_1"),
+		Spec:         types.ObjectUnknown(SpecObjType.AttrTypes),
+	}
+	advancedConfigTrue = asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(true)}, AdvancedConfigObjType.AttrTypes)
+)
 
+func TestCopyUnknowns(t *testing.T) {
 	tests := map[string]struct {
 		src          *TFSimpleModel
 		dest         *TFSimpleModel
@@ -183,24 +188,42 @@ func TestCopyUnknowns(t *testing.T) {
 				ProjectID:        types.StringValue("src-project"),
 				Name:             types.StringValue("src-name"),
 				BackupEnabled:    types.BoolValue(true),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc}),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc, regionConfigSrc}),
 				AdvancedConfig:   advancedConfigTrue,
 			},
 			dest: &TFSimpleModel{
 				ProjectID:        types.StringUnknown(),
 				Name:             types.StringUnknown(),
 				BackupEnabled:    types.BoolUnknown(),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown}),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown, regionConfigSpecUnknown}),
 				AdvancedConfig:   types.ObjectUnknown(AdvancedConfigObjType.AttrTypes),
 			},
 			expectedDest: &TFSimpleModel{
 				ProjectID:        types.StringValue("src-project"),
 				Name:             types.StringUnknown(),
 				BackupEnabled:    types.BoolValue(true),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown}),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown, regionConfigNodeCountUnknown}),
 				AdvancedConfig:   types.ObjectUnknown(AdvancedConfigObjType.AttrTypes),
 			},
 			keepUnknown: []string{"name", "advanced_config", "zone_name", "node_count"},
+		},
+		"respect keepUnknown on object": {
+			src: &TFSimpleModel{
+				ProjectID:        types.StringValue("src-project"),
+				Name:             types.StringValue("src-name"),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc}),
+			},
+			dest: &TFSimpleModel{
+				ProjectID:        types.StringUnknown(),
+				Name:             types.StringUnknown(),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigSpecUnknown}),
+			},
+			expectedDest: &TFSimpleModel{
+				ProjectID:        types.StringValue("src-project"),
+				Name:             types.StringValue("src-name"),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSpecUnknown}),
+			},
+			keepUnknown: []string{"spec"},
 		},
 		"non-pointer input": {
 			src:          &TFSimpleModel{},
@@ -282,7 +305,6 @@ func TestCopyUnknowns(t *testing.T) {
 				})
 				return
 			}
-
 			schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown)
 			assert.Equal(t, *tc.expectedDest, *tc.dest)
 		})
@@ -315,4 +337,12 @@ func newReplicationSpecs(ctx context.Context, zoneName types.String, regionConfi
 		panic("failed to create replication spec object")
 	}
 	return types.ListValueMust(ReplicationSpecsObjType, []attr.Value{replicationSpec})
+}
+
+func combineReplicationSpecs(specs ...types.List) types.List {
+	combined := []attr.Value{}
+	for _, spec := range specs {
+		combined = append(combined, spec.Elements()...)
+	}
+	return types.ListValueMust(ReplicationSpecsObjType, combined)
 }

@@ -2,17 +2,29 @@
 
 `mongodbatlas_encryption_at_rest_private_endpoints` describes private endpoints of a particular cloud provider used for encryption at rest using customer-managed keys.
 
-~> **IMPORTANT** The Encryption at Rest using Azure Key Vault over Private Endpoints feature is available by request. To request this functionality for your Atlas deployments, contact your Account Manager. 
-To learn more about existing limitations, see [Manage Customer Keys with Azure Key Vault Over Private Endpoints](https://www.mongodb.com/docs/atlas/security/azure-kms-over-private-endpoint/#manage-customer-keys-with-azure-key-vault-over-private-endpoints).
-
 ## Example Usages
 
--> **NOTE:** Only Azure Key Vault with Azure Private Link is supported at this time.
+-> **NOTE:** Only Azure Key Vault with Azure Private Link and AWS KMS over AWS PrivateLink is supported at this time.
+
+### Encryption At Rest Azure Key Vault Private Endpoint
+To learn more about existing limitations, see [Manage Customer Keys with Azure Key Vault Over Private Endpoints](https://www.mongodb.com/docs/atlas/security/azure-kms-over-private-endpoint/#manage-customer-keys-with-azure-key-vault-over-private-endpoints).
 
 ```terraform
 data "mongodbatlas_encryption_at_rest_private_endpoints" "plural" {
   project_id     = var.atlas_project_id
   cloud_provider = "AZURE"
+}
+
+output "number_of_endpoints" {
+  value = length(data.mongodbatlas_encryption_at_rest_private_endpoints.plural.results)
+}
+```
+
+### Encryption At Rest AWS KMS Private Endpoint
+```terraform
+data "mongodbatlas_encryption_at_rest_private_endpoints" "plural" {
+  project_id     = var.atlas_project_id
+  cloud_provider = "AWS"
 }
 
 output "number_of_endpoints" {
