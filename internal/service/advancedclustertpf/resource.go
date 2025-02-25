@@ -266,24 +266,19 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if usingNewShardingConfig(ctx, configModel.ReplicationSpecs, diags) {
 		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
 	}
-	diff := findClusterDiff(ctx, &state, &configModel, diags, &patchOptions)
-	if diags.HasError() {
-		return
-	}
-	if diff.isUpgradeFlexToDedicated() {
-		clusterResp = FlexToDedicatedUpgrade(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
+	{
+		diff := findClusterDiff(ctx, &state, &configModel, diags, &patchOptions)
 		if diags.HasError() {
 			return
 		}
-	}
-	if diff.isUpgradeTenant() {
-		clusterResp = TenantUpgrade(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
-		if diags.HasError() {
-			return
+		switch {
+		case diff.isUpgradeFlexToDedicated():
+			clusterResp = UpgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
+		case diff.isUpgradeTenant():
+			clusterResp = UpgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
+		case diff.isPatch():
+			clusterResp = r.applyClusterChanges(ctx, diags, &state, &configModel, diff.patchReq, waitParams)
 		}
-	}
-	if diff.isPatch() {
-		clusterResp = r.applyClusterChanges(ctx, diags, &state, &configModel, diff.patchReq, waitParams)
 		if diags.HasError() {
 			return
 		}
