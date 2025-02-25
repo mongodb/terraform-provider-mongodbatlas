@@ -13,13 +13,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 )
 
-const (
-	minimizeLevelNever   = "never"
-	minimizeLevelDefault = "default"
-	minimizeLevelAlways  = "always"
-	envVarNameMinimize   = "MONGODB_ATLAS_PLAN_MINIMIZE"
-)
-
 var (
 	// The flex cluster API doesn't return the same fields as the tenant API; therefore, computed fields will be `null` after the upgrade
 	keepUnknownTenantToFlex      = []string{"connection_strings", "state_name", "advanced_configuration", "encryption_at_rest_provider", "root_cert_type", "bi_connector_config", "mongo_db_major_version"}
@@ -44,22 +37,6 @@ var (
 		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
 	}
 )
-
-func getMinimizeLevel() string {
-	envValue := strings.ToLower(os.Getenv(envVarNameMinimize))
-	if envValue == "" {
-		return minimizeLevelAlways // Experimenting with always to try to find bugs
-	}
-	return envValue
-}
-
-func minimizeNever() bool {
-	return getMinimizeLevel() == minimizeLevelNever
-}
-
-func minimizeAlways() bool {
-	return getMinimizeLevel() == minimizeLevelAlways
-}
 
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	if !schemafunc.HasUnknowns(plan) {
