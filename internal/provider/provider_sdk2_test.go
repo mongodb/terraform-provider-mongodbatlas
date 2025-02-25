@@ -7,7 +7,7 @@ import (
 )
 
 func TestSdkV2Provider(t *testing.T) {
-	if err := provider.NewSdkV2Provider(nil).InternalValidate(); err != nil {
+	if err := provider.NewSdkV2Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
