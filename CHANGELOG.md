@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.28.0 (February 25, 2025)
+
 ENHANCEMENTS:
 
 * resource/mongodbatlas_encryption_at_rest: Adds support for `aws_kms_config.requirePrivateNetworking` ([#2951](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2951))
