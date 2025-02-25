@@ -11,10 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	// "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier/defaultvalue"
-
-	// "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/boolplanmodifier"
-
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
