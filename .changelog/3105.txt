@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_project: Sets default value for `with_default_alerts_settings` during state import
+```
