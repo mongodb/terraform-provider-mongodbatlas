@@ -39,9 +39,6 @@ var (
 )
 
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	if !schemafunc.HasUnknowns(plan) {
-		return
-	}
 	stateReq := normalizeFromTFModel(ctx, state, diags, false)
 	planReq := normalizeFromTFModel(ctx, plan, diags, false)
 	if diags.HasError() {

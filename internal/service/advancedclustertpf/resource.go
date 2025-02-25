@@ -16,6 +16,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -98,7 +99,7 @@ type rs struct {
 // 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
 // 2. Adding the different UseStateForUnknown is very verbose.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Can be null in case of destroy
+	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Don't do anything if plan or state is null, this happens in Create, Delete or Import
 		return
 	}
 	var plan, state TFModel
@@ -108,7 +109,10 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
-	useStateForUnknowns(ctx, diags, &state, &plan)
+	if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read
+		return
+	}
+	useStateForUnknowns(ctx, diags, &state, &plan) // Do only for Update
 	if diags.HasError() {
 		return
 	}
