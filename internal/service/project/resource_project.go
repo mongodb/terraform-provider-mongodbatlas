@@ -333,9 +333,13 @@ func (r *projectRS) ImportState(ctx context.Context, req resource.ImportStateReq
 }
 
 func updatePlanFromConfig(projectPlanNewPtr, projectPlan *TFProjectRSModel) {
-	// we need to reset defaults from what was previously in the state:
-	// https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
-	projectPlanNewPtr.WithDefaultAlertsSettings = projectPlan.WithDefaultAlertsSettings
+	// After import the state&plan will be null so we set to true (default value)
+	if projectPlanNewPtr.WithDefaultAlertsSettings.IsNull() && projectPlan.WithDefaultAlertsSettings.IsNull() {
+		projectPlanNewPtr.WithDefaultAlertsSettings = types.BoolValue(true)
+	} else {
+		// Force value from plan as this is not returned from the API to avoid inconsistent result errors
+		projectPlanNewPtr.WithDefaultAlertsSettings = projectPlan.WithDefaultAlertsSettings
+	}
 	projectPlanNewPtr.ProjectOwnerID = projectPlan.ProjectOwnerID
 	if projectPlan.Tags.IsNull() && len(projectPlanNewPtr.Tags.Elements()) == 0 {
 		projectPlanNewPtr.Tags = types.MapNull(types.StringType)
