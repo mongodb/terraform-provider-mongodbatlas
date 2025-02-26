@@ -338,6 +338,7 @@ func updatePlanFromConfig(projectPlanNewPtr, projectPlan *TFProjectRSModel) {
 		projectPlanNewPtr.WithDefaultAlertsSettings = types.BoolValue(true)
 	} else {
 		// Force value from plan as this is not returned from the API to avoid inconsistent result errors
+		// https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
 		projectPlanNewPtr.WithDefaultAlertsSettings = projectPlan.WithDefaultAlertsSettings
 	}
 	projectPlanNewPtr.ProjectOwnerID = projectPlan.ProjectOwnerID
