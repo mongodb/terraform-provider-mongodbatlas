@@ -285,8 +285,8 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "updated_user", projectID, err))
 	}
 
-	if err := d.Set("on_demand_policy_item", flattenOnDemandBackupPolicyItem(policy.GetOnDemandPolicyItem())); err != nil {
-		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "policies", projectID, err))
+	if err := d.Set("on_demand_policy_item", flattenOnDemandBackupPolicyItem(policy.OnDemandPolicyItem)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorSnapshotBackupPolicySetting, "on_demand_policy_item", projectID, err))
 	}
 
 	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Hourly)); err != nil {
