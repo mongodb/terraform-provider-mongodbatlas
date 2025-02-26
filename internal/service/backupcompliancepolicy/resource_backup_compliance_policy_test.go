@@ -137,6 +137,7 @@ func TestAccBackupCompliancePolicy_UpdateSetsAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "on_demand_policy_item.0.retention_value", "3"),
 				),
 			},
 			{
@@ -335,14 +336,6 @@ func configWithoutRestoreDaysAndOnDemand(projectName, orgID, projectOwnerID stri
 			copy_protection_enabled    = false
 			pit_enabled                = false
 			encryption_at_rest_enabled = false
-			
-			# restore_window_days = 7
-			
-			# on_demand_policy_item {
-			# 	frequency_interval = 0
-			# 	retention_unit     = "days"
-			# 	retention_value    = 3
-			# }
 			
 			policy_item_hourly {
 				frequency_interval = 6
