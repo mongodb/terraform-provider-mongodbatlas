@@ -69,7 +69,8 @@ variable "replication_specs_new" {
   description = "List of replication specifications using new mongodbatlas_advanced_cluster format"
   default     = []
   type = list(object({
-    zone_name = optional(string, "Zone 1")
+    zone_name  = optional(string, "Zone 1")
+    num_shards = optional(number, 1)
 
     region_configs = list(object({
       region_name   = string
@@ -118,5 +119,6 @@ variable "search_nodes_specs" {
 }
 
 variable "encryption_at_rest_provider" {
-  type = string
+  type     = string
+  nullable = true
 }

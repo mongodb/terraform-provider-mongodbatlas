@@ -11,7 +11,7 @@ tags = {
 }
 replication_specs = [
   {
-    num_shards = 4
+    num_shards = 2
     zone_name  = "Zone 1"
     regions_config = [
       {
