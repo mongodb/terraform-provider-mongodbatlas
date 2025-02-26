@@ -29,18 +29,12 @@ var (
 )
 
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	stateReq := normalizeFromTFModel(ctx, state, diags, false)
-	planReq := normalizeFromTFModel(ctx, plan, diags, false)
-	if diags.HasError() {
-		return
-	}
-	isUpgradeTenantToFlex, _ := flexUpgradedUpdated(planReq, stateReq, diags)
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() {
 		return
 	}
-	if isUpgradeTenantToFlex || diff.isUpgradeTenant() || diff.isUpgradeFlexToDedicated() {
-		return // Don't do anything in upgrades
+	if diff.isAnyUpgrade() { // Don't do anything in upgrades
+		return
 	}
 	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
@@ -51,7 +45,6 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	}
 }
 
-// TODO: last change to use instead of sdk model
 func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges) {
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)

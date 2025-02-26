@@ -229,43 +229,33 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-
-	stateReq := normalizeFromTFModel(ctx, &state, diags, false)
-	configReq := normalizeFromTFModel(ctx, &configModel, diags, false)
 	waitParams := resolveClusterWaitParams(ctx, &configModel, diags, operationUpdate)
 	if diags.HasError() {
 		return
 	}
-	isUpgradeTenantToFlex, flexUpdate := flexUpgradedUpdated(configReq, stateReq, diags)
-	if diags.HasError() {
-		return
-	}
-	if isUpgradeTenantToFlex || flexUpdate {
-		var flexOut *TFModel
-		if isUpgradeTenantToFlex {
-			flexOut = handleFlexUpgrade(ctx, diags, r.Client, waitParams, configReq, &configModel)
-		} else {
-			flexOut = handleFlexUpdate(ctx, diags, r.Client, &configModel, configReq)
-		}
-		if flexOut != nil {
-			diags.Append(resp.State.Set(ctx, flexOut)...)
-		}
-		return
-	}
-
-	var clusterResp *admin.ClusterDescription20240805
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	clusterResp = r.applyPinnedFCVChanges(ctx, diags, &state, &configModel, waitParams)
+	clusterResp := r.applyPinnedFCVChanges(ctx, diags, &state, &configModel, waitParams)
 	if diags.HasError() {
 		return
 	}
+
 	{
 		diff := findClusterDiff(ctx, &state, &configModel, diags)
 		if diags.HasError() {
 			return
 		}
 		switch {
+		case diff.isUpgradeTenantToFlex:
+			if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &configModel); flexOut != nil {
+				diags.Append(resp.State.Set(ctx, flexOut)...)
+			}
+			return
+		case diff.isUpdateOfFlex:
+			if flexOut := handleFlexUpdate(ctx, diags, r.Client, &configModel); flexOut != nil {
+				diags.Append(resp.State.Set(ctx, flexOut)...)
+			}
+			return
 		case diff.isUpgradeFlexToDedicated():
 			clusterResp = UpgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
 		case diff.isUpgradeTenant():
@@ -502,6 +492,8 @@ type clusterDiff struct {
 	clusterPatchOnlyReq       *admin.ClusterDescription20240805
 	upgradeTenantReq          *admin.LegacyAtlasTenantClusterUpgradeRequest
 	upgradeFlexToDedicatedReq *admin.AtlasTenantClusterUpgradeRequest20240805
+	isUpgradeTenantToFlex     bool
+	isUpdateOfFlex            bool
 }
 
 func (c *clusterDiff) isClusterPatchOnly() bool {
@@ -516,7 +508,10 @@ func (c *clusterDiff) isUpgradeFlexToDedicated() bool {
 	return c.upgradeFlexToDedicatedReq != nil
 }
 
-// TODO: Struct for the response, including tenantToFlex and isUpdate, also payloads?
+func (c *clusterDiff) isAnyUpgrade() bool {
+	return c.isUpgradeTenantToFlex || c.isUpgradeTenant() || c.isUpgradeFlexToDedicated()
+}
+
 func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) clusterDiff {
 	if _ = isShardingConfigUpgrade(ctx, state, plan, diags); diags.HasError() { // Checks that there is no change from new sharding config to old one
 		return clusterDiff{}
@@ -526,6 +521,18 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if diags.HasError() {
 		return clusterDiff{}
 	}
+
+	if IsFlex(planReq.ReplicationSpecs) {
+		if isValidUpgradeTenantToFlex(stateReq, planReq) {
+			return clusterDiff{isUpgradeTenantToFlex: true}
+		}
+		if isValidUpdateOfFlex(stateReq, planReq) {
+			return clusterDiff{isUpdateOfFlex: true}
+		}
+		diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
+		return clusterDiff{}
+	}
+
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
@@ -553,41 +560,35 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	return clusterDiff{clusterPatchOnlyReq: patchReq}
 }
 
-func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, planReq *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
-	flexCluster := FlexUpgrade(ctx, diags, client, waitParams, GetUpgradeToFlexClusterRequest(planReq))
+func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, configModel *TFModel) *TFModel {
+	configReq := normalizeFromTFModel(ctx, configModel, diags, false)
 	if diags.HasError() {
 		return nil
 	}
-	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), modelIn)
+	flexCluster := FlexUpgrade(ctx, diags, client, waitParams, GetUpgradeToFlexClusterRequest(configReq))
+	if diags.HasError() {
+		return nil
+	}
+	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), configModel)
 }
 
-func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel, planReq *admin.ClusterDescription20240805) *TFModel {
-	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(),
-		GetFlexClusterUpdateRequest(planReq.Tags, planReq.TerminationProtectionEnabled),
+func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, configModel *TFModel) *TFModel {
+	configReq := normalizeFromTFModel(ctx, configModel, diags, false)
+	if diags.HasError() {
+		return nil
+	}
+	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, configModel.ProjectID.ValueString(), configModel.Name.ValueString(),
+		GetFlexClusterUpdateRequest(configReq.Tags, configReq.TerminationProtectionEnabled),
 		client.AtlasV2.FlexClustersApi)
 	if err != nil {
 		diags.AddError(flexcluster.ErrorUpdateFlex, err.Error())
 		return nil
 	}
-	newFlexModel := NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(planReq.ReplicationSpecs), plan)
+	newFlexModel := NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), configModel)
 	if diags.HasError() {
 		return nil
 	}
 	return newFlexModel
-}
-
-func flexUpgradedUpdated(planReq, stateReq *admin.ClusterDescription20240805, diags *diag.Diagnostics) (isUpgradeTenantToFlex, isUpdate bool) {
-	if !IsFlex(planReq.ReplicationSpecs) {
-		return false, false
-	}
-	if isValidUpgradeToFlex(stateReq, planReq) {
-		return true, false
-	}
-	if isValidUpdateOfFlex(stateReq, planReq) {
-		return false, true
-	}
-	diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
-	return false, false
 }
 
 func isShardingConfigUpgrade(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) bool {
