@@ -28,6 +28,7 @@ var (
 	}
 )
 
+// useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() {

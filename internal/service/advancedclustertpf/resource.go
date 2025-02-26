@@ -512,8 +512,9 @@ func (c *clusterDiff) isAnyUpgrade() bool {
 	return c.isUpgradeTenantToFlex || c.isUpgradeTenant() || c.isUpgradeFlexToDedicated()
 }
 
+// findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
 func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) clusterDiff {
-	if _ = isShardingConfigUpgrade(ctx, state, plan, diags); diags.HasError() { // Checks that there is no change from new sharding config to old one
+	if _ = isShardingConfigUpgrade(ctx, state, plan, diags); diags.HasError() { // Checks that there is no downgrade from new sharding config to old one
 		return clusterDiff{}
 	}
 	stateReq := normalizeFromTFModel(ctx, state, diags, false)
@@ -584,11 +585,7 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 		diags.AddError(flexcluster.ErrorUpdateFlex, err.Error())
 		return nil
 	}
-	newFlexModel := NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), configModel)
-	if diags.HasError() {
-		return nil
-	}
-	return newFlexModel
+	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), configModel)
 }
 
 func isShardingConfigUpgrade(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) bool {
