@@ -144,6 +144,7 @@ In addition to all arguments above, the following attributes are exported:
 *  `state` - Label that indicates the state of the Backup Compliance Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
 * `updated_date` - ISO 8601 timestamp format in UTC that indicates when the user updated the Data Protection Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
 * `updated_user` - Email address that identifies the user who updated the Backup Compliance Policy settings. MongoDB Cloud ignores this email setting when you enable or update the Backup Compliance Policy settings.
+* `on_demand_policy_item` - Specifications for [on-demand policy](#on-demand-policy-item).
 
 ### On Demand Policy Item
 * `id` - Unique identifier of the backup policy item.
