@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_backup_compliance_policy: Changes `on_demand_policy_item` attribute from `required` to `optional`
+```
