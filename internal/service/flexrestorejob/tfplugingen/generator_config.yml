@@ -1,0 +1,21 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  flex_restore_job:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs/{restoreJobId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs
+      method: POST
+
+data_sources:
+  flex_restore_job:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs/{restoreJobId}
+      method: GET
+  flex_restore_jobs:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs
+      method: GET

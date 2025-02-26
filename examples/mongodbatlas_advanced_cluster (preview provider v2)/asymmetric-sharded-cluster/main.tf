@@ -9,54 +9,67 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type   = "SHARDED"
   backup_enabled = true
 
-  replication_specs = [{ # shard 1 - M30 instance size
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        disk_iops     = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-    }, { # shard 2 - M30 instance size
+  replication_specs = [
+    { # shard 1 - M30 instance size
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            disk_iops     = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    },
+    { # shard 2 - M30 instance size
 
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        disk_iops     = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-    }, { # shard 3 - M40 instance size
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            disk_iops     = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    },
+    { # shard 3 - M40 instance size
 
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M40"
-        disk_iops     = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-    }, { # shard 4 - M40 instance size
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M40"
+            disk_iops     = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    },
+    { # shard 4 - M40 instance size
 
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M40"
-        disk_iops     = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-  }]
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M40"
+            disk_iops     = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    }
+  ]
 
   advanced_configuration = {
     javascript_enabled                   = true

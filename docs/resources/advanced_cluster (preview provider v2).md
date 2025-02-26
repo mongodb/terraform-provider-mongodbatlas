@@ -2,7 +2,9 @@
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters. The resource requires your Project ID.
 
-This doc is for the **Preview for MongoDB Atlas Provider v2** of `mongodbatlas_advanced_cluster`, doc for current version can be found [here](./advanced_cluster). In order to enable the Preview, you must set the enviroment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`, otherwise the current version will be used.
+This page describes the **Preview for MongoDB Atlas Provider v2** of `mongodbatlas_advanced_cluster`, the page for the current version can be found [here](./advanced_cluster). In order to enable the Preview, you must set the enviroment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`, otherwise the current version will be used.
+
+To learn more about the new changes, see the [Migration Guide: Advanced Cluster Preview Provider v2](../guides/advanced-cluster-preview-provider-v2).
 
 More information on considerations for using advanced clusters please see [Considerations](https://docs.atlas.mongodb.com/reference/api/cluster-advanced/create-one-cluster-advanced/#considerations)
 
@@ -18,6 +20,7 @@ More information on considerations for using advanced clusters please see [Consi
 
 -> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
 
+-> **NOTE:** This resource supports Flex clusters. Additionally, you can upgrade [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex) and [Flex clusters to Dedicated](#Example-Flex-Cluster-Upgrade). When creating a Flex cluster, make sure to set the priority value to 7.
 
 ## Example Usage
 
@@ -29,21 +32,25 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = "PROJECT ID"
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
-  replication_specs = [{
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs = {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-    }]
-  }]
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 3
+          }
+          analytics_specs = {
+            instance_size = "M10"
+            node_count    = 1
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -55,25 +62,27 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
 
-  replication_specs = [{
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M0"
-      }
-      provider_name         = "TENANT"
-      backing_provider_name = "AWS"
-      region_name           = "US_EAST_1"
-      priority              = 7
-    }]
-  }]
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M0"
+          }
+          provider_name         = "TENANT"
+          backing_provider_name = "AWS"
+          region_name           = "US_EAST_1"
+          priority              = 7
+        }
+      ]
+    }
+  ]
 }
 ```
 
-**NOTE:** There can only be one M0 cluster per project.
+**NOTE**: Upgrading the tenant cluster to a Flex cluster or a dedicated cluster is supported. When upgrading to a Flex cluster, change the `provider_name` from "TENANT" to "FLEX". See [Example Tenant Cluster Upgrade to Flex](#example-tenant-cluster-upgrade-to-flex) below. When upgrading to a dedicated cluster, change the `provider_name` to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`. See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below. You can upgrade a tenant cluster only to a single provider on an M10-tier cluster or greater.
 
-**NOTE**: Upgrading the shared tier is supported. Any change from a shared tier cluster (a tenant) to a different instance size will be considered a tenant upgrade. When upgrading from the shared tier, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below. You can upgrade a shared tier cluster only to a single provider on an M10-tier cluster or greater. 
-
-When upgrading from the shared tier, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
+When upgrading from the tenant, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
 
 
 ### Example Tenant Cluster Upgrade
@@ -84,16 +93,96 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
 
-  replication_specs = [{
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M10"
-      }
-      provider_name         = "AWS"
-      region_name           = "US_EAST_1"
-      priority              = 7
-    }]
-  }]
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+          }
+          provider_name         = "AWS"
+          region_name           = "US_EAST_1"
+          priority              = 7
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Example Tenant Cluster Upgrade to Flex
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "example-flex" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+
+  replication_specs = [ 
+    {
+      region_configs = [
+        {
+          provider_name = "FLEX"
+          backing_provider_name = "AWS"
+          region_name = "US_EAST_1"
+          priority = 7
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Example Flex Cluster
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "example-flex" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          provider_name = "FLEX"
+          backing_provider_name = "AWS"
+          region_name = "US_EAST_1"
+          priority = 7
+        }
+      ]
+    }
+  ]
+}
+```
+
+**NOTE**: Upgrading the Flex cluster is supported. When upgrading from a Flex cluster, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Flex Cluster Upgrade](#Example-Flex-Cluster-Upgrade) below. You can upgrade a Flex cluster only to a single provider on an M10-tier cluster or greater. 
+
+When upgrading from a flex cluster, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
+
+
+### Example Flex Cluster Upgrade
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+          }
+          provider_name         = "AWS"
+          region_name           = "US_EAST_1"
+          priority              = 7
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -104,29 +193,34 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "NAME OF CLUSTER"
   cluster_type = "REPLICASET"
 
-  replication_specs = [{
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs = {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-      }, {
-      electable_specs = {
-        instance_size = "M10"
-        node_count    = 2
-      }
-      provider_name = "GCP"
-      priority      = 6
-      region_name   = "NORTH_AMERICA_NORTHEAST_1"
-    }]
-  }]
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 3
+          }
+          analytics_specs = {
+            instance_size = "M10"
+            node_count    = 1
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }, 
+        {
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 2
+          }
+          provider_name = "GCP"
+          priority      = 6
+          region_name   = "NORTH_AMERICA_NORTHEAST_1"
+        }
+      ]
+    }
+  ]
 }
 ```
 ### Example of a Multi Cloud Sharded Cluster with 2 shards
@@ -138,43 +232,52 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type = "SHARDED"
   backup_enabled = true
 
-  replication_specs = [{   # shard 1
-    region_configs = [{ 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-      }, { 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
-    }]
-    }, {   # shard 2
-    region_configs = [{ 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-      }, { 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
-    }]
-	}]
+  replication_specs = [
+    {   # shard 1
+      region_configs = [
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }, 
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "US_EAST_2"
+        }
+      ]
+    }, 
+    {   # shard 2
+      region_configs = [
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }, 
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "US_EAST_2"
+        }
+      ]
+    }
+  ]
 
   advanced_configuration = {
     javascript_enabled                   = true
@@ -192,87 +295,103 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   cluster_type   = "GEOSHARDED"
   backup_enabled = true
 
-  replication_specs = [{ # shard 1 - zone n1
-    zone_name  = "zone n1"
+  replication_specs = [
+    { # shard 1 - zone n1
+      zone_name  = "zone n1"
 
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-      }, {
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
-    }]
-    }, {  # shard 2 - zone n1
-    zone_name  = "zone n1"
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }, 
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "US_EAST_2"
+        }
+      ]
+    }, 
+    {  # shard 2 - zone n1
+      zone_name  = "zone n1"
 
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-      }, {
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "US_EAST_2"
-    }]
-    }, {  # shard 1 - zone n2
-    zone_name  = "zone n2"
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }, 
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "US_EAST_2"
+        }
+      ]
+    }, 
+    {  # shard 1 - zone n2
+      zone_name  = "zone n2"
 
-    region_configs = [{ 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-      }, {
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "EUROPE_NORTH"
-    }]
-    }, {  # shard 2 - zone n2
-    zone_name  = "zone n2"
+      region_configs = [
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }, 
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "EUROPE_NORTH"
+        }
+      ]
+    }, 
+    {  # shard 2 - zone n2
+      zone_name  = "zone n2"
 
-    region_configs = [{ 
-      electable_specs = {
-        instance_size = "M30"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-      }, {
-      electable_specs ={
-        instance_size = "M30"
-        node_count    = 2
-      }
-      provider_name = "AZURE"
-      priority      = 6
-      region_name   = "EUROPE_NORTH"
-    }]
-  }]
+      region_configs = [
+        { 
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }, {
+          electable_specs ={
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AZURE"
+          priority      = 6
+          region_name   = "EUROPE_NORTH"
+        }
+      ]
+    }
+  ]
 
   advanced_configuration = {
     javascript_enabled                   = true
@@ -336,7 +455,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique ID for the project to create the database user.
+* `project_id` - (Required) Unique ID for the project to create the cluster.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed. **WARNING** Changing the name will result in destruction of the existing cluster and the creation of a new cluster.
 
 * `backup_enabled` - (Optional) Flag that indicates whether the cluster can perform backups.
@@ -344,7 +463,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
   Backup uses:
   [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/#std-label-backup-cloud-provider) for dedicated clusters.
-  [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/#std-label-m2-m5-snapshots) for tenant clusters.
+  [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters.
   If "`backup_enabled`" : `false`, the cluster doesn't use Atlas backups.
 
 This parameter defaults to false.
@@ -380,9 +499,9 @@ This parameter defaults to false.
   }`
 * `timeouts`- (Optional) The duration of time to wait for Cluster to be created, updated, or deleted. The timeout value is defined by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Advanced Cluster create & delete is `3h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `accept_data_risks_and_force_replica_set_reconfig` - (Optional) If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set `accept_data_risks_and_force_replica_set_reconfig` to the current date. Learn more about Reconfiguring a Replica Set during a regional outage [here](https://dochub.mongodb.org/core/regional-outage-reconfigure-replica-set).
-* `global_cluster_self_managed_sharding` - (Optional) Flag that indicates if cluster uses Atlas-Managed Sharding (false, default) or Self-Managed Sharding (true). It can only be enabled for Global Clusters (`GEOSHARDED`). It cannot be changed once the cluster is created. Use this mode if you're an advanced user and the default configuration is too restrictive for your workload. If you select this option, you must manually configure the sharding strategy, more info [here](https://www.mongodb.com/docs/atlas/tutorial/create-global-cluster/#select-your-sharding-configuration).
+* `global_cluster_self_managed_sharding` - (Optional) Flag that indicates if cluster uses Atlas-Managed Sharding (false, default) or Self-Managed Sharding (true). It can only be enabled for Global Clusters (`GEOSHARDED`). It cannot be changed once the cluster is created. Use this mode if you're an advanced user and the default configuration is too restrictive for your workload. If you select this option, you must manually configure the sharding strategy, more information [here](https://www.mongodb.com/docs/atlas/tutorial/create-global-cluster/#select-your-sharding-configuration).
 * `replica_set_scaling_strategy` - (Optional) Replica set scaling mode for your cluster. Valid values are `WORKLOAD_TYPE`, `SEQUENTIAL` and `NODE_TYPE`. By default, Atlas scales under `WORKLOAD_TYPE`. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes. When configured as `SEQUENTIAL`, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads. When configured as `NODE_TYPE`, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads. [Modify the Replica Set Scaling Mode](https://dochub.mongodb.org/core/scale-nodes)
-* `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more info. Use this in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements. **Note**: Changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated.
+* `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more information. Use this in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements. **Note**: Changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated.
 * `config_server_management_mode` - (Optional) Config Server Management Mode for creating or updating a sharded cluster. Valid values are `ATLAS_MANAGED` (default) and `FIXED_TO_DEDICATED`. When configured as `ATLAS_MANAGED`, Atlas may automatically switch the cluster's config server type for optimal performance and savings. When configured as `FIXED_TO_DEDICATED`, the cluster will always use a dedicated config server. To learn more, see the [Sharded Cluster Config Servers documentation](https://dochub.mongodb.org/docs/manual/core/sharded-cluster-config-servers/).
 
 ### bi_connector_config
@@ -396,7 +515,7 @@ bi_connector_config = {
 }
 ```
 
-* `enabled` - (Optional) Specifies whether or not BI Connector for Atlas is enabled on the cluster.l
+* `enabled` - (Optional) Specifies whether or not BI Connector for Atlas is enabled on the cluster.
 *
   - Set to `true` to enable BI Connector for Atlas.
   - Set to `false` to disable BI Connector for Atlas.
@@ -429,7 +548,7 @@ Include **desired options** within advanced_configuration:
 * `default_write_concern` - (Optional) [Default level of acknowledgment requested from MongoDB for write operations](https://docs.mongodb.com/manual/reference/write-concern/) set for this cluster. MongoDB 4.4 clusters default to [1](https://docs.mongodb.com/manual/reference/write-concern/).
 * `fail_index_key_too_long` - (Optional) When true, documents can only be updated or inserted if, for all indexed fields on the target collection, the corresponding index entries do not exceed 1024 bytes. When false, mongod writes documents that exceed the limit but does not index them. **(DEPRECATED)** This parameter has been removed as of [MongoDB 4.4](https://www.mongodb.com/docs/manual/reference/parameters/#mongodb-parameter-param.failIndexKeyTooLong).
 * `javascript_enabled` - (Optional) When true, the cluster allows execution of operations that perform server-side executions of JavaScript. When false, the cluster disables execution of those operations.
-* `minimum_enabled_tls_protocol` - (Optional) Sets the minimum Transport Layer Security (TLS) version the cluster accepts for incoming connections.Valid values are:
+* `minimum_enabled_tls_protocol` - (Optional) Sets the minimum Transport Layer Security (TLS) version the cluster accepts for incoming connections. Valid values are:
 
   - TLS1_0
   - TLS1_1
@@ -448,7 +567,7 @@ Include **desired options** within advanced_configuration:
 * `custom_openssl_cipher_config_tls12` - (Optional) The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.
 
 
-### Tags
+### tags
 
  ```terraform
  tags = {
@@ -487,29 +606,34 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ```terraform
 //Example Multicloud
-replication_specs = [{
-  region_configs = [{
-    electable_specs = {
-      instance_size = "M10"
-      node_count    = 3
-    }
-    analytics_specs = {
-      instance_size = "M10"
-      node_count    = 1
-    }
-    provider_name = "AWS"
-    priority      = 7
-    region_name   = "US_EAST_1"
-  }, {
-    electable_specs = {
-      instance_size = "M10"
-      node_count    = 2
-    }
-    provider_name = "GCP"
-    priority      = 6
-    region_name   = "NORTH_AMERICA_NORTHEAST_1"
-  }]
-}]
+replication_specs = [
+  {
+    region_configs = [
+      {
+        electable_specs = {
+          instance_size = "M10"
+          node_count    = 3
+        }
+        analytics_specs = {
+          instance_size = "M10"
+          node_count    = 1
+        }
+        provider_name = "AWS"
+        priority      = 7
+        region_name   = "US_EAST_1"
+      }, 
+      {
+        electable_specs = {
+          instance_size = "M10"
+          node_count    = 2
+        }
+        provider_name = "GCP"
+        priority      = 6
+        region_name   = "NORTH_AMERICA_NORTHEAST_1"
+      }
+    ]
+  }
+]
 ```
 
 * `id` - **(DEPRECATED)** Unique identifer of the replication document for a zone in a Global Cluster. This value corresponds to the legacy sharding schema (no independent shard scaling) and is different from the Shard ID you may see in the Atlas UI. This value is not populated (empty string) when a sharded cluster has independently scaled shards.
@@ -523,11 +647,11 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
 
 ### region_configs
 
-* `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#specs)
-* `auto_scaling` - (Optional) Configuration for the collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#auto_scaling)
-* `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#analytics_auto_scaling)
-* `backing_provider_name` - (Optional) Cloud service provider on which you provision the host for a multi-tenant cluster. Use this only when a `provider_name` is `TENANT` and `instance_size` of a specs is `M2` or `M5`.
-* `electable_specs` - (Optional) Hardware specifications for electable nodes in the region. Electable nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you do not specify this option, no electable nodes are deployed to the region. See [below](#specs)
+* `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#specs).
+* `auto_scaling` - (Optional) Configuration for the collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#auto_scaling).
+* `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#analytics_auto_scaling).
+* `backing_provider_name` - (Optional) Cloud service provider on which you provision the host for a multi-tenant cluster. Use this only when a `provider_name` is `TENANT` and `instance_size` is `M0`.
+* `electable_specs` - (Optional) Hardware specifications for electable nodes in the region. Electable nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you do not specify this option, no electable nodes are deployed to the region. See [below](#specs).
 * `priority` - (Optional)  Election priority of the region. For regions with only read-only nodes, set this value to 0.
   * If you have multiple `region_configs` objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is 7.
   * If your region has set `region_configs[#].electable_specs.node_count` to 1 or higher, it must have a priority of exactly one (1) less than another region in the `replication_specs[#].region_configs[#]` array. The highest-priority region must have a priority of 7. The lowest possible priority is 1.
@@ -537,8 +661,8 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
   - `AWS` - Amazon AWS
   - `GCP` - Google Cloud Platform
   - `AZURE` - Microsoft Azure
-  - `TENANT` - M0, M2 or M5 multi-tenant cluster. Use `replication_specs.[#].region_configs[#].backing_provider_name` to set the cloud service provider.
-* `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#specs)
+  - `TENANT` - M0 multi-tenant cluster. Use `replication_specs.[#].region_configs[#].backing_provider_name` to set the cloud service provider.
+* `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#specs).
 * `region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 
 ### electable_specs
@@ -629,9 +753,9 @@ lifecycle {
 In addition to all arguments above, the following attributes are exported:
 
 * `cluster_id` - The cluster ID.
-*  `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
+* `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
 * `id` -	The Terraform's unique identifier used internally for state management.
-* `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More info in [Connection-strings](https://docs.mongodb.com/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://docs.atlas.mongodb.com/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
+* `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More information in [Connection-strings](https://docs.mongodb.com/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://docs.atlas.mongodb.com/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
 
    **NOTE** Connection strings must be returned as a list, therefore to refer to a specific attribute value add index notation. Example: mongodbatlas_advanced_cluster.cluster-test.connection_strings.0.standard_srv
 
@@ -659,6 +783,7 @@ In addition to all arguments above, the following attributes are exported:
     - REPAIRING
 * `replication_specs[#].container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 * `config_server_type` Describes a sharded cluster's config server type. Valid values are `DEDICATED` and `EMBEDDED`. To learn more, see the [Sharded Cluster Config Servers documentation](https://dochub.mongodb.org/docs/manual/core/sharded-cluster-config-servers/).
+* `pinned_fcv.version` - Feature compatibility version of the cluster.
 
 
 ## Import

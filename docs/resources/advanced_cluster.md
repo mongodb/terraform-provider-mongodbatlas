@@ -2,7 +2,7 @@
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters. The resource requires your Project ID.
 
-This doc is for the current version of `mongodbatlas_advanced_cluster`, doc for **Preview for MongoDB Atlas Provider v2** can be found [here](./advanced_cluster%2520%2528preview%2520provider%2520v2%2529).
+This page describes the current version of `mongodbatlas_advanced_cluster`, the page for the **Preview for MongoDB Atlas Provider v2** can be found [here](./advanced_cluster%2520%2528preview%2520provider%2520v2%2529).
 
 More information on considerations for using advanced clusters please see [Considerations](https://docs.atlas.mongodb.com/reference/api/cluster-advanced/create-one-cluster-advanced/#considerations)
 
@@ -18,6 +18,7 @@ More information on considerations for using advanced clusters please see [Consi
 
 -> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
 
+-> **NOTE:** This resource supports Flex clusters. Additionally, you can upgrade [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex) and [Flex clusters to Dedicated](#Example-Flex-Cluster-Upgrade). When creating a Flex cluster, make sure to set the priority value to 7.
 
 ## Example Usage
 
@@ -69,14 +70,76 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-**NOTE:** There can only be one M0 cluster per project.
+**NOTE**: Upgrading the tenant cluster to a Flex cluster or a dedicated cluster is supported. When upgrading to a Flex cluster, change the `provider_name` from "TENANT" to "FLEX". See [Example Tenant Cluster Upgrade to Flex](#example-tenant-cluster-upgrade-to-flex) below. When upgrading to a dedicated cluster, change the `provider_name` to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`. See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below. You can upgrade a tenant cluster only to a single provider on an M10-tier cluster or greater.
 
-**NOTE**: Upgrading the shared tier is supported. Any change from a shared tier cluster (a tenant) to a different instance size will be considered a tenant upgrade. When upgrading from the shared tier, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below. You can upgrade a shared tier cluster only to a single provider on an M10-tier cluster or greater. 
-
-When upgrading from the shared tier, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
+When upgrading from the tenant, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
 
 
 ### Example Tenant Cluster Upgrade
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+
+  replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+      }
+      provider_name         = "AWS"
+      region_name           = "US_EAST_1"
+      priority              = 7
+    }
+  }
+}
+```
+
+### Example Tenant Cluster Upgrade to Flex
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "example-flex" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+
+  replication_specs {
+    region_configs {
+      provider_name = "FLEX"
+      backing_provider_name = "AWS"
+      region_name = "US_EAST_1"
+      priority = 7
+    }
+  }
+}
+```
+
+### Example Flex Cluster
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "example-flex" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+
+  replication_specs {
+    region_configs {
+      provider_name = "FLEX"
+      backing_provider_name = "AWS"
+      region_name = "US_EAST_1"
+      priority = 7
+    }
+  }
+}
+```
+
+**NOTE**: Upgrading the Flex cluster is supported. When upgrading from a Flex cluster, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Flex Cluster Upgrade](#Example-Flex-Cluster-Upgrade) below. You can upgrade a Flex cluster only to a single provider on an M10-tier cluster or greater. 
+
+When upgrading from a flex cluster, *only* the upgrade changes will be applied. This helps avoid a corrupt state file in the event that the upgrade succeeds but subsequent updates fail within the same `terraform apply`. To apply additional cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
+
+
+### Example Flex Cluster Upgrade
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -357,7 +420,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique ID for the project to create the database user.
+* `project_id` - (Required) Unique ID for the project to create the cluster.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed. **WARNING** Changing the name will result in destruction of the existing cluster and the creation of a new cluster.
 
 * `backup_enabled` - (Optional) Flag that indicates whether the cluster can perform backups.
@@ -365,7 +428,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
   Backup uses:
   [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/#std-label-backup-cloud-provider) for dedicated clusters.
-  [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/#std-label-m2-m5-snapshots) for tenant clusters.
+  [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters.
   If "`backup_enabled`" : `false`, the cluster doesn't use Atlas backups.
 
 This parameter defaults to false.
@@ -401,9 +464,9 @@ This parameter defaults to false.
   }`
 * `timeouts`- (Optional) The duration of time to wait for Cluster to be created, updated, or deleted. The timeout value is defined by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Advanced Cluster create & delete is `3h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `accept_data_risks_and_force_replica_set_reconfig` - (Optional) If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set `accept_data_risks_and_force_replica_set_reconfig` to the current date. Learn more about Reconfiguring a Replica Set during a regional outage [here](https://dochub.mongodb.org/core/regional-outage-reconfigure-replica-set).
-* `global_cluster_self_managed_sharding` - (Optional) Flag that indicates if cluster uses Atlas-Managed Sharding (false, default) or Self-Managed Sharding (true). It can only be enabled for Global Clusters (`GEOSHARDED`). It cannot be changed once the cluster is created. Use this mode if you're an advanced user and the default configuration is too restrictive for your workload. If you select this option, you must manually configure the sharding strategy, more info [here](https://www.mongodb.com/docs/atlas/tutorial/create-global-cluster/#select-your-sharding-configuration).
+* `global_cluster_self_managed_sharding` - (Optional) Flag that indicates if cluster uses Atlas-Managed Sharding (false, default) or Self-Managed Sharding (true). It can only be enabled for Global Clusters (`GEOSHARDED`). It cannot be changed once the cluster is created. Use this mode if you're an advanced user and the default configuration is too restrictive for your workload. If you select this option, you must manually configure the sharding strategy, more information [here](https://www.mongodb.com/docs/atlas/tutorial/create-global-cluster/#select-your-sharding-configuration).
 * `replica_set_scaling_strategy` - (Optional) Replica set scaling mode for your cluster. Valid values are `WORKLOAD_TYPE`, `SEQUENTIAL` and `NODE_TYPE`. By default, Atlas scales under `WORKLOAD_TYPE`. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes. When configured as `SEQUENTIAL`, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads. When configured as `NODE_TYPE`, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads. [Modify the Replica Set Scaling Mode](https://dochub.mongodb.org/core/scale-nodes)
-* `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more info. Use this in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements. **Note**: Changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated.
+* `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more information. Use this in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements. **Note**: Changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated.
 * `config_server_management_mode` - (Optional) Config Server Management Mode for creating or updating a sharded cluster. Valid values are `ATLAS_MANAGED` (default) and `FIXED_TO_DEDICATED`. When configured as `ATLAS_MANAGED`, Atlas may automatically switch the cluster's config server type for optimal performance and savings. When configured as `FIXED_TO_DEDICATED`, the cluster will always use a dedicated config server. To learn more, see the [Sharded Cluster Config Servers documentation](https://dochub.mongodb.org/docs/manual/core/sharded-cluster-config-servers/).
 
 ### bi_connector_config
@@ -417,7 +480,7 @@ bi_connector_config {
 }
 ```
 
-* `enabled` - (Optional) Specifies whether or not BI Connector for Atlas is enabled on the cluster.l
+* `enabled` - (Optional) Specifies whether or not BI Connector for Atlas is enabled on the cluster.
 *
   - Set to `true` to enable BI Connector for Atlas.
   - Set to `false` to disable BI Connector for Atlas.
@@ -450,7 +513,7 @@ Include **desired options** within advanced_configuration:
 * `default_write_concern` - (Optional) [Default level of acknowledgment requested from MongoDB for write operations](https://docs.mongodb.com/manual/reference/write-concern/) set for this cluster. MongoDB 4.4 clusters default to [1](https://docs.mongodb.com/manual/reference/write-concern/).
 * `fail_index_key_too_long` - (Optional) When true, documents can only be updated or inserted if, for all indexed fields on the target collection, the corresponding index entries do not exceed 1024 bytes. When false, mongod writes documents that exceed the limit but does not index them. **(DEPRECATED)** This parameter has been removed as of [MongoDB 4.4](https://www.mongodb.com/docs/manual/reference/parameters/#mongodb-parameter-param.failIndexKeyTooLong).
 * `javascript_enabled` - (Optional) When true, the cluster allows execution of operations that perform server-side executions of JavaScript. When false, the cluster disables execution of those operations.
-* `minimum_enabled_tls_protocol` - (Optional) Sets the minimum Transport Layer Security (TLS) version the cluster accepts for incoming connections.Valid values are:
+* `minimum_enabled_tls_protocol` - (Optional) Sets the minimum Transport Layer Security (TLS) version the cluster accepts for incoming connections. Valid values are:
 
   - TLS1_0
   - TLS1_1
@@ -469,7 +532,7 @@ Include **desired options** within advanced_configuration:
 * `custom_openssl_cipher_config_tls12` - (Optional) The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.
 
 
-### Tags
+### tags
 
  ```terraform
  tags {
@@ -551,11 +614,11 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
 
 ### region_configs
 
-* `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#specs)
-* `auto_scaling` - (Optional) Configuration for the collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#auto_scaling)
-* `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#analytics_auto_scaling)
-* `backing_provider_name` - (Optional) Cloud service provider on which you provision the host for a multi-tenant cluster. Use this only when a `provider_name` is `TENANT` and `instance_size` of a specs is `M2` or `M5`.
-* `electable_specs` - (Optional) Hardware specifications for electable nodes in the region. Electable nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you do not specify this option, no electable nodes are deployed to the region. See [below](#specs)
+* `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#specs).
+* `auto_scaling` - (Optional) Configuration for the collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#auto_scaling).
+* `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#analytics_auto_scaling).
+* `backing_provider_name` - (Optional) Cloud service provider on which you provision the host for a multi-tenant cluster. Use this only when a `provider_name` is `TENANT` and `instance_size` is `M0`.
+* `electable_specs` - (Optional) Hardware specifications for electable nodes in the region. Electable nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you do not specify this option, no electable nodes are deployed to the region. See [below](#specs).
 * `priority` - (Optional)  Election priority of the region. For regions with only read-only nodes, set this value to 0.
   * If you have multiple `region_configs` objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is 7.
   * If your region has set `region_configs.#.electable_specs.0.node_count` to 1 or higher, it must have a priority of exactly one (1) less than another region in the `replication_specs.#.region_configs.#` array. The highest-priority region must have a priority of 7. The lowest possible priority is 1.
@@ -565,8 +628,8 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
   - `AWS` - Amazon AWS
   - `GCP` - Google Cloud Platform
   - `AZURE` - Microsoft Azure
-  - `TENANT` - M0, M2 or M5 multi-tenant cluster. Use `replication_specs.#.region_configs.#.backing_provider_name` to set the cloud service provider.
-* `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#specs)
+  - `TENANT` - M0 multi-tenant cluster. Use `replication_specs.#.region_configs.#.backing_provider_name` to set the cloud service provider.
+* `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#specs).
 * `region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 
 ### electable_specs
@@ -659,7 +722,7 @@ In addition to all arguments above, the following attributes are exported:
 * `cluster_id` - The cluster ID.
 * `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
 * `id` -	The Terraform's unique identifier used internally for state management.
-* `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More info in [Connection-strings](https://docs.mongodb.com/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://docs.atlas.mongodb.com/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
+* `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More information in [Connection-strings](https://docs.mongodb.com/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://docs.atlas.mongodb.com/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
 
    **NOTE** Connection strings must be returned as a list, therefore to refer to a specific attribute value add index notation. Example: mongodbatlas_advanced_cluster.cluster-test.connection_strings.0.standard_srv
 
@@ -671,10 +734,10 @@ In addition to all arguments above, the following attributes are exported:
     - `connection_strings.private_srv` -  [Network-peering-endpoint-aware](https://docs.atlas.mongodb.com/security-vpc-peering/#vpc-peering) mongodb+srv://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
     - `connection_strings.private_endpoint` - Private endpoint connection strings. Each object describes the connection strings you can use to connect to this cluster through a private endpoint. Atlas returns this parameter only if you deployed a private endpoint to all regions to which you deployed this cluster's nodes.
     - `connection_strings.private_endpoint.#.connection_string` - Private-endpoint-aware `mongodb://`connection string for this private endpoint.
-    - `connection_strings.private_endpoint.#.srv_connection_string` - Private-endpoint-aware `mongodb+srv://` connection string for this private endpoint. The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS . Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don't need to: Append the seed list or Change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn't, use `connection_strings.private_endpoint[n].connection_string`
-    - `connection_strings.private_endpoint.#.srv_shard_optimized_connection_string` - Private endpoint-aware connection string optimized for sharded clusters that uses the `mongodb+srv://` protocol to connect to MongoDB Cloud through a private endpoint. If the connection string uses this Uniform Resource Identifier (URI) format, you don't need to change the Uniform Resource Identifier (URI) if the nodes change. Use this Uniform Resource Identifier (URI) format if your application and Atlas cluster support it. If it doesn't, use and consult the documentation for connectionStrings.privateEndpoint[n].srvConnectionString.
+    - `connection_strings.private_endpoint.#.srv_connection_string` - Private-endpoint-aware `mongodb+srv://` connection string for this private endpoint. The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS . Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don't need to: Append the seed list or Change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn't, use `connection_strings.private_endpoint[#].connection_string`
+    - `connection_strings.private_endpoint.#.srv_shard_optimized_connection_string` - Private endpoint-aware connection string optimized for sharded clusters that uses the `mongodb+srv://` protocol to connect to MongoDB Cloud through a private endpoint. If the connection string uses this Uniform Resource Identifier (URI) format, you don't need to change the Uniform Resource Identifier (URI) if the nodes change. Use this Uniform Resource Identifier (URI) format if your application and Atlas cluster support it. If it doesn't, use and consult the documentation for connectionStrings.privateEndpoint[#].srvConnectionString.
     - `connection_strings.private_endpoint.#.type` - Type of MongoDB process that you connect to with the connection strings. Atlas returns `MONGOD` for replica sets, or `MONGOS` for sharded clusters.
-    - `connection_strings.private_endpoint.#.endpoints` - Private endpoint through which you connect to Atlas when you use `connection_strings.private_endpoint[n].connection_string` or `connection_strings.private_endpoint[n].srv_connection_string`
+    - `connection_strings.private_endpoint.#.endpoints` - Private endpoint through which you connect to Atlas when you use `connection_strings.private_endpoint[#].connection_string` or `connection_strings.private_endpoint[#].srv_connection_string`
     - `connection_strings.private_endpoint.#.endpoints.#.endpoint_id` - Unique identifier of the private endpoint.
     - `connection_strings.private_endpoint.#.endpoints.#.provider_name` - Cloud provider to which you deployed the private endpoint. Atlas returns `AWS` or `AZURE`.
     - `connection_strings.private_endpoint.#.endpoints.#.region` - Region to which you deployed the private endpoint.

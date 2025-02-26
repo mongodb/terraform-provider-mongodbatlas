@@ -3,7 +3,6 @@ package databaseuser
 import (
 	"context"
 	"errors"
-	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -17,7 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -264,9 +265,8 @@ func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 	if err != nil {
 		// case 404
 		// deleted in the backend case
-		if httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(httpResponse) {
 			resp.State.RemoveResource(ctx)
-			resp.Diagnostics.AddError("resource not found", err.Error())
 			return
 		}
 		resp.Diagnostics.AddError("error getting database user information", err.Error())

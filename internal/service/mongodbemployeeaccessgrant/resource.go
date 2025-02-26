@@ -2,7 +2,6 @@ package mongodbemployeeaccessgrant
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -86,7 +85,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
 	_, httpResp, err := connV2.ClustersApi.RevokeMongoDbEmployeeAccess(ctx, projectID, clusterName).Execute()
-	if err != nil && httpResp != nil && httpResp.StatusCode != http.StatusNotFound {
+	if err != nil && validate.StatusNotFound(httpResp) {
 		resp.Diagnostics.AddError(errorDelete, err.Error())
 		return
 	}

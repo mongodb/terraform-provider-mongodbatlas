@@ -15,6 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
 const (
@@ -319,6 +320,16 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	if len(diags) > 0 {
 		return diags
 	}
+
+	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, connV2.FlexClustersApi)
+	if err != nil {
+		if validate.StatusNotFound(resp) {
+			return nil
+		}
+		return diag.FromErr(fmt.Errorf(errorListRead, projectID, err))
+	}
+	results = append(results, flexcluster.FlattenFlexClustersToAdvancedClusters(listFlexClusters)...)
+
 	if err := d.Set("results", results); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "results", d.Id(), err))
 	}

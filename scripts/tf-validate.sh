@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # TODO: remove this after releasing TPF
-if git diff --quiet -- ./internal/config/advanced_cluster_v2_schema.go; then
+if git diff --quiet -- ./internal/config/preview_provider_v2.go; then
   V2_SCHEMA_DISABLED=true
 else
   V2_SCHEMA_DISABLED=false
