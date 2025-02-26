@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 )
 
 var (
@@ -35,12 +34,12 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	if diags.HasError() {
 		return
 	}
-	isTenantToFlex, _ := flexUpgradedUpdated(planReq, stateReq, diags)
-	diff := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
+	isUpgradeTenantToFlex, _ := flexUpgradedUpdated(planReq, stateReq, diags)
+	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() {
 		return
 	}
-	if isTenantToFlex || diff.isUpgradeTenant() || diff.isUpgradeFlexToDedicated() {
+	if isUpgradeTenantToFlex || diff.isUpgradeTenant() || diff.isUpgradeFlexToDedicated() {
 		return // Don't do anything in upgrades
 	}
 	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)

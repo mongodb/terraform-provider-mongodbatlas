@@ -236,13 +236,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	flexUpgrade, flexUpdate := flexUpgradedUpdated(configReq, stateReq, diags)
+	isUpgradeTenantToFlex, flexUpdate := flexUpgradedUpdated(configReq, stateReq, diags)
 	if diags.HasError() {
 		return
 	}
-	if flexUpgrade || flexUpdate {
+	if isUpgradeTenantToFlex || flexUpdate {
 		var flexOut *TFModel
-		if flexUpgrade {
+		if isUpgradeTenantToFlex {
 			flexOut = handleFlexUpgrade(ctx, diags, r.Client, waitParams, configReq, &configModel)
 		} else {
 			flexOut = handleFlexUpdate(ctx, diags, r.Client, &configModel, configReq)
@@ -260,14 +260,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	patchOptions := update.PatchOptions{
-		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
-	}
-	if usingNewShardingConfig(ctx, configModel.ReplicationSpecs, diags) {
-		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
-	}
 	{
-		diff := findClusterDiff(ctx, &state, &configModel, diags, &patchOptions)
+		diff := findClusterDiff(ctx, &state, &configModel, diags)
 		if diags.HasError() {
 			return
 		}
@@ -276,8 +270,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			clusterResp = UpgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
 		case diff.isUpgradeTenant():
 			clusterResp = UpgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
-		case diff.isPatch():
-			clusterResp = r.applyClusterChanges(ctx, diags, &state, &configModel, diff.patchReq, waitParams)
+		case diff.isClusterPatchOnly():
+			clusterResp = r.applyClusterChanges(ctx, diags, &state, &configModel, diff.clusterPatchOnlyReq, waitParams)
 		}
 		if diags.HasError() {
 			return
@@ -505,13 +499,13 @@ func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 }
 
 type clusterDiff struct {
-	patchReq                  *admin.ClusterDescription20240805
+	clusterPatchOnlyReq       *admin.ClusterDescription20240805
 	upgradeTenantReq          *admin.LegacyAtlasTenantClusterUpgradeRequest
 	upgradeFlexToDedicatedReq *admin.AtlasTenantClusterUpgradeRequest20240805
 }
 
-func (c *clusterDiff) isPatch() bool {
-	return !update.IsZeroValues(c.patchReq)
+func (c *clusterDiff) isClusterPatchOnly() bool {
+	return !update.IsZeroValues(c.clusterPatchOnlyReq)
 }
 
 func (c *clusterDiff) isUpgradeTenant() bool {
@@ -523,22 +517,27 @@ func (c *clusterDiff) isUpgradeFlexToDedicated() bool {
 }
 
 // TODO: Struct for the response, including tenantToFlex and isUpdate, also payloads?
-func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, options *update.PatchOptions) clusterDiff {
-	isShardingUpgrade := isShardingConfigUpgrade(ctx, state, plan, diags)
-	if diags.HasError() {
+func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) clusterDiff {
+	if _ = isShardingConfigUpgrade(ctx, state, plan, diags); diags.HasError() { // Checks that there is no change from new sharding config to old one
 		return clusterDiff{}
-	} // old sharding config  (num_shards > 1) to new one
+	}
 	stateReq := normalizeFromTFModel(ctx, state, diags, false)
-	planReq := normalizeFromTFModel(ctx, plan, diags, isShardingUpgrade)
+	planReq := normalizeFromTFModel(ctx, plan, diags, false)
 	if diags.HasError() {
 		return clusterDiff{}
+	}
+	patchOptions := update.PatchOptions{
+		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
+	}
+	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
 	}
 	if findNumShardsUpdates(ctx, state, plan, diags) != nil {
 		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
 		// `num_shards` updates is only in the legacy ClusterDescription
-		options.ForceUpdateAttr = append(options.ForceUpdateAttr, "replicationSpecs")
+		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
 	}
-	patchReq, err := update.PatchPayload(stateReq, planReq, *options)
+	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
 		diags.AddError(errorPatchPayload, err.Error())
 		return clusterDiff{}
@@ -547,11 +546,11 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		return clusterDiff{}
 	}
 	upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq)
-	upgradeFlexToDedicatedRequest := getUpgradeFlexToDedicatedRequest(stateReq, patchReq)
-	if upgradeTenantReq != nil || upgradeFlexToDedicatedRequest != nil {
-		return clusterDiff{upgradeTenantReq: upgradeTenantReq, upgradeFlexToDedicatedReq: upgradeFlexToDedicatedRequest}
+	upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, patchReq)
+	if upgradeTenantReq != nil || upgradeFlexToDedicatedReq != nil {
+		return clusterDiff{upgradeTenantReq: upgradeTenantReq, upgradeFlexToDedicatedReq: upgradeFlexToDedicatedReq}
 	}
-	return clusterDiff{patchReq: patchReq}
+	return clusterDiff{clusterPatchOnlyReq: patchReq}
 }
 
 func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, planReq *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
@@ -577,7 +576,7 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 	return newFlexModel
 }
 
-func flexUpgradedUpdated(planReq, stateReq *admin.ClusterDescription20240805, diags *diag.Diagnostics) (isTenantToFlex, isUpdate bool) {
+func flexUpgradedUpdated(planReq, stateReq *admin.ClusterDescription20240805, diags *diag.Diagnostics) (isUpgradeTenantToFlex, isUpdate bool) {
 	if !IsFlex(planReq.ReplicationSpecs) {
 		return false, false
 	}
