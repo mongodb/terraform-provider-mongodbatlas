@@ -28,7 +28,6 @@ log.*
 test.env
 __debug_*
 coverage.out
-simulations
 
 # Test exclusions
 !command/test-fixtures/**/*.tfstate
