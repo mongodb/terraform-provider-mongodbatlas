@@ -188,6 +188,18 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 	})
 }
 
+func TestAccConfigDSOrganization_noAccessShouldNotFail(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPluralDS() + acc.ConfigReadOnlyProvider(),
+				Check:  resource.TestCheckResourceAttrSet("data.mongodbatlas_organizations.test", "results.#"),
+			},
+		},
+	})
+}
+
 func TestAccConfigDSOrganizations_basic(t *testing.T) {
 	var (
 		datasourceName = "data.mongodbatlas_organizations.test"
