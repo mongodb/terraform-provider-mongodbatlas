@@ -3,7 +3,6 @@ package organization
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 
@@ -105,8 +104,8 @@ func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization information: %s", err))
 	}
-
-	if err := d.Set("results", flattenOrganizations(ctx, conn, organizations.GetResults())); err != nil {
+	results, diags := flattenOrganizations(ctx, conn, organizations.GetResults())
+	if err := d.Set("results", results); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
@@ -116,14 +115,15 @@ func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any)
 
 	d.SetId(id.UniqueId())
 
-	return nil
+	return diags
 }
 
-func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizations []admin.AtlasOrganization) []map[string]any {
+func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizations []admin.AtlasOrganization) ([]map[string]any, diag.Diagnostics) {
 	var results []map[string]any
+	var diags diag.Diagnostics
 
 	if len(organizations) == 0 {
-		return results
+		return results, diags
 	}
 
 	results = make([]map[string]any, len(organizations))
@@ -131,7 +131,8 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 	for k, organization := range organizations {
 		settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, *organization.Id).Execute()
 		if err != nil {
-			log.Printf("[WARN] Error getting organization settings (organization ID: %s): %s", *organization.Id, err)
+			diags = append(diags, diag.Diagnostic{Severity: diag.Warning, Summary: fmt.Sprintf("Error getting organization settings (orgID: %s, org Name: %s): %s", organization.GetId(), organization.GetName(), err)})
+			settings = &admin.OrganizationSettings{}
 		}
 
 		results[k] = map[string]any{
@@ -146,5 +147,5 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 		}
 	}
 
-	return results
+	return results, diags
 }
