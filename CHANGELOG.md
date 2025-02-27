@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* data-source/mongodbatlas_organizations: Avoids nil pointer error when individual getOrganizationSettings API call fails ([#3118](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3118))
+
 ## 1.28.0 (February 25, 2025)
 
 ENHANCEMENTS:
