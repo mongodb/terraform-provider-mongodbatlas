@@ -3,7 +3,6 @@ package organization
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
@@ -105,8 +104,11 @@ func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization information: %s", err))
 	}
-
-	if err := d.Set("results", flattenOrganizations(ctx, conn, organizations.GetResults())); err != nil {
+	results, err := flattenOrganizations(ctx, conn, organizations.GetResults())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("results", results); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
@@ -115,15 +117,14 @@ func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	d.SetId(id.UniqueId())
-
 	return nil
 }
 
-func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizations []admin.AtlasOrganization) []map[string]any {
+func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizations []admin.AtlasOrganization) ([]map[string]any, error) {
 	var results []map[string]any
 
 	if len(organizations) == 0 {
-		return results
+		return results, nil
 	}
 
 	results = make([]map[string]any, len(organizations))
@@ -131,9 +132,8 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 	for k, organization := range organizations {
 		settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, *organization.Id).Execute()
 		if err != nil {
-			log.Printf("[WARN] Error getting organization settings (organization ID: %s): %s", *organization.Id, err)
+			return nil, fmt.Errorf("error getting organization settings (orgID: %s, org Name: %s): %s", organization.GetId(), organization.GetName(), err)
 		}
-
 		results[k] = map[string]any{
 			"id":                         organization.Id,
 			"name":                       organization.Name,
@@ -145,6 +145,5 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			"gen_ai_features_enabled":    settings.GenAIFeaturesEnabled,
 		}
 	}
-
-	return results
+	return results, nil
 }
