@@ -24,6 +24,6 @@ output "mongodbatlas_cluster" {
 }
 
 output "mongodbatlas_advanced_cluster" {
-  value       = data.mongodbatlas_cluster.this
+  value       = mongodbatlas_advanced_cluster.this
   description = "Full cluster configuration for mongodbatlas_advanced_cluster resource"
 }
