@@ -103,7 +103,7 @@ The process to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_clu
 1. Before starting, run `terraform plan` to make sure that there are no planned changes.
 2. Add the `mongodbatlas_advanced_cluster` resource definition. 
   - Set the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider v2. You can also define the environment variable in your local development environment so your tools can use the new format and help you with linting and auto-completion.
-  - You can use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition. This is the recommended method as it will generate a clean configuration keeping the original Terraform expressions.
+  - You can use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition. This is the recommended method as it will generate a clean configuration keeping the original Terraform expressions. Please be aware of the [plugin limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform#limitations) and always review the generated configuration.
   - Alternatively, you can use the `terraform plan -generate-config-out=adv_cluster.tf` method to create the `mongodbatlas_advanced_cluster` resource definition, or create it manually.
 3. Comment out or delete the `mongodbatlas_cluster` resource definition.
 4. Add the `moved` block to your configuration file, e.g.:
