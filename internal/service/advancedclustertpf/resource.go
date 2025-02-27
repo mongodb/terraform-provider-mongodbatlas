@@ -99,20 +99,21 @@ type rs struct {
 // 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
 // 2. Adding the different UseStateForUnknown is very verbose.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Don't do anything if plan or state is null, this happens in Create, Delete or Import
+	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() || req.Config.Raw.IsNull() { // Continue only if everything is set, this happens in Create, Delete or Import
 		return
 	}
-	var plan, state TFModel
+	var plan, state, config TFModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
+	diags.Append(req.Config.Get(ctx, &config)...)
 	if diags.HasError() {
 		return
 	}
 	if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read
 		return
 	}
-	useStateForUnknowns(ctx, diags, &state, &plan) // Do only for Update
+	useStateForUnknowns(ctx, diags, &state, &plan, &config) // Do only for Update
 	if diags.HasError() {
 		return
 	}
