@@ -98,7 +98,7 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 	return keepUnknowns
 }
 
-// autoScalingInConfig detects if auto scaling is enabled in the config, i.e. it's set by the user
+// autoScalingInConfig detects if auto scaling is declared in the config, i.e. it's set by the user
 func autoScalingInConfig(ctx context.Context, diags *diag.Diagnostics, config *TFModel) bool {
 	repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, config.ReplicationSpecs)
 	for i := range repSpecsTF {
