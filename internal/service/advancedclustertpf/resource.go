@@ -102,18 +102,18 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() || req.Config.Raw.IsNull() { // Continue only if everything is set, this happens in Create, Delete or Import
 		return
 	}
-	var plan, state, config TFModel
+	var plan, state, cfg TFModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
-	diags.Append(req.Config.Get(ctx, &config)...)
+	diags.Append(req.Config.Get(ctx, &cfg)...)
 	if diags.HasError() {
 		return
 	}
 	if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read
 		return
 	}
-	useStateForUnknowns(ctx, diags, &state, &plan, &config) // Do only for Update
+	useStateForUnknowns(ctx, diags, &state, &plan, &cfg) // Do only for Update
 	if diags.HasError() {
 		return
 	}
