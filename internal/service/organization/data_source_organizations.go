@@ -104,7 +104,10 @@ func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization information: %s", err))
 	}
-	results, diags := flattenOrganizations(ctx, conn, organizations.GetResults())
+	results, err := flattenOrganizations(ctx, conn, organizations.GetResults())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("results", results); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
@@ -114,16 +117,14 @@ func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	d.SetId(id.UniqueId())
-
-	return diags
+	return nil
 }
 
-func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizations []admin.AtlasOrganization) ([]map[string]any, diag.Diagnostics) {
+func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizations []admin.AtlasOrganization) ([]map[string]any, error) {
 	var results []map[string]any
-	var diags diag.Diagnostics
 
 	if len(organizations) == 0 {
-		return results, diags
+		return results, nil
 	}
 
 	results = make([]map[string]any, len(organizations))
@@ -131,10 +132,8 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 	for k, organization := range organizations {
 		settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, *organization.Id).Execute()
 		if err != nil {
-			diags = append(diags, diag.Diagnostic{Severity: diag.Warning, Summary: fmt.Sprintf("Error getting organization settings (orgID: %s, org Name: %s): %s", organization.GetId(), organization.GetName(), err)})
-			settings = &admin.OrganizationSettings{}
+			return nil, fmt.Errorf("Error getting organization settings (orgID: %s, org Name: %s): %s", organization.GetId(), organization.GetName(), err)
 		}
-
 		results[k] = map[string]any{
 			"id":                         organization.Id,
 			"name":                       organization.Name,
@@ -146,6 +145,5 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			"gen_ai_features_enabled":    settings.GenAIFeaturesEnabled,
 		}
 	}
-
-	return results, diags
+	return results, nil
 }

@@ -188,13 +188,13 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 	})
 }
 
-func TestAccConfigDSOrganization_noAccessShouldNotFail(t *testing.T) {
+func TestAccConfigDSOrganization_noAccessShouldFail(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPluralDS() + acc.ConfigReadOnlyProvider(),
-				Check:  resource.TestCheckResourceAttrSet("data.mongodbatlas_organizations.test", "results.#"),
+				Config:      configWithPluralDS() + acc.ConfigReadOnlyProvider(),
+				ExpectError: regexp.MustCompile("Error getting organization settings .*"),
 			},
 		},
 	})
