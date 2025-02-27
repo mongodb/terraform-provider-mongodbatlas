@@ -193,7 +193,7 @@ func TestAccConfigDSOrganization_noAccessShouldFail(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configWithPluralDS() + acc.ConfigReadOnlyProvider(),
+				Config:      configWithPluralDS() + acc.ConfigOrgMemberProvider(),
 				ExpectError: regexp.MustCompile("Error getting organization settings .*"),
 			},
 		},

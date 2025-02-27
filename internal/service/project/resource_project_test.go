@@ -1070,7 +1070,7 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName            = acc.RandomProjectName()
 		config                 = configBasic(orgID, projectName, "", false, nil, conversion.Pointer(false))
-		providerConfigReadOnly = acc.ConfigReadOnlyProvider()
+		providerConfigReadOnly = acc.ConfigOrgMemberProvider()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPublicKey2(t) },
