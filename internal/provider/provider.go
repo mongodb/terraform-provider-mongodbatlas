@@ -63,7 +63,6 @@ const (
 )
 
 type MongodbtlasProvider struct {
-	proxyPort *int
 }
 
 type tfMongodbAtlasProviderModel struct {
@@ -249,7 +248,6 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		BaseURL:          data.BaseURL.ValueString(),
 		RealmBaseURL:     data.RealmBaseURL.ValueString(),
 		TerraformVersion: req.TerraformVersion,
-		ProxyPort:        p.proxyPort,
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -501,23 +499,13 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	return resources
 }
 
-func NewFrameworkProvider(proxyPort *int) provider.Provider {
-	return &MongodbtlasProvider{
-		proxyPort: proxyPort,
-	}
+func NewFrameworkProvider() provider.Provider {
+	return &MongodbtlasProvider{}
 }
 
 func MuxProviderFactory() func() tfprotov6.ProviderServer {
-	return muxProviderFactory(nil)
-}
-
-func MuxProviderFactoryForTesting(proxyPort *int) func() tfprotov6.ProviderServer {
-	return muxProviderFactory(proxyPort)
-}
-
-func muxProviderFactory(proxyPort *int) func() tfprotov6.ProviderServer {
-	v2Provider := NewSdkV2Provider(proxyPort)
-	newProvider := NewFrameworkProvider(proxyPort)
+	v2Provider := NewSdkV2Provider()
+	newProvider := NewFrameworkProvider()
 	ctx := context.Background()
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, v2Provider.GRPCProvider)
 	if err != nil {

@@ -66,7 +66,7 @@ type SecretData struct {
 }
 
 // NewSdkV2Provider returns the provider to be use by the code.
-func NewSdkV2Provider(proxyPort *int) *schema.Provider {
+func NewSdkV2Provider() *schema.Provider {
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"public_key": {
@@ -130,7 +130,7 @@ func NewSdkV2Provider(proxyPort *int) *schema.Provider {
 		DataSourcesMap: getDataSourcesMap(),
 		ResourcesMap:   getResourcesMap(),
 	}
-	provider.ConfigureContextFunc = providerConfigure(provider, proxyPort)
+	provider.ConfigureContextFunc = providerConfigure(provider)
 	return provider
 }
 
@@ -274,7 +274,7 @@ func getResourcesMap() map[string]*schema.Resource {
 	return resourcesMap
 }
 
-func providerConfigure(provider *schema.Provider, proxyPort *int) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
+func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		diagnostics := setDefaultsAndValidations(d)
 		if diagnostics.HasError() {
@@ -286,7 +286,6 @@ func providerConfigure(provider *schema.Provider, proxyPort *int) func(ctx conte
 			PrivateKey:       d.Get("private_key").(string),
 			BaseURL:          d.Get("base_url").(string),
 			RealmBaseURL:     d.Get("realm_base_url").(string),
-			ProxyPort:        proxyPort,
 			TerraformVersion: provider.TerraformVersion,
 		}
 

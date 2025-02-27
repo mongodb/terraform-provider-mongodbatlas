@@ -44,7 +44,6 @@ type MongoDBClient struct {
 // Config contains the configurations needed to use SDKs
 type Config struct {
 	AssumeRole       *AssumeRole
-	ProxyPort        *int
 	PublicKey        string
 	PrivateKey       string
 	BaseURL          string
@@ -78,14 +77,6 @@ type PlatformVersion struct {
 func (c *Config) NewClient(ctx context.Context) (any, error) {
 	// setup a transport to handle digest
 	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
-
-	// proxy is only used for testing purposes to connect with hoverfly for capturing/replaying requests
-	if c.ProxyPort != nil {
-		proxyURL, _ := url.Parse(fmt.Sprintf("http://localhost:%d", *c.ProxyPort))
-		transport.Transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
-		}
-	}
 
 	// initialize the client
 	client, err := transport.Client()

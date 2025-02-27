@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -17,7 +16,7 @@ func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
 				Config: configBasicDS(projectID),
@@ -43,7 +42,7 @@ func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithThreshold(projectID, true, 1),
@@ -69,7 +68,7 @@ func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithOutputs(projectID, outputLabel),
@@ -98,7 +97,7 @@ func TestAccConfigDSAlertConfiguration_withPagerDuty(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
 				Config: configWithPagerDutyDS(projectID, serviceKey, true),
@@ -237,12 +236,4 @@ func configWithPagerDutyDS(projectID, serviceKey string, enabled bool) string {
 			alert_configuration_id = mongodbatlas_alert_configuration.test.id
 		}
 	`, projectID, serviceKey, enabled)
-}
-
-func checkExists(resourceName string) resource.TestCheckFunc {
-	return checkExistsUsingProxy(nil, resourceName)
-}
-
-func checkDestroy(s *terraform.State) error {
-	return checkDestroyUsingProxy(nil)(s)
 }

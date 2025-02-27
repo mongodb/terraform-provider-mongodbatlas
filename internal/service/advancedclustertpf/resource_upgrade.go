@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 )
 
-func getTenantUpgradeRequest(state, patch *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+func getUpgradeTenantRequest(state, patch *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {
 	if patch.ReplicationSpecs == nil {
 		return nil
 	}
@@ -27,7 +27,7 @@ func getTenantUpgradeRequest(state, patch *admin.ClusterDescription20240805) *ad
 	}
 }
 
-func getFlexUpgradeRequest(state, patch *admin.ClusterDescription20240805) *admin.AtlasTenantClusterUpgradeRequest20240805 {
+func getUpgradeFlexToDedicatedRequest(state, patch *admin.ClusterDescription20240805) *admin.AtlasTenantClusterUpgradeRequest20240805 {
 	if patch.ReplicationSpecs == nil {
 		return nil
 	}
@@ -45,8 +45,4 @@ func getFlexUpgradeRequest(state, patch *admin.ClusterDescription20240805) *admi
 		ClusterType:      state.ClusterType,
 		ReplicationSpecs: patch.ReplicationSpecs,
 	}
-}
-
-func getUpgradeRequestsFromTenantAndFlex(state, patch *admin.ClusterDescription20240805) (*admin.LegacyAtlasTenantClusterUpgradeRequest, *admin.AtlasTenantClusterUpgradeRequest20240805) {
-	return getTenantUpgradeRequest(state, patch), getFlexUpgradeRequest(state, patch)
 }

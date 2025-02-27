@@ -63,7 +63,7 @@ func NewClusterConnectionStringsFromFlex(connectionStrings *admin.FlexConnection
 	}
 }
 
-func isValidUpgradeToFlex(stateCluster, planCluster *admin.ClusterDescription20240805) bool {
+func isValidUpgradeTenantToFlex(stateCluster, planCluster *admin.ClusterDescription20240805) bool {
 	if stateCluster.ReplicationSpecs == nil || planCluster.ReplicationSpecs == nil {
 		return false
 	}

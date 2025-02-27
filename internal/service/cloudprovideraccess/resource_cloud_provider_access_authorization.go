@@ -20,6 +20,7 @@ import (
 */
 
 func ResourceAuthorization() *schema.Resource {
+	// HELP-71400 provides context as to why import is not implemented
 	return &schema.Resource{
 		ReadContext:   resourceCloudProviderAccessAuthorizationRead,
 		CreateContext: resourceCloudProviderAccessAuthorizationCreate,
