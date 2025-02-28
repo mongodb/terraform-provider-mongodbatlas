@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"reflect"
 	"regexp"
 	"strings"
@@ -14,7 +13,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -24,9 +23,11 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
 const (
@@ -39,6 +40,7 @@ const (
 	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"
 	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
+	ErrorFlexClusterSetting        = "error setting `%s` for MongoDB Flex Cluster (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
 	ErrorDefaultMaxTimeMinVersion  = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
@@ -407,8 +409,9 @@ func schemaSpecs() *schema.Schema {
 					Computed: true,
 				},
 				"instance_size": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:             schema.TypeString,
+					Required:         true,
+					ValidateDiagFunc: validate.InstanceSizeNameValidator(),
 				},
 				"node_count": {
 					Type:     schema.TypeInt,
@@ -435,10 +438,29 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		rootDiskSizeGB = conversion.Pointer(v.(float64))
 	}
 
+	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB)
+
+	if advancedclustertpf.IsFlex(replicationSpecs) {
+		clusterName := d.Get("name").(string)
+		flexClusterReq := advancedclustertpf.NewFlexCreateReq(clusterName, d.Get("termination_protection_enabled").(bool), conversion.ExpandTagsFromSetSchema(d), replicationSpecs)
+		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(flexcluster.ErrorCreateFlex, err))
+		}
+
+		d.SetId(conversion.EncodeStateID(map[string]string{
+			"cluster_id":   flexClusterResp.GetId(),
+			"project_id":   projectID,
+			"cluster_name": clusterName,
+		}))
+
+		return resourceRead(ctx, d, meta)
+	}
+
 	params := &admin.ClusterDescription20240805{
 		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
 		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
-		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB),
+		ReplicationSpecs: replicationSpecs,
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {
@@ -598,21 +620,32 @@ func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	client := meta.(*config.MongoDBClient)
+	connV220240530 := client.AtlasV220240530
+	connV2 := client.AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
 	var replicationSpecs []map[string]any
+	cluster, flexClusterResp, diags := GetClusterDetails(ctx, client, projectID, clusterName)
+	if diags.HasError() {
+		return diags
+	}
+	if cluster == nil && flexClusterResp == nil {
+		d.SetId("")
+		return nil
+	}
 
-	cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if validate.StatusNotFound(resp) {
-			d.SetId("")
-			return nil
+	if flexClusterResp != nil {
+		diags := setFlexFields(d, flexClusterResp)
+		if err := d.Set("cluster_id", flexClusterResp.GetId()); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "cluster_id", clusterName, err))
 		}
-		return diag.FromErr(fmt.Errorf(errorRead, clusterName, err))
+		if diags.HasError() {
+			return diags
+		}
+		return nil
 	}
 
 	zoneNameToOldReplicationSpecMeta, err := GetReplicationSpecAttributesFromOldAPI(ctx, projectID, clusterName, connV220240530.ClustersApi)
@@ -637,7 +670,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	warning := WarningIfFCVExpiredOrUnpinnedExternally(d, cluster) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
-	diags := setRootFields(d, cluster, true)
+	diags = setRootFields(d, cluster, true)
 	if diags.HasError() {
 		return diags
 	}
@@ -813,26 +846,57 @@ func isUsingOldShardingConfiguration(d *schema.ResourceData) bool {
 }
 
 func resourceUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil)
+
+	if advancedclustertpf.IsFlex(replicationSpecs) {
+		if isValidUpgradeToFlex(d) {
+			return resourceUpgrade(ctx, GetUpgradeToFlexClusterRequest(d), nil, d, meta)
+		}
+		if isValidUpdateOfFlex(d) {
+			return resourceUpdateFlexCluster(ctx, advancedclustertpf.GetFlexClusterUpdateRequest(conversion.ExpandTagsFromSetSchema(d), conversion.Pointer(d.Get("termination_protection_enabled").(bool))), d, meta)
+		}
+		return diag.Errorf("flex cluster update is not supported except for tags and termination_protection_enabled fields")
+	}
+	if isUpgradeFromFlex(d) {
+		return resourceUpgrade(ctx, nil, GetUpgradeToDedicatedClusterRequest(d), d, meta)
+	}
 	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
-		return resourceUpgrade(ctx, upgradeRequest, d, meta)
+		return resourceUpgrade(ctx, upgradeRequest, nil, d, meta)
 	}
 	return resourceUpdate(ctx, d, meta)
 }
 
-func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, d *schema.ResourceData, meta any) diag.Diagnostics {
+func GetUpgradeToFlexClusterRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+		ProviderSettings: &admin.ClusterProviderSettings{
+			ProviderName:        flexcluster.FlexClusterType,
+			BackingProviderName: conversion.StringPtr(d.Get("replication_specs.0.region_configs.0.backing_provider_name").(string)),
+			InstanceSizeName:    conversion.StringPtr(flexcluster.FlexClusterType),
+			RegionName:          conversion.StringPtr(d.Get("replication_specs.0.region_configs.0.region_name").(string)),
+		},
+	}
+}
+
+func resourceUpgrade(ctx context.Context, upgradeRequest *admin.LegacyAtlasTenantClusterUpgradeRequest, flexUpgradeRequest *admin.AtlasTenantClusterUpgradeRequest20240805, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	upgradeResponse, _, err := upgradeCluster(ctx, connV2, upgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
-
+	upgradeToDedicatedResp, upgradeToFlexResp, err := upgradeCluster(ctx, connV2, upgradeRequest, flexUpgradeRequest, projectID, clusterName, d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 	}
 
+	var clusterID string
+	if upgradeToDedicatedResp == nil {
+		clusterID = upgradeToFlexResp.GetId()
+	} else {
+		clusterID = upgradeToDedicatedResp.GetId()
+	}
+
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   upgradeResponse.GetId(),
+		"cluster_id":   clusterID,
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 	}))
@@ -1232,6 +1296,15 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.RetainBackups = conversion.Pointer(v.(bool))
 	}
 
+	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil)
+
+	if advancedclustertpf.IsFlex(replicationSpecs) {
+		err := flexcluster.DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(flexcluster.ErrorDeleteFlex, clusterName, err))
+		}
+		return nil
+	}
 	_, err := connV2.ClustersApi.DeleteClusterWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDelete, clusterName, err))
@@ -1261,59 +1334,81 @@ func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	client := meta.(*config.MongoDBClient)
 
 	projectID, name, err := splitSClusterAdvancedImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, *projectID, *name).Execute()
-	if err != nil {
-		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
+	cluster, flexCluster, diags := GetClusterDetails(ctx, client, *projectID, *name)
+	if diags.HasError() && len(diags) > 0 { // GetClusterDetails will return a diag with a single error at most
+		return nil, fmt.Errorf("%s: %s", diags[0].Summary, diags[0].Detail)
+	}
+	if flexCluster == nil && cluster == nil { // 404 does not return a diag with an error
+		return nil, fmt.Errorf("%s: %s", diags[0].Summary, diags[0].Detail)
+	}
+	clusterID := cluster.GetId()
+	clusterName := cluster.GetName()
+	if flexCluster != nil {
+		clusterID = flexCluster.GetId()
+		clusterName = flexCluster.GetName()
 	}
 
-	if err := d.Set("project_id", cluster.GetGroupId()); err != nil {
+	if err := d.Set("project_id", projectID); err != nil {
 		log.Printf(ErrorClusterAdvancedSetting, "project_id", cluster.GetId(), err)
 	}
 
-	if err := d.Set("name", cluster.GetName()); err != nil {
+	if err := d.Set("name", clusterName); err != nil {
 		log.Printf(ErrorClusterAdvancedSetting, "name", cluster.GetId(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"cluster_id":   cluster.GetId(),
+		"cluster_id":   clusterID,
 		"project_id":   *projectID,
-		"cluster_name": cluster.GetName(),
+		"cluster_name": clusterName,
 	}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, projectID, name string, timeout time.Duration) (*admin.LegacyAtlasCluster, *http.Response, error) {
-	request.Name = name
+func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, flexRequest *admin.AtlasTenantClusterUpgradeRequest20240805, projectID, name string, timeout time.Duration) (*admin.ClusterDescription20240805, *admin.FlexClusterDescription20241113, error) {
+	if request == nil && flexRequest != nil { // upgrade flex to dedicated
+		_, _, err := connV2.FlexClustersApi.UpgradeFlexCluster(ctx, projectID, flexRequest).Execute()
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		request.Name = name
+		request.GroupId = &projectID
+		_, _, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
+		if err != nil {
+			return nil, nil, err
+		}
 
-	cluster, resp, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
+		if request.ProviderSettings != nil && request.ProviderSettings.ProviderName == flexcluster.FlexClusterType {
+			flexCluster, err := waitStateTransitionFlexUpgrade(ctx, connV2.FlexClustersApi, projectID, name, timeout)
+			return nil, flexCluster, err
+		}
+	}
+	upgradedCluster, err := WaitStateTransitionClusterUpgrade(ctx, name, projectID, connV2.ClustersApi, []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, timeout)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "PENDING", "REPEATING"},
-		Target:     []string{"IDLE"},
-		Refresh:    UpgradeRefreshFunc(ctx, name, projectID, connV2.ClustersApi),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
+	return upgradedCluster, nil, nil
+}
 
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
+func waitStateTransitionFlexUpgrade(ctx context.Context, client admin.FlexClustersApi, projectID, name string, timeout time.Duration) (*admin.FlexClusterDescription20241113, error) {
+	flexClusterParams := &admin.GetFlexClusterApiParams{
+		GroupId: projectID,
+		Name:    name,
+	}
+	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, &timeout)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-
-	return cluster, resp, nil
+	return flexClusterResp, nil
 }
 
 func splitSClusterAdvancedImportID(id string) (projectID, clusterName *string, err error) {
@@ -1408,4 +1503,70 @@ func waitForUpdateToFinish(ctx context.Context, connV2 *admin.APIClient, project
 
 	_, err := stateConf.WaitForStateContext(ctx)
 	return err
+}
+
+func resourceUpdateFlexCluster(ctx context.Context, flexUpdateRequest *admin.FlexClusterDescriptionUpdate20241113, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	ids := conversion.DecodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	_, err := flexcluster.UpdateFlexCluster(ctx, projectID, clusterName, flexUpdateRequest, connV2.FlexClustersApi)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(flexcluster.ErrorUpdateFlex, err))
+	}
+
+	return resourceRead(ctx, d, meta)
+}
+
+func setFlexFields(d *schema.ResourceData, flexCluster *admin.FlexClusterDescription20241113) diag.Diagnostics {
+	flexClusterName := flexCluster.GetName()
+	if err := d.Set("cluster_type", flexCluster.GetClusterType()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "cluster_type", flexClusterName, err))
+	}
+
+	if err := d.Set("backup_enabled", flexCluster.BackupSettings.GetEnabled()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "backup_enabled", flexClusterName, err))
+	}
+
+	if err := d.Set("connection_strings", flexcluster.FlattenFlexConnectionStrings(flexCluster.ConnectionStrings)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "connection_strings", flexClusterName, err))
+	}
+
+	if err := d.Set("create_date", conversion.TimePtrToStringPtr(flexCluster.CreateDate)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "create_date", flexClusterName, err))
+	}
+
+	if err := d.Set("mongo_db_version", flexCluster.GetMongoDBVersion()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "mongo_db_version", flexClusterName, err))
+	}
+
+	if err := d.Set("replication_specs", flexcluster.FlattenFlexProviderSettingsIntoReplicationSpecs(flexCluster.ProviderSettings, conversion.Pointer(d.Get("replication_specs.0.region_configs.0.priority").(int)), conversion.StringPtr(d.Get("replication_specs.0.zone_name").(string)))); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "replication_specs", flexClusterName, err))
+	}
+
+	if err := d.Set("name", flexCluster.GetName()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "name", flexClusterName, err))
+	}
+
+	if err := d.Set("project_id", flexCluster.GetGroupId()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "project_id", flexClusterName, err))
+	}
+
+	if err := d.Set("state_name", flexCluster.GetStateName()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "state_name", flexClusterName, err))
+	}
+
+	if err := d.Set("tags", flattenTags(flexCluster.Tags)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "tags", flexClusterName, err))
+	}
+
+	if err := d.Set("termination_protection_enabled", flexCluster.GetTerminationProtectionEnabled()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "termination_protection_enabled", flexClusterName, err))
+	}
+
+	if err := d.Set("version_release_system", flexCluster.GetVersionReleaseSystem()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorFlexClusterSetting, "version_release_system", flexClusterName, err))
+	}
+	return nil
 }

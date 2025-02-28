@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -70,7 +70,7 @@ func Resource() *schema.Resource {
 			"on_demand_policy_item": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -330,8 +330,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "pit_enabled", projectID, err))
 	}
 
-	if err := d.Set("on_demand_policy_item", flattenOnDemandBackupPolicyItem(policy.GetOnDemandPolicyItem())); err != nil {
-		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "scheduled_policy_items", projectID, err))
+	if err := d.Set("on_demand_policy_item", flattenOnDemandBackupPolicyItem(policy.OnDemandPolicyItem)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "on_demand_policy_item", projectID, err))
 	}
 
 	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(policy.GetScheduledPolicyItems(), cloudbackupschedule.Hourly)); err != nil {
@@ -411,7 +411,10 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenOnDemandBackupPolicyItem(item admin.BackupComplianceOnDemandPolicyItem) []map[string]any {
+func flattenOnDemandBackupPolicyItem(item *admin.BackupComplianceOnDemandPolicyItem) []map[string]any {
+	if item == nil {
+		return nil
+	}
 	return []map[string]any{
 		{
 			"id":                 item.GetId(),

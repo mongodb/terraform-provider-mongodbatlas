@@ -12,7 +12,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -151,8 +151,9 @@ func Resource() *schema.Resource {
 				ConflictsWith: []string{"backup_enabled"},
 			},
 			"provider_instance_size_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validate.InstanceSizeNameValidator(),
 			},
 			"provider_name": {
 				Type:             schema.TypeString,

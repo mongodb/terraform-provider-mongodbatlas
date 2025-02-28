@@ -1,0 +1,3 @@
+```release-note:bug
+data-source/mongodbatlas_organizations: Avoids nil pointer error when individual getOrganizationSettings API call fails
+```

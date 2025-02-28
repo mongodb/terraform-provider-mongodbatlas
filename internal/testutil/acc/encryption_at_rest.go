@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -43,6 +43,32 @@ func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useReq
 	return config
 }
 
+func ConfigAwsKms(projectID string, aws *admin.AWSKMSConfiguration, useDatasource, useRequirePrivateNetworking bool) string {
+	requirePrivateNetworkingStr := ""
+	if useRequirePrivateNetworking {
+		requirePrivateNetworkingStr = fmt.Sprintf("require_private_networking = %t", aws.GetRequirePrivateNetworking())
+	}
+	config := fmt.Sprintf(`
+		resource "mongodbatlas_encryption_at_rest" "test" {
+			project_id = %[1]q
+
+		  aws_kms_config {
+				enabled                = %[2]t
+				customer_master_key_id = %[3]q
+				region                 = %[4]q
+				role_id              = %[5]q
+				
+				%[6]s
+			}
+		}
+	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId(), requirePrivateNetworkingStr)
+
+	if useDatasource {
+		return fmt.Sprintf(`%s %s`, config, EARDatasourceConfig())
+	}
+	return config
+}
+
 func EARDatasourceConfig() string {
 	return `data "mongodbatlas_encryption_at_rest" "test" {
 			project_id = mongodbatlas_encryption_at_rest.test.project_id
@@ -62,6 +88,17 @@ func CheckEARExists(resourceName string) resource.TestCheckFunc {
 			return nil
 		}
 		return fmt.Errorf("encryptionAtRest (%s) does not exist", rs.Primary.ID)
+	}
+}
+
+func ConvertToAwsKmsEARAttrMap(awsKms *admin.AWSKMSConfiguration) map[string]string {
+	return map[string]string{
+		"enabled":                    strconv.FormatBool(awsKms.GetEnabled()),
+		"region":                     awsKms.GetRegion(),
+		"role_id":                    awsKms.GetRoleId(),
+		"customer_master_key_id":     awsKms.GetCustomerMasterKeyID(),
+		"valid":                      "true",
+		"require_private_networking": strconv.FormatBool(awsKms.GetRequirePrivateNetworking()),
 	}
 }
 

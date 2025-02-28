@@ -3,7 +3,7 @@ package encryptionatrest
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -44,6 +44,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					"valid": schema.BoolAttribute{
 						Computed:            true,
 						MarkdownDescription: "Flag that indicates whether the Amazon Web Services (AWS) Key Management Service (KMS) encryption key can encrypt and decrypt data.",
+					},
+					"require_private_networking": schema.BoolAttribute{
+						Computed:            true,
+						MarkdownDescription: "Enable connection to your Amazon Web Services (AWS) Key Management Service (KMS) over private networking.",
 					},
 				},
 				Computed:            true,

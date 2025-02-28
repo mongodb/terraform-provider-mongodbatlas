@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -28,11 +28,11 @@ const (
 	earDatasourceName    = "data.mongodbatlas_encryption_at_rest.test"
 )
 
-func TestAccEncryptionAtRestPrivateEndpoint_basic(t *testing.T) {
-	resource.Test(t, *basicTestCase(t))
+func TestAccEncryptionAtRestPrivateEndpoint_Azure_basic(t *testing.T) {
+	resource.Test(t, *basicTestCaseAzure(t))
 }
 
-func basicTestCase(tb testing.TB) *resource.TestCase {
+func basicTestCaseAzure(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
@@ -57,8 +57,15 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: acc.ConfigEARAzureKeyVault(projectID, azureKeyVault, false, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(earResourceName, "azure_key_vault_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(earResourceName, "azure_key_vault_config.0.require_private_networking", "false"),
+				),
+			},
+			{
 				Config: configAzureBasic(projectID, azureKeyVault, region, false),
-				Check:  checkAzureBasic(projectID, azureKeyVault, region, false),
+				Check:  checkBasic(projectID, *azureKeyVault.AzureEnvironment, region, false),
 			},
 			{
 				Config:            configAzureBasic(projectID, azureKeyVault, region, false),
@@ -102,7 +109,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_approveEndpointWithAzureProvider(t *
 		Steps: []resource.TestStep{
 			{
 				Config: configAzureBasic(projectID, azureKeyVault, region, false),
-				Check:  checkAzureBasic(projectID, azureKeyVault, region, false),
+				Check:  checkBasic(projectID, *azureKeyVault.AzureEnvironment, region, false),
 			},
 			{
 				Config: configAzureBasic(projectID, azureKeyVault, region, true),
@@ -111,130 +118,64 @@ func TestAccEncryptionAtRestPrivateEndpoint_approveEndpointWithAzureProvider(t *
 				PreConfig:    waitForStatusUpdate,
 				RefreshState: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAzureBasic(projectID, azureKeyVault, region, true),
+					checkBasic(projectID, *azureKeyVault.AzureEnvironment, region, true),
 				),
 			},
 		},
 	})
 }
 
-func TestAccEncryptionAtRestPrivateEndpoint_transitionPublicToPrivateNetwork(t *testing.T) {
+func TestAccEncryptionAtRestPrivateEndpoint_AWS_basic(t *testing.T) {
+	resource.Test(t, *basicTestCaseAWS(t))
+}
+
+func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
+	tb.Helper()
 	var (
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
-		azureKeyVault = &admin.AzureKeyVault{
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
+
+		awsKms = admin.AWSKMSConfiguration{
 			Enabled:                  conversion.Pointer(true),
-			RequirePrivateNetworking: conversion.Pointer(true),
-			AzureEnvironment:         conversion.StringPtr("AZURE"),
-			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
-			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
-			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
-			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME")),
-			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
-			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
-			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
-		region = os.Getenv("AZURE_PRIVATE_ENDPOINT_REGION")
+		awsKmsPrivateNetworking = admin.AWSKMSConfiguration{
+			Enabled:                  conversion.Pointer(true),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
+			RequirePrivateNetworking: conversion.Pointer(true),
+		}
+		region = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckEncryptionAtRestEnvAzure(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckEncryptionAtRestEnvAWS(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, azureKeyVault, false, true),
+				Config: acc.ConfigAwsKms(projectID, &awsKms, false, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(earResourceName, "azure_key_vault_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(earResourceName, "azure_key_vault_config.0.require_private_networking", "false"),
+					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.require_private_networking", "false"),
 				),
 			},
 			{
-				Config: configAzureBasic(projectID, azureKeyVault, region, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(earResourceName, "azure_key_vault_config.0.require_private_networking", "true"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "status", "PENDING_ACCEPTANCE"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccEncryptionAtRest_azure_requirePrivateNetworking(t *testing.T) {
-	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
-
-		azureKeyVault = admin.AzureKeyVault{
-			Enabled:                  conversion.Pointer(true),
-			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
-			AzureEnvironment:         conversion.StringPtr("AZURE"),
-			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
-			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
-			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME")),
-			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
-			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
-			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
-			RequirePrivateNetworking: conversion.Pointer(true),
-		}
-
-		azureKeyVaultAttrMap = acc.ConvertToAzureKeyVaultEARAttrMap(&azureKeyVault)
-
-		azureKeyVaultUpdated = admin.AzureKeyVault{
-			Enabled:                  conversion.Pointer(true),
-			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
-			AzureEnvironment:         conversion.StringPtr("AZURE"),
-			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
-			ResourceGroupName:        conversion.StringPtr(os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
-			KeyVaultName:             conversion.StringPtr(os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED")),
-			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
-			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
-			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
-			RequirePrivateNetworking: conversion.Pointer(false),
-		}
-
-		azureKeyVaultUpdatedAttrMap = acc.ConvertToAzureKeyVaultEARAttrMap(&azureKeyVaultUpdated)
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			acc.PreCheckEncryptionAtRestPrivateEndpoint(t)
-			acc.PreCheckEncryptionAtRestEnvAzureWithUpdate(t)
-		},
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.EARDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVault, true, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.CheckEARExists(earResourceName),
-					resource.TestCheckResourceAttr(earResourceName, "project_id", projectID),
-					acc.EARCheckResourceAttr(earResourceName, "azure_key_vault_config.0", azureKeyVaultAttrMap),
-
-					resource.TestCheckResourceAttr(earDatasourceName, "project_id", projectID),
-					acc.EARCheckResourceAttr(earDatasourceName, "azure_key_vault_config", azureKeyVaultAttrMap),
-				),
+				Config: configAWSBasic(projectID, &awsKmsPrivateNetworking, region),
+				Check:  checkBasic(projectID, "AWS", region, true),
 			},
 			{
-				Config: acc.ConfigEARAzureKeyVault(projectID, &azureKeyVaultUpdated, true, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.CheckEARExists(earResourceName),
-					resource.TestCheckResourceAttr(earResourceName, "project_id", projectID),
-					acc.EARCheckResourceAttr(earResourceName, "azure_key_vault_config.0", azureKeyVaultUpdatedAttrMap),
-
-					resource.TestCheckResourceAttr(earDatasourceName, "project_id", projectID),
-					acc.EARCheckResourceAttr(earDatasourceName, "azure_key_vault_config.", azureKeyVaultUpdatedAttrMap),
-				),
-			},
-			{
-				ResourceName:      earResourceName,
-				ImportStateIdFunc: acc.EARImportStateIDFunc(earResourceName),
+				Config:            configAWSBasic(projectID, &awsKms, region),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-				// "azure_key_vault_config.0.secret" is a sensitive value not returned by the API
-				ImportStateVerifyIgnore: []string{"azure_key_vault_config.0.secret"},
 			},
 		},
-	})
+	}
 }
 
 type errMsgTestCase struct {
@@ -319,18 +260,9 @@ func configAzureBasic(projectID string, azure *admin.AzureKeyVault, region strin
 		    region_name = %[2]q
 		}
 
-		data "mongodbatlas_encryption_at_rest_private_endpoint" "test" {
-		    project_id = mongodbatlas_encryption_at_rest_private_endpoint.test.project_id
-			cloud_provider = mongodbatlas_encryption_at_rest_private_endpoint.test.cloud_provider
-		    id = mongodbatlas_encryption_at_rest_private_endpoint.test.id
-		}
+		%[3]s
 
-		data "mongodbatlas_encryption_at_rest_private_endpoints" "test" {
-		    project_id = mongodbatlas_encryption_at_rest_private_endpoint.test.project_id
-			cloud_provider = mongodbatlas_encryption_at_rest_private_endpoint.test.cloud_provider
-		}
-
-	`, encryptionAtRestConfig, region)
+	`, encryptionAtRestConfig, region, configDS())
 
 	if approveWithAzapi {
 		azKeyVaultResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s", azure.GetSubscriptionID(), azure.GetResourceGroupName(), azure.GetKeyVaultName())
@@ -360,23 +292,59 @@ func configAzureBasic(projectID string, azure *admin.AzureKeyVault, region strin
 	return config
 }
 
-func checkAzureBasic(projectID string, azure *admin.AzureKeyVault, region string, expectApproved bool) resource.TestCheckFunc {
+func checkBasic(projectID, cloudProvider, region string, expectApproved bool) resource.TestCheckFunc {
 	expectedStatus := retrystrategy.RetryStrategyPendingAcceptanceState
 	if expectApproved {
 		expectedStatus = retrystrategy.RetryStrategyActiveState
+	}
+	attrsSet := []string{"id"}
+	if cloudProvider == "AZURE" {
+		attrsSet = append(attrsSet, "private_endpoint_connection_name")
 	}
 
 	return acc.CheckRSAndDS(
 		resourceName,
 		admin.PtrString(dataSourceName),
 		admin.PtrString(pluralDataSourceName),
-		[]string{"id", "private_endpoint_connection_name"},
+		attrsSet,
 		map[string]string{
 			"project_id":     projectID,
 			"status":         expectedStatus,
 			"region_name":    region,
-			"cloud_provider": *azure.AzureEnvironment,
+			"cloud_provider": cloudProvider,
 		})
+}
+
+func configAWSBasic(projectID string, awsKms *admin.AWSKMSConfiguration, region string) string {
+	encryptionAtRestConfig := acc.ConfigAwsKms(projectID, awsKms, false, true)
+	config := fmt.Sprintf(`
+		%[1]s
+
+		resource "mongodbatlas_encryption_at_rest_private_endpoint" "test" {
+		    project_id = mongodbatlas_encryption_at_rest.test.project_id
+		    cloud_provider = "AWS"
+		    region_name = %[2]q
+		}
+
+		%[3]s
+
+	`, encryptionAtRestConfig, region, configDS())
+
+	return config
+}
+
+func configDS() string {
+	return `
+	data "mongodbatlas_encryption_at_rest_private_endpoint" "test" {
+		project_id = mongodbatlas_encryption_at_rest_private_endpoint.test.project_id
+		cloud_provider = mongodbatlas_encryption_at_rest_private_endpoint.test.cloud_provider
+		id = mongodbatlas_encryption_at_rest_private_endpoint.test.id
+	}
+
+	data "mongodbatlas_encryption_at_rest_private_endpoints" "test" {
+		project_id = mongodbatlas_encryption_at_rest_private_endpoint.test.project_id
+		cloud_provider = mongodbatlas_encryption_at_rest_private_endpoint.test.cloud_provider
+	}`
 }
 
 func checkDestroy(state *terraform.State) error {

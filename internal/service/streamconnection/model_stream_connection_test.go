@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
-	//"go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 )
 
 const (
@@ -190,7 +189,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			SDKResp: &admin.StreamsConnection{
 				Name: admin.PtrString(awslambdaConnectionName),
 				Type: admin.PtrString("AWSLambda"),
-				Aws:  &admin.StreamsAWSConnectionBaseConfig{RoleArn: admin.PtrString(sampleRoleArn)},
+				Aws:  &admin.StreamsAWSConnectionConfig{RoleArn: admin.PtrString(sampleRoleArn)},
 			},
 			providedProjID:       dummyProjectID,
 			providedInstanceName: instanceName,
@@ -271,7 +270,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 					{
 						Name: admin.PtrString(awslambdaConnectionName),
 						Type: admin.PtrString("AWSLambda"),
-						Aws: &admin.StreamsAWSConnectionBaseConfig{
+						Aws: &admin.StreamsAWSConnectionConfig{
 							RoleArn: admin.PtrString(sampleRoleArn),
 						},
 					},
@@ -479,7 +478,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 			expectedSDKReq: &admin.StreamsConnection{
 				Name: admin.PtrString(awslambdaConnectionName),
 				Type: admin.PtrString("AWSLambda"),
-				Aws: &admin.StreamsAWSConnectionBaseConfig{
+				Aws: &admin.StreamsAWSConnectionConfig{
 					RoleArn: admin.PtrString(sampleRoleArn),
 				},
 			},

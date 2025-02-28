@@ -22,5 +22,5 @@ jobs:
           stale-pr-label: 'stale'
           days-before-stale: 5
           days-before-close: 2
-          exempt-pr-labels: 'not_stale'
+          exempt-pr-labels: 'not_stale, dependencies'
           exempt-issue-labels: 'not_stale'

@@ -3,17 +3,17 @@ package projectipaccesslist
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -151,12 +151,12 @@ func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		if err != nil {
 			// case 404
 			// deleted in the backend case
-			if httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound {
+			if validate.StatusNotFound(httpResponse) {
 				resp.State.RemoveResource(ctx)
 				return nil
 			}
 
-			if httpResponse != nil && httpResponse.StatusCode == http.StatusInternalServerError {
+			if validate.StatusInternalServerError(httpResponse) {
 				return retry.RetryableError(err)
 			}
 
@@ -201,11 +201,11 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 		_, httpResponse, err := connV2.ProjectIPAccessListApi.DeleteProjectIpAccessList(ctx, projectID, entry).Execute()
 		if err != nil {
-			if httpResponse != nil && httpResponse.StatusCode == http.StatusInternalServerError {
+			if validate.StatusInternalServerError(httpResponse) {
 				return retry.RetryableError(err)
 			}
 
-			if httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound {
+			if validate.StatusNotFound(httpResponse) {
 				return nil
 			}
 
@@ -215,7 +215,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 
 		entry, httpResponse, err := connV2.ProjectIPAccessListApi.GetProjectIpList(ctx, projectID, entry).Execute()
 		if err != nil {
-			if httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound {
+			if validate.StatusNotFound(httpResponse) {
 				return nil
 			}
 
@@ -257,9 +257,9 @@ func isEntryInProjectAccessList(ctx context.Context, connV2 *admin.APIClient, pr
 		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetProjectIpList(ctx, projectID, entry).Execute()
 		if err != nil {
 			switch {
-			case httpResponse != nil && httpResponse.StatusCode == http.StatusInternalServerError:
+			case validate.StatusInternalServerError(httpResponse):
 				return retry.RetryableError(err)
-			case httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound:
+			case validate.StatusNotFound(httpResponse):
 				return retry.RetryableError(err)
 			default:
 				return retry.NonRetryableError(fmt.Errorf(errorAccessListRead, err))

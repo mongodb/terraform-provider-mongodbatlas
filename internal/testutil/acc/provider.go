@@ -97,7 +97,7 @@ func ConfigGovProvider() string {
 	return configProvider(os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"), os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"), os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"))
 }
 
-func ConfigReadOnlyProvider() string {
+func ConfigOrgMemberProvider() string {
 	return configProvider(os.Getenv("MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY"), os.Getenv("MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY"), os.Getenv("MONGODB_ATLAS_BASE_URL"))
 }
 

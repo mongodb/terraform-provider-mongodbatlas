@@ -3,7 +3,7 @@ package encryptionatrestprivateendpoint_test
 import (
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -64,6 +64,44 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 				RegionName:                    types.StringValue(testRegionName),
 				Status:                        types.StringValue(testStatus),
 				PrivateEndpointConnectionName: types.StringValue(testPEConnectionName),
+				ProjectID:                     types.StringValue(testProjectID),
+			},
+		},
+		// PrivateEndpointConnectionName is not returned for AWS
+		"nil PrivateEndpointConnectionName": {
+			SDKResp: admin.EARPrivateEndpoint{
+				CloudProvider: admin.PtrString(testCloudProvider),
+				ErrorMessage:  admin.PtrString(""),
+				Id:            admin.PtrString(testID),
+				RegionName:    admin.PtrString(testRegionName),
+				Status:        admin.PtrString(testStatus),
+			},
+			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
+				CloudProvider:                 types.StringValue(testCloudProvider),
+				ErrorMessage:                  types.StringNull(),
+				ID:                            types.StringValue(testID),
+				RegionName:                    types.StringValue(testRegionName),
+				Status:                        types.StringValue(testStatus),
+				PrivateEndpointConnectionName: types.StringNull(),
+				ProjectID:                     types.StringValue(testProjectID),
+			},
+		},
+		"empty PrivateEndpointConnectionName": {
+			SDKResp: admin.EARPrivateEndpoint{
+				CloudProvider:                 admin.PtrString(testCloudProvider),
+				ErrorMessage:                  admin.PtrString(""),
+				Id:                            admin.PtrString(testID),
+				RegionName:                    admin.PtrString(testRegionName),
+				Status:                        admin.PtrString(testStatus),
+				PrivateEndpointConnectionName: admin.PtrString(""),
+			},
+			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
+				CloudProvider:                 types.StringValue(testCloudProvider),
+				ErrorMessage:                  types.StringNull(),
+				ID:                            types.StringValue(testID),
+				RegionName:                    types.StringValue(testRegionName),
+				Status:                        types.StringValue(testStatus),
+				PrivateEndpointConnectionName: types.StringNull(),
 				ProjectID:                     types.StringValue(testProjectID),
 			},
 		},

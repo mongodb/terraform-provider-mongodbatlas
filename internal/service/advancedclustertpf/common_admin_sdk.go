@@ -4,13 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
 func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, usingNewShardingConfig bool) *admin.ClusterDescription20240805 {
@@ -118,13 +122,22 @@ func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 	return configLegacy, configNew
 }
 
-func TenantUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
+func UpgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.ClustersApi.UpgradeSharedCluster(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
 	return AwaitChanges(ctx, client, waitParams, operationTenantUpgrade, diags)
+}
+
+func UpgradeFlexToDedicated(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.AtlasTenantClusterUpgradeRequest20240805) *admin.ClusterDescription20240805 {
+	_, _, err := client.AtlasV2.FlexClustersApi.UpgradeFlexCluster(ctx, waitParams.ProjectID, req).Execute()
+	if err != nil {
+		addErrorDiag(diags, operationFlexUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		return nil
+	}
+	return AwaitChanges(ctx, client, waitParams, operationFlexUpgrade, diags)
 }
 
 func PinFCV(ctx context.Context, api admin.ClustersApi, projectID, clusterName, expirationDateStr string) error {
@@ -149,24 +162,43 @@ func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	}
 	_, err := client.AtlasV2.ClustersApi.DeleteClusterWithParams(ctx, params).Execute()
 	if err != nil {
-		addErrorDiag(diags, operationDelete, defaultAPIErrorDetails(waitParams.ClusterName, err))
-		return
+		if !admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API") {
+			addErrorDiag(diags, operationDelete, defaultAPIErrorDetails(waitParams.ClusterName, err))
+			return
+		}
+		err := flexcluster.DeleteFlexCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, client.AtlasV2.FlexClustersApi)
+		if err != nil {
+			addErrorDiag(diags, operationDeleteFlex, defaultAPIErrorDetails(waitParams.ClusterName, err))
+			return
+		}
 	}
 	AwaitChanges(ctx, client, waitParams, operationDelete, diags)
 }
 
-func ReadCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, fcvPresentInState bool) *admin.ClusterDescription20240805 {
-	readResp, _, err := client.AtlasV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, clusterName string, client *config.MongoDBClient, fcvPresentInState bool) (clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113) {
+	isFlex := false
+	clusterDesc, resp, err := client.AtlasV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
-			return nil
+		if validate.StatusNotFound(resp) || admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
+			return nil, nil
 		}
-		diags.AddError(errorReadResource, defaultAPIErrorDetails(clusterName, err))
-		return nil
+		if isFlex = admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API"); !isFlex {
+			diags.AddError(errorReadResource, defaultAPIErrorDetails(clusterName, err))
+			return nil, nil
+		}
 	}
-	if fcvPresentInState {
-		newWarnings := GenerateFCVPinningWarningForRead(fcvPresentInState, readResp.FeatureCompatibilityVersionExpirationDate)
+
+	if !isFlex && fcvPresentInState && clusterDesc != nil {
+		newWarnings := GenerateFCVPinningWarningForRead(fcvPresentInState, clusterDesc.FeatureCompatibilityVersionExpirationDate)
 		diags.Append(newWarnings...)
 	}
-	return readResp
+
+	if isFlex {
+		flexClusterResp, err = flexcluster.GetFlexCluster(ctx, projectID, clusterName, client.AtlasV2.FlexClustersApi)
+		if err != nil {
+			diags.AddError(fmt.Sprintf(flexcluster.ErrorReadFlex, clusterName, err), defaultAPIErrorDetails(clusterName, err))
+			return nil, nil
+		}
+	}
+	return clusterDesc, flexClusterResp
 }

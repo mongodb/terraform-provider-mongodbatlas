@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -262,11 +262,11 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 							return "", "DELETED", nil
 						}
 
-						if resp.StatusCode == 404 {
+						if validate.StatusNotFound(resp) {
 							// The cluster no longer exists, consider this equivalent to status APPLIED
 							continue
 						}
-						if resp.StatusCode == 503 {
+						if validate.StatusServiceUnavailable(resp) {
 							return "", "PENDING", nil
 						}
 						return nil, "REPEATING", err

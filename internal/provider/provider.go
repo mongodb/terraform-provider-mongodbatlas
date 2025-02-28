@@ -34,6 +34,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexrestorejob"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
@@ -61,7 +63,6 @@ const (
 )
 
 type MongodbtlasProvider struct {
-	proxyPort *int
 }
 
 type tfMongodbAtlasProviderModel struct {
@@ -247,7 +248,6 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		BaseURL:          data.BaseURL.ValueString(),
 		RealmBaseURL:     data.RealmBaseURL.ValueString(),
 		TerraformVersion: req.TerraformVersion,
-		ProxyPort:        p.proxyPort,
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -450,6 +450,12 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		mongodbemployeeaccessgrant.DataSource,
 		streamprivatelinkendpoint.DataSource,
 		streamprivatelinkendpoint.PluralDataSource,
+		flexcluster.DataSource,
+		flexcluster.PluralDataSource,
+		flexsnapshot.DataSource,
+		flexsnapshot.PluralDataSource,
+		flexrestorejob.DataSource,
+		flexrestorejob.PluralDataSource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
@@ -457,8 +463,6 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 	previewDataSources := []func() datasource.DataSource{
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
-		flexcluster.DataSource,
-		flexcluster.PluralDataSource,
 	} // Data sources not yet in GA
 	if providerEnablePreview {
 		dataSources = append(dataSources, previewDataSources...)
@@ -481,13 +485,13 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		encryptionatrestprivateendpoint.Resource,
 		mongodbemployeeaccessgrant.Resource,
 		streamprivatelinkendpoint.Resource,
+		flexcluster.Resource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		resources = append(resources, advancedclustertpf.Resource)
 	}
 	previewResources := []func() resource.Resource{
 		resourcepolicy.Resource,
-		flexcluster.Resource,
 	} // Resources not yet in GA
 	if providerEnablePreview {
 		resources = append(resources, previewResources...)
@@ -495,23 +499,13 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	return resources
 }
 
-func NewFrameworkProvider(proxyPort *int) provider.Provider {
-	return &MongodbtlasProvider{
-		proxyPort: proxyPort,
-	}
+func NewFrameworkProvider() provider.Provider {
+	return &MongodbtlasProvider{}
 }
 
 func MuxProviderFactory() func() tfprotov6.ProviderServer {
-	return muxProviderFactory(nil)
-}
-
-func MuxProviderFactoryForTesting(proxyPort *int) func() tfprotov6.ProviderServer {
-	return muxProviderFactory(proxyPort)
-}
-
-func muxProviderFactory(proxyPort *int) func() tfprotov6.ProviderServer {
-	v2Provider := NewSdkV2Provider(proxyPort)
-	newProvider := NewFrameworkProvider(proxyPort)
+	v2Provider := NewSdkV2Provider()
+	newProvider := NewFrameworkProvider()
 	ctx := context.Background()
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, v2Provider.GRPCProvider)
 	if err != nil {

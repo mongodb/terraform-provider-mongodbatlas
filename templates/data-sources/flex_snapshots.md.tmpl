@@ -1,0 +1,10 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` returns all snapshots of a flex cluster.
+
+## Example Usages
+{{ tffile (printf "examples/mongodbatlas_flex_cluster/snapshot.tf" )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Flex Snapshots](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Snapshots/operation/listFlexBackups) Documentation.

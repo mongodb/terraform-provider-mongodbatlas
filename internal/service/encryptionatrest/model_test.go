@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -32,20 +32,22 @@ var (
 	keyVersionResourceID     = "KeyVersionResourceID"
 	serviceAccountKey        = "ServiceAccountKey"
 	AWSKMSConfiguration      = &admin.AWSKMSConfiguration{
-		Enabled:             &enabled,
-		CustomerMasterKeyID: &customerMasterKeyID,
-		Region:              &region,
-		AccessKeyID:         &accessKeyID,
-		SecretAccessKey:     &secretAccessKey,
-		RoleId:              &roleID,
+		Enabled:                  &enabled,
+		CustomerMasterKeyID:      &customerMasterKeyID,
+		Region:                   &region,
+		AccessKeyID:              &accessKeyID,
+		SecretAccessKey:          &secretAccessKey,
+		RoleId:                   &roleID,
+		RequirePrivateNetworking: &requirePrivateNetworking,
 	}
 	TfAwsKmsConfigModel = encryptionatrest.TFAwsKmsConfigModel{
-		Enabled:             types.BoolValue(enabled),
-		CustomerMasterKeyID: types.StringValue(customerMasterKeyID),
-		Region:              types.StringValue(region),
-		AccessKeyID:         types.StringValue(accessKeyID),
-		SecretAccessKey:     types.StringValue(secretAccessKey),
-		RoleID:              types.StringValue(roleID),
+		Enabled:                  types.BoolValue(enabled),
+		CustomerMasterKeyID:      types.StringValue(customerMasterKeyID),
+		Region:                   types.StringValue(region),
+		AccessKeyID:              types.StringValue(accessKeyID),
+		SecretAccessKey:          types.StringValue(secretAccessKey),
+		RoleID:                   types.StringValue(roleID),
+		RequirePrivateNetworking: types.BoolValue(requirePrivateNetworking),
 	}
 	AzureKeyVault = &admin.AzureKeyVault{
 		Enabled:                  &enabled,

@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 )
 
 func TestPatchReplicationSpecs(t *testing.T) {
@@ -179,6 +179,16 @@ func TestPatchReplicationSpecs(t *testing.T) {
 			"Forced changes when forceUpdateAttr set": {
 				state: &state,
 				plan:  &planNoChanges,
+				patchExpected: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &stateReplicationSpecs,
+				},
+				options: []update.PatchOptions{
+					{ForceUpdateAttr: []string{"replicationSpecs"}},
+				},
+			},
+			"Force changes when forceUpdateAttr set and state==plan": {
+				state: &state,
+				plan:  &state,
 				patchExpected: &admin.ClusterDescription20240805{
 					ReplicationSpecs: &stateReplicationSpecs,
 				},
