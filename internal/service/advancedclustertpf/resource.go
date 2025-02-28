@@ -6,7 +6,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"

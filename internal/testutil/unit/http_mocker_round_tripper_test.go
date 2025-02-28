@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 )
 
 const reqPoliciesCreateBody = `{

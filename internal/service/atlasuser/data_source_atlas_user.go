@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -142,7 +142,7 @@ func (d *atlasUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, 
 }
 
 func (d *atlasUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	connV2 := d.Client.AtlasV2
+	connV2 := d.Client.AtlasV220241113
 
 	var atlasUserConfig tfAtlasUserDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &atlasUserConfig)...)
@@ -157,7 +157,7 @@ func (d *atlasUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp
 
 	var (
 		err  error
-		user *admin.CloudAppUser
+		user *admin20241113.CloudAppUser
 	)
 	if !atlasUserConfig.UserID.IsNull() {
 		userID := atlasUserConfig.UserID.ValueString()
@@ -179,7 +179,7 @@ func (d *atlasUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp
 	resp.Diagnostics.Append(resp.State.Set(ctx, &userResultState)...)
 }
 
-func newTFAtlasUserDSModel(user *admin.CloudAppUser) tfAtlasUserDSModel {
+func newTFAtlasUserDSModel(user *admin20241113.CloudAppUser) tfAtlasUserDSModel {
 	return tfAtlasUserDSModel{
 		ID:           types.StringPointerValue(user.Id),
 		UserID:       types.StringPointerValue(user.Id),
@@ -197,7 +197,7 @@ func newTFAtlasUserDSModel(user *admin.CloudAppUser) tfAtlasUserDSModel {
 	}
 }
 
-func newTFLinksList(links []admin.Link) []tfLinkModel {
+func newTFLinksList(links []admin20241113.Link) []tfLinkModel {
 	if links == nil {
 		return nil
 	}
@@ -212,7 +212,7 @@ func newTFLinksList(links []admin.Link) []tfLinkModel {
 	return resLinks
 }
 
-func newTFRolesList(roles []admin.CloudAccessRoleAssignment) []tfAtlasUserRoleModel {
+func newTFRolesList(roles []admin20241113.CloudAccessRoleAssignment) []tfAtlasUserRoleModel {
 	if roles == nil {
 		return nil
 	}

@@ -34,7 +34,7 @@ require (
 	go.mongodb.org/atlas v0.37.0
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
 	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.0
-	go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0
+	go.mongodb.org/atlas-sdk/v20250219001 v20250219001.1.0
 	go.mongodb.org/realm v0.1.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -133,6 +133,7 @@ require (
 	github.com/wk8/go-ordered-map/v2 v2.1.9-0.20240815153524-6ea36470d1bd // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/zclconf/go-cty-yaml v1.0.2 // indirect
+	go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.47.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.47.0 // indirect
