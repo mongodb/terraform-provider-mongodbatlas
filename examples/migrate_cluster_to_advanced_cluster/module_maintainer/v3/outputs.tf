@@ -1,5 +1,5 @@
 output "mongodb_connection_strings" {
-  value       = mongodbatlas_advanced_cluster.this.connection_strings
+  value       = [mongodbatlas_advanced_cluster.this.connection_strings]
   description = "Collection of Uniform Resource Locators that point to the MongoDB database."
 }
 
