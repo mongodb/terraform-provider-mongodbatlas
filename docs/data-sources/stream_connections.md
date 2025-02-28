@@ -45,7 +45,7 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 * `security` - Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
 
-If `type` is of value `AWSLambda` the following additional attributes are defined:
+If `type` is of value `AWSLambda`, define the following additional attributes:
 * `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
 
 ### Authentication
