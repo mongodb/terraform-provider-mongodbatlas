@@ -10,21 +10,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type AttributeChanges struct {
-	Changes []string
-}
+type AttributeChanges []string
 
-func (a *AttributeChanges) LeafChanges() map[string]bool {
+func (a AttributeChanges) LeafChanges() map[string]bool {
 	return a.leafChanges(true)
 }
 
-func (a *AttributeChanges) AttributeChanged(name string) bool {
+func (a AttributeChanges) AttributeChanged(name string) bool {
 	changes := a.LeafChanges()
 	changed := changes[name]
 	return changed
 }
 
-func (a *AttributeChanges) KeepUnknown(attributeEffectedMapping map[string][]string) []string {
+func (a AttributeChanges) KeepUnknown(attributeEffectedMapping map[string][]string) []string {
 	var keepUnknown []string
 	for attrChanged, affectedAttributes := range attributeEffectedMapping {
 		if a.AttributeChanged(attrChanged) {
@@ -36,17 +34,17 @@ func (a *AttributeChanges) KeepUnknown(attributeEffectedMapping map[string][]str
 }
 
 // ListIndexChanged returns true if the list at the given index has changed, false if it was added or removed
-func (a *AttributeChanges) ListIndexChanged(name string, index int) bool {
+func (a AttributeChanges) ListIndexChanged(name string, index int) bool {
 	leafChanges := a.leafChanges(false)
 	indexPath := fmt.Sprintf("%s[%d]", name, index)
 	return leafChanges[indexPath]
 }
 
 // NestedListLenChanges accepts a fullPath, e.g., "replication_specs[0].region_configs" and returns true if the length of the nested list has changed
-func (a *AttributeChanges) NestedListLenChanges(fullPath string) bool {
+func (a AttributeChanges) NestedListLenChanges(fullPath string) bool {
 	addPrefix := fmt.Sprintf("%s[+", fullPath)
 	removePrefix := fmt.Sprintf("%s[-", fullPath)
-	for _, change := range a.Changes {
+	for _, change := range a {
 		if strings.HasPrefix(change, addPrefix) || strings.HasPrefix(change, removePrefix) {
 			return true
 		}
@@ -54,7 +52,7 @@ func (a *AttributeChanges) NestedListLenChanges(fullPath string) bool {
 	return false
 }
 
-func (a *AttributeChanges) ListLenChanges(name string) bool {
+func (a AttributeChanges) ListLenChanges(name string) bool {
 	leafChanges := a.leafChanges(false)
 	addPrefix := fmt.Sprintf("%s[+", name)
 	removePrefix := fmt.Sprintf("%s[-", name)
@@ -66,9 +64,9 @@ func (a *AttributeChanges) ListLenChanges(name string) bool {
 	return false
 }
 
-func (a *AttributeChanges) leafChanges(removeIndex bool) map[string]bool {
+func (a AttributeChanges) leafChanges(removeIndex bool) map[string]bool {
 	leafChanges := map[string]bool{}
-	for _, change := range a.Changes {
+	for _, change := range a {
 		var leaf string
 		parts := strings.Split(change, ".")
 		leaf = parts[len(parts)-1]
@@ -80,17 +78,12 @@ func (a *AttributeChanges) leafChanges(removeIndex bool) map[string]bool {
 	return leafChanges
 }
 
-// FindAttributeChanges: Iterates through TFModel of state+plan and returns AttributeChanges for querying changed attributes
-// The implementation is similar to KeepUnknown, no support for types.Set or types.Tuple yet
-func FindAttributeChanges(ctx context.Context, src, dest any) AttributeChanges {
-	changes := FindChanges(ctx, src, dest)
-	return AttributeChanges{changes}
-}
-
-func FindChanges(ctx context.Context, src, dest any) []string {
+// NewAttributeChanges iterates through TFModel of state+plan and returns AttributeChanges for querying changed attributes.
+// The implementation is similar to KeepUnknown, it doesn't support types.Set or types.Tuple yet.
+func NewAttributeChanges(ctx context.Context, src, dest any) AttributeChanges {
 	valSrc, valDest := validateStructPointers(src, dest)
 	typeDest := valDest.Type()
-	changes := []string{} // Always return an empty list, as nested attributes might be added and then removed, which make the test cases fail on nil vs []
+	changes := []string{} // Always return an empty list so AttributeChanges is not nil, also nested attributes might be added and then removed, which make the test cases fail on nil vs []
 	for i := range typeDest.NumField() {
 		fieldDest := typeDest.Field(i)
 		name, tfName := fieldNameTFName(&fieldDest)

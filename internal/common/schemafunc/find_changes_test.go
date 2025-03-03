@@ -12,7 +12,7 @@ func TestFindChanges(t *testing.T) {
 	tests := map[string]struct {
 		src      any
 		dest     any
-		expected []string
+		expected schemafunc.AttributeChanges
 	}{
 		"no changes": {
 			src:      &TFSimpleModel{Name: types.StringValue("name")},
@@ -118,7 +118,7 @@ func TestFindChanges(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			actual := schemafunc.FindChanges(ctx, tc.src, tc.dest)
+			actual := schemafunc.NewAttributeChanges(ctx, tc.src, tc.dest)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
@@ -126,7 +126,7 @@ func TestFindChanges(t *testing.T) {
 func TestAttributeChanges_LeafChanges(t *testing.T) {
 	tests := map[string]struct {
 		expected map[string]bool
-		changes  []string
+		changes  schemafunc.AttributeChanges
 	}{
 		"empty changes": {
 			changes:  []string{},
@@ -173,8 +173,7 @@ func TestAttributeChanges_LeafChanges(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			ac := schemafunc.AttributeChanges{Changes: tc.changes}
-			actual := ac.LeafChanges()
+			actual := tc.changes.LeafChanges()
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
@@ -183,7 +182,7 @@ func TestAttributeChanges_LeafChanges(t *testing.T) {
 func TestAttributeChanges_AttributeChanged(t *testing.T) {
 	tests := map[string]struct {
 		attr     string
-		changes  []string
+		changes  schemafunc.AttributeChanges
 		expected bool
 	}{
 		"match found": {
@@ -210,15 +209,14 @@ func TestAttributeChanges_AttributeChanged(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			ac := schemafunc.AttributeChanges{Changes: tc.changes}
-			actual := ac.AttributeChanged(tc.attr)
+			actual := tc.changes.AttributeChanged(tc.attr)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
 }
 func TestAttributeChanges_KeepUnknown(t *testing.T) {
 	tests := map[string]struct {
-		changes                  []string
+		changes                  schemafunc.AttributeChanges
 		attributeEffectedMapping map[string][]string
 		expectedKeepUnknownAttrs []string
 	}{
@@ -269,8 +267,7 @@ func TestAttributeChanges_KeepUnknown(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			ac := schemafunc.AttributeChanges{Changes: tc.changes}
-			actual := ac.KeepUnknown(tc.attributeEffectedMapping)
+			actual := tc.changes.KeepUnknown(tc.attributeEffectedMapping)
 			assert.ElementsMatch(t, tc.expectedKeepUnknownAttrs, actual)
 		})
 	}
@@ -278,7 +275,7 @@ func TestAttributeChanges_KeepUnknown(t *testing.T) {
 func TestAttributeChanges_ListLenChanges(t *testing.T) {
 	tests := map[string]struct {
 		name     string
-		changes  []string
+		changes  schemafunc.AttributeChanges
 		expected bool
 	}{
 		"empty changes": {
@@ -325,8 +322,7 @@ func TestAttributeChanges_ListLenChanges(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			ac := schemafunc.AttributeChanges{Changes: tc.changes}
-			actual := ac.ListLenChanges(tc.name)
+			actual := tc.changes.ListLenChanges(tc.name)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
@@ -334,7 +330,7 @@ func TestAttributeChanges_ListLenChanges(t *testing.T) {
 func TestAttributeChanges_ListIndexChanged(t *testing.T) {
 	tests := map[string]struct {
 		name     string
-		changes  []string
+		changes  schemafunc.AttributeChanges
 		index    int
 		expected bool
 	}{
@@ -396,8 +392,7 @@ func TestAttributeChanges_ListIndexChanged(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			ac := schemafunc.AttributeChanges{Changes: tc.changes}
-			actual := ac.ListIndexChanged(tc.name, tc.index)
+			actual := tc.changes.ListIndexChanged(tc.name, tc.index)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
@@ -405,7 +400,7 @@ func TestAttributeChanges_ListIndexChanged(t *testing.T) {
 func TestAttributeChanges_NestedListLenChanges(t *testing.T) {
 	tests := map[string]struct {
 		fullPath string
-		changes  []string
+		changes  schemafunc.AttributeChanges
 		expected bool
 	}{
 		"empty changes": {
@@ -456,8 +451,7 @@ func TestAttributeChanges_NestedListLenChanges(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			ac := schemafunc.AttributeChanges{Changes: tc.changes}
-			actual := ac.NestedListLenChanges(tc.fullPath)
+			actual := tc.changes.NestedListLenChanges(tc.fullPath)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
