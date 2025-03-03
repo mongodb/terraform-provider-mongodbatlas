@@ -93,7 +93,7 @@ func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 	})
 }
 
-func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
+func TestAccBackupCompliancePolicy_withoutRestoreWindowDaysAndOnDemand(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acc.RandomProjectName() // No ProjectIDExecution to avoid conflicts with backup compliance policy
@@ -105,11 +105,12 @@ func TestAccBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithoutRestoreDays(projectName, orgID, projectOwnerID),
+				Config: configWithoutRestoreDaysAndOnDemand(projectName, orgID, projectOwnerID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "on_demand_policy_item.#", "0"),
 				),
 			},
 		},
@@ -136,6 +137,7 @@ func TestAccBackupCompliancePolicy_UpdateSetsAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "on_demand_policy_item.0.retention_value", "3"),
 				),
 			},
 			{
@@ -324,7 +326,7 @@ func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
 	`
 }
 
-func configWithoutRestoreDays(projectName, orgID, projectOwnerID string) string {
+func configWithoutRestoreDaysAndOnDemand(projectName, orgID, projectOwnerID string) string {
 	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 			project_id                 = mongodbatlas_project.test.id
@@ -334,14 +336,6 @@ func configWithoutRestoreDays(projectName, orgID, projectOwnerID string) string 
 			copy_protection_enabled    = false
 			pit_enabled                = false
 			encryption_at_rest_enabled = false
-			
-			//restore_window_days = 7
-			
-			on_demand_policy_item {
-				frequency_interval = 0
-				retention_unit     = "days"
-				retention_value    = 3
-			}
 			
 			policy_item_hourly {
 				frequency_interval = 6

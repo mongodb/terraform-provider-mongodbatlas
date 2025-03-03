@@ -17,7 +17,7 @@ func TestMigConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testi
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: checkDestroy,
+		CheckDestroy: checkDestroy(),
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
@@ -41,7 +41,7 @@ func TestMigConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: checkDestroy,
+		CheckDestroy: checkDestroy(),
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
@@ -67,7 +67,7 @@ func TestMigConfigRSAlertConfiguration_withEmptyOptionalBlocks(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: checkDestroy,
+		CheckDestroy: checkDestroy(),
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
@@ -104,7 +104,7 @@ func TestMigConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: checkDestroy,
+		CheckDestroy: checkDestroy(),
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
@@ -128,7 +128,7 @@ func TestMigConfigRSAlertConfiguration_withEmptyOptionalAttributes(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: checkDestroy,
+		CheckDestroy: checkDestroy(),
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),

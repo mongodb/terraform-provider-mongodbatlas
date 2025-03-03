@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -163,7 +163,7 @@ func (d *atlasUsersDS) Schema(ctx context.Context, req datasource.SchemaRequest,
 }
 
 func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	connV2 := d.Client.AtlasV2
+	connV2 := d.Client.AtlasV220241113
 
 	var atlasUsersConfig tfAtlasUsersDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &atlasUsersConfig)...)
@@ -177,14 +177,14 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 	}
 
 	var (
-		users      []admin.CloudAppUser
+		users      []admin20241113.CloudAppUser
 		totalCount int
 	)
 
 	switch {
 	case !atlasUsersConfig.ProjectID.IsNull():
 		projectID := atlasUsersConfig.ProjectID.ValueString()
-		apiResp, _, err := connV2.ProjectsApi.ListProjectUsersWithParams(ctx, &admin.ListProjectUsersApiParams{
+		apiResp, _, err := connV2.ProjectsApi.ListProjectUsersWithParams(ctx, &admin20241113.ListProjectUsersApiParams{
 			GroupId:      projectID,
 			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
 			ItemsPerPage: conversion.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
@@ -197,7 +197,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		totalCount = *apiResp.TotalCount
 	case !atlasUsersConfig.TeamID.IsNull() && !atlasUsersConfig.OrgID.IsNull():
 		teamID := atlasUsersConfig.TeamID.ValueString()
-		apiResp, _, err := connV2.TeamsApi.ListTeamUsersWithParams(ctx, &admin.ListTeamUsersApiParams{
+		apiResp, _, err := connV2.TeamsApi.ListTeamUsersWithParams(ctx, &admin20241113.ListTeamUsersApiParams{
 			OrgId:        atlasUsersConfig.OrgID.ValueString(),
 			TeamId:       teamID,
 			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
@@ -211,7 +211,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		totalCount = *apiResp.TotalCount
 	default: // only org_id is defined
 		orgID := atlasUsersConfig.OrgID.ValueString()
-		apiResp, _, err := connV2.OrganizationsApi.ListOrganizationUsersWithParams(ctx, &admin.ListOrganizationUsersApiParams{
+		apiResp, _, err := connV2.OrganizationsApi.ListOrganizationUsersWithParams(ctx, &admin20241113.ListOrganizationUsersApiParams{
 			OrgId:        atlasUsersConfig.OrgID.ValueString(),
 			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
 			ItemsPerPage: conversion.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
@@ -228,7 +228,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 	resp.Diagnostics.Append(resp.State.Set(ctx, &usersResultState)...)
 }
 
-func newTFAtlasUsersDSModel(atlasUsersConfig *tfAtlasUsersDSModel, users []admin.CloudAppUser, totalCount int) tfAtlasUsersDSModel {
+func newTFAtlasUsersDSModel(atlasUsersConfig *tfAtlasUsersDSModel, users []admin20241113.CloudAppUser, totalCount int) tfAtlasUsersDSModel {
 	return tfAtlasUsersDSModel{
 		ID:           types.StringValue(id.UniqueId()),
 		OrgID:        atlasUsersConfig.OrgID,
@@ -241,7 +241,7 @@ func newTFAtlasUsersDSModel(atlasUsersConfig *tfAtlasUsersDSModel, users []admin
 	}
 }
 
-func newTFAtlasUsersList(users []admin.CloudAppUser) []tfAtlasUserDSModel {
+func newTFAtlasUsersList(users []admin20241113.CloudAppUser) []tfAtlasUserDSModel {
 	resUsers := make([]tfAtlasUserDSModel, len(users))
 	for i := range users {
 		resUsers[i] = newTFAtlasUserDSModel(&users[i])

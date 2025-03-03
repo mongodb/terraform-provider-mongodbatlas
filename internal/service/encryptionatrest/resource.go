@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -60,13 +60,14 @@ type TfEncryptionAtRestRSModel struct {
 }
 
 type TFAwsKmsConfigModel struct {
-	AccessKeyID         types.String `tfsdk:"access_key_id"`
-	SecretAccessKey     types.String `tfsdk:"secret_access_key"`
-	CustomerMasterKeyID types.String `tfsdk:"customer_master_key_id"`
-	Region              types.String `tfsdk:"region"`
-	RoleID              types.String `tfsdk:"role_id"`
-	Enabled             types.Bool   `tfsdk:"enabled"`
-	Valid               types.Bool   `tfsdk:"valid"`
+	AccessKeyID              types.String `tfsdk:"access_key_id"`
+	SecretAccessKey          types.String `tfsdk:"secret_access_key"`
+	CustomerMasterKeyID      types.String `tfsdk:"customer_master_key_id"`
+	Region                   types.String `tfsdk:"region"`
+	RoleID                   types.String `tfsdk:"role_id"`
+	Enabled                  types.Bool   `tfsdk:"enabled"`
+	RequirePrivateNetworking types.Bool   `tfsdk:"require_private_networking"`
+	Valid                    types.Bool   `tfsdk:"valid"`
 }
 type TFAzureKeyVaultConfigModel struct {
 	ClientID                 types.String `tfsdk:"client_id"`
@@ -145,6 +146,14 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 						"valid": schema.BoolAttribute{
 							Computed:            true,
 							MarkdownDescription: "Flag that indicates whether the Amazon Web Services (AWS) Key Management Service (KMS) encryption key can encrypt and decrypt data.",
+						},
+						"require_private_networking": schema.BoolAttribute{
+							Optional: true,
+							Computed: true,
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
+							MarkdownDescription: "Enable connection to your Amazon Web Services (AWS) Key Management Service (KMS) over private networking.",
 						},
 					},
 					Validators: []validator.Object{validate.AwsKmsConfig()},

@@ -94,6 +94,9 @@ func indexRemoval(path string) bool {
 }
 
 func (m *attrPatchOperations) hasChanged(attr string) bool {
+	if slices.Contains(m.forceUpdateAttr, attr) {
+		return true
+	}
 	for _, op := range m.get(attr) {
 		if slices.Contains(changeOps, op.Type) {
 			return true
@@ -108,7 +111,13 @@ func (m *attrPatchOperations) hasChanged(attr string) bool {
 func (m *attrPatchOperations) ChangedAttributes() []string {
 	attrs := []string{}
 	for attr := range m.data {
-		if m.hasChanged(attr) || slices.Contains(m.forceUpdateAttr, attr) {
+		if m.hasChanged(attr) {
+			attrs = append(attrs, attr)
+		}
+	}
+	// There might be a case where there are no changes in m.data for the attributes in forceUpdateAttr
+	for _, attr := range m.forceUpdateAttr {
+		if !slices.Contains(attrs, attr) {
 			attrs = append(attrs, attr)
 		}
 	}

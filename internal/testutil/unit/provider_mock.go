@@ -68,7 +68,7 @@ func (p *ProviderMocked) Resources(ctx context.Context) []func() resource.Resour
 // Similar to provider.go#muxProviderFactory
 func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() tfprotov6.ProviderServer {
 	t.Helper()
-	v2Provider := provider.NewSdkV2Provider(nil)
+	v2Provider := provider.NewSdkV2Provider()
 	v2ProviderConfigureContextFunc := v2Provider.ConfigureContextFunc
 	v2Provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		resp, diags := v2ProviderConfigureContextFunc(ctx, d)
@@ -83,7 +83,7 @@ func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() 
 		}
 		return resp, diags
 	}
-	fwProviderInstance := provider.NewFrameworkProvider(nil)
+	fwProviderInstance := provider.NewFrameworkProvider()
 	fwProviderInstanceTyped, ok := fwProviderInstance.(*provider.MongodbtlasProvider)
 	if !ok {
 		log.Fatal("Failed to cast provider to MongodbtlasProvider")

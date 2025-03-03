@@ -17,7 +17,7 @@ import (
 func TestResourceSchemas(t *testing.T) {
 	t.Parallel()
 	ctxProvider := context.Background()
-	prov := provider.NewFrameworkProvider(nil)
+	prov := provider.NewFrameworkProvider()
 	var provReq providerfw.MetadataRequest
 	var provRes providerfw.MetadataResponse
 	prov.Metadata(ctxProvider, provReq, &provRes)
@@ -50,7 +50,7 @@ func TestResourceSchemas(t *testing.T) {
 func TestDataSourceSchemas(t *testing.T) {
 	t.Parallel()
 	ctxProvider := context.Background()
-	prov := provider.NewFrameworkProvider(nil)
+	prov := provider.NewFrameworkProvider()
 	var provReq providerfw.MetadataRequest
 	var provRes providerfw.MetadataResponse
 	prov.Metadata(ctxProvider, provReq, &provRes)

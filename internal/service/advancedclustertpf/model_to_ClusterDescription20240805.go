@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 )
 
 const defaultZoneName = "ZoneName managed by Terraform"
@@ -95,8 +95,8 @@ func newReplicationSpec20240805(ctx context.Context, input types.List, diags *di
 	for i := range elements {
 		item := &elements[i]
 		resp[i] = admin.ReplicationSpec20240805{
-			Id:            conversion.NilForUnknown(item.ExternalId, item.ExternalId.ValueStringPointer()),
-			ZoneId:        conversion.NilForUnknown(item.ZoneId, item.ZoneId.ValueStringPointer()),
+			Id:            conversion.NilForUnknownOrEmptyString(item.ExternalId),
+			ZoneId:        conversion.NilForUnknownOrEmptyString(item.ZoneId),
 			RegionConfigs: newCloudRegionConfig20240805(ctx, item.RegionConfigs, diags),
 			ZoneName:      conversion.StringPtr(resolveZoneNameOrUseDefault(item)),
 		}

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113005/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1070,7 +1070,7 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName            = acc.RandomProjectName()
 		config                 = configBasic(orgID, projectName, "", false, nil, conversion.Pointer(false))
-		providerConfigReadOnly = acc.ConfigReadOnlyProvider()
+		providerConfigReadOnly = acc.ConfigOrgMemberProvider()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPublicKey2(t) },

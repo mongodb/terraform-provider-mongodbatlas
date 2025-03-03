@@ -16,7 +16,6 @@
 - All resource folders must have a `main_test.go` file to handle resource reuse lifecycle, e.g. [here](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/f3ff5bb678c1b07c16cc467471f483e483565427/internal/service/advancedcluster/main_test.go).
 - `internal/testutil/acc` contains helper test functions for Acceptance tests.
 - `internal/testutil/mig` contains helper test functions specifically for Migration tests.
-- `internal/testutil/replay` contains helper test functions for [Hoverfly](https://docs.hoverfly.io/en/latest/). Hoverfly is used to capture and replay HTTP traffic with MongoDB Atlas.
 - `internal/testutil/unit` contains helper test functions for [MacT (Mocked Acceptance Tests)](#mact---mocked-acceptance-tests). MacT is used to capture and replay HTTP traffic with MongoDB Atlas and allow diff assertions on requests.
 
 ## Unit tests
@@ -55,7 +54,6 @@ Enviroment Variable | Description
 --- | ---
 `MONGODB_ATLAS_PROJECT_ID` | Re-use an existing project reducing test run duration for resources supporting this variable
 `MONGODB_ATLAS_CLUSTER_NAME` | Re-use an existing cluster reducing significantly test run duration for resources supporting this variable
-`REPLAY_MODE` | Use [Hoverfly](https://docs.hoverfly.io/en/latest/), more info about possible variable values [here](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/contributing/development-setup.md#replaying-http-requests-with-hoverfly)
 
 ## Shared resources
 

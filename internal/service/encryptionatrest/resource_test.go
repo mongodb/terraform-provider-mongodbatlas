@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113005/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -27,47 +27,35 @@ const (
 )
 
 func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
-
 	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:             conversion.Pointer(true),
-			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			Enabled:                  conversion.Pointer(true),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
-		awsKmsAttrMap = map[string]string{
-			"enabled":                "true",
-			"region":                 awsKms.GetRegion(),
-			"role_id":                awsKms.GetRoleId(),
-			"customer_master_key_id": awsKms.GetCustomerMasterKeyID(),
-			"valid":                  "true",
-		}
+		awsKmsAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKms)
 
 		awsKmsUpdated = admin.AWSKMSConfiguration{
-			Enabled:             conversion.Pointer(true),
-			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:              conversion.StringPtr(os.Getenv("AWS_ROLE_ID")),
+			Enabled:                  conversion.Pointer(true),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
+			RequirePrivateNetworking: conversion.Pointer(true),
 		}
-		awsKmsUpdatedAttrMap = map[string]string{
-			"enabled":                "true",
-			"region":                 awsKmsUpdated.GetRegion(),
-			"role_id":                awsKmsUpdated.GetRoleId(),
-			"customer_master_key_id": awsKmsUpdated.GetCustomerMasterKeyID(),
-			"valid":                  "true",
-		}
+		awsKmsUpdatedAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKmsUpdated)
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
+		PreCheck:                 func() { acc.PreCheckAwsEnv(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAwsKms(projectID, &awsKms, true),
+				Config: acc.ConfigAwsKms(projectID, &awsKms, true, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -81,7 +69,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 				),
 			},
 			{
-				Config: configAwsKms(projectID, &awsKmsUpdated, true),
+				Config: acc.ConfigAwsKms(projectID, &awsKmsUpdated, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -243,9 +231,15 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 }
 
 func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
+	acc.SkipTestForCI(t) // needs AWS configuration. This test case is similar to TestAccEncryptionAtRest_basicAWS except that it creates it's own AWS resources such as IAM roles, cloud provider access, etc so we don't need to run this in CI but may be used for local testing.
+
+	resource.Test(t, *testCaseWithRoleBasicAWS(t))
+}
+
+func testCaseWithRoleBasicAWS(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
-		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID            = acc.ProjectIDExecution(t)
 		awsIAMRoleName       = acc.RandomIAMRole()
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 		awsKeyName           = acc.RandomName()
@@ -256,14 +250,22 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 		}
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckAwsEnv(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckAwsEnv(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName, &awsKms),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					acc.CheckEARExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "aws_kms_config.0.role_id"),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
+
+					resource.TestCheckNoResourceAttr(resourceName, "azure_key_vault_config.#"),
+					resource.TestCheckNoResourceAttr(resourceName, "google_cloud_kms_config.#"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -272,7 +274,7 @@ func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	})
+	}
 }
 
 var (
@@ -510,26 +512,6 @@ func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
 	}
 }
 
-func configAwsKms(projectID string, aws *admin.AWSKMSConfiguration, useDatasource bool) string {
-	config := fmt.Sprintf(`
-		resource "mongodbatlas_encryption_at_rest" "test" {
-			project_id = %[1]q
-
-		  aws_kms_config {
-				enabled                = %[2]t
-				customer_master_key_id = %[3]q
-				region                 = %[4]q
-				role_id              = %[5]q
-			}
-		}
-	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId())
-
-	if useDatasource {
-		return fmt.Sprintf(`%s %s`, config, acc.EARDatasourceConfig())
-	}
-	return config
-}
-
 func configGoogleCloudKms(projectID string, google *admin.GoogleCloudKMS, useDatasource bool) string {
 	config := fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
@@ -631,7 +613,8 @@ resource "mongodbatlas_encryption_at_rest" "test" {
     customer_master_key_id = %[3]q
 	region                 = %[2]q
     role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+	require_private_networking = %[4]t
   }
 }
-	`, awsEar.GetEnabled(), awsEar.GetRegion(), awsEar.GetCustomerMasterKeyID())
+	`, awsEar.GetEnabled(), awsEar.GetRegion(), awsEar.GetCustomerMasterKeyID(), awsEar.GetRequirePrivateNetworking())
 }

@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -183,6 +183,18 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceName, "api_access_list_required"),
 					resource.TestCheckResourceAttr(datasourceName, "gen_ai_features_enabled", "true"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccConfigDSOrganization_noAccessShouldFail(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithPluralDS() + acc.ConfigOrgMemberProvider(),
+				ExpectError: regexp.MustCompile("error getting organization settings .*"),
 			},
 		},
 	})
