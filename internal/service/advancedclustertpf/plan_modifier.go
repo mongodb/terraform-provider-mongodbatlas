@@ -37,10 +37,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	if autoScalingInConfig(ctx, diags, config) {
-		// These attributes can change at any moment if auto scaling is enabled
-		keepUnknown = append(keepUnknown, "instance_size", "disk_size_gb")
-		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["instance_size"]...)
-		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["disk_size_gb"]...)
+		keepUnknown = append(keepUnknown, "instance_size", "disk_size_gb") // These attributes can change at any moment if auto scaling is enabled
 	}
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
