@@ -31,13 +31,10 @@ var (
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan, config *TFModel) {
 	diff := findClusterDiff(ctx, state, plan, diags)
-	if diags.HasError() {
+	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
 	}
-	if diff.isAnyUpgrade() { // Don't do anything in upgrades
-		return
-	}
-	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
+	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	if autoScalingInConfig(ctx, diags, config) {
 		// These attributes can change at any moment if auto scaling is enabled
