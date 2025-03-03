@@ -29,16 +29,13 @@ var (
 )
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
-func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan, config *TFModel) {
+func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
-	if autoScalingInConfig(ctx, diags, config) {
-		keepUnknown = append(keepUnknown, "instance_size", "disk_size_gb") // These attributes can change at any moment if auto scaling is enabled
-	}
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
 	if slices.Contains(keepUnknown, "replication_specs") {
@@ -96,20 +93,6 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 		keepUnknowns = append(keepUnknowns, "external_id")
 	}
 	return keepUnknowns
-}
-
-// autoScalingInConfig detects if auto scaling is enabled in the config, i.e. it's set by the user
-func autoScalingInConfig(ctx context.Context, diags *diag.Diagnostics, config *TFModel) bool {
-	repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, config.ReplicationSpecs)
-	for i := range repSpecsTF {
-		regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
-		for j := range regiongConfigsTF {
-			if !regiongConfigsTF[j].AutoScaling.IsNull() || !regiongConfigsTF[j].AnalyticsAutoScaling.IsNull() {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
