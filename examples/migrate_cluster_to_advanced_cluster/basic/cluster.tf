@@ -16,7 +16,7 @@
 #   }
 #   tags {
 #     key   = "Example"
-#     value = "examples/migrate_cluster_to_advanced_cluster/basic"
+#     value = "examples-migrate_cluster_to_advanced_cluster-basic"
 #   }
 #   replication_specs {
 #     num_shards = 1
