@@ -34,6 +34,55 @@ func HasUnknowns(obj any) bool {
 	}
 	return false
 }
+func CopyUnknownsWithCall(ctx context.Context, src, dest any, keepUnknownCall func(string, attr.Value) bool) {
+
+	valSrc, valDest := validateStructPointers(src, dest)
+	typeSrc := valSrc.Type()
+	typeDest := valDest.Type()
+	for i := range typeDest.NumField() {
+		fieldDest := typeDest.Field(i)
+		name, tfName := fieldNameTFName(&fieldDest)
+		srcValue := valSrc.FieldByName(name).Interface()
+		if keepUnknownCall(tfName, srcValue.(attr.Value)) {
+			continue
+		}
+		_, found := typeSrc.FieldByName(name)
+		if !found || !valDest.Field(i).CanSet() {
+			continue
+		}
+		nestedDest := valDest.FieldByName(name).Interface()
+		objValueSrc, okSrc := srcValue.(types.Object)
+		objValueDest, okDest := nestedDest.(types.Object)
+		if okSrc && okDest {
+			objValueNew := copyUnknownsFromObject(ctx, objValueSrc, objValueDest, keepUnknownCall)
+			valDest.Field(i).Set(reflect.ValueOf(objValueNew))
+			continue
+		}
+		listValueSrc, okSrc := srcValue.(types.List)
+		listValueDest, okDest := nestedDest.(types.List)
+		if okSrc && okDest {
+			listValueNew := copyUnknownsFromList(ctx, listValueSrc, listValueDest, keepUnknownCall)
+			valDest.Field(i).Set(reflect.ValueOf(listValueNew))
+			continue
+		}
+		if isUnknown(valDest.Field(i)) && !keepUnknownCall(tfName, srcValue.(attr.Value)) {
+			tflog.Info(ctx, fmt.Sprintf("Copying unknown field: %s\n", name))
+			valDest.Field(i).Set(valSrc.FieldByName(name))
+			continue
+		}
+	}
+}
+
+func CombineKeepUnknownCalls(calls ...func(string, attr.Value) bool) func(string, attr.Value) bool {
+	return func(name string, value attr.Value) bool {
+		for _, call := range calls {
+			if call(name, value) {
+				return true
+			}
+		}
+		return false
+	}
+}
 
 // CopyUnknowns use reflection to copy unknown fields from src to dest.
 // The implementation is similar to internal/common/conversion/model_generation.go#CopyModel
@@ -41,41 +90,9 @@ func HasUnknowns(obj any) bool {
 // nestedStructMapping is a map of field names to their type: object, list. (`set` not implemented yet)
 func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string) {
 	validateKeepUnknown(keepUnknown)
-	valSrc, valDest := validateStructPointers(src, dest)
-	typeSrc := valSrc.Type()
-	typeDest := valDest.Type()
-	for i := range typeDest.NumField() {
-		fieldDest := typeDest.Field(i)
-		name, tfName := fieldNameTFName(&fieldDest)
-		if slices.Contains(keepUnknown, tfName) {
-			continue
-		}
-		_, found := typeSrc.FieldByName(name)
-		if !found || !valDest.Field(i).CanSet() {
-			continue
-		}
-		nestedSrc := valSrc.FieldByName(name).Interface()
-		nestedDest := valDest.FieldByName(name).Interface()
-		objValueSrc, okSrc := nestedSrc.(types.Object)
-		objValueDest, okDest := nestedDest.(types.Object)
-		if okSrc && okDest {
-			objValueNew := copyUnknownsFromObject(ctx, objValueSrc, objValueDest, keepUnknown)
-			valDest.Field(i).Set(reflect.ValueOf(objValueNew))
-			continue
-		}
-		listValueSrc, okSrc := nestedSrc.(types.List)
-		listValueDest, okDest := nestedDest.(types.List)
-		if okSrc && okDest {
-			listValueNew := copyUnknownsFromList(ctx, listValueSrc, listValueDest, keepUnknown)
-			valDest.Field(i).Set(reflect.ValueOf(listValueNew))
-			continue
-		}
-		if isUnknown(valDest.Field(i)) {
-			tflog.Info(ctx, fmt.Sprintf("Copying unknown field: %s\n", name))
-			valDest.Field(i).Set(valSrc.FieldByName(name))
-			continue
-		}
-	}
+	CopyUnknownsWithCall(ctx, src, dest, func(name string, value attr.Value) bool {
+		return slices.Contains(keepUnknown, name)
+	})
 }
 
 func fieldNameTFName(fieldDest *reflect.StructField) (name, tfName string) {
@@ -130,7 +147,7 @@ func validateKeepUnknown(keepUnknown []string) {
 	}
 }
 
-func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnknown []string) types.Object {
+func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnknownCall func(string, attr.Value) bool) types.Object {
 	// if something is null in the state and unknown in plan, we expect it to remain null
 	if src.IsNull() && dest.IsUnknown() {
 		return src
@@ -147,7 +164,8 @@ func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnk
 		attributesDest = fillUnknowns(ctx, attributesSrc)
 	}
 	for name, attr := range attributesDest {
-		if slices.Contains(keepUnknown, name) {
+		replacement := attributesSrc[name]
+		if keepUnknownCall(name, replacement) {
 			attributesMerged[name] = attr
 			continue
 		}
@@ -157,9 +175,9 @@ func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnk
 			tflog.Info(ctx, fmt.Sprintf("Copying unknown field: %s\n", name))
 			switch {
 			case isObject:
-				attr = copyUnknownsFromObject(ctx, attributesSrc[name].(types.Object), tfObjectDest, keepUnknown)
+				attr = copyUnknownsFromObject(ctx, attributesSrc[name].(types.Object), tfObjectDest, keepUnknownCall)
 			case isList:
-				attr = copyUnknownsFromList(ctx, attributesSrc[name].(types.List), tfListDest, keepUnknown)
+				attr = copyUnknownsFromList(ctx, attributesSrc[name].(types.List), tfListDest, keepUnknownCall)
 			default:
 				attr = attributesSrc[name]
 			}
@@ -168,11 +186,11 @@ func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnk
 		}
 		if isList {
 			tfListSrc := attributesSrc[name].(types.List)
-			attr = copyUnknownsFromList(ctx, tfListSrc, tfListDest, keepUnknown)
+			attr = copyUnknownsFromList(ctx, tfListSrc, tfListDest, keepUnknownCall)
 		}
 		if isObject {
 			tfObjectSrc := attributesSrc[name].(types.Object)
-			newObject := copyUnknownsFromObject(ctx, tfObjectSrc, tfObjectDest, keepUnknown)
+			newObject := copyUnknownsFromObject(ctx, tfObjectSrc, tfObjectDest, keepUnknownCall)
 			attr = newObject
 		}
 		attributesMerged[name] = attr
@@ -193,7 +211,7 @@ func fillUnknowns(ctx context.Context, attributesSrc map[string]attr.Value) map[
 	return unknownAttributes
 }
 
-func copyUnknownsFromList(ctx context.Context, src, dest types.List, keepUnknown []string) types.List {
+func copyUnknownsFromList(ctx context.Context, src, dest types.List, keepUnknownCall func(string, attr.Value) bool) types.List {
 	srcElements := src.Elements()
 	destElements := dest.Elements()
 	count := len(srcElements)
@@ -204,7 +222,7 @@ func copyUnknownsFromList(ctx context.Context, src, dest types.List, keepUnknown
 	for i := range count {
 		srcObj := srcElements[i].(types.Object)
 		destObj := destElements[i].(types.Object)
-		newObj := copyUnknownsFromObject(ctx, srcObj, destObj, keepUnknown)
+		newObj := copyUnknownsFromObject(ctx, srcObj, destObj, keepUnknownCall)
 		merged[i] = newObj
 	}
 	return types.ListValueMust(dest.ElementType(ctx), merged)

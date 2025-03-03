@@ -140,6 +140,11 @@ var (
 		RegionName:   types.StringValue("US_EAST_1"),
 		Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Value(3)}, SpecObjType.AttrTypes),
 	}
+	regionConfigNodeCount0 = TFRegionConfig{
+		ProviderName: types.StringValue("aws"),
+		RegionName:   types.StringValue("US_EAST_1"),
+		Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Value(0)}, SpecObjType.AttrTypes),
+	}
 	regionConfigDest = TFRegionConfig{
 		ProviderName: types.StringUnknown(),
 		RegionName:   types.StringValue("US_EAST_1"),
@@ -159,12 +164,20 @@ var (
 )
 
 func TestCopyUnknowns(t *testing.T) {
+	keepProjectIDUnknown := func(name string, value attr.Value) bool {
+		return name == "project_id"
+	}
+	useStateOnlyWhenNodeCount0 := func(name string, value attr.Value) bool {
+		return name == "node_count" && !value.Equal(types.Int64Value(0))
+	}
+	keepUnknownCombined := schemafunc.CombineKeepUnknownCalls(keepProjectIDUnknown, useStateOnlyWhenNodeCount0)
 	tests := map[string]struct {
 		src          *TFSimpleModel
 		dest         *TFSimpleModel
 		expectedDest *TFSimpleModel
 		panicMessage string
 		keepUnknown  []string
+		keepUnknownCall *func(string, attr.Value) bool
 	}{
 		"copy unknown basic fields": {
 			src: &TFSimpleModel{
@@ -224,6 +237,69 @@ func TestCopyUnknowns(t *testing.T) {
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSpecUnknown}),
 			},
 			keepUnknown: []string{"spec"},
+		},
+		"respect keepUnknownCall root": {
+			src: &TFSimpleModel{
+				ProjectID:        types.StringValue("src-project"),
+				Name:             types.StringValue("src-name"),
+			},
+			dest: &TFSimpleModel{
+				ProjectID: types.StringUnknown(),
+				Name:      types.StringUnknown(),
+			},
+			expectedDest: &TFSimpleModel{
+				ProjectID: types.StringUnknown(),
+				Name:      types.StringValue("src-name"),
+			},
+			keepUnknownCall: &keepProjectIDUnknown,
+		},
+		"respect keepUnknownCall nested": {
+			src: &TFSimpleModel{
+				ProjectID:        types.StringValue("src-project"),
+				Name:             types.StringValue("src-name"),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc}),
+			},
+			dest: &TFSimpleModel{
+				ProjectID: types.StringUnknown(),
+				Name:      types.StringUnknown(),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown}),
+			},
+			expectedDest: &TFSimpleModel{
+				ProjectID: types.StringValue("src-project"),
+				Name:      types.StringValue("src-name"),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCountUnknown}),
+			},
+			keepUnknownCall: &useStateOnlyWhenNodeCount0,
+		},
+		"respect multiple keepUnknownCall": {
+			src: &TFSimpleModel{
+				ProjectID:        types.StringValue("src-project"),
+				Name:             types.StringValue("src-name"),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc}),
+			},
+			dest: &TFSimpleModel{
+				ProjectID: types.StringUnknown(),
+				Name:      types.StringUnknown(),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown}),
+			},
+			expectedDest: &TFSimpleModel{
+				ProjectID: types.StringUnknown(),
+				Name:      types.StringValue("src-name"),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCountUnknown}),
+			},
+			keepUnknownCall: &keepUnknownCombined,
+		},
+		"copy node_count 0": {
+			src: &TFSimpleModel{
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCount0}),
+			},
+			dest: &TFSimpleModel{
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown}),
+			},
+			expectedDest: &TFSimpleModel{
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCount0}),
+			},
+			keepUnknownCall: &useStateOnlyWhenNodeCount0,
 		},
 		"non-pointer input": {
 			src:          &TFSimpleModel{},
@@ -305,7 +381,11 @@ func TestCopyUnknowns(t *testing.T) {
 				})
 				return
 			}
-			schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown)
+			if tc.keepUnknownCall != nil {
+				schemafunc.CopyUnknownsWithCall(ctx, tc.src, tc.dest, *tc.keepUnknownCall)
+			} else {
+				schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown)
+			}
 			assert.Equal(t, *tc.expectedDest, *tc.dest)
 		})
 	}
