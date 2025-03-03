@@ -2,7 +2,7 @@
 
 `mongodbatlas_advanced_clusters` returns all Advanced Clusters for a project_id.
 
-This page describes the current version of `mongodbatlas_advanced_clusters`, the page for the **Preview for MongoDB Atlas Provider v2** can be found [here](./advanced_clusters%2520%2528preview%2520provider%2520v2%2529).
+This page describes the current version of `mongodbatlas_advanced_clusters`, the page for the **Preview for MongoDB Atlas Provider 2.0.0** can be found [here](./advanced_clusters%2520%2528preview%2520provider%2520v2%2529).
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
