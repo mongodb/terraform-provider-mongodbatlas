@@ -58,7 +58,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:      true,
 				Computed:      true,
 				Default:       booldefault.StaticBool(true),
-				PlanModifiers: []planmodifier.Bool{customplanmodifier.NonUpdatableAttributePlanModifier()},
+				PlanModifiers: []planmodifier.Bool{customplanmodifier.CreateOnlyAttributePlanModifier()},
 			},
 			"is_collect_database_specifics_statistics_enabled": schema.BoolAttribute{
 				Computed: true,
