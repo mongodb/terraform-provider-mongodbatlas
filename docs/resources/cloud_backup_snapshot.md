@@ -71,7 +71,7 @@ In addition to all arguments above, the following attributes are exported:
 * `cloud_provider` - Cloud provider that stores this snapshot. Atlas returns this parameter when `type` is `replicaSet`.
 * `members` - Block of List of snapshots and the cloud provider where the snapshots are stored. Atlas returns this parameter when `type` is `shardedCluster`. See below
 * `replica_set_name` - Label given to the replica set from which Atlas took this snapshot. Atlas returns this parameter when `type` is `replicaSet`.
-* `snapshot_ids` - Unique identifiers of the snapshots created for the shards and config server for a sharded cluster. Atlas returns this parameter when `type` is `shardedCluster`. These identifiers should match those given in the `members[n].id` parameters. This allows you to map a snapshot to its shard or config server name.
+* `snapshot_ids` - Unique identifiers of the snapshots created for the shards and config server for a sharded cluster. Atlas returns this parameter when `type` is `shardedCluster`. These identifiers should match those given in the `members[#].id` parameters. This allows you to map a snapshot to its shard or config server name.
 
 ### members
 

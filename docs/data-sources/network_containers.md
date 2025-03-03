@@ -25,7 +25,7 @@ data "mongodbatlas_network_containers" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project.
 * `provider_name` - (Required) Cloud provider for this Network peering container. Accepted values are AWS, GCP, and Azure.
 
 
