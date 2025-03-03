@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
@@ -54,9 +55,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"with_default_alerts_settings": schema.BoolAttribute{
 				// Default values also must be Computed otherwise Terraform throws error:
 				// Schema Using Attribute Default For Non-Computed Attribute
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
+				Optional:      true,
+				Computed:      true,
+				Default:       booldefault.StaticBool(true),
+				PlanModifiers: []planmodifier.Bool{customplanmodifier.NonUpdatableAttributePlanModifier()},
 			},
 			"is_collect_database_specifics_statistics_enabled": schema.BoolAttribute{
 				Computed: true,
