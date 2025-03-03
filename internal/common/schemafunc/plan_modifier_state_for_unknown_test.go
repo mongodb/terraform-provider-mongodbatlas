@@ -170,14 +170,13 @@ func TestCopyUnknowns(t *testing.T) {
 	useStateOnlyWhenNodeCount0 := func(name string, value attr.Value) bool {
 		return name == "node_count" && !value.Equal(types.Int64Value(0))
 	}
-	keepUnknownCombined := schemafunc.CombineKeepUnknownCalls(keepProjectIDUnknown, useStateOnlyWhenNodeCount0)
 	tests := map[string]struct {
-		src          *TFSimpleModel
-		dest         *TFSimpleModel
-		expectedDest *TFSimpleModel
-		panicMessage string
-		keepUnknown  []string
-		keepUnknownCall *func(string, attr.Value) bool
+		src              *TFSimpleModel
+		dest             *TFSimpleModel
+		expectedDest     *TFSimpleModel
+		panicMessage     string
+		keepUnknown      []string
+		keepUnknownCalls []func(string, attr.Value) bool
 	}{
 		"copy unknown basic fields": {
 			src: &TFSimpleModel{
@@ -240,8 +239,8 @@ func TestCopyUnknowns(t *testing.T) {
 		},
 		"respect keepUnknownCall root": {
 			src: &TFSimpleModel{
-				ProjectID:        types.StringValue("src-project"),
-				Name:             types.StringValue("src-name"),
+				ProjectID: types.StringValue("src-project"),
+				Name:      types.StringValue("src-name"),
 			},
 			dest: &TFSimpleModel{
 				ProjectID: types.StringUnknown(),
@@ -251,7 +250,7 @@ func TestCopyUnknowns(t *testing.T) {
 				ProjectID: types.StringUnknown(),
 				Name:      types.StringValue("src-name"),
 			},
-			keepUnknownCall: &keepProjectIDUnknown,
+			keepUnknownCalls: []func(name string, value attr.Value) bool{keepProjectIDUnknown},
 		},
 		"respect keepUnknownCall nested": {
 			src: &TFSimpleModel{
@@ -260,16 +259,16 @@ func TestCopyUnknowns(t *testing.T) {
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc}),
 			},
 			dest: &TFSimpleModel{
-				ProjectID: types.StringUnknown(),
-				Name:      types.StringUnknown(),
+				ProjectID:        types.StringUnknown(),
+				Name:             types.StringUnknown(),
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown}),
 			},
 			expectedDest: &TFSimpleModel{
-				ProjectID: types.StringValue("src-project"),
-				Name:      types.StringValue("src-name"),
+				ProjectID:        types.StringValue("src-project"),
+				Name:             types.StringValue("src-name"),
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCountUnknown}),
 			},
-			keepUnknownCall: &useStateOnlyWhenNodeCount0,
+			keepUnknownCalls: []func(name string, value attr.Value) bool{useStateOnlyWhenNodeCount0},
 		},
 		"respect multiple keepUnknownCall": {
 			src: &TFSimpleModel{
@@ -278,16 +277,16 @@ func TestCopyUnknowns(t *testing.T) {
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc}),
 			},
 			dest: &TFSimpleModel{
-				ProjectID: types.StringUnknown(),
-				Name:      types.StringUnknown(),
+				ProjectID:        types.StringUnknown(),
+				Name:             types.StringUnknown(),
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown}),
 			},
 			expectedDest: &TFSimpleModel{
-				ProjectID: types.StringUnknown(),
-				Name:      types.StringValue("src-name"),
+				ProjectID:        types.StringUnknown(),
+				Name:             types.StringValue("src-name"),
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCountUnknown}),
 			},
-			keepUnknownCall: &keepUnknownCombined,
+			keepUnknownCalls: []func(name string, value attr.Value) bool{keepProjectIDUnknown, useStateOnlyWhenNodeCount0},
 		},
 		"copy node_count 0": {
 			src: &TFSimpleModel{
@@ -299,7 +298,7 @@ func TestCopyUnknowns(t *testing.T) {
 			expectedDest: &TFSimpleModel{
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCount0}),
 			},
-			keepUnknownCall: &useStateOnlyWhenNodeCount0,
+			keepUnknownCalls: []func(name string, value attr.Value) bool{useStateOnlyWhenNodeCount0},
 		},
 		"non-pointer input": {
 			src:          &TFSimpleModel{},
@@ -381,11 +380,7 @@ func TestCopyUnknowns(t *testing.T) {
 				})
 				return
 			}
-			if tc.keepUnknownCall != nil {
-				schemafunc.CopyUnknownsWithCall(ctx, tc.src, tc.dest, *tc.keepUnknownCall)
-			} else {
-				schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown)
-			}
+			schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown, tc.keepUnknownCalls...)
 			assert.Equal(t, *tc.expectedDest, *tc.dest)
 		})
 	}
