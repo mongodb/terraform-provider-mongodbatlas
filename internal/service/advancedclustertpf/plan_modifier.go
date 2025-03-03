@@ -35,11 +35,11 @@ var (
 		func(name string, value attr.Value) bool {
 			return name == "node_count" && !value.Equal(types.Int64Value(0))
 		},
-		// Autoscaling attributes should only be copied from state when they are false
+		// auto_scaling bool attributes should only be copied from state when they are false
 		func(name string, value attr.Value) bool {
 			return slices.Contains(autoScalingBoolValues, name) && value.Equal(types.BoolValue(true))
 		},
-		// Autoscaling string attributes should only be copied from state when they are empty or nil
+		// auto_scaling string attributes should only be copied from state when they are empty or nil
 		func(name string, value attr.Value) bool {
 			return slices.Contains(autoScalingStringValues, name) && !(value.Equal(types.StringValue("")) || value.IsNull())
 		},
