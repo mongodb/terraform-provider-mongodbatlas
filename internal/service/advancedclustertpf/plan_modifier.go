@@ -31,17 +31,17 @@ var (
 	autoScalingBoolValues   = []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}
 	autoScalingStringValues = []string{"compute_min_instance_size", "compute_max_instance_size"}
 	keepUnknownsCalls       = []func(string, attr.Value) bool{
-		// node_count should only be copied from state when it is 0
-		func(name string, value attr.Value) bool {
-			return name == "node_count" && !value.Equal(types.Int64Value(0))
+		// when node_count != 0 --> keepUnknown
+		func(name string, replacement attr.Value) bool {
+			return name == "node_count" && !replacement.Equal(types.Int64Value(0))
 		},
-		// auto_scaling bool attributes should only be copied from state when they are false
-		func(name string, value attr.Value) bool {
-			return slices.Contains(autoScalingBoolValues, name) && value.Equal(types.BoolValue(true))
+		// when auto_scaling bool attributes are true --> keepUnknown
+		func(name string, replacement attr.Value) bool {
+			return slices.Contains(autoScalingBoolValues, name) && replacement.Equal(types.BoolValue(true))
 		},
-		// auto_scaling string attributes should only be copied from state when they are empty or nil
-		func(name string, value attr.Value) bool {
-			return slices.Contains(autoScalingStringValues, name) && !(value.Equal(types.StringValue("")) || value.IsNull())
+		// when auto_scaling string attributes are non empty, (M10/M30) --> keepUnknown
+		func(name string, replacement attr.Value) bool {
+			return slices.Contains(autoScalingStringValues, name) && replacement.(types.String).ValueString() != ""
 		},
 	}
 )
@@ -53,7 +53,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 		return
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
+	keepUnknown := []string{"connection_strings", "state_name", "default_max_time_ms", "custom_openssl_cipher_config_tls12"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, keepUnknownsCalls...)

@@ -92,7 +92,7 @@ func copyUnknowns(ctx context.Context, src, dest any, keepUnknownCall func(strin
 			valDest.Field(i).Set(reflect.ValueOf(listValueNew))
 			continue
 		}
-		if isUnknown(valDest.Field(i)) && !keepUnknownCall(tfName, srcValue.(attr.Value)) {
+		if isUnknown(valDest.Field(i)) {
 			tflog.Info(ctx, fmt.Sprintf("Copying unknown field: %s\n", name))
 			valDest.Field(i).Set(valSrc.FieldByName(name))
 			continue

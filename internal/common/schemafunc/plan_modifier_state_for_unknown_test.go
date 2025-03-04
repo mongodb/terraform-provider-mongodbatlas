@@ -221,7 +221,7 @@ var (
 		return slices.Contains([]string{"compute_enabled", "disk_gb_enabled"}, name) && value.Equal(types.BoolValue(true))
 	}
 	autoScalingStringsKeepUnknown = func(name string, value attr.Value) bool {
-		return slices.Contains([]string{"compute_min_instance_size", "compute_max_instance_size"}, name) && !(value.Equal(types.StringValue("")) || value.IsNull())
+		return slices.Contains([]string{"compute_min_instance_size", "compute_max_instance_size"}, name) && value.(types.String).ValueString() != ""
 	}
 )
 
