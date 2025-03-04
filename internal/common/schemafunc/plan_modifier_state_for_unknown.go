@@ -35,26 +35,24 @@ func HasUnknowns(obj any) bool {
 	return false
 }
 
+type KeepUnknownFunc func(string, attr.Value) bool
+
 // CopyUnknowns use reflection to copy unknown fields from src to dest.
 // The implementation is similar to internal/common/conversion/model_generation.go#CopyModel
 // keepUnknown is a list of fields that should not be copied, should always use the TF config name (snake_case)
 // nestedStructMapping is a map of field names to their type: object, list. (`set` not implemented yet)
-func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string, keepUnknownCall ...func(string, attr.Value) bool) {
+func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string, keepUnknownCall KeepUnknownFunc) {
 	validateKeepUnknown(keepUnknown)
 	slicesContains := func(name string, value attr.Value) bool {
 		return slices.Contains(keepUnknown, name)
 	}
-	call := combineKeepUnknownCalls(
-		combineKeepUnknownCalls(keepUnknownCall...),
-		slicesContains,
-	)
-	copyUnknowns(ctx, src, dest, call)
+	copyUnknowns(ctx, src, dest, KeepUnknownFuncOr(slicesContains, keepUnknownCall))
 }
 
-func combineKeepUnknownCalls(calls ...func(string, attr.Value) bool) func(string, attr.Value) bool {
+func KeepUnknownFuncOr(calls ...KeepUnknownFunc) KeepUnknownFunc {
 	return func(name string, value attr.Value) bool {
 		for _, call := range calls {
-			if call(name, value) {
+			if call != nil && call(name, value) {
 				return true
 			}
 		}
@@ -62,7 +60,7 @@ func combineKeepUnknownCalls(calls ...func(string, attr.Value) bool) func(string
 	}
 }
 
-func copyUnknowns(ctx context.Context, src, dest any, keepUnknownCall func(string, attr.Value) bool) {
+func copyUnknowns(ctx context.Context, src, dest any, keepUnknownCall KeepUnknownFunc) {
 	valSrc, valDest := validateStructPointers(src, dest)
 	typeSrc := valSrc.Type()
 	typeDest := valDest.Type()

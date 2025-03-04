@@ -230,9 +230,9 @@ func TestCopyUnknowns(t *testing.T) {
 		src              *TFSimpleModel
 		dest             *TFSimpleModel
 		expectedDest     *TFSimpleModel
+		keepUnknownCalls schemafunc.KeepUnknownFunc
 		panicMessage     string
 		keepUnknown      []string
-		keepUnknownCalls []func(string, attr.Value) bool
 	}{
 		"copy unknown basic fields": {
 			src: &TFSimpleModel{
@@ -306,7 +306,7 @@ func TestCopyUnknowns(t *testing.T) {
 				ProjectID: types.StringUnknown(),
 				Name:      types.StringValue("src-name"),
 			},
-			keepUnknownCalls: []func(name string, value attr.Value) bool{keepProjectIDUnknown},
+			keepUnknownCalls: keepProjectIDUnknown,
 		},
 		"respect keepUnknownCall nested": {
 			src: &TFSimpleModel{
@@ -324,7 +324,7 @@ func TestCopyUnknowns(t *testing.T) {
 				Name:             types.StringValue("src-name"),
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCountUnknown}),
 			},
-			keepUnknownCalls: []func(name string, value attr.Value) bool{useStateOnlyWhenNodeCount0},
+			keepUnknownCalls: useStateOnlyWhenNodeCount0,
 		},
 		"respect multiple keepUnknownCall": {
 			src: &TFSimpleModel{
@@ -342,7 +342,7 @@ func TestCopyUnknowns(t *testing.T) {
 				Name:             types.StringValue("src-name"),
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCountUnknown}),
 			},
-			keepUnknownCalls: []func(name string, value attr.Value) bool{keepProjectIDUnknown, useStateOnlyWhenNodeCount0},
+			keepUnknownCalls: schemafunc.KeepUnknownFuncOr(keepProjectIDUnknown, useStateOnlyWhenNodeCount0),
 		},
 		"copy node_count 0": {
 			src: &TFSimpleModel{
@@ -354,7 +354,7 @@ func TestCopyUnknowns(t *testing.T) {
 			expectedDest: &TFSimpleModel{
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCount0}),
 			},
-			keepUnknownCalls: []func(name string, value attr.Value) bool{useStateOnlyWhenNodeCount0},
+			keepUnknownCalls: useStateOnlyWhenNodeCount0,
 		},
 		"keepUnknownCall on string": {
 			src: &TFSimpleModel{
@@ -378,7 +378,7 @@ func TestCopyUnknowns(t *testing.T) {
 					regionConfigWithAutoScaling(autoScalingLeafsUnknown),
 				}),
 			},
-			keepUnknownCalls: []func(name string, value attr.Value) bool{autoScalingStringsKeepUnknown, autoScalingBoolsKeepUnknown},
+			keepUnknownCalls: schemafunc.KeepUnknownFuncOr(autoScalingStringsKeepUnknown, autoScalingBoolsKeepUnknown),
 		},
 		"non-pointer input": {
 			src:          &TFSimpleModel{},
@@ -456,11 +456,11 @@ func TestCopyUnknowns(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			if tc.panicMessage != "" {
 				assert.PanicsWithValue(t, tc.panicMessage, func() {
-					schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown)
+					schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown, nil)
 				})
 				return
 			}
-			schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown, tc.keepUnknownCalls...)
+			schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown, tc.keepUnknownCalls)
 			assert.Equal(t, *tc.expectedDest, *tc.dest)
 		})
 	}
