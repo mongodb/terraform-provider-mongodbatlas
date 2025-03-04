@@ -19,7 +19,7 @@ func TestMigConfigRSOrganization_Basic(t *testing.T) {
 		name         = acc.RandomName()
 		description  = "test Key for Acceptance tests"
 		roleName     = "ORG_OWNER"
-		config       = configBasic(orgOwnerID, name, description, roleName)
+		config       = configBasic(orgOwnerID, name, description, roleName, false, nil)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -29,7 +29,6 @@ func TestMigConfigRSOrganization_Basic(t *testing.T) {
 				Config:            config,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 				),
 			},

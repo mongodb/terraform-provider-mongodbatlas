@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_organization: Adds support for `skip_default_alerts_settings` setting
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_organization: Adds support for `skip_default_alerts_settings` setting
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_organizations: Adds support for `skip_default_alerts_settings` setting
+```
