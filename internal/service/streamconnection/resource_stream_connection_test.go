@@ -238,7 +238,7 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_stream_connection.test"
-		projectID      = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID") //test-acc-tf-p-keep-ear-AWS-private-endpoint project has aws integration
+		projectID      = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID") // test-acc-tf-p-keep-ear-AWS-private-endpoint project has aws integration
 		instanceName   = acc.RandomName()
 		connectionName = acc.RandomName()
 		roleArn        = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN")
