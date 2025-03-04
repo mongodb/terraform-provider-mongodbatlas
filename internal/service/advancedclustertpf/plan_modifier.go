@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -31,15 +32,13 @@ var (
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	diff := findClusterDiff(ctx, state, plan, diags)
-	if diags.HasError() {
+	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
 	}
-	if diff.isAnyUpgrade() { // Don't do anything in upgrades
-		return
-	}
-	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
+	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
+	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
 	if slices.Contains(keepUnknown, "replication_specs") {
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
@@ -54,6 +53,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	}
 	planWithUnknowns := []TFReplicationSpecsModel{}
 	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(ctx, diags, state, plan, attrChanges)
+	keepUnknownsUnchangedSpec = append(keepUnknownsUnchangedSpec, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	if diags.HasError() {
 		return
 	}
@@ -98,6 +98,48 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 	return keepUnknowns
 }
 
+func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
+	var keepUnknown []string
+	computedUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
+	if computedUsed {
+		keepUnknown = append(keepUnknown, "instance_size")
+		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["instance_size"]...)
+	}
+	if diskUsed {
+		keepUnknown = append(keepUnknown, "disk_size_gb")
+		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["disk_size_gb"]...)
+	}
+	return keepUnknown
+}
+
+// autoScalingUsed checks is auto-scaling was enabled (state) or will be enabled (plan).
+func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (computedUsed, diskUsed bool) {
+	for _, model := range []*TFModel{state, plan} {
+		repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, model.ReplicationSpecs)
+		for i := range repSpecsTF {
+			regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
+			for j := range regiongConfigsTF {
+				for _, autoScalingTF := range []types.Object{regiongConfigsTF[j].AutoScaling, regiongConfigsTF[j].AnalyticsAutoScaling} {
+					if autoScalingTF.IsNull() || autoScalingTF.IsUnknown() {
+						continue
+					}
+					autoscaling := TFModelObject[TFAutoScalingModel](ctx, diags, autoScalingTF)
+					if autoscaling == nil {
+						continue
+					}
+					if autoscaling.ComputeEnabled.ValueBool() {
+						computedUsed = true
+					}
+					if autoscaling.DiskGBEnabled.ValueBool() {
+						diskUsed = true
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
 func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
 	elements := make([]T, len(input.Elements()))
 	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
@@ -105,4 +147,13 @@ func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input type
 		return nil
 	}
 	return elements
+}
+
+func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input types.Object) *T {
+	item := new(T)
+	if localDiags := input.As(ctx, item, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return nil
+	}
+	return item
 }

@@ -99,7 +99,7 @@ type rs struct {
 // 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
 // 2. Adding the different UseStateForUnknown is very verbose.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Don't do anything if plan or state is null, this happens in Create, Delete or Import
+	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Return early unless it is an Update
 		return
 	}
 	var plan, state TFModel
