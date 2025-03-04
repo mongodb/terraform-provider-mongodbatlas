@@ -6,6 +6,41 @@ page_title: "Migration Guide: Cluster to Advanced Cluster"
 
 **Objective**: This guide explains how to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource. The data source(s) migration only requires [output changes](#output-changes) as data sources only read clusters.
 
+Both `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` resources represent underlying Atlas clusters. `mongodbatlas_cluster` resource can only be used with a subset of cluster features. However, `mongodbatlas_advanced_cluster` resource can be used with all Atlas cluster features, including support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers) and more. All new Atlas cluster features will be available in the `mongodbatlas_advanced_cluster` resource.
+
+Additionally, a preview of the `mongodbatlas_advanced_cluster` resource for MongoDB Atlas Provider 2.0.0 is available. It is implemented using the recommended [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework). This improves the overall user experience and provides a more consistent and predictable behavior. It supports the latest Terraform features and best practices, including support for `moved` block between different resource types. 
+In order to enable the Preview for MongoDB Atlas Provider 2.0.0 for `mongodbatlas_advanced_cluster`, set the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. More information can be found in the [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529). Once MongoDB Atlas Provider 2.0.0 is released, it won't be necessary to set the environment variable. In the meantime you can use the environment variable to anticipate the changes and avoid having to migrate again in the future.
+
+
+TODO: Remove after incorporting the ideas
+
+Our docs in this case aren't just for reference, they are an education tool and a guide through the transition.   Keeping that in mind should get us to the right place.
+needs to start with a clear "why should I care?" intro for the customer. Something like:
+Clusters config format is unable to support the range of features of Atlas, such as ISS.
+Advanced clusters is future leaning & will continue to support all new Atlas cluster improvements going forward
+To minimise future changes, TPF support is also being added to enable Hashicorp features, such as move
+As a result, to facilitate migration,  we have two options:
+suggested format from Melissa
+Think of the PD for moved and how it presents why these changes are good for customers - we need to explain the same advantages in our migration guide as otherwise customers wont get why we're making them upgrade. Also, move wont mean a lot to less advanced customers - we have to connect them to why it's useful (they may not care and just do the manual update themselves)
+
+The update should follow your suggested format, including the why are we doing this
+We should have a link to the examples differentiating how to do the moved  within a module and within a resource directly
+
+This needs some pretty significant structural changes to make it make sense for a customer.jw I think we are going to need some docs help to get this to where we need it and very quickly.
+
+we need to take a step back here.   These docs, I fear, are going to be very hard for a customer to follow.  We are going to need to make it clear there are two methods, then why we recommend the move block.  Then basically explain what we'll give them in the docs and then give it to them, i.e. Here's the general info of how this will work and then here are examples that will show you these different ways and why you would need them (and that links to the examples repo).  To tl;dr it - you've got the parts but not how to put them together easily.
+Right now the user has to put so much of this in their head to sort it out.  We need to take them through how to use this without them doing that work.  We also need to stick with how we've done things where it makes sense. This is still a version guide it just has a very special feature.  I get we want to call it out but we need to do that clearly in the doc. (edited) 
+
+<<Explanation that we have more than one method. That our next provider version 2.0.0 will contain the new move block method without needing to use environment variables.>>
+
+Move block method preview (recommended), what provider version it is supported in
+Explanation of why you would use this method. Then links to the content of advanced-cluster-preview-provider-v2.md on the single page.
+Manual method: what provider version it was supported in (< =the last one we released before this new feature). Explanation of why you would use this method. Then links to the content of this page on a single page
+
+If someone is using a module they can hide these changes on the first go w/ using move. But we make it sound her like it's always going to be breaking changes. Then all the module stuff is hidden down in READMEs in examples. The whole experience and how customers are going to navigate that needs to be in a single file. It needs to have something like "this is the basic experience we are describing but depending on how you use the provider, directly or in a module, the experience will change. We have an example of ..." and then link to the examples. I can't even imagine navigating this right now as a customer.
+
+
+
 ## Main Changes Between `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`
 
 1. Replication Spec Configuration: Supports different node types (electable, analytics, read_only) where hardware configuration can differ between node types. `regions_config` is renamed to `region_configs`.
@@ -89,46 +124,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
 
-## Migration using the Moved block (recommended)
-
-The [moved block](https://developer.hashicorp.com/terraform/language/moved) is a Terraform feature that allows to move between resource types. It's conceptually similar to do `removed` and `import` but it's more convenient as it's done in one step, and can be used in `modules`. This is our recommended method to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
-
- The main requirements are:
- - Terraform version 1.8 or later is required, more information in the [State Move page](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move).
- - Preview for MongoDB Atlas Provider 2.0.0 of `mongodbatlas_advanced_cluster` is required, it is enabled by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. More information can be found in the [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) and the [Migration Guide: Advanced Cluster Preview Provider v2](advanced-cluster-preview-provider-v2).
-
-We recommend that you follow another migration process only if you can't meet these requirements.
-
-The process to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` using the `moved` block is as follows:
-1. Before starting, run `terraform plan` to make sure that there are no planned changes.
-2. Add the `mongodbatlas_advanced_cluster` resource definition. 
-  - Set the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider 2.0.0. You can also define the environment variable in your local development environment so your tools can use the new format and help you with linting and auto-completion.
-  - You can use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition. This is the recommended method as it will generate a clean configuration keeping the original Terraform expressions. Please be aware of the [plugin limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform#limitations) and always review the generated configuration.
-  - Alternatively, you can use the `terraform plan -generate-config-out=adv_cluster.tf` method to create the `mongodbatlas_advanced_cluster` resource definition, or create it manually.
-3. Comment out or delete the `mongodbatlas_cluster` resource definition.
-4. Add the `moved` block to your configuration file, e.g.:
-```terraform
-moved {
-  from = mongodbatlas_cluster.this
-  to   = mongodbatlas_advanced_cluster.this
-}
-```
-5. Run `terraform plan` and make sure that there are no planned changes, only the moved block should be shown. If it shows other changes, update the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration. This is an example of no planned changes except the move:
-```text
- # mongodbatlas_cluster.this has moved to mongodbatlas_advanced_cluster.this
-     resource "mongodbatlas_advanced_cluster" "this" {
-         name                                 = "my-cluster"
-         # (24 unchanged attributes hidden)
-     }
-
- Plan: 0 to add, 0 to change, 0 to destroy.
-```
-
-6. Run `terraform apply` to apply the changes. The `mongodbatlas_cluster` resource will be removed from the Terraform state and the `mongodbatlas_advanced_cluster` resource will be added.
-7. At this moment you can delete the `moved` block from your configuration file, although it's recommended to keep it to help track the migrations.
-
-You can find full-detailed examples in [migrate_cluster_to_advanced_cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster).
-
 ## Migration using import
 
 This method uses only [Terraform native tools](https://developer.hashicorp.com/terraform/language/import/generating-configuration) and works if you:
@@ -157,6 +152,7 @@ import {
   id = "664619d870c247237f4b86a6-legacy-cluster" # from step 2
 }
 ```
+
 4. Run `terraform plan -generate-config-out=adv_cluster.tf`. This should generate a `adv_cluster.tf` file and display a message similar to `Plan: 1 to import, 0 to add, 0 to change, 0 to destroy`:
   ```terraform
   resource "mongodbatlas_advanced_cluster" "this" {
@@ -241,3 +237,43 @@ Alternatively you can use the [Atlas CLI plugin](https://github.com/mongodb-labs
 
 ### Terraform Actions
 Using the `project_id` and `cluster.name`, Terraform imports your cluster and uses the new `mongodbatlas_advanced_cluster` schema to generate a configuration file. This file includes all configurable values in the schema, but none of the previous configuration defined for your `mongodbatlas_cluster`. Therefore, the new configuration will likely be a lot more verbose and contain none of your original [Terraform expressions.](https://developer.hashicorp.com/terraform/language/expressions)
+
+## Migration using the Moved block (recommended)
+
+The [moved block](https://developer.hashicorp.com/terraform/language/moved) is a Terraform feature that allows to move between resource types. It's conceptually similar to do `removed` and `import` but it's more convenient as it's done in one step, and can be used in `modules`. This is our recommended method to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`.
+
+ The main requirements are:
+ - Terraform version 1.8 or later is required, more information in the [State Move page](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move).
+ - Preview for MongoDB Atlas Provider 2.0.0 of `mongodbatlas_advanced_cluster` is required, it is enabled by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. More information can be found in the [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) and the [Migration Guide: Advanced Cluster Preview Provider v2](advanced-cluster-preview-provider-v2).
+
+We recommend that you follow another migration process only if you can't meet these requirements.
+
+The process to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` using the `moved` block is as follows:
+1. Before starting, run `terraform plan` to make sure that there are no planned changes.
+2. Add the `mongodbatlas_advanced_cluster` resource definition. 
+  - Set the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider 2.0.0. You can also define the environment variable in your local development environment so your tools can use the new format and help you with linting and auto-completion.
+  - You can use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition. This is the recommended method as it will generate a clean configuration keeping the original Terraform expressions. Please be aware of the [plugin limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform#limitations) and always review the generated configuration.
+  - Alternatively, you can use the `terraform plan -generate-config-out=adv_cluster.tf` method to create the `mongodbatlas_advanced_cluster` resource definition, or create it manually.
+3. Comment out or delete the `mongodbatlas_cluster` resource definition.
+4. Add the `moved` block to your configuration file, e.g.:
+```terraform
+moved {
+  from = mongodbatlas_cluster.this
+  to   = mongodbatlas_advanced_cluster.this
+}
+```
+5. Run `terraform plan` and make sure that there are no planned changes, only the moved block should be shown. If it shows other changes, update the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration. This is an example of no planned changes except the move:
+```text
+ # mongodbatlas_cluster.this has moved to mongodbatlas_advanced_cluster.this
+     resource "mongodbatlas_advanced_cluster" "this" {
+         name                                 = "my-cluster"
+         # (24 unchanged attributes hidden)
+     }
+
+ Plan: 0 to add, 0 to change, 0 to destroy.
+```
+
+6. Run `terraform apply` to apply the changes. The `mongodbatlas_cluster` resource will be removed from the Terraform state and the `mongodbatlas_advanced_cluster` resource will be added.
+7. At this moment you can delete the `moved` block from your configuration file, although it's recommended to keep it to help track the migrations.
+
+You can find full-detailed examples in [migrate_cluster_to_advanced_cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster).
