@@ -34,10 +34,6 @@ var (
 	autoScalingBoolValues   = []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}
 	autoScalingStringValues = []string{"compute_min_instance_size", "compute_max_instance_size"}
 	keepUnknownsCalls       = []func(string, attr.Value) bool{
-		// when node_count != 0 --> keepUnknown
-		func(name string, replacement attr.Value) bool {
-			return name == "node_count" && !replacement.Equal(types.Int64Value(0))
-		},
 		// when auto_scaling bool attributes are true --> keepUnknown
 		func(name string, replacement attr.Value) bool {
 			return slices.Contains(autoScalingBoolValues, name) && replacement.Equal(types.BoolValue(true))
