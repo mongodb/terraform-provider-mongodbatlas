@@ -3,6 +3,7 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
@@ -32,6 +33,7 @@ const (
 	resourceName                  = "advanced_cluster"
 	errorSchemaDowngrade          = "error operation not permitted, nums_shards from 1 -> > 1"
 	errorPatchPayload             = "error creating patch payload"
+	errorUpdateTriggeredByRemove  = "error when detecting update triggered by remove"
 	errorDetailDefault            = "cluster name %s. API error detail %s"
 	errorSchemaUpgradeReadIDs     = "error reading IDs from API when upgrading schema"
 	errorReadResource             = "error reading advanced cluster"
@@ -544,19 +546,13 @@ func findClusterDiff(ctx context.Context, state, cfg, plan *TFModel, diags *diag
 	if usingNewShardingConfig(ctx, cfg.ReplicationSpecs, diags) {
 		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
 	}
-	autoScalingChanged, err := update.IsAttrChanged(stateReq, planReq, "autoScaling")
-	if err != nil {
-		diags.AddError("error checking autoScaling change", err.Error())
-	}
-	autoScalingRemoved, err := update.IsAttrRemoved(planReq, configReq, "autoScaling")
-	if err != nil {
-		diags.AddError("error checking autoScaling removal", err.Error())
-		return clusterDiff{}
-	}
-	if findNumShardsUpdates(ctx, state, cfg, diags) != nil || (autoScalingChanged && autoScalingRemoved) {
+	if findNumShardsUpdates(ctx, state, cfg, diags) != nil || updateTriggeredByRemove(diags, configReq, stateReq, planReq) {
 		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
 		// `num_shards` updates is only in the legacy ClusterDescription
 		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
+	}
+	if diags.HasError() {
+		return clusterDiff{}
 	}
 	patchReq, err := update.PatchPayload(stateReq, configReq, patchOptions)
 	if err != nil {
@@ -609,4 +605,29 @@ func isShardingConfigUpgrade(ctx context.Context, state, plan *TFModel, diags *d
 		return false
 	}
 	return !stateUsingNewSharding && planUsingNewSharding
+}
+
+func updateTriggeredByRemove(diags *diag.Diagnostics, configReq, stateReq, planReq *admin.ClusterDescription20240805) bool {
+	autoScalingChanged, err := update.IsAttrChanged(stateReq, planReq, "autoScaling")
+	var errMessages []string
+	if err != nil {
+		errMessages = append(errMessages, fmt.Sprintf("error checking autoScaling change: %s", err.Error()))
+	}
+	autoScalingRemoved, err := update.IsAttrRemoved(planReq, configReq, "autoScaling")
+	if err != nil {
+		errMessages = append(errMessages, fmt.Sprintf("error checking autoScaling removal %s", err.Error()))
+	}
+	nodeCountChanged, err := update.IsAttrChanged(stateReq, planReq, "nodeCount")
+	if err != nil {
+		errMessages = append(errMessages, fmt.Sprintf("error checking nodeCount change %s", err.Error()))
+	}
+	nodeCountRemoved, err := update.IsAttrRemoved(planReq, configReq, "nodeCount")
+	if err != nil {
+		errMessages = append(errMessages, fmt.Sprintf("error checking nodeCount removal %s", err.Error()))
+	}
+	if len(errMessages) > 0 {
+		diags.AddError(errorUpdateTriggeredByRemove, fmt.Sprintf("errors: %s", strings.Join(errMessages, "\n")))
+		return false
+	}
+	return (autoScalingChanged && autoScalingRemoved) || (nodeCountChanged && nodeCountRemoved)
 }
