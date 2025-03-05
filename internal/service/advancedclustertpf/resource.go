@@ -546,7 +546,7 @@ func findClusterDiff(ctx context.Context, state, cfg, plan *TFModel, diags *diag
 	if usingNewShardingConfig(ctx, cfg.ReplicationSpecs, diags) {
 		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
 	}
-	if findNumShardsUpdates(ctx, state, cfg, diags) != nil || updateTriggeredByRemove(diags, configReq, stateReq, planReq) {
+	if findNumShardsUpdates(ctx, state, cfg, diags) != nil || updateReplicationSpecTriggeredByRemove(diags, configReq, stateReq, planReq) {
 		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
 		// `num_shards` updates is only in the legacy ClusterDescription
 		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
@@ -607,27 +607,23 @@ func isShardingConfigUpgrade(ctx context.Context, state, plan *TFModel, diags *d
 	return !stateUsingNewSharding && planUsingNewSharding
 }
 
-func updateTriggeredByRemove(diags *diag.Diagnostics, configReq, stateReq, planReq *admin.ClusterDescription20240805) bool {
-	autoScalingChanged, err := update.IsAttrChanged(stateReq, planReq, "autoScaling")
+func updateReplicationSpecTriggeredByRemove(diags *diag.Diagnostics, configReq, stateReq, planReq *admin.ClusterDescription20240805) bool {
 	var errMessages []string
-	if err != nil {
-		errMessages = append(errMessages, fmt.Sprintf("error checking autoScaling change: %s", err.Error()))
-	}
-	autoScalingRemoved, err := update.IsAttrRemoved(planReq, configReq, "autoScaling")
-	if err != nil {
-		errMessages = append(errMessages, fmt.Sprintf("error checking autoScaling removal %s", err.Error()))
-	}
-	nodeCountChanged, err := update.IsAttrChanged(stateReq, planReq, "nodeCount")
-	if err != nil {
-		errMessages = append(errMessages, fmt.Sprintf("error checking nodeCount change %s", err.Error()))
-	}
-	nodeCountRemoved, err := update.IsAttrRemoved(planReq, configReq, "nodeCount")
-	if err != nil {
-		errMessages = append(errMessages, fmt.Sprintf("error checking nodeCount removal %s", err.Error()))
+	for _, removedAttr := range []string{"nodeCount", "autoScaling", "analyticsAutoScaling"} {
+		removedInConfig, err := update.IsAttrRemoved(planReq, configReq, removedAttr)
+		if err != nil {
+			errMessages = append(errMessages, fmt.Sprintf("error checking %s removal %s", removedAttr, err.Error()))
+		}
+		updatedFromState, err := update.IsAttrChanged(stateReq, planReq, removedAttr)
+		if err != nil {
+			errMessages = append(errMessages, fmt.Sprintf("error checking %s change %s", removedAttr, err.Error()))
+		}
+		if removedInConfig && updatedFromState {
+			return true
+		}
 	}
 	if len(errMessages) > 0 {
 		diags.AddError(errorUpdateTriggeredByRemove, fmt.Sprintf("errors: %s", strings.Join(errMessages, "\n")))
-		return false
 	}
-	return (autoScalingChanged && autoScalingRemoved) || (nodeCountChanged && nodeCountRemoved)
+	return false
 }
