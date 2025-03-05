@@ -102,17 +102,19 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Return early unless it is an Update
 		return
 	}
-	var plan, state TFModel
+	var plan, state, cfg TFModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
+	diags.Append(req.Config.Get(ctx, &cfg)...)
 	if diags.HasError() {
 		return
 	}
 	if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read
+		triggerConfigChanges(ctx, diags, &cfg, &state, &plan, &resp.Plan)
 		return
 	}
-	useStateForUnknowns(ctx, diags, &state, &plan) // Do only for Update
+	useStateForUnknowns(ctx, diags, &cfg, &state, &plan) // Do only for Update
 	if diags.HasError() {
 		return
 	}
@@ -222,10 +224,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var state, configModel TFModel
+	var state, configModel, plan TFModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Config.Get(ctx, &configModel)...)
 	diags.Append(req.State.Get(ctx, &state)...)
+	diags.Append(req.Plan.Get(ctx, &plan)...)
 	if diags.HasError() {
 		return
 	}
@@ -241,7 +244,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	{
-		diff := findClusterDiff(ctx, &state, &configModel, diags)
+		diff := findClusterDiff(ctx, &state, &configModel, &plan, diags)
 		if diags.HasError() {
 			return
 		}
@@ -513,21 +516,22 @@ func (c *clusterDiff) isAnyUpgrade() bool {
 }
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
-func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) clusterDiff {
-	if _ = isShardingConfigUpgrade(ctx, state, plan, diags); diags.HasError() { // Checks that there is no downgrade from new sharding config to old one
+func findClusterDiff(ctx context.Context, state, config, plan *TFModel, diags *diag.Diagnostics) clusterDiff {
+	if _ = isShardingConfigUpgrade(ctx, state, config, diags); diags.HasError() { // Checks that there is no downgrade from new sharding config to old one
 		return clusterDiff{}
 	}
 	stateReq := normalizeFromTFModel(ctx, state, diags, false)
+	configReq := normalizeFromTFModel(ctx, config, diags, false)
 	planReq := normalizeFromTFModel(ctx, plan, diags, false)
 	if diags.HasError() {
 		return clusterDiff{}
 	}
 
-	if IsFlex(planReq.ReplicationSpecs) {
-		if isValidUpgradeTenantToFlex(stateReq, planReq) {
+	if IsFlex(configReq.ReplicationSpecs) {
+		if isValidUpgradeTenantToFlex(stateReq, configReq) {
 			return clusterDiff{isUpgradeTenantToFlex: true}
 		}
-		if isValidUpdateOfFlex(stateReq, planReq) {
+		if isValidUpdateOfFlex(stateReq, configReq) {
 			return clusterDiff{isUpdateOfFlex: true}
 		}
 		diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
@@ -537,15 +541,24 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
-	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+	if usingNewShardingConfig(ctx, config.ReplicationSpecs, diags) {
 		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
 	}
-	if findNumShardsUpdates(ctx, state, plan, diags) != nil {
+	autoScalingChanged, err := update.IsAttrChanged(stateReq, planReq, "autoScaling")
+	if err != nil {
+		diags.AddError("error checking autoScaling change", err.Error())
+	}
+	autoScalingRemoved, err := update.IsAttrRemoved(planReq, configReq, "autoScaling")
+	if err != nil {
+		diags.AddError("error checking autoScaling removal", err.Error())
+		return clusterDiff{}
+	}
+	if findNumShardsUpdates(ctx, state, config, diags) != nil || (autoScalingChanged && autoScalingRemoved) {
 		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
 		// `num_shards` updates is only in the legacy ClusterDescription
 		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
 	}
-	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
+	patchReq, err := update.PatchPayload(stateReq, configReq, patchOptions)
 	if err != nil {
 		diags.AddError(errorPatchPayload, err.Error())
 		return clusterDiff{}

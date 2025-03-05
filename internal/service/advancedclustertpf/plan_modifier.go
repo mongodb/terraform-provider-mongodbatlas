@@ -7,8 +7,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -47,8 +50,8 @@ var (
 )
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
-func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	diff := findClusterDiff(ctx, state, plan, diags)
+func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, cfg, state, plan *TFModel) {
+	diff := findClusterDiff(ctx, state, cfg, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
 	}
@@ -157,6 +160,31 @@ func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *
 	return
 }
 
+// setExplicitEmptyAutoScaling sets the auto-scaling to a known value with false for enabled flags
+func setExplicitEmptyAutoScaling(ctx context.Context, diags *diag.Diagnostics, plan *TFModel, planResp *tfsdk.Plan) {
+	repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	for i := range repSpecsTF {
+		regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
+		for j := range regiongConfigsTF {
+			autoScalingEmptyValues := asObjectValue(ctx, TFAutoScalingModel{
+				ComputeEnabled:          types.BoolValue(false),
+				ComputeMinInstanceSize:  types.StringValue(""),
+				ComputeMaxInstanceSize:  types.StringValue(""),
+				ComputeScaleDownEnabled: types.BoolValue(false),
+				DiskGBEnabled:           types.BoolValue(false),
+			}, AutoScalingObjType.AttrTypes)
+			autoScalingPath := path.Root("replication_specs").AtListIndex(i).AtName("region_configs").AtListIndex(j).AtName("auto_scaling")
+			tflog.Info(ctx, fmt.Sprintf("Setting auto-scaling to empty values, for path %s", autoScalingPath))
+			localDiags := planResp.SetAttribute(ctx, autoScalingPath, autoScalingEmptyValues)
+			if localDiags.HasError() {
+				tflog.Error(ctx, fmt.Sprintf("Failed to set auto-scaling to empty values: %v", localDiags))
+			}
+			diags.Append(localDiags...)
+		}
+	}
+
+}
+
 func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
 	elements := make([]T, len(input.Elements()))
 	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
@@ -164,6 +192,13 @@ func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input type
 		return nil
 	}
 	return elements
+}
+func asObjectValue[T any](ctx context.Context, t T, attrs map[string]attr.Type) types.Object {
+	objType, diagsLocal := types.ObjectValueFrom(ctx, attrs, t)
+	if diagsLocal.HasError() {
+		panic("failed to convert object to model")
+	}
+	return objType
 }
 
 func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input types.Object) *T {
@@ -173,4 +208,19 @@ func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input ty
 		return nil
 	}
 	return item
+}
+
+func triggerConfigChanges(ctx context.Context, diags *diag.Diagnostics, config, state, plan *TFModel, planResp *tfsdk.Plan) {
+	computeUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
+	if !computeUsed && !diskUsed {
+		return
+	}
+	configComputeUsed, configDiskUsed := autoScalingUsed(ctx, diags, config, config)
+	if configComputeUsed || configDiskUsed {
+		return
+	}
+	if computeUsed || diskUsed {
+		setExplicitEmptyAutoScaling(ctx, diags, plan, planResp)
+	}
+	return
 }
