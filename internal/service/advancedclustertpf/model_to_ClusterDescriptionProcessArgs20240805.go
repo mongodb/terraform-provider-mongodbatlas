@@ -22,8 +22,12 @@ func NewAtlasReqAdvancedConfiguration(ctx context.Context, objInput *types.Objec
 		diags.Append(localDiags...)
 		return resp
 	}
+	changeStreamOptionsPreAndPostImagesExpireAfterSeconds := conversion.NilForUnknown(input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds, conversion.Int64PtrToIntPtr(input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds.ValueInt64Pointer()))
+	if changeStreamOptionsPreAndPostImagesExpireAfterSeconds == nil {
+		changeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(-1)
+	}
 	return &admin.ClusterDescriptionProcessArgs20240805{
-		ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.NilForUnknown(input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds, conversion.Int64PtrToIntPtr(input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds.ValueInt64Pointer())),
+		ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: changeStreamOptionsPreAndPostImagesExpireAfterSeconds,
 		DefaultWriteConcern:              conversion.NilForUnknown(input.DefaultWriteConcern, input.DefaultWriteConcern.ValueStringPointer()),
 		JavascriptEnabled:                conversion.NilForUnknown(input.JavascriptEnabled, input.JavascriptEnabled.ValueBoolPointer()),
 		MinimumEnabledTlsProtocol:        conversion.NilForUnknown(input.MinimumEnabledTlsProtocol, input.MinimumEnabledTlsProtocol.ValueStringPointer()),
