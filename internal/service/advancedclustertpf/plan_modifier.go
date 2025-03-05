@@ -120,26 +120,55 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 
 func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
 	var keepUnknown []string
-	computedUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
-	if computedUsed {
+	usage := autoScalingUsed(ctx, diags, state, plan)
+	if usage.ComputeUsed() {
 		keepUnknown = append(keepUnknown, "instance_size")
 		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["instance_size"]...)
 	}
-	if diskUsed {
+	if usage.DiskUsed() {
 		keepUnknown = append(keepUnknown, "disk_size_gb")
 		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["disk_size_gb"]...)
 	}
 	return keepUnknown
 }
 
+type autoScalingUsage struct {
+	ComputeUsed bool
+	DiskUsed    bool
+}
+
+func (a autoScalingUsage) Used() bool {
+	return a.ComputeUsed || a.DiskUsed
+}
+
+type autoScalingUsages struct {
+	AutoScaling          autoScalingUsage
+	AnalyticsAutoScaling autoScalingUsage
+}
+
+func (a autoScalingUsages) ComputeUsed() bool {
+	return a.AutoScaling.ComputeUsed || a.AnalyticsAutoScaling.ComputeUsed
+}
+
+func (a autoScalingUsages) DiskUsed() bool {
+	return a.AutoScaling.DiskUsed || a.AnalyticsAutoScaling.DiskUsed
+}
+
+func (a autoScalingUsages) Used() bool {
+	return a.ComputeUsed() || a.DiskUsed()
+}
+
 // autoScalingUsed checks is auto-scaling was enabled (state) or will be enabled (plan).
-func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (computedUsed, diskUsed bool) {
+func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (usages autoScalingUsages) {
 	for _, model := range []*TFModel{state, plan} {
 		repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, model.ReplicationSpecs)
 		for i := range repSpecsTF {
 			regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
 			for j := range regiongConfigsTF {
-				for _, autoScalingTF := range []types.Object{regiongConfigsTF[j].AutoScaling, regiongConfigsTF[j].AnalyticsAutoScaling} {
+				for name, autoScalingTF := range map[string]types.Object{
+					"auto_scaling":           regiongConfigsTF[j].AutoScaling,
+					"analytics_auto_scaling": regiongConfigsTF[j].AnalyticsAutoScaling,
+				} {
 					if autoScalingTF.IsNull() || autoScalingTF.IsUnknown() {
 						continue
 					}
@@ -147,21 +176,27 @@ func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *
 					if autoscaling == nil {
 						continue
 					}
+					var usage *autoScalingUsage
+					if name == "auto_scaling" {
+						usage = &usages.AutoScaling
+					} else {
+						usage = &usages.AnalyticsAutoScaling
+					}
 					if autoscaling.ComputeEnabled.ValueBool() {
-						computedUsed = true
+						usage.ComputeUsed = true
 					}
 					if autoscaling.DiskGBEnabled.ValueBool() {
-						diskUsed = true
+						usage.DiskUsed = true
 					}
 				}
 			}
 		}
 	}
-	return
+	return usages
 }
 
 // setExplicitEmptyAutoScaling sets the auto-scaling to a known value with false for enabled flags
-func setExplicitEmptyAutoScaling(ctx context.Context, diags *diag.Diagnostics, plan *TFModel, planResp *tfsdk.Plan) {
+func setExplicitEmptyAutoScaling(ctx context.Context, diags *diag.Diagnostics, plan *TFModel, planResp *tfsdk.Plan, name string) {
 	repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	for i := range repSpecsTF {
 		regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
@@ -173,7 +208,7 @@ func setExplicitEmptyAutoScaling(ctx context.Context, diags *diag.Diagnostics, p
 				ComputeScaleDownEnabled: types.BoolValue(false),
 				DiskGBEnabled:           types.BoolValue(false),
 			}, AutoScalingObjType.AttrTypes)
-			autoScalingPath := path.Root("replication_specs").AtListIndex(i).AtName("region_configs").AtListIndex(j).AtName("auto_scaling")
+			autoScalingPath := path.Root("replication_specs").AtListIndex(i).AtName("region_configs").AtListIndex(j).AtName(name)
 			tflog.Info(ctx, fmt.Sprintf("Setting auto-scaling to empty values, for path %s", autoScalingPath))
 			localDiags := planResp.SetAttribute(ctx, autoScalingPath, autoScalingEmptyValues)
 			if localDiags.HasError() {
@@ -215,16 +250,19 @@ func triggerConfigChanges(ctx context.Context, diags *diag.Diagnostics, config, 
 }
 
 func triggerWhenAutoScalingRemoved(ctx context.Context, diags *diag.Diagnostics, state, plan, config *TFModel, planResp *tfsdk.Plan) {
-	computeUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
-	if !computeUsed && !diskUsed {
+	usagesState := autoScalingUsed(ctx, diags, state, plan)
+	if !usagesState.Used() {
 		return
 	}
-	configComputeUsed, configDiskUsed := autoScalingUsed(ctx, diags, config, config)
-	if configComputeUsed || configDiskUsed {
+	usagesConfig := autoScalingUsed(ctx, diags, config, config)
+	if usagesConfig.Used() {
 		return
 	}
-	if computeUsed || diskUsed {
-		setExplicitEmptyAutoScaling(ctx, diags, plan, planResp)
+	if usagesState.AutoScaling.Used() {
+		setExplicitEmptyAutoScaling(ctx, diags, plan, planResp, "auto_scaling")
+	}
+	if usagesState.AnalyticsAutoScaling.Used() {
+		setExplicitEmptyAutoScaling(ctx, diags, plan, planResp, "analytics_auto_scaling")
 	}
 }
 
