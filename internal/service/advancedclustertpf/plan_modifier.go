@@ -16,6 +16,7 @@ var (
 		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
 		"mongo_db_major_version": {"mongo_db_version"},
+		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12"},
 	}
 	attributeReplicationSpecChangeMapping = map[string][]string{
 		// All these fields can exist in specs that are computed, therefore, it is not safe to use them when they have changed.
