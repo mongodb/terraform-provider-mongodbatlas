@@ -210,6 +210,11 @@ func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input ty
 }
 
 func triggerConfigChanges(ctx context.Context, diags *diag.Diagnostics, config, state, plan *TFModel, planResp *tfsdk.Plan) {
+	triggerWhenAutoScalingRemoved(ctx, diags, state, plan, config, planResp)
+	triggerWhenSpecBlockRemoved(ctx, diags, state, config, planResp)
+}
+
+func triggerWhenAutoScalingRemoved(ctx context.Context, diags *diag.Diagnostics, state, plan, config *TFModel, planResp *tfsdk.Plan) {
 	computeUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
 	if !computeUsed && !diskUsed {
 		return
@@ -220,5 +225,51 @@ func triggerConfigChanges(ctx context.Context, diags *diag.Diagnostics, config, 
 	}
 	if computeUsed || diskUsed {
 		setExplicitEmptyAutoScaling(ctx, diags, plan, planResp)
+	}
+}
+
+func triggerWhenSpecBlockRemoved(ctx context.Context, diags *diag.Diagnostics, state, cfg *TFModel, planResp *tfsdk.Plan) {
+	repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	repSpecsConfigTF := TFModelList[TFReplicationSpecsModel](ctx, diags, cfg.ReplicationSpecs)
+	for i := range repSpecsTF {
+		if i >= len(repSpecsConfigTF) {
+			continue
+		}
+		regiongConfigsStateTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
+		regiongConfigsCfgTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsConfigTF[i].RegionConfigs)
+		for j := range regiongConfigsStateTF {
+			if j >= len(regiongConfigsCfgTF) {
+				continue
+			}
+			specsState := map[string]*TFSpecsModel{
+				"analytics_specs": TFModelObject[TFSpecsModel](ctx, diags, regiongConfigsStateTF[j].AnalyticsSpecs),
+				"electable_specs": TFModelObject[TFSpecsModel](ctx, diags, regiongConfigsStateTF[j].ElectableSpecs),
+				"read_only_specs": TFModelObject[TFSpecsModel](ctx, diags, regiongConfigsStateTF[j].ReadOnlySpecs),
+			}
+			specsCfg := map[string]types.Object{
+				"analytics_specs": regiongConfigsCfgTF[j].AnalyticsSpecs,
+				"electable_specs": regiongConfigsCfgTF[j].ElectableSpecs,
+				"read_only_specs": regiongConfigsCfgTF[j].ReadOnlySpecs,
+			}
+			for name, specState := range specsState {
+				if specState == nil || specState.NodeCount.ValueInt64() == 0 || !specsCfg[name].IsNull() {
+					continue
+				}
+				specPath := path.Root("replication_specs").AtListIndex(i).AtName("region_configs").AtListIndex(j).AtName(name)
+				tflog.Info(ctx, fmt.Sprintf("Setting %s to empty values, for path %s", name, specPath))
+				emptySpec := asObjectValue(ctx, TFSpecsModel{
+					NodeCount:     types.Int64Value(0),
+					DiskSizeGb:    types.Float64Unknown(),
+					EbsVolumeType: types.StringUnknown(),
+					InstanceSize:  types.StringUnknown(),
+					DiskIops:      types.Int64Unknown(),
+				}, SpecsObjType.AttrTypes)
+				localDiags := planResp.SetAttribute(ctx, specPath, emptySpec)
+				if localDiags.HasError() {
+					tflog.Error(ctx, fmt.Sprintf("Failed to set %s to empty values: %v", name, localDiags))
+				}
+				diags.Append(localDiags...)
+			}
+		}
 	}
 }
