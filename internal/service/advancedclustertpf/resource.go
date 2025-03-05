@@ -110,7 +110,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
-	if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read
+	if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read when there are no plan changes
 		triggerConfigChanges(ctx, diags, &cfg, &state, &plan, &resp.Plan)
 		return
 	}
