@@ -251,7 +251,7 @@ func IsZeroValues[T any](last *T) bool {
 	return reflect.DeepEqual(last, empty)
 }
 
-func IsAttrRemoved[T any](state *T, plan *T, name string) (bool, error) {
+func IsAttrRemoved[T any](state, plan *T, name string) (bool, error) {
 	if state == nil || plan == nil {
 		return false, nil
 	}
@@ -267,7 +267,7 @@ func IsAttrRemoved[T any](state *T, plan *T, name string) (bool, error) {
 	return false, nil
 }
 
-func IsAttrChanged[T any](state *T, plan *T, name string) (bool, error) {
+func IsAttrChanged[T any](state, plan *T, name string) (bool, error) {
 	if state == nil || plan == nil {
 		return false, nil
 	}

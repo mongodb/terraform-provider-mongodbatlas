@@ -516,12 +516,12 @@ func (c *clusterDiff) isAnyUpgrade() bool {
 }
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
-func findClusterDiff(ctx context.Context, state, config, plan *TFModel, diags *diag.Diagnostics) clusterDiff {
-	if _ = isShardingConfigUpgrade(ctx, state, config, diags); diags.HasError() { // Checks that there is no downgrade from new sharding config to old one
+func findClusterDiff(ctx context.Context, state, cfg, plan *TFModel, diags *diag.Diagnostics) clusterDiff {
+	if _ = isShardingConfigUpgrade(ctx, state, cfg, diags); diags.HasError() { // Checks that there is no downgrade from new sharding config to old one
 		return clusterDiff{}
 	}
 	stateReq := normalizeFromTFModel(ctx, state, diags, false)
-	configReq := normalizeFromTFModel(ctx, config, diags, false)
+	configReq := normalizeFromTFModel(ctx, cfg, diags, false)
 	planReq := normalizeFromTFModel(ctx, plan, diags, false)
 	if diags.HasError() {
 		return clusterDiff{}
@@ -541,7 +541,7 @@ func findClusterDiff(ctx context.Context, state, config, plan *TFModel, diags *d
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
-	if usingNewShardingConfig(ctx, config.ReplicationSpecs, diags) {
+	if usingNewShardingConfig(ctx, cfg.ReplicationSpecs, diags) {
 		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
 	}
 	autoScalingChanged, err := update.IsAttrChanged(stateReq, planReq, "autoScaling")
@@ -553,7 +553,7 @@ func findClusterDiff(ctx context.Context, state, config, plan *TFModel, diags *d
 		diags.AddError("error checking autoScaling removal", err.Error())
 		return clusterDiff{}
 	}
-	if findNumShardsUpdates(ctx, state, config, diags) != nil || (autoScalingChanged && autoScalingRemoved) {
+	if findNumShardsUpdates(ctx, state, cfg, diags) != nil || (autoScalingChanged && autoScalingRemoved) {
 		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
 		// `num_shards` updates is only in the legacy ClusterDescription
 		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")

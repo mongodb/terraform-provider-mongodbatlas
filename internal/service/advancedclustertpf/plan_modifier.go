@@ -182,7 +182,6 @@ func setExplicitEmptyAutoScaling(ctx context.Context, diags *diag.Diagnostics, p
 			diags.Append(localDiags...)
 		}
 	}
-
 }
 
 func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
@@ -222,5 +221,4 @@ func triggerConfigChanges(ctx context.Context, diags *diag.Diagnostics, config, 
 	if computeUsed || diskUsed {
 		setExplicitEmptyAutoScaling(ctx, diags, plan, planResp)
 	}
-	return
 }
