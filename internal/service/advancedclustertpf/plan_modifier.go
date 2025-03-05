@@ -246,8 +246,8 @@ func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input ty
 }
 
 func updatePlanWithRemovals(ctx context.Context, diags *diag.Diagnostics, config, state, plan *TFModel, planResp *tfsdk.Plan) {
-	changes := updateAutoScalingRemoved(ctx, diags, state, plan, config, planResp)
-	if updatecBlockRemoved(ctx, diags, state, config, planResp) {
+	changes := didAutoScalingRemoval(ctx, diags, state, plan, config, planResp)
+	if didBlockRemoval(ctx, diags, state, config, planResp) {
 		changes = true
 	}
 	if changes {
@@ -264,7 +264,7 @@ func markAlwaysUnknown(ctx context.Context, planResp *tfsdk.Plan) {
 	}
 }
 
-func updateAutoScalingRemoved(ctx context.Context, diags *diag.Diagnostics, state, plan, config *TFModel, planResp *tfsdk.Plan) (changed bool) {
+func didAutoScalingRemoval(ctx context.Context, diags *diag.Diagnostics, state, plan, config *TFModel, planResp *tfsdk.Plan) (changed bool) {
 	usagesState := autoScalingUsed(ctx, diags, state, plan)
 	if !usagesState.Used() {
 		return false
@@ -281,7 +281,7 @@ func updateAutoScalingRemoved(ctx context.Context, diags *diag.Diagnostics, stat
 	return changed
 }
 
-func updatecBlockRemoved(ctx context.Context, diags *diag.Diagnostics, state, cfg *TFModel, planResp *tfsdk.Plan) (changed bool) {
+func didBlockRemoval(ctx context.Context, diags *diag.Diagnostics, state, cfg *TFModel, planResp *tfsdk.Plan) (changed bool) {
 	repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	repSpecsConfigTF := TFModelList[TFReplicationSpecsModel](ctx, diags, cfg.ReplicationSpecs)
 	for i := range repSpecsTF {
