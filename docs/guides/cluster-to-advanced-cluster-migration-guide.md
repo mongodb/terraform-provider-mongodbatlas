@@ -299,3 +299,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
 - `snapshot_backup_policy`:
   - Before: It was deprecated.
   - After: Use `mongodbatlas_cloud_backup_schedule` resource instead.
+- `id`:
+  - Before: `id` in the `mongodbatlas_cluster` resource had an internal encoded resource identifier. `id` in the data source had the Atlas cluster id.
+  - After: Use `cluster_id` attribute instead to get the Atlas cluster id.
