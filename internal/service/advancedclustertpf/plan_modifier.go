@@ -33,6 +33,8 @@ var (
 	}
 	autoScalingBoolValues   = []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}
 	autoScalingStringValues = []string{"compute_min_instance_size", "compute_max_instance_size"}
+	// this list must be kept up-to-date with map in updatePlanWithRemovals
+	alwaysUnknownAttributes = []string{"connection_strings", "state_name"}
 	keepUnknownsCalls       = []func(string, attr.Value) bool{
 		// when auto_scaling bool attributes are true --> keepUnknown
 		func(name string, replacement attr.Value) bool {
@@ -52,7 +54,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, cfg, stat
 		return
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
+	keepUnknown := alwaysUnknownAttributes
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, keepUnknownsCalls...)
@@ -240,12 +242,18 @@ func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input ty
 	return item
 }
 
-func triggerConfigChanges(ctx context.Context, diags *diag.Diagnostics, config, state, plan *TFModel, planResp *tfsdk.Plan) {
-	triggerWhenAutoScalingRemoved(ctx, diags, state, plan, config, planResp)
-	triggerWhenSpecBlockRemoved(ctx, diags, state, config, planResp)
+func updatePlanWithRemovals(ctx context.Context, diags *diag.Diagnostics, config, state, plan *TFModel, planResp *tfsdk.Plan) {
+	updateAutoScalingRemoved(ctx, diags, state, plan, config, planResp)
+	updatecBlockRemoved(ctx, diags, state, config, planResp)
+	for name, unknownValue := range map[string]attr.Value{
+		"connection_strings": types.ObjectUnknown(ConnectionStringsObjType.AttrTypes),
+		"state_name":         types.StringUnknown(),
+	} {
+		planResp.SetAttribute(ctx, path.Root(name), unknownValue)
+	}
 }
 
-func triggerWhenAutoScalingRemoved(ctx context.Context, diags *diag.Diagnostics, state, plan, config *TFModel, planResp *tfsdk.Plan) {
+func updateAutoScalingRemoved(ctx context.Context, diags *diag.Diagnostics, state, plan, config *TFModel, planResp *tfsdk.Plan) {
 	usagesState := autoScalingUsed(ctx, diags, state, plan)
 	if !usagesState.Used() {
 		return
@@ -259,7 +267,7 @@ func triggerWhenAutoScalingRemoved(ctx context.Context, diags *diag.Diagnostics,
 	}
 }
 
-func triggerWhenSpecBlockRemoved(ctx context.Context, diags *diag.Diagnostics, state, cfg *TFModel, planResp *tfsdk.Plan) {
+func updatecBlockRemoved(ctx context.Context, diags *diag.Diagnostics, state, cfg *TFModel, planResp *tfsdk.Plan) {
 	repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	repSpecsConfigTF := TFModelList[TFReplicationSpecsModel](ctx, diags, cfg.ReplicationSpecs)
 	for i := range repSpecsTF {
@@ -280,6 +288,10 @@ func triggerWhenSpecBlockRemoved(ctx context.Context, diags *diag.Diagnostics, s
 }
 
 func updatRegionConfigPlanWithRemovedBlocks(ctx context.Context, diags *diag.Diagnostics, state, cfg *TFRegionConfigsModel, indexRepSpec, indexRegionConfig int, planResp *tfsdk.Plan) {
+	// Flex/free clusters don't have all these attributes
+	if state.AnalyticsSpecs.IsNull() || state.ElectableSpecs.IsNull() || state.ReadOnlySpecs.IsNull() {
+		return
+	}
 	specsState := map[string]*TFSpecsModel{
 		"analytics_specs": TFModelObject[TFSpecsModel](ctx, diags, state.AnalyticsSpecs),
 		"electable_specs": TFModelObject[TFSpecsModel](ctx, diags, state.ElectableSpecs),

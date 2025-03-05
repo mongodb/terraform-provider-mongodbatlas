@@ -112,8 +112,8 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
-	if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read when there are no plan changes
-		triggerConfigChanges(ctx, diags, &cfg, &state, &plan, &resp.Plan)
+	if !schemafunc.HasUnknowns(&plan) { // This happens in Read when there are no plan changes
+		updatePlanWithRemovals(ctx, diags, &cfg, &state, &plan, &resp.Plan)
 		return
 	}
 	useStateForUnknowns(ctx, diags, &cfg, &state, &plan) // Do only for Update
@@ -121,6 +121,10 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 	diags.Append(resp.Plan.Set(ctx, plan)...)
+	updatePlanWithRemovals(ctx, diags, &cfg, &state, &plan, &resp.Plan) // Must happen after useStateForUnknowns to avoid changes overridden
+	if diags.HasError() {
+		return
+	}
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
