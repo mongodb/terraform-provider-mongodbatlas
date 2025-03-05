@@ -392,6 +392,78 @@ func TestAttrRemoved(t *testing.T) {
 				attrName: "autoScaling",
 				expected: true,
 			},
+			"readOnlySpecs is removed": {
+				state: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{
+									ElectableSpecs: &admin.HardwareSpec20240805{
+										NodeCount:  admin.PtrInt(3),
+										DiskSizeGB: admin.PtrFloat64(10),
+									},
+									ReadOnlySpecs: &admin.DedicatedHardwareSpec20240805{
+										NodeCount:  admin.PtrInt(3),
+										DiskSizeGB: admin.PtrFloat64(10),
+									},
+								},
+							},
+						},
+					},
+				},
+				plan: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{
+									ElectableSpecs: &admin.HardwareSpec20240805{
+										NodeCount:  admin.PtrInt(3),
+										DiskSizeGB: admin.PtrFloat64(10),
+									},
+								},
+							},
+						},
+					},
+				},
+				attrName: "readOnlySpecs",
+				expected: true,
+			},
+			"node_count is removed since parent is removed": {
+				state: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{
+									ElectableSpecs: &admin.HardwareSpec20240805{
+										NodeCount:  admin.PtrInt(3),
+										DiskSizeGB: admin.PtrFloat64(10),
+									},
+									ReadOnlySpecs: &admin.DedicatedHardwareSpec20240805{
+										NodeCount:  admin.PtrInt(3),
+										DiskSizeGB: admin.PtrFloat64(10),
+									},
+								},
+							},
+						},
+					},
+				},
+				plan: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{
+									ElectableSpecs: &admin.HardwareSpec20240805{
+										NodeCount:  admin.PtrInt(3),
+										DiskSizeGB: admin.PtrFloat64(10),
+									},
+								},
+							},
+						},
+					},
+				},
+				attrName: "nodeCount",
+				expected: true,
+			},
 		}
 	)
 	for name, tc := range testCases {
@@ -402,6 +474,7 @@ func TestAttrRemoved(t *testing.T) {
 		})
 	}
 }
+
 func TestIsAttrChanged(t *testing.T) {
 	type testStruct struct {
 		Name  string `json:"name"`

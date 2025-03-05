@@ -251,6 +251,7 @@ func IsZeroValues[T any](last *T) bool {
 	return reflect.DeepEqual(last, empty)
 }
 
+// IsAttrRemoved checks if the attribute is removed from the state, it works if the attribute or parent of attribute is removed
 func IsAttrRemoved[T any](state, plan *T, name string) (bool, error) {
 	if state == nil || plan == nil {
 		return false, nil
@@ -260,8 +261,17 @@ func IsAttrRemoved[T any](state, plan *T, name string) (bool, error) {
 		return false, err
 	}
 	for _, op := range statePlanPatch {
-		if strings.HasSuffix(op.Path, "/"+name) && op.Type == jsondiff.OperationRemove {
+		if op.Type != jsondiff.OperationRemove {
+			continue
+		}
+		if strings.HasSuffix(op.Path, "/"+name) {
 			return true, nil
+		}
+		oldValue, ok := op.OldValue.(map[string]any)
+		if ok {
+			if _, ok := oldValue[name]; ok {
+				return true, nil
+			}
 		}
 	}
 	return false, nil
