@@ -206,6 +206,9 @@ func setExplicitEmptyAutoScaling(ctx context.Context, diags *diag.Diagnostics, p
 				ComputeScaleDownEnabled: types.BoolValue(false),
 				DiskGBEnabled:           types.BoolValue(false),
 			}, AutoScalingObjType.AttrTypes)
+			if name == "analytics_auto_scaling" {
+				autoScalingEmptyValues = types.ObjectNull(AutoScalingObjType.AttrTypes)
+			}
 			autoScalingPath := path.Root("replication_specs").AtListIndex(i).AtName("region_configs").AtListIndex(j).AtName(name)
 			tflog.Info(ctx, fmt.Sprintf("Setting auto-scaling to empty values, for path %s", autoScalingPath))
 			localDiags := planResp.SetAttribute(ctx, autoScalingPath, autoScalingEmptyValues)
