@@ -255,13 +255,10 @@ func triggerWhenAutoScalingRemoved(ctx context.Context, diags *diag.Diagnostics,
 		return
 	}
 	usagesConfig := autoScalingUsed(ctx, diags, config, config)
-	if usagesConfig.Used() {
-		return
-	}
-	if usagesState.AutoScaling.Used() {
+	if !usagesConfig.AutoScaling.Used() && usagesState.AutoScaling.Used() {
 		setExplicitEmptyAutoScaling(ctx, diags, plan, planResp, "auto_scaling")
 	}
-	if usagesState.AnalyticsAutoScaling.Used() {
+	if !usagesConfig.AnalyticsAutoScaling.Used() && usagesState.AnalyticsAutoScaling.Used() {
 		setExplicitEmptyAutoScaling(ctx, diags, plan, planResp, "analytics_auto_scaling")
 	}
 }
