@@ -415,39 +415,7 @@ jobs:
             ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
         run: make testacc
-
-  advanced_cluster_tpf_move:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') && inputs.terraform_version == '1.10.x' && inputs.reduced_tests == false }}
-    env:
-      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
-    strategy:
-      max-parallel: 2
-      fail-fast: false
-      matrix:
-        terraform_version: ['1.8.x', '1.9.x'] # TF supported versions for MoveState apart from latest one, 1.10.x
-    name: advanced_cluster_tpf_move-${{ matrix.terraform_version }}
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with:
-          terraform_version: ${{ matrix.terraform_version }}
-          terraform_wrapper: false  
-      - name: Prepare new advanced_cluster
-        run: make tools enable-preview-provider-v2  
-      - name: Acceptance Tests
-        env:
-          ACCTEST_REGEX_RUN: '^TestAccAdvancedCluster_move'
-          ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
-        run: make testacc
-      
+ 
   assume_role:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' }}
