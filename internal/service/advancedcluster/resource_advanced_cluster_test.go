@@ -1313,6 +1313,13 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 				Config: configSharded(t, projectID, clusterName, true),
 				Check:  checksUpdated,
 			},
+			// TODO: block removal is not detected as a plan change, as in SDKv2
+			/*
+				{
+					Config: configSharded(t, projectID, clusterName, false),
+					Check:  checks,
+				},
+			*/
 			acc.TestStepImportCluster(resourceName),
 		},
 	})

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -27,7 +28,20 @@ var (
 		"region_name":     {"container_id"},    // container_id changes based on region_name changes
 		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
 	}
+	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNodeCount, keepUnkownFuncWithNonEmptyAutoScaling)
 )
+
+func keepUnkownFuncWithNodeCount(name string, replacement attr.Value) bool {
+	return name == "node_count" && !replacement.Equal(types.Int64Value(0))
+}
+
+func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) bool {
+	autoScalingBoolValues := []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}
+	autoScalingStringValues := []string{"compute_min_instance_size", "compute_max_instance_size"}
+	boolValues := slices.Contains(autoScalingBoolValues, name) && replacement.Equal(types.BoolValue(true))
+	stringValues := slices.Contains(autoScalingStringValues, name) && replacement.(types.String).ValueString() != ""
+	return boolValues || stringValues
+}
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
@@ -39,7 +53,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
-	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
+	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 	if slices.Contains(keepUnknown, "replication_specs") {
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
 	}
@@ -63,7 +77,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 			if attrChanges.ListIndexChanged("replication_specs", i) {
 				keepUnknowns = determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
 			}
-			schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknowns)
+			schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknowns, keepUnknownsCalls)
 		}
 		planWithUnknowns = append(planWithUnknowns, planRepSpecsTF[i])
 	}
