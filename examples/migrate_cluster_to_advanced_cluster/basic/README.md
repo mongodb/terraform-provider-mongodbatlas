@@ -4,11 +4,16 @@ This example demonstrates how to migrate a `mongodbatlas_cluster` resource to `m
 In this example we use specific files, but the same approach can be applied to any configuration file with `mongodbatlas_cluster` resource(s).
 The main steps are:
 
+1. [Enable the `mongodbatlas_advanced_cluster` preview for MongoDB Atlas Provider 2.0.0](#enable-the-mongodbatlas_advanced_cluster-preview)
 1. [Create the `mongodbatlas_cluster`](#create-the-mongodbatlas_cluster) (skip if you already have a configuration with one or more `mongodbatlas_cluster` resources).
-2. [Use the Atlas CLI Plugin Terraform to create the `mongodbatlas_advanced_cluster` configuration](#use-the-atlas-cli-plugin-terraform-to-create-the-mongodbatlas_advanced_cluster-resource).
-3. [Manually update the Terraform configuration](#manual-updates-to-the-terraform-configuration).
-4. [Perform the Move](#perform-the-move).
+1. [Use the Atlas CLI Plugin Terraform to create the `mongodbatlas_advanced_cluster` configuration](#use-the-atlas-cli-plugin-terraform-to-create-the-mongodbatlas_advanced_cluster-resource).
+1. [Manually update the Terraform configuration](#manual-updates-to-the-terraform-configuration).
+1. [Perform the Move](#perform-the-move).
    - [Troubleshooting](#troubleshooting).
+
+## Enable the `mongodbatlas_advanced_cluster` preview
+
+Enable the `mongodbatlas_advanced_cluster` preview for MongoDB Atlas Provider 2.0.0 by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. More information can be found in the [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529).
 
 ## Create the `mongodbatlas_cluster`
 
@@ -56,8 +61,9 @@ moved {
 
 ## Perform the Move
 
+1. Ensure you are using the MongoDB Atlas Terraform provider 1.29 or later
 1. Ensure you are using V2 schema: `export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`.
-2. Run `terraform validate` to ensure there are no missing reference updates. You might see errors like:
+1. Run `terraform validate` to ensure there are no missing reference updates. You might see errors like:
    - `Error: Reference to undeclared resource`: You forgot to update the resource type to `mongodbatlas_advanced_cluster`
    ```text
     │   on outputs.tf line 7, in output "container_id":
@@ -70,7 +76,7 @@ moved {
     │ 
     │ This object has no argument, nested block, or exported attribute named "provider_name".
    ```
-3. Run `terraform apply` and accept the move.
+1. Run `terraform apply` and accept the move.
    - You should expect to see
    ```text
    Terraform will perform the following actions:
@@ -89,14 +95,15 @@ moved {
    ```
    - Type `yes` and hit enter
 
+The move is completed. You can now use your existing cluster using the `mongodbatlas_advanced_cluster` resource.
+
 ### Troubleshooting
 
 - You might see: `Changes to Outputs`, consider where the output is used and take action accordingly.
 ```text
 container_id               = "67a09ae45cc3a60e55b6f42d" -> "67ac794392f9196661de88e1"
 ```
-- If there are any Plan Changes, try updating the `mongodbatlas_advanced_cluster` in `{CLUSTER_OUT}.tf` manually.
-- For example the below plan, would require you to explicitly set `backup_enabled = false` in the `mongodbatlas_advanced_cluster.this` resource.
+- If there are any Plan Changes, try updating the `mongodbatlas_advanced_cluster` in `{CLUSTER_OUT}.tf` manually. For example the below plan would require you to explicitly set `backup_enabled = false` in the `mongodbatlas_advanced_cluster.this` resource.
 ```text
 Terraform will perform the following actions:
 
@@ -117,8 +124,7 @@ Terraform will perform the following actions:
 
 Plan: 0 to add, 1 to change, 0 to destroy.
 ```
-- You might see errors like:
-- `Error: Invalid index`: This is due to type changes and can usually be resolved by removing the `[0]` or `.0` reference.
+- You might see errors like: `Error: Invalid index`: This is due to type changes and can usually be resolved by removing the `[0]` or `.0` reference.
 ```text
 │   on outputs.tf line 3, in output "connection_string_standard":
 │    3:     value = mongodbatlas_advanced_cluster.this.connection_strings[0].standard
