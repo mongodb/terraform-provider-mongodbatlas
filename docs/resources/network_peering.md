@@ -327,7 +327,7 @@ resource "mongodbatlas_network_peering" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the MongoDB Atlas project to create the database user.
+* `project_id` - (Required) The unique ID for the MongoDB Atlas project.
 * `container_id` - (Required) Unique identifier of the MongoDB Atlas container for the provider (GCP) or provider/region (AWS, AZURE). You can create an MongoDB Atlas container using the network_container resource or it can be obtained from the cluster returned values if a cluster has been created before the first container.
 * `provider_name` - (Required) Cloud provider to whom the peering connection is being made. (Possible Values `AWS`, `AZURE`, `GCP`).
 
