@@ -359,3 +359,110 @@ func clusterDescriptionDiskSizeNodeCount(diskSizeGBElectable float64, nodeCountE
 		},
 	}
 }
+
+func TestAttrRemoved(t *testing.T) {
+	var (
+		testCases = map[string]struct {
+			state    *admin.ClusterDescription20240805
+			plan     *admin.ClusterDescription20240805
+			attrName string
+			expected bool
+		}{
+			"auto_scaling is removed": {
+				state: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{
+									AutoScaling: &admin.AdvancedAutoScalingSettings{},
+								},
+							},
+						},
+					},
+				},
+				plan: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{AutoScaling: nil},
+							},
+						},
+					},
+				},
+				attrName: "autoScaling",
+				expected: true,
+			},
+		}
+	)
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			removed, err := update.IsAttrRemoved(tc.state, tc.plan, tc.attrName)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, removed)
+		})
+	}
+}
+func TestIsAttrChanged(t *testing.T) {
+	type testStruct struct {
+		Name  string `json:"name"`
+		Value int    `json:"value"`
+	}
+
+	testCases := map[string]struct {
+		state    *testStruct
+		plan     *testStruct
+		attrName string
+		expected bool
+	}{
+		"nil state": {
+			state:    nil,
+			plan:     &testStruct{Name: "foo", Value: 10},
+			attrName: "name",
+			expected: false,
+		},
+		"nil plan": {
+			state:    &testStruct{Name: "foo", Value: 10},
+			plan:     nil,
+			attrName: "name",
+			expected: false,
+		},
+		"equal structs": {
+			state:    &testStruct{Name: "foo", Value: 10},
+			plan:     &testStruct{Name: "foo", Value: 10},
+			attrName: "name",
+			expected: false,
+		},
+		"changed name": {
+			state:    &testStruct{Name: "foo", Value: 10},
+			plan:     &testStruct{Name: "bar", Value: 10},
+			attrName: "name",
+			expected: true,
+		},
+		"changed value": {
+			state:    &testStruct{Name: "foo", Value: 10},
+			plan:     &testStruct{Name: "foo", Value: 20},
+			attrName: "value",
+			expected: true,
+		},
+		"different attribute changed": {
+			state:    &testStruct{Name: "foo", Value: 10},
+			plan:     &testStruct{Name: "foo", Value: 20},
+			attrName: "name",
+			expected: false,
+		},
+		"non-existent attribute": {
+			state:    &testStruct{Name: "foo", Value: 10},
+			plan:     &testStruct{Name: "bar", Value: 20},
+			attrName: "nonexistent",
+			expected: false,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			changed, err := update.IsAttrChanged(tc.state, tc.plan, tc.attrName)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, changed)
+		})
+	}
+}

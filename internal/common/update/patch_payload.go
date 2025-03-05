@@ -250,3 +250,35 @@ func IsZeroValues[T any](last *T) bool {
 	empty := new(T)
 	return reflect.DeepEqual(last, empty)
 }
+
+func IsAttrRemoved[T any](state *T, plan *T, name string) (bool, error) {
+	if state == nil || plan == nil {
+		return false, nil
+	}
+	statePlanPatch, err := jsondiff.Compare(state, plan, jsondiff.Invertible())
+	if err != nil {
+		return false, err
+	}
+	for _, op := range statePlanPatch {
+		if strings.HasSuffix(op.Path, "/"+name) && op.Type == jsondiff.OperationRemove {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func IsAttrChanged[T any](state *T, plan *T, name string) (bool, error) {
+	if state == nil || plan == nil {
+		return false, nil
+	}
+	statePlanPatch, err := jsondiff.Compare(state, plan, jsondiff.Invertible())
+	if err != nil {
+		return false, err
+	}
+	for _, op := range statePlanPatch {
+		if strings.HasSuffix(op.Path, "/"+name) && op.Type == jsondiff.OperationReplace {
+			return true, nil
+		}
+	}
+	return false, nil
+}
