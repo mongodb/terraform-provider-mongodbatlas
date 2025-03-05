@@ -13,11 +13,11 @@ The main steps are:
 
 ## Enable the `mongodbatlas_advanced_cluster` preview
 
-Enable the `mongodbatlas_advanced_cluster` preview for MongoDB Atlas Provider 2.0.0 by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. More information can be found in the [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529).
+Enable the `mongodbatlas_advanced_cluster` preview for MongoDB Atlas Provider 2.0.0 by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. More information can be found in the [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
 
 ## Create the `mongodbatlas_cluster`
 
-**Note**: This step is only to demonstrate the migration. If you want to manage a cluster with Terraform, we recommend you use a [mongodbatlas_advanced_cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529) resource instead.
+**Note**: This step is only to demonstrate the migration. If you want to manage a cluster with Terraform, we recommend you use a [mongodbatlas_advanced_cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529) resource instead.
 
 This step can be skipped if you already have a configuration file with a `mongodbatlas_cluster` created.
 

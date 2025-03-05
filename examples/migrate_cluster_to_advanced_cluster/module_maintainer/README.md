@@ -66,7 +66,7 @@ The module supports standalone usage when there is no existing `mongodbatlas_clu
 - `mongodbatlas.version` bumped to `1.29.0` for new `mongodbatlas_advanced_cluster` v2 schema support.
 
 ### [`main.tf`](v2/main.tf)
-- `locals.replication_specs` an intermediate variable transforming the `variables` to a compatible [replication_specs](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529#replication_specs-1) for `mongodbatlas_advanced_cluster`.
+- `locals.replication_specs` an intermediate variable transforming the `variables` to a compatible [replication_specs](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529#replication_specs-1) for `mongodbatlas_advanced_cluster`.
   - We use the Terraform builtin [range](https://developer.hashicorp.com/terraform/language/functions/range) function (`range(old_spec.num_shards)`) to flatten `num_shards`.
   - We expand `read_only_specs` and `electable_specs` into nested attributes.
   - We use the `var.provider_name` in the `region_configs.*.instance_size`.
@@ -94,7 +94,7 @@ The module supports standalone usage when there is no existing `mongodbatlas_clu
 The module also supports changing an existing `mongodbatlas_advanced_cluster` created in `v2`.
 
 ### [`variables.tf`](v3/variables.tf)
-- Add `replication_specs_new`. This is almost fully equivalent to the [`replication_specs`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529#replication_specs-1) of the latest `mongodbatlas_advanced_cluster` schema.
+- Add `replication_specs_new`. This is almost fully equivalent to the [`replication_specs`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529#replication_specs-1) of the latest `mongodbatlas_advanced_cluster` schema.
   - Use a `[]` for default to allow continued usage of the old `replication_specs`.
   - Usage of `optional` to simplify the caller.
 - Add `default` to `instance_size` and `provider_name` as these are not required when `replication_specs_new` is used.
