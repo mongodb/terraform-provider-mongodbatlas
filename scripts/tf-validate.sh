@@ -14,19 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO: remove this after releasing TPF
-if git diff --quiet -- ./internal/config/preview_provider_v2.go; then
-  V2_SCHEMA_DISABLED=true
-else
-  V2_SCHEMA_DISABLED=false
-fi
-
-if $V2_SCHEMA_DISABLED; then
-  echo "enabling Advanced Cluster V2 Schema"
-  make enable-preview-provider-v2
-fi
-# end TODO
-
 set -Eeou pipefail
 
 # Delete Terraform execution files so the script can be run multiple times
@@ -77,10 +64,3 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
   fi
   popd
 done
-
-# TODO: remove this after releasing TPF
-if $V2_SCHEMA_DISABLED; then
-  echo "restoring Advanced Cluster V2 Schema"
-  git restore ./internal/config/preview_provider_v2.go
-fi
-# end TODO
