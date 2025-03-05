@@ -70,6 +70,16 @@ resource "mongodbatlas_stream_connection" "example-sample" {
   type            = "Sample"
 }
 
+resource "mongodbatlas_stream_connection" "example-aws-lambda" {
+  project_id      = var.project_id
+  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "AWSLambdaConnection"
+  type            = "AWSLambda"
+  aws = {
+    role_arn = "arn:aws:iam::123456789123:role/lambdaRole"
+  }
+}
+
 data "mongodbatlas_stream_connection" "example-kafka-ssl" {
   project_id      = var.project_id
   instance_name   = mongodbatlas_stream_instance.example.instance_name
