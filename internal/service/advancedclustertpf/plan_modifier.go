@@ -241,35 +241,41 @@ func triggerWhenSpecBlockRemoved(ctx context.Context, diags *diag.Diagnostics, s
 			if j >= len(regiongConfigsCfgTF) {
 				continue
 			}
-			specsState := map[string]*TFSpecsModel{
-				"analytics_specs": TFModelObject[TFSpecsModel](ctx, diags, regiongConfigsStateTF[j].AnalyticsSpecs),
-				"electable_specs": TFModelObject[TFSpecsModel](ctx, diags, regiongConfigsStateTF[j].ElectableSpecs),
-				"read_only_specs": TFModelObject[TFSpecsModel](ctx, diags, regiongConfigsStateTF[j].ReadOnlySpecs),
-			}
-			specsCfg := map[string]types.Object{
-				"analytics_specs": regiongConfigsCfgTF[j].AnalyticsSpecs,
-				"electable_specs": regiongConfigsCfgTF[j].ElectableSpecs,
-				"read_only_specs": regiongConfigsCfgTF[j].ReadOnlySpecs,
-			}
-			for name, specState := range specsState {
-				if specState == nil || specState.NodeCount.ValueInt64() == 0 || !specsCfg[name].IsNull() {
-					continue
-				}
-				specPath := path.Root("replication_specs").AtListIndex(i).AtName("region_configs").AtListIndex(j).AtName(name)
-				tflog.Info(ctx, fmt.Sprintf("Setting %s to empty values, for path %s", name, specPath))
-				emptySpec := asObjectValue(ctx, TFSpecsModel{
-					NodeCount:     types.Int64Value(0),
-					DiskSizeGb:    types.Float64Unknown(),
-					EbsVolumeType: types.StringUnknown(),
-					InstanceSize:  types.StringUnknown(),
-					DiskIops:      types.Int64Unknown(),
-				}, SpecsObjType.AttrTypes)
-				localDiags := planResp.SetAttribute(ctx, specPath, emptySpec)
-				if localDiags.HasError() {
-					tflog.Error(ctx, fmt.Sprintf("Failed to set %s to empty values: %v", name, localDiags))
-				}
-				diags.Append(localDiags...)
-			}
+			regionConfigState := regiongConfigsStateTF[j]
+			regionConfigCfg := regiongConfigsCfgTF[j]
+			updatRegionConfigPlanWithRemovedBlocks(ctx, diags, &regionConfigState, &regionConfigCfg, i, j, planResp)
 		}
+	}
+}
+
+func updatRegionConfigPlanWithRemovedBlocks(ctx context.Context, diags *diag.Diagnostics, state, cfg *TFRegionConfigsModel, indexRepSpec, indexRegionConfig int, planResp *tfsdk.Plan) {
+	specsState := map[string]*TFSpecsModel{
+		"analytics_specs": TFModelObject[TFSpecsModel](ctx, diags, state.AnalyticsSpecs),
+		"electable_specs": TFModelObject[TFSpecsModel](ctx, diags, state.ElectableSpecs),
+		"read_only_specs": TFModelObject[TFSpecsModel](ctx, diags, state.ReadOnlySpecs),
+	}
+	specsCfg := map[string]types.Object{
+		"analytics_specs": cfg.AnalyticsSpecs,
+		"electable_specs": cfg.ElectableSpecs,
+		"read_only_specs": cfg.ReadOnlySpecs,
+	}
+	for name, specState := range specsState {
+		if specState == nil || specState.NodeCount.ValueInt64() == 0 || !specsCfg[name].IsNull() {
+			continue
+		}
+		specPath := path.Root("replication_specs").AtListIndex(indexRepSpec).AtName("region_configs").AtListIndex(indexRegionConfig).AtName(name)
+		tflog.Info(ctx, fmt.Sprintf("Setting %s to empty values, for path %s", name, specPath))
+		emptySpec := asObjectValue(ctx, TFSpecsModel{
+			NodeCount:     types.Int64Value(0),
+			DiskSizeGb:    types.Float64Unknown(),
+			EbsVolumeType: types.StringUnknown(),
+			InstanceSize:  types.StringUnknown(),
+			DiskIops:      types.Int64Unknown(),
+		}, SpecsObjType.AttrTypes)
+		localDiags := planResp.SetAttribute(ctx, specPath, emptySpec)
+		if localDiags.HasError() {
+			tflog.Error(ctx, fmt.Sprintf("Failed to set %s to empty values: %v", name, localDiags))
+		}
+		diags.Append(localDiags...)
 	}
 }
