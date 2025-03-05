@@ -19,10 +19,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run:  make update-tf-compatibility-matrix
       - name: Verify Changed files
-        uses: tj-actions/verify-changed-files@4a3570896cbdc5dca56a7a259fba88667845e18a
+        uses: tj-actions/verify-changed-files@f7c3c7390ed5c5435233c9bb76d8c0ad5f99ba26
         id: verify-changed-files
       - name: Create PR
-        uses: peter-evans/create-pull-request@dd2324fc52d5d43c699a5636bcf19fceaa70c284
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
@@ -44,10 +44,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run:  make update-tf-version-in-repository
       - name: Verify Changed files
-        uses: tj-actions/verify-changed-files@4a3570896cbdc5dca56a7a259fba88667845e18a
+        uses: tj-actions/verify-changed-files@f7c3c7390ed5c5435233c9bb76d8c0ad5f99ba26
         id: verify-changed-files
       - name: Create PR
-        uses: peter-evans/create-pull-request@dd2324fc52d5d43c699a5636bcf19fceaa70c284
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
