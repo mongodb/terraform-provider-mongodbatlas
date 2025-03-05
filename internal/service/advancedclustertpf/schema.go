@@ -445,7 +445,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
-				Default:             int64default.StaticInt64(-1), // in case the user removes the value, we should set it to -1, a special value used by the backend to use its default behavior
+				// Default:             int64default.StaticInt64(-1), // TODO(complete refactor): in case the user removes the value, we should set it to -1, a special value used by the backend to use its default behavior
 				PlanModifiers: []planmodifier.Int64{
 					PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
 				},
