@@ -55,14 +55,16 @@ The basic experience when using the `moved` block is as follows:
   - You can use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition. This is the recommended method as it will generate a clean configuration keeping the original Terraform expressions. Please be aware of the [plugin limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform#limitations) and always review the generated configuration.
   - Alternatively, you can use the `terraform plan -generate-config-out=adv_cluster.tf` method to create the `mongodbatlas_advanced_cluster` resource definition, or create it manually.
 3. Comment out or delete the `mongodbatlas_cluster` resource definition.
-4. Add the `moved` block to your configuration file, e.g.:
+4. Update the references from your previous cluster resource: `mongodbatlas_cluster.this.XXXX` to the new `mongodbatlas_advanced_cluster.this.XXX`.
+   - Double check [output-changes](#output-changes) to ensure the underlying configuration stays unchanged.
+5. Add the `moved` block to your configuration file, e.g.:
 ```terraform
 moved {
   from = mongodbatlas_cluster.this
   to   = mongodbatlas_advanced_cluster.this
 }
 ```
-5. Run `terraform plan` and make sure that there are no planned changes, only the moved block should be shown. If it shows other changes, update the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration. This is an example of no planned changes except the move:
+6. Run `terraform plan` and make sure that there are no planned changes, only the moved block should be shown. If it shows other changes, update the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration. This is an example of no planned changes except the move:
 ```text
  # mongodbatlas_cluster.this has moved to mongodbatlas_advanced_cluster.this
      resource "mongodbatlas_advanced_cluster" "this" {
@@ -73,8 +75,8 @@ moved {
  Plan: 0 to add, 0 to change, 0 to destroy.
 ```
 
-6. Run `terraform apply` to apply the changes. The `mongodbatlas_cluster` resource will be removed from the Terraform state and the `mongodbatlas_advanced_cluster` resource will be added.
-7. At this moment you can delete the `moved` block from your configuration file, although it's recommended to keep it to help track the migrations.
+7. Run `terraform apply` to apply the changes. The `mongodbatlas_cluster` resource will be removed from the Terraform state and the `mongodbatlas_advanced_cluster` resource will be added.
+8. At this moment you can delete the `moved` block from your configuration file, although it's recommended to keep it to help track the migrations.
 
 ## Migration using import
 
