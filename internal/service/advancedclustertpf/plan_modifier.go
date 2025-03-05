@@ -56,7 +56,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, cfg, stat
 		return
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	keepUnknown := []string{"connection_strings", "state_name", "default_max_time_ms", "custom_openssl_cipher_config_tls12"} // Volatile attributes, should not be copied from state
+	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, keepUnknownsCalls...)
