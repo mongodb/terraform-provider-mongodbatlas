@@ -6,9 +6,9 @@ The example focus on the call of the module rather than the module implementatio
 
 Migration Step Code | `mongodbatlas` version | Config Changes | Plan Changes
 --- | --- | --- | ---
-[Step 1](./v1) | `<= 1.27.0` | Baseline configuration | -
-[Step 2](./v2) | `>= 1.27.0` | Only change to `v2` module version | No changes. Only moved.
-[Step 3](./v3) | `>= 1.27.0` | Usage of new variables to support multi-cloud and independent shard scaling | Yes (new features)
+[Step 1](./v1) | `<= 1.29.0` | Baseline configuration | -
+[Step 2](./v2) | `>= 1.29.0` | Only change to `v2` module version | No changes. Only moved.
+[Step 3](./v3) | `>= 1.29.0` | Usage of new variables to support multi-cloud and independent shard scaling | Yes (new features)
 
 
 The rest of this example is a step by step guide on how to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`:
@@ -27,7 +27,7 @@ The rest of this example is a step by step guide on how to migrate from `mongodb
 
 ## Dependencies
 - Terraform CLI >= 1.8-
-- Terraform MongoDB Atlas Provider `>=v1.27.0`-
+- Terraform MongoDB Atlas Provider `>=v1.29.0`-
 - A MongoDB Atlas account.
 - Configure the provider (can also be done by configuring `public_key` and `private_key` in a `provider.tfvars`).
 
@@ -58,7 +58,7 @@ export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true # necessary for t
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
 terraform apply -var-file=../v1_v2.tfvars # notice the same variables used as in `v1`
 ```
-In the plan output, you should see a line simlar to:
+In the plan output, you should see a line similar to:
 ```text
 # module.cluster.mongodbatlas_cluster.this has moved to module.cluster.mongodbatlas_advanced_cluster.this
 ```

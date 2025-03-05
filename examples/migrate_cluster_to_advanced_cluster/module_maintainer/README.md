@@ -1,6 +1,7 @@
 # Module Maintainer - `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
-The purpose of this example is to demonstrate how a Terraform module definition can migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` while minimizing impact to its clients.
+If you own and maintain modules to manage your Terraform resources, the purpose of this example is to demonstrate how a Terraform module definition can migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` while minimizing impact to its clients. The [other module example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster/module_user) explains the same process from the module user point of view.
+
 The example contains three module versions which represent the three steps of the migration:
 
 Step | Purpose | Resources
@@ -55,14 +56,14 @@ output "mongodbatlas_cluster" {
 
 ## Step 2: Module `v2` Implementation Changes and Highlights
 
-This module uses HCL code to create a `mongodbatlas_advanced_cluster` resource that is compatible with the input variables of `v1`.
+This is the new version of the module where the migration to `mongodbatlas_advanced_cluster` happens using the `moved` block. The implementation uses HCL code to create a `mongodbatlas_advanced_cluster` resource that is compatible with the input variables of `v1`, so that the module user doesn't need to take any action.
 The module supports standalone usage when there is no existing `mongodbatlas_cluster` and also upgrading from `v1` using a `moved` block.
 
 ### [`variables.tf`](v2/variables.tf) unchanged from `v1`
 
 ### [`versions.tf`](v2/versions.tf)
 - `required_version` of Terraform CLI bumped to `1.8` for `moved` block [support](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move) between resource types.
-- `mongodbatlas.version` bumped to `1.27.0` for new `mongodbatlas_advanced_cluster` v2 schema support.
+- `mongodbatlas.version` bumped to `1.29.0` for new `mongodbatlas_advanced_cluster` v2 schema support.
 
 ### [`main.tf`](v2/main.tf)
 - `locals.replication_specs` an intermediate variable transforming the `variables` to a compatible [replication_specs](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%2520v2%2529#replication_specs-1) for `mongodbatlas_advanced_cluster`.
