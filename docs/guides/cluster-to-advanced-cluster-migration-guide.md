@@ -78,7 +78,7 @@ moved {
 
 ## Migration using import
 
-Like the previous appraoch, this method uses only [Terraform native tools](https://developer.hashicorp.com/terraform/language/import/generating-configuration) and works if you:
+Unlike the previous approach, this method uses only [Terraform native tools](https://developer.hashicorp.com/terraform/language/import/generating-configuration) and works if you:
 1. Have an existing cluster without any Terraform configuration and want to import and manage your cluster with Terraform.
 2. Have existing `mongodbatlas_cluster` resource(s) but you can't use the [recommended approach](#migration-using-the-moved-block-recommended).
 
