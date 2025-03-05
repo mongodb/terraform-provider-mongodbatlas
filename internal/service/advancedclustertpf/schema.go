@@ -512,6 +512,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 			},
 			"default_max_time_ms": schema.Int64Attribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Default time limit in milliseconds for individual read operations to complete. This parameter is supported only for MongoDB version 8.0 and above.",
 				PlanModifiers: []planmodifier.Int64{
@@ -519,6 +520,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				},
 			},
 			"custom_openssl_cipher_config_tls12": schema.SetAttribute{
+				Computed:            true,
 				Optional:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
