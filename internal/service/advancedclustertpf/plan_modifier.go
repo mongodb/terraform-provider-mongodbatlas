@@ -33,7 +33,7 @@ var (
 	}
 	autoScalingBoolValues   = []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}
 	autoScalingStringValues = []string{"compute_min_instance_size", "compute_max_instance_size"}
-	// this list must be kept up-to-date with map in updatePlanWithRemovals
+	// this list must be kept up-to-date with the markAlwaysUnknown
 	alwaysUnknownAttributes = []string{"connection_strings", "state_name"}
 	keepUnknownsCalls       = []func(string, attr.Value) bool{
 		// when auto_scaling bool attributes are true --> keepUnknown
@@ -243,8 +243,16 @@ func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input ty
 }
 
 func updatePlanWithRemovals(ctx context.Context, diags *diag.Diagnostics, config, state, plan *TFModel, planResp *tfsdk.Plan) {
-	updateAutoScalingRemoved(ctx, diags, state, plan, config, planResp)
-	updatecBlockRemoved(ctx, diags, state, config, planResp)
+	changes := updateAutoScalingRemoved(ctx, diags, state, plan, config, planResp)
+	if updatecBlockRemoved(ctx, diags, state, config, planResp) {
+		changes = true
+	}
+	if changes {
+		markAlwaysUnknown(ctx, planResp)
+	}
+}
+
+func markAlwaysUnknown(ctx context.Context, planResp *tfsdk.Plan) {
 	for name, unknownValue := range map[string]attr.Value{
 		"connection_strings": types.ObjectUnknown(ConnectionStringsObjType.AttrTypes),
 		"state_name":         types.StringUnknown(),
@@ -253,21 +261,24 @@ func updatePlanWithRemovals(ctx context.Context, diags *diag.Diagnostics, config
 	}
 }
 
-func updateAutoScalingRemoved(ctx context.Context, diags *diag.Diagnostics, state, plan, config *TFModel, planResp *tfsdk.Plan) {
+func updateAutoScalingRemoved(ctx context.Context, diags *diag.Diagnostics, state, plan, config *TFModel, planResp *tfsdk.Plan) (changed bool) {
 	usagesState := autoScalingUsed(ctx, diags, state, plan)
 	if !usagesState.Used() {
-		return
+		return false
 	}
 	usagesConfig := autoScalingUsed(ctx, diags, config, config)
 	if !usagesConfig.AutoScaling.Used() && usagesState.AutoScaling.Used() {
 		setExplicitEmptyAutoScaling(ctx, diags, plan, planResp, "auto_scaling")
+		changed = true
 	}
 	if !usagesConfig.AnalyticsAutoScaling.Used() && usagesState.AnalyticsAutoScaling.Used() {
 		setExplicitEmptyAutoScaling(ctx, diags, plan, planResp, "analytics_auto_scaling")
+		changed = true
 	}
+	return changed
 }
 
-func updatecBlockRemoved(ctx context.Context, diags *diag.Diagnostics, state, cfg *TFModel, planResp *tfsdk.Plan) {
+func updatecBlockRemoved(ctx context.Context, diags *diag.Diagnostics, state, cfg *TFModel, planResp *tfsdk.Plan) (changed bool) {
 	repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	repSpecsConfigTF := TFModelList[TFReplicationSpecsModel](ctx, diags, cfg.ReplicationSpecs)
 	for i := range repSpecsTF {
@@ -282,15 +293,18 @@ func updatecBlockRemoved(ctx context.Context, diags *diag.Diagnostics, state, cf
 			}
 			regionConfigState := regiongConfigsStateTF[j]
 			regionConfigCfg := regiongConfigsCfgTF[j]
-			updatRegionConfigPlanWithRemovedBlocks(ctx, diags, &regionConfigState, &regionConfigCfg, i, j, planResp)
+			if updatedRegionConfigPlanWithRemovedBlocks(ctx, diags, &regionConfigState, &regionConfigCfg, i, j, planResp) {
+				changed = true
+			}
 		}
 	}
+	return changed
 }
 
-func updatRegionConfigPlanWithRemovedBlocks(ctx context.Context, diags *diag.Diagnostics, state, cfg *TFRegionConfigsModel, indexRepSpec, indexRegionConfig int, planResp *tfsdk.Plan) {
+func updatedRegionConfigPlanWithRemovedBlocks(ctx context.Context, diags *diag.Diagnostics, state, cfg *TFRegionConfigsModel, indexRepSpec, indexRegionConfig int, planResp *tfsdk.Plan) (changed bool) {
 	// Flex/free clusters don't have all these attributes
 	if state.AnalyticsSpecs.IsNull() || state.ElectableSpecs.IsNull() || state.ReadOnlySpecs.IsNull() {
-		return
+		return false
 	}
 	specsState := map[string]*TFSpecsModel{
 		"analytics_specs": TFModelObject[TFSpecsModel](ctx, diags, state.AnalyticsSpecs),
@@ -316,9 +330,11 @@ func updatRegionConfigPlanWithRemovedBlocks(ctx context.Context, diags *diag.Dia
 			DiskIops:      types.Int64Unknown(),
 		}, SpecsObjType.AttrTypes)
 		localDiags := planResp.SetAttribute(ctx, specPath, emptySpec)
+		changed = true
 		if localDiags.HasError() {
 			tflog.Error(ctx, fmt.Sprintf("Failed to set %s to empty values: %v", name, localDiags))
 		}
 		diags.Append(localDiags...)
 	}
+	return changed
 }
