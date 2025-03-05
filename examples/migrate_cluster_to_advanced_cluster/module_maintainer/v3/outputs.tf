@@ -1,5 +1,5 @@
 output "mongodb_connection_strings" {
-  value       = mongodbatlas_advanced_cluster.this.connection_strings
+  value       = [mongodbatlas_advanced_cluster.this.connection_strings]
   description = "Collection of Uniform Resource Locators that point to the MongoDB database."
 }
 
@@ -24,6 +24,6 @@ output "mongodbatlas_cluster" {
 }
 
 output "mongodbatlas_advanced_cluster" {
-  value       = data.mongodbatlas_cluster.this
+  value       = resource.mongodbatlas_advanced_cluster.this
   description = "Full cluster configuration for mongodbatlas_advanced_cluster resource"
 }

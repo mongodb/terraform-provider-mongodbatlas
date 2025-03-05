@@ -84,6 +84,7 @@ moved {
 
 ### [`outputs.tf`](v2/outputs.tf)
 - All outputs can use `mongodbatlas_advanced_cluster` except for:
+  - [TODO: Update with findings](https://jira.mongodb.org/browse/CLOUDP-303685)
   - `replication_specs`, which uses `data.mongodbatlas_cluster.this.replication_specs` to keep the same format.
   - `mongodbatlas_cluster`, which uses the `data.mongodbatlas_cluster.this` to keep the same format.
 

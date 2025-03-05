@@ -49,6 +49,7 @@ The [CLI Plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) hel
 ## Manual updates to the Terraform configuration
 
 1. Ensure all references are updated (see example of updates in [outputs.tf](outputs.tf))
+   1. TODO: Add warning about output references based on findings in [output investigation](https://jira.mongodb.org/browse/CLOUDP-303685)
 2. Comment out the `mongodbatlas_cluster` in `{CLUSTER_IN}.tf`
 3. Add the moved block for each resource migrated in `{CLUSTER_OUT}.tf`
 ```terraform
