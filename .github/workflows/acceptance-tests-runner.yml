@@ -399,11 +399,11 @@ jobs:
           terraform_wrapper: false  
       - name: Unit tests
         run: go test -v ./internal/testutil/acc/advanced_cluster_preview_provider_v2_test.go
-      # - name: Mocked Acceptance Tests
-      #   env:
-      #     ACCTEST_REGEX_RUN: '^TestAccMockable'
-      #     ACCTEST_PACKAGES: ./internal/service/advancedcluster
-      #   run: make testmact
+      - name: Mocked Acceptance Tests
+        env:
+          ACCTEST_REGEX_RUN: '^TestAccMockable'
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
+        run: make testmact
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
