@@ -191,10 +191,6 @@ check-changelog-entry-file: ## Check a changelog entry file in a PR
 jira-release-version: ## Update Jira version in a release
 	go run ./tools/jira-release-version/*.go
 
-.PHONY: enable-preview-provider-v2
-enable-preview-provider-v2: ## Enable Preview Provider V2
-	make change-lines filename=./internal/config/preview_provider_v2.go find="allowPreviewProviderV2AdvancedCluster = false" new="allowPreviewProviderV2AdvancedCluster = true"
-
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:
 	rm -f file.tmp
