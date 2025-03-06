@@ -123,6 +123,8 @@ tags = {
 
 ## How to migrate `mongodbatlas_advanced_cluster` to Preview for MongoDB Atlas Provider 2.0.0 
 
+If you're currently utilizing `mongodbatlas_advanced_clusters`, you can proactively address the upcoming breaking changes that will affect all `mongodbatlas_advanced_clusters` when the next major provider version, 2.0.0, is released (timeline yet to be announced). However, it's not necessary to do this right now.
+
 The process to migrate from current `mongodbatlas_advanced_cluster` to the one in Preview for MongoDB Atlas Provider 2.0.0 is as follows:
 - Before starting, run `terraform plan` to make sure that there are no planned changes.
 - Set environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider 2.0.0.
