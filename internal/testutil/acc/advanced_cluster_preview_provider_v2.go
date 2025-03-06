@@ -93,6 +93,13 @@ func AttrNameToPreviewProviderV2(isAcc bool, name string) string {
 	return name
 }
 
+func attrReferenceToPreviewProviderV2(name string) string {
+	for _, singleAttrName := range tpfSingleNestedAttrs {
+		name = strings.ReplaceAll(name, singleAttrName+"[0]", singleAttrName)
+	}
+	return name
+}
+
 func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, isAcc bool, def string) string {
 	t.Helper()
 	if skipPreviewProviderV2Work(isAcc) {
@@ -114,8 +121,9 @@ func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, isAcc bool, def str
 		convertKeyValueAttrs(t, "labels", writeBody)
 		convertKeyValueAttrs(t, "tags", writeBody)
 	}
-	content := parse.Bytes()
-	return string(content)
+	result := string(parse.Bytes())
+	result = attrReferenceToPreviewProviderV2(result) // useful for lifecycle ingore definitions
+	return result
 }
 
 func skipPreviewProviderV2Work(isAcc bool) bool {
