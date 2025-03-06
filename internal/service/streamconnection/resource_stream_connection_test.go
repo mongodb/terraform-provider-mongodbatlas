@@ -168,7 +168,7 @@ func testCaseCluster(t *testing.T) *resource.TestCase {
 func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"
-		//projectID    = acc.ProjectIDExecution(t)
+		// projectID    = acc.ProjectIDExecution(t)
 		projectID    = "6790e57a9b41416f5c216fee"
 		instanceName = acc.RandomName()
 		sampleName   = "sample_stream_solar"
@@ -468,12 +468,13 @@ func configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCI
 `, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer)
 }
 
+/*
 func awsLambdaStreamConnectionConfig(projectID, instanceName, connectionName, roleArn string) string {
 	streamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 
 	return fmt.Sprintf(`
 		%[1]s
-		
+
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = mongodbatlas_stream_instance.test.project_id
 			instance_name = mongodbatlas_stream_instance.test.instance_name
@@ -498,3 +499,4 @@ func awsLambdaStreamConnectionAttributeChecks(
 	}
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
+*/
