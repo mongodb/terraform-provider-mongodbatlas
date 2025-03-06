@@ -359,3 +359,141 @@ func clusterDescriptionDiskSizeNodeCount(diskSizeGBElectable float64, nodeCountE
 		},
 	}
 }
+
+func TestReplaceValuesFromPlan(t *testing.T) {
+	type testStructPointers struct {
+		A *int    `json:"a,omitempty"`
+		B *string `json:"b,omitempty"`
+		C *bool   `json:"c,omitempty"`
+	}
+
+	testStruct := func(a int, b string, c bool) *testStructPointers {
+		return &testStructPointers{A: &a, B: &b, C: &c}
+	}
+
+	testCases := map[string]struct {
+		plan     *testStructPointers
+		cfg      *testStructPointers
+		expected *testStructPointers
+	}{
+		"NilPlan": {
+			plan:     nil,
+			cfg:      testStruct(1, "original", true),
+			expected: testStruct(1, "original", true),
+		},
+		"NilCfg": {
+			plan:     testStruct(2, "new", false),
+			cfg:      nil,
+			expected: nil,
+		},
+		"NoChanges": {
+			plan:     testStruct(5, "unchanged", true),
+			cfg:      testStruct(5, "unchanged", true),
+			expected: testStruct(5, "unchanged", true),
+		},
+		"OneFieldChanged": {
+			plan:     testStruct(10, "original", true),
+			cfg:      testStruct(1, "original", true),
+			expected: testStruct(10, "original", true),
+		},
+		"MultipleFieldsChanged": {
+			plan:     testStruct(20, "new value", false),
+			cfg:      testStruct(2, "old value", true),
+			expected: testStruct(20, "new value", false),
+		},
+		"EmptyCfg fields should not be copied": {
+			plan:     testStruct(20, "new value", false),
+			cfg:      &testStructPointers{},
+			expected: &testStructPointers{},
+		},
+		"SingleFieldShouldBeCopied": {
+			plan:     testStruct(20, "new value", false),
+			cfg:      &testStructPointers{A: conversion.Pointer(10)},
+			expected: &testStructPointers{A: conversion.Pointer(20)},
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result, err := update.RemovePlanValuesNotInConfig(tc.plan, tc.cfg)
+			require.NoError(t, err)
+			if tc.expected == nil {
+				assert.Nil(t, result)
+			} else {
+				assert.Equal(t, tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestFullClusterExample(t *testing.T) {
+	var (
+		testCases = map[string]struct {
+			plan     *admin.ClusterDescription20240805
+			cfg      *admin.ClusterDescription20240805
+			expected *admin.ClusterDescription20240805
+		}{
+			"Instance size from plan preferred, diskIOPS not included, computed read only specs not included": {
+				plan: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{
+									ElectableSpecs: &admin.HardwareSpec20240805{
+										NodeCount:    conversion.Pointer(3),
+										DiskSizeGB:   conversion.Pointer(50.0),
+										DiskIOPS:     conversion.Pointer(3500),
+										InstanceSize: conversion.Pointer("M40"),
+									},
+									ReadOnlySpecs: &admin.DedicatedHardwareSpec20240805{
+										NodeCount:  conversion.Pointer(0),
+										DiskSizeGB: conversion.Pointer(50.0),
+										DiskIOPS:   conversion.Pointer(3500),
+									},
+								},
+							},
+						},
+					},
+				},
+				cfg: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{
+									ElectableSpecs: &admin.HardwareSpec20240805{
+										NodeCount:    conversion.Pointer(3),
+										DiskSizeGB:   conversion.Pointer(50.0),
+										InstanceSize: conversion.Pointer("M30"),
+									},
+								},
+							},
+						},
+					},
+				},
+				expected: &admin.ClusterDescription20240805{
+					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+						{
+							RegionConfigs: &[]admin.CloudRegionConfig20240805{
+								{
+									ElectableSpecs: &admin.HardwareSpec20240805{
+										NodeCount:    conversion.Pointer(3),
+										DiskSizeGB:   conversion.Pointer(50.0),
+										InstanceSize: conversion.Pointer("M40"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	)
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result, err := update.RemovePlanValuesNotInConfig(tc.plan, tc.cfg)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}

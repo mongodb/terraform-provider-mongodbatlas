@@ -31,6 +31,7 @@ var _ resource.ResourceWithModifyPlan = &rs{}
 const (
 	resourceName                  = "advanced_cluster"
 	errorSchemaDowngrade          = "error operation not permitted, nums_shards from 1 -> > 1"
+	errorPatchPayloadRemoveConfig = "error removing fields not in config for patch payload"
 	errorPatchPayload             = "error creating patch payload"
 	errorDetailDefault            = "cluster name %s. API error detail %s"
 	errorSchemaUpgradeReadIDs     = "error reading IDs from API when upgrading schema"
@@ -102,17 +103,18 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Return early unless it is an Update
 		return
 	}
-	var plan, state TFModel
+	var plan, state, cfg TFModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
+	diags.Append(req.Config.Get(ctx, &cfg)...)
 	if diags.HasError() {
 		return
 	}
 	if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read
 		return
 	}
-	useStateForUnknowns(ctx, diags, &state, &plan) // Do only for Update
+	useStateForUnknowns(ctx, diags, &state, &plan, &cfg) // Do only for Update
 	if diags.HasError() {
 		return
 	}
@@ -222,10 +224,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var state, configModel TFModel
+	var state, plan, configModel TFModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Config.Get(ctx, &configModel)...)
 	diags.Append(req.State.Get(ctx, &state)...)
+	diags.Append(req.Plan.Get(ctx, &plan)...)
 	if diags.HasError() {
 		return
 	}
@@ -241,7 +244,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	{
-		diff := findClusterDiff(ctx, &state, &configModel, diags)
+		diff := findClusterDiff(ctx, &state, &plan, &configModel, diags)
 		if diags.HasError() {
 			return
 		}
@@ -513,13 +516,19 @@ func (c *clusterDiff) isAnyUpgrade() bool {
 }
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
-func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) clusterDiff {
+func findClusterDiff(ctx context.Context, state, plan, cfg *TFModel, diags *diag.Diagnostics) clusterDiff {
 	if _ = isShardingConfigUpgrade(ctx, state, plan, diags); diags.HasError() { // Checks that there is no downgrade from new sharding config to old one
 		return clusterDiff{}
 	}
 	stateReq := normalizeFromTFModel(ctx, state, diags, false)
 	planReq := normalizeFromTFModel(ctx, plan, diags, false)
+	cfgReq := normalizeFromTFModel(ctx, cfg, diags, false)
 	if diags.HasError() {
+		return clusterDiff{}
+	}
+	planReq, err := update.RemovePlanValuesNotInConfig(planReq, cfgReq)
+	if err != nil {
+		diags.AddError(errorPatchPayloadRemoveConfig, err.Error())
 		return clusterDiff{}
 	}
 

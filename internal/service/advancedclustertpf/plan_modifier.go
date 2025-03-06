@@ -31,8 +31,8 @@ var (
 )
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
-func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	diff := findClusterDiff(ctx, state, plan, diags)
+func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan, cfg *TFModel) {
+	diff := findClusterDiff(ctx, state, plan, cfg, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
 	}

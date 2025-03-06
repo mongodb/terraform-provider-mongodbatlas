@@ -250,3 +250,34 @@ func IsZeroValues[T any](last *T) bool {
 	empty := new(T)
 	return reflect.DeepEqual(last, empty)
 }
+
+func RemovePlanValuesNotInConfig[T any](plan, cfg *T) (*T, error) {
+	if plan == nil || cfg == nil {
+		return cfg, nil
+	}
+	planJSON, err := json.Marshal(plan)
+	if err != nil {
+		return nil, err
+	}
+	patch, err := jsondiff.Compare(plan, cfg)
+	if err != nil {
+		return nil, err
+	}
+	removeOperations := jsondiff.Patch{}
+	for _, op := range patch {
+		if op.Type != jsondiff.OperationRemove {
+			continue
+		}
+		removeOperations = append(removeOperations, op)
+	}
+	removeAsPatch, err := convertJSONDiffToJSONPatch(removeOperations)
+	if err != nil {
+		return nil, err
+	}
+	planJSON, err = removeAsPatch.Apply(planJSON)
+	if err != nil {
+		return nil, err
+	}
+	replacment := new(T)
+	return replacment, json.Unmarshal(planJSON, replacment)
+}
