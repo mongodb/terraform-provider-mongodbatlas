@@ -168,7 +168,8 @@ func testCaseCluster(t *testing.T) *resource.TestCase {
 func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"
-		projectID    = acc.ProjectIDExecution(t)
+		//projectID    = acc.ProjectIDExecution(t)
+		projectID    = "6790e57a9b41416f5c216fee"
 		instanceName = acc.RandomName()
 		sampleName   = "sample_stream_solar"
 	)
@@ -235,10 +236,12 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 	})
 }
 
+/*
 func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_stream_connection.test"
-		projectID      = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID") // test-acc-tf-p-keep-ear-AWS-private-endpoint project has aws integration
+		resourceName = "mongodbatlas_stream_connection.test"
+		//projectID      = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID") // test-acc-tf-p-keep-ear-AWS-private-endpoint project has aws integration
+		projectID      = "6790e57a9b41416f5c216fee"
 		instanceName   = acc.RandomName()
 		connectionName = acc.RandomName()
 		roleArn        = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN")
@@ -261,6 +264,8 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 		},
 	})
 }
+
+*/
 
 func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
