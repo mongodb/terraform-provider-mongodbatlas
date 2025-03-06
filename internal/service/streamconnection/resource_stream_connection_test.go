@@ -168,7 +168,6 @@ func testCaseCluster(t *testing.T) *resource.TestCase {
 func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_stream_connection.test"
-		// projectID    = acc.ProjectIDExecution(t)
 		projectID    = "6790e57a9b41416f5c216fee"
 		instanceName = acc.RandomName()
 		sampleName   = "sample_stream_solar"
