@@ -54,14 +54,12 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	// pending revision if logic can be reincorporated safely: keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
-	/* pending revision if logic can be reincorporated safely:
 	if slices.Contains(keepUnknown, "replication_specs") {
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
 	}
-	*/
 }
 
-func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges) {
+func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges) {
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
@@ -69,7 +67,6 @@ func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	}
 	planWithUnknowns := []TFReplicationSpecsModel{}
 	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(ctx, diags, state, plan, attrChanges)
-	keepUnknownsUnchangedSpec = append(keepUnknownsUnchangedSpec, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	if diags.HasError() {
 		return
 	}
@@ -101,7 +98,8 @@ func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, at
 }
 
 func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attributeChanges *schemafunc.AttributeChanges) []string {
-	keepUnknowns := []string{}
+	keepUnknowns := []string{"electable_specs", "read_only_specs", "analytics_specs"}
+
 	// Could be set to "" if we are using an ISS cluster
 	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
 		keepUnknowns = append(keepUnknowns, "id")
@@ -112,48 +110,6 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 		keepUnknowns = append(keepUnknowns, "external_id")
 	}
 	return keepUnknowns
-}
-
-func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
-	var keepUnknown []string
-	computedUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
-	if computedUsed {
-		keepUnknown = append(keepUnknown, "instance_size")
-		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["instance_size"]...)
-	}
-	if diskUsed {
-		keepUnknown = append(keepUnknown, "disk_size_gb")
-		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["disk_size_gb"]...)
-	}
-	return keepUnknown
-}
-
-// autoScalingUsed checks is auto-scaling was enabled (state) or will be enabled (plan).
-func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (computedUsed, diskUsed bool) {
-	for _, model := range []*TFModel{state, plan} {
-		repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, model.ReplicationSpecs)
-		for i := range repSpecsTF {
-			regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
-			for j := range regiongConfigsTF {
-				for _, autoScalingTF := range []types.Object{regiongConfigsTF[j].AutoScaling, regiongConfigsTF[j].AnalyticsAutoScaling} {
-					if autoScalingTF.IsNull() || autoScalingTF.IsUnknown() {
-						continue
-					}
-					autoscaling := TFModelObject[TFAutoScalingModel](ctx, diags, autoScalingTF)
-					if autoscaling == nil {
-						continue
-					}
-					if autoscaling.ComputeEnabled.ValueBool() {
-						computedUsed = true
-					}
-					if autoscaling.DiskGBEnabled.ValueBool() {
-						diskUsed = true
-					}
-				}
-			}
-		}
-	}
-	return
 }
 
 func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
