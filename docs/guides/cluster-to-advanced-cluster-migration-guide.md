@@ -305,20 +305,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 If you've encountered [limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform#limitations) when using the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition, this section can help you understand what alternatives you have to generate it. Some options might be limited if you are using our MongoDB Atlas Terraform resources through a module (**Module maintainer**).
 
-- **Option 1**: Follow the steps 3. and 4. of the ["migration using import"](#migration-using-import) section by temporarily adding an `import block` and executing the `terraform plan -generate-config-out=adv_cluster.tf` command. Once you have the generated configuration for `mongodbatlas_advanced_cluster` you can use it in your configuration files and remove the `import block`. **Note**: Terraform modules don't support `import` blocks.
+- **Option 1**: Follow the steps 3. and 4. of the ["migration using import"](#migration-using-import) section by temporarily adding an `import block` and executing the `terraform plan -generate-config-out=adv_cluster.tf` command. Once you have the generated configuration for `mongodbatlas_advanced_cluster` you can use it in your configuration files and remove the `import block`. **Note**: Terraform modules don't support `import` blocks so this option is not possible if you are a module maintainer.
 
-- **Option 2**: Remove the limitations from your `mongodbatlas_cluster` resource and [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform?tab=readme-ov-file#convert-mongodbatlas_cluster-to-mongodbatlas_advanced_cluster-preview-provider-v2). Given the output, proceed with restoring the remaining configuration in the `mongodbatlas_advanced_cluster` resource.
+- **Option 2**: Remove the limitations from your `mongodbatlas_cluster` resource and use the Atlas CLI plugin. Given the output, proceed with restoring the remaining configuration in the `mongodbatlas_advanced_cluster` resource.
 
 - **Option 3**: Generate the new configuration for `mongodbatlas_advanced_cluster` manually, looking at the examples we provide in our [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
-
-<div style="margin-left: auto;
-            margin-right: auto;
-            width: 50%">
-
-| **Options** | **Module maintainer** | **Direct Resource user** |
-|---|---|---|
-|  Option 1 | Not Available | Available |
-|  Option 2 | Available | Available |
-|  Option 3 | Available | Available |
-
-</div>
