@@ -109,6 +109,11 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
+
+	if req.Plan.Raw.IsFullyKnown() != !schemafunc.HasUnknowns(&plan) {
+		panic("should not happen")
+	}
+
 	if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read
 		return
 	}
