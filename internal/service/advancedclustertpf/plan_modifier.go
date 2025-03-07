@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -28,20 +27,7 @@ var (
 		"region_name":     {"container_id"},    // container_id changes based on region_name changes
 		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
 	}
-	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNodeCount, keepUnkownFuncWithNonEmptyAutoScaling)
 )
-
-func keepUnkownFuncWithNodeCount(name string, replacement attr.Value) bool {
-	return name == "node_count" && !replacement.Equal(types.Int64Value(0))
-}
-
-func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) bool {
-	autoScalingBoolValues := []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}
-	autoScalingStringValues := []string{"compute_min_instance_size", "compute_max_instance_size"}
-	boolValues := slices.Contains(autoScalingBoolValues, name) && replacement.Equal(types.BoolValue(true))
-	stringValues := slices.Contains(autoScalingStringValues, name) && replacement.(types.String).ValueString() != ""
-	return boolValues || stringValues
-}
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
@@ -52,7 +38,6 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
-	// pending revision if logic can be reincorporated safely: keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 	if slices.Contains(keepUnknown, "replication_specs") {
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
@@ -76,7 +61,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 			if attrChanges.ListIndexChanged("replication_specs", i) {
 				keepUnknowns = determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
 			}
-			schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknowns, keepUnknownsCalls)
+			schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknowns, nil)
 		}
 		planWithUnknowns = append(planWithUnknowns, planRepSpecsTF[i])
 	}
@@ -98,6 +83,9 @@ func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, at
 }
 
 func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attributeChanges *schemafunc.AttributeChanges) []string {
+	// for autoscaling attributes no dynamic changes are expected, we can always define known value from state
+
+	// specs have inner attribute which can be dynamic under certain changes, we cannot leave some known and other unknown inner attributes as this lead to errors in PATCH creation.
 	keepUnknowns := []string{"electable_specs", "read_only_specs", "analytics_specs"}
 
 	// Could be set to "" if we are using an ISS cluster
@@ -108,6 +96,7 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 	// for listLenChanges, it might be an insertion in the middle of replication spec leading to wrong value from state copied
 	if isShardingConfigUpgrade(ctx, state, plan, diags) || attributeChanges.ListLenChanges("replication_specs") {
 		keepUnknowns = append(keepUnknowns, "external_id")
+		// TODO this could also be the case for id?
 	}
 	return keepUnknowns
 }
