@@ -20,7 +20,7 @@ data "mongodbatlas_stream_connection" "example" {
 
 ## Attributes Reference
 
-* `type` - Type of connection. Can be either `Cluster`, `Kafka` or `Sample`.
+* `type` - Type of connection. Can be `Cluster`, `Kafka`, `Sample`, or `AWSLambda`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -32,6 +32,9 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 * `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
 * `security` - Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
+
+If `type` is of value `AWSLambda` the following additional attributes are defined:
+* `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
 
 ### Authentication
 
@@ -55,6 +58,9 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 ### Access
 * `type` - Selected networking type. Either `PUBLIC`, `VPC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
 * `connection_id` - Id of the Private Link connection when type is `PRIVATE_LINK`.
+
+### AWS
+* `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account. 
 
 To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/getStreamConnection) Documentation.
 The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_instance/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.
