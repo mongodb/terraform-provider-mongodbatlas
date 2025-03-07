@@ -46,6 +46,9 @@ type TFStreamConnectionModel struct {
 	Security         types.Object `tfsdk:"security"`
 	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
 	Networking       types.Object `tfsdk:"networking"`
+	// https connection
+	Headers types.Map    `tfsdk:"headers"`
+	URL     types.String `tfsdk:"url"`
 }
 
 type TFConnectionAuthenticationModel struct {

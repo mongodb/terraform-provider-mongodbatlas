@@ -18,6 +18,7 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		Type:             plan.Type.ValueStringPointer(),
 		ClusterName:      plan.ClusterName.ValueStringPointer(),
 		BootstrapServers: plan.BootstrapServers.ValueStringPointer(),
+		Url:              plan.URL.ValueStringPointer(),
 	}
 	if !plan.Authentication.IsNull() {
 		authenticationModel := &TFConnectionAuthenticationModel{}
@@ -77,6 +78,14 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		}
 	}
 
+	if !plan.Headers.IsNull() {
+		headersMap := &map[string]string{}
+		if diags := plan.Headers.ElementsAs(ctx, headersMap, true); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.Headers = headersMap
+	}
+
 	return &streamConnection, nil
 }
 
@@ -90,6 +99,7 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 		Type:             types.StringPointerValue(apiResp.Type),
 		ClusterName:      types.StringPointerValue(apiResp.ClusterName),
 		BootstrapServers: types.StringPointerValue(apiResp.BootstrapServers),
+		URL:              types.StringPointerValue(apiResp.Url),
 	}
 
 	authModel, diags := newTFConnectionAuthenticationModel(ctx, currAuthConfig, apiResp.Authentication)
@@ -147,6 +157,15 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 			return nil, diags
 		}
 		connectionModel.Networking = networkingModel
+	}
+
+	connectionModel.Headers = types.MapNull(types.StringType)
+	if apiResp.Headers != nil {
+		mapValue, diags := types.MapValueFrom(ctx, types.StringType, apiResp.Headers)
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.Headers = mapValue
 	}
 
 	return &connectionModel, nil

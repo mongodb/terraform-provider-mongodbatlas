@@ -119,6 +119,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+
+			// https type specific
+			"url": schema.StringAttribute{
+				Optional: true,
+			},
+			"headers": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+			},
 		},
 	}
 }

@@ -32,7 +32,7 @@ In addition to all arguments above, it also exports the following attributes:
 * `project_id` - Unique 24-hexadecimal digit string that identifies your project.
 * `instance_name` - Human-readable label that identifies the stream instance.
 * `connection_name` - Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - Type of connection. Can be either `Cluster`, `Kafka` or `Sample`.
+* `type` - Type of connection. Can be either `Cluster`, `Kafka`, `Https` or `Sample`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -44,6 +44,10 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 * `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
 * `security` - Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
+
+If `type` is of value `Https` the following additional attributes are defined:
+* `url` - URL of the HTTPs endpoint that will be used for creating a connection.
+* `headers` - A map of key-value pairs for optional headers.
 
 ### Authentication
 

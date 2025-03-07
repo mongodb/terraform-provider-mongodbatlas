@@ -1,6 +1,6 @@
 # MongoDB Atlas Provider - Atlas Stream Instance defined in a Project
 
-This example shows how to create Atlas Stream Connections in Terraform. It also creates a stream instance, which is a prerequisite. Both Kafka and Cluster connections types are defined to showcase their usage.
+This example shows how to create Atlas Stream Connections in Terraform. It also creates a stream instance, which is a prerequisite. The Kafka, HTTPs and Cluster connections types are defined to showcase their usage.
 
 You must set the following variables:
 

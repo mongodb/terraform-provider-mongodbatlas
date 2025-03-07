@@ -85,6 +85,25 @@ func TestAccStreamDSStreamConnection_sample(t *testing.T) {
 	})
 }
 
+func TestAccStreamDSStreamConnection_https(t *testing.T) {
+	var (
+		dataSourceName = "data.mongodbatlas_stream_connection.test"
+		projectID      = acc.ProjectIDExecution(t)
+		instanceName   = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: streamConnectionDataSourceConfig(httpsStreamConnectionConfig(projectID, instanceName)),
+				Check:  httpsStreamConnectionAttributeChecks(dataSourceName, instanceName),
+			},
+		},
+	})
+}
+
 func streamConnectionDataSourceConfig(streamConnectionConfig string) string {
 	return fmt.Sprintf(`
 		%s
