@@ -86,7 +86,7 @@ resource "mongodbatlas_stream_connection" "test" {
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
 * `instance_name` - (Required) Human-readable label that identifies the stream instance.
 * `connection_name` - (Required) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - (Required) Type of connection. Can be either `Cluster`, `Kafka`, `Sample` `AWSLambda`.
+* `type` - (Required) Type of connection. Can be `Cluster`, `Kafka`, `Sample`, `Https`, or `AWSLambda`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
