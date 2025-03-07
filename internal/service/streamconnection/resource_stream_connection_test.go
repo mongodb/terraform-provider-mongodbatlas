@@ -235,11 +235,9 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 	})
 }
 
-/*
 func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_stream_connection.test"
-		//projectID      = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID") // test-acc-tf-p-keep-ear-AWS-private-endpoint project has aws integration
+		resourceName   = "mongodbatlas_stream_connection.test"
 		projectID      = "6790e57a9b41416f5c216fee"
 		instanceName   = acc.RandomName()
 		connectionName = acc.RandomName()
@@ -263,8 +261,6 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 		},
 	})
 }
-
-*/
 
 func kafkaStreamConnectionConfig(projectID, instanceName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
@@ -467,7 +463,6 @@ func configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCI
 `, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer)
 }
 
-/*
 func awsLambdaStreamConnectionConfig(projectID, instanceName, connectionName, roleArn string) string {
 	streamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 
@@ -498,4 +493,3 @@ func awsLambdaStreamConnectionAttributeChecks(
 	}
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
-*/
