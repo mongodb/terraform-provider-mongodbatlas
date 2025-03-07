@@ -238,10 +238,10 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_stream_connection.test"
-		projectID      = "6790e57a9b41416f5c216fee"
+		projectID      = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID") // test-acc-tf-p-keep-ear-AWS-private-endpoint project has aws integration
 		instanceName   = acc.RandomName()
 		connectionName = acc.RandomName()
-		roleArn        = "arn:aws:iam::358363220050:role/mongodb-atlas-test-acc-tf-7973337217371171538-git-ear"
+		roleArn        = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
