@@ -241,7 +241,7 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 		projectID      = "6790e57a9b41416f5c216fee"
 		instanceName   = acc.RandomName()
 		connectionName = acc.RandomName()
-		roleArn        = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN")
+		roleArn        = "arn:aws:iam::358363220050:role/mongodb-atlas-test-acc-tf-7973337217371171538-git-ear"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
