@@ -13,6 +13,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// HasUnknowns uses reflection to check if the object has any unknown fields
+// Pass &TFModel{}
+// Will only check the root level attributes
+func HasUnknowns(obj any) bool {
+	valObj := reflect.ValueOf(obj)
+	if valObj.Kind() != reflect.Ptr {
+		panic("params must be pointer")
+	}
+	valObj = valObj.Elem()
+	if valObj.Kind() != reflect.Struct {
+		panic("params must be pointer to struct")
+	}
+	typeObj := valObj.Type()
+	for i := range typeObj.NumField() {
+		field := valObj.Field(i)
+		if isUnknown(field) {
+			return true
+		}
+	}
+	return false
+}
+
 type KeepUnknownFunc func(string, attr.Value) bool
 
 // CopyUnknowns use reflection to copy unknown fields from src to dest.

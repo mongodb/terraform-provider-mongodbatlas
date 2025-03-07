@@ -12,6 +12,82 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type missingMethodType struct{}
+
+type wrongReturnType struct{}
+
+func (w wrongReturnType) IsUnknown() string {
+	return "I'm a string!"
+}
+
+type multipleReturns struct{}
+
+func (m multipleReturns) IsUnknown() (bool, error) {
+	return false, nil
+}
+
+type hasUnknownsOk struct {
+	Field types.Bool
+}
+
+type hasUnknownsPanicWrongType struct {
+	Field wrongReturnType
+}
+
+type hasUnknownsPanicMultipleReturn struct {
+	Field multipleReturns
+}
+
+type hasUnknownsPanicMissingMethod struct {
+	Field missingMethodType
+}
+
+// TestHasUnknown is kept even if HasUnknowns is not used so we can test isUnknown that is also used in CopyFromUnknown
+func TestHasUnknown(t *testing.T) {
+	tests := map[string]struct {
+		input        any
+		panicMessage string
+		inputBool    types.Bool
+		expected     bool
+	}{
+		"valid unknown true": {
+			inputBool: types.BoolUnknown(),
+			expected:  true,
+		},
+		"valid unknown false": {
+			inputBool: types.BoolValue(true),
+			expected:  false,
+		},
+		"missing IsUnknown method": {
+			input:        &hasUnknownsPanicMissingMethod{missingMethodType{}},
+			panicMessage: "IsUnknown method not found for {}",
+		},
+		"wrong return type": {
+			input:        &hasUnknownsPanicWrongType{wrongReturnType{}},
+			panicMessage: "IsUnknown method must return a bool, got I'm a string!",
+		},
+		"multiple return values": {
+			input:        &hasUnknownsPanicMultipleReturn{multipleReturns{}},
+			panicMessage: "IsUnknown method must return a single value, got [<bool Value> <error Value>]",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			if tc.panicMessage != "" {
+				assert.PanicsWithValue(t, tc.panicMessage, func() {
+					schemafunc.HasUnknowns(tc.input)
+				})
+				return
+			}
+
+			wrapper := &hasUnknownsOk{Field: tc.inputBool}
+			result := schemafunc.HasUnknowns(wrapper)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
 type TFAutoScalingModel struct {
 	ComputeMinInstanceSize types.String `tfsdk:"compute_min_instance_size"`
 	ComputeMaxInstanceSize types.String `tfsdk:"compute_max_instance_size"`
