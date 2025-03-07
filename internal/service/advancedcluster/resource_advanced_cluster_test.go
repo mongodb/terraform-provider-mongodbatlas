@@ -496,7 +496,6 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
-		clusterNameUpdated     = acc.RandomClusterName()
 		autoScaling            = &admin.AdvancedAutoScalingSettings{
 			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
 			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
@@ -513,7 +512,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, autoScaling),
+				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, autoScaling, "M10", 10),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterName),
@@ -523,12 +522,14 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 				),
 			},
 			{
-				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterNameUpdated, autoScalingUpdated),
+				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, autoScalingUpdated, "M20", 20),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterNameUpdated),
+					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterName),
 					acc.TestCheckResourceAttrSetPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#"),
 					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"),
+					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"), // modified instance size in config is ignored
+					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb", "10"),   // modified disk size gb in config is ignored
 				),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -2058,8 +2059,19 @@ func checkAdvancedDefaultWrite(isAcc bool, name, writeConcern, tls string) resou
 		pluralChecks...)
 }
 
-func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
+func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, p *admin.AdvancedAutoScalingSettings, elecInstanceSize string, elecDiskSizeGB int) string {
 	t.Helper()
+	lifecycleIgnoreChanges := ""
+	if p.Compute.GetEnabled() {
+		lifecycleIgnoreChanges = `
+		lifecycle {
+			ignore_changes = [
+				replication_specs[0].region_configs[0].electable_specs[0].instance_size,
+				replication_specs[0].region_configs[0].electable_specs[0].disk_size_gb
+			]
+        }`
+	}
+
 	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
@@ -2069,18 +2081,19 @@ func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clus
 			replication_specs {
 				region_configs {
 					electable_specs {
-						instance_size = "M10"
+						instance_size = %[3]q
+						disk_size_gb = %[4]d
 						node_count    = 3
 					}
 					analytics_specs {
 						instance_size = "M10"
 						node_count    = 1
 					}
-				auto_scaling {
-						compute_enabled = %[3]t
-						disk_gb_enabled = %[4]t
-				compute_max_instance_size = %[5]q
-				}
+					auto_scaling {
+						compute_enabled = %[5]t
+						disk_gb_enabled = %[6]t
+						compute_max_instance_size = %[7]q
+					}
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_WEST_2"
@@ -2089,8 +2102,9 @@ func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clus
 			advanced_configuration  {
 			    oplog_min_retention_hours = 5.5
 			}
-		}
-	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize()))
+			%[8]s
+		}		
+	`, projectID, clusterName, elecInstanceSize, elecDiskSizeGB, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize(), lifecycleIgnoreChanges))
 }
 
 func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
