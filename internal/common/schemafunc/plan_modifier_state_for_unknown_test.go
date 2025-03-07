@@ -42,6 +42,7 @@ type hasUnknownsPanicMissingMethod struct {
 	Field missingMethodType
 }
 
+// TestHasUnknown is kept even if HasUnknowns is not used so we can test isUnknown that is also used in CopyFromUnknown
 func TestHasUnknown(t *testing.T) {
 	tests := map[string]struct {
 		input        any
