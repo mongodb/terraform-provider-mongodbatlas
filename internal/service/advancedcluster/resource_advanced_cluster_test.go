@@ -2066,8 +2066,8 @@ func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clus
 		lifecycleIgnoreChanges = `
 		lifecycle {
 			ignore_changes = [
-				replication_specs[0].region_configs[0].electable_specs[0].instance_size,
-				replication_specs[0].region_configs[0].electable_specs[0].disk_size_gb
+				replication_specs.0.region_configs.0.electable_specs.0.instance_size,
+				replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb
 			]
         }`
 	}
