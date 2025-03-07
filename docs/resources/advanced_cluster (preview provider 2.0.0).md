@@ -10,7 +10,7 @@ In order to enable the Preview for MongoDB Atlas Provider 2.0.0 for `mongodbatla
 
 This environment variable only affects the `mongodbatlas_advanced_cluster` resource and corresponding data sources. It doesn't affect other resources. `mongodbatlas_advanced_cluster` definition will use the new format and new features like `moved block` from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` will be available.
 
-## Main changes between current `mongodbatlas_advanced_cluster` and the one in Preview for MongoDB Atlas Provider 2.0.0
+## Configuration changes between current `mongodbatlas_advanced_cluster` and the one in Preview for MongoDB Atlas Provider 2.0.0
 
 1. Elements `replication_specs` and `region_configs` are now list attributes instead of blocks so they are an array of objects. If there is only one object, it still needs to be in an array. For example,
 ```terraform
