@@ -93,7 +93,10 @@ output "interface_endpoint_ids" {
 
 - `dns_domain` (String) Domain name of Privatelink connected cluster.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones.
+- `error_message` (String) Error message if the connection is in a failed state.
 - `interface_endpoint_id` (String) Interface endpoint ID that is created from the specified service endpoint ID.
+- `interface_endpoint_name` (String) Interface endpoint name that is created from the specified service endpoint ID.
+- `provider_account_id` (String) Account ID from the cloud provider.
 - `provider_name` (String) Provider where the Kafka cluster is deployed.
 - `region` (String) Domain name of Confluent cluster.
 - `service_endpoint_id` (String) Service Endpoint ID.
