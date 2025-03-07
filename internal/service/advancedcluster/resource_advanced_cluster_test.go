@@ -2062,7 +2062,7 @@ func checkAdvancedDefaultWrite(isAcc bool, name, writeConcern, tls string) resou
 func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, p *admin.AdvancedAutoScalingSettings, elecInstanceSize string, elecDiskSizeGB int) string {
 	t.Helper()
 	lifecycleIgnoreChanges := ""
-	if p.Compute.Enabled != nil && *p.Compute.Enabled == true {
+	if p.Compute.GetEnabled() {
 		lifecycleIgnoreChanges = `
 		lifecycle {
 			ignore_changes = [
