@@ -59,6 +59,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
 	}
 	*/
+	AdjustReadOnlySpecs(ctx, diags, state, plan)
 }
 
 func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges) {
@@ -89,6 +90,46 @@ func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 		return
 	}
 	plan.ReplicationSpecs = listType
+}
+
+func AdjustReadOnlySpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	newPlanRepSpecsTF := []TFReplicationSpecsModel{}
+	if diags.HasError() {
+		return
+	}
+	for i := range planRepSpecsTF {
+		if i < len(stateRepSpecsTF) {
+			stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
+			planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
+			newPlanRegionConfigsTF := []TFRegionConfigsModel{}
+			if diags.HasError() {
+				return
+			}
+			for j := range planRegionConfigsTF {
+				if j < len(stateRegionConfigsTF) {
+					if planRegionConfigsTF[j].ReadOnlySpecs.IsUnknown() {
+						planRegionConfigsTF[j].ReadOnlySpecs = stateRegionConfigsTF[j].ReadOnlySpecs
+					}
+				}
+				newPlanRegionConfigsTF = append(newPlanRegionConfigsTF, planRegionConfigsTF[j])
+			}
+			listRegionConfigs, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, newPlanRegionConfigsTF)
+			diags.Append(diagsLocal...)
+			if diags.HasError() {
+				return
+			}
+			planRepSpecsTF[i].RegionConfigs = listRegionConfigs
+		}
+		newPlanRepSpecsTF = append(newPlanRepSpecsTF, planRepSpecsTF[i])
+	}
+	listRepSpecs, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, newPlanRepSpecsTF)
+	diags.Append(diagsLocal...)
+	if diags.HasError() {
+		return
+	}
+	plan.ReplicationSpecs = listRepSpecs
 }
 
 // determineKeepUnknownsChangedReplicationSpec: These fields must be kept unknown in the replication_specs[index_of_changes]
