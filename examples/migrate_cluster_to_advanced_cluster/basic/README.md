@@ -5,10 +5,10 @@ In this example we use specific files, but the same approach can be applied to a
 The main steps are:
 
 1. [Enable the `mongodbatlas_advanced_cluster` preview for MongoDB Atlas Provider 2.0.0](#enable-the-mongodbatlas_advanced_cluster-preview)
-1. [Create the `mongodbatlas_cluster`](#create-the-mongodbatlas_cluster) (skip if you already have a configuration with one or more `mongodbatlas_cluster` resources).
-1. [Use the Atlas CLI Plugin Terraform to create the `mongodbatlas_advanced_cluster` configuration](#use-the-atlas-cli-plugin-terraform-to-create-the-mongodbatlas_advanced_cluster-resource).
-1. [Manually update the Terraform configuration](#manual-updates-to-the-terraform-configuration).
-1. [Perform the Move](#perform-the-move).
+2. [Create the `mongodbatlas_cluster`](#create-the-mongodbatlas_cluster) (skip if you already have a configuration with one or more `mongodbatlas_cluster` resources).
+3. [Use the Atlas CLI Plugin Terraform to create the `mongodbatlas_advanced_cluster` configuration](#use-the-atlas-cli-plugin-terraform-to-create-the-mongodbatlas_advanced_cluster-resource).
+4. [Manually update the Terraform configuration](#manual-updates-to-the-terraform-configuration).
+5. [Perform the Move](#perform-the-move).
    - [Troubleshooting](#troubleshooting).
 
 ## Enable the `mongodbatlas_advanced_cluster` preview
@@ -63,8 +63,8 @@ moved {
 ## Perform the Move
 
 1. Ensure you are using the MongoDB Atlas Terraform provider 1.29 or later
-1. Ensure you are using V2 schema: `export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`.
-1. Run `terraform validate` to ensure there are no missing reference updates. You might see errors like:
+2. Ensure you are using V2 schema: `export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`.
+3. Run `terraform validate` to ensure there are no missing reference updates. You might see errors like:
    - `Error: Reference to undeclared resource`: You forgot to update the resource type to `mongodbatlas_advanced_cluster`
    ```text
     │   on outputs.tf line 7, in output "container_id":
@@ -77,7 +77,7 @@ moved {
     │ 
     │ This object has no argument, nested block, or exported attribute named "provider_name".
    ```
-1. Run `terraform apply` and accept the move.
+4. Run `terraform apply` and accept the move.
    - You should expect to see
    ```text
    Terraform will perform the following actions:
