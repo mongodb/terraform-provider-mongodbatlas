@@ -62,7 +62,7 @@ moved {
 
 ## Perform the Move
 
-1. Ensure you are using the MongoDB Atlas Terraform provider 1.29 or later
+1. Ensure you are using the MongoDB Atlas Terraform provider 1.29 or later.
 2. Ensure you are using V2 schema: `export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`.
 3. Run `terraform validate` to ensure there are no missing reference updates. You might see errors like:
    - `Error: Reference to undeclared resource`: You forgot to update the resource type to `mongodbatlas_advanced_cluster`
