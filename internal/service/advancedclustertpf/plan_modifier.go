@@ -45,6 +45,7 @@ func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) 
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+	AdjustReadOnlySpecs(ctx, diags, state, plan)
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
@@ -59,7 +60,6 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
 	}
 	*/
-	AdjustReadOnlySpecs(ctx, diags, state, plan)
 }
 
 func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges) {
@@ -109,8 +109,35 @@ func AdjustReadOnlySpecs(ctx context.Context, diags *diag.Diagnostics, state, pl
 			}
 			for j := range planRegionConfigsTF {
 				if j < len(stateRegionConfigsTF) {
-					if planRegionConfigsTF[j].ReadOnlySpecs.IsUnknown() {
-						planRegionConfigsTF[j].ReadOnlySpecs = stateRegionConfigsTF[j].ReadOnlySpecs
+					planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
+					planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
+					stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
+					if stateReadOnlySpecs != nil && planElectableSpecs != nil { // read_only_specs is present in state and electable_specs in the plan
+						newPlanReadOnlySpecs := planReadOnlySpecs
+						if newPlanReadOnlySpecs == nil {
+							newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan
+						}
+						if newPlanReadOnlySpecs.DiskSizeGb.IsUnknown() || newPlanReadOnlySpecs.DiskSizeGb.IsNull() {
+							newPlanReadOnlySpecs.DiskSizeGb = planElectableSpecs.DiskSizeGb
+						}
+						if newPlanReadOnlySpecs.EbsVolumeType.IsUnknown() || newPlanReadOnlySpecs.EbsVolumeType.IsNull() {
+							newPlanReadOnlySpecs.EbsVolumeType = planElectableSpecs.EbsVolumeType
+						}
+						if newPlanReadOnlySpecs.InstanceSize.IsUnknown() || newPlanReadOnlySpecs.InstanceSize.IsNull() {
+							newPlanReadOnlySpecs.InstanceSize = planElectableSpecs.InstanceSize
+						}
+						if newPlanReadOnlySpecs.DiskIops.IsUnknown() || newPlanReadOnlySpecs.EbsVolumeType.IsUnknown() {
+							newPlanReadOnlySpecs.DiskIops = planElectableSpecs.DiskIops
+						}
+						if newPlanReadOnlySpecs.NodeCount.IsUnknown() || newPlanReadOnlySpecs.NodeCount.IsNull() { // unknown node_count is got from state, all other unkowns are got from electable_specs
+							newPlanReadOnlySpecs.NodeCount = stateReadOnlySpecs.NodeCount
+						}
+						objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanReadOnlySpecs)
+						diags.Append(diagsLocal...)
+						if diags.HasError() {
+							return
+						}
+						planRegionConfigsTF[j].ReadOnlySpecs = objType
 					}
 				}
 				newPlanRegionConfigsTF = append(newPlanRegionConfigsTF, planRegionConfigsTF[j])
@@ -180,7 +207,7 @@ func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *
 					if autoScalingTF.IsNull() || autoScalingTF.IsUnknown() {
 						continue
 					}
-					autoscaling := TFModelObject[TFAutoScalingModel](ctx, diags, autoScalingTF)
+					autoscaling := TFModelObject[TFAutoScalingModel](ctx, autoScalingTF)
 					if autoscaling == nil {
 						continue
 					}
@@ -199,17 +226,17 @@ func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *
 
 func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
 	elements := make([]T, len(input.Elements()))
-	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
+	diags.Append(input.ElementsAs(ctx, &elements, false)...)
+	if diags.HasError() {
 		return nil
 	}
 	return elements
 }
 
-func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input types.Object) *T {
+// TFModelObject returns nil if the Terraform object is null or unknown, or casting to T is not valid. However object attributes can be null or unknown.
+func TFModelObject[T any](ctx context.Context, input types.Object) *T {
 	item := new(T)
-	if localDiags := input.As(ctx, item, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
-		diags.Append(localDiags...)
+	if diags := input.As(ctx, item, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil
 	}
 	return item
