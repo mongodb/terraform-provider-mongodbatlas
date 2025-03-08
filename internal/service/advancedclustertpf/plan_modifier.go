@@ -124,7 +124,7 @@ func AdjustReadOnlySpecs(ctx context.Context, diags *diag.Diagnostics, state, pl
 						if newPlanReadOnlySpecs.InstanceSize.IsUnknown() || newPlanReadOnlySpecs.InstanceSize.IsNull() {
 							newPlanReadOnlySpecs.InstanceSize = planElectableSpecs.InstanceSize
 						}
-						if newPlanReadOnlySpecs.DiskIops.IsUnknown() || newPlanReadOnlySpecs.EbsVolumeType.IsUnknown() {
+						if newPlanReadOnlySpecs.DiskIops.IsUnknown() || newPlanReadOnlySpecs.DiskIops.IsNull() {
 							newPlanReadOnlySpecs.DiskIops = planElectableSpecs.DiskIops
 						}
 						if newPlanReadOnlySpecs.NodeCount.IsUnknown() || newPlanReadOnlySpecs.NodeCount.IsNull() { // unknown node_count is got from state, all other unkowns are got from electable_specs
