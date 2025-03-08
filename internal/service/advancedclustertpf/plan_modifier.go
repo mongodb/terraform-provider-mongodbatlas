@@ -45,7 +45,7 @@ func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) 
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	AdjustReadOnlySpecs(ctx, diags, state, plan)
+	AdjustRegionConfigsChildren(ctx, diags, state, plan)
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
@@ -92,7 +92,7 @@ func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	plan.ReplicationSpecs = listType
 }
 
-func AdjustReadOnlySpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	newPlanRepSpecsTF := []TFReplicationSpecsModel{}
@@ -109,35 +109,35 @@ func AdjustReadOnlySpecs(ctx context.Context, diags *diag.Diagnostics, state, pl
 			}
 			for j := range planRegionConfigsTF {
 				if j < len(stateRegionConfigsTF) {
-					planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
-					planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
 					stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
+					planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
+					planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
 					if stateReadOnlySpecs != nil && planElectableSpecs != nil { // read_only_specs is present in state and electable_specs in the plan
 						newPlanReadOnlySpecs := planReadOnlySpecs
 						if newPlanReadOnlySpecs == nil {
 							newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan
 						}
-						if newPlanReadOnlySpecs.DiskSizeGb.IsUnknown() || newPlanReadOnlySpecs.DiskSizeGb.IsNull() {
-							newPlanReadOnlySpecs.DiskSizeGb = planElectableSpecs.DiskSizeGb
-						}
-						if newPlanReadOnlySpecs.EbsVolumeType.IsUnknown() || newPlanReadOnlySpecs.EbsVolumeType.IsNull() {
-							newPlanReadOnlySpecs.EbsVolumeType = planElectableSpecs.EbsVolumeType
-						}
-						if newPlanReadOnlySpecs.InstanceSize.IsUnknown() || newPlanReadOnlySpecs.InstanceSize.IsNull() {
-							newPlanReadOnlySpecs.InstanceSize = planElectableSpecs.InstanceSize
-						}
-						if newPlanReadOnlySpecs.DiskIops.IsUnknown() || newPlanReadOnlySpecs.DiskIops.IsNull() {
-							newPlanReadOnlySpecs.DiskIops = planElectableSpecs.DiskIops
-						}
-						if newPlanReadOnlySpecs.NodeCount.IsUnknown() || newPlanReadOnlySpecs.NodeCount.IsNull() { // unknown node_count is got from state, all other unkowns are got from electable_specs
-							newPlanReadOnlySpecs.NodeCount = stateReadOnlySpecs.NodeCount
-						}
+						// unknown node_count is got from state, all other unknowns are got from electable_specs plan
+						copyAttrIfDestNotKnown(&planElectableSpecs.DiskSizeGb, &newPlanReadOnlySpecs.DiskSizeGb)
+						copyAttrIfDestNotKnown(&planElectableSpecs.EbsVolumeType, &newPlanReadOnlySpecs.EbsVolumeType)
+						copyAttrIfDestNotKnown(&planElectableSpecs.InstanceSize, &newPlanReadOnlySpecs.InstanceSize)
+						copyAttrIfDestNotKnown(&planElectableSpecs.DiskIops, &newPlanReadOnlySpecs.DiskIops)
+						copyAttrIfDestNotKnown(&stateReadOnlySpecs.NodeCount, &newPlanReadOnlySpecs.NodeCount)
 						objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanReadOnlySpecs)
 						diags.Append(diagsLocal...)
 						if diags.HasError() {
 							return
 						}
 						planRegionConfigsTF[j].ReadOnlySpecs = objType
+					}
+					if planRegionConfigsTF[j].AnalyticsSpecs.IsUnknown() && !stateRegionConfigsTF[j].AnalyticsSpecs.IsNull() {
+						planRegionConfigsTF[j].AnalyticsSpecs = stateRegionConfigsTF[j].AnalyticsSpecs
+					}
+					if planRegionConfigsTF[j].AutoScaling.IsUnknown() && !stateRegionConfigsTF[j].AutoScaling.IsNull() {
+						planRegionConfigsTF[j].AutoScaling = stateRegionConfigsTF[j].AutoScaling
+					}
+					if planRegionConfigsTF[j].AnalyticsAutoScaling.IsUnknown() && !stateRegionConfigsTF[j].AnalyticsAutoScaling.IsNull() {
+						planRegionConfigsTF[j].AnalyticsAutoScaling = stateRegionConfigsTF[j].AnalyticsAutoScaling
 					}
 				}
 				newPlanRegionConfigsTF = append(newPlanRegionConfigsTF, planRegionConfigsTF[j])
@@ -240,4 +240,14 @@ func TFModelObject[T any](ctx context.Context, input types.Object) *T {
 		return nil
 	}
 	return item
+}
+
+func copyAttrIfDestNotKnown[T attr.Value](src, dest *T) {
+	if !isKnown(*dest) {
+		*dest = *src
+	}
+}
+
+func isKnown(attribute attr.Value) bool {
+	return !attribute.IsNull() && !attribute.IsUnknown()
 }
