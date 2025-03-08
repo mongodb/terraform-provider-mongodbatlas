@@ -146,7 +146,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	// resp.Plan.Schema.TypeAtTerraformPath()
 	// AttributeName("connection_strings").AttributeName("private_endpoint")
 	rSchema := resourceSchema(ctx)
-	differ := &DiffHelper{req: &req, stateConfigDiff: diffs}
+	differ := &DiffHelper{req: &req, resp: resp, stateConfigDiff: diffs}
 	// analyticsSpecs := StateConfig[TFSpecsModel](ctx, diags, differ, "read_only_specs", rSchema)
 	analyticsSpecs := StateConfigDiffs[TFSpecsModel](ctx, diags, differ, "analytics_specs", rSchema)
 	if diags.HasError() {
@@ -154,6 +154,26 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	}
 	for _, spec := range analyticsSpecs {
 		tflog.Error(ctx, fmt.Sprintf("AnalyticsSpecs @ %s\n%v!=%v", spec.Path.String(), spec.OldValue, spec.NewValue))
+		if !spec.Removed() {
+			continue
+		}
+		stateValue := spec.OldValue
+		nodeCount := stateValue.NodeCount
+		if nodeCount.IsNull() || nodeCount.Equal(types.Int64Value(0)) {
+			continue
+		}
+		tflog.Error(ctx, fmt.Sprintf("Non empty AnalyticsSpecs @ %s Removed!", spec.Path.String()))
+		nodeCountZeroSpec := TFSpecsModel{
+			NodeCount:     types.Int64Value(0),
+			InstanceSize:  stateValue.InstanceSize, // Scenario not covered: if lifecycle.ignore_changes and we want to use value from PlanValue.InstanceSize instead
+			DiskIops:      types.Int64Unknown(),
+			EbsVolumeType: types.StringUnknown(),
+			DiskSizeGb:    types.Float64Unknown(),
+		}
+		UpdatePlanValue(ctx, diags, differ, spec.Path, asObjectValue(ctx, nodeCountZeroSpec, SpecsObjType.AttrTypes))
+		if diags.HasError() {
+			return
+		}
 		electableSpecPath := spec.Path.ParentPath().AtName("electable_specs")
 		electableSpec := ReadConfigValue[TFSpecsModel](ctx, diags, differ, electableSpecPath)
 		if diags.HasError() {

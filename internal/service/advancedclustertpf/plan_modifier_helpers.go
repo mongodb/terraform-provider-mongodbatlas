@@ -3,6 +3,7 @@ package advancedclustertpf
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -12,6 +13,7 @@ import (
 
 type DiffHelper struct {
 	req             *resource.ModifyPlanRequest
+	resp            *resource.ModifyPlanResponse
 	stateConfigDiff []tftypes.ValueDiff
 }
 
@@ -24,10 +26,20 @@ func ReadConfigValue[T any](ctx context.Context, diags *diag.Diagnostics, d *Dif
 	return TFModelObject[T](ctx, diags, obj)
 }
 
+func UpdatePlanValue[T attr.Value](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, p path.Path, value T) {
+	if localDiags := d.resp.Plan.SetAttribute(ctx, p, value); localDiags.HasError() {
+		diags.Append(localDiags...)
+	}
+}
+
 type DiffTPF[T any] struct {
 	Path     path.Path
 	OldValue *T
 	NewValue *T
+}
+
+func (d *DiffTPF[T]) Removed() bool {
+	return d.OldValue != nil && d.NewValue == nil
 }
 
 func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, name tftypes.AttributeName, schema SimplifiedSchema) []DiffTPF[T] {
