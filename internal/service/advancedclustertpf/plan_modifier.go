@@ -56,9 +56,9 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	// pending revision if logic can be reincorporated safely: keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 	/* pending revision if logic can be reincorporated safely:
-	   if slices.Contains(keepUnknown, "replication_specs") {
-	   	useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
-	   }
+	if slices.Contains(keepUnknown, "replication_specs") {
+		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
+	}
 	*/
 }
 
@@ -70,8 +70,7 @@ func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	}
 	planWithUnknowns := []TFReplicationSpecsModel{}
 	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(ctx, diags, state, plan, attrChanges)
-	// TODO: pending if autoscaling logic is needed or provided that lifecycle ignored_changes is used, that is enough
-	// keepUnknownsUnchangedSpec = append(keepUnknownsUnchangedSpec, DetermineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
+	keepUnknownsUnchangedSpec = append(keepUnknownsUnchangedSpec, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	if diags.HasError() {
 		return
 	}
@@ -175,7 +174,7 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 	return keepUnknowns
 }
 
-func DetermineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
+func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
 	var keepUnknown []string
 	computedUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
 	if computedUsed {
