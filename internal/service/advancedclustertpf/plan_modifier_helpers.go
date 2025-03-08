@@ -33,13 +33,23 @@ func UpdatePlanValue[T attr.Value](ctx context.Context, diags *diag.Diagnostics,
 }
 
 type DiffTPF[T any] struct {
-	Path     path.Path
-	OldValue *T
-	NewValue *T
+	Path          path.Path
+	Plan          *T
+	State         *T
+	Config        *T
+	PlanUnknown   bool
+	ConfigUnknown bool
 }
 
 func (d *DiffTPF[T]) Removed() bool {
-	return d.OldValue != nil && d.NewValue == nil
+	return d.State != nil && d.Config == nil
+}
+
+func (d *DiffTPF[T]) PlanOrStateValue() *T {
+	if d.Plan != nil {
+		return d.Plan
+	}
+	return d.State
 }
 
 func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, name tftypes.AttributeName, schema SimplifiedSchema) []DiffTPF[T] {
@@ -51,29 +61,41 @@ func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *Di
 
 	for _, diff := range d.stateConfigDiff {
 		if diff.Path.LastStep().Equal(name) {
-			var stateObj types.Object
-			var configObj types.Object
 			p, localDiags := AttributePath(ctx, diff.Path, schema)
 			if localDiags.HasError() {
 				return earlyReturn(localDiags)
 			}
+			var stateObj, configObj, planObj types.Object
 			if d1 := d.req.State.GetAttribute(ctx, p, &stateObj); d1.HasError() {
 				return earlyReturn(d1)
 			}
 			if d2 := d.req.Config.GetAttribute(ctx, p, &configObj); d2.HasError() {
 				return earlyReturn(d2)
 			}
-			var configParsed, stateParsed *T
-			if !stateObj.IsNull() {
+			if d3 := d.req.Plan.GetAttribute(ctx, p, &planObj); d3.HasError() {
+				return earlyReturn(d3)
+			}
+			var configParsed, stateParsed, planParsed *T
+			if !stateObj.IsNull() { // stateObj is never unknown
 				stateParsed = TFModelObject[T](ctx, diags, stateObj)
 			}
-			if !configObj.IsNull() {
+			if !configObj.IsNull() && !configObj.IsUnknown() {
 				configParsed = TFModelObject[T](ctx, diags, configObj)
+			}
+			if !planObj.IsNull() && !planObj.IsUnknown() {
+				planParsed = TFModelObject[T](ctx, diags, planObj)
 			}
 			if diags.HasError() {
 				return nil
 			}
-			diffs = append(diffs, DiffTPF[T]{Path: p, OldValue: stateParsed, NewValue: configParsed})
+			diffs = append(diffs, DiffTPF[T]{
+				Path:          p,
+				State:         stateParsed,
+				Config:        configParsed,
+				Plan:          planParsed,
+				PlanUnknown:   planObj.IsUnknown(),
+				ConfigUnknown: configObj.IsUnknown(),
+			})
 		}
 	}
 	return diffs

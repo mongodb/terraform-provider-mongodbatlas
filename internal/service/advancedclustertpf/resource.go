@@ -153,11 +153,11 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 	for _, spec := range analyticsSpecs {
-		tflog.Error(ctx, fmt.Sprintf("AnalyticsSpecs @ %s\n%v!=%v", spec.Path.String(), spec.OldValue, spec.NewValue))
+		tflog.Error(ctx, fmt.Sprintf("AnalyticsSpecs @ %s\n%v!=%v", spec.Path.String(), spec.State, spec.Config))
 		if !spec.Removed() {
 			continue
 		}
-		stateValue := spec.OldValue
+		stateValue := spec.State
 		nodeCount := stateValue.NodeCount
 		if nodeCount.IsNull() || nodeCount.Equal(types.Int64Value(0)) {
 			continue
@@ -186,14 +186,14 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 	for _, autoScaling := range autoScalings {
-		tflog.Error(ctx, fmt.Sprintf("AutoScaling @ %s\n%v!=%v", autoScaling.Path.String(), autoScaling.OldValue, autoScaling.NewValue))
+		tflog.Error(ctx, fmt.Sprintf("AutoScaling @ %s\n%v!=%v", autoScaling.Path.String(), autoScaling.State, autoScaling.Config))
 	}
 	analyticsAutoScaling := StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, "analytics_auto_scaling", rSchema)
 	if diags.HasError() {
 		return
 	}
 	for _, autoScaling := range analyticsAutoScaling {
-		tflog.Error(ctx, fmt.Sprintf("AnalyticsAutoScaling @ %s\n%v!=%v", autoScaling.Path.String(), autoScaling.OldValue, autoScaling.NewValue))
+		tflog.Error(ctx, fmt.Sprintf("AnalyticsAutoScaling @ %s\n%v!=%v", autoScaling.Path.String(), autoScaling.State, autoScaling.Config))
 	}
 	if diags.HasError() {
 		return
