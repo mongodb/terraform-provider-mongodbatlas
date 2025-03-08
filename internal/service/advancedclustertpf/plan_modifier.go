@@ -37,7 +37,8 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 		return
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
+	// keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
+	keepUnknown := []string{} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)

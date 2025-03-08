@@ -447,6 +447,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				// Default found in model_to_ClusterDescriptionProcessArgs20240805.go
 				Computed:            true,
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
+				Default:             int64default.StaticInt64(-1), // in case the user removes the value, we should set it to -1, a special value used by the backend to use its default behavior
 				PlanModifiers: []planmodifier.Int64{
 					PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
 				},
@@ -513,7 +514,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
 			},
 			"default_max_time_ms": schema.Int64Attribute{
-				Computed:            true,
+				// Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Default time limit in milliseconds for individual read operations to complete. This parameter is supported only for MongoDB version 8.0 and above.",
 				PlanModifiers: []planmodifier.Int64{
@@ -521,7 +522,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				},
 			},
 			"custom_openssl_cipher_config_tls12": schema.SetAttribute{
-				Computed:            true,
+				// Computed:            true,
 				Optional:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",

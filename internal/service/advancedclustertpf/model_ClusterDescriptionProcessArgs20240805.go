@@ -58,7 +58,7 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 }
 
 func customOpensslCipherConfigTLS12(ctx context.Context, diags *diag.Diagnostics, processArgs *admin.ClusterDescriptionProcessArgs20240805) types.Set {
-	if processArgs == nil {
+	if processArgs == nil || len(processArgs.GetCustomOpensslCipherConfigTls12()) == 0 {
 		return types.SetNull(types.StringType)
 	}
 	customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, processArgs.CustomOpensslCipherConfigTls12)

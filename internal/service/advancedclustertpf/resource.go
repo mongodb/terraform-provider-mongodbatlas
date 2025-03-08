@@ -9,10 +9,12 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -94,6 +96,14 @@ type rs struct {
 	config.RSCommon
 }
 
+func asObjectValue[T any](ctx context.Context, t T, attrs map[string]attr.Type) types.Object {
+	objType, diagsLocal := types.ObjectValueFrom(ctx, attrs, t)
+	if diagsLocal.HasError() {
+		panic("failed to convert object to model")
+	}
+	return objType
+}
+
 // ModifyPlan is called before plan is shown to the user and right before the plan is applied.
 // Why do we need this? Why can't we use planmodifier.UseStateForUnknown in different fields?
 // 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
@@ -117,6 +127,48 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 	diags.Append(resp.Plan.Set(ctx, plan)...)
+	diffs, err := req.State.Raw.Diff(resp.Plan.Raw)
+	if err != nil {
+		diags.AddError("Error diffing state and config", err.Error())
+		return
+	}
+	tflog.Info(ctx, fmt.Sprintf("Diff count: %d", len(diffs)))
+	// privateEndpointPath := path.Root("connection_strings").AtName("private_endpoint")
+	// resp.Plan.SetAttribute(ctx, privateEndpointPath, types.ListNull(PrivateEndpointObjType))
+	// resp.Plan.Schema.TypeAtTerraformPath()
+	// AttributeName("connection_strings").AttributeName("private_endpoint")
+	rSchema := resourceSchema(ctx)
+	for _, diff := range diffs {
+		tflog.Info(ctx, fmt.Sprintf("Diff @ %s\n%v!=%v", diff.Path.String(), diff.Value1, diff.Value2))
+		setPath, localDiags := AttributePath(ctx, diff.Path, rSchema)
+		if localDiags.HasError() {
+			diags.Append(localDiags...)
+			return
+		}
+		// Convert from tftypes.Value to types.List using proper type conversion
+		// tftypes.List
+		var stateValueParsed types.List
+		if l := req.State.GetAttribute(ctx, setPath, &stateValueParsed); l.HasError() {
+			diags.Append(l...)
+			return
+		}
+
+		// listValue, localDiags := types.ListValueFrom(ctx, PrivateEndpointObjType, *diff.Value1)
+		// lastStep := diff.Path.LastStep()
+		// resp.Plan.Raw.ApplyTerraform5AttributePathStep(lastStep)
+		// if localDiags.HasError() {
+		// 	tflog.Info(ctx, fmt.Sprintf("Error converting to TFPrivateEndpointModel: %v", localDiags))
+		// 	diags.Append(localDiags...)
+		// 	return
+		// }
+		// var dest []EndpointsObjType
+		// err := diff.Value1.As(dest)
+		// if err != nil {
+		// 	diags.AddError("Error converting to TFPrivateEndpointModel", err.Error())
+		// 	return
+		// }
+		diags.Append(resp.Plan.SetAttribute(ctx, setPath, stateValueParsed)...)
+	}
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -222,37 +274,37 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var state, configModel TFModel
+	var state, plan TFModel
 	diags := &resp.Diagnostics
-	diags.Append(req.Config.Get(ctx, &configModel)...)
+	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
 	if diags.HasError() {
 		return
 	}
-	waitParams := resolveClusterWaitParams(ctx, &configModel, diags, operationUpdate)
+	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
 	if diags.HasError() {
 		return
 	}
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	clusterResp := r.applyPinnedFCVChanges(ctx, diags, &state, &configModel, waitParams)
+	clusterResp := r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams)
 	if diags.HasError() {
 		return
 	}
 
 	{
-		diff := findClusterDiff(ctx, &state, &configModel, diags)
+		diff := findClusterDiff(ctx, &state, &plan, diags)
 		if diags.HasError() {
 			return
 		}
 		switch {
 		case diff.isUpgradeTenantToFlex:
-			if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &configModel); flexOut != nil {
+			if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
 			return
 		case diff.isUpdateOfFlex:
-			if flexOut := handleFlexUpdate(ctx, diags, r.Client, &configModel); flexOut != nil {
+			if flexOut := handleFlexUpdate(ctx, diags, r.Client, &plan); flexOut != nil {
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
 			return
@@ -261,14 +313,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		case diff.isUpgradeTenant():
 			clusterResp = UpgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
 		case diff.isClusterPatchOnly():
-			clusterResp = r.applyClusterChanges(ctx, diags, &state, &configModel, diff.clusterPatchOnlyReq, waitParams)
+			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, diff.clusterPatchOnlyReq, waitParams)
 		}
 		if diags.HasError() {
 			return
 		}
 	}
-	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &configModel.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &configModel.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return
 	}
@@ -279,9 +331,9 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	var modelOut *TFModel
 	if clusterResp == nil { // no Atlas updates needed but override is still needed (e.g. tags going from nil to [] or vice versa)
 		modelOut = &state
-		overrideAttributesWithPrevStateValue(&configModel, modelOut)
+		overrideAttributesWithPrevStateValue(&plan, modelOut)
 	} else {
-		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &configModel)
+		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
 		if diags.HasError() {
 			return
 		}
@@ -561,8 +613,8 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	return clusterDiff{clusterPatchOnlyReq: patchReq}
 }
 
-func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, configModel *TFModel) *TFModel {
-	configReq := normalizeFromTFModel(ctx, configModel, diags, false)
+func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
+	configReq := normalizeFromTFModel(ctx, plan, diags, false)
 	if diags.HasError() {
 		return nil
 	}
@@ -570,22 +622,22 @@ func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *con
 	if diags.HasError() {
 		return nil
 	}
-	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), configModel)
+	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
 }
 
-func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, configModel *TFModel) *TFModel {
-	configReq := normalizeFromTFModel(ctx, configModel, diags, false)
+func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel) *TFModel {
+	configReq := normalizeFromTFModel(ctx, plan, diags, false)
 	if diags.HasError() {
 		return nil
 	}
-	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, configModel.ProjectID.ValueString(), configModel.Name.ValueString(),
+	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(),
 		GetFlexClusterUpdateRequest(configReq.Tags, configReq.TerminationProtectionEnabled),
 		client.AtlasV2.FlexClustersApi)
 	if err != nil {
 		diags.AddError(flexcluster.ErrorUpdateFlex, err.Error())
 		return nil
 	}
-	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), configModel)
+	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
 }
 
 func isShardingConfigUpgrade(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) bool {
