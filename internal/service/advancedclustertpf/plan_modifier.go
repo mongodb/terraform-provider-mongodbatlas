@@ -95,63 +95,55 @@ func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
-	newPlanRepSpecsTF := []TFReplicationSpecsModel{}
 	if diags.HasError() {
 		return
 	}
-	for i := range planRepSpecsTF {
-		if i < len(stateRepSpecsTF) {
-			stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
-			planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
-			newPlanRegionConfigsTF := []TFRegionConfigsModel{}
-			if diags.HasError() {
-				return
-			}
-			for j := range planRegionConfigsTF {
-				if j < len(stateRegionConfigsTF) {
-					stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
-					planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
-					planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
-					if stateReadOnlySpecs != nil && planElectableSpecs != nil { // read_only_specs is present in state and electable_specs in the plan
-						newPlanReadOnlySpecs := planReadOnlySpecs
-						if newPlanReadOnlySpecs == nil {
-							newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan
-						}
-						// unknown node_count is got from state, all other unknowns are got from electable_specs plan
-						copyAttrIfDestNotKnown(&planElectableSpecs.DiskSizeGb, &newPlanReadOnlySpecs.DiskSizeGb)
-						copyAttrIfDestNotKnown(&planElectableSpecs.EbsVolumeType, &newPlanReadOnlySpecs.EbsVolumeType)
-						copyAttrIfDestNotKnown(&planElectableSpecs.InstanceSize, &newPlanReadOnlySpecs.InstanceSize)
-						copyAttrIfDestNotKnown(&planElectableSpecs.DiskIops, &newPlanReadOnlySpecs.DiskIops)
-						copyAttrIfDestNotKnown(&stateReadOnlySpecs.NodeCount, &newPlanReadOnlySpecs.NodeCount)
-						objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanReadOnlySpecs)
-						diags.Append(diagsLocal...)
-						if diags.HasError() {
-							return
-						}
-						planRegionConfigsTF[j].ReadOnlySpecs = objType
-					}
-					if planRegionConfigsTF[j].AnalyticsSpecs.IsUnknown() && !stateRegionConfigsTF[j].AnalyticsSpecs.IsNull() {
-						planRegionConfigsTF[j].AnalyticsSpecs = stateRegionConfigsTF[j].AnalyticsSpecs
-					}
-					if planRegionConfigsTF[j].AutoScaling.IsUnknown() && !stateRegionConfigsTF[j].AutoScaling.IsNull() {
-						planRegionConfigsTF[j].AutoScaling = stateRegionConfigsTF[j].AutoScaling
-					}
-					if planRegionConfigsTF[j].AnalyticsAutoScaling.IsUnknown() && !stateRegionConfigsTF[j].AnalyticsAutoScaling.IsNull() {
-						planRegionConfigsTF[j].AnalyticsAutoScaling = stateRegionConfigsTF[j].AnalyticsAutoScaling
-					}
-				}
-				newPlanRegionConfigsTF = append(newPlanRegionConfigsTF, planRegionConfigsTF[j])
-			}
-			listRegionConfigs, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, newPlanRegionConfigsTF)
-			diags.Append(diagsLocal...)
-			if diags.HasError() {
-				return
-			}
-			planRepSpecsTF[i].RegionConfigs = listRegionConfigs
+	for i := range minLen(planRepSpecsTF, stateRepSpecsTF) {
+		stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
+		planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
+		if diags.HasError() {
+			return
 		}
-		newPlanRepSpecsTF = append(newPlanRepSpecsTF, planRepSpecsTF[i])
+		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
+			stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
+			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
+			planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
+			if stateReadOnlySpecs != nil && planElectableSpecs != nil { // read_only_specs is present in state and electable_specs in the plan
+				newPlanReadOnlySpecs := planReadOnlySpecs
+				if newPlanReadOnlySpecs == nil {
+					newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan
+				}
+				// unknown node_count is got from state, all other unknowns are got from electable_specs plan
+				copyAttrIfDestNotKnown(&planElectableSpecs.DiskSizeGb, &newPlanReadOnlySpecs.DiskSizeGb)
+				copyAttrIfDestNotKnown(&planElectableSpecs.EbsVolumeType, &newPlanReadOnlySpecs.EbsVolumeType)
+				copyAttrIfDestNotKnown(&planElectableSpecs.InstanceSize, &newPlanReadOnlySpecs.InstanceSize)
+				copyAttrIfDestNotKnown(&planElectableSpecs.DiskIops, &newPlanReadOnlySpecs.DiskIops)
+				copyAttrIfDestNotKnown(&stateReadOnlySpecs.NodeCount, &newPlanReadOnlySpecs.NodeCount)
+				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanReadOnlySpecs)
+				diags.Append(diagsLocal...)
+				if diags.HasError() {
+					return
+				}
+				planRegionConfigsTF[j].ReadOnlySpecs = objType
+			}
+			if planRegionConfigsTF[j].AnalyticsSpecs.IsUnknown() && !stateRegionConfigsTF[j].AnalyticsSpecs.IsNull() {
+				planRegionConfigsTF[j].AnalyticsSpecs = stateRegionConfigsTF[j].AnalyticsSpecs
+			}
+			if planRegionConfigsTF[j].AutoScaling.IsUnknown() && !stateRegionConfigsTF[j].AutoScaling.IsNull() {
+				planRegionConfigsTF[j].AutoScaling = stateRegionConfigsTF[j].AutoScaling
+			}
+			if planRegionConfigsTF[j].AnalyticsAutoScaling.IsUnknown() && !stateRegionConfigsTF[j].AnalyticsAutoScaling.IsNull() {
+				planRegionConfigsTF[j].AnalyticsAutoScaling = stateRegionConfigsTF[j].AnalyticsAutoScaling
+			}
+		}
+		listRegionConfigs, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, planRegionConfigsTF)
+		diags.Append(diagsLocal...)
+		if diags.HasError() {
+			return
+		}
+		planRepSpecsTF[i].RegionConfigs = listRegionConfigs
 	}
-	listRepSpecs, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, newPlanRepSpecsTF)
+	listRepSpecs, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, planRepSpecsTF)
 	diags.Append(diagsLocal...)
 	if diags.HasError() {
 		return
@@ -250,4 +242,12 @@ func copyAttrIfDestNotKnown[T attr.Value](src, dest *T) {
 
 func isKnown(attribute attr.Value) bool {
 	return !attribute.IsNull() && !attribute.IsUnknown()
+}
+
+func minLen[T any](a, b []T) int {
+	la, lb := len(a), len(b)
+	if la < lb {
+		return la
+	}
+	return lb
 }
