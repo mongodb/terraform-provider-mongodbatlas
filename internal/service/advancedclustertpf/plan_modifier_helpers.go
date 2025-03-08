@@ -15,13 +15,22 @@ type DiffHelper struct {
 	stateConfigDiff []tftypes.ValueDiff
 }
 
+func ReadConfigValue[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, p path.Path) *T {
+	var obj types.Object
+	if localDiags := d.req.Config.GetAttribute(ctx, p, &obj); localDiags.HasError() {
+		diags.Append(localDiags...)
+		return nil
+	}
+	return TFModelObject[T](ctx, diags, obj)
+}
+
 type DiffTPF[T any] struct {
 	Path     path.Path
 	OldValue *T
 	NewValue *T
 }
 
-func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d DiffHelper, name tftypes.AttributeName, schema SimplifiedSchema) []DiffTPF[T] {
+func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, name tftypes.AttributeName, schema SimplifiedSchema) []DiffTPF[T] {
 	earlyReturn := func(localDiags diag.Diagnostics) []DiffTPF[T] {
 		diags.Append(localDiags...)
 		return nil
@@ -36,12 +45,10 @@ func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d Dif
 			if localDiags.HasError() {
 				return earlyReturn(localDiags)
 			}
-			d1 := d.req.State.GetAttribute(ctx, p, &stateObj)
-			d2 := d.req.Config.GetAttribute(ctx, p, &configObj)
-			if d1.HasError() {
+			if d1 := d.req.State.GetAttribute(ctx, p, &stateObj); d1.HasError() {
 				return earlyReturn(d1)
 			}
-			if d2.HasError() {
+			if d2 := d.req.Config.GetAttribute(ctx, p, &configObj); d2.HasError() {
 				return earlyReturn(d2)
 			}
 			var configParsed, stateParsed *T

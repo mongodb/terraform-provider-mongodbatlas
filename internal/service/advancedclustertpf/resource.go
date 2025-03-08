@@ -146,19 +146,37 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	// resp.Plan.Schema.TypeAtTerraformPath()
 	// AttributeName("connection_strings").AttributeName("private_endpoint")
 	rSchema := resourceSchema(ctx)
-	differ := DiffHelper{req: &req, stateConfigDiff: diffs}
+	differ := &DiffHelper{req: &req, stateConfigDiff: diffs}
 	// analyticsSpecs := StateConfig[TFSpecsModel](ctx, diags, differ, "read_only_specs", rSchema)
 	analyticsSpecs := StateConfigDiffs[TFSpecsModel](ctx, diags, differ, "analytics_specs", rSchema)
+	if diags.HasError() {
+		return
+	}
 	for _, spec := range analyticsSpecs {
-		tflog.Error(ctx, fmt.Sprintf("ReadOnlySpecs @ %s\n%v!=%v", spec.Path.String(), spec.OldValue, spec.NewValue))
+		tflog.Error(ctx, fmt.Sprintf("AnalyticsSpecs @ %s\n%v!=%v", spec.Path.String(), spec.OldValue, spec.NewValue))
+		electableSpecPath := spec.Path.ParentPath().AtName("electable_specs")
+		electableSpec := ReadConfigValue[TFSpecsModel](ctx, diags, differ, electableSpecPath)
+		if diags.HasError() {
+			return
+		}
+		tflog.Error(ctx, fmt.Sprintf("ElectableSpecs @ %s\n%v", electableSpecPath.String(), electableSpec))
 	}
 	autoScalings := StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, "auto_scaling", rSchema)
+	if diags.HasError() {
+		return
+	}
 	for _, autoScaling := range autoScalings {
 		tflog.Error(ctx, fmt.Sprintf("AutoScaling @ %s\n%v!=%v", autoScaling.Path.String(), autoScaling.OldValue, autoScaling.NewValue))
 	}
 	analyticsAutoScaling := StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, "analytics_auto_scaling", rSchema)
+	if diags.HasError() {
+		return
+	}
 	for _, autoScaling := range analyticsAutoScaling {
 		tflog.Error(ctx, fmt.Sprintf("AnalyticsAutoScaling @ %s\n%v!=%v", autoScaling.Path.String(), autoScaling.OldValue, autoScaling.NewValue))
+	}
+	if diags.HasError() {
+		return
 	}
 
 	// for _, diff := range diffs {
