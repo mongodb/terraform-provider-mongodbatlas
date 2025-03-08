@@ -134,19 +134,29 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	// 	return
 	// }
 	// diags.Append(resp.Plan.Set(ctx, plan)...)
-	// diffs, err := req.State.Raw.Diff(resp.Plan.Raw)
-	diffs, err := req.State.Raw.Diff(req.Config.Raw)
+	diffStatePlan, err := req.State.Raw.Diff(resp.Plan.Raw)
+	if err != nil {
+		diags.AddError("Error diffing state and plan", err.Error())
+		return
+	}
+	diffStateConfig, err := req.State.Raw.Diff(req.Config.Raw)
 	if err != nil {
 		diags.AddError("Error diffing state and config", err.Error())
 		return
 	}
-	tflog.Info(ctx, fmt.Sprintf("Diff count: %d", len(diffs)))
+	tflog.Info(ctx, fmt.Sprintf("Diff count: %d", len(diffStateConfig)))
 	// privateEndpointPath := path.Root("connection_strings").AtName("private_endpoint")
 	// resp.Plan.SetAttribute(ctx, privateEndpointPath, types.ListNull(PrivateEndpointObjType))
 	// resp.Plan.Schema.TypeAtTerraformPath()
 	// AttributeName("connection_strings").AttributeName("private_endpoint")
 	rSchema := resourceSchema(ctx)
-	differ := &DiffHelper{req: &req, resp: resp, stateConfigDiff: diffs}
+	differ := &DiffHelper{req: &req, resp: resp, stateConfigDiff: diffStateConfig, statePlanDiff: diffStatePlan}
+	UseStateForUnknown(ctx, diags, differ, rSchema)
+	// fmt.Println(differ.NiceDiff(ctx, diags, rSchema))
+	tflog.Info(ctx, differ.NiceDiff(ctx, diags, rSchema))
+	if diags.HasError() {
+		return
+	}
 	// analyticsSpecs := StateConfig[TFSpecsModel](ctx, diags, differ, "read_only_specs", rSchema)
 	analyticsSpecs := StateConfigDiffs[TFSpecsModel](ctx, diags, differ, "analytics_specs", rSchema)
 	if diags.HasError() {

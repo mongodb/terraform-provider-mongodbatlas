@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -69,6 +70,25 @@ type AttributeSimplified interface {
 type SimplifiedSchema interface {
 	TypeAtTerraformPath(context.Context, *tftypes.AttributePath) (attr.Type, error)
 	// AttributeAtTerraformPath(context.Context, *tftypes.AttributePath) (AttributeSimplified, error)
+}
+
+func AttributePathValue(ctx context.Context, diags *diag.Diagnostics, attributePath *tftypes.AttributePath, src tfsdk.State, schema SimplifiedSchema) (attr.Value, path.Path) {
+	convertedPath, localDiags := AttributePath(ctx, attributePath, schema)
+	attrType, err := schema.TypeAtTerraformPath(ctx, attributePath)
+	if err != nil {
+		diags.AddError("Unable to get type for attribute path", fmt.Sprintf("%s: %s", attributePath.String(), err))
+		return nil, convertedPath
+	}
+	if localDiags.HasError() {
+		diags.Append(localDiags...)
+		return nil, convertedPath
+	}
+	attrValue := attrType.ValueType(ctx)
+	if localDiags := src.GetAttribute(ctx, convertedPath, &attrValue); localDiags.HasError() {
+		diags.Append(localDiags...)
+		return nil, convertedPath
+	}
+	return attrValue, convertedPath
 }
 
 func AttributePath(ctx context.Context, tfType *tftypes.AttributePath, schema SimplifiedSchema) (path.Path, diag.Diagnostics) {
