@@ -18,7 +18,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -109,6 +108,13 @@ func asObjectValue[T any](ctx context.Context, t T, attrs map[string]attr.Type) 
 // 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
 // 2. Adding the different UseStateForUnknown is very verbose.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	/*
+		1. If not update; return
+		2. didRemoveBlocks(), will update both req.Plan & resp.Plan in case there are no Unknowns and we return early? No, might as well only update req.Plan and do the extra resp.Plan.Update
+			1. If didRemoveBlocks and !unknowns: mark alwaysUnknownRoot attributes and return
+			2. if unknowns:
+				1. Copy unknowns from state to plan
+	*/
 	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Return early unless it is an Update
 		return
 	}
@@ -116,18 +122,20 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
-	if diags.HasError() {
-		return
-	}
-	if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read
-		return
-	}
-	useStateForUnknowns(ctx, diags, &state, &plan) // Do only for Update
-	if diags.HasError() {
-		return
-	}
-	diags.Append(resp.Plan.Set(ctx, plan)...)
-	diffs, err := req.State.Raw.Diff(resp.Plan.Raw)
+
+	// if diags.HasError() {
+	// 	return
+	// }
+	// if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read
+	// 	return
+	// }
+	// useStateForUnknowns(ctx, diags, &state, &plan) // Do only for Update
+	// if diags.HasError() {
+	// 	return
+	// }
+	// diags.Append(resp.Plan.Set(ctx, plan)...)
+	// diffs, err := req.State.Raw.Diff(resp.Plan.Raw)
+	diffs, err := req.State.Raw.Diff(req.Config.Raw)
 	if err != nil {
 		diags.AddError("Error diffing state and config", err.Error())
 		return
@@ -138,37 +146,35 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	// resp.Plan.Schema.TypeAtTerraformPath()
 	// AttributeName("connection_strings").AttributeName("private_endpoint")
 	rSchema := resourceSchema(ctx)
-	for _, diff := range diffs {
-		tflog.Info(ctx, fmt.Sprintf("Diff @ %s\n%v!=%v", diff.Path.String(), diff.Value1, diff.Value2))
-		setPath, localDiags := AttributePath(ctx, diff.Path, rSchema)
-		if localDiags.HasError() {
-			diags.Append(localDiags...)
-			return
-		}
-		// Convert from tftypes.Value to types.List using proper type conversion
-		// tftypes.List
-		var stateValueParsed types.List
-		if l := req.State.GetAttribute(ctx, setPath, &stateValueParsed); l.HasError() {
-			diags.Append(l...)
-			return
-		}
-
-		// listValue, localDiags := types.ListValueFrom(ctx, PrivateEndpointObjType, *diff.Value1)
-		// lastStep := diff.Path.LastStep()
-		// resp.Plan.Raw.ApplyTerraform5AttributePathStep(lastStep)
-		// if localDiags.HasError() {
-		// 	tflog.Info(ctx, fmt.Sprintf("Error converting to TFPrivateEndpointModel: %v", localDiags))
-		// 	diags.Append(localDiags...)
-		// 	return
-		// }
-		// var dest []EndpointsObjType
-		// err := diff.Value1.As(dest)
-		// if err != nil {
-		// 	diags.AddError("Error converting to TFPrivateEndpointModel", err.Error())
-		// 	return
-		// }
-		diags.Append(resp.Plan.SetAttribute(ctx, setPath, stateValueParsed)...)
+	differ := DiffHelper{req: &req, stateConfigDiff: diffs}
+	// analyticsSpecs := StateConfig[TFSpecsModel](ctx, diags, differ, "read_only_specs", rSchema)
+	analyticsSpecs := StateConfigDiffs[TFSpecsModel](ctx, diags, differ, "analytics_specs", rSchema)
+	for _, spec := range analyticsSpecs {
+		tflog.Error(ctx, fmt.Sprintf("ReadOnlySpecs @ %s\n%v!=%v", spec.Path.String(), spec.OldValue, spec.NewValue))
 	}
+	autoScalings := StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, "auto_scaling", rSchema)
+	for _, autoScaling := range autoScalings {
+		tflog.Error(ctx, fmt.Sprintf("AutoScaling @ %s\n%v!=%v", autoScaling.Path.String(), autoScaling.OldValue, autoScaling.NewValue))
+	}
+	analyticsAutoScaling := StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, "analytics_auto_scaling", rSchema)
+	for _, autoScaling := range analyticsAutoScaling {
+		tflog.Error(ctx, fmt.Sprintf("AnalyticsAutoScaling @ %s\n%v!=%v", autoScaling.Path.String(), autoScaling.OldValue, autoScaling.NewValue))
+	}
+
+	// for _, diff := range diffs {
+	// 	tflog.Info(ctx, fmt.Sprintf("Diff @ %s\n%v!=%v", diff.Path.String(), diff.Value1, diff.Value2))
+	// 	setPath, localDiags := AttributePath(ctx, diff.Path, rSchema)
+	// 	if localDiags.HasError() {
+	// 		diags.Append(localDiags...)
+	// 		return
+	// 	}
+	// 	var stateValueParsed types.List
+	// 	if l := req.State.GetAttribute(ctx, setPath, &stateValueParsed); l.HasError() {
+	// 		diags.Append(l...)
+	// 		return
+	// 	}
+	// 	diags.Append(resp.Plan.SetAttribute(ctx, setPath, stateValueParsed)...)
+	// }
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
