@@ -126,7 +126,10 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 				}
 				planRegionConfigsTF[j].ReadOnlySpecs = objType
 			}
-			if planRegionConfigsTF[j].AnalyticsSpecs.IsUnknown() && !stateRegionConfigsTF[j].AnalyticsSpecs.IsNull() {
+			stateAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
+			planAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].AnalyticsSpecs)
+			// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH errors
+			if planAnalyticsSpecs == nil && stateAnalyticsSpecs != nil && stateAnalyticsSpecs.NodeCount.ValueInt64() > 0 {
 				planRegionConfigsTF[j].AnalyticsSpecs = stateRegionConfigsTF[j].AnalyticsSpecs
 			}
 			if planRegionConfigsTF[j].AutoScaling.IsUnknown() && !stateRegionConfigsTF[j].AutoScaling.IsNull() {
