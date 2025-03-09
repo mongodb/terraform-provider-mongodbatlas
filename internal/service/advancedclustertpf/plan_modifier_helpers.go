@@ -35,19 +35,18 @@ func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *r
 		stateConfigDiff: diffStateConfig,
 		statePlanDiff:   diffStatePlan,
 		schema:          schema,
+		AttributeChanges: &schemafunc.AttributeChanges{},
 	}
 }
 
 type DiffHelper struct {
+	AttributeChanges *schemafunc.AttributeChanges
+
 	req             *resource.ModifyPlanRequest
 	resp            *resource.ModifyPlanResponse
 	stateConfigDiff []tftypes.ValueDiff
 	statePlanDiff   []tftypes.ValueDiff
 	schema          TPFSchema
-}
-
-func (d *DiffHelper) AttributeChanges() schemafunc.AttributeChanges {
-	return schemafunc.AttributeChanges{} // TODO
 }
 
 func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, schema TPFSchema) string {
@@ -58,11 +57,7 @@ func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, sche
 			diags.Append(localDiags...)
 			return ""
 		}
-		if p.String() == "replication_specs[0].region_configs[1]" {
-			continue
-		}
 		diffPaths[i] = p.String()
-
 	}
 	sort.Strings(diffPaths)
 	return "Differ\n" + strings.Join(diffPaths, "\n")
@@ -119,8 +114,9 @@ func hasPrefix(p path.Path, prefix path.Path) bool {
 	return strings.HasPrefix(pString, prefixString)
 }
 
-func UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, schema TPFSchema, keepUnknown []string, prefix path.Path) {
+func (d *DiffHelper) UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, keepUnknown []string, prefix path.Path) {
 	// The diff is sorted by the path length, for example read_only_spec is processed before read_only_spec.disk_size_gb
+	schema := d.schema
 	for _, diff := range d.statePlanDiff {
 		stateValue, tpfPath := AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
 		if !hasPrefix(tpfPath, prefix) || stateValue == nil {

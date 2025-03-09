@@ -128,6 +128,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 
+
 	// if diags.HasError() {
 	// 	return
 	// }
@@ -150,9 +151,10 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
+	// TODO: UseStateForUnknownsReplicationSpecs2(ctx, diags, &differ, &state, &plan)
 	keepUnknown := []string{"connection_strings", "state_name", "replication_specs"}
-	UseStateForUnknown(ctx, diags, differ, rSchema, keepUnknown, path.Empty())
-	UseStateForUnknown(ctx, diags, differ, rSchema, []string{"disk_size_gb"}, path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(0).AtName("read_only_specs"))
+	differ.UseStateForUnknown(ctx, diags, keepUnknown, path.Empty())
+	differ.UseStateForUnknown(ctx, diags, []string{"disk_size_gb"}, path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(0).AtName("read_only_specs"))
 	// fmt.Println(differ.NiceDiff(ctx, diags, rSchema))
 	tflog.Info(ctx, differ.NiceDiff(ctx, diags, rSchema))
 	if diags.HasError() {
