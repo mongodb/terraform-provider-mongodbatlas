@@ -7,24 +7,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-type SimplifiedSchema interface {
+type TPFSchema interface {
 	TypeAtTerraformPath(context.Context, *tftypes.AttributePath) (attr.Type, error)
 }
 
-func AttributePathValue(ctx context.Context, diags *diag.Diagnostics, attributePath *tftypes.AttributePath, src tfsdk.State, schema SimplifiedSchema) (attr.Value, path.Path) {
+type TPFSrc interface {
+	GetAttribute(context.Context, path.Path, any) diag.Diagnostics
+}
+
+// AttributePathValue retrieves the value for src (state/plan/config) @ attributePath with converted path.Path, schema is needed to get the correct types.XXX (String/Object/etc.)
+func AttributePathValue(ctx context.Context, diags *diag.Diagnostics, attributePath *tftypes.AttributePath, src TPFSrc, schema TPFSchema) (attr.Value, path.Path) {
 	convertedPath, localDiags := AttributePath(ctx, attributePath, schema)
+	if localDiags.HasError() {
+		diags.Append(localDiags...)
+		return nil, convertedPath
+	}
 	attrType, err := schema.TypeAtTerraformPath(ctx, attributePath)
 	if err != nil {
 		diags.AddError("Unable to get type for attribute path", fmt.Sprintf("%s: %s", attributePath.String(), err))
-		return nil, convertedPath
-	}
-	if localDiags.HasError() {
-		diags.Append(localDiags...)
 		return nil, convertedPath
 	}
 	attrValue := attrType.ValueType(ctx)
@@ -35,9 +39,9 @@ func AttributePathValue(ctx context.Context, diags *diag.Diagnostics, attributeP
 	return attrValue, convertedPath
 }
 
-func AttributePath(ctx context.Context, tfType *tftypes.AttributePath, schema SimplifiedSchema) (path.Path, diag.Diagnostics) {
+// AttributePath similar to the internal function in TPF, but simpler interface as argument and less logging
+func AttributePath(ctx context.Context, tfType *tftypes.AttributePath, schema TPFSchema) (path.Path, diag.Diagnostics) {
 	fwPath := path.Empty()
-
 	for tfTypeStepIndex, tfTypeStep := range tfType.Steps() {
 		currentTfTypeSteps := tfType.Steps()[:tfTypeStepIndex+1]
 		currentTfTypePath := tftypes.NewAttributePathWithSteps(currentTfTypeSteps)

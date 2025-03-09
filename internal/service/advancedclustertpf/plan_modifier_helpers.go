@@ -17,7 +17,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
-func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema SimplifiedSchema) *DiffHelper {
+func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema TPFSchema) *DiffHelper {
 	diags := &resp.Diagnostics
 	diffStatePlan, err := req.State.Raw.Diff(resp.Plan.Raw)
 	if err != nil {
@@ -43,14 +43,14 @@ type DiffHelper struct {
 	resp            *resource.ModifyPlanResponse
 	stateConfigDiff []tftypes.ValueDiff
 	statePlanDiff   []tftypes.ValueDiff
-	schema          SimplifiedSchema
+	schema          TPFSchema
 }
 
 func (d *DiffHelper) AttributeChanges() schemafunc.AttributeChanges {
 	return schemafunc.AttributeChanges{} // TODO
 }
 
-func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, schema SimplifiedSchema) string {
+func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, schema TPFSchema) string {
 	diffPaths := make([]string, len(d.stateConfigDiff))
 	for i, diff := range d.statePlanDiff {
 		p, localDiags := AttributePath(ctx, diff.Path, schema)
@@ -119,26 +119,43 @@ func hasPrefix(p path.Path, prefix path.Path) bool {
 	return strings.HasPrefix(pString, prefixString)
 }
 
-func UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, schema SimplifiedSchema, keepUnknown []string, prefix path.Path) {
+func UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, schema TPFSchema, keepUnknown []string, prefix path.Path) {
+	// The diff is sorted by the path length, for example read_only_spec is processed before read_only_spec.disk_size_gb
 	for _, diff := range d.statePlanDiff {
-		if diff.Value2 != nil && !diff.Value2.IsKnown() {
-			stateValue, tpfPath := AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
-			if !hasPrefix(tpfPath, prefix) || stateValue == nil {
-				continue
-			}
-			if keepUnknownCall(diff.Path, keepUnknown) {
-				tflog.Info(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", tpfPath.String()))
+		stateValue, tpfPath := AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
+		if !hasPrefix(tpfPath, prefix) || stateValue == nil {
+			continue
+		}
+		planValue, _ := AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)
+		if planValue == nil {
+			continue
+		}
+		// For nested attributes with unknown values, all their children attributes will be `null` instead of unknown.
+		// Therefore, to ensure keepUnknown, force unknown when the responsePlanValue is not unknown.
+		if planValue.IsNull() && keepUnknownCall(diff.Path, keepUnknown) {
+			responsePlanValue, _ := AttributePathValue(ctx, diags, diff.Path, d.resp.Plan, schema)
+			if responsePlanValue != nil && !responsePlanValue.IsUnknown() {
+				tflog.Info(ctx, fmt.Sprintf("Force unknown value in plan @ %s", tpfPath.String()))
 				unknownValue := asUnknownValue(ctx, stateValue)
 				UpdatePlanValue(ctx, diags, d, tpfPath, unknownValue)
-			} else {
-				tflog.Info(ctx, fmt.Sprintf("Replacing unknown value in plan @ %s", tpfPath.String()))
-				UpdatePlanValue(ctx, diags, d, tpfPath, stateValue)
 			}
+			continue
+		}
+		if !planValue.IsUnknown() {
+			continue
+		}
+		if keepUnknownCall(diff.Path, keepUnknown) {
+			tflog.Info(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", tpfPath.String()))
+			unknownValue := asUnknownValue(ctx, stateValue)
+			UpdatePlanValue(ctx, diags, d, tpfPath, unknownValue)
+		} else {
+			tflog.Info(ctx, fmt.Sprintf("Replacing unknown value in plan @ %s", tpfPath.String()))
+			UpdatePlanValue(ctx, diags, d, tpfPath, stateValue)
 		}
 	}
 }
 
-func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, name tftypes.AttributeName, schema SimplifiedSchema) []DiffTPF[T] {
+func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, name tftypes.AttributeName, schema TPFSchema) []DiffTPF[T] {
 	earlyReturn := func(localDiags diag.Diagnostics) []DiffTPF[T] {
 		diags.Append(localDiags...)
 		return nil

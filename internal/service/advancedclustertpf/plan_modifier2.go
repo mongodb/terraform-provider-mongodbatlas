@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-func UseStateForUnknownBasedOnChanges(ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, schema SimplifiedSchema, state, plan *TFModel) {
+func UseStateForUnknownBasedOnChanges(ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, schema TPFSchema, state, plan *TFModel) {
 	attributeChanges := d.AttributeChanges()
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
