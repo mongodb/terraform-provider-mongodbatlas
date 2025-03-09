@@ -127,27 +127,13 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
 	}
-
-
-	// if diags.HasError() {
-	// 	return
-	// }
-	// if !schemafunc.HasUnknowns(&plan) { // Don't do anything if there are no unknowns, this happens in Read
-	// 	return
-	// }
-	// useStateForUnknowns(ctx, diags, &state, &plan) // Do only for Update
-	// if diags.HasError() {
-	// 	return
-	// }
-	// diags.Append(resp.Plan.Set(ctx, plan)...)
-
-	// tflog.Info(ctx, fmt.Sprintf("Diff count: %d", len(diffStateConfig)))
-	// privateEndpointPath := path.Root("connection_strings").AtName("private_endpoint")
-	// resp.Plan.SetAttribute(ctx, privateEndpointPath, types.ListNull(PrivateEndpointObjType))
-	// resp.Plan.Schema.TypeAtTerraformPath()
-	// AttributeName("connection_strings").AttributeName("private_endpoint")
 	rSchema := resourceSchema(ctx)
-	differ := newDiffHelper(ctx, &req, resp, rSchema)
+	differ := newDiffHelper(&req, resp, rSchema)
+	if manualPlanChanges(ctx, diags, differ) && differ.PlanFullyKnown {
+		UpdatePlanValue(ctx, diags, differ, path.Root("state_name"), types.StringUnknown())
+		UpdatePlanValue(ctx, diags, differ, path.Root("connection_strings"), types.ObjectUnknown(ConnectionStringsObjType.AttrTypes))
+		return
+	}
 	if diags.HasError() {
 		return
 	}
@@ -156,61 +142,12 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	differ.UseStateForUnknown(ctx, diags, keepUnknown, path.Empty())
 	differ.UseStateForUnknown(ctx, diags, []string{"disk_size_gb"}, path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(0).AtName("read_only_specs"))
 	// fmt.Println(differ.NiceDiff(ctx, diags, rSchema))
-	tflog.Info(ctx, differ.NiceDiff(ctx, diags, rSchema))
+	tflog.Info(ctx, differ.NiceDiff(ctx, diags, rSchema, false))
+	tflog.Info(ctx, differ.NiceDiff(ctx, diags, rSchema, true))
 	if diags.HasError() {
 		return
 	}
 	// analyticsSpecs := StateConfig[TFSpecsModel](ctx, diags, differ, "read_only_specs", rSchema)
-	analyticsSpecs := StateConfigDiffs[TFSpecsModel](ctx, diags, differ, "analytics_specs", rSchema)
-	if diags.HasError() {
-		return
-	}
-	for _, spec := range analyticsSpecs {
-		tflog.Error(ctx, fmt.Sprintf("AnalyticsSpecs @ %s\n%v!=%v", spec.Path.String(), spec.State, spec.Config))
-		if !spec.Removed() {
-			continue
-		}
-		stateValue := spec.State
-		nodeCount := stateValue.NodeCount
-		if nodeCount.IsNull() || nodeCount.Equal(types.Int64Value(0)) {
-			continue
-		}
-		tflog.Error(ctx, fmt.Sprintf("Non empty AnalyticsSpecs @ %s Removed!", spec.Path.String()))
-		nodeCountZeroSpec := TFSpecsModel{
-			NodeCount:     types.Int64Value(0),
-			InstanceSize:  stateValue.InstanceSize, // Scenario not covered: if lifecycle.ignore_changes and we want to use value from PlanValue.InstanceSize instead
-			DiskIops:      types.Int64Unknown(),
-			EbsVolumeType: types.StringUnknown(),
-			DiskSizeGb:    types.Float64Unknown(),
-		}
-		UpdatePlanValue(ctx, diags, differ, spec.Path, asObjectValue(ctx, nodeCountZeroSpec, SpecsObjType.AttrTypes))
-		if diags.HasError() {
-			return
-		}
-		electableSpecPath := spec.Path.ParentPath().AtName("electable_specs")
-		electableSpec := ReadConfigValue[TFSpecsModel](ctx, diags, differ, electableSpecPath)
-		if diags.HasError() {
-			return
-		}
-		tflog.Error(ctx, fmt.Sprintf("ElectableSpecs @ %s\n%v", electableSpecPath.String(), electableSpec))
-	}
-	autoScalings := StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, "auto_scaling", rSchema)
-	if diags.HasError() {
-		return
-	}
-	for _, autoScaling := range autoScalings {
-		tflog.Error(ctx, fmt.Sprintf("AutoScaling @ %s\n%v!=%v", autoScaling.Path.String(), autoScaling.State, autoScaling.Config))
-	}
-	analyticsAutoScaling := StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, "analytics_auto_scaling", rSchema)
-	if diags.HasError() {
-		return
-	}
-	for _, autoScaling := range analyticsAutoScaling {
-		tflog.Error(ctx, fmt.Sprintf("AnalyticsAutoScaling @ %s\n%v!=%v", autoScaling.Path.String(), autoScaling.State, autoScaling.Config))
-	}
-	if diags.HasError() {
-		return
-	}
 
 	// for _, diff := range diffs {
 	// 	tflog.Info(ctx, fmt.Sprintf("Diff @ %s\n%v!=%v", diff.Path.String(), diff.Value1, diff.Value2))

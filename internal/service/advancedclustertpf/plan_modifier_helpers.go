@@ -17,7 +17,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
-func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema TPFSchema) *DiffHelper {
+func newDiffHelper(req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema TPFSchema) *DiffHelper {
 	diags := &resp.Diagnostics
 	diffStatePlan, err := req.State.Raw.Diff(resp.Plan.Raw)
 	if err != nil {
@@ -30,16 +30,18 @@ func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *r
 		return nil
 	}
 	return &DiffHelper{
-		req:             req,
-		resp:            resp,
-		stateConfigDiff: diffStateConfig,
-		statePlanDiff:   diffStatePlan,
-		schema:          schema,
+		req:              req,
+		resp:             resp,
+		stateConfigDiff:  diffStateConfig,
+		statePlanDiff:    diffStatePlan,
+		schema:           schema,
 		AttributeChanges: &schemafunc.AttributeChanges{},
+		PlanFullyKnown:   req.Plan.Raw.IsFullyKnown(),
 	}
 }
 
 type DiffHelper struct {
+	PlanFullyKnown   bool
 	AttributeChanges *schemafunc.AttributeChanges
 
 	req             *resource.ModifyPlanRequest
@@ -49,9 +51,13 @@ type DiffHelper struct {
 	schema          TPFSchema
 }
 
-func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, schema TPFSchema) string {
-	diffPaths := make([]string, len(d.stateConfigDiff))
-	for i, diff := range d.statePlanDiff {
+func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, schema TPFSchema, isConfig bool) string {
+	diffList := d.statePlanDiff
+	if isConfig {
+		diffList = d.stateConfigDiff
+	}
+	diffPaths := make([]string, len(diffList))
+	for i, diff := range diffList {
 		p, localDiags := AttributePath(ctx, diff.Path, schema)
 		if localDiags.HasError() {
 			diags.Append(localDiags...)
@@ -60,13 +66,32 @@ func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, sche
 		diffPaths[i] = p.String()
 	}
 	sort.Strings(diffPaths)
-	return "Differ\n" + strings.Join(diffPaths, "\n")
+	name := "plan"
+	if isConfig {
+		name = "config"
+	}
+	return fmt.Sprintf("DifferStateTo%s\n", name) + strings.Join(diffPaths, "\n")
 }
 
-func ReadConfigValue[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, p path.Path) *T {
+func ReadConfigStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, p path.Path) *T {
+	return readSrcStructValue[T](ctx, d.req.Config, p, diags)
+}
+
+func ReadPlanStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, p path.Path) *T {
+	return readSrcStructValue[T](ctx, d.req.Plan, p, diags)
+}
+
+func ReadStateStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, p path.Path) *T {
+	return readSrcStructValue[T](ctx, d.req.State, p, diags)
+}
+
+func readSrcStructValue[T any](ctx context.Context, src TPFSrc, p path.Path, diags *diag.Diagnostics) *T {
 	var obj types.Object
-	if localDiags := d.req.Config.GetAttribute(ctx, p, &obj); localDiags.HasError() {
+	if localDiags := src.GetAttribute(ctx, p, &obj); localDiags.HasError() {
 		diags.Append(localDiags...)
+		return nil
+	}
+	if obj.IsNull() || obj.IsUnknown() {
 		return nil
 	}
 	return TFModelObject[T](ctx, diags, obj)
@@ -91,6 +116,10 @@ func (d *DiffTPF[T]) Removed() bool {
 	return d.State != nil && d.Config == nil
 }
 
+func (d *DiffTPF[T]) Changed() bool {
+	return d.State != nil && d.Config != nil
+}
+
 func (d *DiffTPF[T]) PlanOrStateValue() *T {
 	if d.Plan != nil {
 		return d.Plan
@@ -112,6 +141,10 @@ func hasPrefix(p path.Path, prefix path.Path) bool {
 	prefixString := prefix.String()
 	pString := p.String()
 	return strings.HasPrefix(pString, prefixString)
+}
+
+func attributeNameEquals(p path.Path, name string) bool {
+	return strings.HasSuffix(p.String(), fmt.Sprintf(".%s", name))
 }
 
 func (d *DiffHelper) UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, keepUnknown []string, prefix path.Path) {
@@ -151,33 +184,41 @@ func (d *DiffHelper) UseStateForUnknown(ctx context.Context, diags *diag.Diagnos
 	}
 }
 
-func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, name tftypes.AttributeName, schema TPFSchema) []DiffTPF[T] {
+func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, name string, checkParent bool) []DiffTPF[T] {
 	earlyReturn := func(localDiags diag.Diagnostics) []DiffTPF[T] {
 		diags.Append(localDiags...)
 		return nil
 	}
 	var diffs []DiffTPF[T]
+	foundParentPaths := map[string]bool{}
 
 	for _, diff := range d.stateConfigDiff {
-		if diff.Path.LastStep().Equal(name) {
-			p, localDiags := AttributePath(ctx, diff.Path, schema)
+		p, localDiags := AttributePath(ctx, diff.Path, d.schema)
+		var pathMatch bool
+		if checkParent {
+			parent := p.ParentPath()
+			if attributeNameEquals(parent, name) {
+				if _, ok := foundParentPaths[parent.String()]; ok {
+					continue // parent already used
+				}
+				foundParentPaths[parent.String()] = true
+				p = parent
+				pathMatch = true
+			}
+		}
+		if pathMatch || attributeNameEquals(p, name) {
 			if localDiags.HasError() {
 				return earlyReturn(localDiags)
 			}
-			var stateObj, configObj, planObj types.Object
-			if d1 := d.req.State.GetAttribute(ctx, p, &stateObj); d1.HasError() {
-				return earlyReturn(d1)
-			}
+			var configObj, planObj types.Object
+			stateParsed := ReadStateStructValue[T](ctx, diags, d, p)
 			if d2 := d.req.Config.GetAttribute(ctx, p, &configObj); d2.HasError() {
 				return earlyReturn(d2)
 			}
 			if d3 := d.req.Plan.GetAttribute(ctx, p, &planObj); d3.HasError() {
 				return earlyReturn(d3)
 			}
-			var configParsed, stateParsed, planParsed *T
-			if !stateObj.IsNull() { // stateObj is never unknown
-				stateParsed = TFModelObject[T](ctx, diags, stateObj)
-			}
+			var configParsed, planParsed *T
 			if !configObj.IsNull() && !configObj.IsUnknown() {
 				configParsed = TFModelObject[T](ctx, diags, configObj)
 			}
