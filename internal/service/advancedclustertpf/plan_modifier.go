@@ -174,6 +174,8 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 	return keepUnknowns
 }
 
+// TODO: check if it's needed or it's ok if just included in ignored_changes in lifeclcle
+// TODO: add disk_iops doc to include it in ignored_changes when instance_size changes
 func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
 	var keepUnknown []string
 	computedUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
