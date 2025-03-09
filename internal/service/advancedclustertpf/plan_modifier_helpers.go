@@ -3,6 +3,7 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -13,13 +14,58 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
+
+func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema SimplifiedSchema) *DiffHelper {
+	diags := &resp.Diagnostics
+	diffStatePlan, err := req.State.Raw.Diff(resp.Plan.Raw)
+	if err != nil {
+		diags.AddError("Error diffing state and plan", err.Error())
+		return nil
+	}
+	diffStateConfig, err := req.State.Raw.Diff(req.Config.Raw)
+	if err != nil {
+		diags.AddError("Error diffing state and config", err.Error())
+		return nil
+	}
+	return &DiffHelper{
+		req:             req,
+		resp:            resp,
+		stateConfigDiff: diffStateConfig,
+		statePlanDiff:   diffStatePlan,
+		schema:          schema,
+	}
+}
 
 type DiffHelper struct {
 	req             *resource.ModifyPlanRequest
 	resp            *resource.ModifyPlanResponse
 	stateConfigDiff []tftypes.ValueDiff
 	statePlanDiff   []tftypes.ValueDiff
+	schema          SimplifiedSchema
+}
+
+func (d *DiffHelper) AttributeChanges() schemafunc.AttributeChanges {
+	return schemafunc.AttributeChanges{} // TODO
+}
+
+func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, schema SimplifiedSchema) string {
+	diffPaths := make([]string, len(d.stateConfigDiff))
+	for i, diff := range d.statePlanDiff {
+		p, localDiags := AttributePath(ctx, diff.Path, schema)
+		if localDiags.HasError() {
+			diags.Append(localDiags...)
+			return ""
+		}
+		if p.String() == "replication_specs[0].region_configs[1]" {
+			continue
+		}
+		diffPaths[i] = p.String()
+
+	}
+	sort.Strings(diffPaths)
+	return "Differ\n" + strings.Join(diffPaths, "\n")
 }
 
 func ReadConfigValue[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, p path.Path) *T {
@@ -35,24 +81,6 @@ func UpdatePlanValue[T attr.Value](ctx context.Context, diags *diag.Diagnostics,
 	if localDiags := d.resp.Plan.SetAttribute(ctx, p, value); localDiags.HasError() {
 		diags.Append(localDiags...)
 	}
-}
-
-func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, schema SimplifiedSchema) string {
-	diffPaths := make([]string, len(d.stateConfigDiff))
-	for i, diff := range d.stateConfigDiff {
-		p, localDiags := AttributePath(ctx, diff.Path, schema)
-		if localDiags.HasError() {
-			diags.Append(localDiags...)
-			return ""
-		}
-		if p.String() == "replication_specs[0].region_configs[1]" {
-			continue
-		}
-		diffPaths[i] = p.String()
-
-	}
-	sort.Strings(diffPaths)
-	return "Differ\n" + strings.Join(diffPaths, "\n")
 }
 
 type DiffTPF[T any] struct {
@@ -75,17 +103,39 @@ func (d *DiffTPF[T]) PlanOrStateValue() *T {
 	return d.State
 }
 
-func UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, schema SimplifiedSchema) {
+func keepUnknownCall(aPath *tftypes.AttributePath, keepUnknown []string) bool {
+	for _, step := range aPath.Steps() {
+		if aName, ok := step.(tftypes.AttributeName); ok {
+			if slices.Contains(keepUnknown, string(aName)) {
+				return true
+			}
+		}
+	}
+	return false
+}
+func hasPrefix(p path.Path, prefix path.Path) bool {
+	prefixString := prefix.String()
+	pString := p.String()
+	return strings.HasPrefix(pString, prefixString)
+}
+
+func UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, schema SimplifiedSchema, keepUnknown []string, prefix path.Path) {
 	for _, diff := range d.statePlanDiff {
 		if diff.Value2 != nil && !diff.Value2.IsKnown() {
 			stateValue, tpfPath := AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
-			tflog.Warn(ctx, fmt.Sprintf("Unknown value in plan @ %s", tpfPath.String()))
-			if stateValue != nil {
+			if !hasPrefix(tpfPath, prefix) || stateValue == nil {
+				continue
+			}
+			if keepUnknownCall(diff.Path, keepUnknown) {
+				tflog.Info(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", tpfPath.String()))
+				unknownValue := asUnknownValue(ctx, stateValue)
+				UpdatePlanValue(ctx, diags, d, tpfPath, unknownValue)
+			} else {
+				tflog.Info(ctx, fmt.Sprintf("Replacing unknown value in plan @ %s", tpfPath.String()))
 				UpdatePlanValue(ctx, diags, d, tpfPath, stateValue)
 			}
 		}
 	}
-
 }
 
 func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, name tftypes.AttributeName, schema SimplifiedSchema) []DiffTPF[T] {

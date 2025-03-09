@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -122,6 +123,10 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
+	diff := findClusterDiff(ctx, &state, &plan, diags)
+	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
+		return
+	}
 
 	// if diags.HasError() {
 	// 	return
@@ -134,24 +139,20 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	// 	return
 	// }
 	// diags.Append(resp.Plan.Set(ctx, plan)...)
-	diffStatePlan, err := req.State.Raw.Diff(resp.Plan.Raw)
-	if err != nil {
-		diags.AddError("Error diffing state and plan", err.Error())
-		return
-	}
-	diffStateConfig, err := req.State.Raw.Diff(req.Config.Raw)
-	if err != nil {
-		diags.AddError("Error diffing state and config", err.Error())
-		return
-	}
-	tflog.Info(ctx, fmt.Sprintf("Diff count: %d", len(diffStateConfig)))
+
+	// tflog.Info(ctx, fmt.Sprintf("Diff count: %d", len(diffStateConfig)))
 	// privateEndpointPath := path.Root("connection_strings").AtName("private_endpoint")
 	// resp.Plan.SetAttribute(ctx, privateEndpointPath, types.ListNull(PrivateEndpointObjType))
 	// resp.Plan.Schema.TypeAtTerraformPath()
 	// AttributeName("connection_strings").AttributeName("private_endpoint")
 	rSchema := resourceSchema(ctx)
-	differ := &DiffHelper{req: &req, resp: resp, stateConfigDiff: diffStateConfig, statePlanDiff: diffStatePlan}
-	UseStateForUnknown(ctx, diags, differ, rSchema)
+	differ := newDiffHelper(ctx, &req, resp, rSchema)
+	if diags.HasError() {
+		return
+	}
+	keepUnknown := []string{"connection_strings", "state_name", "replication_specs"}
+	UseStateForUnknown(ctx, diags, differ, rSchema, keepUnknown, path.Empty())
+	UseStateForUnknown(ctx, diags, differ, rSchema, []string{"disk_size_gb"}, path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(0).AtName("read_only_specs"))
 	// fmt.Println(differ.NiceDiff(ctx, diags, rSchema))
 	tflog.Info(ctx, differ.NiceDiff(ctx, diags, rSchema))
 	if diags.HasError() {
