@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -55,7 +56,7 @@ func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *cu
 			EbsVolumeType: types.StringUnknown(),
 			DiskSizeGb:    types.Float64Unknown(),
 		}
-		customplanmodifier.UpdatePlanValue(ctx, diags, differ, spec.Path, asObjectValue(ctx, explicitRemoveSpec, SpecsObjType.AttrTypes))
+		customplanmodifier.UpdatePlanValue(ctx, diags, differ, spec.Path, conversion.AsObjectValue(ctx, explicitRemoveSpec, SpecsObjType.AttrTypes))
 	}
 	for _, spec := range removedSpecs(readOnlySpecs) {
 		manualChanges = true
@@ -72,7 +73,7 @@ func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *cu
 			EbsVolumeType: types.StringUnknown(),
 			DiskSizeGb:    types.Float64Unknown(),
 		}
-		customplanmodifier.UpdatePlanValue(ctx, diags, differ, spec.Path, asObjectValue(ctx, explicitRemoveSpec, SpecsObjType.AttrTypes))
+		customplanmodifier.UpdatePlanValue(ctx, diags, differ, spec.Path, conversion.AsObjectValue(ctx, explicitRemoveSpec, SpecsObjType.AttrTypes))
 	}
 	return manualChanges
 }
@@ -109,7 +110,7 @@ func didRemoveOrChangeAutoScaling(ctx context.Context, diags *diag.Diagnostics, 
 			}
 		}
 		removedFlag = true
-		customplanmodifier.UpdatePlanValue(ctx, diags, differ, autoScaling.Path, asObjectValue(ctx, explicitRemoveAutoScaling, AutoScalingObjType.AttrTypes))
+		customplanmodifier.UpdatePlanValue(ctx, diags, differ, autoScaling.Path, conversion.AsObjectValue(ctx, explicitRemoveAutoScaling, AutoScalingObjType.AttrTypes))
 	}
 	return removedFlag
 }

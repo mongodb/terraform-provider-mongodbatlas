@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -124,4 +125,12 @@ func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input ty
 		return nil
 	}
 	return item
+}
+
+func AsObjectValue[T any](ctx context.Context, t T, attrs map[string]attr.Type) types.Object {
+	objType, diagsLocal := types.ObjectValueFrom(ctx, attrs, t)
+	if diagsLocal.HasError() {
+		panic("failed to convert object to model")
+	}
+	return objType
 }
