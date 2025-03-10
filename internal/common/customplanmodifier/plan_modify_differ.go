@@ -97,6 +97,9 @@ func (d *PlanModifyDiffer) UseStateForUnknown(ctx context.Context, diags *diag.D
 		if !conversion.HasPrefix(tpfPath, prefix) || stateValue == nil || conversion.IsAttributeValueOnly(tpfPath) {
 			continue
 		}
+		if d.ParentRemoved(tpfPath) {
+			continue
+		}
 		planValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)
 		if planValue == nil || !planValue.IsUnknown() {
 			continue
