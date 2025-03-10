@@ -1,4 +1,4 @@
-package advancedclustertpf
+package customplanmodifier
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
-func NewPlanModifyDiffer(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema TPFSchema) *PlanModifyDiffer {
+func NewPlanModifyDiffer(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema conversion.TPFSchema) *PlanModifyDiffer {
 	diags := &resp.Diagnostics
 	diffStatePlan, err := req.State.Raw.Diff(resp.Plan.Raw)
 	if err != nil {
@@ -46,7 +46,7 @@ func NewPlanModifyDiffer(ctx context.Context, req *resource.ModifyPlanRequest, r
 }
 
 type PlanModifyDiffer struct {
-	schema           TPFSchema
+	schema           conversion.TPFSchema
 	AttributeChanges *schemafunc.AttributeChanges
 	req              *resource.ModifyPlanRequest
 	resp             *resource.ModifyPlanResponse
@@ -56,21 +56,21 @@ type PlanModifyDiffer struct {
 }
 
 func (d *PlanModifyDiffer) ParentRemoved(p path.Path) bool {
-	if !IsListIndex(p.ParentPath()) {
+	if !conversion.IsListIndex(p.ParentPath()) {
 		return false
 	}
-	parentRemoved := AsRemovedIndex(p.ParentPath())
+	parentRemoved := conversion.AsRemovedIndex(p.ParentPath())
 	return slices.Contains(*d.AttributeChanges, parentRemoved)
 }
 
-func (d *PlanModifyDiffer) Diff(ctx context.Context, diags *diag.Diagnostics, schema TPFSchema, isConfig bool) string {
+func (d *PlanModifyDiffer) Diff(ctx context.Context, diags *diag.Diagnostics, schema conversion.TPFSchema, isConfig bool) string {
 	diffList := d.statePlanDiff
 	if isConfig {
 		diffList = d.stateConfigDiff
 	}
 	diffPaths := make([]string, len(diffList))
 	for i, diff := range diffList {
-		p, localDiags := AttributePath(ctx, diff.Path, schema)
+		p, localDiags := conversion.AttributePath(ctx, diff.Path, schema)
 		if localDiags.HasError() {
 			diags.Append(localDiags...)
 			return ""
@@ -89,21 +89,21 @@ func (d *PlanModifyDiffer) UseStateForUnknown(ctx context.Context, diags *diag.D
 	// The diff is sorted by the path length, for example read_only_spec is processed before read_only_spec.disk_size_gb
 	schema := d.schema
 	for _, diff := range d.statePlanDiff {
-		stateValue, tpfPath := AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
-		if !HasPrefix(tpfPath, prefix) || stateValue == nil || IsAttributeValueOnly(tpfPath) {
+		stateValue, tpfPath := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
+		if !conversion.HasPrefix(tpfPath, prefix) || stateValue == nil || conversion.IsAttributeValueOnly(tpfPath) {
 			continue
 		}
-		planValue, _ := AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)
+		planValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)
 		if planValue == nil {
 			continue
 		}
 		// For nested attributes with unknown values, all their children attributes will be `null` instead of unknown.
 		// Therefore, to ensure keepUnknown, force unknown when the responsePlanValue is not unknown.
 		if planValue.IsNull() && keepUnknownCall(diff.Path, keepUnknown) {
-			responsePlanValue, _ := AttributePathValue(ctx, diags, diff.Path, d.resp.Plan, schema)
+			responsePlanValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.resp.Plan, schema)
 			if responsePlanValue != nil && !responsePlanValue.IsUnknown() {
 				tflog.Info(ctx, fmt.Sprintf("Force unknown value in plan @ %s", tpfPath.String()))
-				unknownValue := asUnknownValue(ctx, stateValue)
+				unknownValue := conversion.AsUnknownValue(ctx, stateValue)
 				UpdatePlanValue(ctx, diags, d, tpfPath, unknownValue)
 			}
 			continue
@@ -113,7 +113,7 @@ func (d *PlanModifyDiffer) UseStateForUnknown(ctx context.Context, diags *diag.D
 		}
 		if keepUnknownCall(diff.Path, keepUnknown) {
 			tflog.Info(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", tpfPath.String()))
-			unknownValue := asUnknownValue(ctx, stateValue)
+			unknownValue := conversion.AsUnknownValue(ctx, stateValue)
 			UpdatePlanValue(ctx, diags, d, tpfPath, unknownValue)
 		} else {
 			tflog.Info(ctx, fmt.Sprintf("Replacing unknown value in plan @ %s", tpfPath.String()))
@@ -134,7 +134,7 @@ func ReadStateStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d
 	return readSrcStructValue[T](ctx, d.req.State, p, diags)
 }
 
-func readSrcStructValue[T any](ctx context.Context, src TPFSrc, p path.Path, diags *diag.Diagnostics) *T {
+func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p path.Path, diags *diag.Diagnostics) *T {
 	var obj types.Object
 	if localDiags := src.GetAttribute(ctx, p, &obj); localDiags.HasError() {
 		diags.Append(localDiags...)
@@ -176,7 +176,7 @@ func (d *DiffTPF[T]) PlanOrStateValue() *T {
 	return d.State
 }
 
-func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema TPFSchema) schemafunc.AttributeChanges {
+func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema conversion.TPFSchema) schemafunc.AttributeChanges {
 	changes := map[string]bool{}
 	addChangeAndParentChanges := func(change string) {
 		changes[change] = true
@@ -186,13 +186,13 @@ func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diag
 		}
 	}
 	for _, d := range diff {
-		p, localDiags := AttributePath(ctx, d.Path, schema)
-		if IsListIndex(p) {
+		p, localDiags := conversion.AttributePath(ctx, d.Path, schema)
+		if conversion.IsListIndex(p) {
 			if d.Value1 == nil {
-				addChangeAndParentChanges(AsAddedIndex(p))
+				addChangeAndParentChanges(conversion.AsAddedIndex(p))
 			}
 			if d.Value2 == nil {
-				addChangeAndParentChanges(AsRemovedIndex(p))
+				addChangeAndParentChanges(conversion.AsRemovedIndex(p))
 			}
 		}
 		if d.Value2 != nil && d.Value2.IsKnown() && !d.Value2.IsNull() {
@@ -226,21 +226,21 @@ func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *Pl
 	foundParentPaths := map[string]bool{}
 
 	for _, diff := range d.stateConfigDiff {
-		p, localDiags := AttributePath(ctx, diff.Path, d.schema)
-		var pathMatch bool
+		p, localDiags := conversion.AttributePath(ctx, diff.Path, d.schema)
+		var parentMatch bool
 		if checkNestedAttributes {
 			parent := p.ParentPath()
-			if AttributeNameEquals(parent, name) {
+			if conversion.AttributeNameEquals(parent, name) {
 				if _, ok := foundParentPaths[parent.String()]; ok {
 					continue // parent already used
 				}
 				foundParentPaths[parent.String()] = true
 				p = parent
-				pathMatch = true
+				parentMatch = true
 			}
 		}
 		// Never show diff if the parent is removed, for exampl region config
-		if !d.ParentRemoved(p) && (pathMatch || AttributeNameEquals(p, name)) {
+		if !d.ParentRemoved(p) && (parentMatch || conversion.AttributeNameEquals(p, name)) {
 			if localDiags.HasError() {
 				return earlyReturn(localDiags)
 			}

@@ -8,9 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
-func manualPlanChanges(ctx context.Context, diags *diag.Diagnostics, differ *PlanModifyDiffer) (manualChanges bool) {
+func manualPlanChanges(ctx context.Context, diags *diag.Diagnostics, differ *customplanmodifier.PlanModifyDiffer) (manualChanges bool) {
 	if nonZeroSpecRemoved(ctx, diags, differ) {
 		manualChanges = true
 	}
@@ -23,9 +24,9 @@ func manualPlanChanges(ctx context.Context, diags *diag.Diagnostics, differ *Pla
 	return manualChanges
 }
 
-func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *PlanModifyDiffer) (manualChanges bool) {
-	removedSpecs := func(diffs []DiffTPF[TFSpecsModel]) []DiffTPF[TFSpecsModel] {
-		var removed []DiffTPF[TFSpecsModel]
+func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *customplanmodifier.PlanModifyDiffer) (manualChanges bool) {
+	removedSpecs := func(diffs []customplanmodifier.DiffTPF[TFSpecsModel]) []customplanmodifier.DiffTPF[TFSpecsModel] {
+		var removed []customplanmodifier.DiffTPF[TFSpecsModel]
 		for _, diff := range diffs {
 			if !diff.Removed() {
 				continue
@@ -39,8 +40,8 @@ func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *Pl
 		}
 		return removed
 	}
-	analyticsSpecs := StateConfigDiffs[TFSpecsModel](ctx, diags, differ, "analytics_specs", false)
-	readOnlySpecs := StateConfigDiffs[TFSpecsModel](ctx, diags, differ, "read_only_specs", false)
+	analyticsSpecs := customplanmodifier.StateConfigDiffs[TFSpecsModel](ctx, diags, differ, "analytics_specs", false)
+	readOnlySpecs := customplanmodifier.StateConfigDiffs[TFSpecsModel](ctx, diags, differ, "read_only_specs", false)
 	if diags.HasError() {
 		return false
 	}
@@ -54,13 +55,13 @@ func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *Pl
 			EbsVolumeType: types.StringUnknown(),
 			DiskSizeGb:    types.Float64Unknown(),
 		}
-		UpdatePlanValue(ctx, diags, differ, spec.Path, asObjectValue(ctx, explicitRemoveSpec, SpecsObjType.AttrTypes))
+		customplanmodifier.UpdatePlanValue(ctx, diags, differ, spec.Path, asObjectValue(ctx, explicitRemoveSpec, SpecsObjType.AttrTypes))
 	}
 	for _, spec := range removedSpecs(readOnlySpecs) {
 		manualChanges = true
 		tflog.Info(ctx, fmt.Sprintf("ReadOnlySpecs @ %s removed\n%s", spec.Path.String(), spec.State))
 		electableSpecPath := spec.Path.ParentPath().AtName("electable_specs")
-		electableSpec := ReadPlanStructValue[TFSpecsModel](ctx, diags, differ, electableSpecPath)
+		electableSpec := customplanmodifier.ReadPlanStructValue[TFSpecsModel](ctx, diags, differ, electableSpecPath)
 		if diags.HasError() {
 			return false
 		}
@@ -71,15 +72,15 @@ func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *Pl
 			EbsVolumeType: types.StringUnknown(),
 			DiskSizeGb:    types.Float64Unknown(),
 		}
-		UpdatePlanValue(ctx, diags, differ, spec.Path, asObjectValue(ctx, explicitRemoveSpec, SpecsObjType.AttrTypes))
+		customplanmodifier.UpdatePlanValue(ctx, diags, differ, spec.Path, asObjectValue(ctx, explicitRemoveSpec, SpecsObjType.AttrTypes))
 	}
 	return manualChanges
 }
 
 var boolFalse = types.BoolValue(false)
 
-func didRemoveOrChangeAutoScaling(ctx context.Context, diags *diag.Diagnostics, differ *PlanModifyDiffer, name string) (removedFlag bool) {
-	autoScalings := StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, name, true)
+func didRemoveOrChangeAutoScaling(ctx context.Context, diags *diag.Diagnostics, differ *customplanmodifier.PlanModifyDiffer, name string) (removedFlag bool) {
+	autoScalings := customplanmodifier.StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, name, true)
 	if diags.HasError() {
 		return false
 	}
@@ -108,12 +109,12 @@ func didRemoveOrChangeAutoScaling(ctx context.Context, diags *diag.Diagnostics, 
 			}
 		}
 		removedFlag = true
-		UpdatePlanValue(ctx, diags, differ, autoScaling.Path, asObjectValue(ctx, explicitRemoveAutoScaling, AutoScalingObjType.AttrTypes))
+		customplanmodifier.UpdatePlanValue(ctx, diags, differ, autoScaling.Path, asObjectValue(ctx, explicitRemoveAutoScaling, AutoScalingObjType.AttrTypes))
 	}
 	return removedFlag
 }
 
-func autoScalingAttributeRemoved(ctx context.Context, autoScaling DiffTPF[TFAutoScalingModel]) *TFAutoScalingModel {
+func autoScalingAttributeRemoved(ctx context.Context, autoScaling customplanmodifier.DiffTPF[TFAutoScalingModel]) *TFAutoScalingModel {
 	if !autoScaling.Changed() {
 		return nil
 	}

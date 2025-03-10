@@ -18,6 +18,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -127,10 +128,10 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 	rSchema := resourceSchema(ctx)
-	differ := NewPlanModifyDiffer(ctx, &req, resp, rSchema)
+	differ := customplanmodifier.NewPlanModifyDiffer(ctx, &req, resp, rSchema)
 	if manualPlanChanges(ctx, diags, differ) && differ.PlanFullyKnown {
-		UpdatePlanValue(ctx, diags, differ, path.Root("state_name"), types.StringUnknown())
-		UpdatePlanValue(ctx, diags, differ, path.Root("connection_strings"), types.ObjectUnknown(ConnectionStringsObjType.AttrTypes))
+		customplanmodifier.UpdatePlanValue(ctx, diags, differ, path.Root("state_name"), types.StringUnknown())
+		customplanmodifier.UpdatePlanValue(ctx, diags, differ, path.Root("connection_strings"), types.ObjectUnknown(ConnectionStringsObjType.AttrTypes))
 		return
 	}
 	if diags.HasError() {

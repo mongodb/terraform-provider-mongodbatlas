@@ -8,9 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
-func UseStateForUnknown2(ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, state, plan *TFModel) {
+func UseStateForUnknown2(ctx context.Context, diags *diag.Diagnostics, d *customplanmodifier.PlanModifyDiffer, state, plan *TFModel) {
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, d.AttributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
@@ -20,7 +21,7 @@ func UseStateForUnknown2(ctx context.Context, diags *diag.Diagnostics, d *PlanMo
 	}
 }
 
-func useStateForUnknownsReplicationSpecs2(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, d *PlanModifyDiffer) {
+func useStateForUnknownsReplicationSpecs2(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, d *customplanmodifier.PlanModifyDiffer) {
 	stateRepSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
