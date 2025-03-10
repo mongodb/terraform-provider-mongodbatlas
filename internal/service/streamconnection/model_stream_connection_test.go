@@ -299,13 +299,13 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 				ProjectID:    types.StringValue(dummyProjectID),
 				InstanceName: types.StringValue(instanceName),
 				PageNum:      types.Int64Value(1),
-				ItemsPerPage: types.Int64Value(5),
+				ItemsPerPage: types.Int64Value(3),
 			},
 			expectedTFModel: &streamconnection.TFStreamConnectionsDSModel{
 				ProjectID:    types.StringValue(dummyProjectID),
 				InstanceName: types.StringValue(instanceName),
 				PageNum:      types.Int64Value(1),
-				ItemsPerPage: types.Int64Value(5),
+				ItemsPerPage: types.Int64Value(3),
 				TotalCount:   types.Int64Value(5),
 				Results: []streamconnection.TFStreamConnectionModel{
 					{
