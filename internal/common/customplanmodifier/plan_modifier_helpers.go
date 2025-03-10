@@ -56,11 +56,16 @@ type PlanModifyDiffer struct {
 }
 
 func (d *PlanModifyDiffer) ParentRemoved(p path.Path) bool {
-	if !conversion.IsListIndex(p.ParentPath()) {
-		return false
+	for {
+		parent := p.ParentPath()
+		if parent.Equal(path.Empty()) {
+			return false
+		}
+		if slices.Contains(*d.AttributeChanges, conversion.AsRemovedIndex(parent)) {
+			return true
+		}
+		p = parent
 	}
-	parentRemoved := conversion.AsRemovedIndex(p.ParentPath())
-	return slices.Contains(*d.AttributeChanges, parentRemoved)
 }
 
 func (d *PlanModifyDiffer) Diff(ctx context.Context, diags *diag.Diagnostics, schema conversion.TPFSchema, isConfig bool) string {
@@ -99,7 +104,7 @@ func (d *PlanModifyDiffer) UseStateForUnknown(ctx context.Context, diags *diag.D
 		}
 		// For nested attributes with unknown values, all their children attributes will be `null` instead of unknown.
 		// Therefore, to ensure keepUnknown, force unknown when the responsePlanValue is not unknown.
-		if planValue.IsNull() && keepUnknownCall(diff.Path, keepUnknown) {
+		if planValue.IsNull() && keepUnknownCall(diff.Path, keepUnknown) && !d.ParentRemoved(tpfPath) {
 			responsePlanValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.resp.Plan, schema)
 			if responsePlanValue != nil && !responsePlanValue.IsUnknown() {
 				tflog.Info(ctx, fmt.Sprintf("Force unknown value in plan @ %s", tpfPath.String()))
@@ -239,7 +244,7 @@ func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *Pl
 				parentMatch = true
 			}
 		}
-		// Never show diff if the parent is removed, for exampl region config
+		// Never show diff if the parent is removed, for example region config
 		if !d.ParentRemoved(p) && (parentMatch || conversion.AttributeNameEquals(p, name)) {
 			if localDiags.HasError() {
 				return earlyReturn(localDiags)
