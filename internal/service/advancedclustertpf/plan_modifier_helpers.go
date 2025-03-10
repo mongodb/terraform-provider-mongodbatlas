@@ -75,14 +75,13 @@ func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diag
 }
 
 type DiffHelper struct {
-	PlanFullyKnown   bool
+	schema           TPFSchema
 	AttributeChanges *schemafunc.AttributeChanges
-
-	req             *resource.ModifyPlanRequest
-	resp            *resource.ModifyPlanResponse
-	stateConfigDiff []tftypes.ValueDiff
-	statePlanDiff   []tftypes.ValueDiff
-	schema          TPFSchema
+	req              *resource.ModifyPlanRequest
+	resp             *resource.ModifyPlanResponse
+	stateConfigDiff  []tftypes.ValueDiff
+	statePlanDiff    []tftypes.ValueDiff
+	PlanFullyKnown   bool
 }
 
 func (d *DiffHelper) ParentRemoved(p path.Path) bool {
@@ -146,10 +145,10 @@ func UpdatePlanValue[T attr.Value](ctx context.Context, diags *diag.Diagnostics,
 }
 
 type DiffTPF[T any] struct {
-	Path          path.Path
 	Plan          *T
 	State         *T
 	Config        *T
+	Path          path.Path
 	PlanUnknown   bool
 	ConfigUnknown bool
 }
@@ -185,7 +184,7 @@ func (d *DiffHelper) UseStateForUnknown(ctx context.Context, diags *diag.Diagnos
 	schema := d.schema
 	for _, diff := range d.statePlanDiff {
 		stateValue, tpfPath := AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
-		if !hasPrefix(tpfPath, prefix) || stateValue == nil || IsAttributeValueOnly(tpfPath){
+		if !HasPrefix(tpfPath, prefix) || stateValue == nil || IsAttributeValueOnly(tpfPath) {
 			continue
 		}
 		planValue, _ := AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)

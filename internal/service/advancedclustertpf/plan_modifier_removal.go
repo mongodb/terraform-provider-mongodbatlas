@@ -89,7 +89,6 @@ func didRemoveOrChangeAutoScaling(ctx context.Context, diags *diag.Diagnostics, 
 			if autoScaling.State.ComputeEnabled.Equal(boolFalse) && autoScaling.State.DiskGBEnabled.Equal(boolFalse) {
 				continue
 			}
-			removedFlag = true
 			tflog.Info(ctx, fmt.Sprintf("AutoScaling @ %s removed\n%s", autoScaling.Path.String(), autoScaling.State))
 			if name == "auto_scaling" {
 				explicitRemoveAutoScaling = &TFAutoScalingModel{

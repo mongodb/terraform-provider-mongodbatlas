@@ -2,7 +2,6 @@ package advancedclustertpf
 
 import (
 	"context"
-	"fmt"
 	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -13,7 +12,8 @@ import (
 
 var (
 	attributeRootChangeMapping = map[string][]string{
-		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
+		"disk_size_gb":           {},          // disk_size_gb can be change at any level/spec
+		"expiration_date":        {"version"}, // pinned_fcv
 		"replication_specs":      {},
 		"mongo_db_major_version": {"mongo_db_version"},
 		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12"},
@@ -29,53 +29,6 @@ var (
 		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
 	}
 )
-
-// useStateForUnknowns should be called only in Update, because of findClusterDiff
-func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	diff := findClusterDiff(ctx, state, plan, diags)
-	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
-		return
-	}
-	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	// keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
-	keepUnknown := []string{} // Volatile attributes, should not be copied from state
-	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
-	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
-	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
-	if slices.Contains(keepUnknown, "replication_specs") {
-		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
-	}
-}
-
-func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges) {
-	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
-	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
-	if diags.HasError() {
-		return
-	}
-	planWithUnknowns := []TFReplicationSpecsModel{}
-	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(ctx, diags, state, plan, attrChanges)
-	keepUnknownsUnchangedSpec = append(keepUnknownsUnchangedSpec, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
-	if diags.HasError() {
-		return
-	}
-	for i := range planRepSpecsTF {
-		if i < len(stateRepSpecsTF) {
-			keepUnknowns := keepUnknownsUnchangedSpec
-			if attrChanges.ListIndexChanged("replication_specs", i) {
-				keepUnknowns = determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
-			}
-			schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknowns)
-		}
-		planWithUnknowns = append(planWithUnknowns, planRepSpecsTF[i])
-	}
-	listType, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, planWithUnknowns)
-	diags.Append(diagsLocal...)
-	if diags.HasError() {
-		return
-	}
-	plan.ReplicationSpecs = listType
-}
 
 // determineKeepUnknownsChangedReplicationSpec: These fields must be kept unknown in the replication_specs[index_of_changes]
 func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, attributeChanges *schemafunc.AttributeChanges, parentPath string) []string {
