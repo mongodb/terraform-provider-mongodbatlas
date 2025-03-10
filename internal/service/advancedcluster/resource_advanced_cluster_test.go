@@ -203,12 +203,24 @@ func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetAWSProvider(t, isAcc, projectID, clusterName, 60, 3),
-				Check:  checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 60, 3, true, true),
+				Config: configReplicaSetAWSProvider(t, isAcc, ReplicaSetAWSConfig{
+					ProjectID:          projectID,
+					ClusterName:        clusterName,
+					DiskSizeGB:         60,
+					NodeCountElectable: 3,
+					WithAnalyticsSpecs: true,
+				}),
+				Check: checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 60, 3, true, true),
 			},
 			{
-				Config: configReplicaSetAWSProvider(t, isAcc, projectID, clusterName, 50, 5),
-				Check:  checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 50, 5, true, true),
+				Config: configReplicaSetAWSProvider(t, isAcc, ReplicaSetAWSConfig{
+					ProjectID:          projectID,
+					ClusterName:        clusterName,
+					DiskSizeGB:         50,
+					NodeCountElectable: 5,
+					WithAnalyticsSpecs: false, // removed as part of other updates, computed value is expected to be the same
+				}),
+				Check: checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 50, 5, true, true),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
 		},
@@ -1602,8 +1614,24 @@ func checkKeyValueBlocksPreviewProviderV2(isAcc, includeDataSources bool, blockN
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func configReplicaSetAWSProvider(t *testing.T, isAcc bool, projectID, name string, diskSizeGB, nodeCountElectable int) string {
+type ReplicaSetAWSConfig struct {
+	ProjectID          string
+	ClusterName        string
+	DiskSizeGB         int
+	NodeCountElectable int
+	WithAnalyticsSpecs bool
+}
+
+func configReplicaSetAWSProvider(t *testing.T, isAcc bool, configInfo ReplicaSetAWSConfig) string {
 	t.Helper()
+	analyticsSpecs := ""
+	if configInfo.WithAnalyticsSpecs {
+		analyticsSpecs = `
+		analytics_specs {
+			instance_size = "M10"
+			node_count    = 1
+		}`
+	}
 	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
@@ -1618,17 +1646,14 @@ func configReplicaSetAWSProvider(t *testing.T, isAcc bool, projectID, name strin
 						instance_size = "M10"
 						node_count    = %[4]d
 					}
-					analytics_specs {
-						instance_size = "M10"
-						node_count    = 1
-					}
+					%[5]s
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_WEST_2"
 				}
 			}
 		}
-	`, projectID, name, diskSizeGB, nodeCountElectable)) + dataSourcesTFOldSchema
+	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.DiskSizeGB, configInfo.NodeCountElectable, analyticsSpecs)) + dataSourcesTFOldSchema
 }
 
 func checkReplicaSetAWSProvider(isAcc bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
@@ -1658,6 +1683,7 @@ func checkReplicaSetAWSProvider(isAcc bool, projectID, name string, diskSizeGB, 
 			"project_id":   projectID,
 			"disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 			"replication_specs.0.region_configs.0.electable_specs.0.node_count": fmt.Sprintf("%d", nodeCountElectable),
+			"replication_specs.0.region_configs.0.analytics_specs.0.node_count": "1",
 			"name": name},
 		additionalChecks...,
 	)
