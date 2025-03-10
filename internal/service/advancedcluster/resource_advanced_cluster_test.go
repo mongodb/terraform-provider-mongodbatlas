@@ -580,7 +580,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterName, autoScaling),
+				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterName, autoScaling, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterName),
@@ -589,7 +589,16 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 				),
 			},
 			{
-				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, autoScalingUpdated),
+				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, autoScalingUpdated, 1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					acc.CheckExistsCluster(resourceName),
+					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterNameUpdated),
+					acc.TestCheckResourceAttrSetPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
+				),
+			},
+			{
+				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, nil, 2), // analytics_auto_scaling block removed together with other changes, preserves previous state
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterNameUpdated),
@@ -2149,8 +2158,19 @@ func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clus
 	`, projectID, clusterName, elecInstanceSize, elecDiskSizeGB, analyticsNodeCount, autoScalingBlock, lifecycleIgnoreChanges))
 }
 
-func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
+func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, analyticsAutoScalingSettings *admin.AdvancedAutoScalingSettings, analyticsNodeCount int) string {
 	t.Helper()
+
+	analyticsAutoScalingBlock := ""
+	if analyticsAutoScalingSettings != nil {
+		analyticsAutoScalingBlock = fmt.Sprintf(`
+				analytics_auto_scaling {
+					compute_enabled = %t
+					disk_gb_enabled = %t
+					compute_max_instance_size = %q
+				}`, analyticsAutoScalingSettings.Compute.GetEnabled(), analyticsAutoScalingSettings.DiskGB.GetEnabled(), analyticsAutoScalingSettings.Compute.GetMaxInstanceSize())
+	}
+
 	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
@@ -2165,20 +2185,16 @@ func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, isAcc bool, projec
 					}
 					analytics_specs {
 						instance_size = "M10"
-						node_count    = 1
+						node_count    = %[3]d
 					}
-				analytics_auto_scaling {
-						compute_enabled = %[3]t
-						disk_gb_enabled = %[4]t
-				compute_max_instance_size = %[5]q
-				}
+					%[4]s
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_WEST_2"
 				}
 			}
 		}
-	`, projectID, clusterName, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize()))
+	`, projectID, clusterName, analyticsNodeCount, analyticsAutoScalingBlock))
 }
 
 func configGeoShardedOldSchema(t *testing.T, isAcc bool, projectID, name string, numShardsFirstZone, numShardsSecondZone int, selfManagedSharding bool) string {
