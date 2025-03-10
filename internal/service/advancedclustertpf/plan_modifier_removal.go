@@ -3,6 +3,7 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -76,6 +77,7 @@ func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *Di
 }
 
 var boolFalse = types.BoolValue(false)
+
 func didRemoveOrChangeAutoScaling(ctx context.Context, diags *diag.Diagnostics, differ *DiffHelper, name string) (removedFlag bool) {
 	autoScalings := StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, name, true)
 	if diags.HasError() {
@@ -118,22 +120,22 @@ func autoScalingAttributeRemoved(ctx context.Context, autoScaling DiffTPF[TFAuto
 	}
 	stateValue := autoScaling.State
 	configValue := autoScaling.Config
-	var attributeRemoved bool
+	var attributesRemoved []string
 	if stateValue.ComputeEnabled.Equal(types.BoolValue(true)) && configValue.ComputeEnabled.IsNull() {
-		attributeRemoved = true
+		attributesRemoved = append(attributesRemoved, "compute_enabled")
 		configValue.ComputeEnabled = types.BoolValue(false)
 	}
 	if stateValue.DiskGBEnabled.Equal(types.BoolValue(true)) && configValue.DiskGBEnabled.IsNull() {
-		attributeRemoved = true
+		attributesRemoved = append(attributesRemoved, "disk_gb_enabled")
 		configValue.DiskGBEnabled = types.BoolValue(false)
 	}
 	if stateValue.ComputeScaleDownEnabled.Equal(types.BoolValue(true)) && configValue.ComputeScaleDownEnabled.IsNull() {
-		attributeRemoved = true
+		attributesRemoved = append(attributesRemoved, "compute_scale_down_enabled")
 		configValue.ComputeScaleDownEnabled = types.BoolValue(false)
 	}
-	if !attributeRemoved {
+	if len(attributesRemoved) == 0 {
 		return nil
 	}
-	tflog.Info(ctx, fmt.Sprintf("Removed attribute of auto_scaling @ %s\n%v!=%v", autoScaling.Path.String(), autoScaling.State, autoScaling.Config))
+	tflog.Info(ctx, fmt.Sprintf("Removed attributes %s of auto_scaling @ %s", strings.Join(attributesRemoved, ","), autoScaling.Path.String()))
 	return configValue
 }
