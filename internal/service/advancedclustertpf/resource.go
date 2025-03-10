@@ -108,14 +108,8 @@ func asObjectValue[T any](ctx context.Context, t T, attrs map[string]attr.Type) 
 // Why do we need this? Why can't we use planmodifier.UseStateForUnknown in different fields?
 // 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
 // 2. Adding the different UseStateForUnknown is very verbose.
+// ManualPlanChanges detects when a few known blocks are removed: analytics_specs/read_only_specs and auto_scaling/analytic_auto_scaling.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	/*
-		1. If not update; return
-		2. didRemoveBlocks(), will update both req.Plan & resp.Plan in case there are no Unknowns and we return early? No, might as well only update req.Plan and do the extra resp.Plan.Update
-			1. If didRemoveBlocks and !unknowns: mark alwaysUnknownRoot attributes and return
-			2. if unknowns:
-				1. Copy unknowns from state to plan
-	*/
 	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Return early unless it is an Update
 		return
 	}
@@ -130,6 +124,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	rSchema := resourceSchema(ctx)
 	differ := customplanmodifier.NewPlanModifyDiffer(ctx, &req, resp, rSchema)
 	if manualPlanChanges(ctx, diags, differ) && differ.PlanFullyKnown {
+		// When there are only manual changes detected, everything will be known in the plan, forcing state_name and connection_strings to be unknown to avoid inconsistent error in update.
 		customplanmodifier.UpdatePlanValue(ctx, diags, differ, path.Root("state_name"), types.StringUnknown())
 		customplanmodifier.UpdatePlanValue(ctx, diags, differ, path.Root("connection_strings"), types.ObjectUnknown(ConnectionStringsObjType.AttrTypes))
 		return
@@ -137,7 +132,10 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
-	UseStateForUnknown2(ctx, diags, differ, &state, &plan)
+	if differ.PlanFullyKnown {
+		return
+	}
+	UseStateForUnknown(ctx, diags, differ, &state, &plan)
 	if diags.HasError() {
 		return
 	}

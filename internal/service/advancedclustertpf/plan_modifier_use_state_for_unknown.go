@@ -2,11 +2,14 @@ package advancedclustertpf
 
 import (
 	"context"
+	"fmt"
 	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -29,6 +32,38 @@ var (
 		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
 	}
 )
+
+func UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, d *customplanmodifier.PlanModifyDiffer, state, plan *TFModel) {
+	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
+	keepUnknown = append(keepUnknown, d.AttributeChanges.KeepUnknown(attributeRootChangeMapping)...)
+	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
+	d.UseStateForUnknown(ctx, diags, keepUnknown, path.Empty())
+	if slices.Contains(keepUnknown, "replication_specs") {
+		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, d)
+	}
+}
+
+func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, d *customplanmodifier.PlanModifyDiffer) {
+	stateRepSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	if diags.HasError() {
+		return
+	}
+	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(ctx, diags, state, plan, d.AttributeChanges)
+	keepUnknownsUnchangedSpec = append(keepUnknownsUnchangedSpec, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
+	if diags.HasError() {
+		return
+	}
+	for i := range planRepSpecsTF {
+		if i < len(stateRepSpecsTF) {
+			keepUnknowns := keepUnknownsUnchangedSpec
+			if d.AttributeChanges.ListIndexChanged("replication_specs", i) {
+				keepUnknowns = determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, d.AttributeChanges, fmt.Sprintf("replication_specs[%d]", i))
+			}
+			d.UseStateForUnknown(ctx, diags, keepUnknowns, path.Root("replication_specs").AtListIndex(i))
+		}
+	}
+}
 
 // determineKeepUnknownsChangedReplicationSpec: These fields must be kept unknown in the replication_specs[index_of_changes]
 func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, attributeChanges *schemafunc.AttributeChanges, parentPath string) []string {
