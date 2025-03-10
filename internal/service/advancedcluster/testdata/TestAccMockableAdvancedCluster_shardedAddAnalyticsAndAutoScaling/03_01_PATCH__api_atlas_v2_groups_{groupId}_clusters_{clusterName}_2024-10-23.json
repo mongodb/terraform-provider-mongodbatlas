@@ -4,22 +4,13 @@
    "regionConfigs": [
     {
      "analyticsSpecs": {
-      "diskIOPS": 2000,
-      "ebsVolumeType": "PROVISIONED",
+      "diskSizeGB": 40,
       "instanceSize": "M30",
-      "nodeCount": 1
-     },
-     "autoScaling": {
-      "compute": {
-       "enabled": false,
-       "scaleDownEnabled": false
-      },
-      "diskGB": {
-       "enabled": true
-      }
+      "nodeCount": 0
      },
      "electableSpecs": {
       "diskIOPS": 2000,
+      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 3
@@ -28,6 +19,7 @@
      "providerName": "AWS",
      "readOnlySpecs": {
       "diskIOPS": 2000,
+      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 0
@@ -42,22 +34,13 @@
    "regionConfigs": [
     {
      "analyticsSpecs": {
-      "diskIOPS": 1000,
-      "ebsVolumeType": "PROVISIONED",
+      "diskSizeGB": 40,
       "instanceSize": "M30",
-      "nodeCount": 1
-     },
-     "autoScaling": {
-      "compute": {
-       "enabled": false,
-       "scaleDownEnabled": false
-      },
-      "diskGB": {
-       "enabled": true
-      }
+      "nodeCount": 0
      },
      "electableSpecs": {
       "diskIOPS": 1000,
+      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 3
@@ -66,6 +49,7 @@
      "providerName": "AWS",
      "readOnlySpecs": {
       "diskIOPS": 1000,
+      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 0

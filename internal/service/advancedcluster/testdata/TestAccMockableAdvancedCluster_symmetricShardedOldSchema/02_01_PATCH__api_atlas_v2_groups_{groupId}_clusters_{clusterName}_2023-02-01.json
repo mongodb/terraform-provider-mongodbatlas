@@ -5,10 +5,12 @@
    "regionConfigs": [
     {
      "analyticsSpecs": {
+      "ebsVolumeType": "STANDARD",
       "instanceSize": "M20",
       "nodeCount": 1
      },
      "electableSpecs": {
+      "ebsVolumeType": "STANDARD",
       "instanceSize": "M10",
       "nodeCount": 3
      },
