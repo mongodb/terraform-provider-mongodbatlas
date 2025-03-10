@@ -53,11 +53,12 @@ type encryptionAtRestRS struct {
 }
 
 type TfEncryptionAtRestRSModel struct {
-	ID                   types.String                 `tfsdk:"id"`
-	ProjectID            types.String                 `tfsdk:"project_id"`
-	AwsKmsConfig         []TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
-	AzureKeyVaultConfig  []TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
-	GoogleCloudKmsConfig []TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	ID                    types.String                 `tfsdk:"id"`
+	ProjectID             types.String                 `tfsdk:"project_id"`
+	AwsKmsConfig          []TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
+	AzureKeyVaultConfig   []TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
+	GoogleCloudKmsConfig  []TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	EnabledForSearchNodes types.Bool                   `tfsdk:"enabled_for_search_nodes"`
 }
 
 type TFAwsKmsConfigModel struct {
@@ -105,6 +106,10 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 					stringplanmodifier.RequiresReplace(),
 				},
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+			},
+			"enabled_for_search_nodes": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "", // TODO: description
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -273,7 +278,9 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	projectID := encryptionAtRestPlan.ProjectID.ValueString()
-	encryptionAtRestReq := &admin.EncryptionAtRest{}
+	encryptionAtRestReq := &admin.EncryptionAtRest{
+		EnabledForSearchNodes: conversion.Pointer(true),
+	}
 	if encryptionAtRestPlan.AwsKmsConfig != nil {
 		encryptionAtRestReq.AwsKms = NewAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
 	}
