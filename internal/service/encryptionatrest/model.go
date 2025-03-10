@@ -3,7 +3,8 @@ package encryptionatrest
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 

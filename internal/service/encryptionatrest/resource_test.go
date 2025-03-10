@@ -7,8 +7,11 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/mockadmin"
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
+
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/mockadmin"
+	"github.com/mongodb/atlas-sdk-go/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
