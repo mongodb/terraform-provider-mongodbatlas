@@ -34,7 +34,7 @@ func IsSetIndex(p path.Path) bool {
 	return strings.Contains(lastPart, "[Value(")
 }
 
-func hasPrefix(p path.Path, prefix path.Path) bool {
+func HasPrefix(p, prefix path.Path) bool {
 	prefixString := prefix.String()
 	pString := p.String()
 	return strings.HasPrefix(pString, prefixString)
