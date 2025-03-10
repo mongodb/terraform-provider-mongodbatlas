@@ -24,6 +24,7 @@ func NewAtlasReqAdvancedConfiguration(ctx context.Context, objInput *types.Objec
 	}
 	changeStreamOptionsPreAndPostImagesExpireAfterSeconds := conversion.NilForUnknown(input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds, conversion.Int64PtrToIntPtr(input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds.ValueInt64Pointer()))
 	if changeStreamOptionsPreAndPostImagesExpireAfterSeconds == nil {
+		// in case the user removes the value, we should set it to -1, a special value used by the backend to use its default behavior
 		changeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(-1)
 	}
 	return &admin.ClusterDescriptionProcessArgs20240805{

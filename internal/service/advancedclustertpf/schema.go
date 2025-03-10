@@ -444,7 +444,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 		Attributes: map[string]schema.Attribute{
 			"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
 				Optional: true,
-				// Default found in model_to_ClusterDescriptionProcessArgs20240805.go
+				// Default set in NewAtlasReqAdvancedConfiguration
 				Computed:            true,
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
 				PlanModifiers: []planmodifier.Int64{
