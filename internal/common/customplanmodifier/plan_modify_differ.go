@@ -232,27 +232,28 @@ func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *Pl
 		return nil
 	}
 	var diffs []DiffTPF[T]
-	foundParentPaths := map[string]bool{}
+	usedPaths := map[string]bool{}
 
 	for _, diff := range d.stateConfigDiff {
 		p, localDiags := conversion.AttributePath(ctx, diff.Path, d.schema)
-		var parentMatch bool
+		if localDiags.HasError() {
+			return earlyReturn(localDiags)
+		}
+		// Never show diff if the parent is removed, for example replication_specs[0] is removed and replication_specs[0].region_configs[0].electable_spec is changed
+		if d.ParentRemoved(p) {
+			continue
+		}
 		if checkNestedAttributes {
 			parent := p.ParentPath()
 			if conversion.AttributeNameEquals(parent, name) {
-				if _, ok := foundParentPaths[parent.String()]; ok {
-					continue // parent already used
-				}
-				foundParentPaths[parent.String()] = true
 				p = parent
-				parentMatch = true
 			}
 		}
-		// Never show diff if the parent is removed, for example region config
-		if !d.ParentRemoved(p) && (parentMatch || conversion.AttributeNameEquals(p, name)) {
-			if localDiags.HasError() {
-				return earlyReturn(localDiags)
-			}
+		if _, ok := usedPaths[p.String()]; ok {
+			continue // already returned
+		}
+		if conversion.AttributeNameEquals(p, name) {
+			usedPaths[p.String()] = true
 			var configObj, planObj types.Object
 			stateParsed := ReadStateStructValue[T](ctx, diags, d, p)
 			if d2 := d.req.Config.GetAttribute(ctx, p, &configObj); d2.HasError() {
