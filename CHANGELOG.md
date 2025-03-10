@@ -1,5 +1,10 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds `AWSLambda` connection ([#3085](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3085))
+* resource/mongodbatlas_stream_connection: Adds `AWSLambda` connection ([#3085](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3085))
+
 BUG FIXES:
 
 * data-source/mongodbatlas_organizations: Avoids nil pointer error when individual getOrganizationSettings API call fails ([#3118](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3118))

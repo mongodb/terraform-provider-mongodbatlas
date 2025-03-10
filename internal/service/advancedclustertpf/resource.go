@@ -110,7 +110,7 @@ func asObjectValue[T any](ctx context.Context, t T, attrs map[string]attr.Type) 
 // 2. Adding the different UseStateForUnknown is very verbose.
 // ManualPlanChanges detects when a few known blocks are removed: analytics_specs/read_only_specs and auto_scaling/analytic_auto_scaling.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.Plan.Raw.IsNull() || req.State.Raw.IsNull() { // Return early unless it is an Update
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
 		return
 	}
 	var plan, state TFModel
@@ -245,18 +245,22 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var state, plan TFModel
+	var state, plan TFModel
 	diags := &resp.Diagnostics
+	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
 	if diags.HasError() {
 		return
 	}
 	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
+	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
 	if diags.HasError() {
 		return
 	}
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
+	clusterResp := r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams)
 	clusterResp := r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams)
 	if diags.HasError() {
 		return
@@ -270,10 +274,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		switch {
 		case diff.isUpgradeTenantToFlex:
 			if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
+			if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
 			return
 		case diff.isUpdateOfFlex:
+			if flexOut := handleFlexUpdate(ctx, diags, r.Client, &plan); flexOut != nil {
 			if flexOut := handleFlexUpdate(ctx, diags, r.Client, &plan); flexOut != nil {
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
@@ -284,11 +290,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			clusterResp = UpgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
 		case diff.isClusterPatchOnly():
 			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, diff.clusterPatchOnlyReq, waitParams)
+			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, diff.clusterPatchOnlyReq, waitParams)
 		}
 		if diags.HasError() {
 			return
 		}
 	}
+	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
@@ -302,7 +311,9 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if clusterResp == nil { // no Atlas updates needed but override is still needed (e.g. tags going from nil to [] or vice versa)
 		modelOut = &state
 		overrideAttributesWithPrevStateValue(&plan, modelOut)
+		overrideAttributesWithPrevStateValue(&plan, modelOut)
 	} else {
+		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
 		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
 		if diags.HasError() {
 			return
@@ -588,6 +599,8 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 
 func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
 	configReq := normalizeFromTFModel(ctx, plan, diags, false)
+func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
+	configReq := normalizeFromTFModel(ctx, plan, diags, false)
 	if diags.HasError() {
 		return nil
 	}
@@ -596,13 +609,17 @@ func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *con
 		return nil
 	}
 	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
+	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
 }
 
+func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel) *TFModel {
+	configReq := normalizeFromTFModel(ctx, plan, diags, false)
 func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel) *TFModel {
 	configReq := normalizeFromTFModel(ctx, plan, diags, false)
 	if diags.HasError() {
 		return nil
 	}
+	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(),
 	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(),
 		GetFlexClusterUpdateRequest(configReq.Tags, configReq.TerminationProtectionEnabled),
 		client.AtlasV2.FlexClustersApi)
@@ -610,6 +627,7 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 		diags.AddError(flexcluster.ErrorUpdateFlex, err.Error())
 		return nil
 	}
+	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
 	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
 }
 

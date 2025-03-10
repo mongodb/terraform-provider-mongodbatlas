@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,6 +41,7 @@ func UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, d *customp
 	if slices.Contains(keepUnknown, "replication_specs") {
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, d)
 	}
+	*/
 }
 
 func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, d *customplanmodifier.PlanModifyDiffer) {
