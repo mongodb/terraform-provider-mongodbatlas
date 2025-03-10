@@ -156,6 +156,10 @@ func newCloudRegionConfig20240805(ctx context.Context, input types.List, diags *
 	return &resp
 }
 
+func boolNilOrFalse(b types.Bool) bool {
+	return b.IsNull() || b.Equal(types.BoolValue(false))
+}
+
 func newAdvancedAutoScalingSettings(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.AdvancedAutoScalingSettings {
 	var resp *admin.AdvancedAutoScalingSettings
 	if input.IsUnknown() || input.IsNull() {
@@ -165,6 +169,9 @@ func newAdvancedAutoScalingSettings(ctx context.Context, input types.Object, dia
 	if localDiags := input.As(ctx, item, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
 		diags.Append(localDiags...)
 		return resp
+	}
+	if boolNilOrFalse(item.ComputeEnabled) && boolNilOrFalse(item.DiskGBEnabled) {
+		return nil
 	}
 	return &admin.AdvancedAutoScalingSettings{
 		Compute: newAdvancedComputeAutoScaling(ctx, input, diags),
