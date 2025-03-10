@@ -45,14 +45,21 @@ func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *r
 
 func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema TPFSchema) schemafunc.AttributeChanges {
 	var changes []string
+	addChangeAndParentChanges := func (change string) {
+		changes = append(changes, change)
+		parts := strings.Split(change, ".")
+		for i := range parts[:len(parts)-1] {
+			changes = append(changes, strings.Join(parts[:len(parts)-1-i], "."))
+		}
+	}
 	for _, d := range diff {
 		p, localDiags := AttributePath(ctx, d.Path, schema)
 		if IsListIndex(p) {
 			if d.Value1 == nil {
-				changes = append(changes, AsAddedIndex(p))
+				addChangeAndParentChanges(AsAddedIndex(p))
 			}
 			if d.Value2 == nil {
-				changes = append(changes, AsRemovedIndex(p))
+				addChangeAndParentChanges(AsRemovedIndex(p))
 			}
 		}
 		if d.Value2 != nil && d.Value2.IsKnown() && !d.Value2.IsNull() {
@@ -60,7 +67,7 @@ func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diag
 				diags.Append(localDiags...)
 				continue
 			}
-			changes = append(changes, p.String())
+			addChangeAndParentChanges(p.String())
 		}
 	}
 	return changes
