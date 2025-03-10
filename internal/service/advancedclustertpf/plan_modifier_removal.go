@@ -75,6 +75,7 @@ func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *Di
 	return manualChanges
 }
 
+var boolFalse = types.BoolValue(false)
 func didRemoveOrChangeAutoScaling(ctx context.Context, diags *diag.Diagnostics, differ *DiffHelper, name string) (removedFlag bool) {
 	autoScalings := StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, name, true)
 	if diags.HasError() {
@@ -83,6 +84,9 @@ func didRemoveOrChangeAutoScaling(ctx context.Context, diags *diag.Diagnostics, 
 	for _, autoScaling := range autoScalings {
 		var explicitRemoveAutoScaling *TFAutoScalingModel
 		if autoScaling.Removed() {
+			if autoScaling.State.ComputeEnabled.Equal(boolFalse) && autoScaling.State.DiskGBEnabled.Equal(boolFalse) {
+				continue
+			}
 			removedFlag = true
 			tflog.Info(ctx, fmt.Sprintf("AutoScaling @ %s removed\n%s", autoScaling.Path.String(), autoScaling.State))
 			if name == "auto_scaling" {
