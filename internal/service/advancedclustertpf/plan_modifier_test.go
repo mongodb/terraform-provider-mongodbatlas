@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -67,6 +69,13 @@ func AttributeNameEquals(p path.Path, name string) bool {
 	noBrackets := StripSquareBrackets(p)
 	return noBrackets == name || strings.HasSuffix(noBrackets, fmt.Sprintf(".%s", name))
 }
+
+func TestIsAttributeValueOnly(t *testing.T) {
+	assert.True(t, advancedclustertpf.IsAttributeValueOnly(path.Root("replication_specs").AtListIndex(0)))
+	assert.True(t, advancedclustertpf.IsAttributeValueOnly(path.Root("replication_specs").AtMapKey("myKey")))
+	assert.True(t, advancedclustertpf.IsAttributeValueOnly(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
+}
+
 
 func TestAttributeNameEquals(t *testing.T) {
 	assert.True(t, AttributeNameEquals(path.Root("replication_specs").AtListIndex(0), "replication_specs"))

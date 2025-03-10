@@ -12,6 +12,10 @@ func LastPart(p path.Path) string {
 	return parts[len(parts)-1]
 }
 
+func IsAttributeValueOnly(p path.Path) bool {
+	return IsMapIndex(p) || IsListIndex(p) || IsSetIndex(p)
+}
+
 func IsListIndex(p path.Path) bool {
 	lastPart := LastPart(p)
 	if IsMapIndex(p) {
@@ -23,6 +27,11 @@ func IsListIndex(p path.Path) bool {
 func IsMapIndex(p path.Path) bool {
 	lastPart := LastPart(p)
 	return strings.HasSuffix(lastPart, "\"]")
+}
+
+func IsSetIndex(p path.Path) bool {
+	lastPart := LastPart(p)
+	return strings.Contains(lastPart, "[Value(")
 }
 
 func hasPrefix(p path.Path, prefix path.Path) bool {

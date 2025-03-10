@@ -185,7 +185,7 @@ func (d *DiffHelper) UseStateForUnknown(ctx context.Context, diags *diag.Diagnos
 	schema := d.schema
 	for _, diff := range d.statePlanDiff {
 		stateValue, tpfPath := AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
-		if !hasPrefix(tpfPath, prefix) || stateValue == nil {
+		if !hasPrefix(tpfPath, prefix) || stateValue == nil || IsAttributeValueOnly(tpfPath){
 			continue
 		}
 		planValue, _ := AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)
