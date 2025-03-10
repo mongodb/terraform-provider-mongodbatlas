@@ -1486,6 +1486,9 @@ func configBasicDedicated(projectID, name, zoneName string) string {
 					node_count = 3
 					instance_size = "M10"
 				}
+				auto_scaling {
+					disk_gb_enabled = true // By default after Upgrade disk_gb_enabled is set to true
+				}
 			}
 			%[3]s
 		}
