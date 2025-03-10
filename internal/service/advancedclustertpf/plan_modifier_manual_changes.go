@@ -34,7 +34,7 @@ func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *cu
 			}
 			stateValue := diff.State
 			nodeCount := stateValue.NodeCount
-			if nodeCount.IsNull() || nodeCount.Equal(types.Int64Value(0)) {
+			if nodeCount.ValueInt64() == 0 {
 				continue
 			}
 			removed = append(removed, diff)

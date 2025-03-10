@@ -206,9 +206,9 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				patchExpected: nil,
 			},
 			"diskSizeGb ignored in state": {
-				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500)),
-				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, nil),
-				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, conversion.Pointer(3500)),
+				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500), nil),
+				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, nil, nil),
+				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, conversion.Pointer(3500), nil),
 				options: []update.PatchOptions{
 					{
 						IgnoreInStateSuffix: []string{"diskSizeGB"},
@@ -216,13 +216,35 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				},
 			},
 			"regionConfigs ignored in state but diskIOPS included": {
-				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500)),
-				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, nil),
-				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, conversion.Pointer(3500)),
+				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500), nil),
+				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, nil, nil),
+				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, conversion.Pointer(3500), nil),
 				options: []update.PatchOptions{
 					{
 						IgnoreInStatePrefix:  []string{"regionConfigs"},
 						IncludeInStateSuffix: []string{"diskIOPS"},
+					},
+				},
+			},
+			"IncludeSuffixTrigger state!=plan should give no changes": {
+				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500), conversion.Pointer(true)),
+				plan:          clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500), conversion.Pointer(true)),
+				patchExpected: nil,
+				options: []update.PatchOptions{
+					{
+						IgnoreInStatePrefix:  []string{"replicationSpecs"},
+						IncludeSuffixTrigger: []string{"autoScaling"},
+					},
+				},
+			},
+			"IncludeSuffixTrigger removal in plan should give changes without including state value": {
+				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500), conversion.Pointer(true)),
+				plan:          clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500), nil),
+				patchExpected: clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500), nil),
+				options: []update.PatchOptions{
+					{
+						IgnoreInStatePrefix:  []string{"replicationSpecs"},
+						IncludeSuffixTrigger: []string{"autoScaling"},
 					},
 				},
 			},
@@ -337,7 +359,15 @@ func (r replicationSpec) toAdmin() admin.ReplicationSpec20240805 {
 	return spec
 }
 
-func clusterDescriptionDiskSizeNodeCount(diskSizeGBElectable float64, nodeCountElectable int, diskSizeGBReadOnly *float64, nodeCountReadOnly int, diskIopsState *int) *admin.ClusterDescription20240805 {
+func clusterDescriptionDiskSizeNodeCount(diskSizeGBElectable float64, nodeCountElectable int, diskSizeGBReadOnly *float64, nodeCountReadOnly int, diskIopsState *int, autoScaling *bool) *admin.ClusterDescription20240805 {
+	var autoScalingAdmin *admin.AdvancedAutoScalingSettings
+	if autoScaling != nil {
+		autoScalingAdmin = &admin.AdvancedAutoScalingSettings{
+			DiskGB: &admin.DiskGBAutoScaling{
+				Enabled: autoScaling,
+			},
+		}
+	}
 	return &admin.ClusterDescription20240805{
 		ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 			{
@@ -353,6 +383,7 @@ func clusterDescriptionDiskSizeNodeCount(diskSizeGBElectable float64, nodeCountE
 							DiskSizeGB: diskSizeGBReadOnly,
 							DiskIOPS:   diskIopsState,
 						},
+						AutoScaling: autoScalingAdmin,
 					},
 				},
 			},

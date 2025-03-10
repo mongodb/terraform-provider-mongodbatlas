@@ -16,15 +16,23 @@ type attrPatchOperations struct {
 	ignoreInStateSuffix  []string
 	ignoreInStatePrefix  []string
 	includeInStateSuffix []string
+	includeSuffixTrigger []string
 	forceUpdateAttr      []string
 }
 
-func (m *attrPatchOperations) ignoreInStatePath(path string) bool {
-	for _, include := range m.includeInStateSuffix {
+func pathHasSuffix(path string, includeSuffix []string) bool {
+	for _, include := range includeSuffix {
 		suffix := "/" + include
 		if strings.HasSuffix(path, suffix) {
-			return false
+			return true
 		}
+	}
+	return false
+}
+
+func (m *attrPatchOperations) ignoreInStatePath(path string) bool {
+	if pathHasSuffix(path, m.includeInStateSuffix) {
+		return false
 	}
 	for _, ignore := range m.ignoreInStateSuffix {
 		suffix := "/" + ignore
@@ -47,12 +55,14 @@ func newAttrPatchOperations(patch jsondiff.Patch, options []PatchOptions) *attrP
 		ignoreSuffixInState  []string
 		ignorePrefixInState  []string
 		includeSuffixInState []string
+		includeSuffixTrigger []string
 		forceUpdateAttr      []string
 	)
 	for _, option := range options {
 		ignoreSuffixInState = append(ignoreSuffixInState, option.IgnoreInStateSuffix...)
 		ignorePrefixInState = append(ignorePrefixInState, option.IgnoreInStatePrefix...)
 		includeSuffixInState = append(includeSuffixInState, option.IncludeInStateSuffix...)
+		includeSuffixTrigger = append(includeSuffixTrigger, option.IncludeSuffixTrigger...)
 		forceUpdateAttr = append(forceUpdateAttr, option.ForceUpdateAttr...)
 	}
 	self := &attrPatchOperations{
@@ -60,6 +70,7 @@ func newAttrPatchOperations(patch jsondiff.Patch, options []PatchOptions) *attrP
 		ignoreInStateSuffix:  ignoreSuffixInState,
 		ignoreInStatePrefix:  ignorePrefixInState,
 		includeInStateSuffix: includeSuffixInState,
+		includeSuffixTrigger: includeSuffixTrigger,
 		forceUpdateAttr:      forceUpdateAttr,
 	}
 	for _, op := range patch {
@@ -101,7 +112,7 @@ func (m *attrPatchOperations) hasChanged(attr string) bool {
 		if slices.Contains(changeOps, op.Type) {
 			return true
 		}
-		if op.Type == jsondiff.OperationRemove && indexRemoval(op.Path) {
+		if op.Type == jsondiff.OperationRemove && (indexRemoval(op.Path) || pathHasSuffix(op.Path, m.includeSuffixTrigger)) {
 			return true
 		}
 	}
@@ -175,6 +186,8 @@ type PatchOptions struct {
 	IgnoreInStateSuffix  []string
 	IgnoreInStatePrefix  []string
 	IncludeInStateSuffix []string
+	// IncludeSuffixTrigger is used to include the attribute as changed if the suffix has been removed from state to plan
+	IncludeSuffixTrigger []string
 	ForceUpdateAttr      []string
 }
 
