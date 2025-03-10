@@ -524,7 +524,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, autoScaling, "M10", 10),
+				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, autoScaling, "M10", 10, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterName),
@@ -534,7 +534,18 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 				),
 			},
 			{
-				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, autoScalingUpdated, "M20", 20),
+				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, autoScalingUpdated, "M20", 20, 1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					acc.CheckExistsCluster(resourceName),
+					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterName),
+					acc.TestCheckResourceAttrSetPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"),
+					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"), // modified instance size in config is ignored
+					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb", "10"),   // modified disk size gb in config is ignored
+				),
+			},
+			{
+				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, nil, "M20", 20, 2), // auto_scaling block removed together with other changes, preserves previous state
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterName),
@@ -2084,10 +2095,11 @@ func checkAdvancedDefaultWrite(isAcc bool, name, writeConcern, tls string) resou
 		pluralChecks...)
 }
 
-func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, p *admin.AdvancedAutoScalingSettings, elecInstanceSize string, elecDiskSizeGB int) string {
+func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, autoScalingSettings *admin.AdvancedAutoScalingSettings, elecInstanceSize string, elecDiskSizeGB, analyticsNodeCount int) string {
 	t.Helper()
 	lifecycleIgnoreChanges := ""
-	if p.Compute.GetEnabled() {
+	autoScalingCompute := autoScalingSettings.GetCompute()
+	if autoScalingCompute.GetEnabled() {
 		lifecycleIgnoreChanges = `
 		lifecycle {
 			ignore_changes = [
@@ -2095,6 +2107,15 @@ func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clus
 				replication_specs[0].region_configs[0].electable_specs[0].disk_size_gb
 			]
         }`
+	}
+
+	autoScalingBlock := ""
+	if autoScalingSettings != nil {
+		autoScalingBlock = fmt.Sprintf(`auto_scaling {
+			compute_enabled = %t
+			disk_gb_enabled = %t
+			compute_max_instance_size = %q
+		}`, autoScalingSettings.Compute.GetEnabled(), autoScalingSettings.DiskGB.GetEnabled(), autoScalingSettings.Compute.GetMaxInstanceSize())
 	}
 
 	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
@@ -2112,24 +2133,20 @@ func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clus
 					}
 					analytics_specs {
 						instance_size = "M10"
-						node_count    = 1
+						node_count    = %[5]d
 					}
-					auto_scaling {
-						compute_enabled = %[5]t
-						disk_gb_enabled = %[6]t
-						compute_max_instance_size = %[7]q
-					}
+					%[6]s
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_WEST_2"
 				}
 			}
 			advanced_configuration  {
-			    oplog_min_retention_hours = 5.5
+				oplog_min_retention_hours = 5.5
 			}
-			%[8]s
+			%[7]s
 		}		
-	`, projectID, clusterName, elecInstanceSize, elecDiskSizeGB, p.Compute.GetEnabled(), p.DiskGB.GetEnabled(), p.Compute.GetMaxInstanceSize(), lifecycleIgnoreChanges))
+	`, projectID, clusterName, elecInstanceSize, elecDiskSizeGB, analyticsNodeCount, autoScalingBlock, lifecycleIgnoreChanges))
 }
 
 func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, p *admin.AdvancedAutoScalingSettings) string {
