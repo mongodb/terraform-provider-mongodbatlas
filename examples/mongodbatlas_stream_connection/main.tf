@@ -80,6 +80,18 @@ resource "mongodbatlas_stream_connection" "example-aws-lambda" {
   }
 }
 
+resource "mongodbatlas_stream_connection" "example-https" {
+  project_id      = var.project_id
+  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "HttpsConnection"
+  type            = "Https"
+  url             = "https://example.com"
+  headers = {
+    "key1": "value1",
+    "key2": "value2"
+  }
+}
+
 data "mongodbatlas_stream_connection" "example-kafka-ssl" {
   project_id      = var.project_id
   instance_name   = mongodbatlas_stream_instance.example.instance_name

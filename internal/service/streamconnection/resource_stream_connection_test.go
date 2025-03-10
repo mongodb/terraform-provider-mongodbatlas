@@ -191,6 +191,31 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	})
 }
 
+func TestAccStreamRSStreamConnection_https(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_stream_connection.test"
+		projectID    = acc.ProjectIDExecution(t)
+		instanceName = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: httpsStreamConnectionConfig(projectID, instanceName),
+				Check:  httpsStreamConnectionAttributeChecks(resourceName, instanceName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 	acc.SkipTestForCI(t) // requires Confluent Cloud resources
 	var (
@@ -326,6 +351,20 @@ func sampleStreamConnectionAttributeChecks(
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
 
+func httpsStreamConnectionAttributeChecks(resourceName, instanceName string) resource.TestCheckFunc {
+	resourceChecks := []resource.TestCheckFunc{
+		checkStreamConnectionExists(),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
+		resource.TestCheckResourceAttr(resourceName, "connection_name", "ConnectionNameHttps"),
+		resource.TestCheckResourceAttr(resourceName, "type", "Https"),
+		resource.TestCheckResourceAttr(resourceName, "url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "headers.Authorization", "Bearer token"),
+		resource.TestCheckResourceAttr(resourceName, "headers.key1", "value1"),
+	}
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+}
+
 func kafkaStreamConnectionAttributeChecks(
 	resourceName, instanceName, username, password, bootstrapServers, configValue, networkingType string, usesSSL, checkPassword bool) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
@@ -379,6 +418,31 @@ func clusterStreamConnectionConfig(projectID, instanceName, clusterName string) 
 			}
 		}
 	`, projectID, instanceName, clusterName)
+}
+
+func httpsStreamConnectionConfig(projectID, instanceName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_instance" "test" {
+			project_id = %[1]q
+			instance_name = %[2]q
+			data_process_region = {
+				region = "VIRGINIA_USA"
+				cloud_provider = "AWS"
+			}
+		}
+			
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id = mongodbatlas_stream_instance.test.project_id
+			instance_name = mongodbatlas_stream_instance.test.instance_name
+			connection_name = "ConnectionNameHttps"
+			type = "Https"
+			url = "https://example.com"
+			headers = {
+				"Authorization" : "Bearer token",
+				"key1" : "value1"
+			} 
+		}
+	`, projectID, instanceName)
 }
 
 func clusterStreamConnectionAttributeChecks(resourceName, clusterName string) resource.TestCheckFunc {

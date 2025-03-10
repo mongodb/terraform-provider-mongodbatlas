@@ -20,7 +20,7 @@ data "mongodbatlas_stream_connection" "example" {
 
 ## Attributes Reference
 
-* `type` - Type of connection. Can be `Cluster`, `Kafka`, `Sample`, or `AWSLambda`.
+* `type` - Type of connection. Can be `Cluster`, `Kafka`, `Sample`, `Https` or `AWSLambda`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -35,6 +35,10 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 
 If `type` is of value `AWSLambda` the following additional attributes are defined:
 * `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
+
+If `type` is of value `Https` the following additional attributes are defined:
+* `url` - URL of the HTTPs endpoint that will be used for creating a connection.
+* `headers` - A map of key-value pairs for optional headers.
 
 ### Authentication
 
