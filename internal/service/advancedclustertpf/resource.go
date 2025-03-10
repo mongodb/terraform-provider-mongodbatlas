@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -128,7 +127,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 	rSchema := resourceSchema(ctx)
-	differ := newDiffHelper(&req, resp, rSchema)
+	differ := newDiffHelper(ctx, &req, resp, rSchema)
 	if manualPlanChanges(ctx, diags, differ) && differ.PlanFullyKnown {
 		UpdatePlanValue(ctx, diags, differ, path.Root("state_name"), types.StringUnknown())
 		UpdatePlanValue(ctx, diags, differ, path.Root("connection_strings"), types.ObjectUnknown(ConnectionStringsObjType.AttrTypes))
@@ -137,32 +136,10 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
-	// TODO: UseStateForUnknownsReplicationSpecs2(ctx, diags, &differ, &state, &plan)
-	keepUnknown := []string{"connection_strings", "state_name", "replication_specs"}
-	differ.UseStateForUnknown(ctx, diags, keepUnknown, path.Empty())
-	differ.UseStateForUnknown(ctx, diags, []string{"disk_size_gb"}, path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(0).AtName("read_only_specs"))
-	// fmt.Println(differ.NiceDiff(ctx, diags, rSchema))
-	tflog.Info(ctx, differ.NiceDiff(ctx, diags, rSchema, false))
-	tflog.Info(ctx, differ.NiceDiff(ctx, diags, rSchema, true))
+	UseStateForUnknown2(ctx, diags, differ, &state, &plan)
 	if diags.HasError() {
 		return
 	}
-	// analyticsSpecs := StateConfig[TFSpecsModel](ctx, diags, differ, "read_only_specs", rSchema)
-
-	// for _, diff := range diffs {
-	// 	tflog.Info(ctx, fmt.Sprintf("Diff @ %s\n%v!=%v", diff.Path.String(), diff.Value1, diff.Value2))
-	// 	setPath, localDiags := AttributePath(ctx, diff.Path, rSchema)
-	// 	if localDiags.HasError() {
-	// 		diags.Append(localDiags...)
-	// 		return
-	// 	}
-	// 	var stateValueParsed types.List
-	// 	if l := req.State.GetAttribute(ctx, setPath, &stateValueParsed); l.HasError() {
-	// 		diags.Append(l...)
-	// 		return
-	// 	}
-	// 	diags.Append(resp.Plan.SetAttribute(ctx, setPath, stateValueParsed)...)
-	// }
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

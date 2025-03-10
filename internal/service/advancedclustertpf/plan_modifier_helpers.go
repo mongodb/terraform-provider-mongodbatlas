@@ -17,7 +17,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
-func newDiffHelper(req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema TPFSchema) *DiffHelper {
+func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema TPFSchema) *DiffHelper {
 	diags := &resp.Diagnostics
 	diffStatePlan, err := req.State.Raw.Diff(resp.Plan.Raw)
 	if err != nil {
@@ -29,15 +29,41 @@ func newDiffHelper(req *resource.ModifyPlanRequest, resp *resource.ModifyPlanRes
 		diags.AddError("Error diffing state and config", err.Error())
 		return nil
 	}
+
+	attributeChanges := findChanges(ctx, diffStatePlan, diags, schema)
+	tflog.Info(ctx, fmt.Sprintf("Attribute changes: %s\n", strings.Join(attributeChanges, "\n")))
 	return &DiffHelper{
 		req:              req,
 		resp:             resp,
 		stateConfigDiff:  diffStateConfig,
 		statePlanDiff:    diffStatePlan,
 		schema:           schema,
-		AttributeChanges: &schemafunc.AttributeChanges{},
+		AttributeChanges: &attributeChanges,
 		PlanFullyKnown:   req.Plan.Raw.IsFullyKnown(),
 	}
+}
+
+func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema TPFSchema) schemafunc.AttributeChanges {
+	var changes []string
+	for _, d := range diff {
+		p, localDiags := AttributePath(ctx, d.Path, schema)
+		if IsListIndex(p) {
+			if d.Value1 == nil {
+				changes = append(changes, AsAddedIndex(p))
+			}
+			if d.Value2 == nil {
+				changes = append(changes, AsRemovedIndex(p))
+			}
+		}
+		if d.Value2 != nil && d.Value2.IsKnown() && !d.Value2.IsNull() {
+			if localDiags.HasError() {
+				diags.Append(localDiags...)
+				continue
+			}
+			changes = append(changes, p.String())
+		}
+	}
+	return changes
 }
 
 type DiffHelper struct {
@@ -49,6 +75,14 @@ type DiffHelper struct {
 	stateConfigDiff []tftypes.ValueDiff
 	statePlanDiff   []tftypes.ValueDiff
 	schema          TPFSchema
+}
+
+func (d *DiffHelper) ParentRemoved(p path.Path) bool {
+	if !IsListIndex(p.ParentPath()) {
+		return false
+	}
+	parentRemoved := AsRemovedIndex(p.ParentPath())
+	return slices.Contains(*d.AttributeChanges, parentRemoved)
 }
 
 func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, schema TPFSchema, isConfig bool) string {
@@ -137,15 +171,6 @@ func keepUnknownCall(aPath *tftypes.AttributePath, keepUnknown []string) bool {
 	}
 	return false
 }
-func hasPrefix(p path.Path, prefix path.Path) bool {
-	prefixString := prefix.String()
-	pString := p.String()
-	return strings.HasPrefix(pString, prefixString)
-}
-
-func attributeNameEquals(p path.Path, name string) bool {
-	return strings.HasSuffix(p.String(), fmt.Sprintf(".%s", name))
-}
 
 func (d *DiffHelper) UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, keepUnknown []string, prefix path.Path) {
 	// The diff is sorted by the path length, for example read_only_spec is processed before read_only_spec.disk_size_gb
@@ -184,7 +209,7 @@ func (d *DiffHelper) UseStateForUnknown(ctx context.Context, diags *diag.Diagnos
 	}
 }
 
-func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, name string, checkParent bool) []DiffTPF[T] {
+func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, name string, checkNestedAttributes bool) []DiffTPF[T] {
 	earlyReturn := func(localDiags diag.Diagnostics) []DiffTPF[T] {
 		diags.Append(localDiags...)
 		return nil
@@ -195,9 +220,9 @@ func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *Di
 	for _, diff := range d.stateConfigDiff {
 		p, localDiags := AttributePath(ctx, diff.Path, d.schema)
 		var pathMatch bool
-		if checkParent {
+		if checkNestedAttributes {
 			parent := p.ParentPath()
-			if attributeNameEquals(parent, name) {
+			if AttributeNameEquals(parent, name) {
 				if _, ok := foundParentPaths[parent.String()]; ok {
 					continue // parent already used
 				}
@@ -206,7 +231,8 @@ func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *Di
 				pathMatch = true
 			}
 		}
-		if pathMatch || attributeNameEquals(p, name) {
+		// Never show diff if the parent is removed, for exampl region config
+		if !d.ParentRemoved(p) && (pathMatch || AttributeNameEquals(p, name)) {
 			if localDiags.HasError() {
 				return earlyReturn(localDiags)
 			}

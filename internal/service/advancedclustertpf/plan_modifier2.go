@@ -13,6 +13,7 @@ func UseStateForUnknown2(ctx context.Context, diags *diag.Diagnostics, d *DiffHe
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, d.AttributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
+	d.UseStateForUnknown(ctx, diags, keepUnknown, path.Empty())
 	if slices.Contains(keepUnknown, "replication_specs") {
 		useStateForUnknownsReplicationSpecs2(ctx, diags, state, plan, d)
 	}
