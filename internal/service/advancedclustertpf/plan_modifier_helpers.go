@@ -3,6 +3,7 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"maps"
 	"slices"
 	"sort"
 	"strings"
@@ -44,12 +45,12 @@ func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *r
 }
 
 func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema TPFSchema) schemafunc.AttributeChanges {
-	var changes []string
+	changes := map[string]bool{}
 	addChangeAndParentChanges := func (change string) {
-		changes = append(changes, change)
+		changes[change] = true
 		parts := strings.Split(change, ".")
 		for i := range parts[:len(parts)-1] {
-			changes = append(changes, strings.Join(parts[:len(parts)-1-i], "."))
+			changes[strings.Join(parts[:len(parts)-1-i], ".")] = true
 		}
 	}
 	for _, d := range diff {
@@ -70,7 +71,7 @@ func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diag
 			addChangeAndParentChanges(p.String())
 		}
 	}
-	return changes
+	return slices.Sorted(maps.Keys(changes))
 }
 
 type DiffHelper struct {
