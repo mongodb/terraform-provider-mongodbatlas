@@ -18,7 +18,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
-func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema TPFSchema) *DiffHelper {
+func NewPlanModifyDiffer(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema TPFSchema) *PlanModifyDiffer {
 	diags := &resp.Diagnostics
 	diffStatePlan, err := req.State.Raw.Diff(resp.Plan.Raw)
 	if err != nil {
@@ -33,7 +33,7 @@ func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *r
 
 	attributeChanges := findChanges(ctx, diffStatePlan, diags, schema)
 	tflog.Info(ctx, fmt.Sprintf("Attribute changes: %s\n", strings.Join(attributeChanges, "\n")))
-	return &DiffHelper{
+	return &PlanModifyDiffer{
 		req:              req,
 		resp:             resp,
 		stateConfigDiff:  diffStateConfig,
@@ -44,37 +44,7 @@ func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *r
 	}
 }
 
-func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema TPFSchema) schemafunc.AttributeChanges {
-	changes := map[string]bool{}
-	addChangeAndParentChanges := func(change string) {
-		changes[change] = true
-		parts := strings.Split(change, ".")
-		for i := range parts[:len(parts)-1] {
-			changes[strings.Join(parts[:len(parts)-1-i], ".")] = true
-		}
-	}
-	for _, d := range diff {
-		p, localDiags := AttributePath(ctx, d.Path, schema)
-		if IsListIndex(p) {
-			if d.Value1 == nil {
-				addChangeAndParentChanges(AsAddedIndex(p))
-			}
-			if d.Value2 == nil {
-				addChangeAndParentChanges(AsRemovedIndex(p))
-			}
-		}
-		if d.Value2 != nil && d.Value2.IsKnown() && !d.Value2.IsNull() {
-			if localDiags.HasError() {
-				diags.Append(localDiags...)
-				continue
-			}
-			addChangeAndParentChanges(p.String())
-		}
-	}
-	return slices.Sorted(maps.Keys(changes))
-}
-
-type DiffHelper struct {
+type PlanModifyDiffer struct {
 	schema           TPFSchema
 	AttributeChanges *schemafunc.AttributeChanges
 	req              *resource.ModifyPlanRequest
@@ -84,7 +54,7 @@ type DiffHelper struct {
 	PlanFullyKnown   bool
 }
 
-func (d *DiffHelper) ParentRemoved(p path.Path) bool {
+func (d *PlanModifyDiffer) ParentRemoved(p path.Path) bool {
 	if !IsListIndex(p.ParentPath()) {
 		return false
 	}
@@ -92,7 +62,7 @@ func (d *DiffHelper) ParentRemoved(p path.Path) bool {
 	return slices.Contains(*d.AttributeChanges, parentRemoved)
 }
 
-func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, schema TPFSchema, isConfig bool) string {
+func (d *PlanModifyDiffer) Diff(ctx context.Context, diags *diag.Diagnostics, schema TPFSchema, isConfig bool) string {
 	diffList := d.statePlanDiff
 	if isConfig {
 		diffList = d.stateConfigDiff
@@ -114,72 +84,7 @@ func (d *DiffHelper) NiceDiff(ctx context.Context, diags *diag.Diagnostics, sche
 	return fmt.Sprintf("DifferStateTo%s\n", name) + strings.Join(diffPaths, "\n")
 }
 
-func ReadConfigStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.Config, p, diags)
-}
-
-func ReadPlanStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.Plan, p, diags)
-}
-
-func ReadStateStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.State, p, diags)
-}
-
-func readSrcStructValue[T any](ctx context.Context, src TPFSrc, p path.Path, diags *diag.Diagnostics) *T {
-	var obj types.Object
-	if localDiags := src.GetAttribute(ctx, p, &obj); localDiags.HasError() {
-		diags.Append(localDiags...)
-		return nil
-	}
-	if obj.IsNull() || obj.IsUnknown() {
-		return nil
-	}
-	return TFModelObject[T](ctx, diags, obj)
-}
-
-func UpdatePlanValue[T attr.Value](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, p path.Path, value T) {
-	if localDiags := d.resp.Plan.SetAttribute(ctx, p, value); localDiags.HasError() {
-		diags.Append(localDiags...)
-	}
-}
-
-type DiffTPF[T any] struct {
-	Plan          *T
-	State         *T
-	Config        *T
-	Path          path.Path
-	PlanUnknown   bool
-	ConfigUnknown bool
-}
-
-func (d *DiffTPF[T]) Removed() bool {
-	return d.State != nil && d.Config == nil
-}
-
-func (d *DiffTPF[T]) Changed() bool {
-	return d.State != nil && d.Config != nil
-}
-
-func (d *DiffTPF[T]) PlanOrStateValue() *T {
-	if d.Plan != nil {
-		return d.Plan
-	}
-	return d.State
-}
-
-func keepUnknownCall(aPath *tftypes.AttributePath, keepUnknown []string) bool {
-	for _, step := range aPath.Steps() {
-		if aName, ok := step.(tftypes.AttributeName); ok {
-			if slices.Contains(keepUnknown, string(aName)) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func (d *DiffHelper) UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, keepUnknown []string, prefix path.Path) {
+func (d *PlanModifyDiffer) UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, keepUnknown []string, prefix path.Path) {
 	// The diff is sorted by the path length, for example read_only_spec is processed before read_only_spec.disk_size_gb
 	schema := d.schema
 	for _, diff := range d.statePlanDiff {
@@ -216,7 +121,103 @@ func (d *DiffHelper) UseStateForUnknown(ctx context.Context, diags *diag.Diagnos
 	}
 }
 
-func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, name string, checkNestedAttributes bool) []DiffTPF[T] {
+func ReadConfigStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path) *T {
+	return readSrcStructValue[T](ctx, d.req.Config, p, diags)
+}
+
+func ReadPlanStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path) *T {
+	return readSrcStructValue[T](ctx, d.req.Plan, p, diags)
+}
+
+func ReadStateStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path) *T {
+	return readSrcStructValue[T](ctx, d.req.State, p, diags)
+}
+
+func readSrcStructValue[T any](ctx context.Context, src TPFSrc, p path.Path, diags *diag.Diagnostics) *T {
+	var obj types.Object
+	if localDiags := src.GetAttribute(ctx, p, &obj); localDiags.HasError() {
+		diags.Append(localDiags...)
+		return nil
+	}
+	if obj.IsNull() || obj.IsUnknown() {
+		return nil
+	}
+	return TFModelObject[T](ctx, diags, obj)
+}
+
+func UpdatePlanValue[T attr.Value](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path, value T) {
+	if localDiags := d.resp.Plan.SetAttribute(ctx, p, value); localDiags.HasError() {
+		diags.Append(localDiags...)
+	}
+}
+
+type DiffTPF[T any] struct {
+	Plan          *T
+	State         *T
+	Config        *T
+	Path          path.Path
+	PlanUnknown   bool
+	ConfigUnknown bool
+}
+
+func (d *DiffTPF[T]) Removed() bool {
+	return d.State != nil && d.Config == nil
+}
+
+func (d *DiffTPF[T]) Changed() bool {
+	return d.State != nil && d.Config != nil
+}
+
+func (d *DiffTPF[T]) PlanOrStateValue() *T {
+	if d.Plan != nil {
+		return d.Plan
+	}
+	return d.State
+}
+
+func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema TPFSchema) schemafunc.AttributeChanges {
+	changes := map[string]bool{}
+	addChangeAndParentChanges := func(change string) {
+		changes[change] = true
+		parts := strings.Split(change, ".")
+		for i := range parts[:len(parts)-1] {
+			changes[strings.Join(parts[:len(parts)-1-i], ".")] = true
+		}
+	}
+	for _, d := range diff {
+		p, localDiags := AttributePath(ctx, d.Path, schema)
+		if IsListIndex(p) {
+			if d.Value1 == nil {
+				addChangeAndParentChanges(AsAddedIndex(p))
+			}
+			if d.Value2 == nil {
+				addChangeAndParentChanges(AsRemovedIndex(p))
+			}
+		}
+		if d.Value2 != nil && d.Value2.IsKnown() && !d.Value2.IsNull() {
+			if localDiags.HasError() {
+				diags.Append(localDiags...)
+				continue
+			}
+			addChangeAndParentChanges(p.String())
+		}
+	}
+	return slices.Sorted(maps.Keys(changes))
+}
+
+func keepUnknownCall(aPath *tftypes.AttributePath, keepUnknown []string) bool {
+	for _, step := range aPath.Steps() {
+		if aName, ok := step.(tftypes.AttributeName); ok {
+			if slices.Contains(keepUnknown, string(aName)) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+
+func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, name string, checkNestedAttributes bool) []DiffTPF[T] {
 	earlyReturn := func(localDiags diag.Diagnostics) []DiffTPF[T] {
 		diags.Append(localDiags...)
 		return nil

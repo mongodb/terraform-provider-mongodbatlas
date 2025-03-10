@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
-func UseStateForUnknown2(ctx context.Context, diags *diag.Diagnostics, d *DiffHelper, state, plan *TFModel) {
+func UseStateForUnknown2(ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, state, plan *TFModel) {
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, d.AttributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
@@ -19,7 +19,7 @@ func UseStateForUnknown2(ctx context.Context, diags *diag.Diagnostics, d *DiffHe
 	}
 }
 
-func useStateForUnknownsReplicationSpecs2(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, d *DiffHelper) {
+func useStateForUnknownsReplicationSpecs2(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, d *PlanModifyDiffer) {
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {

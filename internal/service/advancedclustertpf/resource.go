@@ -127,7 +127,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 	rSchema := resourceSchema(ctx)
-	differ := newDiffHelper(ctx, &req, resp, rSchema)
+	differ := NewPlanModifyDiffer(ctx, &req, resp, rSchema)
 	if manualPlanChanges(ctx, diags, differ) && differ.PlanFullyKnown {
 		UpdatePlanValue(ctx, diags, differ, path.Root("state_name"), types.StringUnknown())
 		UpdatePlanValue(ctx, diags, differ, path.Root("connection_strings"), types.ObjectUnknown(ConnectionStringsObjType.AttrTypes))

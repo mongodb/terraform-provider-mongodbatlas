@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-func manualPlanChanges(ctx context.Context, diags *diag.Diagnostics, differ *DiffHelper) (manualChanges bool) {
+func manualPlanChanges(ctx context.Context, diags *diag.Diagnostics, differ *PlanModifyDiffer) (manualChanges bool) {
 	if nonZeroSpecRemoved(ctx, diags, differ) {
 		manualChanges = true
 	}
@@ -23,7 +23,7 @@ func manualPlanChanges(ctx context.Context, diags *diag.Diagnostics, differ *Dif
 	return manualChanges
 }
 
-func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *DiffHelper) (manualChanges bool) {
+func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *PlanModifyDiffer) (manualChanges bool) {
 	removedSpecs := func(diffs []DiffTPF[TFSpecsModel]) []DiffTPF[TFSpecsModel] {
 		var removed []DiffTPF[TFSpecsModel]
 		for _, diff := range diffs {
@@ -78,7 +78,7 @@ func nonZeroSpecRemoved(ctx context.Context, diags *diag.Diagnostics, differ *Di
 
 var boolFalse = types.BoolValue(false)
 
-func didRemoveOrChangeAutoScaling(ctx context.Context, diags *diag.Diagnostics, differ *DiffHelper, name string) (removedFlag bool) {
+func didRemoveOrChangeAutoScaling(ctx context.Context, diags *diag.Diagnostics, differ *PlanModifyDiffer, name string) (removedFlag bool) {
 	autoScalings := StateConfigDiffs[TFAutoScalingModel](ctx, diags, differ, name, true)
 	if diags.HasError() {
 		return false
