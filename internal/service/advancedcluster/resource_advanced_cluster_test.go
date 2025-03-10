@@ -1303,6 +1303,8 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 		checksMap["replication_specs.0.region_configs.0.analytics_specs.0.node_count"] = "0"
 	}
 	checks := checkAggr(true, nil, checksMap)
+	checksMap["replication_specs.0.region_configs.0.analytics_specs.0.node_count"] = "1" // analytics_specs is kept even if it's removed from the config
+	checksAfter := checkAggr(true, nil, checksMap)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -1314,13 +1316,10 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 				Config: configSharded(t, projectID, clusterName, true),
 				Check:  checksUpdated,
 			},
-			// TODO: block removal is not detected as a plan change, as in SDKv2
-			/*
-				{
-					Config: configSharded(t, projectID, clusterName, false),
-					Check:  checks,
-				},
-			*/
+			{
+				Config: configSharded(t, projectID, clusterName, false),
+				Check:  checksAfter,
+			},
 			acc.TestStepImportCluster(resourceName),
 		},
 	})
