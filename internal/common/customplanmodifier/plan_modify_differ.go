@@ -98,21 +98,7 @@ func (d *PlanModifyDiffer) UseStateForUnknown(ctx context.Context, diags *diag.D
 			continue
 		}
 		planValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)
-		if planValue == nil {
-			continue
-		}
-		// For nested attributes with unknown values, all their children attributes will be `null` instead of unknown.
-		// Therefore, to ensure keepUnknown, force unknown when the responsePlanValue is not unknown.
-		if planValue.IsNull() && keepUnknownCall(diff.Path, keepUnknown) && !d.ParentRemoved(tpfPath) {
-			responsePlanValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.resp.Plan, schema)
-			if responsePlanValue != nil && !responsePlanValue.IsUnknown() {
-				tflog.Info(ctx, fmt.Sprintf("Force unknown value in plan @ %s", tpfPath.String()))
-				unknownValue := conversion.AsUnknownValue(ctx, stateValue)
-				UpdatePlanValue(ctx, diags, d, tpfPath, unknownValue)
-			}
-			continue
-		}
-		if !planValue.IsUnknown() {
+		if planValue == nil || !planValue.IsUnknown() {
 			continue
 		}
 		if keepUnknownCall(diff.Path, keepUnknown) {
@@ -122,6 +108,22 @@ func (d *PlanModifyDiffer) UseStateForUnknown(ctx context.Context, diags *diag.D
 		} else {
 			tflog.Info(ctx, fmt.Sprintf("Replacing unknown value in plan @ %s", tpfPath.String()))
 			UpdatePlanValue(ctx, diags, d, tpfPath, stateValue)
+			d.ensureKeepUnknownRespected(ctx, diags, tpfPath, stateValue, keepUnknown)
+		}
+	}
+}
+
+func (d *PlanModifyDiffer) ensureKeepUnknownRespected(ctx context.Context, diags *diag.Diagnostics, tpfPath path.Path, value attr.Value, keepUnknown []string) {
+	valueObject, ok := value.(types.Object)
+	if value.IsNull() || value.IsUnknown() || !ok {
+		return
+	}
+	for key, childValue := range valueObject.Attributes() {
+		if slices.Contains(keepUnknown, key) && !childValue.IsUnknown() {
+			childPath := tpfPath.AtName(key)
+			tflog.Info(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", childPath.String()))
+			unknownValue := conversion.AsUnknownValue(ctx, childValue)
+			UpdatePlanValue(ctx, diags, d, childPath, unknownValue)
 		}
 	}
 }
