@@ -122,7 +122,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
-	diff := findClusterDiff(ctx, &state, &plan, diags)
+	diff := findClusterDiff(ctx, &state, &plan, diags, true)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
 	}
@@ -264,7 +264,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	{
-		diff := findClusterDiff(ctx, &state, &plan, diags)
+		diff := findClusterDiff(ctx, &state, &plan, diags, false)
 		if diags.HasError() {
 			return
 		}
@@ -536,7 +536,7 @@ func (c *clusterDiff) isAnyUpgrade() bool {
 }
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
-func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) clusterDiff {
+func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, skipFlexUpdateError bool) clusterDiff {
 	if _ = isShardingConfigUpgrade(ctx, state, plan, diags); diags.HasError() { // Checks that there is no downgrade from new sharding config to old one
 		return clusterDiff{}
 	}
@@ -552,6 +552,9 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		}
 		if isValidUpdateOfFlex(stateReq, planReq) {
 			return clusterDiff{isUpdateOfFlex: true}
+		}
+		if skipFlexUpdateError {
+			return clusterDiff{}
 		}
 		diags.AddError(flexcluster.ErrorNonUpdatableAttributes, "")
 		return clusterDiff{}
