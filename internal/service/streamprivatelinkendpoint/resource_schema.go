@@ -2,17 +2,9 @@ package streamprivatelinkendpoint
 
 import (
 	"context"
-	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-)
-
-var uppercaseValidator = stringvalidator.RegexMatches(
-	regexp.MustCompile("^[A-Z]+$"),
-	"must contain only uppercase characters",
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -54,9 +46,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"provider_name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Provider where the Kafka cluster is deployed.",
-				Validators: []validator.String{
-					uppercaseValidator,
-				},
 			},
 			"region": schema.StringAttribute{
 				Optional:            true,
@@ -73,9 +62,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"vendor": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Vendor who manages the Kafka cluster.",
-				Validators: []validator.String{
-					uppercaseValidator,
-				},
 			},
 		},
 	}
