@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"time"
 
-	// TODO: change back
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
