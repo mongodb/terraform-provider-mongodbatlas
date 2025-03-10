@@ -52,12 +52,12 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configReplicaSetAWSProvider(t, false, projectID, clusterName, 60, 3),
+				Config:            configAWSProvider(t, false, projectID, clusterName, "REPLICASET", 60, 3),
 				Check:             checkReplicaSetAWSProvider(false, projectID, clusterName, 60, 3, false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configReplicaSetAWSProvider(t, false, projectID, clusterName, 60, 5),
+				Config:                   configAWSProvider(t, false, projectID, clusterName, "REPLICASET", 60, 5),
 				Check:                    checkReplicaSetAWSProvider(false, projectID, clusterName, 60, 5, true, true),
 			},
 		},

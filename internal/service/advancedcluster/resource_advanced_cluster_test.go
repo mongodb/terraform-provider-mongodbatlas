@@ -203,11 +203,15 @@ func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetAWSProvider(t, isAcc, projectID, clusterName, 60, 3),
+				Config: configAWSProvider(t, isAcc, projectID, clusterName, "REPLICASET", 60, 3),
 				Check:  checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 60, 3, true, true),
 			},
 			{
-				Config: configReplicaSetAWSProvider(t, isAcc, projectID, clusterName, 50, 5),
+				Config: configAWSProvider(t, isAcc, projectID, clusterName, "REPLICASET", 50, 5),
+				Check:  checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 50, 5, true, true),
+			},
+			{ // testing transition from replica set to sharded cluster
+				Config: configAWSProvider(t, isAcc, projectID, clusterName, "SHARDED", 50, 5),
 				Check:  checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 50, 5, true, true),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
@@ -1603,21 +1607,21 @@ func checkKeyValueBlocksPreviewProviderV2(isAcc, includeDataSources bool, blockN
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func configReplicaSetAWSProvider(t *testing.T, isAcc bool, projectID, name string, diskSizeGB, nodeCountElectable int) string {
+func configAWSProvider(t *testing.T, isAcc bool, projectID, name, clusterType string, diskSizeGB, nodeCountElectable int) string {
 	t.Helper()
 	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
-			cluster_type = "REPLICASET"
+			cluster_type = %[3]q
 			retain_backups_enabled = "true"
-			disk_size_gb = %[3]d
+			disk_size_gb = %[4]d
 
 			replication_specs {
 				region_configs {
 					electable_specs {
 						instance_size = "M10"
-						node_count    = %[4]d
+						node_count    = %[5]d
 					}
 					analytics_specs {
 						instance_size = "M10"
@@ -1629,7 +1633,7 @@ func configReplicaSetAWSProvider(t *testing.T, isAcc bool, projectID, name strin
 				}
 			}
 		}
-	`, projectID, name, diskSizeGB, nodeCountElectable)) + dataSourcesTFOldSchema
+	`, projectID, name, clusterType, diskSizeGB, nodeCountElectable)) + dataSourcesTFOldSchema
 }
 
 func checkReplicaSetAWSProvider(isAcc bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
