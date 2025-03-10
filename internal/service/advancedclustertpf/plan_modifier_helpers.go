@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -142,7 +143,7 @@ func readSrcStructValue[T any](ctx context.Context, src TPFSrc, p path.Path, dia
 	if obj.IsNull() || obj.IsUnknown() {
 		return nil
 	}
-	return TFModelObject[T](ctx, diags, obj)
+	return conversion.TFModelObject[T](ctx, diags, obj)
 }
 
 func UpdatePlanValue[T attr.Value](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path, value T) {
@@ -216,7 +217,6 @@ func keepUnknownCall(aPath *tftypes.AttributePath, keepUnknown []string) bool {
 	return false
 }
 
-
 func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, name string, checkNestedAttributes bool) []DiffTPF[T] {
 	earlyReturn := func(localDiags diag.Diagnostics) []DiffTPF[T] {
 		diags.Append(localDiags...)
@@ -254,10 +254,10 @@ func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *Pl
 			}
 			var configParsed, planParsed *T
 			if !configObj.IsNull() && !configObj.IsUnknown() {
-				configParsed = TFModelObject[T](ctx, diags, configObj)
+				configParsed = conversion.TFModelObject[T](ctx, diags, configObj)
 			}
 			if !planObj.IsNull() && !planObj.IsUnknown() {
-				planParsed = TFModelObject[T](ctx, diags, planObj)
+				planParsed = conversion.TFModelObject[T](ctx, diags, planObj)
 			}
 			if diags.HasError() {
 				return nil

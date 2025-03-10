@@ -1,10 +1,13 @@
 package conversion
 
 import (
+	"context"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func SafeValue[T any](v *T) T {
@@ -103,4 +106,22 @@ func NilForUnknownOrEmptyString(primitiveAttr types.String) *string {
 		return nil
 	}
 	return value
+}
+
+func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
+	elements := make([]T, len(input.Elements()))
+	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return nil
+	}
+	return elements
+}
+
+func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input types.Object) *T {
+	item := new(T)
+	if localDiags := input.As(ctx, item, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return nil
+	}
+	return item
 }

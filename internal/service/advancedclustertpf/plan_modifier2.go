@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func UseStateForUnknown2(ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, state, plan *TFModel) {
@@ -20,8 +21,8 @@ func UseStateForUnknown2(ctx context.Context, diags *diag.Diagnostics, d *PlanMo
 }
 
 func useStateForUnknownsReplicationSpecs2(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, d *PlanModifyDiffer) {
-	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
-	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	stateRepSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
 		return
 	}

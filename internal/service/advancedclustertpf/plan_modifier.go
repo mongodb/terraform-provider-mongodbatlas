@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -70,15 +70,15 @@ func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnosti
 // autoScalingUsed checks is auto-scaling was enabled (state) or will be enabled (plan).
 func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (computedUsed, diskUsed bool) {
 	for _, model := range []*TFModel{state, plan} {
-		repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, model.ReplicationSpecs)
+		repSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, model.ReplicationSpecs)
 		for i := range repSpecsTF {
-			regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
+			regiongConfigsTF := conversion.TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
 			for j := range regiongConfigsTF {
 				for _, autoScalingTF := range []types.Object{regiongConfigsTF[j].AutoScaling, regiongConfigsTF[j].AnalyticsAutoScaling} {
 					if autoScalingTF.IsNull() || autoScalingTF.IsUnknown() {
 						continue
 					}
-					autoscaling := TFModelObject[TFAutoScalingModel](ctx, diags, autoScalingTF)
+					autoscaling := conversion.TFModelObject[TFAutoScalingModel](ctx, diags, autoScalingTF)
 					if autoscaling == nil {
 						continue
 					}
@@ -93,22 +93,4 @@ func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *
 		}
 	}
 	return
-}
-
-func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
-	elements := make([]T, len(input.Elements()))
-	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return nil
-	}
-	return elements
-}
-
-func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input types.Object) *T {
-	item := new(T)
-	if localDiags := input.As(ctx, item, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return nil
-	}
-	return item
 }
