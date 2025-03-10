@@ -46,7 +46,7 @@ func newDiffHelper(ctx context.Context, req *resource.ModifyPlanRequest, resp *r
 
 func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema TPFSchema) schemafunc.AttributeChanges {
 	changes := map[string]bool{}
-	addChangeAndParentChanges := func (change string) {
+	addChangeAndParentChanges := func(change string) {
 		changes[change] = true
 		parts := strings.Split(change, ".")
 		for i := range parts[:len(parts)-1] {
