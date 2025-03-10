@@ -17,6 +17,7 @@ var (
 		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
 		"mongo_db_major_version": {"mongo_db_version"},
+		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 	}
 	attributeReplicationSpecChangeMapping = map[string][]string{
 		// All these fields can exist in specs that are computed, therefore, it is not safe to use them when they have changed.
