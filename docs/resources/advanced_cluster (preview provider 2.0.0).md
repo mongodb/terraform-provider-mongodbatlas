@@ -4,13 +4,15 @@
 
 This page describes the **Preview for MongoDB Atlas Provider 2.0.0** of `mongodbatlas_advanced_cluster`, the page for the current version can be found [here](./advanced_cluster).
 
-## Enable the Preview for MongoDB Atlas Provider 2.0.0 for `mongodbatlas_advanced_cluster`
+## How to enable
 
 In order to enable the Preview for MongoDB Atlas Provider 2.0.0 for `mongodbatlas_advanced_cluster`, set the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. This will allow you to use the new `mongodbatlas_advanced_cluster` resource. You can also define the environment variable in your local development environment so your tools can use the new format and help you with linting and auto-completion.
 
 This environment variable only affects the `mongodbatlas_advanced_cluster` resource and corresponding data sources. It doesn't affect other resources. `mongodbatlas_advanced_cluster` definition will use the new format and new features like `moved block` from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` will be available.
 
-## Configuration changes between current `mongodbatlas_advanced_cluster` and the one in Preview for MongoDB Atlas Provider 2.0.0
+## Configuration changes
+
+In this section you can find the configuration changes between the current `mongodbatlas_advanced_cluster` and the one in Preview for MongoDB Atlas Provider 2.0.0.
 
 1. Elements `replication_specs` and `region_configs` are now list attributes instead of blocks so they are an array of objects. If there is only one object, it still needs to be in an array. For example,
 ```terraform
@@ -121,8 +123,9 @@ tags = {
 }
 ```
 
-## How to migrate `mongodbatlas_advanced_cluster` to Preview for MongoDB Atlas Provider 2.0.0 
+## How to migrate
 
+If you're currently utilizing `mongodbatlas_cluster`, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 If you're currently utilizing `mongodbatlas_advanced_cluster`, you can proactively address the upcoming breaking changes that will affect all `mongodbatlas_advanced_cluster` resources when the next major provider version, 2.0.0, is released (timeline yet to be announced). However, it's not necessary to do this right now.
 
 The process to migrate from current `mongodbatlas_advanced_cluster` to the one in Preview for MongoDB Atlas Provider 2.0.0 is as follows:
@@ -136,7 +139,7 @@ The process to migrate from current `mongodbatlas_advanced_cluster` to the one i
 
 More information on considerations for using advanced clusters please see [Considerations](https://docs.atlas.mongodb.com/reference/api/cluster-advanced/create-one-cluster-advanced/#considerations)
 
-~> **IMPORTANT:** We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource.  Key differences between [`mongodbatlas_cluster`](cluster) and [`mongodbatlas_advanced_cluster`](advanced_cluster) include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers).  For existing [`mongodbatlas_cluster`](cluster) resource users see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide). 
+~> **IMPORTANT:** We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource.  Key differences between [`mongodbatlas_cluster`](cluster) and [`mongodbatlas_advanced_cluster`](advanced_cluster) include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers). For existing [`mongodbatlas_cluster`](cluster) resource users see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
