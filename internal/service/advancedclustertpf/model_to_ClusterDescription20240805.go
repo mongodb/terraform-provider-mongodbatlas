@@ -199,11 +199,15 @@ func newDedicatedHardwareSpec20240805(ctx context.Context, input types.Object, d
 		diags.Append(localDiags...)
 		return resp
 	}
+	instanceSize := conversion.NilForUnknownOrEmptyString(item.InstanceSize)
+	if instanceSize == nil {
+		return resp
+	}
 	return &admin.DedicatedHardwareSpec20240805{
 		DiskIOPS:      conversion.NilForUnknown(item.DiskIops, conversion.Int64PtrToIntPtr(item.DiskIops.ValueInt64Pointer())),
 		DiskSizeGB:    conversion.NilForUnknown(item.DiskSizeGb, item.DiskSizeGb.ValueFloat64Pointer()),
 		EbsVolumeType: conversion.NilForUnknownOrEmptyString(item.EbsVolumeType),
-		InstanceSize:  conversion.NilForUnknownOrEmptyString(item.InstanceSize),
+		InstanceSize:  instanceSize,
 		NodeCount:     conversion.NilForUnknown(item.NodeCount, conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
 	}
 }
