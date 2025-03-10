@@ -63,7 +63,7 @@ moved {
   to   = mongodbatlas_advanced_cluster.this
 }
 ```
-6. Run `terraform plan` and make sure that there are no planned changes, only the moved block should be shown. If it shows other changes, update the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration. This is an example output of a successful plan, notice no planned changes other than those for the move:
+6. Run `terraform plan` and make sure that there are no planned changes, only the moved block and output variables should be shown. If it shows other changes, update the `mongodbatlas_advanced_cluster` configuration until it matches the original `mongodbatlas_cluster` configuration. This is an example output of a successful plan, notice no planned changes other than those for the move:
 ```text
  # mongodbatlas_cluster.this has moved to mongodbatlas_advanced_cluster.this
      resource "mongodbatlas_advanced_cluster" "this" {
@@ -79,11 +79,11 @@ moved {
 
 ## Migration using import
 
-Unlike the previous approach, this method uses only [Terraform native tools](https://developer.hashicorp.com/terraform/language/import/generating-configuration) and works if you:
+**Note**: We recommend the [`moved` block](#migration-using-the-moved-block-recommended) method as it's more convenient and less error-prone. If you continue with this method, you can still use the Preview for MongoDB Atlas Provider 2.0.0 by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` to avoid having to migrate again in the future.
+
+This method uses [Terraform native tools](https://developer.hashicorp.com/terraform/language/import/generating-configuration) and works if you:
 1. Have an existing cluster without any Terraform configuration and want to import and manage your cluster with Terraform.
 2. Have existing `mongodbatlas_cluster` resource(s) but you can't use the [recommended approach](#migration-using-the-moved-block-recommended).
-
-**Note**: We recommend the [`moved` block](#migration-using-the-moved-block-recommended) method as it's more convenient and less error-prone. If you continue with this method, you can still use the Preview for MongoDB Atlas Provider 2.0.0 by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` to avoid having to migrate again in the future.
 
 The process works as follow:
 1. If you have an existing `mongodbatlas_cluster` resource, remove it from your configuration and delete it from the state file, e.g.: `terraform state rm mongodbatlas_cluster.this`. Alternatively a `removed block` (available in Terraform 1.7 and later, don't confuse with `moved block`) can be used to delete it from the state file, e.g.:
@@ -302,10 +302,10 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 ## Alternatives to using the MongoDB Atlas CLI plugin to generate the `mongodbatlas_advanced_cluster` resource definition
 
-If you've encountered [limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform#limitations) when using the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition, this section can help you understand what alternatives you have to generate it. Some options might be limited if you are using our MongoDB Atlas Terraform resources through a module (**Module maintainer**).
+While Atlas CLI plugin to generate the `mongodbatlas_advanced_cluster` resource definition is coming soon, this section can help you understand what alternatives you have to generate it. Some options might be limited if you are using our MongoDB Atlas Terraform resources through a module (**Module maintainer**).
 
 - **Option 1**: Follow the steps 3. and 4. of the ["migration using import"](#migration-using-import) section by temporarily adding an `import block` and executing the `terraform plan -generate-config-out=adv_cluster.tf` command. Once you have the generated configuration for `mongodbatlas_advanced_cluster` you can use it in your configuration files and remove the `import block`. **Note**: Terraform modules don't support `import` blocks so this option is not possible if you are a module maintainer.
 
-- **Option 2 (Coming soon)**: Remove the limitations from your `mongodbatlas_cluster` resource and use the Atlas CLI plugin. Given the output, proceed with restoring the remaining configuration in the `mongodbatlas_advanced_cluster` resource.
+- **Option 2 (Coming soon)**: Simplify your `mongodbatlas_cluster` resource definition by removing the Atlas CLI plugin limitations. Given the output, proceed with restoring the remaining configuration in the `mongodbatlas_advanced_cluster` resource.
 
 - **Option 3**: Generate the new configuration for `mongodbatlas_advanced_cluster` manually, looking at the examples we provide in our [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
