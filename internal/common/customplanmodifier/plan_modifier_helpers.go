@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
 func NewPlanModifyDiffer(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema conversion.TPFSchema) *PlanModifyDiffer {
@@ -47,7 +46,7 @@ func NewPlanModifyDiffer(ctx context.Context, req *resource.ModifyPlanRequest, r
 
 type PlanModifyDiffer struct {
 	schema           conversion.TPFSchema
-	AttributeChanges *schemafunc.AttributeChanges
+	AttributeChanges *AttributeChanges
 	req              *resource.ModifyPlanRequest
 	resp             *resource.ModifyPlanResponse
 	stateConfigDiff  []tftypes.ValueDiff
@@ -181,7 +180,7 @@ func (d *DiffTPF[T]) PlanOrStateValue() *T {
 	return d.State
 }
 
-func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema conversion.TPFSchema) schemafunc.AttributeChanges {
+func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema conversion.TPFSchema) AttributeChanges {
 	changes := map[string]bool{}
 	addChangeAndParentChanges := func(change string) {
 		changes[change] = true

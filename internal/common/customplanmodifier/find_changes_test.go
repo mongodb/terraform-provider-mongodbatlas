@@ -1,132 +1,16 @@
-package schemafunc_test
+package customplanmodifier_test
 
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFindChanges(t *testing.T) {
-	tests := map[string]struct {
-		src      any
-		dest     any
-		expected schemafunc.AttributeChanges
-	}{
-		"no changes": {
-			src:      &TFSimpleModel{Name: types.StringValue("name")},
-			dest:     &TFSimpleModel{Name: types.StringValue("name")},
-			expected: []string{},
-		},
-		"simple change": {
-			src:      &TFSimpleModel{Name: types.StringValue("name")},
-			dest:     &TFSimpleModel{Name: types.StringValue("new-name")},
-			expected: []string{"name"},
-		},
-		"object equal": {
-			src: &TFSimpleModel{
-				AdvancedConfig: asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(true)}, AdvancedConfigObjType.AttrTypes),
-			},
-			dest: &TFSimpleModel{
-				AdvancedConfig: asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(true)}, AdvancedConfigObjType.AttrTypes),
-			},
-			expected: []string{},
-		},
-		"object change": {
-			src: &TFSimpleModel{
-				AdvancedConfig: asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(true)}, AdvancedConfigObjType.AttrTypes),
-			},
-			dest: &TFSimpleModel{
-				AdvancedConfig: asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(false)}, AdvancedConfigObjType.AttrTypes),
-			},
-			expected: []string{"advanced_config", "advanced_config.javascript_enabled"},
-		},
-		"object change from null": {
-			src: &TFSimpleModel{},
-			dest: &TFSimpleModel{
-				AdvancedConfig: asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(false)}, AdvancedConfigObjType.AttrTypes),
-			},
-			expected: []string{"advanced_config", "advanced_config.javascript_enabled"},
-		},
-		"list equal": {
-			src: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc}),
-			},
-			dest: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc}),
-			},
-			expected: []string{},
-		},
-		"list no change on unknown": {
-			src: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc}),
-			},
-			dest: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigDest}),
-			},
-			expected: []string{},
-		},
-		"list change": {
-			src: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc}),
-			},
-			dest: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone2"), []TFRegionConfig{regionConfigSrc}),
-			},
-			expected: []string{"replication_specs", "replication_specs[0]", "replication_specs[0].zone_name"},
-		},
-		"list add": {
-			src: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc}),
-			},
-			dest: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc, regionConfigSrc}),
-			},
-			expected: []string{"replication_specs", "replication_specs[0]", "replication_specs[0].region_configs", "replication_specs[0].region_configs[+1]"},
-		},
-		"list remove": {
-			src: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc, regionConfigSrc}),
-			},
-			dest: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc}),
-			},
-			expected: []string{"replication_specs", "replication_specs[0]", "replication_specs[0].region_configs", "replication_specs[0].region_configs[-1]"},
-		},
-		"list remove root": {
-			src: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc, regionConfigSrc}),
-			},
-			dest: &TFSimpleModel{
-				ReplicationSpecs: types.ListValueMust(ReplicationSpecsObjType, nil),
-			},
-			expected: []string{"replication_specs", "replication_specs[-0]"},
-		},
-		"list add root": {
-			src: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc}),
-			},
-			dest: &TFSimpleModel{
-				ReplicationSpecs: combineReplicationSpecs(
-					newReplicationSpecs(ctx, types.StringValue("zone1"), []TFRegionConfig{regionConfigSrc}),
-					newReplicationSpecs(ctx, types.StringValue("zone2"), []TFRegionConfig{regionConfigSrc}),
-				),
-			},
-			expected: []string{"replication_specs", "replication_specs[+1]"},
-		},
-	}
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			actual := schemafunc.NewAttributeChanges(ctx, tc.src, tc.dest)
-			assert.Equal(t, tc.expected, actual)
-		})
-	}
-}
 func TestAttributeChanges_LeafChanges(t *testing.T) {
 	tests := map[string]struct {
 		expected map[string]bool
-		changes  schemafunc.AttributeChanges
+		changes  customplanmodifier.AttributeChanges
 	}{
 		"empty changes": {
 			changes:  []string{},
@@ -182,7 +66,7 @@ func TestAttributeChanges_LeafChanges(t *testing.T) {
 func TestAttributeChanges_AttributeChanged(t *testing.T) {
 	tests := map[string]struct {
 		attr     string
-		changes  schemafunc.AttributeChanges
+		changes  customplanmodifier.AttributeChanges
 		expected bool
 	}{
 		"match found": {
@@ -216,7 +100,7 @@ func TestAttributeChanges_AttributeChanged(t *testing.T) {
 }
 func TestAttributeChanges_KeepUnknown(t *testing.T) {
 	tests := map[string]struct {
-		changes                  schemafunc.AttributeChanges
+		changes                  customplanmodifier.AttributeChanges
 		attributeEffectedMapping map[string][]string
 		expectedKeepUnknownAttrs []string
 	}{
@@ -275,7 +159,7 @@ func TestAttributeChanges_KeepUnknown(t *testing.T) {
 func TestAttributeChanges_ListLenChanges(t *testing.T) {
 	tests := map[string]struct {
 		name     string
-		changes  schemafunc.AttributeChanges
+		changes  customplanmodifier.AttributeChanges
 		expected bool
 	}{
 		"empty changes": {
@@ -330,7 +214,7 @@ func TestAttributeChanges_ListLenChanges(t *testing.T) {
 func TestAttributeChanges_ListIndexChanged(t *testing.T) {
 	tests := map[string]struct {
 		name     string
-		changes  schemafunc.AttributeChanges
+		changes  customplanmodifier.AttributeChanges
 		index    int
 		expected bool
 	}{
@@ -400,7 +284,7 @@ func TestAttributeChanges_ListIndexChanged(t *testing.T) {
 func TestAttributeChanges_NestedListLenChanges(t *testing.T) {
 	tests := map[string]struct {
 		fullPath string
-		changes  schemafunc.AttributeChanges
+		changes  customplanmodifier.AttributeChanges
 		expected bool
 	}{
 		"empty changes": {

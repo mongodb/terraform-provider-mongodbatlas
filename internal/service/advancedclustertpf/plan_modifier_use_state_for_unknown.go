@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
 var (
@@ -66,7 +65,7 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 }
 
 // determineKeepUnknownsChangedReplicationSpec: These fields must be kept unknown in the replication_specs[index_of_changes]
-func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, attributeChanges *schemafunc.AttributeChanges, parentPath string) []string {
+func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, attributeChanges *customplanmodifier.AttributeChanges, parentPath string) []string {
 	var keepUnknowns = slices.Clone(keepUnknownsAlways)
 	if attributeChanges.NestedListLenChanges(parentPath + ".region_configs") {
 		keepUnknowns = append(keepUnknowns, "container_id")
@@ -74,7 +73,7 @@ func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, at
 	return append(keepUnknowns, attributeChanges.KeepUnknown(attributeReplicationSpecChangeMapping)...)
 }
 
-func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attributeChanges *schemafunc.AttributeChanges) []string {
+func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attributeChanges *customplanmodifier.AttributeChanges) []string {
 	keepUnknowns := []string{}
 	// Could be set to "" if we are using an ISS cluster
 	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
