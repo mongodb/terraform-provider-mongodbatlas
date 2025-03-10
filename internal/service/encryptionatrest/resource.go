@@ -8,7 +8,8 @@ import (
 	"reflect"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -262,7 +263,8 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var encryptionAtRestPlan *TfEncryptionAtRestRSModel
 	var encryptionAtRestConfig *TfEncryptionAtRestRSModel
-	connV2 := r.Client.AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &encryptionAtRestPlan)...)
 	resp.Diagnostics.Append(req.Config.Get(ctx, &encryptionAtRestConfig)...)
@@ -344,7 +346,8 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 		isImport = true
 	}
 
-	connV2 := r.Client.AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 
 	encryptionResp, getResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
 	if err != nil {
@@ -374,7 +377,8 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 	var encryptionAtRestState *TfEncryptionAtRestRSModel
 	var encryptionAtRestConfig *TfEncryptionAtRestRSModel
 	var encryptionAtRestPlan *TfEncryptionAtRestRSModel
-	connV2 := r.Client.AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 
 	// get current config
 	resp.Diagnostics.Append(req.Config.Get(ctx, &encryptionAtRestConfig)...)
@@ -431,7 +435,8 @@ func (r *encryptionAtRestRS) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	enabled := false
-	connV2 := r.Client.AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := encryptionAtRestState.ProjectID.ValueString()
 
 	_, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
