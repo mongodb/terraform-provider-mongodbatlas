@@ -70,6 +70,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "google_cloud_kms_config.#"),
 
 					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(datasourceName, "enabled_for_search_nodes", "false"),
 					acc.EARCheckResourceAttr(datasourceName, "aws_kms_config.", awsKmsAttrMap),
 				),
 			},
@@ -85,6 +86,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "google_cloud_kms_config.#"),
 
 					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(datasourceName, "enabled_for_search_nodes", strconv.FormatBool(enabledForSearchNodes)),
 					acc.EARCheckResourceAttr(datasourceName, "aws_kms_config", awsKmsUpdatedAttrMap),
 				),
 			},
