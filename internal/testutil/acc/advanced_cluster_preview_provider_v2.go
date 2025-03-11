@@ -137,7 +137,7 @@ func convertAttrs(t *testing.T, name string, writeBody *hclwrite.Body, isList bo
 			break
 		}
 		vals = append(vals, getOneAttr(t, hcl.GetBlockBody(t, match)))
-		writeBody.RemoveBlock(match) // TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
+		writeBody.RemoveBlock(match) // RemoveBlock doesn't remove newline just after the block so an extra line is added
 	}
 	if len(vals) == 0 {
 		return
@@ -162,7 +162,7 @@ func convertKeyValueAttrs(t *testing.T, name string, writeBody *hclwrite.Body) {
 		key := attrs.GetAttr("key")
 		value := attrs.GetAttr("value")
 		vals[key.AsString()] = value
-		writeBody.RemoveBlock(match) // TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
+		writeBody.RemoveBlock(match) // RemoveBlock doesn't remove newline just after the block so an extra line is added
 	}
 	if len(vals) > 0 {
 		writeBody.SetAttributeValue(name, cty.ObjectVal(vals))
