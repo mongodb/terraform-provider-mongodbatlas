@@ -1374,11 +1374,11 @@ func TestAccMockableAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBlocks(t, projectID, clusterName, true),
-				Check:  checkBlocks(projectID, clusterName, true),
+				Check:  checkBlocks(true),
 			},
 			{
 				Config: configBlocks(t, projectID, clusterName, false),
-				Check:  checkBlocks(projectID, clusterName, false),
+				Check:  checkBlocks(false),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -1554,7 +1554,7 @@ func configBlocks(t *testing.T, projectID, clusterName string, firstStep bool) s
 	`, projectID, clusterName, instanceSize1, extraConfig0, extraConfig1))
 }
 
-func checkBlocks(projectID, clusterName string, firstStep bool) resource.TestCheckFunc {
+func checkBlocks(firstStep bool) resource.TestCheckFunc {
 	checksMap := map[string]string{
 		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": "M10",
 		"replication_specs.0.region_configs.0.electable_specs.0.node_count":    "5",
