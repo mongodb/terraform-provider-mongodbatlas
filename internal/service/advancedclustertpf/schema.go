@@ -208,18 +208,18 @@ func resourceSchema(ctx context.Context) schema.Schema {
 						"container_id": schema.MapAttribute{
 							ElementType:         types.StringType,
 							Computed:            true,
-							MarkdownDescription: "container_id", // TODO: add description
+							MarkdownDescription: "A key-value map of the Network Peering Container ID(s) for the configuration specified in region_configs. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created.",
 						},
 						"external_id": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "external_id", // TODO: add description
+							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. This value corresponds to Shard ID displayed in the UI.",
 						},
 						"num_shards": schema.Int64Attribute{
 							DeprecationMessage:  deprecationMsgOldSchema("num_shards"),
 							Default:             int64default.StaticInt64(1),
 							Computed:            true,
 							Optional:            true,
-							MarkdownDescription: "num_shards", // TODO: add description
+							MarkdownDescription: "Number of shards up to 50 to deploy for a sharded cluster.",
 						},
 						"region_configs": schema.ListNestedAttribute{
 							Required:            true,
@@ -339,14 +339,7 @@ func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields: []string{"project_id"},
 		OverridenRootFields: map[string]dsschema.Attribute{
-			"use_replication_spec_per_shard": dsschema.BoolAttribute{ // TODO: added as in current resource
-				Optional:            true,
-				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
-			},
-			"include_deleted_with_retained_backups": dsschema.BoolAttribute{ // TODO: not in current resource, decide if keep
-				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether to return Clusters with retain backups.",
-			},
+			"use_replication_spec_per_shard": useReplicationSpecPerShardSchema(),
 		},
 		OverridenFields: dataSourceOverridenFields(),
 	})
@@ -354,11 +347,15 @@ func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 
 func dataSourceOverridenFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
-		"use_replication_spec_per_shard": dsschema.BoolAttribute{ // TODO: added as in current resource
-			Optional:            true,
-			MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
-		},
+		"use_replication_spec_per_shard":                   useReplicationSpecPerShardSchema(),
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
+	}
+}
+
+func useReplicationSpecPerShardSchema() dsschema.BoolAttribute {
+	return dsschema.BoolAttribute{
+		Optional:            true,
+		MarkdownDescription: "Set this field to true to allow the data source to use the latest schema representing each shard with an individual replication_specs object. This enables representing clusters with independent shard scaling.",
 	}
 }
 
@@ -439,13 +436,15 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 	return schema.SingleNestedAttribute{
 		Computed:            true,
 		Optional:            true,
-		MarkdownDescription: "advanced_configuration", // TODO: add description
+		MarkdownDescription: "Additional settings for an Atlas cluster.",
+		// Avoid adding optional-only attributes, if the block is removed and attributes are not null in the state we get unintentional plan changes after apply.
+		// Avoid computed-optional with Default, if the block is removed and the attribute Default != state value we get unintentional plan changes after apply.
 		Attributes: map[string]schema.Attribute{
 			"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
-				Optional:            true,
+				Optional: true,
+				// Default set in NewAtlasReqAdvancedConfiguration
 				Computed:            true,
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
-				Default:             int64default.StaticInt64(-1), // in case the user removes the value, we should set it to -1, a special value used by the backend to use its default behavior
 				PlanModifiers: []planmodifier.Int64{
 					PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
 				},
@@ -499,19 +498,19 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
 			},
 			"default_read_concern": schema.StringAttribute{
-				DeprecationMessage: deprecationMsgOldSchema("default_read_concern"),
-
+				DeprecationMessage:  deprecationMsgOldSchema("default_read_concern"),
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "default_read_concern", // TODO: add description
+				MarkdownDescription: "Default level of acknowledgment requested from MongoDB for read operations set for this cluster.",
 			},
 			"fail_index_key_too_long": schema.BoolAttribute{
 				DeprecationMessage:  deprecationMsgOldSchema("fail_index_key_too_long"),
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
+				MarkdownDescription: "When true, documents can only be updated or inserted if, for all indexed fields on the target collection, the corresponding index entries do not exceed 1024 bytes. When false, mongod writes documents that exceed the limit but does not index them.",
 			},
 			"default_max_time_ms": schema.Int64Attribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Default time limit in milliseconds for individual read operations to complete. This parameter is supported only for MongoDB version 8.0 and above.",
 				PlanModifiers: []planmodifier.Int64{
@@ -519,6 +518,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				},
 			},
 			"custom_openssl_cipher_config_tls12": schema.SetAttribute{
+				Computed:            true,
 				Optional:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
@@ -601,10 +601,9 @@ type TFModelDS struct {
 }
 
 type TFModelPluralDS struct {
-	ProjectID                         types.String `tfsdk:"project_id"`
-	Results                           []*TFModelDS `tfsdk:"results"`
-	UseReplicationSpecPerShard        types.Bool   `tfsdk:"use_replication_spec_per_shard"`        // TODO: added as in current resource
-	IncludeDeletedWithRetainedBackups types.Bool   `tfsdk:"include_deleted_with_retained_backups"` // TODO: not in current resource, decide if keep
+	ProjectID                  types.String `tfsdk:"project_id"`
+	Results                    []*TFModelDS `tfsdk:"results"`
+	UseReplicationSpecPerShard types.Bool   `tfsdk:"use_replication_spec_per_shard"`
 }
 
 type TFBiConnectorModel struct {

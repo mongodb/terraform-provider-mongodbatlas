@@ -260,7 +260,7 @@ steps:
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
         method: PATCH
         version: '2023-02-01'
-        text: "{\n \"diskSizeGB\": 55,\n \"replicationSpecs\": [\n  {\n   \"numShards\": 2,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"electableSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ]\n}"
+        text: "{\n \"diskSizeGB\": 55,\n \"replicationSpecs\": [\n  {\n   \"numShards\": 2,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"electableSpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ]\n}"
         responses:
           - response_index: 110
             status: 200

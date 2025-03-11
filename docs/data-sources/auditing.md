@@ -22,7 +22,7 @@ data "mongodbatlas_auditing" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project.
 
 ## Attributes Reference
 

@@ -100,7 +100,7 @@ resource "mongodbatlas_custom_db_role" "test_role" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project.
 * `role_name` - (Required) Name of the custom role.
 
 	-> **IMPORTANT** The specified role name can only contain letters, digits, underscores, and dashes. Additionally, you cannot specify a role name which meets any of the following criteria:
