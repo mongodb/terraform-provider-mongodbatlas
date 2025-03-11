@@ -270,6 +270,7 @@ func copyAttrIfDestNotKnown[T attr.Value](src, dest *T) {
 	}
 }
 
+// isKnown returns true if the attribute is known (not null or unknown). Note that !isKnown is not the same as IsUnknown because null is !isKnown but not IsUnknown
 func isKnown(attribute attr.Value) bool {
 	return !attribute.IsNull() && !attribute.IsUnknown()
 }
