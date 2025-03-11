@@ -5,3 +5,7 @@ resource/mongodbatlas_stream_connection: Adds `Https` connection
 ```release-note:enhancement
 data-source/mongodbatlas_stream_connection: Adds `Https` connection
 ```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_connections: Adds `Https` connection
+```
