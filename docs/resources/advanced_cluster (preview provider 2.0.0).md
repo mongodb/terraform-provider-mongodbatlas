@@ -942,3 +942,71 @@ moved {
 ```
 
 More information about moving resources can be found in our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide) and in the Terraform documentation [here](https://developer.hashicorp.com/terraform/language/moved) and [here](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring).
+
+## Best practices
+
+- Don't remove block attributes from the configuration, instead set their attributes accordingly. For example, if you have a `read_only_specs` block in your cluster definition like this one:
+```terraform
+...
+region_configs = [
+  {
+    read_only_specs =  {
+      instance_size = "M10"
+      node_count    = 1
+    }
+    electable_specs = {
+      instance_size = "M10"
+      node_count    = 3
+    }
+    provider_name = "AWS"
+    priority      = 7
+    region_name   = "US_WEST_1"
+  }
+]
+...
+```
+and your intention is to delete the read_ony nodes, you should set the `node_count` attribute to `0` instead of removing the block:
+```terraform
+...
+region_configs = [
+  {
+    read_only_specs =  {
+      instance_size = "M10"
+      node_count    = 0
+    }
+    electable_specs = {
+      instance_size = "M10"
+      node_count    = 3
+    }
+    provider_name = "AWS"
+    priority      = 7
+    region_name   = "US_WEST_1"
+  }
+]
+...
+```
+Similarly, if you have compute and disk auto-scaling enabled:
+```terraform
+...
+auto_scaling = {
+  disk_gb_enabled = true
+  compute_enabled = true
+  compute_scale_down_enabled = true
+  compute_min_instance_size = "M30"
+  compute_max_instance_size = "M50"
+}
+...
+``` 
+and you want to disable it, you should set the `disk_gb_enabled` and `compute_enabled` attributes to `false`:
+```terraform
+...
+auto_scaling = {
+  disk_gb_enabled = false
+  compute_enabled = false
+  compute_scale_down_enabled = false
+  compute_min_instance_size = "M30"
+  compute_max_instance_size = "M50"
+}
+...
+```
+- When using the `auto_scaling` or `analytics_auto_scaling` blocks, ensure that the values for the `disk_gb_enabled` and `compute_enabled` attributes are the same for all `region_configs` of a cluster. The same applies to the `compute_scale_down_enabled`, `compute_min_instance_size`, and `compute_max_instance_size` attributes.
