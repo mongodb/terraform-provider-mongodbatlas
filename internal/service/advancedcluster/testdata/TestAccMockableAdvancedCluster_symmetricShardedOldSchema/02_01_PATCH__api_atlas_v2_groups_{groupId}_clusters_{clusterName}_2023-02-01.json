@@ -14,6 +14,10 @@
      },
      "priority": 7,
      "providerName": "AWS",
+     "readOnlySpecs": {
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
      "regionName": "EU_WEST_1"
     },
     {
@@ -23,6 +27,10 @@
      },
      "priority": 6,
      "providerName": "AZURE",
+     "readOnlySpecs": {
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
      "regionName": "US_EAST_2"
     }
    ],
