@@ -1358,6 +1358,29 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 	})
 }
 
+func TestAccMockableAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
+	if !config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
+		t.Skip("This test is not applicable for SDKv2")
+	}
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 15)
+	)
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configBlocks(t, projectID, clusterName, true),
+				Check:  checkBlocks(projectID, clusterName, true),
+			},
+			{
+				Config: configBlocks(t, projectID, clusterName, false),
+				Check:  checkBlocks(projectID, clusterName, false),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
 func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) string {
 	t.Helper()
 	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
@@ -1449,6 +1472,113 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 		}
 	}
 	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)) + dataSourcesTFNewSchema
+}
+
+func configBlocks(t *testing.T, projectID, clusterName string, firstStep bool) string {
+	t.Helper()
+	var extraConfig0, extraConfig1 string
+	autoStr := `
+		auto_scaling {
+			disk_gb_enabled            = true
+			compute_enabled            = true
+			compute_min_instance_size  = "M10"
+			compute_max_instance_size  = "M30"
+			compute_scale_down_enabled = true
+		}
+		analytics_auto_scaling {
+			disk_gb_enabled            = true
+			compute_enabled            = true
+			compute_min_instance_size  = "M10"
+			compute_max_instance_size  = "M30"
+			compute_scale_down_enabled = true
+		}
+	`
+	instanceSize1 := "M20"
+	if firstStep {
+		instanceSize1 = "M10"
+		extraConfig0 = `
+			read_only_specs {
+				instance_size = "M10"
+				node_count    = 2
+			}
+		` + autoStr
+		extraConfig1 = `
+			read_only_specs {
+				instance_size = "M10"
+				node_count    = 1
+			}
+			analytics_specs {
+				instance_size = "M10"
+				node_count    = 4
+			}
+		` + autoStr
+	}
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "GEOSHARDED"
+
+			replication_specs { 
+				zone_name = "Zone 1"
+				region_configs {
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+					electable_specs {
+						instance_size   = "M10"
+						node_count      = 5
+					}
+					%[4]s
+				}
+			}
+
+			replication_specs { 
+				zone_name = "Zone 2"
+				region_configs {
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_WEST_2"
+					electable_specs {
+						instance_size   = %[3]q
+						node_count      = 3
+					}
+					%[5]s
+				}
+			}
+		}
+	`, projectID, clusterName, instanceSize1, extraConfig0, extraConfig1))
+}
+
+func checkBlocks(projectID, clusterName string, firstStep bool) resource.TestCheckFunc {
+	checksMap := map[string]string{
+		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": "M10",
+		"replication_specs.0.region_configs.0.electable_specs.0.node_count":    "5",
+		"replication_specs.0.region_configs.0.read_only_specs.0.instance_size": "M10",
+		"replication_specs.0.region_configs.0.read_only_specs.0.node_count":    "2",
+		"replication_specs.0.region_configs.0.analytics_specs.0.node_count":    "0",
+
+		"replication_specs.1.region_configs.0.electable_specs.0.instance_size": "M10",
+		"replication_specs.1.region_configs.0.electable_specs.0.node_count":    "3",
+		"replication_specs.1.region_configs.0.read_only_specs.0.instance_size": "M10",
+		"replication_specs.1.region_configs.0.read_only_specs.0.node_count":    "1",
+		"replication_specs.1.region_configs.0.analytics_specs.0.instance_size": "M10",
+		"replication_specs.1.region_configs.0.analytics_specs.0.node_count":    "4",
+	}
+	if !firstStep {
+		checksMap["replication_specs.1.region_configs.0.electable_specs.0.instance_size"] = "M20"
+		checksMap["replication_specs.1.region_configs.0.read_only_specs.0.instance_size"] = "M20"
+	}
+	for repSpecsIdx := range 2 {
+		for _, block := range []string{"auto_scaling", "analytics_auto_scaling"} {
+			checksMap[fmt.Sprintf("replication_specs.%d.region_configs.0.%s.disk_gb_enabled", repSpecsIdx, block)] = "true"
+			checksMap[fmt.Sprintf("replication_specs.%d.region_configs.0.%s.compute_enabled", repSpecsIdx, block)] = "true"
+			checksMap[fmt.Sprintf("replication_specs.%d.region_configs.0.%s.compute_scale_down_enabled", repSpecsIdx, block)] = "true"
+			checksMap[fmt.Sprintf("replication_specs.%d.region_configs.0.%s.compute_min_instance_size", repSpecsIdx, block)] = "M10"
+			checksMap[fmt.Sprintf("replication_specs.%d.region_configs.0.%s.compute_max_instance_size", repSpecsIdx, block)] = "M30"
+		}
+	}
+	return resource.ComposeAggregateTestCheckFunc(acc.AddAttrChecksPreviewProviderV2(true, resourceName, nil, checksMap)...)
 }
 
 func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
