@@ -965,7 +965,7 @@ region_configs = [
 ]
 ...
 ```
-and your intention is to delete the read_ony nodes, you should set the `node_count` attribute to `0` instead of removing the block:
+and your intention is to delete the read-only nodes, you should set the `node_count` attribute to `0` instead of removing the block:
 ```terraform
 ...
 region_configs = [
@@ -997,7 +997,7 @@ auto_scaling = {
 }
 ...
 ``` 
-and you want to disable it, you should set the `disk_gb_enabled` and `compute_enabled` attributes to `false`:
+and you want to disable them, you should set the `disk_gb_enabled` and `compute_enabled` attributes to `false` instead of removing the block:
 ```terraform
 ...
 auto_scaling = {
