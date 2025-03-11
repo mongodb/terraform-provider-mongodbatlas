@@ -343,10 +343,6 @@ func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 				Optional:            true,
 				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
 			},
-			"include_deleted_with_retained_backups": dsschema.BoolAttribute{ // TODO: not in current resource, decide if keep
-				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether to return Clusters with retain backups.",
-			},
 		},
 		OverridenFields: dataSourceOverridenFields(),
 	})
@@ -605,10 +601,9 @@ type TFModelDS struct {
 }
 
 type TFModelPluralDS struct {
-	ProjectID                         types.String `tfsdk:"project_id"`
-	Results                           []*TFModelDS `tfsdk:"results"`
-	UseReplicationSpecPerShard        types.Bool   `tfsdk:"use_replication_spec_per_shard"`        // TODO: added as in current resource
-	IncludeDeletedWithRetainedBackups types.Bool   `tfsdk:"include_deleted_with_retained_backups"` // TODO: not in current resource, decide if keep
+	ProjectID                  types.String `tfsdk:"project_id"`
+	Results                    []*TFModelDS `tfsdk:"results"`
+	UseReplicationSpecPerShard types.Bool   `tfsdk:"use_replication_spec_per_shard"` // TODO: added as in current resource
 }
 
 type TFBiConnectorModel struct {
