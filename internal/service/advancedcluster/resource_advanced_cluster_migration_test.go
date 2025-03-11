@@ -55,6 +55,7 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 				Config: configAWSProvider(t, false, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
 					ClusterName:        clusterName,
+					ClusterType:        "REPLICASET",
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
 					WithAnalyticsSpecs: true,
@@ -66,6 +67,7 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 				Config: configAWSProvider(t, false, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
 					ClusterName:        clusterName,
+					ClusterType:        "REPLICASET",
 					DiskSizeGB:         60,
 					NodeCountElectable: 5,
 					WithAnalyticsSpecs: true,
