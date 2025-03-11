@@ -208,18 +208,18 @@ func resourceSchema(ctx context.Context) schema.Schema {
 						"container_id": schema.MapAttribute{
 							ElementType:         types.StringType,
 							Computed:            true,
-							MarkdownDescription: "container_id", // TODO: add description
+							MarkdownDescription: "A key-value map of the Network Peering Container ID(s) for the configuration specified in region_configs. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created.",
 						},
 						"external_id": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "external_id", // TODO: add description
+							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. This value corresponds to Shard ID displayed in the UI.",
 						},
 						"num_shards": schema.Int64Attribute{
 							DeprecationMessage:  deprecationMsgOldSchema("num_shards"),
 							Default:             int64default.StaticInt64(1),
 							Computed:            true,
 							Optional:            true,
-							MarkdownDescription: "num_shards", // TODO: add description
+							MarkdownDescription: "Number of shards up to 50 to deploy for a sharded cluster.",
 						},
 						"region_configs": schema.ListNestedAttribute{
 							Required:            true,
