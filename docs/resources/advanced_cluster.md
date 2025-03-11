@@ -772,46 +772,58 @@ See detailed information for arguments and attributes: [MongoDB API Advanced Clu
 
 ## Considerations and Best Practices
 
-- If you want to remove or disable some cluster functionality, it is recommended to set the attributes explicitly to their default value instead of removing them. This will ensure that the configuration definition fully represents your cluster. For example, if you have a `read_only_specs` block in your cluster definition like this one:
+### "known after apply" verbosity
+
+When making changes to your cluster, it is expected that your Terraform plan might show `known after apply` entries in attributes that have not been modified. This is expected and does not have any side effects. The reason why this is happening is because some of the changes you make can affect other values of the cluster, hence the provider plugin will show the inability to know the future value until MongoDB Atlas provides those value in the response. As an example, a change in the `instance_size` can affect the `disk_iops`. This behaviour is related to how [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework) behaves when the resource schema makes use of computed attributes.
+
+If your desire is to see less `known after apply` verbosity in the Terraform plan, you can opt to explicitly declare those fields in your Terraform configuration.
+
+### Remove or disable functionality
+
+To disable or remove functionalities, we recommended to explicitly set those attributes to their intended value instead of removing them from the configuration. This will ensure no ambiguity in what the final terraform resource state will be. For example, if you have a `read_only_specs` block in your cluster definition like this one:
 ```terraform
 ...
-region_configs {
-  read_only_specs {
-    instance_size = "M10"
-    node_count    = 1
+region_configs = [
+  {
+    read_only_specs =  {
+      instance_size = "M10"
+      node_count    = 1
+    }
+    electable_specs = {
+      instance_size = "M10"
+      node_count    = 3
+    }
+    provider_name = "AWS"
+    priority      = 7
+    region_name   = "US_WEST_1"
   }
-  electable_specs {
-    instance_size = "M10"
-    node_count    = 3
-  }
-  provider_name = "AWS"
-  priority      = 7
-  region_name   = "US_WEST_1"
-}
+]
 ...
 ```
 and your intention is to delete the read-only nodes, you should set the `node_count` attribute to `0` instead of removing the block:
 ```terraform
 ...
-region_configs {
-  read_only_specs {
-    instance_size = "M10"
-    node_count    = 0
+region_configs = [
+  {
+    read_only_specs =  {
+      instance_size = "M10"
+      node_count    = 0
+    }
+    electable_specs = {
+      instance_size = "M10"
+      node_count    = 3
+    }
+    provider_name = "AWS"
+    priority      = 7
+    region_name   = "US_WEST_1"
   }
-  electable_specs {
-    instance_size = "M10"
-    node_count    = 3
-  }
-  provider_name = "AWS"
-  priority      = 7
-  region_name   = "US_WEST_1"
-}
+]
 ...
 ```
 Similarly, if you have compute and disk auto-scaling enabled:
 ```terraform
 ...
-auto_scaling {
+auto_scaling = {
   disk_gb_enabled = true
   compute_enabled = true
   compute_scale_down_enabled = true
@@ -823,10 +835,12 @@ auto_scaling {
 and you want to disable them, you should set the `disk_gb_enabled` and `compute_enabled` attributes to `false` instead of removing the block:
 ```terraform
 ...
-auto_scaling {
+auto_scaling = {
   disk_gb_enabled = false
   compute_enabled = false
   compute_scale_down_enabled = false
 }
 ...
 ```
+
+Once you've updated your cluster using this approach, you may proceed at removing the attributes from the configuration.
