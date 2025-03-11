@@ -13,11 +13,12 @@ import (
 
 func NewTFEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *admin.EncryptionAtRest) *TfEncryptionAtRestRSModel {
 	return &TfEncryptionAtRestRSModel{
-		ID:                   types.StringValue(projectID),
-		ProjectID:            types.StringValue(projectID),
-		AwsKmsConfig:         NewTFAwsKmsConfig(ctx, encryptionResp.AwsKms),
-		AzureKeyVaultConfig:  NewTFAzureKeyVaultConfig(ctx, encryptionResp.AzureKeyVault),
-		GoogleCloudKmsConfig: NewTFGcpKmsConfig(ctx, encryptionResp.GoogleCloudKms),
+		ID:                    types.StringValue(projectID),
+		ProjectID:             types.StringValue(projectID),
+		AwsKmsConfig:          NewTFAwsKmsConfig(ctx, encryptionResp.AwsKms),
+		AzureKeyVaultConfig:   NewTFAzureKeyVaultConfig(ctx, encryptionResp.AzureKeyVault),
+		GoogleCloudKmsConfig:  NewTFGcpKmsConfig(ctx, encryptionResp.GoogleCloudKms),
+		EnabledForSearchNodes: types.BoolPointerValue(encryptionResp.EnabledForSearchNodes),
 	}
 }
 
@@ -151,4 +152,20 @@ func NewAtlasAzureKeyVault(tfAzKeyVaultConfigSlice []TFAzureKeyVaultConfigModel)
 		TenantID:                 v.TenantID.ValueStringPointer(),
 		RequirePrivateNetworking: v.RequirePrivateNetworking.ValueBoolPointer(),
 	}
+}
+
+func NewAtlasEncryptionAtRest(encryptionAtRestPlan, encryptionAtRestState *TfEncryptionAtRestRSModel, atlasEncryptionAtRest *admin.EncryptionAtRest) *admin.EncryptionAtRest {
+	if hasAwsKmsConfigChanged(encryptionAtRestPlan.AwsKmsConfig, encryptionAtRestState.AwsKmsConfig) {
+		atlasEncryptionAtRest.AwsKms = NewAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
+	}
+	if hasAzureKeyVaultConfigChanged(encryptionAtRestPlan.AzureKeyVaultConfig, encryptionAtRestState.AzureKeyVaultConfig) {
+		atlasEncryptionAtRest.AzureKeyVault = NewAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
+	}
+	if hasGcpKmsConfigChanged(encryptionAtRestPlan.GoogleCloudKmsConfig, encryptionAtRestState.GoogleCloudKmsConfig) {
+		atlasEncryptionAtRest.GoogleCloudKms = NewAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
+	}
+	if !encryptionAtRestPlan.EnabledForSearchNodes.IsNull() {
+		atlasEncryptionAtRest.EnabledForSearchNodes = encryptionAtRestPlan.EnabledForSearchNodes.ValueBoolPointer()
+	}
+	return atlasEncryptionAtRest
 }

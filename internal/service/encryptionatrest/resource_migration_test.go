@@ -28,6 +28,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 		}
 		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
 		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.28.0") // require_private_networking introduced in this version
+		useEnabledForSearchNodes    = mig.IsProviderVersionAtLeast("1.30.0") // enabled_for_search_nodes introduced in this version
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -36,13 +37,13 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking),
+				Config:            acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking)),
+			mig.TestStepCheckEmptyPlan(acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes)),
 		},
 	})
 }
@@ -152,6 +153,7 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 		}
 		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
 		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.28.0") // require_private_networking introduced in this version
+		useEnabledForSearchNodes    = mig.IsProviderVersionAtLeast("1.30.0") // enabled_for_search_nodes introduced in this version
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -160,7 +162,7 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProvidersWithAWS("1.11.0"),
-				Config:            acc.ConfigAwsKms(projectID, &awsKms, false, false),
+				Config:            acc.ConfigAwsKms(projectID, &awsKms, false, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -169,7 +171,7 @@ func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking)),
+			mig.TestStepCheckEmptyPlan(acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes)),
 		},
 	})
 }

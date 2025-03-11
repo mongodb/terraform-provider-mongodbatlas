@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 
 	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
@@ -49,7 +50,8 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(true),
 		}
-		awsKmsUpdatedAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKmsUpdated)
+		awsKmsUpdatedAttrMap  = acc.ConvertToAwsKmsEARAttrMap(&awsKmsUpdated)
+		enabledForSearchNodes = true
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -58,7 +60,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAwsKms(projectID, &awsKms, true, false),
+				Config: acc.ConfigAwsKms(projectID, &awsKms, true, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -72,10 +74,11 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigAwsKms(projectID, &awsKmsUpdated, true, true),
+				Config: acc.ConfigAwsKms(projectID, &awsKmsUpdated, true, true, enabledForSearchNodes),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_search_nodes", strconv.FormatBool(enabledForSearchNodes)),
 					acc.EARCheckResourceAttr(resourceName, "aws_kms_config.0", awsKmsUpdatedAttrMap),
 
 					resource.TestCheckNoResourceAttr(resourceName, "azure_key_vault_config.#"),

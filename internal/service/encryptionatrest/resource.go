@@ -109,7 +109,8 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 			},
 			"enabled_for_search_nodes": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "", // TODO: description
+				Computed:            true,
+				MarkdownDescription: "Flag that indicates whether Encryption at Rest for Dedicated Search Nodes is enabled in the specified project.",
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -278,8 +279,9 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	projectID := encryptionAtRestPlan.ProjectID.ValueString()
-	encryptionAtRestReq := &admin.EncryptionAtRest{
-		EnabledForSearchNodes: conversion.Pointer(true),
+	encryptionAtRestReq := &admin.EncryptionAtRest{}
+	if !encryptionAtRestPlan.EnabledForSearchNodes.IsNull() {
+		encryptionAtRestReq.EnabledForSearchNodes = conversion.Pointer(encryptionAtRestPlan.EnabledForSearchNodes.ValueBool())
 	}
 	if encryptionAtRestPlan.AwsKmsConfig != nil {
 		encryptionAtRestReq.AwsKms = NewAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
@@ -409,17 +411,8 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	if hasAwsKmsConfigChanged(encryptionAtRestPlan.AwsKmsConfig, encryptionAtRestState.AwsKmsConfig) {
-		atlasEncryptionAtRest.AwsKms = NewAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
-	}
-	if hasAzureKeyVaultConfigChanged(encryptionAtRestPlan.AzureKeyVaultConfig, encryptionAtRestState.AzureKeyVaultConfig) {
-		atlasEncryptionAtRest.AzureKeyVault = NewAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
-	}
-	if hasGcpKmsConfigChanged(encryptionAtRestPlan.GoogleCloudKmsConfig, encryptionAtRestState.GoogleCloudKmsConfig) {
-		atlasEncryptionAtRest.GoogleCloudKms = NewAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
-	}
-
-	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, atlasEncryptionAtRest).Execute()
+	updateReq := NewAtlasEncryptionAtRest(encryptionAtRestPlan, encryptionAtRestState, atlasEncryptionAtRest)
+	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, updateReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating encryption at rest", fmt.Sprintf(errorUpdateEncryptionAtRest, err.Error()))
 		return
