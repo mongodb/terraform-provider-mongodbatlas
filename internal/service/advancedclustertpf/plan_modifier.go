@@ -61,7 +61,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
-	// pending revision if logic can be reincorporated safely: keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
+	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 	/* pending revision if logic can be reincorporated safely:
 	if slices.Contains(keepUnknown, "replication_specs") {
@@ -190,8 +190,6 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 	return keepUnknowns
 }
 
-// TODO: check if it's needed or it's ok if just included in ignored_changes in lifeclcle
-// TODO: add disk_iops doc to include it in ignored_changes when instance_size changes
 func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
 	var keepUnknown []string
 	computedUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
@@ -214,9 +212,6 @@ func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *
 			regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
 			for j := range regiongConfigsTF {
 				for _, autoScalingTF := range []types.Object{regiongConfigsTF[j].AutoScaling, regiongConfigsTF[j].AnalyticsAutoScaling} {
-					if autoScalingTF.IsNull() || autoScalingTF.IsUnknown() {
-						continue
-					}
 					autoscaling := TFModelObject[TFAutoScalingModel](ctx, autoScalingTF)
 					if autoscaling == nil {
 						continue
