@@ -4,7 +4,7 @@
 
 This page describes the current version of `mongodbatlas_advanced_cluster`, the page for the **Preview for MongoDB Atlas Provider 2.0.0** can be found [here](./advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
 
-Please refer to our [Considerations and Best Practices](#considerations_and_best_practices) section for additional guidance on this resource.
+Please refer to our [Considerations and Best Practices](#considerations-and-best-practices) section for additional guidance on this resource.
 
 ~> **IMPORTANT:** We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource.  Key differences between [`mongodbatlas_cluster`](cluster) and [`mongodbatlas_advanced_cluster`](advanced_cluster) include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers).  For existing [`mongodbatlas_cluster`](cluster) resource users see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide). 
 
