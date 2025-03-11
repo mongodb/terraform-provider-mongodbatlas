@@ -38,7 +38,7 @@ replication_specs {
 }
 ```
 goes to:
-```
+```terraform
 replication_specs = [
   {
     region_configs = [
