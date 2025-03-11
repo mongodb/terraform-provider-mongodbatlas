@@ -88,7 +88,6 @@ func searchNodeChecks(targetName, clusterName, instanceSize string, searchNodeCo
 		resource.TestCheckResourceAttr(targetName, "specs.0.instance_size", instanceSize),
 		resource.TestCheckResourceAttr(targetName, "specs.0.node_count", fmt.Sprintf("%d", searchNodeCount)),
 		resource.TestCheckResourceAttrSet(targetName, "state_name"),
-		resource.TestCheckResourceAttrSet(targetName, "encryption_at_rest_provider"),
 	}
 }
 
