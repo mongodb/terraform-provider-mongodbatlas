@@ -12,13 +12,17 @@ import (
 )
 
 func NewTFEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *admin.EncryptionAtRest) *TfEncryptionAtRestRSModel {
+	enabledForSearchNodes := false
+	if encryptionResp.EnabledForSearchNodes != nil {
+		enabledForSearchNodes = encryptionResp.GetEnabledForSearchNodes()
+	}
 	return &TfEncryptionAtRestRSModel{
 		ID:                    types.StringValue(projectID),
 		ProjectID:             types.StringValue(projectID),
 		AwsKmsConfig:          NewTFAwsKmsConfig(ctx, encryptionResp.AwsKms),
 		AzureKeyVaultConfig:   NewTFAzureKeyVaultConfig(ctx, encryptionResp.AzureKeyVault),
 		GoogleCloudKmsConfig:  NewTFGcpKmsConfig(ctx, encryptionResp.GoogleCloudKms),
-		EnabledForSearchNodes: types.BoolPointerValue(encryptionResp.EnabledForSearchNodes),
+		EnabledForSearchNodes: types.BoolValue(enabledForSearchNodes),
 	}
 }
 
