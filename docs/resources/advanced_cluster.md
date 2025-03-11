@@ -4,7 +4,7 @@
 
 This page describes the current version of `mongodbatlas_advanced_cluster`, the page for the **Preview for MongoDB Atlas Provider 2.0.0** can be found [here](./advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
 
-More information on considerations for using advanced clusters please see [Considerations](https://docs.atlas.mongodb.com/reference/api/cluster-advanced/create-one-cluster-advanced/#considerations)
+Please refer to our [Considerations and Best Practices](#considerations_and_best_practices) section for additional guidance on this resource.
 
 ~> **IMPORTANT:** We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource.  Key differences between [`mongodbatlas_cluster`](cluster) and [`mongodbatlas_advanced_cluster`](advanced_cluster) include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers).  For existing [`mongodbatlas_cluster`](cluster) resource users see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide). 
 
@@ -451,7 +451,7 @@ This parameter defaults to false.
 * `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports all the MongoDB versions that have **not** reached [End of Live](https://www.mongodb.com/legal/support-policy/lifecycles) for M10+ clusters. If omitted, Atlas deploys the cluster with the default version. For more details, see [documentation](https://www.mongodb.com/docs/atlas/reference/faq/database/#which-versions-of-mongodb-do-service-clusters-use-). Atlas always deploys the cluster with the latest stable release of the specified version.  If you set a value to this parameter and set `version_release_system` `CONTINUOUS`, the resource returns an error. Either clear this parameter or set `version_release_system`: `LTS`.
 * `pinned_fcv` - (Optional) Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed. This operation can take several minutes as the request processes through the MongoDB data plane. Once FCV is unpinned it will not be possible to downgrade the `mongo_db_major_version`. It is advised that updates to `pinned_fcv` are done isolated from other cluster changes. If a plan contains multiple changes, the FCV change will be applied first. If FCV is unpinned past the expiration date the `pinned_fcv` attribute must be removed. The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) and [FCV documentation](https://www.mongodb.com/docs/atlas/tutorial/major-version-change/#manage-feature-compatibility--fcv--during-upgrades) can be referenced for more details. See [below](#pinned_fcv).
 * `pit_enabled` - (Optional) Flag that indicates if the cluster uses Continuous Cloud Backup.
-* `replication_specs` - List of settings that configure your cluster regions. This attribute has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. If for each replication_spec `num_shards` is configured with a value greater than 1 (using deprecated sharding configurations), then each object represents a zone with one or more shards. See [below](#replication_specs)
+* `replication_specs` - List of settings that configure your cluster regions. This attribute has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. If for each `replication_specs` a `num_shards` is configured with a value greater than 1 (using deprecated sharding configurations), then each object represents a zone with one or more shards. The `replication_specs` configuration for all shards within the same zone must be the same, with the exception of `instance_size` and `disk_iops` that can scale independently. Note that independent `disk_iops` values are only supported for AWS provisioned IOPS, or Azure regions that support Extended IOPS. See [below](#replication_specs).
 * `root_cert_type` - (Optional) - Certificate Authority that MongoDB Atlas clusters use. You can specify ISRGROOTX1 (for ISRG Root X1).
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 * `version_release_system` - (Optional) - Release cadence that Atlas uses for this cluster. This parameter defaults to `LTS`. If you set this field to `CONTINUOUS`, you must omit the `mongo_db_major_version` field. Atlas accepts:
@@ -679,6 +679,7 @@ lifecycle {
   ignore_changes = [
     replication_specs[0].region_configs[0].electable_specs[0].disk_size_gb,
     replication_specs[0].region_configs[0].electable_specs[0].instance_size,
+    replication_specs[0].region_configs[0].electable_specs[0].disk_iops // instance_size change can affect disk_iops in case that you are using it
   ]
 }
 ```
@@ -702,6 +703,8 @@ lifecycle {
   ignore_changes = [
     replication_specs[0].region_configs[0].analytics_specs[0].disk_size_gb,
     replication_specs[0].region_configs[0].analytics_specs[0].instance_size,
+    replication_specs[0].region_configs[0].analytics_specs[0].disk_iops // instance_size change can affect disk_iops in case that you are using it
+
   ]
 }
 ```
@@ -766,3 +769,64 @@ See detailed information for arguments and attributes: [MongoDB API Advanced Clu
 ~> **IMPORTANT:**
 <br> &#8226; When a cluster is imported, the resulting schema structure will always return the new schema including `replication_specs` per independent shards of the cluster.
 <br> &#8226;  Note: The first time `terraform apply` command is run **after** updating the configuration of an imported cluster, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
+
+## Considerations and Best Practices
+
+- If you want to remove or disable some cluster functionality, it is recommended to set the attributes explicitly to their default value instead of removing them. This will ensure that the configuration definition fully represents your cluster. For example, if you have a `read_only_specs` block in your cluster definition like this one:
+```terraform
+...
+region_configs {
+  read_only_specs {
+    instance_size = "M10"
+    node_count    = 1
+  }
+  electable_specs {
+    instance_size = "M10"
+    node_count    = 3
+  }
+  provider_name = "AWS"
+  priority      = 7
+  region_name   = "US_WEST_1"
+}
+...
+```
+and your intention is to delete the read-only nodes, you should set the `node_count` attribute to `0` instead of removing the block:
+```terraform
+...
+region_configs {
+  read_only_specs {
+    instance_size = "M10"
+    node_count    = 0
+  }
+  electable_specs {
+    instance_size = "M10"
+    node_count    = 3
+  }
+  provider_name = "AWS"
+  priority      = 7
+  region_name   = "US_WEST_1"
+}
+...
+```
+Similarly, if you have compute and disk auto-scaling enabled:
+```terraform
+...
+auto_scaling {
+  disk_gb_enabled = true
+  compute_enabled = true
+  compute_scale_down_enabled = true
+  compute_min_instance_size = "M30"
+  compute_max_instance_size = "M50"
+}
+...
+``` 
+and you want to disable them, you should set the `disk_gb_enabled` and `compute_enabled` attributes to `false` instead of removing the block:
+```terraform
+...
+auto_scaling {
+  disk_gb_enabled = false
+  compute_enabled = false
+  compute_scale_down_enabled = false
+}
+...
+```
