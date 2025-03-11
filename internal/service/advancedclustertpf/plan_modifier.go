@@ -19,6 +19,7 @@ var (
 		"replication_specs":      {},
 		"mongo_db_major_version": {"mongo_db_version"},
 		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12"},
+		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 	}
 	attributeReplicationSpecChangeMapping = map[string][]string{
 		// All these fields can exist in specs that are computed, therefore, it is not safe to use them when they have changed.
