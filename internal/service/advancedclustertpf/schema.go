@@ -441,6 +441,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 		Optional:            true,
 		MarkdownDescription: "advanced_configuration", // TODO: add description
 		// Avoid adding optional-only attributes, if the block is removed and attributes are not null in the state we get unintentional plan changes after apply.
+		// Avoid computed-optional with Default, if the block is removed and the attribute Default != state value we get unintentional plan changes after apply.
 		Attributes: map[string]schema.Attribute{
 			"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
 				Optional: true,

@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	// Change mappings uses `attribute_name`, it doesn't care about the nested level.
 	attributeRootChangeMapping = map[string][]string{
 		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
