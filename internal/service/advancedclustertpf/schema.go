@@ -435,7 +435,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 	return schema.SingleNestedAttribute{
 		Computed:            true,
 		Optional:            true,
-		MarkdownDescription: "advanced_configuration", // TODO: add description
+		MarkdownDescription: "Additional settings for an Atlas cluster.",
 		// Avoid adding optional-only attributes, if the block is removed and attributes are not null in the state we get unintentional plan changes after apply.
 		// Avoid computed-optional with Default, if the block is removed and the attribute Default != state value we get unintentional plan changes after apply.
 		Attributes: map[string]schema.Attribute{
@@ -497,17 +497,16 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
 			},
 			"default_read_concern": schema.StringAttribute{
-				DeprecationMessage: deprecationMsgOldSchema("default_read_concern"),
-
+				DeprecationMessage:  deprecationMsgOldSchema("default_read_concern"),
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "default_read_concern", // TODO: add description
+				MarkdownDescription: "Default level of acknowledgment requested from MongoDB for read operations set for this cluster.",
 			},
 			"fail_index_key_too_long": schema.BoolAttribute{
 				DeprecationMessage:  deprecationMsgOldSchema("fail_index_key_too_long"),
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "fail_index_key_too_long", // TODO: add description
+				MarkdownDescription: "When true, documents can only be updated or inserted if, for all indexed fields on the target collection, the corresponding index entries do not exceed 1024 bytes. When false, mongod writes documents that exceed the limit but does not index them.",
 			},
 			"default_max_time_ms": schema.Int64Attribute{
 				Computed:            true,
