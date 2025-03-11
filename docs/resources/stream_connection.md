@@ -81,12 +81,28 @@ resource "mongodbatlas_stream_connection" "test" {
 
 ```
 
+### Example Https Connection
+
+```terraform
+resource "mongodbatlas_stream_connection" "example-https" {
+  project_id      = var.project_id
+  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "https_connection_tf_new"
+  type            = "Https"
+  url             = "https://example.com"
+  headers = {
+    "key1": "value1",
+    "key2": "value2"
+  }
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
 * `instance_name` - (Required) Human-readable label that identifies the stream instance.
 * `connection_name` - (Required) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - (Required) Type of connection. Can be `Cluster`, `Kafka`, `Sample`, or `AWSLambda`.
+* `type` - (Required) Type of connection. Can be `Cluster`, `Kafka`, `Sample`, `Https` or `AWSLambda`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -101,6 +117,10 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 
 If `type` is of value `AWSLambda` the following additional arguments are defined:
 * `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
+
+If `type` is of value `Https` the following additional attributes are defined:
+* `url` - URL of the HTTPs endpoint that will be used for creating a connection.
+* `headers` - A map of key-value pairs for optional headers.
 
 ### Authentication
 
