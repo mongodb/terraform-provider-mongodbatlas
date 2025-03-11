@@ -49,7 +49,7 @@ The [CLI Plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) hel
 ## Manual updates to the Terraform configuration
 
 1. Ensure all references are updated (see example of updates in [outputs.tf](outputs.tf))
-   1. Ensure you are not adding any output variables that use the new `mongodbatlas_advanced_cluster` resource. Referencing the new resource before moving can lead to unexpected plan output (extra `Note: Objects have changed outside of Terraform` section) when performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform-plugin-framework/issues/1109)).
+   1. Ensure you are not adding any output variables that use the new `mongodbatlas_advanced_cluster` resource. Referencing the new resource before moving can lead to a more verbose plan output (extra `Note: Objects have changed outside of Terraform` section) when performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform-plugin-framework/issues/1109)).
 2. Comment out the `mongodbatlas_cluster` in `{CLUSTER_IN}.tf`
 3. Add the moved block for each resource migrated in `{CLUSTER_OUT}.tf`
 ```terraform
