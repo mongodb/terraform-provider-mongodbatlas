@@ -339,10 +339,7 @@ func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields: []string{"project_id"},
 		OverridenRootFields: map[string]dsschema.Attribute{
-			"use_replication_spec_per_shard": dsschema.BoolAttribute{ // TODO: added as in current resource
-				Optional:            true,
-				MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
-			},
+			"use_replication_spec_per_shard": useReplicationSpecPerShardSchema(),
 		},
 		OverridenFields: dataSourceOverridenFields(),
 	})
@@ -350,11 +347,15 @@ func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 
 func dataSourceOverridenFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
-		"use_replication_spec_per_shard": dsschema.BoolAttribute{ // TODO: added as in current resource
-			Optional:            true,
-			MarkdownDescription: "use_replication_spec_per_shard", // TODO: add documentation
-		},
+		"use_replication_spec_per_shard":                   useReplicationSpecPerShardSchema(),
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
+	}
+}
+
+func useReplicationSpecPerShardSchema() dsschema.BoolAttribute {
+	return dsschema.BoolAttribute{
+		Optional:            true,
+		MarkdownDescription: "Set this field to true to allow the data source to use the latest schema representing each shard with an individual replication_specs object. This enables representing clusters with independent shard scaling.",
 	}
 }
 
@@ -602,7 +603,7 @@ type TFModelDS struct {
 type TFModelPluralDS struct {
 	ProjectID                  types.String `tfsdk:"project_id"`
 	Results                    []*TFModelDS `tfsdk:"results"`
-	UseReplicationSpecPerShard types.Bool   `tfsdk:"use_replication_spec_per_shard"` // TODO: added as in current resource
+	UseReplicationSpecPerShard types.Bool   `tfsdk:"use_replication_spec_per_shard"`
 }
 
 type TFBiConnectorModel struct {
