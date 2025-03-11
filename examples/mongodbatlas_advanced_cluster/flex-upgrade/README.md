@@ -1,5 +1,5 @@
 # MongoDB Atlas Provider -- Flex cluster
-This example creates a project and a flex cluster using `mongodbatlas_advanced_cluster` resource. It is intended to show how to create a flex cluster, upgrade an M0 cluster to Flex and upgrade a Flex cluster to a Dedicated cluster
+This example creates a project and a Flex cluster using `mongodbatlas_advanced_cluster` resource. It is intended to show how to create a Flex cluster, upgrade an M0 cluster to Flex and upgrade a Flex cluster to a Dedicated cluster.
 
 Variables Required:
 - `atlas_org_id`: ID of the Atlas organization

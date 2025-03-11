@@ -28,7 +28,7 @@ data "mongodbatlas_network_peering" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project.
 * `peering_id` - (Required) Atlas assigned unique ID for the peering connection.
 
 ## Attributes Reference
