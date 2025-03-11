@@ -164,7 +164,7 @@ func NewAtlasEncryptionAtRest(encryptionAtRestPlan, encryptionAtRestState *TfEnc
 	if hasGcpKmsConfigChanged(encryptionAtRestPlan.GoogleCloudKmsConfig, encryptionAtRestState.GoogleCloudKmsConfig) {
 		atlasEncryptionAtRest.GoogleCloudKms = NewAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
 	}
-	if !encryptionAtRestPlan.EnabledForSearchNodes.IsNull() {
+	if encryptionAtRestPlan.EnabledForSearchNodes != encryptionAtRestState.EnabledForSearchNodes {
 		atlasEncryptionAtRest.EnabledForSearchNodes = encryptionAtRestPlan.EnabledForSearchNodes.ValueBoolPointer()
 	}
 	return atlasEncryptionAtRest
