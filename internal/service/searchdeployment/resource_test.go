@@ -96,12 +96,12 @@ func configBasic(projectID, clusterName, instanceSize string, searchNodeCount in
 		%[1]s
 
 		resource "mongodbatlas_search_deployment" "test" {
-			project_id = mongodbatlas_project.test.id
+			project_id = %[2]q
 			cluster_name = mongodbatlas_advanced_cluster.test.name
 			specs = [
 				{
-					instance_size = %[2]q
-					node_count = %[3]d
+					instance_size = %[3]q
+					node_count = %[4]d
 				}
 			]
 		}
@@ -110,7 +110,7 @@ func configBasic(projectID, clusterName, instanceSize string, searchNodeCount in
 			project_id = mongodbatlas_search_deployment.test.project_id
 			cluster_name = mongodbatlas_search_deployment.test.cluster_name
 		}
-	`, clusterConfig, instanceSize, searchNodeCount)
+	`, clusterConfig, projectID, instanceSize, searchNodeCount)
 }
 
 func configSearchDeployment(projectID, clusterNameRef, instanceSize string, searchNodeCount int) string {
