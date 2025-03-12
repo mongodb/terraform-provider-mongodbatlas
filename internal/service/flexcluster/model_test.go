@@ -73,7 +73,7 @@ func TestNewTFModel(t *testing.T) {
 		BackingProviderName: types.StringNull(),
 		DiskSizeGb:          types.Float64Null(),
 	}
-	nilProviderSettingsObject, _ := types.ObjectValueFrom(context.Background(), flexcluster.ProviderSettingsType.AttributeTypes(), providerSettingsTF)
+	nilProviderSettingsObject, _ := types.ObjectValueFrom(t.Context(), flexcluster.ProviderSettingsType.AttributeTypes(), providerSettingsTF)
 	testCases := map[string]NewTFModelTestCase{
 		"Complete TF state": {
 			expectedTFModel: &flexcluster.TFModel{
@@ -160,7 +160,7 @@ func TestNewTFModel(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			tfModel, diags := flexcluster.NewTFModel(context.Background(), tc.input)
+			tfModel, diags := flexcluster.NewTFModel(t.Context(), tc.input)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -284,7 +284,7 @@ func TestNewTFModelDSP(t *testing.T) {
 	}
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			tfModelDSP, diags := flexcluster.NewTFModelDSP(context.Background(), projectID, tc.input)
+			tfModelDSP, diags := flexcluster.NewTFModelDSP(t.Context(), projectID, tc.input)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -332,7 +332,7 @@ func TestNewAtlasCreateReq(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			apiReqResult, diags := flexcluster.NewAtlasCreateReq(context.Background(), tc.input)
+			apiReqResult, diags := flexcluster.NewAtlasCreateReq(t.Context(), tc.input)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -375,7 +375,7 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			apiReqResult, diags := flexcluster.NewAtlasUpdateReq(context.Background(), tc.input)
+			apiReqResult, diags := flexcluster.NewAtlasUpdateReq(t.Context(), tc.input)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

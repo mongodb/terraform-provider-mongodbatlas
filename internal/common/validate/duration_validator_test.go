@@ -1,7 +1,6 @@
 package validate_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -79,7 +78,7 @@ func TestValidDurationBetween(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			cidrValidator.ValidateString(context.Background(), validatorRequest, &validatorResponse)
+			cidrValidator.ValidateString(t.Context(), validatorRequest, &validatorResponse)
 
 			if validatorResponse.Diagnostics.HasError() && !wantErr {
 				t.Errorf("URL() error = %v, wantErr %v", validatorResponse.Diagnostics.Errors(), wantErr)

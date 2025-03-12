@@ -1,7 +1,6 @@
 package streamconnection_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -210,7 +209,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streamconnection.NewTFStreamConnection(context.Background(), tc.providedProjID, tc.providedInstanceName, tc.providedAuthConfig, tc.SDKResp)
+			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, tc.providedInstanceName, tc.providedAuthConfig, tc.SDKResp)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -372,7 +371,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streamconnection.NewTFStreamConnections(context.Background(), tc.providedConfig, tc.SDKResp)
+			resultModel, diags := streamconnection.NewTFStreamConnections(t.Context(), tc.providedConfig, tc.SDKResp)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -487,7 +486,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			apiReqResult, diags := streamconnection.NewStreamConnectionReq(context.Background(), tc.tfModel)
+			apiReqResult, diags := streamconnection.NewStreamConnectionReq(t.Context(), tc.tfModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -500,7 +499,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 
 func tfAuthenticationObject(t *testing.T, mechanism, username, password string) types.Object {
 	t.Helper()
-	auth, diags := types.ObjectValueFrom(context.Background(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
 		Mechanism: types.StringValue(mechanism),
 		Username:  types.StringValue(username),
 		Password:  types.StringValue(password),
@@ -513,7 +512,7 @@ func tfAuthenticationObject(t *testing.T, mechanism, username, password string) 
 
 func tfAuthenticationObjectWithNoPassword(t *testing.T, mechanism, username string) types.Object {
 	t.Helper()
-	auth, diags := types.ObjectValueFrom(context.Background(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
 		Mechanism: types.StringValue(mechanism),
 		Username:  types.StringValue(username),
 	})
@@ -525,7 +524,7 @@ func tfAuthenticationObjectWithNoPassword(t *testing.T, mechanism, username stri
 
 func tfSecurityObject(t *testing.T, brokerPublicCertificate, protocol string) types.Object {
 	t.Helper()
-	auth, diags := types.ObjectValueFrom(context.Background(), streamconnection.ConnectionSecurityObjectType.AttrTypes, streamconnection.TFConnectionSecurityModel{
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionSecurityObjectType.AttrTypes, streamconnection.TFConnectionSecurityModel{
 		BrokerPublicCertificate: types.StringValue(brokerPublicCertificate),
 		Protocol:                types.StringValue(protocol),
 	})
@@ -537,7 +536,7 @@ func tfSecurityObject(t *testing.T, brokerPublicCertificate, protocol string) ty
 
 func tfConfigMap(t *testing.T, config map[string]string) types.Map {
 	t.Helper()
-	mapValue, diags := types.MapValueFrom(context.Background(), types.StringType, config)
+	mapValue, diags := types.MapValueFrom(t.Context(), types.StringType, config)
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
 	}
@@ -546,7 +545,7 @@ func tfConfigMap(t *testing.T, config map[string]string) types.Map {
 
 func tfDBRoleToExecuteObject(t *testing.T, role, roleType string) types.Object {
 	t.Helper()
-	auth, diags := types.ObjectValueFrom(context.Background(), streamconnection.DBRoleToExecuteObjectType.AttrTypes, streamconnection.TFDbRoleToExecuteModel{
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.DBRoleToExecuteObjectType.AttrTypes, streamconnection.TFDbRoleToExecuteModel{
 		Role: types.StringValue(role),
 		Type: types.StringValue(roleType),
 	})
@@ -558,14 +557,14 @@ func tfDBRoleToExecuteObject(t *testing.T, role, roleType string) types.Object {
 
 func tfNetworkingObject(t *testing.T, networkingType string, connectionID *string) types.Object {
 	t.Helper()
-	networkingAccessModel, diags := types.ObjectValueFrom(context.Background(), streamconnection.NetworkingAccessObjectType.AttrTypes, streamconnection.TFNetworkingAccessModel{
+	networkingAccessModel, diags := types.ObjectValueFrom(t.Context(), streamconnection.NetworkingAccessObjectType.AttrTypes, streamconnection.TFNetworkingAccessModel{
 		Type:         types.StringValue(networkingType),
 		ConnectionID: types.StringPointerValue(connectionID),
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
 	}
-	networking, diags := types.ObjectValueFrom(context.Background(), streamconnection.NetworkingObjectType.AttrTypes, streamconnection.TFNetworkingModel{
+	networking, diags := types.ObjectValueFrom(t.Context(), streamconnection.NetworkingObjectType.AttrTypes, streamconnection.TFNetworkingModel{
 		Access: networkingAccessModel,
 	})
 	if diags.HasError() {
@@ -576,7 +575,7 @@ func tfNetworkingObject(t *testing.T, networkingType string, connectionID *strin
 
 func tfAWSLambdaConfigObject(t *testing.T, roleArn string) types.Object {
 	t.Helper()
-	aws, diags := types.ObjectValueFrom(context.Background(), streamconnection.AWSObjectType.AttrTypes, streamconnection.TFAWSModel{
+	aws, diags := types.ObjectValueFrom(t.Context(), streamconnection.AWSObjectType.AttrTypes, streamconnection.TFAWSModel{
 		RoleArn: types.StringValue(roleArn),
 	})
 	if diags.HasError() {

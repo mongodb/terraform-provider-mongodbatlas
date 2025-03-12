@@ -1,7 +1,6 @@
 package provider_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -16,31 +15,29 @@ import (
 
 func TestResourceSchemas(t *testing.T) {
 	t.Parallel()
-	ctxProvider := context.Background()
 	prov := provider.NewFrameworkProvider()
 	var provReq providerfw.MetadataRequest
 	var provRes providerfw.MetadataResponse
-	prov.Metadata(ctxProvider, provReq, &provRes)
-	for _, fn := range prov.Resources(ctxProvider) {
-		ctx := context.Background()
+	prov.Metadata(t.Context(), provReq, &provRes)
+	for _, fn := range prov.Resources(t.Context()) {
 		res := fn()
 		metadataReq := resource.MetadataRequest{
 			ProviderTypeName: provRes.TypeName,
 		}
 		var metadataRes resource.MetadataResponse
-		res.Metadata(ctx, metadataReq, &metadataRes)
+		res.Metadata(t.Context(), metadataReq, &metadataRes)
 
 		t.Run(metadataRes.TypeName, func(t *testing.T) {
 			schemaRequest := resource.SchemaRequest{}
 			schemaResponse := &resource.SchemaResponse{}
-			res.Schema(ctx, schemaRequest, schemaResponse)
+			res.Schema(t.Context(), schemaRequest, schemaResponse)
 			validateDocumentation(metadataRes.TypeName, schemaResponse)
 
 			if schemaResponse.Diagnostics.HasError() {
 				t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
 			}
 
-			if diagnostics := schemaResponse.Schema.ValidateImplementation(ctx); diagnostics.HasError() {
+			if diagnostics := schemaResponse.Schema.ValidateImplementation(t.Context()); diagnostics.HasError() {
 				t.Fatalf("Schema validation diagnostics: %+v", diagnostics)
 			}
 		})
@@ -49,31 +46,29 @@ func TestResourceSchemas(t *testing.T) {
 
 func TestDataSourceSchemas(t *testing.T) {
 	t.Parallel()
-	ctxProvider := context.Background()
 	prov := provider.NewFrameworkProvider()
 	var provReq providerfw.MetadataRequest
 	var provRes providerfw.MetadataResponse
-	prov.Metadata(ctxProvider, provReq, &provRes)
-	for _, fn := range prov.DataSources(ctxProvider) {
-		ctx := context.Background()
+	prov.Metadata(t.Context(), provReq, &provRes)
+	for _, fn := range prov.DataSources(t.Context()) {
 		res := fn()
 		metadataReq := datasource.MetadataRequest{
 			ProviderTypeName: provRes.TypeName,
 		}
 		var metadataRes datasource.MetadataResponse
-		res.Metadata(ctx, metadataReq, &metadataRes)
+		res.Metadata(t.Context(), metadataReq, &metadataRes)
 
 		t.Run(metadataRes.TypeName, func(t *testing.T) {
 			schemaRequest := datasource.SchemaRequest{}
 			schemaResponse := &datasource.SchemaResponse{}
-			res.Schema(ctx, schemaRequest, schemaResponse)
+			res.Schema(t.Context(), schemaRequest, schemaResponse)
 			validateDSDocumentation(metadataRes.TypeName, schemaResponse)
 
 			if schemaResponse.Diagnostics.HasError() {
 				t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
 			}
 
-			if diagnostics := schemaResponse.Schema.ValidateImplementation(ctx); diagnostics.HasError() {
+			if diagnostics := schemaResponse.Schema.ValidateImplementation(t.Context()); diagnostics.HasError() {
 				t.Fatalf("Schema validation diagnostics: %+v", diagnostics)
 			}
 		})

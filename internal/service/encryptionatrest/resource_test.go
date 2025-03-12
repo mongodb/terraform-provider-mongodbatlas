@@ -1,7 +1,6 @@
 package encryptionatrest_test
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -356,7 +355,7 @@ func TestHandleGcpKmsConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			encryptionatrest.HandleGcpKmsConfig(context.Background(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			encryptionatrest.HandleGcpKmsConfig(t.Context(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
 			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
 		})
 	}
@@ -408,7 +407,7 @@ func TestHandleAwsKmsConfigDefaults(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			encryptionatrest.HandleAwsKmsConfigDefaults(context.Background(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			encryptionatrest.HandleAwsKmsConfigDefaults(t.Context(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
 			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
 		})
 	}
@@ -460,7 +459,7 @@ func TestHandleAzureKeyVaultConfigDefaults(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			encryptionatrest.HandleAzureKeyVaultConfigDefaults(context.Background(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			encryptionatrest.HandleAzureKeyVaultConfigDefaults(t.Context(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
 			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
 		})
 	}
@@ -500,7 +499,7 @@ func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
 			m.EXPECT().UpdateEncryptionAtRest(mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateEncryptionAtRestApiRequest{ApiService: m})
 			m.EXPECT().UpdateEncryptionAtRestExecute(mock.Anything).Return(tc.mockResponse, nil, tc.mockError).Once()
 
-			response, strategy, err := encryptionatrest.ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(context.Background(), projectID, m, &admin.EncryptionAtRest{})()
+			response, strategy, err := encryptionatrest.ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t.Context(), projectID, m, &admin.EncryptionAtRest{})()
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)

@@ -93,12 +93,11 @@ func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() 
 		ClientModifier:   clientModifier,
 		t:                t,
 	}
-	ctx := context.Background()
-	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, v2Provider.GRPCProvider)
+	upgradedSdkProvider, err := tf5to6server.UpgradeServer(t.Context(), v2Provider.GRPCProvider)
 	if err != nil {
 		log.Fatal(err)
 	}
-	muxServer, err := tf6muxserver.NewMuxServer(ctx,
+	muxServer, err := tf6muxserver.NewMuxServer(t.Context(),
 		func() tfprotov6.ProviderServer { return upgradedSdkProvider },
 		providerserver.NewProtocol6(mockedProvider),
 	)

@@ -1,7 +1,6 @@
 package streamprocessor_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -122,7 +121,7 @@ func TestStreamProcessorStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetStreamProcessorExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := streamprocessor.WaitStateTransition(context.Background(), requestParams, m, tc.pendingStates, tc.desiredStates)
+			resp, err := streamprocessor.WaitStateTransition(t.Context(), requestParams, m, tc.pendingStates, tc.desiredStates)
 			assert.Equal(t, tc.expectedError, err != nil)
 			if resp != nil {
 				assert.Equal(t, *tc.expectedState, resp.State)

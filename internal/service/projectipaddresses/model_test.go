@@ -1,7 +1,6 @@
 package projectipaddresses_test
 
 import (
-	"context"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
@@ -128,7 +127,7 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := projectipaddresses.NewTFProjectIPAddresses(context.Background(), tc.SDKResp)
+			resultModel, diags := projectipaddresses.NewTFProjectIPAddresses(t.Context(), tc.SDKResp)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -143,7 +142,7 @@ func createExpectedServices(t *testing.T, clusters []projectipaddresses.TFCluste
 		Clusters: clusters,
 	}
 
-	servicesObj, diags := types.ObjectValueFrom(context.Background(), projectipaddresses.ServicesObjectType.AttrTypes, servicesValue)
+	servicesObj, diags := types.ObjectValueFrom(t.Context(), projectipaddresses.ServicesObjectType.AttrTypes, servicesValue)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors found when creating services object: %s", diags.Errors()[0].Summary())
 	}

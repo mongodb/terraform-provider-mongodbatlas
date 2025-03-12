@@ -72,7 +72,7 @@ func AddAttributes(t *testing.T, body *hclsyntax.Body, ret map[string]cty.Value)
 func PrettyHCL(t *testing.T, content string) string {
 	t.Helper()
 	builder := strings.Builder{}
-	fmt := getTF().Format(context.Background(), io.NopCloser(strings.NewReader(content)), &builder)
+	fmt := getTF().Format(t.Context(), io.NopCloser(strings.NewReader(content)), &builder)
 	require.NoError(t, fmt)
 	formatted := builder.String()
 	return formatted
