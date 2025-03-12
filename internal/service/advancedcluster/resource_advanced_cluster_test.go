@@ -24,7 +24,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
@@ -215,7 +214,7 @@ func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 				Check: checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 60, 3, true, true),
 			},
 			// empty plan when analytics block is removed
-			mig.TestStepCheckEmptyPlan(configAWSProvider(t, isAcc, ReplicaSetAWSConfig{
+			acc.TestStepCheckEmptyPlan(configAWSProvider(t, isAcc, ReplicaSetAWSConfig{
 				ProjectID:          projectID,
 				ClusterName:        clusterName,
 				ClusterType:        "REPLICASET",
@@ -568,7 +567,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 				),
 			},
 			// empty plan when auto_scaling block is removed
-			mig.TestStepCheckEmptyPlan(configReplicationSpecsAutoScaling(t, true, projectID, clusterName, nil, "M20", 20, 1)),
+			acc.TestStepCheckEmptyPlan(configReplicationSpecsAutoScaling(t, true, projectID, clusterName, nil, "M20", 20, 1)),
 			{
 				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, nil, "M10", 10, 2), // other change after autoscaling block removed, preserves previous state
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -624,7 +623,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 				),
 			},
 			// empty plan when analytics_auto_scaling block is removed
-			mig.TestStepCheckEmptyPlan(configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, nil, 1)),
+			acc.TestStepCheckEmptyPlan(configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, nil, 1)),
 			{
 				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, nil, 2), // other changes after analytics_auto_scaling block removed, preserves previous state
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -1404,7 +1403,7 @@ func TestAccMockableAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 				Check:  checkBlocks("M10"),
 			},
 			// removing blocks generates an empty plan
-			mig.TestStepCheckEmptyPlan(configBlocks(t, projectID, clusterName, "M10", false)),
+			acc.TestStepCheckEmptyPlan(configBlocks(t, projectID, clusterName, "M10", false)),
 			{
 				Config: configBlocks(t, projectID, clusterName, "M20", false), // applying a change after removing blocks preserves previous state
 				Check:  checkBlocks("M20"),
