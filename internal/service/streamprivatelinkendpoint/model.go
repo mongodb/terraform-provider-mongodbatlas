@@ -18,7 +18,6 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 	result := &TFModel{
 		Id:                    types.StringPointerValue(apiResp.Id),
 		DnsDomain:             types.StringPointerValue(apiResp.DnsDomain),
-		DnsSubDomain:          types.ListNull(types.StringType),
 		ErrorMessage:          types.StringPointerValue(apiResp.ErrorMessage),
 		ProjectId:             types.StringPointerValue(&projectID),
 		InterfaceEndpointId:   types.StringPointerValue(apiResp.InterfaceEndpointId),
@@ -31,13 +30,11 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 		Vendor:                types.StringPointerValue(apiResp.Vendor),
 	}
 
-	if apiResp.DnsSubDomain != nil {
-		subdomain, diags := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
-		if diags.HasError() {
-			return nil, diags
-		}
-		result.DnsSubDomain = subdomain
+	subdomain, diags := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
+	if diags.HasError() {
+		return nil, diags
 	}
+	result.DnsSubDomain = subdomain
 
 	return result, nil
 }
