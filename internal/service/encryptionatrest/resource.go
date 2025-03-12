@@ -8,12 +8,14 @@ import (
 	"reflect"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -52,11 +54,12 @@ type encryptionAtRestRS struct {
 }
 
 type TfEncryptionAtRestRSModel struct {
-	ID                   types.String                 `tfsdk:"id"`
-	ProjectID            types.String                 `tfsdk:"project_id"`
-	AwsKmsConfig         []TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
-	AzureKeyVaultConfig  []TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
-	GoogleCloudKmsConfig []TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	ID                    types.String                 `tfsdk:"id"`
+	ProjectID             types.String                 `tfsdk:"project_id"`
+	AwsKmsConfig          []TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
+	AzureKeyVaultConfig   []TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
+	GoogleCloudKmsConfig  []TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	EnabledForSearchNodes types.Bool                   `tfsdk:"enabled_for_search_nodes"`
 }
 
 type TFAwsKmsConfigModel struct {
@@ -104,6 +107,12 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 					stringplanmodifier.RequiresReplace(),
 				},
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+			},
+			"enabled_for_search_nodes": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Flag that indicates whether Encryption at Rest for Dedicated Search Nodes is enabled in the specified project.",
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -262,7 +271,8 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var encryptionAtRestPlan *TfEncryptionAtRestRSModel
 	var encryptionAtRestConfig *TfEncryptionAtRestRSModel
-	connV2 := r.Client.AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &encryptionAtRestPlan)...)
 	resp.Diagnostics.Append(req.Config.Get(ctx, &encryptionAtRestConfig)...)
@@ -272,6 +282,9 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 
 	projectID := encryptionAtRestPlan.ProjectID.ValueString()
 	encryptionAtRestReq := &admin.EncryptionAtRest{}
+	if !encryptionAtRestPlan.EnabledForSearchNodes.IsNull() {
+		encryptionAtRestReq.EnabledForSearchNodes = conversion.Pointer(encryptionAtRestPlan.EnabledForSearchNodes.ValueBool())
+	}
 	if encryptionAtRestPlan.AwsKmsConfig != nil {
 		encryptionAtRestReq.AwsKms = NewAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
 	}
@@ -344,7 +357,8 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 		isImport = true
 	}
 
-	connV2 := r.Client.AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 
 	encryptionResp, getResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
 	if err != nil {
@@ -374,7 +388,8 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 	var encryptionAtRestState *TfEncryptionAtRestRSModel
 	var encryptionAtRestConfig *TfEncryptionAtRestRSModel
 	var encryptionAtRestPlan *TfEncryptionAtRestRSModel
-	connV2 := r.Client.AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 
 	// get current config
 	resp.Diagnostics.Append(req.Config.Get(ctx, &encryptionAtRestConfig)...)
@@ -398,17 +413,8 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	if hasAwsKmsConfigChanged(encryptionAtRestPlan.AwsKmsConfig, encryptionAtRestState.AwsKmsConfig) {
-		atlasEncryptionAtRest.AwsKms = NewAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
-	}
-	if hasAzureKeyVaultConfigChanged(encryptionAtRestPlan.AzureKeyVaultConfig, encryptionAtRestState.AzureKeyVaultConfig) {
-		atlasEncryptionAtRest.AzureKeyVault = NewAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
-	}
-	if hasGcpKmsConfigChanged(encryptionAtRestPlan.GoogleCloudKmsConfig, encryptionAtRestState.GoogleCloudKmsConfig) {
-		atlasEncryptionAtRest.GoogleCloudKms = NewAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
-	}
-
-	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, atlasEncryptionAtRest).Execute()
+	updateReq := NewAtlasEncryptionAtRest(encryptionAtRestPlan, encryptionAtRestState, atlasEncryptionAtRest)
+	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, updateReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating encryption at rest", fmt.Sprintf(errorUpdateEncryptionAtRest, err.Error()))
 		return
@@ -431,7 +437,8 @@ func (r *encryptionAtRestRS) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	enabled := false
-	connV2 := r.Client.AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := encryptionAtRestState.ProjectID.ValueString()
 
 	_, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
