@@ -18,7 +18,7 @@ func createProject(tb testing.TB, name string) string {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	require.NotNil(tb, "Project creation failed: %s, org not set", name)
 	params := &admin.Group{Name: name, OrgId: orgID}
-	resp, _, err := ConnV2().ProjectsApi.CreateProject(context.Background(), params).Execute()
+	resp, _, err := ConnV2().ProjectsApi.CreateProject(tb.Context(), params).Execute()
 	require.NoError(tb, err, "Project creation failed: %s, err: %s", name, err)
 	id := resp.GetId()
 	require.NotEmpty(tb, id, "Project creation failed: %s", name)
@@ -35,11 +35,11 @@ func deleteProject(id string) {
 func createCluster(tb testing.TB, projectID, name string) string {
 	tb.Helper()
 	req := clusterReq(name, projectID)
-	_, _, err := ConnV2().ClustersApi.CreateCluster(context.Background(), projectID, &req).Execute()
+	_, _, err := ConnV2().ClustersApi.CreateCluster(tb.Context(), projectID, &req).Execute()
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 
-	stateConf := advancedcluster.CreateStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
-	_, err = stateConf.WaitForStateContext(context.Background())
+	stateConf := advancedcluster.CreateStateChangeConfig(tb.Context(), ConnV2(), projectID, name, 1*time.Hour)
+	_, err = stateConf.WaitForStateContext(tb.Context())
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 
 	return name
@@ -90,7 +90,7 @@ func ProjectID(tb testing.TB, name string) string {
 		return id
 	}
 
-	resp, _, _ := ConnV2().ProjectsApi.GetProjectByName(context.Background(), name).Execute()
+	resp, _, _ := ConnV2().ProjectsApi.GetProjectByName(tb.Context(), name).Execute()
 	id := resp.GetId()
 	require.NotEmpty(tb, id, "Project name not found: %s", name)
 	return id

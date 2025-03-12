@@ -1,7 +1,6 @@
 package validate_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -96,7 +95,7 @@ func TestValidAwsKmsConfig(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			AwsKmsConfigValidator.ValidateObject(context.Background(), validatorRequest, &validatorResponse)
+			AwsKmsConfigValidator.ValidateObject(t.Context(), validatorRequest, &validatorResponse)
 
 			if validatorResponse.Diagnostics.HasError() && !wantErr {
 				t.Errorf("error = %v, wantErr %v", validatorResponse.Diagnostics.Errors(), wantErr)

@@ -1,7 +1,6 @@
 package pushbasedlogexport_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -77,7 +76,7 @@ func TestNewTFPushBasedLogExport(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, _ := pushbasedlogexport.NewTFPushBasedLogExport(context.Background(), tc.projectID, tc.apiResp, tc.timeout)
+			resultModel, _ := pushbasedlogexport.NewTFPushBasedLogExport(t.Context(), tc.projectID, tc.apiResp, tc.timeout)
 			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
 				t.Errorf("result model does not match expected output: expected %+v, got %+v", tc.expectedTFModel, resultModel)
 			}

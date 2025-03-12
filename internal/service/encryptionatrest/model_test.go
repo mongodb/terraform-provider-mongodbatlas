@@ -1,7 +1,6 @@
 package encryptionatrest_test
 
 import (
-	"context"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
@@ -111,7 +110,7 @@ func TestNewTfEncryptionAtRestRSModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := encryptionatrest.NewTFEncryptionAtRestRSModel(context.Background(), projectID, tc.sdkModel)
+			resultModel := encryptionatrest.NewTFEncryptionAtRestRSModel(t.Context(), projectID, tc.sdkModel)
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
@@ -139,7 +138,7 @@ func TestNewTFAwsKmsConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := encryptionatrest.NewTFAwsKmsConfig(context.Background(), tc.sdkModel)
+			resultModel := encryptionatrest.NewTFAwsKmsConfig(t.Context(), tc.sdkModel)
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
@@ -167,7 +166,7 @@ func TestNewTFAzureKeyVaultConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := encryptionatrest.NewTFAzureKeyVaultConfig(context.Background(), tc.sdkModel)
+			resultModel := encryptionatrest.NewTFAzureKeyVaultConfig(t.Context(), tc.sdkModel)
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
@@ -195,7 +194,7 @@ func TestNewTFGcpKmsConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := encryptionatrest.NewTFGcpKmsConfig(context.Background(), tc.sdkModel)
+			resultModel := encryptionatrest.NewTFGcpKmsConfig(t.Context(), tc.sdkModel)
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}

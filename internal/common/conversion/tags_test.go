@@ -1,7 +1,6 @@
 package conversion_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -26,7 +25,7 @@ func TestNewResourceTags(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, conversion.NewResourceTags(context.Background(), tc.plan))
+			assert.Equal(t, tc.expected, conversion.NewResourceTags(t.Context(), tc.plan))
 		})
 	}
 }
