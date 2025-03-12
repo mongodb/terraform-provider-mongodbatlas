@@ -99,23 +99,6 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 	return &streamConnection, nil
 }
 
-func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
-	streamConnection, diags := NewStreamConnectionReq(ctx, plan)
-	if diags.HasError() {
-		return nil, diags
-	}
-
-	headersMap := &map[string]string{}
-	// only set headers if the plan is not empty, otherwise the headers will be removed by sending an empty headers map to the PATCH endpoint
-	if !plan.Headers.IsNull() && !plan.Headers.IsUnknown() {
-		if diags := plan.Headers.ElementsAs(ctx, headersMap, true); diags.HasError() {
-			return nil, diags
-		}
-	}
-	streamConnection.Headers = headersMap
-	return streamConnection, nil
-}
-
 func NewTFStreamConnection(ctx context.Context, projID, instanceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
 	rID := fmt.Sprintf("%s-%s-%s", instanceName, projID, conversion.SafeString(apiResp.Name))
 	connectionModel := TFStreamConnectionModel{
@@ -198,8 +181,7 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 	}
 
 	connectionModel.Headers = types.MapNull(types.StringType)
-	// this is to handle the case where empty headers are returned as an empty map from the API, which is equivalent to a null value
-	if apiResp.Headers != nil && len(*apiResp.Headers) > 0 {
+	if apiResp.Headers != nil {
 		mapValue, diags := types.MapValueFrom(ctx, types.StringType, apiResp.Headers)
 		if diags.HasError() {
 			return nil, diags

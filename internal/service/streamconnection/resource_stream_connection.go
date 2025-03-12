@@ -184,7 +184,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 	projectID := streamConnectionPlan.ProjectID.ValueString()
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	connectionName := streamConnectionPlan.ConnectionName.ValueString()
-	streamConnectionReq, diags := NewStreamConnectionUpdateReq(ctx, &streamConnectionPlan)
+	streamConnectionReq, diags := NewStreamConnectionReq(ctx, &streamConnectionPlan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

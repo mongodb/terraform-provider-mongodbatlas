@@ -196,16 +196,6 @@ func TestAccStreamRSStreamConnection_https(t *testing.T) {
 		resourceName = "mongodbatlas_stream_connection.test"
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
-		url          = "https://example.com"
-		updatedURL   = "https://example2.com"
-		headerStr    = `headers = {
-			"Authorization" : "Bearer token",
-			"key1" : "value1"
-		}`
-		updatedHeaderStr = `headers = {
-			"updatedKey": "updatedValue"
-		}`
-		emptyHeaders = ""
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -213,28 +203,8 @@ func TestAccStreamRSStreamConnection_https(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: httpsStreamConnectionConfig(projectID, instanceName, url, headerStr),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					httpsStreamConnectionAttributeChecks(resourceName, instanceName, url),
-					resource.TestCheckResourceAttr(resourceName, "headers.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "headers.Authorization", "Bearer token"),
-					resource.TestCheckResourceAttr(resourceName, "headers.key1", "value1"),
-				),
-			},
-			{
-				Config: httpsStreamConnectionConfig(projectID, instanceName, updatedURL, updatedHeaderStr),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					httpsStreamConnectionAttributeChecks(resourceName, instanceName, updatedURL),
-					resource.TestCheckResourceAttr(resourceName, "headers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "headers.updatedKey", "updatedValue"),
-				),
-			},
-			{
-				Config: httpsStreamConnectionConfig(projectID, instanceName, updatedURL, emptyHeaders),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					httpsStreamConnectionAttributeChecks(resourceName, instanceName, updatedURL),
-					resource.TestCheckResourceAttr(resourceName, "headers.%", "0"),
-				),
+				Config: httpsStreamConnectionConfig(projectID, instanceName),
+				Check:  httpsStreamConnectionAttributeChecks(resourceName, instanceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -381,14 +351,16 @@ func sampleStreamConnectionAttributeChecks(
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
 
-func httpsStreamConnectionAttributeChecks(resourceName, instanceName, url string) resource.TestCheckFunc {
+func httpsStreamConnectionAttributeChecks(resourceName, instanceName string) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 		resource.TestCheckResourceAttr(resourceName, "connection_name", "ConnectionNameHttps"),
 		resource.TestCheckResourceAttr(resourceName, "type", "Https"),
-		resource.TestCheckResourceAttr(resourceName, "url", url),
+		resource.TestCheckResourceAttr(resourceName, "url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "headers.Authorization", "Bearer token"),
+		resource.TestCheckResourceAttr(resourceName, "headers.key1", "value1"),
 	}
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
@@ -448,7 +420,7 @@ func clusterStreamConnectionConfig(projectID, instanceName, clusterName string) 
 	`, projectID, instanceName, clusterName)
 }
 
-func httpsStreamConnectionConfig(projectID, instanceName, url, headers string) string {
+func httpsStreamConnectionConfig(projectID, instanceName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_instance" "test" {
 			project_id = %[1]q
@@ -464,10 +436,13 @@ func httpsStreamConnectionConfig(projectID, instanceName, url, headers string) s
 			instance_name = mongodbatlas_stream_instance.test.instance_name
 			connection_name = "ConnectionNameHttps"
 			type = "Https"
-			url = %[3]q
-			%[4]s	
+			url = "https://example.com"
+			headers = {
+				"Authorization" : "Bearer token",
+				"key1" : "value1"
+			} 
 		}
-	`, projectID, instanceName, url, headers)
+	`, projectID, instanceName)
 }
 
 func clusterStreamConnectionAttributeChecks(resourceName, clusterName string) resource.TestCheckFunc {
