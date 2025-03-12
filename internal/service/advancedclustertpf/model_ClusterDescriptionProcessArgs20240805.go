@@ -51,17 +51,16 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 		}
 	}
 
-	advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, input) // required to handle move state
+	advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, input)
 	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)
 	diags.Append(diagsLocal...)
 	tfModel.AdvancedConfiguration = objType
 }
 
 func customOpensslCipherConfigTLS12(ctx context.Context, diags *diag.Diagnostics, processArgs *admin.ClusterDescriptionProcessArgs20240805) types.Set {
-	if processArgs == nil || len(*processArgs.CustomOpensslCipherConfigTls12) == 0 {
+	if processArgs == nil {
 		return types.SetNull(types.StringType)
 	}
-
 	customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, processArgs.CustomOpensslCipherConfigTls12)
 	diags.Append(d...)
 	return customOpensslCipherConfigTLS12

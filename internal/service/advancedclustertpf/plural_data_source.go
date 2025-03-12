@@ -66,9 +66,8 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		return nil, diags
 	}
 	outs := &TFModelPluralDS{
-		ProjectID:                         pluralModel.ProjectID,
-		UseReplicationSpecPerShard:        pluralModel.UseReplicationSpecPerShard,
-		IncludeDeletedWithRetainedBackups: pluralModel.IncludeDeletedWithRetainedBackups,
+		ProjectID:                  pluralModel.ProjectID,
+		UseReplicationSpecPerShard: pluralModel.UseReplicationSpecPerShard,
 	}
 	for i := range list {
 		clusterResp := &list[i]
