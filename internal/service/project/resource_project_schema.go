@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
@@ -54,11 +53,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"with_default_alerts_settings": schema.BoolAttribute{
 				// Default values also must be Computed otherwise Terraform throws error:
-				// Schema Using Attribute Default For Non-Computed Attribute
+				// Provider produced invalid plan: planned an invalid value for a non-computed attribute.
 				Optional:      true,
 				Computed:      true,
-				Default:       booldefault.StaticBool(true),
-				PlanModifiers: []planmodifier.Bool{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers: []planmodifier.Bool{customplanmodifier.CreateOnlyAttributePlanModifierWithBoolDefault(true)},
 			},
 			"is_collect_database_specifics_statistics_enabled": schema.BoolAttribute{
 				Computed: true,

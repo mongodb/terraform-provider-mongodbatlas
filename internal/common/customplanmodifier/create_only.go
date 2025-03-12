@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	planmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 type Modifier interface {
@@ -15,11 +17,20 @@ type Modifier interface {
 	planmodifier.Bool
 }
 
+// CreateOnlyAttributePlanModifier returns a plan modifier that ensures that update operations fails when the attribute is changed.
+// This is useful for attributes only supported in create and not in update.
+// Never use a schema.Default for create only attributes, instead use WithXXXDefault, the default will lead to plan changes that are not expected after import.
+// Implement CopyFromPlan if the attribute is not in the API Response.
 func CreateOnlyAttributePlanModifier() Modifier {
 	return &createOnlyAttributePlanModifier{}
 }
 
+func CreateOnlyAttributePlanModifierWithBoolDefault(b bool) Modifier {
+	return &createOnlyAttributePlanModifier{defaultBool: &b}
+}
+
 type createOnlyAttributePlanModifier struct {
+	defaultBool *bool
 }
 
 func (d *createOnlyAttributePlanModifier) Description(ctx context.Context) string {
@@ -27,26 +38,42 @@ func (d *createOnlyAttributePlanModifier) Description(ctx context.Context) strin
 }
 
 func (d *createOnlyAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
-	return "Ensures that update operations fails when updating an attribute."
+	return "Ensures the update operation fails when updating an attribute. If the read after import don't equal the configuration value it will also raise an error."
+}
+
+func isCreate(t *tfsdk.State) bool {
+	return t.Raw.IsNull()
 }
 
 func (d *createOnlyAttributePlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
-	if d.isUpdated(req.PlanValue, req.StateValue) {
-		d.addDiags(&resp.Diagnostics, req.Path)
+	if isCreate(&req.State) {
+		if !IsKnown(req.PlanValue) && d.defaultBool != nil {
+			resp.PlanValue = types.BoolPointerValue(d.defaultBool)
+		}
+		return
+	}
+	if isUpdated(req.StateValue, req.PlanValue) {
+		d.addDiags(&resp.Diagnostics, req.Path, req.StateValue)
 	}
 }
 
 func (d *createOnlyAttributePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	if d.isUpdated(req.PlanValue, req.StateValue) {
-		d.addDiags(&resp.Diagnostics, req.Path)
+	if isCreate(&req.State) {
+		return
+	}
+	if isUpdated(req.StateValue, req.PlanValue) {
+		d.addDiags(&resp.Diagnostics, req.Path, req.StateValue)
 	}
 }
 
-func (d *createOnlyAttributePlanModifier) isUpdated(planValue, stateValue attr.Value) bool {
-	return !stateValue.IsNull() && !planValue.Equal(stateValue)
+func isUpdated(state, plan attr.Value) bool {
+	if !IsKnown(plan) {
+		return false
+	}
+	return !state.Equal(plan)
 }
 
-func (d *createOnlyAttributePlanModifier) addDiags(diags *diag.Diagnostics, attrPath path.Path) {
-	message := fmt.Sprintf("%s cannot be updated", attrPath)
+func (d *createOnlyAttributePlanModifier) addDiags(diags *diag.Diagnostics, attrPath path.Path, stateValue attr.Value) {
+	message := fmt.Sprintf("%s cannot be updated or imported, remove it from the configuration or use state value=%v", attrPath, stateValue)
 	diags.AddError(message, message)
 }

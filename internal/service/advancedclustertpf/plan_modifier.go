@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -266,14 +267,9 @@ func TFModelObject[T any](ctx context.Context, input types.Object) *T {
 }
 
 func copyAttrIfDestNotKnown[T attr.Value](src, dest *T) {
-	if !isKnown(*dest) {
+	if !customplanmodifier.IsKnown(*dest) {
 		*dest = *src
 	}
-}
-
-// isKnown returns true if the attribute is known (not null or unknown). Note that !isKnown is not the same as IsUnknown because null is !isKnown but not IsUnknown.
-func isKnown(attribute attr.Value) bool {
-	return !attribute.IsNull() && !attribute.IsUnknown()
 }
 
 func minLen[T any](a, b []T) int {
