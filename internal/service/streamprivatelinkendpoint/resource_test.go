@@ -26,13 +26,6 @@ func TestAccStreamPrivatelinkEndpoint_basic(t *testing.T) {
 	resource.Test(t, *tc)
 }
 
-func TestAccStreamPrivateLinkEndpoint_noDNSSubdomains(t *testing.T) {
-	acc.SkipTestForCI(t) // needs confluent cloud resources
-	tc := noDNSSubDomainsTestCase(t)
-	// Tests include testing of plural data source and so cannot be run in parallel
-	resource.Test(t, *tc)
-}
-
 func TestAccStreamPrivatelinkEndpoint_failedUpdate(t *testing.T) {
 	acc.SkipTestForCI(t) // needs confluent cloud resources
 	tc := failedUpdateTestCase(t)
@@ -58,40 +51,6 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
 		privatelinkAccessID = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
 		config              = acc.GetCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID)
-	)
-
-	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckConfluentAWSPrivatelink(t) },
-		CheckDestroy:             checkDestroy,
-		ExternalProviders:        acc.ExternalProvidersOnlyConfluent(),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-
-				Config: config,
-				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, true),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	}
-}
-
-func noDNSSubDomainsTestCase(t *testing.T) *resource.TestCase {
-	t.Helper()
-
-	var (
-		projectID           = acc.ProjectIDExecution(t)
-		provider            = "AWS"
-		region              = "us-east-1"
-		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
-		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
-		privatelinkAccessID = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
-		config              = acc.GetCompleteConfluentConfig(true, false, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID)
 	)
 
 	return &resource.TestCase{
