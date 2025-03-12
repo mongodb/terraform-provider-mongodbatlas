@@ -79,7 +79,7 @@ Read-Only:
 
 Read-Only:
 
-- `enabled` (Boolean) Flag that indicates whether backups are performed for this flex cluster. Backup uses [TODO](TODO) for flex clusters.
+- `enabled` (Boolean) Flag that indicates whether backups are performed for this flex cluster. Backup uses [flex cluster backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/).
 
 
 <a id="nestedatt--connection_strings"></a>

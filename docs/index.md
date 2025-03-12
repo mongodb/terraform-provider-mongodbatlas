@@ -179,6 +179,7 @@ For more information on configuring and managing programmatic API Keys see the [
 <!-- MATRIX_PLACEHOLDER_START -->
 | HashiCorp Terraform Release | HashiCorp Terraform Release Date  | HashiCorp Terraform Full Support End Date  | MongoDB Atlas Support End Date |
 |:-------:|:------------:|:------------:|:------------:|
+| 1.11.x | 2025-02-27 | 2027-02-28 | 2027-02-28 |
 | 1.10.x | 2024-11-27 | 2026-11-30 | 2026-11-30 |
 | 1.9.x | 2024-06-26 | 2026-06-30 | 2026-06-30 |
 | 1.8.x | 2024-04-10 | 2026-04-30 | 2026-04-30 |
@@ -221,7 +222,7 @@ We ship binaries but do not prioritize fixes for the following operating system 
 ## Examples from MongoDB and the Community
 
 <!-- NOTE: the below examples link is updated during the release process, when doing changes in the following sentence verify scripts/update-examples-reference-in-docs.sh is not impacted-->
-We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.27.0/examples)
+We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.29.0/examples)
 in our GitHub repo that will help both beginner and more advanced users.
 
 Have a good example you've created and want to share?

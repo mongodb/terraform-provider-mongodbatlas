@@ -52,13 +52,27 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
-				Config:            configReplicaSetAWSProvider(t, false, projectID, clusterName, 60, 3),
-				Check:             checkReplicaSetAWSProvider(false, projectID, clusterName, 60, 3, false, false),
+				Config: configAWSProvider(t, false, ReplicaSetAWSConfig{
+					ProjectID:          projectID,
+					ClusterName:        clusterName,
+					ClusterType:        "REPLICASET",
+					DiskSizeGB:         60,
+					NodeCountElectable: 3,
+					WithAnalyticsSpecs: true,
+				}),
+				Check: checkReplicaSetAWSProvider(false, projectID, clusterName, 60, 3, false, false),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configReplicaSetAWSProvider(t, false, projectID, clusterName, 60, 5),
-				Check:                    checkReplicaSetAWSProvider(false, projectID, clusterName, 60, 5, true, true),
+				Config: configAWSProvider(t, false, ReplicaSetAWSConfig{
+					ProjectID:          projectID,
+					ClusterName:        clusterName,
+					ClusterType:        "REPLICASET",
+					DiskSizeGB:         60,
+					NodeCountElectable: 5,
+					WithAnalyticsSpecs: true,
+				}),
+				Check: checkReplicaSetAWSProvider(false, projectID, clusterName, 60, 5, true, true),
 			},
 		},
 	})

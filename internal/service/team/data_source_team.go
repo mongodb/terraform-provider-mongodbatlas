@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -54,13 +54,13 @@ func LegacyTeamsDataSource() *schema.Resource {
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var (
-		connV2           = meta.(*config.MongoDBClient).AtlasV2
+		connV2           = meta.(*config.MongoDBClient).AtlasV220241113
 		orgID            = d.Get("org_id").(string)
 		teamID, teamIDOk = d.GetOk("team_id")
 		name, nameOk     = d.GetOk("name")
 
 		err  error
-		team *admin.TeamResponse
+		team *admin20241113.TeamResponse
 	)
 
 	if !teamIDOk && !nameOk {

@@ -3,10 +3,10 @@ package team
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
-func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersApi, existingTeamUsers []admin.CloudAppUser, newUsernames []string, orgID, teamID string) error {
+func UpdateTeamUsers(teamsAPI admin20241113.TeamsApi, usersAPI admin20241113.MongoDBCloudUsersApi, existingTeamUsers []admin20241113.CloudAppUser, newUsernames []string, orgID, teamID string) error {
 	validNewUsers, err := ValidateUsernames(usersAPI, newUsernames)
 	if err != nil {
 		return err
@@ -18,9 +18,9 @@ func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersAp
 
 	// Avoid leaving the team empty with no users by first making new additions, ensuring no API validation errors
 
-	var userToAddModels []admin.AddUserToTeam
+	var userToAddModels []admin20241113.AddUserToTeam
 	for i := range usersToAdd {
-		userToAddModels = append(userToAddModels, admin.AddUserToTeam{Id: usersToAdd[i]})
+		userToAddModels = append(userToAddModels, admin20241113.AddUserToTeam{Id: usersToAdd[i]})
 	}
 	// save all users to add
 	if len(userToAddModels) > 0 {
@@ -41,8 +41,8 @@ func UpdateTeamUsers(teamsAPI admin.TeamsApi, usersAPI admin.MongoDBCloudUsersAp
 	return nil
 }
 
-func ValidateUsernames(c admin.MongoDBCloudUsersApi, usernames []string) ([]admin.CloudAppUser, error) {
-	var validUsers []admin.CloudAppUser
+func ValidateUsernames(c admin20241113.MongoDBCloudUsersApi, usernames []string) ([]admin20241113.CloudAppUser, error) {
+	var validUsers []admin20241113.CloudAppUser
 	for _, elem := range usernames {
 		userToAdd, _, err := c.GetUserByUsername(context.Background(), elem).Execute()
 		if err != nil {
@@ -53,7 +53,7 @@ func ValidateUsernames(c admin.MongoDBCloudUsersApi, usernames []string) ([]admi
 	return validUsers, nil
 }
 
-func GetChangesForTeamUsers(currentUsers, newUsers []admin.CloudAppUser) (toAdd, toDelete []string, err error) {
+func GetChangesForTeamUsers(currentUsers, newUsers []admin20241113.CloudAppUser) (toAdd, toDelete []string, err error) {
 	// Create two sets to store the elements of current and new users
 	currentUsersSet := InitUserSet(currentUsers)
 	newUsersSet := InitUserSet(newUsers)
@@ -75,7 +75,7 @@ func GetChangesForTeamUsers(currentUsers, newUsers []admin.CloudAppUser) (toAdd,
 	return toAdd, toDelete, nil
 }
 
-func InitUserSet(users []admin.CloudAppUser) map[string]bool {
+func InitUserSet(users []admin20241113.CloudAppUser) map[string]bool {
 	usersSet := make(map[string]bool, len(users))
 	for i := range len(users) {
 		usersSet[users[i].GetId()] = true

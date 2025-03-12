@@ -1,5 +1,22 @@
 ## (Unreleased)
 
+## 1.29.0 (March 12, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Available as Preview of MongoDB Atlas Provider 2.0.0 ([#3147](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3147))
+* data-source/mongodbatlas_advanced_clusters: Available as Preview of MongoDB Atlas Provider 2.0.0 ([#3147](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3147))
+* data-source/mongodbatlas_stream_connection: Adds `AWSLambda` connection ([#3085](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3085))
+* resource/mongodbatlas_advanced_cluster: Available as Preview of MongoDB Atlas Provider 2.0.0 ([#3147](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3147))
+* resource/mongodbatlas_stream_connection: Adds `AWSLambda` connection ([#3085](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3085))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_organizations: Avoids nil pointer error when individual getOrganizationSettings API call fails ([#3118](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3118))
+* resource/mongodbatlas_backup_compliance_policy: Changes `on_demand_policy_item` attribute from `required` to `optional` ([#3119](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3119))
+
+## 1.28.0 (February 25, 2025)
+
 ENHANCEMENTS:
 
 * resource/mongodbatlas_encryption_at_rest: Adds support for `aws_kms_config.requirePrivateNetworking` ([#2951](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2951))

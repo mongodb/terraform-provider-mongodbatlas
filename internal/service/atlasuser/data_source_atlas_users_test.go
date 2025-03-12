@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -201,16 +201,16 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 	}
 }
 
-func fetchOrgUsers(t *testing.T, orgID string) *admin.PaginatedAppUser {
+func fetchOrgUsers(t *testing.T, orgID string) *admin20241113.PaginatedAppUser {
 	t.Helper()
-	users, _, err := acc.ConnV2().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
+	users, _, err := acc.ConnV220241113().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas Users for Org(%s) could not be fetched: %v", orgID, err)
 	}
 	return users
 }
 
-func dataSourceChecksForUsers(dataSourceName, orgID string, users *admin.PaginatedAppUser) []resource.TestCheckFunc {
+func dataSourceChecksForUsers(dataSourceName, orgID string, users *admin20241113.PaginatedAppUser) []resource.TestCheckFunc {
 	var totalCountValue int
 	if users.TotalCount != nil {
 		totalCountValue = *users.TotalCount
@@ -294,7 +294,7 @@ func testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName string) resource.
 			return fmt.Errorf("org_id not defined in data source: %s", dataSourceName)
 		}
 
-		apiResp, _, err := acc.ConnV2().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
+		apiResp, _, err := acc.ConnV220241113().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
 
 		if err != nil {
 			return fmt.Errorf("unable to determine if users exist in org: %s", orgID)

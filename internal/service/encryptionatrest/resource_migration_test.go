@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
@@ -48,7 +48,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 
 func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t) // needs AWS configuration
-	mig.SkipIfVersionBelow(t, "1.27.0")
+	mig.SkipIfVersionBelow(t, "1.28.0")
 
 	mig.CreateTestAndRunUseExternalProviderNonParallel(t, testCaseWithRoleBasicAWS(t), mig.ExternalProvidersWithAWS(), nil)
 }

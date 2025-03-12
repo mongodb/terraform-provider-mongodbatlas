@@ -9,8 +9,8 @@ on:
       - '*.md'
       - 'examples/**'
       - 'LICENSE'
-  pull_request: {}
-  workflow_dispatch: {}
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   build:

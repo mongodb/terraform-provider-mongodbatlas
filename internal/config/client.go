@@ -12,7 +12,8 @@ import (
 	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -36,13 +37,13 @@ type MongoDBClient struct {
 	AtlasPreview    *adminpreview.APIClient
 	AtlasV220240805 *admin20240805.APIClient // used in advanced_cluster to avoid adopting 2024-10-23 release with ISS autoscaling
 	AtlasV220240530 *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes (supporting deprecated replication_specs.id)
+	AtlasV220241113 *admin20241113.APIClient // used in teams and atlas_users to avoiding breaking changes
 	Config          *Config
 }
 
 // Config contains the configurations needed to use SDKs
 type Config struct {
 	AssumeRole       *AssumeRole
-	ProxyPort        *int
 	PublicKey        string
 	PrivateKey       string
 	BaseURL          string
@@ -76,14 +77,6 @@ type PlatformVersion struct {
 func (c *Config) NewClient(ctx context.Context) (any, error) {
 	// setup a transport to handle digest
 	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
-
-	// proxy is only used for testing purposes to connect with hoverfly for capturing/replaying requests
-	if c.ProxyPort != nil {
-		proxyURL, _ := url.Parse(fmt.Sprintf("http://localhost:%d", *c.ProxyPort))
-		transport.Transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
-		}
-	}
 
 	// initialize the client
 	client, err := transport.Client()
@@ -124,12 +117,18 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		return nil, err
 	}
 
+	sdkV220241113Client, err := c.newSDKV220241113Client(client)
+	if err != nil {
+		return nil, err
+	}
+
 	clients := &MongoDBClient{
 		Atlas:           atlasClient,
 		AtlasV2:         sdkV2Client,
 		AtlasPreview:    sdkPreviewClient,
 		AtlasV220240530: sdkV220240530Client,
 		AtlasV220240805: sdkV220240805Client,
+		AtlasV220241113: sdkV220241113Client,
 		Config:          c,
 	}
 	return clients, nil
@@ -185,6 +184,20 @@ func (c *Config) newSDKV220240805Client(client *http.Client) (*admin20240805.API
 		admin20240805.UseDebug(false)}
 
 	sdk, err := admin20240805.NewClient(opts...)
+	if err != nil {
+		return nil, err
+	}
+	return sdk, nil
+}
+
+func (c *Config) newSDKV220241113Client(client *http.Client) (*admin20241113.APIClient, error) {
+	opts := []admin20241113.ClientModifier{
+		admin20241113.UseHTTPClient(client),
+		admin20241113.UseUserAgent(userAgent(c)),
+		admin20241113.UseBaseURL(c.BaseURL),
+		admin20241113.UseDebug(false)}
+
+	sdk, err := admin20241113.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -75,7 +75,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
 						Computed:            true,
-						MarkdownDescription: "Flag that indicates whether backups are performed for this flex cluster. Backup uses [TODO](TODO) for flex clusters.",
+						MarkdownDescription: "Flag that indicates whether backups are performed for this flex cluster. Backup uses [flex cluster backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/).",
 					},
 				},
 				Computed: true,

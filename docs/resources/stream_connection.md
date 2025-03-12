@@ -66,12 +66,27 @@ resource "mongodbatlas_stream_connection" "test" {
 }
 ```
 
+### Example AWSLambda Connection
+
+```terraform
+resource "mongodbatlas_stream_connection" "test" {
+    project_id      = var.project_id
+    instance_name   = "NewInstance"
+    connection_name = "AWSLambdaConnection"
+    type            = "AWSLambda"
+    aws             = {
+      role_arn = "arn:aws:iam::123456789123:role/lambdaRole"
+    }
+}
+
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
 * `instance_name` - (Required) Human-readable label that identifies the stream instance.
 * `connection_name` - (Required) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - (Required) Type of connection. Can be either `Cluster`, `Kafka` or `Sample`.
+* `type` - (Required) Type of connection. Can be `Cluster`, `Kafka`, `Sample`, or `AWSLambda`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -83,6 +98,9 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 * `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
 * `security` - Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
+
+If `type` is of value `AWSLambda` the following additional arguments are defined:
+* `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
 
 ### Authentication
 
@@ -106,6 +124,9 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 ### Access
 * `type` - Selected networking type. Either `PUBLIC`, `VPC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
 * `connection_id` - Id of the Private Link connection when type is `PRIVATE_LINK`.
+
+### AWS
+* `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
 
 ## Import
 

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 )
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
@@ -74,6 +74,16 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 				Type:         networkingAccessModel.Type.ValueStringPointer(),
 				ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
 			},
+		}
+	}
+
+	if !plan.AWS.IsNull() {
+		awsModel := &TFAWSModel{}
+		if diags := plan.AWS.As(ctx, awsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.Aws = &admin.StreamsAWSConnectionConfig{
+			RoleArn: awsModel.RoleArn.ValueStringPointer(),
 		}
 	}
 
@@ -147,6 +157,17 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 			return nil, diags
 		}
 		connectionModel.Networking = networkingModel
+	}
+
+	connectionModel.AWS = types.ObjectNull(AWSObjectType.AttrTypes)
+	if apiResp.Aws != nil {
+		aws, diags := types.ObjectValueFrom(ctx, AWSObjectType.AttrTypes, TFAWSModel{
+			RoleArn: types.StringPointerValue(apiResp.Aws.RoleArn),
+		})
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.AWS = aws
 	}
 
 	return &connectionModel, nil

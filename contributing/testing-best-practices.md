@@ -16,7 +16,6 @@
 - All resource folders must have a `main_test.go` file to handle resource reuse lifecycle, e.g. [here](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/f3ff5bb678c1b07c16cc467471f483e483565427/internal/service/advancedcluster/main_test.go).
 - `internal/testutil/acc` contains helper test functions for Acceptance tests.
 - `internal/testutil/mig` contains helper test functions specifically for Migration tests.
-- `internal/testutil/replay` contains helper test functions for [Hoverfly](https://docs.hoverfly.io/en/latest/). Hoverfly is used to capture and replay HTTP traffic with MongoDB Atlas.
 - `internal/testutil/unit` contains helper test functions for [MacT (Mocked Acceptance Tests)](#mact---mocked-acceptance-tests). MacT is used to capture and replay HTTP traffic with MongoDB Atlas and allow diff assertions on requests.
 
 ## Unit tests
@@ -55,7 +54,6 @@ Enviroment Variable | Description
 --- | ---
 `MONGODB_ATLAS_PROJECT_ID` | Re-use an existing project reducing test run duration for resources supporting this variable
 `MONGODB_ATLAS_CLUSTER_NAME` | Re-use an existing cluster reducing significantly test run duration for resources supporting this variable
-`REPLAY_MODE` | Use [Hoverfly](https://docs.hoverfly.io/en/latest/), more info about possible variable values [here](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/contributing/development-setup.md#replaying-http-requests-with-hoverfly)
 
 ## Shared resources
 
@@ -74,7 +72,7 @@ Acceptance and migration tests can reuse projects and clusters in order to be mo
 **Experimental** framework for hooking into the HTTP Client used by the Terraform provider and capture/replay traffic.
 - Works by mutating a `terraform-plugin-testing/helper/resource.TestCase`
 - Limited to `TestAccMockable*` tests in [`resource_advanced_cluster_test.go`](../internal/service/advancedcluster/resource_advanced_cluster_test.go):
-  - Remember to run `make enable-preview-provider-v2` and `export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` for the TPF implementation to be used and the tests to work.
+  - Remember to run `export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` for the TPF implementation to be used and the tests to work.
 - Enabled test cases should always be named with `TestAccMockable` prefix, e.g.: `TestAccMockableAdvancedCluster_tenantUpgrade`
 - To create a new `TestAccMockable` you would need to (see [example commit](https://github.com/mongodb/terraform-provider-mongodbatlas/commit/939244fcab95eca9c4c93993fc1b5118ab8bfddb#diff-f9c590f9ffc351d041a26ff474f91404ff394cbfb83f1e135b415998476ca62aR128))
   - (1) Write the normal acceptance test

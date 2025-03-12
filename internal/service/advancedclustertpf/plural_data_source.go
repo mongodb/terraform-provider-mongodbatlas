@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -66,9 +66,8 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		return nil, diags
 	}
 	outs := &TFModelPluralDS{
-		ProjectID:                         pluralModel.ProjectID,
-		UseReplicationSpecPerShard:        pluralModel.UseReplicationSpecPerShard,
-		IncludeDeletedWithRetainedBackups: pluralModel.IncludeDeletedWithRetainedBackups,
+		ProjectID:                  pluralModel.ProjectID,
+		UseReplicationSpecPerShard: pluralModel.UseReplicationSpecPerShard,
 	}
 	for i := range list {
 		clusterResp := &list[i]

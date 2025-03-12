@@ -3,35 +3,23 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
-	"os"
 	"slices"
-	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
-)
-
-const (
-	minimizeLevelNever   = "never"
-	minimizeLevelDefault = "default"
-	minimizeLevelAlways  = "always"
-	envVarNameMinimize   = "MONGODB_ATLAS_PLAN_MINIMIZE"
 )
 
 var (
-	// The flex cluster API doesn't return the same fields as the tenant API; therefore, computed fields will be `null` after the upgrade
-	keepUnknownTenantToFlex      = []string{"connection_strings", "state_name", "advanced_configuration", "encryption_at_rest_provider", "root_cert_type", "bi_connector_config", "mongo_db_major_version"}
-	tenantUpgradeRootKeepUnknown = []string{"disk_size_gb", "cluster_id", "replication_specs", "backup_enabled", "create_date"}
-	// TenantUpgradeToFlex changes many extra fields that are normally ok to use state values for
-	keepUnknownFlexUpgrade = []string{"disk_size_gb", "encryption_at_rest_provider", "replication_specs", "backup_enabled", "cluster_id", "create_date", "root_cert_type", "bi_connector_config", "mongo_db_major_version"}
-	// TenantUpgrade changes many extra fields that are normally ok to use state values for
-	tenantUpgradeReplicationSpecKeepUnknown = []string{"disk_size_gb", "zone_id", "id", "container_id", "external_id", "auto_scaling", "analytics_specs", "read_only_specs"}
-	attributeRootChangeMapping              = map[string][]string{
+	// Change mappings uses `attribute_name`, it doesn't care about the nested level.
+	attributeRootChangeMapping = map[string][]string{
 		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
 		"mongo_db_major_version": {"mongo_db_version"},
+		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12"},
+		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 	}
 	attributeReplicationSpecChangeMapping = map[string][]string{
 		// All these fields can exist in specs that are computed, therefore, it is not safe to use them when they have changed.
@@ -43,71 +31,49 @@ var (
 		"region_name":     {"container_id"},    // container_id changes based on region_name changes
 		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
 	}
+	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNodeCount, keepUnkownFuncWithNonEmptyAutoScaling)
 )
 
-func getMinimizeLevel() string {
-	envValue := strings.ToLower(os.Getenv(envVarNameMinimize))
-	if envValue == "" {
-		return minimizeLevelAlways // Experimenting with always to try to find bugs
-	}
-	return envValue
+func keepUnkownFuncWithNodeCount(name string, replacement attr.Value) bool {
+	return name == "node_count" && !replacement.Equal(types.Int64Value(0))
 }
 
-func minimizeNever() bool {
-	return getMinimizeLevel() == minimizeLevelNever
+func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) bool {
+	autoScalingBoolValues := []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}
+	autoScalingStringValues := []string{"compute_min_instance_size", "compute_max_instance_size"}
+	boolValues := slices.Contains(autoScalingBoolValues, name) && replacement.Equal(types.BoolValue(true))
+	stringValues := slices.Contains(autoScalingStringValues, name) && replacement.(types.String).ValueString() != ""
+	return boolValues || stringValues
 }
 
-func minimizeAlways() bool {
-	return getMinimizeLevel() == minimizeLevelAlways
-}
-
+// useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	if !schemafunc.HasUnknowns(plan) {
-		return
-	}
-	stateReq := normalizeFromTFModel(ctx, state, diags, false)
-	planReq := normalizeFromTFModel(ctx, plan, diags, false)
+	shardingConfigUpgrade := isShardingConfigUpgrade(ctx, state, plan, diags)
 	if diags.HasError() {
 		return
 	}
-	flexUpgrade, _ := flexUpgradedUpdated(planReq, stateReq, diags)
-	if diags.HasError() {
+	// Don't adjust region_configs upgrades if it's a sharding config upgrade because it will be done only in the first shard, because state only has the first shard with num_shards > 1.
+	// This avoid errors like AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG.
+	if !shardingConfigUpgrade {
+		AdjustRegionConfigsChildren(ctx, diags, state, plan)
+	}
+	diff := findClusterDiff(ctx, state, plan, diags)
+	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
 	}
-	if flexUpgrade {
-		keepUnknownTenantToFlex = append(keepUnknownTenantToFlex, tenantUpgradeRootKeepUnknown...)
-		schemafunc.CopyUnknowns(ctx, state, plan, keepUnknownTenantToFlex)
-		return
-	}
-
-	_, upgradeRequest, upgradeFlexRequest := findClusterDiff(ctx, state, plan, diags, &update.PatchOptions{})
-	if diags.HasError() {
-		return
-	}
-	isFlexUpgrade := upgradeFlexRequest != nil
-	isTenantUpgrade := upgradeRequest != nil
-	attributeChanges := schemafunc.FindAttributeChanges(ctx, state, plan)
-	keepUnknown := determineKeepUnknownsRoot(attributeChanges, isTenantUpgrade, isFlexUpgrade)
-	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown)
-	if slices.Contains(keepUnknown, "replication_specs") && !minimizeNever() && !isFlexUpgrade {
-		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges, isTenantUpgrade)
-	}
-}
-
-func determineKeepUnknownsRoot(attributeChanges schemafunc.AttributeChanges, isTenantUpgrade, isFlexUpgrade bool) []string {
+	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
-	if isTenantUpgrade {
-		// TenantUpgrade changes a few root level fields that are normally ok to use state values for
-		keepUnknown = append(keepUnknown, tenantUpgradeRootKeepUnknown...)
+	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
+	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
+	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
+	/* pending revision if logic can be reincorporated safely:
+	if slices.Contains(keepUnknown, "replication_specs") {
+		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
 	}
-	if isFlexUpgrade {
-		// FlexToDedicatedUpgrade changes a few root level fields that are normally ok to use state values for
-		keepUnknown = append(keepUnknown, keepUnknownFlexUpgrade...)
-	}
-	return append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
+	*/
 }
 
-func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges, isTenantUpgrade bool) {
+func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges) {
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
@@ -115,20 +81,17 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	}
 	planWithUnknowns := []TFReplicationSpecsModel{}
 	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(ctx, diags, state, plan, attrChanges)
+	keepUnknownsUnchangedSpec = append(keepUnknownsUnchangedSpec, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	if diags.HasError() {
 		return
 	}
 	for i := range planRepSpecsTF {
 		if i < len(stateRepSpecsTF) {
-			switch {
-			case attrChanges.ListIndexChanged("replication_specs", i) && minimizeAlways():
-				keepUnknownsSpec := determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, isTenantUpgrade, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
-				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsSpec)
-			case attrChanges.ListIndexChanged("replication_specs", i):
-				// If the replication spec is changed, we should not copy the state values unless minimize is set to always
-			default:
-				schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknownsUnchangedSpec)
+			keepUnknowns := keepUnknownsUnchangedSpec
+			if attrChanges.ListIndexChanged("replication_specs", i) {
+				keepUnknowns = determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
 			}
+			schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknowns, keepUnknownsCalls)
 		}
 		planWithUnknowns = append(planWithUnknowns, planRepSpecsTF[i])
 	}
@@ -140,12 +103,91 @@ func useStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 	plan.ReplicationSpecs = listType
 }
 
-// determineKeepUnknownsChangedReplicationSpec: These fields must be kept unknown in the replication_specs[index_of_changes]
-func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, isTenantUpgrade bool, attributeChanges *schemafunc.AttributeChanges, parentPath string) []string {
-	var keepUnknowns = slices.Clone(keepUnknownsAlways)
-	if isTenantUpgrade {
-		keepUnknowns = append(keepUnknowns, tenantUpgradeReplicationSpecKeepUnknown...)
+// AdjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
+// This ensures proper handling of removing auto scaling and specs attributes by preserving state values.
+func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	if diags.HasError() {
+		return
 	}
+	for i := range minLen(planRepSpecsTF, stateRepSpecsTF) {
+		stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
+		planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
+		if diags.HasError() {
+			return
+		}
+		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
+			stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
+			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
+			planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
+			if stateReadOnlySpecs != nil && planElectableSpecs != nil { // read_only_specs is present in state and electable_specs in the plan
+				newPlanReadOnlySpecs := planReadOnlySpecs
+				if newPlanReadOnlySpecs == nil {
+					newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan
+				}
+				// unknown node_count is got from state, all other unknowns are got from electable_specs plan
+				copyAttrIfDestNotKnown(&planElectableSpecs.DiskSizeGb, &newPlanReadOnlySpecs.DiskSizeGb)
+				copyAttrIfDestNotKnown(&planElectableSpecs.EbsVolumeType, &newPlanReadOnlySpecs.EbsVolumeType)
+				copyAttrIfDestNotKnown(&planElectableSpecs.InstanceSize, &newPlanReadOnlySpecs.InstanceSize)
+				copyAttrIfDestNotKnown(&planElectableSpecs.DiskIops, &newPlanReadOnlySpecs.DiskIops)
+				copyAttrIfDestNotKnown(&stateReadOnlySpecs.NodeCount, &newPlanReadOnlySpecs.NodeCount)
+				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanReadOnlySpecs)
+				diags.Append(diagsLocal...)
+				if diags.HasError() {
+					return
+				}
+				planRegionConfigsTF[j].ReadOnlySpecs = objType
+			}
+
+			stateAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
+			planAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].AnalyticsSpecs)
+			// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH errors
+			if planAnalyticsSpecs == nil && stateAnalyticsSpecs != nil && stateAnalyticsSpecs.NodeCount.ValueInt64() > 0 {
+				newPlanAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
+				// if disk_size_gb is defined at root level we cannot use analytics_specs.disk_size_gb from state as it can be outdated
+				// read_only_specs implicitly covers this as it uses value from electable_specs which is unknown if not defined.
+				if plan.DiskSizeGB.ValueFloat64() > 0 { // has known value in config
+					newPlanAnalyticsSpecs.DiskSizeGb = types.Float64Unknown()
+				}
+				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanAnalyticsSpecs)
+				diags.Append(diagsLocal...)
+				if diags.HasError() {
+					return
+				}
+				planRegionConfigsTF[j].AnalyticsSpecs = objType
+			}
+
+			// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
+			stateAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AutoScaling)
+			planAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AutoScaling)
+			if planAutoScaling == nil && stateAutoScaling != nil && (stateAutoScaling.ComputeEnabled.ValueBool() || stateAutoScaling.DiskGBEnabled.ValueBool()) {
+				planRegionConfigsTF[j].AutoScaling = stateRegionConfigsTF[j].AutoScaling
+			}
+			stateAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AnalyticsAutoScaling)
+			planAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AnalyticsAutoScaling)
+			if planAnalyticsAutoScaling == nil && stateAnalyticsAutoScaling != nil && (stateAnalyticsAutoScaling.ComputeEnabled.ValueBool() || stateAnalyticsAutoScaling.DiskGBEnabled.ValueBool()) {
+				planRegionConfigsTF[j].AnalyticsAutoScaling = stateRegionConfigsTF[j].AnalyticsAutoScaling
+			}
+		}
+		listRegionConfigs, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, planRegionConfigsTF)
+		diags.Append(diagsLocal...)
+		if diags.HasError() {
+			return
+		}
+		planRepSpecsTF[i].RegionConfigs = listRegionConfigs
+	}
+	listRepSpecs, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, planRepSpecsTF)
+	diags.Append(diagsLocal...)
+	if diags.HasError() {
+		return
+	}
+	plan.ReplicationSpecs = listRepSpecs
+}
+
+// determineKeepUnknownsChangedReplicationSpec: These fields must be kept unknown in the replication_specs[index_of_changes]
+func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, attributeChanges *schemafunc.AttributeChanges, parentPath string) []string {
+	var keepUnknowns = slices.Clone(keepUnknownsAlways)
 	if attributeChanges.NestedListLenChanges(parentPath + ".region_configs") {
 		keepUnknowns = append(keepUnknowns, "container_id")
 	}
@@ -166,11 +208,78 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 	return keepUnknowns
 }
 
+func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
+	var keepUnknown []string
+	computedUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
+	if computedUsed {
+		keepUnknown = append(keepUnknown, "instance_size")
+		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["instance_size"]...)
+	}
+	if diskUsed {
+		keepUnknown = append(keepUnknown, "disk_size_gb")
+		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["disk_size_gb"]...)
+	}
+	return keepUnknown
+}
+
+// autoScalingUsed checks is auto-scaling was enabled (state) or will be enabled (plan).
+func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (computedUsed, diskUsed bool) {
+	for _, model := range []*TFModel{state, plan} {
+		repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, model.ReplicationSpecs)
+		for i := range repSpecsTF {
+			regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
+			for j := range regiongConfigsTF {
+				for _, autoScalingTF := range []types.Object{regiongConfigsTF[j].AutoScaling, regiongConfigsTF[j].AnalyticsAutoScaling} {
+					autoscaling := TFModelObject[TFAutoScalingModel](ctx, autoScalingTF)
+					if autoscaling == nil {
+						continue
+					}
+					if autoscaling.ComputeEnabled.ValueBool() {
+						computedUsed = true
+					}
+					if autoscaling.DiskGBEnabled.ValueBool() {
+						diskUsed = true
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
 func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
 	elements := make([]T, len(input.Elements()))
-	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
+	diags.Append(input.ElementsAs(ctx, &elements, false)...)
+	if diags.HasError() {
 		return nil
 	}
 	return elements
+}
+
+// TFModelObject returns nil if the Terraform object is null or unknown, or casting to T is not valid. However object attributes can be null or unknown.
+func TFModelObject[T any](ctx context.Context, input types.Object) *T {
+	item := new(T)
+	if diags := input.As(ctx, item, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil
+	}
+	return item
+}
+
+func copyAttrIfDestNotKnown[T attr.Value](src, dest *T) {
+	if !isKnown(*dest) {
+		*dest = *src
+	}
+}
+
+// isKnown returns true if the attribute is known (not null or unknown). Note that !isKnown is not the same as IsUnknown because null is !isKnown but not IsUnknown.
+func isKnown(attribute attr.Value) bool {
+	return !attribute.IsNull() && !attribute.IsUnknown()
+}
+
+func minLen[T any](a, b []T) int {
+	la, lb := len(a), len(b)
+	if la < lb {
+		return la
+	}
+	return lb
 }

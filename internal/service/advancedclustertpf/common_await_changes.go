@@ -7,14 +7,17 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
 var (
@@ -28,6 +31,19 @@ type ClusterWaitParams struct {
 	ClusterName string
 	Timeout     time.Duration
 	IsDelete    bool
+}
+
+func AwaitChangesUpgrade(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
+	upgraded := AwaitChanges(ctx, client, waitParams, errorLocator, diags)
+	if diags.HasError() || upgraded == nil {
+		return nil
+	}
+	providerName := getProviderName(upgraded.ReplicationSpecs)
+	if slices.Contains([]string{flexcluster.FlexClusterType, constant.TENANT}, providerName) {
+		tflog.Warn(ctx, fmt.Sprintf("cluster upgrade unexpected provider %s, retrying", providerName))
+		return AwaitChanges(ctx, client, waitParams, errorLocator, diags)
+	}
+	return upgraded
 }
 
 func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
