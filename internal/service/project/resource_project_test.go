@@ -658,12 +658,16 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithFalseDefaultSettings(orgID, projectName, projectOwnerID),
+				Config: configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
+			},
+			{
+				Config:      configWithDefaultAlertSettings(projectName, orgID, projectOwnerID, true),
+				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated or imported, remove it from the configuration or use state value"),
 			},
 		},
 	})
@@ -688,7 +692,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "project_owner_id", projectOwnerID),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"), // uses default value
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "false"),
@@ -701,7 +705,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"), // uses default value
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "true"),
@@ -714,7 +718,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"), // uses default value
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "false"),
@@ -1233,15 +1237,15 @@ func configGovWithOwner(orgID, projectName, projectOwnerID string) string {
 	`, orgID, projectName, projectOwnerID)
 }
 
-func configWithFalseDefaultSettings(orgID, projectName, projectOwnerID string) string {
+func configWithDefaultAlertSettings(orgID, projectName, projectOwnerID string, withDefaultAlertsSettings bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			org_id 			 = %[1]q
 			name   			 = %[2]q
 			project_owner_id = %[3]q
-			with_default_alerts_settings = false
+			with_default_alerts_settings = %[4]t
 		}
-	`, orgID, projectName, projectOwnerID)
+	`, orgID, projectName, projectOwnerID, withDefaultAlertsSettings)
 }
 
 func configWithLimits(orgID, projectName string, limits []*admin.DataFederationLimit) string {

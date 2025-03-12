@@ -45,15 +45,22 @@ func isCreate(t *tfsdk.State) bool {
 	return t.Raw.IsNull()
 }
 
+func (d *createOnlyAttributePlanModifier) UseDefault() bool {
+	return d.defaultBool != nil
+}
+
 func (d *createOnlyAttributePlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
 	if isCreate(&req.State) {
-		if !IsKnown(req.PlanValue) && d.defaultBool != nil {
+		if !IsKnown(req.PlanValue) && d.UseDefault() {
 			resp.PlanValue = types.BoolPointerValue(d.defaultBool)
 		}
 		return
 	}
 	if isUpdated(req.StateValue, req.PlanValue) {
 		d.addDiags(&resp.Diagnostics, req.Path, req.StateValue)
+	}
+	if !IsKnown(req.PlanValue) {
+		resp.PlanValue = req.StateValue
 	}
 }
 
@@ -63,6 +70,9 @@ func (d *createOnlyAttributePlanModifier) PlanModifyString(ctx context.Context, 
 	}
 	if isUpdated(req.StateValue, req.PlanValue) {
 		d.addDiags(&resp.Diagnostics, req.Path, req.StateValue)
+	}
+	if !IsKnown(req.PlanValue) {
+		resp.PlanValue = req.StateValue
 	}
 }
 
@@ -74,6 +84,7 @@ func isUpdated(state, plan attr.Value) bool {
 }
 
 func (d *createOnlyAttributePlanModifier) addDiags(diags *diag.Diagnostics, attrPath path.Path, stateValue attr.Value) {
-	message := fmt.Sprintf("%s cannot be updated or imported, remove it from the configuration or use state value=%v", attrPath, stateValue)
-	diags.AddError(message, message)
+	message := fmt.Sprintf("%s cannot be updated or imported, remove it from the configuration or use state value.", attrPath)
+	detail := fmt.Sprintf("The current state value is %s", stateValue)
+	diags.AddError(message, detail)
 }
