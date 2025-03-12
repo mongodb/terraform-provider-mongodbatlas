@@ -949,7 +949,7 @@ More information about moving resources can be found in our [Migration Guide](ht
 
 ### "known after apply" verbosity
 
-When making changes to your cluster, it is expected that your Terraform plan might show `known after apply` entries in attributes that have not been modified. This is expected and does not have any side effects. The reason why this is happening is because some of the changes you make can affect other values of the cluster, hence the provider plugin will show the inability to know the future value until MongoDB Atlas provides those value in the response. As an example, a change in the `instance_size` can affect the `disk_iops`. This behaviour is related to how [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework) behaves when the resource schema makes use of computed attributes.
+When making changes to your cluster, it is expected that your Terraform plan might show `known after apply` entries in attributes that have not been modified and does not have any side effects. The reason why this is happening is because some of the changes you make can affect other values of the cluster, hence the provider plugin will show the inability to know the future value until MongoDB Atlas provides those value in the response. As an example, a change in the `instance_size` can affect the `disk_iops`. This behaviour is related to how [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework) behaves when the resource schema makes use of computed attributes.
 
 If your desire is to see less `known after apply` verbosity in the Terraform plan, you can opt to explicitly declare those fields in your Terraform configuration.
 
