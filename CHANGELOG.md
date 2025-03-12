@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.29.0 (March 12, 2025)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: Available as Preview of MongoDB Atlas Provider 2.0.0 ([#3147](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3147))
