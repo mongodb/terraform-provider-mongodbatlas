@@ -2,7 +2,10 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_advanced_cluster: Available as Preview of MongoDB Atlas Provider 2.0.0 ([#3147](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3147))
+* data-source/mongodbatlas_advanced_clusters: Available as Preview of MongoDB Atlas Provider 2.0.0 ([#3147](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3147))
 * data-source/mongodbatlas_stream_connection: Adds `AWSLambda` connection ([#3085](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3085))
+* resource/mongodbatlas_advanced_cluster: Available as Preview of MongoDB Atlas Provider 2.0.0 ([#3147](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3147))
 * resource/mongodbatlas_stream_connection: Adds `AWSLambda` connection ([#3085](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3085))
 
 BUG FIXES:
