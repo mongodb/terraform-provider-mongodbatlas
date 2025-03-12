@@ -44,6 +44,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       priority              = 7
     }
   }
+
+  tags {
+    key   = "environment"
+    value = "dev"
+  }
 }
 ```
 
@@ -77,6 +82,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       priority              = 7
     }
   }
+
+  tags {
+    key   = "environment"
+    value = "dev"
+  }
 }
 ```
 
@@ -109,6 +119,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_name           = "US_EAST_1"
       priority              = 7
     }
+  }
+
+  tags {
+    key   = "environment"
+    value = "dev"
   }
 }
 ```
