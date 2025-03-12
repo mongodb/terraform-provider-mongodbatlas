@@ -58,6 +58,7 @@ provider_instance_size_name = null
 node_count 					= null
 ```
 
+The configuration will be equivalent to:
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id   = mongodbatlas_project.project.id
@@ -90,6 +91,7 @@ provider_instance_size_name = "M10"
 node_count 					= 3
 ```
 
+The configuration will be equivalent to:
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id   = mongodbatlas_project.project.id
