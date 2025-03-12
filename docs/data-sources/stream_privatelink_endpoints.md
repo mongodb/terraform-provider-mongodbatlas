@@ -102,7 +102,7 @@ Read-Only:
 - `error_message` (String) Error message if the connection is in a failed state.
 - `id` (String) The ID of the Private Link connection.
 - `interface_endpoint_id` (String) Interface endpoint ID that is created from the specified service endpoint ID.
-- `interface_endpoint_name` (String) Interface endpoint name that is created from the specified service endpoint ID.
+- `interface_endpoint_name` (String) Name of interface endpoint that is created from the specified service endpoint ID.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
 
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group or project id remains the same. The resource and corresponding endpoints use the term groups.

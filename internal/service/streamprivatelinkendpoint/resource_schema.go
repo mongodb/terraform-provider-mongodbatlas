@@ -37,7 +37,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"interface_endpoint_name": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Interface endpoint name that is created from the specified service endpoint ID.",
+				MarkdownDescription: "Name of interface endpoint that is created from the specified service endpoint ID.",
 			},
 			"provider_account_id": schema.StringAttribute{
 				Computed:            true,
