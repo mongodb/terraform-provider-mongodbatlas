@@ -28,7 +28,7 @@ func ConfigDataConfluentDedicatedCluster(networkID, privatelinkAccessID string) 
 	}`, ConfigConfluentProvider(), networkID, privatelinkAccessID)
 }
 
-func configBasic(projectID, provider, region, vendor, resourceName string, withDNSSubdomains bool) string {
+func configBasic(projectID, provider, region, vendor string, withDNSSubdomains bool) string {
 	dnsSubDomainConfig := ""
 	if withDNSSubdomains {
 		dnsSubDomainConfig = `dns_sub_domain = local.dns_sub_domain_entries`
@@ -42,33 +42,33 @@ func configBasic(projectID, provider, region, vendor, resourceName string, withD
   		]
 	}	
 
-	resource "mongodbatlas_stream_privatelink_endpoint" "%[5]q" {
+	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
 		project_id          = %[1]q
 		dns_domain          = confluent_network.private-link.dns_domain
 		provider_name       = %[2]q
 		region              = %[3]q
 		vendor              = %[4]q
 		service_endpoint_id = confluent_network.private-link.aws[0].private_link_endpoint_service
-		%[6]s
+		%[5]s
 		depends_on = [
 			confluent_kafka_cluster.dedicated
 		]
 	}
 
-	data "mongodbatlas_stream_privatelink_endpoint" "%[5]q" {
+	data "mongodbatlas_stream_privatelink_endpoint" "test" {
 		project_id = %[1]q
-		id         = mongodbatlas_stream_privatelink_endpoint.%[5]q.id
+		id         = mongodbatlas_stream_privatelink_endpoint.test.id
 		depends_on = [
-    		mongodbatlas_stream_privatelink_endpoint.%[5]q
+    		mongodbatlas_stream_privatelink_endpoint.test
   		]
 	}
 
-	data "mongodbatlas_stream_privatelink_endpoints" "%[5]q" {
+	data "mongodbatlas_stream_privatelink_endpoints" "test" {
 		project_id = %[1]q
 		depends_on = [
-    		mongodbatlas_stream_privatelink_endpoint.%[5]q
+    		mongodbatlas_stream_privatelink_endpoint.test
   		]
-	}`, projectID, provider, region, vendor, resourceName, dnsSubDomainConfig)
+	}`, projectID, provider, region, vendor, dnsSubDomainConfig)
 }
 
 func configNewConfluentDedicatedCluster(provider, region, awsAccountID string) string {
@@ -123,11 +123,11 @@ func configNewConfluentDedicatedCluster(provider, region, awsAccountID string) s
 	}`, ConfigConfluentProvider(), provider, region, awsAccountID)
 }
 
-func GetCompleteConfluentConfig(usesExistingConfluentCluster, withDNSSubdomains bool, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID, resourceName string) string {
+func GetCompleteConfluentConfig(usesExistingConfluentCluster, withDNSSubdomains bool, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID string) string {
 	if usesExistingConfluentCluster {
-		configBasicUsingDatasources := strings.ReplaceAll(configBasic(projectID, provider, region, vendor, resourceName, withDNSSubdomains), "confluent_network.private-link", "data.confluent_network.private-link")
+		configBasicUsingDatasources := strings.ReplaceAll(configBasic(projectID, provider, region, vendor, withDNSSubdomains), "confluent_network.private-link", "data.confluent_network.private-link")
 		configBasicUsingDatasourcesWithoutDependsOnCluster := strings.ReplaceAll(configBasicUsingDatasources, "confluent_kafka_cluster.dedicated", "")
 		return ConfigDataConfluentDedicatedCluster(networkID, privatelinkAccessID) + configBasicUsingDatasourcesWithoutDependsOnCluster
 	}
-	return configNewConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, resourceName, true)
+	return configNewConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, true)
 }

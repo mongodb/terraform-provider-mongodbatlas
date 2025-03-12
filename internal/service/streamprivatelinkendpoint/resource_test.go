@@ -57,7 +57,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
 		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
 		privatelinkAccessID = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
-		config              = acc.GetCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID, "test")
+		config              = acc.GetCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID)
 	)
 
 	return &resource.TestCase{
@@ -91,7 +91,7 @@ func noDNSSubDomainsTestCase(t *testing.T) *resource.TestCase {
 		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
 		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
 		privatelinkAccessID = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
-		config              = acc.GetCompleteConfluentConfig(true, false, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID, "testNoDNSSubdomains")
+		config              = acc.GetCompleteConfluentConfig(true, false, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID)
 	)
 
 	return &resource.TestCase{
@@ -135,11 +135,11 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.GetCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID, "test"),
+				Config: acc.GetCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
 				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, false),
 			},
 			{
-				Config:      acc.GetCompleteConfluentConfig(true, false, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID, "test"),
+				Config:      acc.GetCompleteConfluentConfig(true, false, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
 				ExpectError: regexp.MustCompile(`Operation not supported`),
 			},
 		},

@@ -203,7 +203,7 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 		awsAccountID               = os.Getenv("AWS_ACCOUNT_ID")
 		networkID                  = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
 		privatelinkAccessID        = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
-		privatelinkConfig          = acc.GetCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID, "test")
+		privatelinkConfig          = acc.GetCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID)
 		kafkaNetworkingPrivatelink = fmt.Sprintf(`networking = {
 			access = {
 				type = %[1]q
