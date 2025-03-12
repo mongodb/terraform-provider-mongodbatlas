@@ -497,6 +497,8 @@ bi_connector_config {
 
 -> **NOTE:** Prior to setting these options please ensure you read https://docs.atlas.mongodb.com/cluster-config/additional-options/.
 
+-> **NOTE:** This argument has been changed to type list so make sure that you have the proper syntax. The list can have only one item maximum.
+
 -> **NOTE:** Once you set some `advanced_configuration` attributes, we recommended to explicitly set those attributes to their intended value instead of removing them from the configuration. For example, if you set `javascript_enabled` to `false`, and later you want to go back to the default value (true), you must set it back to `true` instead of removing it.
 
 Include **desired options** within advanced_configuration:
