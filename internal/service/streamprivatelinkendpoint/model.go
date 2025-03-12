@@ -12,6 +12,7 @@ import (
 
 const (
 	VendorConfluent = "CONFLUENT"
+	VendorMSK       = "MSK"
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
@@ -25,14 +26,14 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 		ServiceEndpointId:   types.StringPointerValue(apiResp.ServiceEndpointId),
 		State:               types.StringPointerValue(apiResp.State),
 		Vendor:              types.StringPointerValue(apiResp.Vendor),
+		Arn:                 types.StringPointerValue(apiResp.Arn),
 	}
-	if apiResp.DnsSubDomain != nil {
-		subdomain, diags := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
-		if diags.HasError() {
-			return nil, diags
-		}
-		result.DnsSubDomain = subdomain
+
+	subdomain, diags := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
+	if diags.HasError() {
+		return nil, diags
 	}
+	result.DnsSubDomain = subdomain
 
 	return result, nil
 }
@@ -54,6 +55,19 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		}
 	}
 
+	if plan.Vendor.ValueString() == VendorMSK {
+		diags := diag.Diagnostics{}
+		if plan.Arn.IsNull() {
+			diags.AddError(fmt.Sprintf("arn is required for vendor %s", VendorMSK), "")
+		}
+		if plan.Region.ValueString() != "" {
+			diags.AddError(fmt.Sprintf("region cannot be set for vendor %s", VendorMSK), "")
+		}
+		if diags.HasError() {
+			return nil, diags
+		}
+	}
+
 	result := &admin.StreamsPrivateLinkConnection{
 		DnsDomain:         plan.DnsDomain.ValueStringPointer(),
 		Provider:          plan.Provider.ValueStringPointer(),
@@ -61,6 +75,7 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		ServiceEndpointId: plan.ServiceEndpointId.ValueStringPointer(),
 		State:             plan.State.ValueStringPointer(),
 		Vendor:            plan.Vendor.ValueStringPointer(),
+		Arn:               plan.Arn.ValueStringPointer(),
 	}
 
 	if !plan.DnsSubDomain.IsNull() {

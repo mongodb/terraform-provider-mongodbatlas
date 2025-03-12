@@ -37,6 +37,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"region": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Domain name of Confluent cluster.",
 			},
 			"service_endpoint_id": schema.StringAttribute{
@@ -50,6 +51,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"vendor": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Vendor who manages the Kafka cluster.",
+			},
+			"arn": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Amazon Resource Name (ARN).",
 			},
 		},
 	}
@@ -66,6 +71,7 @@ type TFModel struct {
 	ServiceEndpointId   types.String `tfsdk:"service_endpoint_id"`
 	State               types.String `tfsdk:"state"`
 	Vendor              types.String `tfsdk:"vendor"`
+	Arn                 types.String `tfsdk:"arn"`
 }
 
 type TFModelDSP struct {
