@@ -1388,14 +1388,14 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 	})
 }
 
-func TestAccMockableAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
+func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 	if !config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
 		t.Skip("This test is not applicable for SDKv2")
 	}
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 15)
 	)
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
