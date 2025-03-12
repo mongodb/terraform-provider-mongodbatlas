@@ -832,5 +832,4 @@ auto_scaling {
 }
 ...
 ```
-
 Once you've updated your cluster using this approach, you may proceed at removing the attributes from the configuration.
