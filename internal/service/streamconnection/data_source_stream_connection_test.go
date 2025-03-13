@@ -92,7 +92,7 @@ func TestAccStreamDSStreamConnection_https(t *testing.T) {
 		instanceName   = acc.RandomName()
 		url            = "https://example.com"
 		headerStr      = `headers = {
-			Authorization = "Bearer token",
+			Authorization = "Bearer token"
 			key1 = "value1"
 		}`
 	)

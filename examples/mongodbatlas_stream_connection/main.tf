@@ -87,7 +87,7 @@ resource "mongodbatlas_stream_connection" "example-https" {
   type            = "Https"
   url             = "https://example.com"
   headers = {
-    key1 = "value1",
+    key1 = "value1"
     key2 = "value2"
   }
 }
