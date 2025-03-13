@@ -566,8 +566,8 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb", "10"),   // modified disk size gb in config is ignored
 				),
 			},
-			// empty plan when auto_scaling block is removed
-			acc.TestStepCheckEmptyPlan(configReplicationSpecsAutoScaling(t, true, projectID, clusterName, nil, "M20", 20, 1)),
+			// empty plan when auto_scaling block is removed (also aligns instance_size/disk_size_gb to values in state)
+			acc.TestStepCheckEmptyPlan(configReplicationSpecsAutoScaling(t, true, projectID, clusterName, nil, "M10", 10, 1)),
 			{
 				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, nil, "M10", 10, 2), // other change after autoscaling block removed, preserves previous state
 				Check: resource.ComposeAggregateTestCheckFunc(
