@@ -199,11 +199,11 @@ func TestAccStreamRSStreamConnection_https(t *testing.T) {
 		url          = "https://example.com"
 		updatedURL   = "https://example2.com"
 		headerStr    = `headers = {
-			"Authorization" : "Bearer token",
-			"key1" : "value1"
+			Authorization = "Bearer token",
+			key1 = "value1"
 		}`
 		updatedHeaderStr = `headers = {
-			"updatedKey": "updatedValue"
+			updatedKey = "updatedValue"
 		}`
 		emptyHeaders = ""
 	)

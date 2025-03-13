@@ -92,8 +92,8 @@ func TestAccStreamDSStreamConnection_https(t *testing.T) {
 		instanceName   = acc.RandomName()
 		url            = "https://example.com"
 		headerStr      = `headers = {
-			"Authorization" : "Bearer token",
-			"key1" : "value1"
+			Authorization = "Bearer token",
+			key1 = "value1"
 		}`
 	)
 	resource.ParallelTest(t, resource.TestCase{
