@@ -679,7 +679,7 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 			},
 			{
 				Config:      alertSettingsTrue,
-				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated or imported, remove it from the configuration or use state value"),
+				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated or set after import, remove it from the configuration or use state value"),
 			},
 			{
 				Config:             alertSettingsFalseImport,
@@ -690,7 +690,7 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 			},
 			{
 				Config:      alertSettingsFalseImport, // when the value is set after import, the first plan will fail since the value cannot be read from API and the plan modifier will detect the change from null --> false
-				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated or imported, remove it from the configuration or use state value"),
+				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated or set after import, remove it from the configuration or use state value"),
 			},
 			{
 				Config:           alertSettingsAbsent, // removing `with_default_alerts_settings` from the configuration should have no plan changes

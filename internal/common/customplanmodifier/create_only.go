@@ -84,7 +84,7 @@ func isUpdated(state, plan attr.Value) bool {
 }
 
 func (d *createOnlyAttributePlanModifier) addDiags(diags *diag.Diagnostics, attrPath path.Path, stateValue attr.Value) {
-	message := fmt.Sprintf("%s cannot be updated or imported, remove it from the configuration or use state value.", attrPath)
+	message := fmt.Sprintf("%s cannot be updated or set after import, remove it from the configuration or use state value.", attrPath)
 	detail := fmt.Sprintf("The current state value is %s", stateValue)
 	diags.AddError(message, detail)
 }
