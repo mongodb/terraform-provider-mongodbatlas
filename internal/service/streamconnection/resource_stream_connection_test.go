@@ -30,6 +30,9 @@ var (
 				type = %[1]q
 			}
 		}`, networkingTypePublic)
+
+	resourceName   = "mongodbatlas_stream_connection.test"
+	dataSourceName = "data.mongodbatlas_stream_connection.test"
 )
 
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
@@ -40,7 +43,6 @@ func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
-		resourceName = "mongodbatlas_stream_connection.test"
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
 	)
@@ -70,7 +72,6 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 
 func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 	var (
-		resourceName         = "mongodbatlas_stream_connection.test"
 		projectID            = acc.ProjectIDExecution(t)
 		instanceName         = acc.RandomName()
 		vpcID                = os.Getenv("AWS_VPC_ID")
@@ -110,7 +111,6 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_stream_connection.test"
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
 	)
@@ -142,7 +142,6 @@ func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 func testCaseCluster(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
-		resourceName           = "mongodbatlas_stream_connection.test"
 		projectID, clusterName = acc.ClusterNameExecution(t, false)
 		instanceName           = acc.RandomName()
 	)
@@ -167,7 +166,6 @@ func testCaseCluster(t *testing.T) *resource.TestCase {
 
 func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_stream_connection.test"
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
 		sampleName   = "sample_stream_solar"
@@ -191,9 +189,8 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	})
 }
 
-func TestAccStreamRSStreamConnection_https(t *testing.T) {
+func TestAccStreamStreamConnection_https(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_stream_connection.test"
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
 		url          = "https://example.com"
@@ -205,7 +202,7 @@ func TestAccStreamRSStreamConnection_https(t *testing.T) {
 		updatedHeaderStr = `headers = {
 			updatedKey = "updatedValue"
 		}`
-		emptyHeaders = ""
+		emptyHeaders string
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -215,7 +212,7 @@ func TestAccStreamRSStreamConnection_https(t *testing.T) {
 			{
 				Config: httpsStreamConnectionConfig(projectID, instanceName, url, headerStr),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					httpsStreamConnectionAttributeChecks(resourceName, instanceName, url),
+					httpsStreamConnectionAttributeChecks(instanceName, url),
 					resource.TestCheckResourceAttr(resourceName, "headers.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "headers.Authorization", "Bearer token"),
 					resource.TestCheckResourceAttr(resourceName, "headers.key1", "value1"),
@@ -224,7 +221,7 @@ func TestAccStreamRSStreamConnection_https(t *testing.T) {
 			{
 				Config: httpsStreamConnectionConfig(projectID, instanceName, updatedURL, updatedHeaderStr),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					httpsStreamConnectionAttributeChecks(resourceName, instanceName, updatedURL),
+					httpsStreamConnectionAttributeChecks(instanceName, updatedURL),
 					resource.TestCheckResourceAttr(resourceName, "headers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "headers.updatedKey", "updatedValue"),
 				),
@@ -232,7 +229,7 @@ func TestAccStreamRSStreamConnection_https(t *testing.T) {
 			{
 				Config: httpsStreamConnectionConfig(projectID, instanceName, updatedURL, emptyHeaders),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					httpsStreamConnectionAttributeChecks(resourceName, instanceName, updatedURL),
+					httpsStreamConnectionAttributeChecks(instanceName, updatedURL),
 					resource.TestCheckResourceAttr(resourceName, "headers.%", "0"),
 				),
 			},
@@ -249,7 +246,6 @@ func TestAccStreamRSStreamConnection_https(t *testing.T) {
 func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 	acc.SkipTestForCI(t) // requires Confluent Cloud resources
 	var (
-		resourceName               = "mongodbatlas_stream_connection.test"
 		projectID                  = acc.ProjectIDExecution(t)
 		instanceName               = acc.RandomName()
 		vendor                     = "CONFLUENT"
@@ -292,7 +288,6 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_stream_connection.test"
 		projectID      = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID") // test-acc-tf-p-keep-ear-AWS-private-endpoint project has aws integration
 		instanceName   = acc.RandomName()
 		connectionName = acc.RandomName()
@@ -381,16 +376,16 @@ func sampleStreamConnectionAttributeChecks(
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
 
-func httpsStreamConnectionAttributeChecks(resourceName, instanceName, url string) resource.TestCheckFunc {
-	resourceChecks := []resource.TestCheckFunc{
-		checkStreamConnectionExists(),
-		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
-		resource.TestCheckResourceAttr(resourceName, "connection_name", "ConnectionNameHttps"),
-		resource.TestCheckResourceAttr(resourceName, "type", "Https"),
-		resource.TestCheckResourceAttr(resourceName, "url", url),
+func httpsStreamConnectionAttributeChecks(instanceName, url string) resource.TestCheckFunc {
+	setChecks := []string{"project_id"}
+	mapChecks := map[string]string{
+		"instance_name":   instanceName,
+		"connection_name": "ConnectionNameHttps",
+		"type":            "Https",
+		"url":             url,
 	}
-	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+	extra := []resource.TestCheckFunc{checkStreamConnectionExists()}
+	return acc.CheckRSAndDS(resourceName, conversion.StringPtr(dataSourceName), nil, setChecks, mapChecks, extra...)
 }
 
 func kafkaStreamConnectionAttributeChecks(
@@ -466,6 +461,12 @@ func httpsStreamConnectionConfig(projectID, instanceName, url, headers string) s
 			type = "Https"
 			url = %[3]q
 			%[4]s	
+		}
+
+		data "mongodbatlas_stream_connection" "test" {
+			project_id = mongodbatlas_stream_instance.test.project_id
+			instance_name = mongodbatlas_stream_instance.test.instance_name
+			connection_name = mongodbatlas_stream_connection.test.connection_name
 		}
 	`, projectID, instanceName, url, headers)
 }

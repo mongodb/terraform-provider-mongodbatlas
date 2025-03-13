@@ -89,11 +89,11 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 	}
 
 	if !plan.Headers.IsNull() {
-		headersMap := &map[string]string{}
-		if diags := plan.Headers.ElementsAs(ctx, headersMap, true); diags.HasError() {
+		headersMap := make(map[string]string)
+		if diags := plan.Headers.ElementsAs(ctx, &headersMap, true); diags.HasError() {
 			return nil, diags
 		}
-		streamConnection.Headers = headersMap
+		streamConnection.Headers = &headersMap
 	}
 
 	return &streamConnection, nil
@@ -105,14 +105,14 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionM
 		return nil, diags
 	}
 
-	headersMap := &map[string]string{}
+	headersMap := make(map[string]string)
 	// only set headers if the plan is not empty, otherwise the headers will be removed by sending an empty headers map to the PATCH endpoint
 	if !plan.Headers.IsNull() && !plan.Headers.IsUnknown() {
-		if diags := plan.Headers.ElementsAs(ctx, headersMap, true); diags.HasError() {
+		if diags := plan.Headers.ElementsAs(ctx, &headersMap, true); diags.HasError() {
 			return nil, diags
 		}
 	}
-	streamConnection.Headers = headersMap
+	streamConnection.Headers = &headersMap
 	return streamConnection, nil
 }
 
