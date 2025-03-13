@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_advanced_cluster (preview provider 2.0.0): Avoid error when removing `read_only_specs` in `region_configs` that does not define `electable_specs` 
+```
