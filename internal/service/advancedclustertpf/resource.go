@@ -105,7 +105,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
-	if !diags.HasError() {
+	if diags.HasError() {
 		return
 	}
 
