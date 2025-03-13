@@ -20,7 +20,7 @@ data "mongodbatlas_stream_connection" "example" {
 
 ## Attributes Reference
 
-* `type` - Type of connection. Can be `Cluster`, `Kafka`, `Sample`, `Https` or `AWSLambda`.
+* `type` - Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka` or `Sample`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
