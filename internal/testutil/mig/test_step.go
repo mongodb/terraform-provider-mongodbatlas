@@ -10,11 +10,15 @@ func TestStepCheckEmptyPlan(config string) resource.TestStep {
 	return resource.TestStep{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Config:                   config,
-		ConfigPlanChecks: resource.ConfigPlanChecks{
-			PreApply: []plancheck.PlanCheck{
-				acc.DebugPlan(),
-				plancheck.ExpectEmptyPlan(),
-			},
+		ConfigPlanChecks:         TestStepConfigPlanChecksEmptyPlan(),
+	}
+}
+
+func TestStepConfigPlanChecksEmptyPlan() resource.ConfigPlanChecks {
+	return resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			acc.DebugPlan(),
+			plancheck.ExpectEmptyPlan(),
 		},
 	}
 }

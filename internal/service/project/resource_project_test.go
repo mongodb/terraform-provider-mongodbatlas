@@ -22,6 +22,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 var (
@@ -647,9 +648,20 @@ func TestAccGovProject_withProjectOwner(t *testing.T) {
 
 func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		projectName    = acc.RandomProjectName()
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID     = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName        = acc.RandomProjectName()
+		importResourceName = resourceName + "2"
+		alertSettingsFalse = configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, false)
+		alertSettingsTrue  = configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, true)
+		// To test plan behavior after import it is necessary to use a different resource name, otherwise we get:
+		// Terraform is already managing a remote object for mongodbatlas_project.test. To import to this address you must first remove the existing object from the state.
+		// This happens because `ImportStatePersist` uses the previous WorkingDirectory where the state from previous steps are saved
+		// resource "mongodbatlas_project" "test"  --> resource "mongodbatlas_project" "test2"
+		alertSettingsFalseImport = strings.Replace(alertSettingsFalse, "test", "test2", 1)
+		// Need BOTH  mongodbatlas_project.test and mongodbatlas_project.test2, otherwise we get:
+		// expected empty plan, but mongodbatlas_project.test has planned action(s): [delete]
+		alertSettingsAbsent = alertSettingsFalse + strings.Replace(configBasic(orgID, projectName, "", false, nil, nil), "test", "test2", 1)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -658,7 +670,7 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, false),
+				Config: alertSettingsFalse,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
@@ -666,8 +678,23 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 				),
 			},
 			{
-				Config:      configWithDefaultAlertSettings(projectName, orgID, projectOwnerID, true),
+				Config:      alertSettingsTrue,
 				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated or imported, remove it from the configuration or use state value"),
+			},
+			{
+				Config:             alertSettingsFalseImport,
+				ResourceName:       importResourceName,
+				ImportStateIdFunc:  acc.ImportStateProjectIDFunc(resourceName),
+				ImportState:        true,
+				ImportStatePersist: true, // save the state to use it in the next plan
+			},
+			{
+				Config:      alertSettingsFalseImport, // when the value is set after import, the first plan will fail since the value cannot be read from API and the plan modifier will detect the change from null --> false
+				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated or imported, remove it from the configuration or use state value"),
+			},
+			{
+				Config:           alertSettingsAbsent, // removing `with_default_alerts_settings` from the configuration should have no plan changes
+				ConfigPlanChecks: mig.TestStepConfigPlanChecksEmptyPlan(),
 			},
 		},
 	})
