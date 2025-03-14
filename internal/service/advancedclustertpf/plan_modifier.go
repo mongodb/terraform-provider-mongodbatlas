@@ -121,20 +121,24 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
 			stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
 			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
+			planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
 			if stateReadOnlySpecs != nil { // read_only_specs is present in state
 				newPlanReadOnlySpecs := planReadOnlySpecs
 				if newPlanReadOnlySpecs == nil {
 					newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan
 				}
-				baseReadOnlySpecs := stateReadOnlySpecs
-				if planElectableSpecInReplicationSpec != nil { // if electable_specs in any region config is in plan we rely on those values for updating known values
+				baseReadOnlySpecs := stateReadOnlySpecs // using values directly from state if no electable specs are present in plan
+				if planElectableSpecInReplicationSpec != nil { // ensures values are taken from a defined electable spec if not present in current region config
 					baseReadOnlySpecs = planElectableSpecInReplicationSpec
+				}
+				if planElectableSpecs != nil { // we favour plan electable spec defined in same region config over one defined in replication spec to be more future proof					baseReadOnlySpecs = planElectableSpecs
+					baseReadOnlySpecs = planElectableSpecs
 				}
 				copyAttrIfDestNotKnown(&baseReadOnlySpecs.DiskSizeGb, &newPlanReadOnlySpecs.DiskSizeGb)
 				copyAttrIfDestNotKnown(&baseReadOnlySpecs.EbsVolumeType, &newPlanReadOnlySpecs.EbsVolumeType)
 				copyAttrIfDestNotKnown(&baseReadOnlySpecs.InstanceSize, &newPlanReadOnlySpecs.InstanceSize)
 				copyAttrIfDestNotKnown(&baseReadOnlySpecs.DiskIops, &newPlanReadOnlySpecs.DiskIops)
-				// unknown node_count is got from state, all other unknowns are got from electable_specs plan or state if absent
+				// unknown node_count is always taken from state as it not dependent on electable_specs changes
 				copyAttrIfDestNotKnown(&stateReadOnlySpecs.NodeCount, &newPlanReadOnlySpecs.NodeCount)
 				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanReadOnlySpecs)
 				diags.Append(diagsLocal...)
