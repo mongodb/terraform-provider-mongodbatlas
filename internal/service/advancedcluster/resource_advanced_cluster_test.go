@@ -1603,7 +1603,7 @@ func checkBlocks(instanceSize string) resource.TestCheckFunc {
 		"replication_specs.1.region_configs.0.analytics_specs.0.instance_size": "M10",
 		"replication_specs.1.region_configs.0.analytics_specs.0.node_count":    "4",
 
-		"replication_specs.1.region_configs.1.read_only_specs.0.instance_size": "M10",
+		"replication_specs.1.region_configs.1.read_only_specs.0.instance_size": instanceSize,
 		"replication_specs.1.region_configs.1.read_only_specs.0.node_count":    "2",
 	}
 	for repSpecsIdx := range 2 {

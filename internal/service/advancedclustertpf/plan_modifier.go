@@ -127,11 +127,11 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 				if newPlanReadOnlySpecs == nil {
 					newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan
 				}
-				baseReadOnlySpecs := stateReadOnlySpecs // using values directly from state if no electable specs are present in plan
+				baseReadOnlySpecs := stateReadOnlySpecs        // using values directly from state if no electable specs are present in plan
 				if planElectableSpecInReplicationSpec != nil { // ensures values are taken from a defined electable spec if not present in current region config
 					baseReadOnlySpecs = planElectableSpecInReplicationSpec
 				}
-				if planElectableSpecs != nil { // we favour plan electable spec defined in same region config over one defined in replication spec to be more future proof					baseReadOnlySpecs = planElectableSpecs
+				if planElectableSpecs != nil { // we favor plan electable spec defined in same region config over one defined in replication spec to be more future proof
 					baseReadOnlySpecs = planElectableSpecs
 				}
 				copyAttrIfDestNotKnown(&baseReadOnlySpecs.DiskSizeGb, &newPlanReadOnlySpecs.DiskSizeGb)
@@ -194,8 +194,8 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 }
 
 func findDefinedElectableSpecInReplicationSpec(ctx context.Context, regionConfigs []TFRegionConfigsModel) *TFSpecsModel {
-	for _, rc := range regionConfigs {
-		electableSpecs := TFModelObject[TFSpecsModel](ctx, rc.ElectableSpecs)
+	for i := range regionConfigs {
+		electableSpecs := TFModelObject[TFSpecsModel](ctx, regionConfigs[i].ElectableSpecs)
 		if electableSpecs != nil {
 			return electableSpecs
 		}
