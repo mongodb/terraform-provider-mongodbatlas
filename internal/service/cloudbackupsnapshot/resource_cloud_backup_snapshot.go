@@ -25,6 +25,9 @@ func Resource() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(1 * time.Hour),
+		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -151,7 +154,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"queued", "inProgress"},
 		Target:     []string{"completed", "failed"},
 		Refresh:    resourceRefreshFunc(ctx, requestParams, connV2),
-		Timeout:    1 * time.Hour,
+		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute,
 		MinTimeout: 60 * time.Second,
 		Delay:      1 * time.Minute,
 	}
