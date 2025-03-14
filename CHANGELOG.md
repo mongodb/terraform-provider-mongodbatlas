@@ -4,6 +4,8 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_stream_connection: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
 * data-source/mongodbatlas_stream_connections: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
+* resource/mongodbatlas_cloud_backup_snapshot: Adds `timeouts` attribute for create operation ([#3171](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3171))
+* resource/mongodbatlas_cloud_backup_snapshot: Adjusts creation default timeout from 20 minutes to 1 hour ([#3171](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3171))
 * resource/mongodbatlas_stream_connection: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
 
 BUG FIXES:
