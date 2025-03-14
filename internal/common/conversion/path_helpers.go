@@ -45,6 +45,12 @@ func AttributeNameEquals(p path.Path, name string) bool {
 	return noBrackets == name || strings.HasSuffix(noBrackets, fmt.Sprintf(".%s", name))
 }
 
+func AttributeName(p path.Path) string {
+	noBrackets := StripSquareBrackets(p)
+	parts := strings.Split(noBrackets, ".")
+	return parts[len(parts)-1]
+}
+
 func AsAddedIndex(p path.Path) string {
 	parentString := p.ParentPath().ParentPath().String()
 	lastPart := LastPart(p)
@@ -70,6 +76,9 @@ func StripSquareBrackets(p path.Path) string {
 		return p.ParentPath().String()
 	}
 	if IsMapIndex(p) {
+		return p.ParentPath().String()
+	}
+	if IsSetIndex(p) {
 		return p.ParentPath().String()
 	}
 	return p.String()

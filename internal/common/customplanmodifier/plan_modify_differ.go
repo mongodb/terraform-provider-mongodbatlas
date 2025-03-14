@@ -39,14 +39,14 @@ func NewPlanModifyDiffer(ctx context.Context, req *resource.ModifyPlanRequest, r
 		stateConfigDiff:  diffStateConfig,
 		statePlanDiff:    diffStatePlan,
 		schema:           schema,
-		AttributeChanges: &attributeChanges,
+		AttributeChanges: attributeChanges,
 		PlanFullyKnown:   req.Plan.Raw.IsFullyKnown(),
 	}
 }
 
 type PlanModifyDiffer struct {
 	schema           conversion.TPFSchema
-	AttributeChanges *AttributeChanges
+	AttributeChanges AttributeChanges
 	req              *resource.ModifyPlanRequest
 	resp             *resource.ModifyPlanResponse
 	stateConfigDiff  []tftypes.ValueDiff
@@ -60,7 +60,7 @@ func (d *PlanModifyDiffer) ParentRemoved(p path.Path) bool {
 		if parent.Equal(path.Empty()) {
 			return false
 		}
-		if slices.Contains(*d.AttributeChanges, conversion.AsRemovedIndex(parent)) {
+		if slices.Contains(d.AttributeChanges, conversion.AsRemovedIndex(parent)) {
 			return true
 		}
 		p = parent
@@ -87,6 +87,33 @@ func (d *PlanModifyDiffer) Diff(ctx context.Context, diags *diag.Diagnostics, sc
 		name = "config"
 	}
 	return fmt.Sprintf("DifferStateTo%s\n", name) + strings.Join(diffPaths, "\n")
+}
+
+type UnknownInfo struct {
+	Path          path.Path
+	StateValue    attr.Value
+	AttributeName string
+}
+
+func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics) map[string]UnknownInfo {
+	unknowns := map[string]UnknownInfo{}
+	schema := d.schema
+	for _, diff := range d.statePlanDiff {
+		stateValue, tpfPath := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
+		if d.ParentRemoved(tpfPath) {
+			continue
+		}
+		planValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)
+		if planValue == nil || !planValue.IsUnknown() {
+			continue
+		}
+		unknowns[tpfPath.String()] = UnknownInfo{
+			Path:          tpfPath,
+			StateValue:    stateValue,
+			AttributeName: conversion.AttributeName(tpfPath),
+		}
+	}
+	return unknowns
 }
 
 func (d *PlanModifyDiffer) UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, keepUnknown []string, prefix path.Path) {
