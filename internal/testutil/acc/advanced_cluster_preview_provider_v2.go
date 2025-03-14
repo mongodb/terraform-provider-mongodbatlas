@@ -93,13 +93,6 @@ func AttrNameToPreviewProviderV2(isAcc bool, name string) string {
 	return name
 }
 
-func attrReferenceToPreviewProviderV2(name string) string {
-	for _, singleAttrName := range tpfSingleNestedAttrs {
-		name = strings.ReplaceAll(name, singleAttrName+"[0]", singleAttrName)
-	}
-	return name
-}
-
 func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, isAcc bool, def string) string {
 	t.Helper()
 	if skipPreviewProviderV2Work(isAcc) {
@@ -122,7 +115,7 @@ func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, isAcc bool, def str
 		convertKeyValueAttrs(t, "tags", writeBody)
 	}
 	result := string(parse.Bytes())
-	result = attrReferenceToPreviewProviderV2(result) // useful for lifecycle ingore definitions
+	result = AttrNameToPreviewProviderV2(isAcc, result) // useful for lifecycle ingore definitions
 	return result
 }
 
@@ -144,7 +137,7 @@ func convertAttrs(t *testing.T, name string, writeBody *hclwrite.Body, isList bo
 			break
 		}
 		vals = append(vals, getOneAttr(t, hcl.GetBlockBody(t, match)))
-		writeBody.RemoveBlock(match) // TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
+		writeBody.RemoveBlock(match) // RemoveBlock doesn't remove newline just after the block so an extra line is added
 	}
 	if len(vals) == 0 {
 		return
@@ -169,7 +162,7 @@ func convertKeyValueAttrs(t *testing.T, name string, writeBody *hclwrite.Body) {
 		key := attrs.GetAttr("key")
 		value := attrs.GetAttr("value")
 		vals[key.AsString()] = value
-		writeBody.RemoveBlock(match) // TODO: RemoveBlock doesn't remove newline just after the block so an extra line is added
+		writeBody.RemoveBlock(match) // RemoveBlock doesn't remove newline just after the block so an extra line is added
 	}
 	if len(vals) > 0 {
 		writeBody.SetAttributeValue(name, cty.ObjectVal(vals))
