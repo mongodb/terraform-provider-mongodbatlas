@@ -118,10 +118,10 @@ func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input type
 	return elements
 }
 
-func TFModelObject[T any](ctx context.Context, diags *diag.Diagnostics, input types.Object) *T {
+// TFModelObject returns nil if the Terraform object is null or unknown, or casting to T is not valid. However object attributes can be null or unknown.
+func TFModelObject[T any](ctx context.Context, input types.Object) *T {
 	item := new(T)
-	if localDiags := input.As(ctx, item, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
-		diags.Append(localDiags...)
+	if diags := input.As(ctx, item, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil
 	}
 	return item

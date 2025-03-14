@@ -90,9 +90,10 @@ func (d *PlanModifyDiffer) Diff(ctx context.Context, diags *diag.Diagnostics, sc
 }
 
 type UnknownInfo struct {
-	Path          path.Path
 	StateValue    attr.Value
+	UnknownValue  attr.Value
 	AttributeName string
+	Path          path.Path
 }
 
 func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics) map[string]UnknownInfo {
@@ -110,6 +111,7 @@ func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics
 		unknowns[tpfPath.String()] = UnknownInfo{
 			Path:          tpfPath,
 			StateValue:    stateValue,
+			UnknownValue:  planValue,
 			AttributeName: conversion.AttributeName(tpfPath),
 		}
 	}
@@ -158,28 +160,27 @@ func (d *PlanModifyDiffer) ensureKeepUnknownRespected(ctx context.Context, diags
 	}
 }
 
-func ReadConfigStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.Config, p, diags)
+func ReadConfigStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
+	return readSrcStructValue[T](ctx, d.req.Config, p)
 }
 
-func ReadPlanStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.Plan, p, diags)
+func ReadPlanStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
+	return readSrcStructValue[T](ctx, d.req.Plan, p)
 }
 
-func ReadStateStructValue[T any](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.State, p, diags)
+func ReadStateStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
+	return readSrcStructValue[T](ctx, d.req.State, p)
 }
 
-func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p path.Path, diags *diag.Diagnostics) *T {
+func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p path.Path) *T {
 	var obj types.Object
 	if localDiags := src.GetAttribute(ctx, p, &obj); localDiags.HasError() {
-		diags.Append(localDiags...)
 		return nil
 	}
 	if obj.IsNull() || obj.IsUnknown() {
 		return nil
 	}
-	return conversion.TFModelObject[T](ctx, diags, obj)
+	return conversion.TFModelObject[T](ctx, obj)
 }
 
 func UpdatePlanValue[T attr.Value](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path, value T) {
@@ -282,28 +283,17 @@ func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *Pl
 		if conversion.AttributeNameEquals(p, name) {
 			usedPaths[p.String()] = true
 			var configObj, planObj types.Object
-			stateParsed := ReadStateStructValue[T](ctx, diags, d, p)
 			if d2 := d.req.Config.GetAttribute(ctx, p, &configObj); d2.HasError() {
 				return earlyReturn(d2)
 			}
 			if d3 := d.req.Plan.GetAttribute(ctx, p, &planObj); d3.HasError() {
 				return earlyReturn(d3)
 			}
-			var configParsed, planParsed *T
-			if !configObj.IsNull() && !configObj.IsUnknown() {
-				configParsed = conversion.TFModelObject[T](ctx, diags, configObj)
-			}
-			if !planObj.IsNull() && !planObj.IsUnknown() {
-				planParsed = conversion.TFModelObject[T](ctx, diags, planObj)
-			}
-			if diags.HasError() {
-				return nil
-			}
 			diffs = append(diffs, DiffTPF[T]{
 				Path:          p,
-				State:         stateParsed,
-				Config:        configParsed,
-				Plan:          planParsed,
+				State:         ReadStateStructValue[T](ctx, d, p),
+				Config:        ReadConfigStructValue[T](ctx, d, p),
+				Plan:          ReadPlanStructValue[T](ctx, d, p),
 				PlanUnknown:   planObj.IsUnknown(),
 				ConfigUnknown: configObj.IsUnknown(),
 			})

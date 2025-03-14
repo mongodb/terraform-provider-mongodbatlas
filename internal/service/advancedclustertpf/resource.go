@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -80,13 +81,62 @@ var (
 	resumeRequest              = admin.ClusterDescription20240805{Paused: conversion.Pointer(false)}
 	pauseRequest               = admin.ClusterDescription20240805{Paused: conversion.Pointer(true)}
 	errorSchemaDowngradeDetail = "Cluster name %s. " + fmt.Sprintf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; %s", DeprecationOldSchemaAction)
+	attributePlanModifiers     = map[string]customplanmodifier.UnknownReplacementCall[PlanModifyResourceInfo]{
+		"read_only_specs":        readOnlyReplaceUnknown,
+		"analytics_specs":        analyticsSpecsReplaceUnknown,
+		"auto_scaling":           autoScalingReplaceUnknown,
+		"analytics_auto_scaling": autoScalingReplaceUnknown,
+	}
 )
 
-func addModifyCalls(r *customplanmodifier.UnknownReplacments[PlanModifyResourceInfo]) {
-	customplanmodifier.AddReplacment(r, "read_only_specs", func(stateValue types.Object, changes customplanmodifier.AttributeChanges, info PlanModifyResourceInfo, differ *customplanmodifier.PlanModifyDiffer) types.Object {
+func readOnlyReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
+	if req.Info.isShardingConfigUpgrade {
+		return req.Unknown
+	}
+	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.AsObject())
+	if stateParsed == nil || stateParsed.NodeCount.ValueInt64() == 0 {
+		return req.Unknown
+	}
+	electablePath := req.Path.ParentPath().AtName("electable_specs")
+	electable := customplanmodifier.ReadPlanStructValue[TFSpecsModel](ctx, req.Differ, electablePath)
+	var newReadOnly *TFSpecsModel
+	if electable == nil {
+		newReadOnly = stateParsed
+	} else {
+		newReadOnly = &TFSpecsModel{
+			NodeCount:     stateParsed.NodeCount,
+			InstanceSize:  electable.InstanceSize,
+			DiskSizeGb:    electable.DiskSizeGb,
+			EbsVolumeType: electable.EbsVolumeType,
+			DiskIops:      electable.DiskIops,
+		}
+	}
+	// node_count is from state, all others are from electable_specs plan
+	if req.Changes.AttributeChanged("disk_size_gb") {
+		newReadOnly.DiskSizeGb = types.Float64Unknown()
+	}
+	return conversion.AsObjectValue(ctx, newReadOnly, SpecsObjType.AttrTypes)
+}
 
-		return stateValue
-	})
+func analyticsSpecsReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
+	if req.Info.isShardingConfigUpgrade {
+		return req.Unknown
+	}
+	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.AsObject())
+	if stateParsed == nil || stateParsed.NodeCount.ValueInt64() == 0 {
+		return req.Unknown
+	}
+	if req.Changes.AttributeChanged("disk_size_gb") {
+		stateParsed.DiskSizeGb = types.Float64Unknown()
+	}
+	return conversion.AsObjectValue(ctx, stateParsed, SpecsObjType.AttrTypes)
+}
+
+func autoScalingReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
+	if req.Info.AutoScalingComputedUsed || req.Info.AutoScalingDiskUsed {
+		return state.AsObject()
+	}
+	return req.Unknown
 }
 
 func Resource() resource.Resource {
@@ -128,12 +178,15 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 
-	unknownReplacements := customplanmodifier.NewUnknownReplacments(ctx, &req, resp, resourceSchema(ctx), PlanModifyResourceInfo{
+	info := PlanModifyResourceInfo{
 		AutoScalingComputedUsed: computedUsed,
 		AutoScalingDiskUsed:     diskUsed,
 		isShardingConfigUpgrade: shardingConfigUpgrade,
-	})
-	addModifyCalls(unknownReplacements)
+	}
+	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, &req, resp, resourceSchema(ctx), info)
+	for attrName, replacer := range attributePlanModifiers {
+		unknownReplacements.AddReplacement(attrName, replacer)
+	}
 	unknownReplacements.ApplyReplacments(ctx, diags)
 }
 
