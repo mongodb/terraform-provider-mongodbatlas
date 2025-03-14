@@ -20,8 +20,8 @@ func TestAccStreamDSStreamConnection_kafkaPlaintext(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionDataSourceConfig(kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", kafkaNetworkingPublic, false)),
-				Check:  kafkaStreamConnectionAttributeChecks(dataSourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
+				Config: streamConnectionDataSourceConfig(configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", kafkaNetworkingPublic, false)),
+				Check:  checkKafkaAttributes(dataSourceName, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
 			},
 		},
 	})
@@ -39,8 +39,8 @@ func TestAccStreamDSStreamConnection_kafkaSSL(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionDataSourceConfig(kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true)),
-				Check:  kafkaStreamConnectionAttributeChecks(dataSourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, false),
+				Config: streamConnectionDataSourceConfig(configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true)),
+				Check:  checkKafkaAttributes(dataSourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, false),
 			},
 		},
 	})
@@ -58,8 +58,8 @@ func TestAccStreamDSStreamConnection_cluster(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionDataSourceConfig(clusterStreamConnectionConfig(projectID, instanceName, clusterName)),
-				Check:  clusterStreamConnectionAttributeChecks(dataSourceName, clusterName),
+				Config: streamConnectionDataSourceConfig(configureCluster(projectID, instanceName, clusterName)),
+				Check:  checkClusterAttributes(dataSourceName, clusterName),
 			},
 		},
 	})
@@ -78,8 +78,8 @@ func TestAccStreamDSStreamConnection_sample(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionDataSourceConfig(sampleStreamConnectionConfig(projectID, instanceName, sampleName)),
-				Check:  sampleStreamConnectionAttributeChecks(dataSourceName, instanceName, sampleName),
+				Config: streamConnectionDataSourceConfig(configureSampleStream(projectID, instanceName, sampleName)),
+				Check:  checkSampleStreamAttributes(dataSourceName, instanceName, sampleName),
 			},
 		},
 	})
