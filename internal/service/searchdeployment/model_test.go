@@ -8,7 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
 type sdkToTFModelTestCase struct {
@@ -25,6 +27,7 @@ const (
 	clusterName       = "Cluster0"
 	instanceSize      = "S20_HIGHCPU_NVME"
 	nodeCount         = 2
+	earProvider       = "AWS"
 )
 
 func TestSearchDeploymentSDKToTFModel(t *testing.T) {
@@ -42,13 +45,15 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 						NodeCount:    nodeCount,
 					},
 				},
+				EncryptionAtRestProvider: admin.PtrString(earProvider),
 			},
 			expectedTFModel: &searchdeployment.TFSearchDeploymentRSModel{
-				ID:          types.StringValue(dummyDeploymentID),
-				ClusterName: types.StringValue(clusterName),
-				ProjectID:   types.StringValue(dummyProjectID),
-				StateName:   types.StringValue(stateName),
-				Specs:       tfSpecsList(t, instanceSize, nodeCount),
+				ID:                       types.StringValue(dummyDeploymentID),
+				ClusterName:              types.StringValue(clusterName),
+				ProjectID:                types.StringValue(dummyProjectID),
+				StateName:                types.StringValue(stateName),
+				Specs:                    tfSpecsList(t, instanceSize, nodeCount),
+				EncryptionAtRestProvider: types.StringValue(earProvider),
 			},
 		},
 	}

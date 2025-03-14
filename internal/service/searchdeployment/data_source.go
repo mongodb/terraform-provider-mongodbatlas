@@ -36,7 +36,8 @@ func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	connV2 := d.Client.AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := d.Client.AtlasPreview
 	projectID := searchDeploymentConfig.ProjectID.ValueString()
 	clusterName := searchDeploymentConfig.ClusterName.ValueString()
 	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
@@ -56,10 +57,11 @@ func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 
 func convertToDSModel(inputModel *TFSearchDeploymentRSModel) TFSearchDeploymentDSModel {
 	return TFSearchDeploymentDSModel{
-		ID:          inputModel.ID,
-		ClusterName: inputModel.ClusterName,
-		ProjectID:   inputModel.ProjectID,
-		Specs:       inputModel.Specs,
-		StateName:   inputModel.StateName,
+		ID:                       inputModel.ID,
+		ClusterName:              inputModel.ClusterName,
+		ProjectID:                inputModel.ProjectID,
+		Specs:                    inputModel.Specs,
+		StateName:                inputModel.StateName,
+		EncryptionAtRestProvider: inputModel.EncryptionAtRestProvider,
 	}
 }
