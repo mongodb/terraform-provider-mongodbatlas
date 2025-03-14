@@ -35,7 +35,7 @@ data "mongodbatlas_custom_db_role" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project.
 * `role_name` - (Required) Name of the custom role. 
 
 ## Attributes Reference

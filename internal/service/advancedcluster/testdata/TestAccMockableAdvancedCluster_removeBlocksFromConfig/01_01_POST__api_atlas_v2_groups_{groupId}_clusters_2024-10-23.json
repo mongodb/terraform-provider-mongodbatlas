@@ -1,0 +1,92 @@
+{
+ "clusterType": "GEOSHARDED",
+ "labels": [],
+ "name": "{clusterName}",
+ "replicationSpecs": [
+  {
+   "regionConfigs": [
+    {
+     "analyticsAutoScaling": {
+      "compute": {
+       "enabled": true,
+       "maxInstanceSize": "M30",
+       "minInstanceSize": "M10",
+       "scaleDownEnabled": true
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "autoScaling": {
+      "compute": {
+       "enabled": true,
+       "maxInstanceSize": "M30",
+       "minInstanceSize": "M10",
+       "scaleDownEnabled": true
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "electableSpecs": {
+      "instanceSize": "M10",
+      "nodeCount": 5
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "readOnlySpecs": {
+      "instanceSize": "M10",
+      "nodeCount": 2
+     },
+     "regionName": "US_EAST_1"
+    }
+   ],
+   "zoneName": "Zone 1"
+  },
+  {
+   "regionConfigs": [
+    {
+     "analyticsAutoScaling": {
+      "compute": {
+       "enabled": true,
+       "maxInstanceSize": "M30",
+       "minInstanceSize": "M10",
+       "scaleDownEnabled": true
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "analyticsSpecs": {
+      "instanceSize": "M10",
+      "nodeCount": 4
+     },
+     "autoScaling": {
+      "compute": {
+       "enabled": true,
+       "maxInstanceSize": "M30",
+       "minInstanceSize": "M10",
+       "scaleDownEnabled": true
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "electableSpecs": {
+      "instanceSize": "M10",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "readOnlySpecs": {
+      "instanceSize": "M10",
+      "nodeCount": 1
+     },
+     "regionName": "US_WEST_2"
+    }
+   ],
+   "zoneName": "Zone 2"
+  }
+ ],
+ "tags": []
+}

@@ -5,10 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/mockadmin"
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
+
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/mockadmin"
+	"github.com/mongodb/atlas-sdk-go/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -46,7 +50,8 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(true),
 		}
-		awsKmsUpdatedAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKmsUpdated)
+		awsKmsUpdatedAttrMap  = acc.ConvertToAwsKmsEARAttrMap(&awsKmsUpdated)
+		enabledForSearchNodes = true
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -55,32 +60,16 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAwsKms(projectID, &awsKms, true, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.CheckEARExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					acc.EARCheckResourceAttr(resourceName, "aws_kms_config.0", awsKmsAttrMap),
-
-					resource.TestCheckNoResourceAttr(resourceName, "azure_key_vault_config.#"),
-					resource.TestCheckNoResourceAttr(resourceName, "google_cloud_kms_config.#"),
-
-					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
-					acc.EARCheckResourceAttr(datasourceName, "aws_kms_config.", awsKmsAttrMap),
-				),
+				Config: acc.ConfigAwsKms(projectID, &awsKms, true, false, false),
+				Check:  checkEARResourceAWS(projectID, false, awsKmsAttrMap),
 			},
 			{
-				Config: acc.ConfigAwsKms(projectID, &awsKmsUpdated, true, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.CheckEARExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					acc.EARCheckResourceAttr(resourceName, "aws_kms_config.0", awsKmsUpdatedAttrMap),
-
-					resource.TestCheckNoResourceAttr(resourceName, "azure_key_vault_config.#"),
-					resource.TestCheckNoResourceAttr(resourceName, "google_cloud_kms_config.#"),
-
-					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
-					acc.EARCheckResourceAttr(datasourceName, "aws_kms_config", awsKmsUpdatedAttrMap),
-				),
+				Config: acc.ConfigAwsKms(projectID, &awsKmsUpdated, true, true, enabledForSearchNodes),
+				Check:  checkEARResourceAWS(projectID, enabledForSearchNodes, awsKmsUpdatedAttrMap),
+			},
+			{
+				Config: acc.ConfigAwsKms(projectID, &awsKmsUpdated, true, true, false),
+				Check:  checkEARResourceAWS(projectID, false, awsKmsUpdatedAttrMap),
 			},
 			{
 				ResourceName:      resourceName,
@@ -617,4 +606,21 @@ resource "mongodbatlas_encryption_at_rest" "test" {
   }
 }
 	`, awsEar.GetEnabled(), awsEar.GetRegion(), awsEar.GetCustomerMasterKeyID(), awsEar.GetRequirePrivateNetworking())
+}
+
+// Helper function to perform common AWS resource checks
+func checkEARResourceAWS(projectID string, enabledForSearchNodes bool, awsKmsAttrMap map[string]string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		acc.CheckEARExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(resourceName, "enabled_for_search_nodes", strconv.FormatBool(enabledForSearchNodes)),
+		acc.EARCheckResourceAttr(resourceName, "aws_kms_config.0", awsKmsAttrMap),
+
+		resource.TestCheckNoResourceAttr(resourceName, "azure_key_vault_config.#"),
+		resource.TestCheckNoResourceAttr(resourceName, "google_cloud_kms_config.#"),
+
+		resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(datasourceName, "enabled_for_search_nodes", strconv.FormatBool(enabledForSearchNodes)),
+		acc.EARCheckResourceAttr(datasourceName, "aws_kms_config.", awsKmsAttrMap),
+	)
 }
