@@ -785,12 +785,11 @@ If you are upgrading a replica set to a sharded cluster, you cannot increase the
   * If your region has set `region_configs[#].electable_specs.node_count` to 1 or higher, it must have a priority of exactly one (1) less than another region in the `replication_specs[#].region_configs[#]` array. The highest-priority region must have a priority of 7. The lowest possible priority is 1.
 * `provider_name` - (Optional) Cloud service provider on which the servers are provisioned.
   The possible values are:
-
   - `AWS` - Amazon AWS
   - `GCP` - Google Cloud Platform
   - `AZURE` - Microsoft Azure
   - `TENANT` - M0 multi-tenant cluster. Use `replication_specs.[#].region_configs[#].backing_provider_name` to set the cloud service provider.
-* `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#specs).
+* `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. All `read_only_specs` in the `region_configs` of a `replication_specs` must have the same `instance_size` as `electable_specs`. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#specs).
 * `region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 
 ### electable_specs
