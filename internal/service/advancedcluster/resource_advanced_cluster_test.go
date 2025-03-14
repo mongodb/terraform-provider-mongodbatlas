@@ -1399,14 +1399,14 @@ func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBlocks(t, projectID, clusterName, 3, true),
-				Check:  checkBlocks(3),
+				Config: configBlocks(t, projectID, clusterName, "M10", true),
+				Check:  checkBlocks("M10"),
 			},
 			// removing blocks generates an empty plan
-			acc.TestStepCheckEmptyPlan(configBlocks(t, projectID, clusterName, 3, false)),
+			acc.TestStepCheckEmptyPlan(configBlocks(t, projectID, clusterName, "M10", false)),
 			{
-				Config: configBlocks(t, projectID, clusterName, 5, false), // applying a change after removing blocks preserves previous state
-				Check:  checkBlocks(5),
+				Config: configBlocks(t, projectID, clusterName, "M20", false), // applying a change after removing blocks preserves previous state
+				Check:  checkBlocks("M20"),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -1506,7 +1506,7 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)) + dataSourcesTFNewSchema
 }
 
-func configBlocks(t *testing.T, projectID, clusterName string, nodeCount int, defineBlocks bool) string {
+func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, defineBlocks bool) string {
 	t.Helper()
 	var extraConfig0, extraConfig1 string
 	autoScalingBlocks := `
@@ -1572,8 +1572,8 @@ func configBlocks(t *testing.T, projectID, clusterName string, nodeCount int, de
 					priority      = 7
 					region_name   = "US_WEST_2"
 					electable_specs {
-						instance_size   = "M10"
-						node_count      = %[3]d
+						instance_size   = %[3]q
+						node_count      = 3
 					}
 					%[5]s
 				}
@@ -1585,10 +1585,10 @@ func configBlocks(t *testing.T, projectID, clusterName string, nodeCount int, de
 				}
 			}
 		}
-	`, projectID, clusterName, nodeCount, extraConfig0, extraConfig1))
+	`, projectID, clusterName, instanceSize, extraConfig0, extraConfig1))
 }
 
-func checkBlocks(nodeCount int) resource.TestCheckFunc {
+func checkBlocks(instanceSize string) resource.TestCheckFunc {
 	checksMap := map[string]string{
 		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": "M10",
 		"replication_specs.0.region_configs.0.electable_specs.0.node_count":    "5",
@@ -1596,9 +1596,9 @@ func checkBlocks(nodeCount int) resource.TestCheckFunc {
 		"replication_specs.0.region_configs.0.read_only_specs.0.node_count":    "2",
 		"replication_specs.0.region_configs.0.analytics_specs.0.node_count":    "0",
 
-		"replication_specs.1.region_configs.0.electable_specs.0.instance_size": "M10",
-		"replication_specs.1.region_configs.0.electable_specs.0.node_count":    fmt.Sprintf("%d", nodeCount),
-		"replication_specs.1.region_configs.0.read_only_specs.0.instance_size": "M10",
+		"replication_specs.1.region_configs.0.electable_specs.0.instance_size": instanceSize,
+		"replication_specs.1.region_configs.0.electable_specs.0.node_count":    "3",
+		"replication_specs.1.region_configs.0.read_only_specs.0.instance_size": instanceSize,
 		"replication_specs.1.region_configs.0.read_only_specs.0.node_count":    "1",
 		"replication_specs.1.region_configs.0.analytics_specs.0.instance_size": "M10",
 		"replication_specs.1.region_configs.0.analytics_specs.0.node_count":    "4",
