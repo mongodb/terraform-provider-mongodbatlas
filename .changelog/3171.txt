@@ -1,5 +1,5 @@
 ```release-note:enhancement
-resource/mongodbatlas_cloud_backup_snapshot: Adds `timeouts` attribute
+resource/mongodbatlas_cloud_backup_snapshot: Adds `timeouts` attribute for create operation
 ```
 
 ```release-note:enhancement
