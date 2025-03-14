@@ -27,11 +27,17 @@ const (
 	privatelinkNetworkingType = "PRIVATE_LINK"
 	awslambdaConnectionName   = "aws_lambda_connection"
 	sampleRoleArn             = "rn:aws:iam::123456789123:role/sample"
+	httpsURL                  = "https://example.com"
 )
 
-var configMap = map[string]string{
-	"auto.offset.reset": "earliest",
-}
+var (
+	configMap = map[string]string{
+		"auto.offset.reset": "earliest",
+	}
+	headersMap = map[string]string{
+		"header1": "value1",
+	}
+)
 
 type sdkToTFModelTestCase struct {
 	SDKResp              *admin.StreamsConnection
@@ -72,6 +78,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute: tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:         types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -105,6 +112,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:          types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -127,6 +135,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:         types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -160,6 +169,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:          types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -181,6 +191,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:         types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -203,6 +214,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:             tfAWSLambdaConfigObject(t, sampleRoleArn),
+				Headers:         types.MapNull(types.StringType),
 			},
 		},
 	}
@@ -273,8 +285,14 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							RoleArn: admin.PtrString(sampleRoleArn),
 						},
 					},
+					{
+						Name:    admin.PtrString(connectionName),
+						Type:    admin.PtrString("Https"),
+						Url:     admin.PtrString(httpsURL),
+						Headers: &headersMap,
+					},
 				},
-				TotalCount: admin.PtrInt(4),
+				TotalCount: admin.PtrInt(5),
 			},
 			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
 				ProjectID:    types.StringValue(dummyProjectID),
@@ -287,7 +305,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 				InstanceName: types.StringValue(instanceName),
 				PageNum:      types.Int64Value(1),
 				ItemsPerPage: types.Int64Value(3),
-				TotalCount:   types.Int64Value(4),
+				TotalCount:   types.Int64Value(5),
 				Results: []streamconnection.TFStreamConnectionModel{
 					{
 						ID:               types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
@@ -302,6 +320,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 						Networking:       tfNetworkingObject(t, networkingType, nil),
 						AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:          types.MapNull(types.StringType),
 					},
 					{
 						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
@@ -316,6 +335,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						DBRoleToExecute: tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 						AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:         types.MapNull(types.StringType),
 					},
 					{
 						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, sampleConnectionName)),
@@ -330,6 +350,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 						AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:         types.MapNull(types.StringType),
 					},
 					{
 						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, awslambdaConnectionName)),
@@ -344,6 +365,23 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 						AWS:             tfAWSLambdaConfigObject(t, sampleRoleArn),
+						Headers:         types.MapNull(types.StringType),
+					},
+					{
+						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
+						ProjectID:       types.StringValue(dummyProjectID),
+						InstanceName:    types.StringValue(instanceName),
+						ConnectionName:  types.StringValue(connectionName),
+						Type:            types.StringValue("Https"),
+						ClusterName:     types.StringNull(),
+						Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+						Config:          types.MapNull(types.StringType),
+						Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+						AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:         tfConfigMap(t, headersMap),
+						URL:             types.StringValue(httpsURL),
 					},
 				},
 			},
@@ -480,6 +518,23 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				Aws: &admin.StreamsAWSConnectionConfig{
 					RoleArn: admin.PtrString(sampleRoleArn),
 				},
+			},
+		},
+		{
+			name: "Https type TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:      types.StringValue(dummyProjectID),
+				InstanceName:   types.StringValue(instanceName),
+				ConnectionName: types.StringValue(connectionName),
+				Type:           types.StringValue("Https"),
+				URL:            types.StringValue(httpsURL),
+				Headers:        tfConfigMap(t, headersMap),
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name:    admin.PtrString(connectionName),
+				Type:    admin.PtrString("Https"),
+				Url:     admin.PtrString(httpsURL),
+				Headers: &headersMap,
 			},
 		},
 	}
