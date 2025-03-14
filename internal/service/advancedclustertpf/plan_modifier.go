@@ -123,6 +123,7 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
 			planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
 			if stateReadOnlySpecs != nil { // read_only_specs is present in state
+				// logic below ensures that if read only specs is present in state but not in the plan, plan will be populated so that read only spec configuration is not removed on update operations
 				newPlanReadOnlySpecs := planReadOnlySpecs
 				if newPlanReadOnlySpecs == nil {
 					newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan
@@ -131,7 +132,9 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 				if planElectableSpecInReplicationSpec != nil { // ensures values are taken from a defined electable spec if not present in current region config
 					baseReadOnlySpecs = planElectableSpecInReplicationSpec
 				}
-				if planElectableSpecs != nil { // we favor plan electable spec defined in same region config over one defined in replication spec to be more future proof
+				if planElectableSpecs != nil {
+					// we favor plan electable spec defined in same region config over one defined in replication spec
+					// with current API this is redudant but is more future proof in case scaling between regions becomes independent in the future
 					baseReadOnlySpecs = planElectableSpecs
 				}
 				copyAttrIfDestNotKnown(&baseReadOnlySpecs.DiskSizeGb, &newPlanReadOnlySpecs.DiskSizeGb)
