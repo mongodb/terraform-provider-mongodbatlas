@@ -6,6 +6,10 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_stream_connections: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
 * resource/mongodbatlas_stream_connection: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
 
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster (preview provider 2.0.0): Avoids error when removing `read_only_specs` in `region_configs` that does not define `electable_specs` ([#3162](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3162))
+
 ## 1.29.0 (March 12, 2025)
 
 ENHANCEMENTS:
