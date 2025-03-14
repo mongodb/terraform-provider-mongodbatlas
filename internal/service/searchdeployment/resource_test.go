@@ -3,7 +3,6 @@ package searchdeployment_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -18,7 +17,7 @@ const (
 
 func TestAccSearchDeployment_basic(t *testing.T) {
 	var (
-		projectID   = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
+		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
