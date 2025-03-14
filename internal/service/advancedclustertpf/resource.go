@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -79,7 +81,63 @@ var (
 	resumeRequest              = admin.ClusterDescription20240805{Paused: conversion.Pointer(false)}
 	pauseRequest               = admin.ClusterDescription20240805{Paused: conversion.Pointer(true)}
 	errorSchemaDowngradeDetail = "Cluster name %s. " + fmt.Sprintf("cannot increase num_shards to > 1 under the current configuration. New shards can be defined by adding new replication spec objects; %s", DeprecationOldSchemaAction)
+	attributePlanModifiers     = map[string]customplanmodifier.UnknownReplacementCall[PlanModifyResourceInfo]{
+		"read_only_specs":        readOnlyReplaceUnknown,
+		"analytics_specs":        analyticsSpecsReplaceUnknown,
+		"auto_scaling":           autoScalingReplaceUnknown,
+		"analytics_auto_scaling": autoScalingReplaceUnknown,
+	}
 )
+
+func readOnlyReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
+	if req.Info.isShardingConfigUpgrade {
+		return req.Unknown
+	}
+	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.AsObject())
+	if stateParsed == nil || stateParsed.NodeCount.ValueInt64() == 0 {
+		return req.Unknown
+	}
+	electablePath := req.Path.ParentPath().AtName("electable_specs")
+	electable := customplanmodifier.ReadPlanStructValue[TFSpecsModel](ctx, req.Differ, electablePath)
+	var newReadOnly *TFSpecsModel
+	if electable == nil {
+		newReadOnly = stateParsed
+	} else {
+		newReadOnly = &TFSpecsModel{
+			NodeCount:     stateParsed.NodeCount,
+			InstanceSize:  electable.InstanceSize,
+			DiskSizeGb:    electable.DiskSizeGb,
+			EbsVolumeType: electable.EbsVolumeType,
+			DiskIops:      electable.DiskIops,
+		}
+	}
+	// node_count is from state, all others are from electable_specs plan
+	if req.Changes.AttributeChanged("disk_size_gb") {
+		newReadOnly.DiskSizeGb = types.Float64Unknown()
+	}
+	return conversion.AsObjectValue(ctx, newReadOnly, SpecsObjType.AttrTypes)
+}
+
+func analyticsSpecsReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
+	if req.Info.isShardingConfigUpgrade {
+		return req.Unknown
+	}
+	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.AsObject())
+	if stateParsed == nil || stateParsed.NodeCount.ValueInt64() == 0 {
+		return req.Unknown
+	}
+	if req.Changes.AttributeChanged("disk_size_gb") {
+		stateParsed.DiskSizeGb = types.Float64Unknown()
+	}
+	return conversion.AsObjectValue(ctx, stateParsed, SpecsObjType.AttrTypes)
+}
+
+func autoScalingReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
+	if req.Info.AutoScalingComputedUsed || req.Info.AutoScalingDiskUsed {
+		return state.AsObject()
+	}
+	return req.Unknown
+}
 
 func Resource() resource.Resource {
 	return &rs{
@@ -91,6 +149,11 @@ func Resource() resource.Resource {
 
 type rs struct {
 	config.RSCommon
+}
+type PlanModifyResourceInfo struct {
+	AutoScalingComputedUsed bool
+	AutoScalingDiskUsed     bool
+	isShardingConfigUpgrade bool
 }
 
 // ModifyPlan is called before plan is shown to the user and right before the plan is applied.
@@ -108,12 +171,23 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
-
-	useStateForUnknowns(ctx, diags, &state, &plan)
-	if diags.HasError() {
+	diff := findClusterDiff(ctx, &state, &plan, diags)
+	computedUsed, diskUsed := autoScalingUsed(ctx, diags, &state, &plan)
+	shardingConfigUpgrade := isShardingConfigUpgrade(ctx, &state, &plan, diags)
+	if diags.HasError() || !diff.isAnyUpgrade() {
 		return
 	}
-	diags.Append(resp.Plan.Set(ctx, plan)...)
+
+	info := PlanModifyResourceInfo{
+		AutoScalingComputedUsed: computedUsed,
+		AutoScalingDiskUsed:     diskUsed,
+		isShardingConfigUpgrade: shardingConfigUpgrade,
+	}
+	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, &req, resp, resourceSchema(ctx), info)
+	for attrName, replacer := range attributePlanModifiers {
+		unknownReplacements.AddReplacement(attrName, replacer)
+	}
+	unknownReplacements.ApplyReplacments(ctx, diags)
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
