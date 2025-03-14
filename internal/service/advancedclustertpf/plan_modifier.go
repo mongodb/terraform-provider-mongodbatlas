@@ -114,27 +114,27 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 	for i := range minLen(planRepSpecsTF, stateRepSpecsTF) {
 		stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
 		planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
+		planElectableSpecInReplicationSpec := findDefinedElectableSpecInReplicationSpec(ctx, planRegionConfigsTF)
 		if diags.HasError() {
 			return
 		}
 		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
 			stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
 			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
-			planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
 			if stateReadOnlySpecs != nil { // read_only_specs is present in state
 				newPlanReadOnlySpecs := planReadOnlySpecs
 				if newPlanReadOnlySpecs == nil {
 					newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan
 				}
 				baseReadOnlySpecs := stateReadOnlySpecs
-				if planElectableSpecs != nil { // if electable_specs is in plan we rely on those values
-					baseReadOnlySpecs = planElectableSpecs
+				if planElectableSpecInReplicationSpec != nil { // if electable_specs in any region config is in plan we rely on those values for updating known values
+					baseReadOnlySpecs = planElectableSpecInReplicationSpec
 				}
 				copyAttrIfDestNotKnown(&baseReadOnlySpecs.DiskSizeGb, &newPlanReadOnlySpecs.DiskSizeGb)
 				copyAttrIfDestNotKnown(&baseReadOnlySpecs.EbsVolumeType, &newPlanReadOnlySpecs.EbsVolumeType)
 				copyAttrIfDestNotKnown(&baseReadOnlySpecs.InstanceSize, &newPlanReadOnlySpecs.InstanceSize)
 				copyAttrIfDestNotKnown(&baseReadOnlySpecs.DiskIops, &newPlanReadOnlySpecs.DiskIops)
-				// unknown node_count is got from state, all other unknowns are got from electable_specs plan
+				// unknown node_count is got from state, all other unknowns are got from electable_specs plan or state if absent
 				copyAttrIfDestNotKnown(&stateReadOnlySpecs.NodeCount, &newPlanReadOnlySpecs.NodeCount)
 				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanReadOnlySpecs)
 				diags.Append(diagsLocal...)
@@ -187,6 +187,16 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 		return
 	}
 	plan.ReplicationSpecs = listRepSpecs
+}
+
+func findDefinedElectableSpecInReplicationSpec(ctx context.Context, regionConfigs []TFRegionConfigsModel) *TFSpecsModel {
+	for _, rc := range regionConfigs {
+		electableSpecs := TFModelObject[TFSpecsModel](ctx, rc.ElectableSpecs)
+		if electableSpecs != nil {
+			return electableSpecs
+		}
+	}
+	return nil
 }
 
 // determineKeepUnknownsChangedReplicationSpec: These fields must be kept unknown in the replication_specs[index_of_changes]
