@@ -16,23 +16,25 @@ const (
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
 	result := &TFModel{
-		Id:                  types.StringPointerValue(apiResp.Id),
-		DnsDomain:           types.StringPointerValue(apiResp.DnsDomain),
-		ProjectId:           types.StringPointerValue(&projectID),
-		InterfaceEndpointId: types.StringPointerValue(apiResp.InterfaceEndpointId),
-		Provider:            types.StringPointerValue(apiResp.Provider),
-		Region:              types.StringPointerValue(apiResp.Region),
-		ServiceEndpointId:   types.StringPointerValue(apiResp.ServiceEndpointId),
-		State:               types.StringPointerValue(apiResp.State),
-		Vendor:              types.StringPointerValue(apiResp.Vendor),
+		Id:                    types.StringPointerValue(apiResp.Id),
+		DnsDomain:             types.StringPointerValue(apiResp.DnsDomain),
+		ErrorMessage:          types.StringPointerValue(apiResp.ErrorMessage),
+		ProjectId:             types.StringPointerValue(&projectID),
+		InterfaceEndpointId:   types.StringPointerValue(apiResp.InterfaceEndpointId),
+		InterfaceEndpointName: types.StringPointerValue(apiResp.InterfaceEndpointName),
+		Provider:              types.StringPointerValue(apiResp.Provider),
+		ProviderAccountId:     types.StringPointerValue(apiResp.ProviderAccountId),
+		Region:                types.StringPointerValue(apiResp.Region),
+		ServiceEndpointId:     types.StringPointerValue(apiResp.ServiceEndpointId),
+		State:                 types.StringPointerValue(apiResp.State),
+		Vendor:                types.StringPointerValue(apiResp.Vendor),
 	}
-	if apiResp.DnsSubDomain != nil {
-		subdomain, diags := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
-		if diags.HasError() {
-			return nil, diags
-		}
-		result.DnsSubDomain = subdomain
+
+	subdomain, diags := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
+	if diags.HasError() {
+		return nil, diags
 	}
+	result.DnsSubDomain = subdomain
 
 	return result, nil
 }

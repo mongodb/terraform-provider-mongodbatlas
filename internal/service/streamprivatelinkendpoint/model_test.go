@@ -19,31 +19,35 @@ type sdkToTFModelTestCase struct {
 }
 
 var (
-	projectID           = "projectID"
-	id                  = "id"
-	dnsDomain           = "dnsDomain"
-	dnsSubDomain        = "dnsSubDomain"
-	interfaceEndpointID = "interfaceEndpointId"
-	provider            = "AWS"
-	region              = "us-east-1"
-	serviceEndpointID   = "serviceEndpointId"
-	state               = "DONE"
-	vendor              = "CONFLUENT"
+	projectID             = "projectID"
+	id                    = "id"
+	dnsDomain             = "dnsDomain"
+	dnsSubDomain          = "dnsSubDomain"
+	interfaceEndpointID   = "interfaceEndpointId"
+	interfaceEndpointName = "interfaceEndpointName"
+	provider              = "AWS"
+	providerAccountID     = "providerAccountId"
+	region                = "us-east-1"
+	serviceEndpointID     = "serviceEndpointId"
+	state                 = "DONE"
+	vendor                = "CONFLUENT"
 )
 
 func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 	testCases := map[string]sdkToTFModelTestCase{
 		"Complete SDK response": {
 			SDKResp: &admin.StreamsPrivateLinkConnection{
-				Id:                  &id,
-				DnsDomain:           &dnsDomain,
-				DnsSubDomain:        conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
-				InterfaceEndpointId: &interfaceEndpointID,
-				Provider:            &provider,
-				Region:              &region,
-				ServiceEndpointId:   &serviceEndpointID,
-				State:               &state,
-				Vendor:              &vendor,
+				Id:                    &id,
+				DnsDomain:             &dnsDomain,
+				DnsSubDomain:          conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
+				InterfaceEndpointId:   &interfaceEndpointID,
+				InterfaceEndpointName: &interfaceEndpointName,
+				Provider:              &provider,
+				ProviderAccountId:     &providerAccountID,
+				Region:                &region,
+				ServiceEndpointId:     &serviceEndpointID,
+				State:                 &state,
+				Vendor:                &vendor,
 			},
 			projectID: projectID,
 			expectedTFModel: &streamprivatelinkendpoint.TFModel{
@@ -53,13 +57,15 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 					types.StringValue(dnsSubDomain),
 					types.StringValue(dnsSubDomain),
 				}),
-				ProjectId:           types.StringValue(projectID),
-				InterfaceEndpointId: types.StringValue(interfaceEndpointID),
-				Provider:            types.StringValue(provider),
-				Region:              types.StringValue(region),
-				ServiceEndpointId:   types.StringValue(serviceEndpointID),
-				State:               types.StringValue(state),
-				Vendor:              types.StringValue(vendor),
+				ProjectId:             types.StringValue(projectID),
+				InterfaceEndpointId:   types.StringValue(interfaceEndpointID),
+				InterfaceEndpointName: types.StringValue(interfaceEndpointName),
+				Provider:              types.StringValue(provider),
+				ProviderAccountId:     types.StringValue(providerAccountID),
+				Region:                types.StringValue(region),
+				ServiceEndpointId:     types.StringValue(serviceEndpointID),
+				State:                 types.StringValue(state),
+				Vendor:                types.StringValue(vendor),
 			},
 		},
 		"SDK response without dns subdomains": {
@@ -77,6 +83,7 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 			expectedTFModel: &streamprivatelinkendpoint.TFModel{
 				Id:                  types.StringValue(id),
 				DnsDomain:           types.StringValue(dnsDomain),
+				DnsSubDomain:        types.ListNull(types.StringType),
 				ProjectId:           types.StringValue(projectID),
 				InterfaceEndpointId: types.StringValue(interfaceEndpointID),
 				Provider:            types.StringValue(provider),
@@ -89,7 +96,8 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 		"Empty SDK response": {
 			SDKResp: &admin.StreamsPrivateLinkConnection{},
 			expectedTFModel: &streamprivatelinkendpoint.TFModel{
-				ProjectId: types.StringValue(""),
+				ProjectId:    types.StringValue(""),
+				DnsSubDomain: types.ListNull(types.StringType),
 			},
 		},
 	}
@@ -120,13 +128,15 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 					types.StringValue(dnsSubDomain),
 					types.StringValue(dnsSubDomain),
 				}),
-				ProjectId:           types.StringValue(projectID),
-				InterfaceEndpointId: types.StringValue(interfaceEndpointID),
-				Provider:            types.StringValue(provider),
-				Region:              types.StringValue(region),
-				ServiceEndpointId:   types.StringValue(serviceEndpointID),
-				State:               types.StringValue(state),
-				Vendor:              types.StringValue(vendor),
+				ProjectId:             types.StringValue(projectID),
+				InterfaceEndpointId:   types.StringValue(interfaceEndpointID),
+				InterfaceEndpointName: types.StringValue(interfaceEndpointName),
+				Provider:              types.StringValue(provider),
+				ProviderAccountId:     types.StringValue(providerAccountID),
+				Region:                types.StringValue(region),
+				ServiceEndpointId:     types.StringValue(serviceEndpointID),
+				State:                 types.StringValue(state),
+				Vendor:                types.StringValue(vendor),
 			},
 			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
 				DnsDomain:         &dnsDomain,
