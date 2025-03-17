@@ -138,7 +138,7 @@ resource "aws_msk_cluster" "example" {
   }
 
   configuration_info {
-    arn = aws_msk_configuration.example.arn
+    arn      = aws_msk_configuration.example.arn
     revision = aws_msk_configuration.example.latest_revision
   }
 }
@@ -170,7 +170,7 @@ resource "aws_msk_single_scram_secret_association" "example" {
 }
 
 resource "aws_msk_configuration" "example" {
-  name           = "${var.msk_cluster_name}-msk-configuration"
+  name = "${var.msk_cluster_name}-msk-configuration"
 
   # Default ASW MSK configuration with "allow.everyone.if.no.acl.found=false" added
   server_properties = <<PROPERTIES
@@ -191,15 +191,15 @@ PROPERTIES
 }
 
 resource "mongodbatlas_stream_privatelink_endpoint" "test" {
-  project_id          = var.project_id
-  provider_name       = "AWS"
-  vendor              = "MSK"
-  arn                 = aws_msk_cluster.example.arn
+  project_id    = var.project_id
+  provider_name = "AWS"
+  vendor        = "MSK"
+  arn           = aws_msk_cluster.example.arn
 }
 
 data "mongodbatlas_stream_privatelink_endpoint" "singular_datasource" {
-  project_id          = var.project_id
-  id                  = mongodbatlas_stream_privatelink_endpoint.test.id
+  project_id = var.project_id
+  id         = mongodbatlas_stream_privatelink_endpoint.test.id
 }
 
 output "privatelink_endpoint_id" {
