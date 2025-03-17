@@ -8,8 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func DataSource() *schema.Resource {
@@ -69,38 +67,16 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-
-	resp, httpResp, err := connV2.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
+	notFound, err := readGlobalClusterConfig(ctx, meta, projectID, clusterName, d)
 	if err != nil {
-		if validate.StatusNotFound(httpResp) {
-			d.SetId("")
-			return nil
-		}
-		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
+		return diag.FromErr(err)
 	}
-	oldResp, httpResp, err := connV220240530.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if validate.StatusNotFound(httpResp) {
-			d.SetId("")
-			return nil
-		}
-		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
+	if notFound {
+		d.SetId("")
+	} else {
+		d.SetId(clusterName)
 	}
-
-	if err := d.Set("managed_namespaces", flattenManagedNamespaces(resp.GetManagedNamespaces())); err != nil {
-		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
-	}
-	if err := d.Set("custom_zone_mapping_zone_id", resp.GetCustomZoneMapping()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
-	}
-	if err := d.Set("custom_zone_mapping", oldResp.GetCustomZoneMapping()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
-	}
-
-	d.SetId(clusterName)
 	return nil
 }
