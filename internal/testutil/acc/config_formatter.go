@@ -114,7 +114,7 @@ func addPrimitiveAttributes(b *hclwrite.Body, values map[string]any) {
 func setAttributeHcl(body *hclwrite.Body, tfExpression string) error {
 	src := []byte(tfExpression)
 
-	f, diags := hclwrite.ParseConfig(src, "", hcl.Pos{Line: 1, Column: 1})
+	f, diags := hclwrite.ParseConfig(src, "", hcl.InitialPos)
 	if diags.HasErrors() {
 		return fmt.Errorf("extract attribute error %s\nparsing %s", diags, tfExpression)
 	}
