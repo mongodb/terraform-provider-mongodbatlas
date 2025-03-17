@@ -85,7 +85,7 @@ func CanonicalHCL(t *testing.T, def string) string {
 
 func GetDefParser(t *testing.T, def string) *hclwrite.File {
 	t.Helper()
-	parser, diags := hclwrite.ParseConfig([]byte(def), "", hcl.Pos{Line: 1, Column: 1})
+	parser, diags := hclwrite.ParseConfig([]byte(def), "", hcl.InitialPos)
 	require.False(t, diags.HasErrors(), "failed to parse def: %s", diags.Error())
 	return parser
 }
