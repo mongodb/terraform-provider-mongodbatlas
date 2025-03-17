@@ -212,6 +212,10 @@ func readGlobalClusterConfig(ctx context.Context, meta any, projectID, clusterNa
 			return true, nil
 		}
 		if validate.ErrorClusterIsAsymmetrics(err) {
+			// Avoid non-empty plan by setting an empty custom_zone_mapping.
+			if err := d.Set("custom_zone_mapping", map[string]string{}); err != nil {
+				return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
+			}
 			return false, nil
 		}
 		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
