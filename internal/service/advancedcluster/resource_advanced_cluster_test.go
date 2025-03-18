@@ -1399,6 +1399,15 @@ func TestAccMockableAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 		},
 	})
 }
+func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInstanceSize, maxInstanceSize string) knownvalue.Check {
+	return knownvalue.ObjectExact(map[string]knownvalue.Check{
+		"compute_enabled":            knownvalue.Bool(computeEnabled),
+		"disk_gb_enabled":            knownvalue.Bool(diskEnabled),
+		"compute_scale_down_enabled": knownvalue.Bool(scaleDown),
+		"compute_min_instance_size":  knownvalue.StringExact(minInstanceSize),
+		"compute_max_instance_size":  knownvalue.StringExact(maxInstanceSize),
+	})
+}
 
 func TestAccMockPlanChecks_removeBlocksFromConfig(t *testing.T) {
 	if !config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
@@ -1420,17 +1429,14 @@ func TestAccMockPlanChecks_removeBlocksFromConfig(t *testing.T) {
 		ConfigPlanChecks: resource.ConfigPlanChecks{
 			PreApply: []plancheck.PlanCheck{
 				plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
-				plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("analytics_specs")),
 				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M10")),
 				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M20")),
-				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling").AtMapKey("compute_min_instance_size"), knownvalue.StringExact("M10")),
-				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling").AtMapKey("compute_max_instance_size"), knownvalue.StringExact("M30")),
-				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling").AtMapKey("compute_enabled"), knownvalue.Bool(true)),
-				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling").AtMapKey("disk_gb_enabled"), knownvalue.Bool(true)),
-				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling").AtMapKey("compute_min_instance_size"), knownvalue.StringExact("M10")),
-				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling").AtMapKey("compute_max_instance_size"), knownvalue.StringExact("M30")),
-				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling").AtMapKey("compute_enabled"), knownvalue.Bool(true)),
-				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling").AtMapKey("disk_gb_enabled"), knownvalue.Bool(true)),
+				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
+				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("analytics_auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
+				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
+				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
+				plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("analytics_specs")),
+				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_specs"), knownvalue.NotNull()),
 				plancheck.ExpectUnknownValue(resourceName, repSpec0.AtMapKey("id")),
 				plancheck.ExpectUnknownValue(resourceName, repSpec1.AtMapKey("id")),
 			},
