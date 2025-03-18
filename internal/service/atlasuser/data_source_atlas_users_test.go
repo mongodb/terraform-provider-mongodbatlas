@@ -203,7 +203,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 
 func fetchOrgUsers(t *testing.T, orgID string) *admin20241113.PaginatedAppUser {
 	t.Helper()
-	users, _, err := acc.ConnV220241113().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
+	users, _, err := acc.ConnV220241113().OrganizationsApi.ListOrganizationUsers(t.Context(), orgID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas Users for Org(%s) could not be fetched: %v", orgID, err)
 	}

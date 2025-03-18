@@ -1,7 +1,6 @@
 package searchdeployment_test
 
 import (
-	"context"
 	"reflect"
 	"testing"
 
@@ -55,7 +54,7 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := searchdeployment.NewTFSearchDeployment(context.Background(), tc.clusterName, tc.SDKResp, nil, false)
+			resultModel, diags := searchdeployment.NewTFSearchDeployment(t.Context(), tc.clusterName, tc.SDKResp, nil, false)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -94,7 +93,7 @@ func TestSearchDeploymentTFModelToSDK(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			apiReqResult := searchdeployment.NewSearchDeploymentReq(context.Background(), tc.tfModel)
+			apiReqResult := searchdeployment.NewSearchDeploymentReq(t.Context(), tc.tfModel)
 			if !reflect.DeepEqual(apiReqResult, tc.expectedSDKReq) {
 				t.Errorf("created sdk model did not match expected output")
 			}
@@ -104,7 +103,7 @@ func TestSearchDeploymentTFModelToSDK(t *testing.T) {
 
 func tfSpecsList(t *testing.T, instanceSize string, nodeCount int64) basetypes.ListValue {
 	t.Helper()
-	tfSpecsList, diags := types.ListValueFrom(context.Background(), searchdeployment.SpecObjectType, []searchdeployment.TFSearchNodeSpecModel{
+	tfSpecsList, diags := types.ListValueFrom(t.Context(), searchdeployment.SpecObjectType, []searchdeployment.TFSearchNodeSpecModel{
 		{
 			InstanceSize: types.StringValue(instanceSize),
 			NodeCount:    types.Int64Value(nodeCount),

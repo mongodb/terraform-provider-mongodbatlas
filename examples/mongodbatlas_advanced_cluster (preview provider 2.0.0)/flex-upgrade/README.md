@@ -29,6 +29,38 @@ provider_instance_size_name = "M0"
 node_count 					= null
 ```
 
+The configuration will be equivalent to:
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "cluster" {
+  project_id   = mongodbatlas_project.project.id
+  name         = "ClusterToUpgrade"
+  cluster_type = "REPLICASET"
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M0"
+            node_count    = null # equivalent to not setting a value
+          }
+          provider_name         = "TENANT"
+          backing_provider_name = "AWS"
+          region_name           = "US_EAST_1"
+          priority              = 7
+        }
+      ]
+    }
+  ]
+
+  tags = {
+    key   = "environment"
+    value = "dev"
+  }
+}
+```
+
 Apply with the following `terraform.tfvars` to upgrade the free tier cluster you just created to flex tier:
 ```
 atlas_org_id                = <YOUR_ORG_ID>
@@ -39,6 +71,39 @@ backing_provider_name       = "AWS"
 provider_instance_size_name = null
 node_count 					= null
 ```
+
+The configuration will be equivalent to:
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "cluster" {
+  project_id   = mongodbatlas_project.project.id
+  name         = "ClusterToUpgrade"
+  cluster_type = "REPLICASET"
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = null # equivalent to not setting a value
+            node_count    = null # equivalent to not setting a value
+          }
+          provider_name         = "FLEX"
+          backing_provider_name = "AWS"
+          region_name           = "US_EAST_1"
+          priority              = 7
+        }
+      ]
+    }
+  ]
+
+  tags = {
+    key   = "environment"
+    value = "dev"
+  }
+}
+```
+
 Apply with the following `terraform.tfvars` to upgrade the flex tier cluster you just created to dedicated tier:
 ```
 atlas_org_id                = <YOUR_ORG_ID>
@@ -48,4 +113,36 @@ provider_name               = "AWS"
 backing_provider_name       = null
 provider_instance_size_name = "M10"
 node_count 					= 3
+```
+
+The configuration will be equivalent to:
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "cluster" {
+  project_id   = mongodbatlas_project.project.id
+  name         = "ClusterToUpgrade"
+  cluster_type = "REPLICASET"
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 3
+          }
+          provider_name         = "AWS"
+          backing_provider_name = null # equivalent to not setting a value
+          region_name           = "US_EAST_1"
+          priority              = 7
+        }
+      ]
+    }
+  ]
+
+  tags = {
+    key   = "environment"
+    value = "dev"
+  }
+}
 ```

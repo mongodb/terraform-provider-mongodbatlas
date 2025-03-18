@@ -72,7 +72,7 @@ func AddAttributes(t *testing.T, body *hclsyntax.Body, ret map[string]cty.Value)
 func PrettyHCL(t *testing.T, content string) string {
 	t.Helper()
 	builder := strings.Builder{}
-	fmt := getTF().Format(context.Background(), io.NopCloser(strings.NewReader(content)), &builder)
+	fmt := getTF().Format(t.Context(), io.NopCloser(strings.NewReader(content)), &builder)
 	require.NoError(t, fmt)
 	formatted := builder.String()
 	return formatted
@@ -85,7 +85,7 @@ func CanonicalHCL(t *testing.T, def string) string {
 
 func GetDefParser(t *testing.T, def string) *hclwrite.File {
 	t.Helper()
-	parser, diags := hclwrite.ParseConfig([]byte(def), "", hcl.Pos{Line: 1, Column: 1})
+	parser, diags := hclwrite.ParseConfig([]byte(def), "", hcl.InitialPos)
 	require.False(t, diags.HasErrors(), "failed to parse def: %s", diags.Error())
 	return parser
 }

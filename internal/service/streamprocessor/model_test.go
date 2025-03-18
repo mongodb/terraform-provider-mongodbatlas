@@ -1,7 +1,6 @@
 package streamprocessor_test
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
@@ -119,8 +118,7 @@ func streamProcessorDSTFModel(t *testing.T, state, stats string, options types.O
 
 func optionsToTFModel(t *testing.T, options *admin.StreamsOptions) types.Object {
 	t.Helper()
-	ctx := context.Background()
-	result, diags := streamprocessor.ConvertOptionsToTF(ctx, options)
+	result, diags := streamprocessor.ConvertOptionsToTF(t.Context(), options)
 	if diags.HasError() {
 		t.Fatal(diags)
 	}
@@ -156,7 +154,7 @@ func TestDSSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
-			resultModel, diags := streamprocessor.NewTFStreamprocessorDSModel(context.Background(), projectID, instanceName, sdkModel)
+			resultModel, diags := streamprocessor.NewTFStreamprocessorDSModel(t.Context(), projectID, instanceName, sdkModel)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -232,7 +230,7 @@ func TestSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
-			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(context.Background(), projectID, instanceName, sdkModel)
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, instanceName, sdkModel)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -286,7 +284,7 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 				ProjectID:    types.StringValue(projectID),
 				InstanceName: types.StringValue(instanceName),
 			}
-			resultModel, diags := streamprocessor.NewTFStreamProcessors(context.Background(), existingConfig, sdkModel.GetResults())
+			resultModel, diags := streamprocessor.NewTFStreamProcessors(t.Context(), existingConfig, sdkModel.GetResults())
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

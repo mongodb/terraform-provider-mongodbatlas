@@ -1,7 +1,6 @@
 package resourcepolicy_test
 
 import (
-	"context"
 	_ "embed"
 	"encoding/json"
 	"testing"
@@ -125,9 +124,8 @@ func TestNewTFModel(t *testing.T) {
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
 			SDKModel := parseSDKModel(t, tc.SDKRespJSON)
-			ctx := context.Background()
 			expectedModel := createTFModel(t, &tc)
-			resultModel, diags := resourcepolicy.NewTFModel(ctx, &SDKModel)
+			resultModel, diags := resourcepolicy.NewTFModel(t.Context(), &SDKModel)
 			unit.AssertDiagsOK(t, diags)
 			assert.Equal(t, expectedModel, resultModel)
 		})
@@ -135,16 +133,14 @@ func TestNewTFModel(t *testing.T) {
 }
 
 func TestNewUserMetadataObjectTypeWithNilArg(t *testing.T) {
-	ctx := context.Background()
 	var metadataNil *admin.ApiAtlasUserMetadata
 	diags := diag.Diagnostics{}
-	obj := resourcepolicy.NewUserMetadataObjectType(ctx, metadataNil, &diags)
+	obj := resourcepolicy.NewUserMetadataObjectType(t.Context(), metadataNil, &diags)
 	unit.AssertDiagsOK(t, diags)
 	assert.Equal(t, types.ObjectNull(resourcepolicy.UserMetadataObjectType.AttrTypes), obj)
 }
 
 func TestNewAdminPolicies(t *testing.T) {
-	ctx := context.Background()
 	policies := []resourcepolicy.TFPolicyModel{
 		{
 			Body: types.StringValue("policy1"),
@@ -154,20 +150,19 @@ func TestNewAdminPolicies(t *testing.T) {
 			Body: types.StringValue("policy2"),
 		},
 	}
-	apiModels := resourcepolicy.NewAdminPolicies(ctx, policies)
+	apiModels := resourcepolicy.NewAdminPolicies(t.Context(), policies)
 	assert.Len(t, apiModels, 2)
 	assert.Equal(t, "policy1", apiModels[0].GetBody())
 	assert.Equal(t, "policy2", apiModels[1].GetBody())
 }
 
 func TestNewTFModelDSP(t *testing.T) {
-	ctx := context.Background()
 	orgID := "65def6ce0f722a1507105aa5"
 	input := []admin.ApiAtlasResourcePolicy{
 		parseSDKModel(t, clusterForbidCloudProviderJSON),
 		parseSDKModel(t, policyMultipleEntriesJSON),
 	}
-	resultModel, diags := resourcepolicy.NewTFModelDSP(ctx, orgID, input)
+	resultModel, diags := resourcepolicy.NewTFModelDSP(t.Context(), orgID, input)
 	unit.AssertDiagsOK(t, diags)
 	assert.Len(t, resultModel.ResourcePolicies, 2)
 
@@ -175,9 +170,8 @@ func TestNewTFModelDSP(t *testing.T) {
 }
 
 func TestNewTFModelDSPEmptyModel(t *testing.T) {
-	ctx := context.Background()
 	orgID := "65def6ce0f722a1507105aa5"
-	resultModel, diags := resourcepolicy.NewTFModelDSP(ctx, orgID, []admin.ApiAtlasResourcePolicy{})
+	resultModel, diags := resourcepolicy.NewTFModelDSP(t.Context(), orgID, []admin.ApiAtlasResourcePolicy{})
 	unit.AssertDiagsOK(t, diags)
 	assert.Empty(t, resultModel.ResourcePolicies)
 	assert.Equal(t, orgID, resultModel.OrgID.ValueString())

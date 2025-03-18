@@ -129,7 +129,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			perfMock.EXPECT().GetManagedSlowMs(mock.Anything, mock.Anything).Return(admin.GetManagedSlowMsApiRequest{ApiService: perfMock}).Maybe()
 			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(true, nil, nil).Maybe()
 
-			_, err := project.GetProjectPropsFromAPI(context.Background(), projectsMock, teamsMock, perfMock, dummyProjectID, nil)
+			_, err := project.GetProjectPropsFromAPI(t.Context(), projectsMock, teamsMock, perfMock, dummyProjectID, nil)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -231,7 +231,7 @@ func TestUpdateProject(t *testing.T) {
 
 			svc.EXPECT().UpdateProjectExecute(mock.Anything).Return(tc.mockResponses.Project, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
 
-			err := project.UpdateProject(context.Background(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
+			err := project.UpdateProject(t.Context(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -260,9 +260,9 @@ func TestUpdateProjectLimits(t *testing.T) {
 			Value: types.Int64Value(6),
 		},
 	}
-	singleLimitSet, _ := types.SetValueFrom(context.Background(), project.TfLimitObjectType, oneLimit)
-	updatedLimitSet, _ := types.SetValueFrom(context.Background(), project.TfLimitObjectType, updatedLimit)
-	twoLimitSet, _ := types.SetValueFrom(context.Background(), project.TfLimitObjectType, twoLimits)
+	singleLimitSet, _ := types.SetValueFrom(t.Context(), project.TfLimitObjectType, oneLimit)
+	updatedLimitSet, _ := types.SetValueFrom(t.Context(), project.TfLimitObjectType, updatedLimit)
+	twoLimitSet, _ := types.SetValueFrom(t.Context(), project.TfLimitObjectType, twoLimits)
 	testCases := []struct {
 		name          string
 		mockResponses DeleteProjectLimitResponse
@@ -340,7 +340,7 @@ func TestUpdateProjectLimits(t *testing.T) {
 			svc.EXPECT().SetProjectLimit(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.SetProjectLimitApiRequest{ApiService: svc}).Maybe()
 			svc.EXPECT().SetProjectLimitExecute(mock.Anything).Return(nil, nil, nil).Maybe()
 
-			err := project.UpdateProjectLimits(context.Background(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
+			err := project.UpdateProjectLimits(t.Context(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -350,7 +350,7 @@ func TestUpdateProjectLimits(t *testing.T) {
 }
 
 func TestUpdateProjectTeams(t *testing.T) {
-	teamRoles, _ := types.SetValueFrom(context.Background(), types.StringType, []string{"BASIC_PERMISSION"})
+	teamRoles, _ := types.SetValueFrom(t.Context(), types.StringType, []string{"BASIC_PERMISSION"})
 	teamOne := project.TFTeamModel{
 		TeamID:    types.StringValue("team1"),
 		RoleNames: teamRoles,
@@ -358,14 +358,14 @@ func TestUpdateProjectTeams(t *testing.T) {
 	teamTwo := project.TFTeamModel{
 		TeamID: types.StringValue("team2"),
 	}
-	teamRolesUpdated, _ := types.SetValueFrom(context.Background(), types.StringType, []string{"ADMIN_PERMISSION"})
+	teamRolesUpdated, _ := types.SetValueFrom(t.Context(), types.StringType, []string{"ADMIN_PERMISSION"})
 	updatedTeam := project.TFTeamModel{
 		TeamID:    types.StringValue("team1"),
 		RoleNames: teamRolesUpdated,
 	}
-	singleTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TFTeamModel{teamOne})
-	twoTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TFTeamModel{teamOne, teamTwo})
-	updatedTeamSet, _ := types.SetValueFrom(context.Background(), project.TfTeamObjectType, []project.TFTeamModel{updatedTeam})
+	singleTeamSet, _ := types.SetValueFrom(t.Context(), project.TfTeamObjectType, []project.TFTeamModel{teamOne})
+	twoTeamSet, _ := types.SetValueFrom(t.Context(), project.TfTeamObjectType, []project.TFTeamModel{teamOne, teamTwo})
+	updatedTeamSet, _ := types.SetValueFrom(t.Context(), project.TfTeamObjectType, []project.TFTeamModel{updatedTeam})
 
 	testCases := []struct {
 		name          string
@@ -436,7 +436,7 @@ func TestUpdateProjectTeams(t *testing.T) {
 			svc.EXPECT().UpdateTeamRoles(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateTeamRolesApiRequest{ApiService: svc}).Maybe()
 			svc.EXPECT().UpdateTeamRolesExecute(mock.Anything).Return(nil, nil, nil).Maybe()
 
-			err := project.UpdateProjectTeams(context.Background(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
+			err := project.UpdateProjectTeams(t.Context(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -490,7 +490,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 			svc.EXPECT().ListClusters(mock.Anything, dummyProjectID).Return(admin.ListClustersApiRequest{ApiService: svc})
 			svc.EXPECT().ListClustersExecute(mock.Anything).Return(tc.mockResponses.AdvancedClusterDescription, tc.mockResponses.HTTPResponse, tc.mockResponses.Err)
 
-			_, _, err := project.ResourceProjectDependentsDeletingRefreshFunc(context.Background(), dummyProjectID, svc)()
+			_, _, err := project.ResourceProjectDependentsDeletingRefreshFunc(t.Context(), dummyProjectID, svc)()
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -1108,14 +1108,13 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 
 func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 	t.Helper()
-	ctx := context.Background()
-	respProject, _, _ := acc.ConnV2().ProjectsApi.GetProjectByName(ctx, projectName).Execute()
+	respProject, _, _ := acc.ConnV2().ProjectsApi.GetProjectByName(t.Context(), projectName).Execute()
 	projectID := respProject.GetId()
 	if projectID == "" {
 		t.Errorf("PreConfig: error finding project %s", projectName)
 	}
 	api := acc.ConnV2().ProgrammaticAPIKeysApi
-	respList, _, _ := api.ListApiKeys(ctx, orgID).Execute()
+	respList, _, _ := api.ListApiKeys(t.Context(), orgID).Execute()
 	publicKey := os.Getenv("MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY")
 	keys := respList.GetResults()
 	for _, result := range keys {
@@ -1124,7 +1123,7 @@ func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 		}
 		apiKeyID := result.GetId()
 		assignment := admin.UpdateAtlasProjectApiKey{Roles: &[]string{roleName}}
-		_, _, err := api.UpdateApiKeyRoles(ctx, projectID, apiKeyID, &assignment).Execute()
+		_, _, err := api.UpdateApiKeyRoles(t.Context(), projectID, apiKeyID, &assignment).Execute()
 		if err != nil {
 			t.Errorf("PreConfig: error updating key %s", err)
 		}

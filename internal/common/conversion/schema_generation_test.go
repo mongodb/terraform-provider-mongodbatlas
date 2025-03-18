@@ -1,7 +1,6 @@
 package conversion_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -104,7 +103,7 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 					},
 				},
 			},
-			"timeouts": timeouts.Attributes(context.Background(), timeouts.Opts{
+			"timeouts": timeouts.Attributes(t.Context(), timeouts.Opts{
 				Create: true,
 				Update: true,
 				Delete: true,

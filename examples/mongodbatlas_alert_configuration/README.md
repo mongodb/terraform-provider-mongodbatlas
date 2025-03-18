@@ -1,7 +1,7 @@
 # Example - Alert Configuration
 
 ## Using the data source
-Example exists in `alert-configurations-data.tf`. To use this example exactly:
+Example exists in `main.tf`. To use this example:
 - Copy directory to local disk
 - Add a `terraform.tfvars`
 - Add your `project_id`

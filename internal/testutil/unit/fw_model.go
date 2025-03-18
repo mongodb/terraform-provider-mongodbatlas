@@ -1,7 +1,6 @@
 package unit
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -10,16 +9,14 @@ import (
 
 func TFObjectValue(t *testing.T, objType types.ObjectType, attributes any) types.Object {
 	t.Helper()
-	ctx := context.Background()
-	object, diags := types.ObjectValueFrom(ctx, objType.AttrTypes, attributes)
+	object, diags := types.ObjectValueFrom(t.Context(), objType.AttrTypes, attributes)
 	AssertDiagsOK(t, diags)
 	return object
 }
 
 func TFListValue(t *testing.T, elementType types.ObjectType, tfList any) types.List {
 	t.Helper()
-	ctx := context.Background()
-	list, diags := types.ListValueFrom(ctx, elementType, tfList)
+	list, diags := types.ListValueFrom(t.Context(), elementType, tfList)
 	AssertDiagsOK(t, diags)
 	return list
 }

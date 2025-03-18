@@ -1,7 +1,6 @@
 package atlasuser_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -89,7 +88,7 @@ func TestAccConfigDSAtlasUser_InvalidAttrCombination(t *testing.T) {
 
 func fetchUser(t *testing.T, userID string) *admin20241113.CloudAppUser {
 	t.Helper()
-	userResp, _, err := acc.ConnV220241113().MongoDBCloudUsersApi.GetUser(context.Background(), userID).Execute()
+	userResp, _, err := acc.ConnV220241113().MongoDBCloudUsersApi.GetUser(t.Context(), userID).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas User (%s) could not be fetched: %v", userID, err)
 	}
@@ -98,7 +97,7 @@ func fetchUser(t *testing.T, userID string) *admin20241113.CloudAppUser {
 
 func fetchUserByUsername(t *testing.T, username string) *admin20241113.CloudAppUser {
 	t.Helper()
-	userResp, _, err := acc.ConnV220241113().MongoDBCloudUsersApi.GetUserByUsername(context.Background(), username).Execute()
+	userResp, _, err := acc.ConnV220241113().MongoDBCloudUsersApi.GetUserByUsername(t.Context(), username).Execute()
 	if err != nil {
 		t.Fatalf("the Atlas User (%s) could not be fetched: %v", username, err)
 	}
