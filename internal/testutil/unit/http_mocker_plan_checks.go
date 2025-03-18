@@ -40,6 +40,7 @@ func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importInp
 	fullImportConfig := exampleResourceConfig + importConfig
 	testStep.Config = exampleResourceConfig + testStep.Config
 	testCase := &resource.TestCase{
+		IsUnitTest:                true,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
@@ -58,7 +59,6 @@ func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importInp
 	}
 	fillMockDataTemplate(t, exampleResourceConfig, fullImportConfig, testStep.Config)
 	useManualHandler := false
-	// testCase.Steps[2].RefreshPlanChecks.PostRefresh = append(testCase.Steps[2].RefreshPlanChecks.PostRefresh, &requestHandlerSwitch{useManualHandler: &useManualHandler})
 	testCase.Steps[2].ConfigPlanChecks.PreApply = append(testCase.Steps[2].ConfigPlanChecks.PreApply, &requestHandlerSwitch{useManualHandler: &useManualHandler})
 	testCase.Steps[2].ExpectError = regexp.MustCompile(fmt.Sprintf("^Pre-apply plan check\\(s\\) failed:\n%s$", expectedError.Error()))
 	mockConfig.RequestHandler = func(defaulthHandler RequestHandler, req *http.Request, method string) (*http.Response, error) {
