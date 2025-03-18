@@ -137,7 +137,7 @@ func (r *MockRoundTripper) nextDiffResponseIndex() {
 	r.diffResponseIndex = 99999
 }
 
-func (r *MockRoundTripper) currentStep() *stepRequests {
+func (r *MockRoundTripper) currentStep() *StepRequests {
 	if r.currentStepIndex >= len(r.data.Steps) {
 		return nil
 	}

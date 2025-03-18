@@ -189,7 +189,7 @@ func parseRoundTrip(req *http.Request, resp *http.Response, responseIndex, stepN
 			Method:  req.Method,
 			Text:    requestPayload,
 		},
-		Response: statusText{
+		Response: StatusText{
 			Text:          responsePayload,
 			Status:        resp.StatusCode,
 			ResponseIndex: responseIndex,
