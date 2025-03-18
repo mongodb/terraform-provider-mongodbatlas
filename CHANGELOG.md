@@ -10,7 +10,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* data-source/mongodbatlas_global_cluster_config: Adds support for reading clusters with independent shard scaling ([#3177](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3177))
 * resource/mongodbatlas_advanced_cluster (preview provider 2.0.0): Avoids error when removing `read_only_specs` in `region_configs` that does not define `electable_specs` ([#3162](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3162))
+* resource/mongodbatlas_global_cluster_config: Adds support for reading clusters with independent shard scaling ([#3177](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3177))
 
 ## 1.29.0 (March 12, 2025)
 
