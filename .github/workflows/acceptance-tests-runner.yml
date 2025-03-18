@@ -412,7 +412,7 @@ jobs:
         run: make testmact
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_LAST_VERSION: '1.28.0' # Fix mig test version until CLOUDP-296406 is resolved
           HTTP_MOCKER_CAPTURE: 'true'
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |

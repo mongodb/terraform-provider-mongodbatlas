@@ -1,7 +1,6 @@
 package searchdeployment_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -84,7 +83,7 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetAtlasSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := searchdeployment.WaitSearchNodeStateTransition(context.Background(), dummyProjectID, "Cluster0", m, testTimeoutConfig)
+			resp, err := searchdeployment.WaitSearchNodeStateTransition(t.Context(), dummyProjectID, "Cluster0", m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 			assert.Equal(t, responseWithState(tc.expectedState), resp)
 		})
@@ -127,7 +126,7 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetAtlasSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			err := searchdeployment.WaitSearchNodeDelete(context.Background(), dummyProjectID, clusterName, m, testTimeoutConfig)
+			err := searchdeployment.WaitSearchNodeDelete(t.Context(), dummyProjectID, clusterName, m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 		})
 	}

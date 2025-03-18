@@ -1,7 +1,6 @@
 package streamprivatelinkendpoint_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -97,7 +96,7 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := streamprivatelinkendpoint.NewTFModel(context.Background(), tc.projectID, tc.SDKResp)
+			resultModel, diags := streamprivatelinkendpoint.NewTFModel(t.Context(), tc.projectID, tc.SDKResp)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -164,7 +163,7 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			apiReqResult, diags := streamprivatelinkendpoint.NewAtlasReq(context.Background(), tc.tfModel)
+			apiReqResult, diags := streamprivatelinkendpoint.NewAtlasReq(t.Context(), tc.tfModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

@@ -97,10 +97,11 @@ linters:
     - exhaustive
     - makezero
     - noctx
-    - tenv
     - testpackage
+    - usetesting
 
   # don't enable:
+  #    - tenv # The linter 'tenv' is deprecated (since v1.64.0) due to: Duplicate feature another linter. Replaced by usetesting.
   #   - deadcode
   #   - varcheck
   #   - structcheck

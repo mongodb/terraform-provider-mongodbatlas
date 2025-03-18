@@ -56,6 +56,7 @@ The basic experience when using the `moved` block is as follows:
 3. Comment out or delete the `mongodbatlas_cluster` resource definition.
 4. Update the references from your previous cluster resource: `mongodbatlas_cluster.this.XXXX` to the new `mongodbatlas_advanced_cluster.this.XXX`.
    - Double check [output-changes](#output-changes) to ensure the underlying configuration stays unchanged.
+   - If you are using output variables that use the new resource `mongodbatlas_advanced_cluster.this`, the plan output can be more verbose than expected (extra `Note: Objects have changed outside of Terraform` section). Consider adding/updating output variables only **after** performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform-plugin-framework/issues/1109)).
 5. Add the `moved` block to your configuration file, e.g.:
 ```terraform
 moved {
