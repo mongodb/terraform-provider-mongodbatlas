@@ -2,7 +2,7 @@
 
 `mongodbatlas_privatelink_endpoint_service` provides a Private Endpoint Interface Link resource. This represents a Private Endpoint Interface Link, which adds one [Interface Endpoint](https://www.mongodb.com/docs/atlas/security-private-endpoint/#private-endpoint-concepts) to a private endpoint connection in an Atlas project.
 
-> **IMPORTANT CLARIFICATION:** This resource links your cloud provider's Private Endpoint to the MongoDB Atlas Private Endpoint Service. It does not create the service itself (that's done by `mongodbatlas_privatelink_endpoint`). The workflow is: first create the service in Atlas with `mongodbatlas_privatelink_endpoint`, then create the endpoint in your cloud provider, and finally link them together with `mongodbatlas_privatelink_endpoint_service`.
+> **IMPORTANT:** This resource links your cloud provider's Private Endpoint to the MongoDB Atlas Private Endpoint Service. It does not create the service itself (this is done by `mongodbatlas_privatelink_endpoint`). You first create the service in Atlas with `mongodbatlas_privatelink_endpoint`, then the endpoint is created in your cloud provider, and you link them together with the `mongodbatlas_privatelink_endpoint_service` resource.
 
 The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest) makes use of this resource and simplifies its use.
 
