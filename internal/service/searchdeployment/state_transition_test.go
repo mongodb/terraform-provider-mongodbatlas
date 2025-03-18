@@ -11,8 +11,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/mockadmin"
+
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
+	// TODO: update before merging to master: ""go.mongodb.org/atlas-sdk/v20250219001/mockadmin""
+	"github.com/mongodb/atlas-sdk-go/mockadmin"
 )
 
 var (
