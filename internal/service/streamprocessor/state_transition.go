@@ -43,6 +43,22 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProc
 	return nil, errors.New("did not obtain valid result when waiting for stream processor state transition")
 }
 
+func ValidateUpdateStateTransition(currentState, plannedState string) (errMsg string, isValidTransition bool) {
+	if currentState == plannedState {
+		return "", true
+	}
+
+	if plannedState == StoppedState && currentState != StartedState {
+		return fmt.Sprintf("Stream Processor must be in %s state to transition to %s state", StartedState, StoppedState), false
+	}
+
+	if plannedState == CreatedState && currentState != CreatedState {
+		return fmt.Sprintf("Stream Processor must be in %s state to transition to %s state", CreatedState, CreatedState), false
+	}
+
+	return "", true
+}
+
 func refreshFunc(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		streamProcessor, resp, err := client.GetStreamProcessorWithParams(ctx, requestParams).Execute()

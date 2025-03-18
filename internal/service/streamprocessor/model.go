@@ -42,6 +42,37 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	return streamProcessor, nil
 }
 
+func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsModifyStreamProcessor, diag.Diagnostics) {
+	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
+	if diags != nil {
+		return nil, diags
+	}
+	streamProcessor := &admin.StreamsModifyStreamProcessor{
+		Name:     plan.ProcessorName.ValueStringPointer(),
+		Pipeline: &pipeline,
+	}
+
+	if !plan.Options.IsNull() && !plan.Options.IsUnknown() {
+		optionsModel := &TFOptionsModel{}
+		if diags := plan.Options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		dlqModel := &TFDlqModel{}
+		if diags := optionsModel.Dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamProcessor.Options = &admin.StreamsModifyStreamProcessorOptions{
+			Dlq: &admin.StreamsDLQ{
+				Coll:           dlqModel.Coll.ValueStringPointer(),
+				ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
+				Db:             dlqModel.DB.ValueStringPointer(),
+			},
+		}
+	}
+
+	return streamProcessor, nil
+}
+
 func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats) (*TFStreamProcessorRSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
