@@ -174,7 +174,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	diff := findClusterDiff(ctx, &state, &plan, diags)
 	computedUsed, diskUsed := autoScalingUsed(ctx, diags, &state, &plan)
 	shardingConfigUpgrade := isShardingConfigUpgrade(ctx, &state, &plan, diags)
-	if diags.HasError() || !diff.isAnyUpgrade() {
+	if diags.HasError() || diff.isAnyUpgrade() {
 		return
 	}
 

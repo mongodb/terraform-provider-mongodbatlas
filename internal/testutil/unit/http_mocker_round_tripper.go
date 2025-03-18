@@ -61,18 +61,18 @@ type RequestHandler func(req *http.Request, method string) (*http.Response, erro
 type ManualRequestHandler func(original RequestHandler, req *http.Request, method string) (*http.Response, error)
 
 type MockRoundTripper struct {
-	t                     *testing.T
-	g                     *goldie.Goldie
-	data                  *MockHTTPData
-	usedResponses         map[string]int
-	foundsDiffs           map[int]string
-	currentStepIndex      int
-	diffResponseIndex     int
-	reReadCounter         int
-	mu                    sync.Mutex // as requests are in parallel, there is a chance of concurrent modification while reading/updating variables
-	allowMissingRequests  bool
-	allowOutOfOrder       bool
-	logRequests           bool
+	t                    *testing.T
+	g                    *goldie.Goldie
+	data                 *MockHTTPData
+	usedResponses        map[string]int
+	foundsDiffs          map[int]string
+	currentStepIndex     int
+	diffResponseIndex    int
+	reReadCounter        int
+	mu                   sync.Mutex // as requests are in parallel, there is a chance of concurrent modification while reading/updating variables
+	allowMissingRequests bool
+	allowOutOfOrder      bool
+	logRequests          bool
 	manualRequestHandler ManualRequestHandler
 }
 

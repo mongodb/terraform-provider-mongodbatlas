@@ -15,8 +15,9 @@ import (
 
 func NewUnknownReplacements[ResourceInfo any](ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema conversion.TPFSchema, info ResourceInfo) *UnknownReplacments[ResourceInfo] {
 	return &UnknownReplacments[ResourceInfo]{
-		Differ: NewPlanModifyDiffer(ctx, req, resp, schema),
-		Info:   info,
+		Differ:       NewPlanModifyDiffer(ctx, req, resp, schema),
+		Info:         info,
+		Replacements: make(map[string]UnknownReplacementCall[ResourceInfo]),
 	}
 }
 

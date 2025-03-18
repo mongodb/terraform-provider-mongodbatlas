@@ -3,11 +3,13 @@ package unit
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -19,12 +21,16 @@ import (
 
 const resourceID = "mongodbatlas_example.this"
 
+var expectedError = errors.New("avoid full apply")
+
 type requestHandlerSwitch struct {
 	useManualHandler *bool
 }
 
-func (r *requestHandlerSwitch) CheckPlan(_ context.Context, _ plancheck.CheckPlanRequest, _ *plancheck.CheckPlanResponse) {
+func (r *requestHandlerSwitch) CheckPlan(_ context.Context, req plancheck.CheckPlanRequest, resp *plancheck.CheckPlanResponse) {
 	*r.useManualHandler = true
+	fmt.Println(fmt.Sprintf("PlannedValues: %v", req.Plan.PlannedValues))
+	resp.Error = expectedError
 }
 
 // TODO: Extract all import parameters instead from the template file
@@ -52,7 +58,9 @@ func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importInp
 	}
 	fillMockDataTemplate(t, exampleResourceConfig, fullImportConfig, testStep.Config)
 	useManualHandler := false
+	// testCase.Steps[2].RefreshPlanChecks.PostRefresh = append(testCase.Steps[2].RefreshPlanChecks.PostRefresh, &requestHandlerSwitch{useManualHandler: &useManualHandler})
 	testCase.Steps[2].ConfigPlanChecks.PreApply = append(testCase.Steps[2].ConfigPlanChecks.PreApply, &requestHandlerSwitch{useManualHandler: &useManualHandler})
+	testCase.Steps[2].ExpectError = regexp.MustCompile(expectedError.Error())
 	mockConfig.RequestHandler = func(defaulthHandler RequestHandler, req *http.Request, method string) (*http.Response, error) {
 		customHandler := func(req *http.Request, method string) (*http.Response, error) {
 			switch method {
@@ -63,12 +71,10 @@ func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importInp
 				require.NoError(t, err)
 				return notFoundResponder(req)
 			case "DELETE":
-				useManualHandler = true
 				return httpmock.NewStringResponder(202, "")(req)
 			}
 			return nil, fmt.Errorf("plan check responder doesn't have logic to handle, method: %s, url: %s", method, req.URL)
 		}
-
 		if useManualHandler {
 			return customHandler(req, method)
 		}

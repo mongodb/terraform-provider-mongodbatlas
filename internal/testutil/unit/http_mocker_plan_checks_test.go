@@ -14,7 +14,7 @@ import (
 
 const (
 	advancedClusterRelPath = "internal/service/advancedcluster"
-	prefixName = "TestAccMockPlanChecks_"
+	prefixName             = "TestAccMockPlanChecks_"
 )
 
 func ConvertFileNameToPlanCheckDir(t *testing.T, fileName string) string {
@@ -61,14 +61,14 @@ func CreateImportData(t *testing.T, httpMockFile, outputDir string) {
 		err = os.WriteFile(jsonFilePath, []byte(lastResponse.Text), 0644)
 		require.NoError(t, err)
 		templateReqResponse := unit.RequestInfo{
-			Path: req.Path,
-			Method: req.Method,
+			Path:    req.Path,
+			Method:  req.Method,
 			Version: req.Version,
-			Text: req.Text,
+			Text:    req.Text,
 			Responses: []unit.StatusText{
 				{
 					Status: lastResponse.Status,
-					Text: jsonFileName,
+					Text:   jsonFileName,
 				},
 			},
 		}
@@ -77,7 +77,7 @@ func CreateImportData(t *testing.T, httpMockFile, outputDir string) {
 	templateYaml, err := unit.ConfigYaml(&templateMockHTTPData)
 	require.NoError(t, err)
 	testDataDir := filepath.Dir(outputDir)
-	templateYamlPath := path.Join(testDataDir, filepath.Base(outputDir) + ".tmpl.yaml")
+	templateYamlPath := path.Join(testDataDir, filepath.Base(outputDir)+".tmpl.yaml")
 	err = os.WriteFile(templateYamlPath, []byte(templateYaml), 0644)
 	require.NoError(t, err)
 }
@@ -85,7 +85,7 @@ func CreateImportData(t *testing.T, httpMockFile, outputDir string) {
 func TestConvertMockableTests(t *testing.T) {
 	for _, relPath := range []string{
 		advancedClusterRelPath,
-	}	{
+	} {
 		testDataPath := unit.RepoPath(relPath + "/testdata")
 		mockedFilePaths, err := filepath.Glob(path.Join(testDataPath, "*.yaml"))
 		require.NoError(t, err)

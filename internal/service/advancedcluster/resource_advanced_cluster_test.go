@@ -15,7 +15,9 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -1403,16 +1405,34 @@ func TestAccMockPlanChecks_removeBlocksFromConfig(t *testing.T) {
 		t.Skip("This test is not applicable for SDKv2")
 	}
 	var (
-		projectID, clusterName            = acc.ProjectIDExecutionWithCluster(t, 15)
+		projectID                         = "111111111111111111111111"
+		clusterName                       = "mocked-cluster"
 		configImport                      = configBlocks(t, projectID, clusterName, true)
 		configNoBlocksChangedInstanceSize = configBlocks(t, projectID, clusterName, false)
 		importID                          = fmt.Sprintf("%s-%s", projectID, clusterName)
+		repSpec0                          = tfjsonpath.New("replication_specs").AtSliceIndex(0)
+		repSpec1                          = tfjsonpath.New("replication_specs").AtSliceIndex(1)
+		regionConfig0                     = repSpec0.AtMapKey("region_configs").AtSliceIndex(0)
+		regionConfig1                     = repSpec1.AtMapKey("region_configs").AtSliceIndex(0)
 	)
 	unit.MockPlanChecksAndRun(t, mockConfig, importID, configImport, resourceName, &resource.TestStep{
 		Config: configNoBlocksChangedInstanceSize,
 		ConfigPlanChecks: resource.ConfigPlanChecks{
 			PreApply: []plancheck.PlanCheck{
-				plancheck.ExpectEmptyPlan(),
+				plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+				plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("analytics_specs")),
+				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M10")),
+				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M20")),
+				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling").AtMapKey("compute_min_instance_size"), knownvalue.StringExact("M10")),
+				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling").AtMapKey("compute_max_instance_size"), knownvalue.StringExact("M30")),
+				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling").AtMapKey("compute_enabled"), knownvalue.Bool(true)),
+				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling").AtMapKey("disk_gb_enabled"), knownvalue.Bool(true)),
+				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling").AtMapKey("compute_min_instance_size"), knownvalue.StringExact("M10")),
+				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling").AtMapKey("compute_max_instance_size"), knownvalue.StringExact("M30")),
+				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling").AtMapKey("compute_enabled"), knownvalue.Bool(true)),
+				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling").AtMapKey("disk_gb_enabled"), knownvalue.Bool(true)),
+				plancheck.ExpectUnknownValue(resourceName, repSpec0.AtMapKey("id")),
+				plancheck.ExpectUnknownValue(resourceName, repSpec1.AtMapKey("id")),
 			},
 		},
 	})
