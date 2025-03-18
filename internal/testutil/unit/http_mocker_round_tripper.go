@@ -113,7 +113,7 @@ func (r *MockRoundTripper) initStep() error {
 		return nil
 	}
 	for index, req := range step.DiffRequests {
-		err := r.g.Update(r.t, r.requestFilename(req.idShort(), index), []byte(req.Text))
+		err := r.g.Update(r.t, r.requestFilename(req.IdShort(), index), []byte(req.Text))
 		if err != nil {
 			return err
 		}
@@ -156,7 +156,7 @@ func (r *MockRoundTripper) CheckStepRequests(_ *terraform.State) error {
 				missingIndexes = append(missingIndexes, fmt.Sprintf("%d", req.Responses[missingResponse].ResponseIndex))
 			}
 			missingIndexesStr := strings.Join(missingIndexes, ", ")
-			missingRequests = append(missingRequests, fmt.Sprintf("missing %d requests of %s (%s)", missingRequestsCount, req.idShort(), missingIndexesStr))
+			missingRequests = append(missingRequests, fmt.Sprintf("missing %d requests of %s (%s)", missingRequestsCount, req.IdShort(), missingIndexesStr))
 		}
 	}
 	if r.allowMissingRequests {
@@ -169,13 +169,13 @@ func (r *MockRoundTripper) CheckStepRequests(_ *terraform.State) error {
 	missingDiffs := []string{}
 	for i, req := range step.DiffRequests {
 		if _, ok := r.foundsDiffs[i]; !ok {
-			missingDiffs = append(missingDiffs, fmt.Sprintf("missing diff request %s", req.idShort()))
+			missingDiffs = append(missingDiffs, fmt.Sprintf("missing diff request %s", req.IdShort()))
 		}
 	}
 	assert.Empty(r.t, missingDiffs)
 	for index, payload := range r.foundsDiffs {
 		diff := step.DiffRequests[index]
-		filename := r.manualFilenameIfExist(diff.idShort(), index)
+		filename := r.manualFilenameIfExist(diff.IdShort(), index)
 		r.t.Logf("checking diff %s", filename)
 		payloadWithVars := useVars(r.data.Variables, payload)
 		r.g.Assert(r.t, filename, []byte(payloadWithVars))

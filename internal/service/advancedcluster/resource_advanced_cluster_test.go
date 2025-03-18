@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -1393,6 +1394,26 @@ func TestAccMockableAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 				Check:  checkBlocks(false),
 			},
 			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+func TestAccMockPlanChecks_removeBlocksFromConfig(t *testing.T) {
+	if !config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
+		t.Skip("This test is not applicable for SDKv2")
+	}
+	var (
+		projectID, clusterName            = acc.ProjectIDExecutionWithCluster(t, 15)
+		configImport                      = configBlocks(t, projectID, clusterName, true)
+		configNoBlocksChangedInstanceSize = configBlocks(t, projectID, clusterName, false)
+		importID                          = fmt.Sprintf("%s-%s", projectID, clusterName)
+	)
+	unit.MockPlanChecksAndRun(t, mockConfig, importID, configImport, resourceName, &resource.TestStep{
+		Config: configNoBlocksChangedInstanceSize,
+		ConfigPlanChecks: resource.ConfigPlanChecks{
+			PreApply: []plancheck.PlanCheck{
+				plancheck.ExpectEmptyPlan(),
+			},
 		},
 	})
 }
