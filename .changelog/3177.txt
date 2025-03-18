@@ -1,7 +1,7 @@
 ```release-note:bug
-resource/mongodbatlas_global_cluster_config: Adds cluster with ISS support
+resource/mongodbatlas_global_cluster_config: Adds support for reading clusters with independent shard scaling
 ```
 
 ```release-note:bug
-data-source/mongodbatlas_global_cluster_config: Adds cluster with ISS support
+data-source/mongodbatlas_global_cluster_config: Adds support for reading clusters with independent shard scaling
 ```
