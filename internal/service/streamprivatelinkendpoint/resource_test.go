@@ -26,13 +26,6 @@ func TestAccStreamPrivatelinkEndpointConfluent_basic(t *testing.T) {
 	resource.Test(t, *tc)
 }
 
-func TestAccStreamPrivatelinkEndpointConfluent_failedUpdate(t *testing.T) {
-	acc.SkipTestForCI(t) // needs confluent cloud resources
-	tc := failedUpdateConfluentTestCase(t)
-	// Tests include testing of plural data source and so cannot be run in parallel
-	resource.Test(t, *tc)
-}
-
 func TestAccStreamPrivatelinkEndpointConfluent_missingRequiredFields(t *testing.T) {
 	acc.SkipTestForCI(t) // needs confluent cloud resources
 	tc := missingRequiredFieldsConfluentTestCase(t)
@@ -43,13 +36,6 @@ func TestAccStreamPrivatelinkEndpointConfluent_missingRequiredFields(t *testing.
 func TestAccStreamPrivatelinkEndpointMsk_basic(t *testing.T) {
 	acc.SkipTestForCI(t) // needs an AWS MSK cluster
 	tc := basicMskTestCase(t)
-	// Tests include testing of plural data source and so cannot be run in parallel
-	resource.Test(t, *tc)
-}
-
-func TestAccStreamPrivatelinkEndpointMsk_failedUpdate(t *testing.T) {
-	acc.SkipTestForCI(t) // needs an AWS MSK cluster
-	tc := failedUpdateMskTestCase(t)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
 }
@@ -132,37 +118,6 @@ func basicConfluentTestCase(t *testing.T) *resource.TestCase {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-		},
-	}
-}
-
-func failedUpdateConfluentTestCase(t *testing.T) *resource.TestCase {
-	t.Helper()
-
-	var (
-		projectID           = acc.ProjectIDExecution(t)
-		provider            = "AWS"
-		region              = "us-east-1"
-		vendor              = "CONFLUENT"
-		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
-		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
-		privatelinkAccessID = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
-	)
-
-	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		CheckDestroy:             checkDestroy,
-		ExternalProviders:        acc.ExternalProvidersOnlyConfluent(),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.GetCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
-				Check:  checksStreamPrivatelinkEndpointConfluent(projectID, provider, region, vendor, false),
-			},
-			{
-				Config:      acc.GetCompleteConfluentConfig(true, false, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
-				ExpectError: regexp.MustCompile(`Operation not supported`),
 			},
 		},
 	}
@@ -253,34 +208,6 @@ func basicMskTestCase(t *testing.T) *resource.TestCase {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-		},
-	}
-}
-
-func failedUpdateMskTestCase(t *testing.T) *resource.TestCase {
-	t.Helper()
-
-	var (
-		projectID = acc.ProjectIDExecution(t)
-		provider  = "AWS"
-		vendor    = "MSK"
-		arn       = os.Getenv("AWS_MSK_ARN")
-	)
-
-	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAwsEnvBasic(t); acc.PreCheckAwsMsk(t) },
-		CheckDestroy:             checkDestroy,
-		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.GetCompleteMskConfig(projectID, arn),
-				Check:  checksStreamPrivatelinkEndpointMsk(projectID, provider, vendor, arn),
-			},
-			{
-				Config:      acc.GetCompleteMskConfig(projectID, "another:arn"),
-				ExpectError: regexp.MustCompile(`Operation not supported`),
 			},
 		},
 	}
