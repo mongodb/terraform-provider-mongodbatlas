@@ -21,7 +21,7 @@ import (
 
 const resourceID = "mongodbatlas_example.this"
 
-var expectedError = errors.New("avoid full apply")
+var expectedError = errors.New("avoid full apply by raising an expected error")
 
 type requestHandlerSwitch struct {
 	useManualHandler *bool
@@ -60,7 +60,7 @@ func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importInp
 	useManualHandler := false
 	// testCase.Steps[2].RefreshPlanChecks.PostRefresh = append(testCase.Steps[2].RefreshPlanChecks.PostRefresh, &requestHandlerSwitch{useManualHandler: &useManualHandler})
 	testCase.Steps[2].ConfigPlanChecks.PreApply = append(testCase.Steps[2].ConfigPlanChecks.PreApply, &requestHandlerSwitch{useManualHandler: &useManualHandler})
-	testCase.Steps[2].ExpectError = regexp.MustCompile(expectedError.Error())
+	testCase.Steps[2].ExpectError = regexp.MustCompile(fmt.Sprintf("^Pre-apply plan check\\(s\\) failed:\n%s$", expectedError.Error()))
 	mockConfig.RequestHandler = func(defaulthHandler RequestHandler, req *http.Request, method string) (*http.Response, error) {
 		customHandler := func(req *http.Request, method string) (*http.Response, error) {
 			switch method {
