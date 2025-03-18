@@ -89,6 +89,11 @@ func TestConvertMockableTests(t *testing.T) {
 		testDataPath := unit.RepoPath(relPath + "/testdata")
 		mockedFilePaths, err := filepath.Glob(path.Join(testDataPath, "*.yaml"))
 		require.NoError(t, err)
+		gitIgnorePath := path.Join(testDataPath, ".gitignore")
+		if !unit.FileExist(gitIgnorePath) {
+			err = os.WriteFile(gitIgnorePath, []byte("TestAccMockPlan*.yaml\n!*.tmpl.yaml\n"), 0644)
+			require.NoError(t, err)
+		}
 		for _, testFile := range mockedFilePaths {
 			if strings.HasPrefix(filepath.Base(testFile), prefixName) {
 				continue
