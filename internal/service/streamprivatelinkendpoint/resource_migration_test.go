@@ -15,6 +15,6 @@ func TestMigStreamPrivatelinkEndpointConfluent_basic(t *testing.T) {
 
 func TestMigStreamPrivatelinkEndpointMsk_basic(t *testing.T) {
 	acc.SkipTestForCI(t) // needs an AWS MSK cluster
-	mig.SkipIfVersionBelow(t, "1.29.0")
+	mig.SkipIfVersionBelow(t, "1.30.0")
 	mig.CreateTestAndRunUseExternalProviderNonParallel(t, basicMskTestCase(t), mig.ExternalProvidersWithAWS(), nil)
 }
