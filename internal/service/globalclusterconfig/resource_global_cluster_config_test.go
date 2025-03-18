@@ -34,14 +34,18 @@ func TestAccGlobalClusterConfig_withBackup(t *testing.T) {
 }
 
 func TestAccGlobalClusterConfig_iss(t *testing.T) {
+	const (
+		zone1 = "Zone 1"
+		zone2 = "Zone 2"
+	)
 	var (
 		replicationSpec1 = acc.ReplicationSpecRequest{
-			ZoneName:     "Zone 1",
+			ZoneName:     zone1,
 			Region:       "US_EAST_1",
 			InstanceSize: "M30",
 		}
 		replicationSpec2 = acc.ReplicationSpecRequest{
-			ZoneName:     "Zone 2",
+			ZoneName:     zone2,
 			Region:       "US_EAST_2",
 			InstanceSize: "M10",
 		}
@@ -51,6 +55,8 @@ func TestAccGlobalClusterConfig_iss(t *testing.T) {
 			"managed_namespaces.#": "1",
 			"managed_namespaces.0.is_custom_shard_key_hashed": "false",
 			"managed_namespaces.0.is_shard_key_unique":        "false",
+			"custom_zone_mapping.%":                           "0",
+			"custom_zone_mapping_zone_id.%":                   "2",
 		}
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,7 +65,7 @@ func TestAccGlobalClusterConfig_iss(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configIss(&clusterInfo, false, false),
+				Config: configIss(&clusterInfo, false, false, zone1, zone2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil, []string{"project_id"}, attrsMap),
@@ -362,7 +368,7 @@ func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
 	`, info.TerraformNameRef, info.ProjectID, zones, info.ResourceName) + dataSourceConfig
 }
 
-func configIss(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) string {
+func configIss(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool, zone1, zone2 string) string {
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_global_cluster_config" "config" {
 			cluster_name     = %[1]s
@@ -376,6 +382,15 @@ func configIss(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) stri
 				is_shard_key_unique 	   = %[4]t
 			}
 			depends_on = [%[5]s]
+
+			custom_zone_mappings {
+				location = "US"
+				zone     = %[6]q
+			}
+			custom_zone_mappings {
+				location = "IE"
+				zone     = %[7]q
+			}
 		}
-	`, info.TerraformNameRef, info.ProjectID, isCustomShard, isShardKeyUnique, info.ResourceName) + dataSourceConfig
+	`, info.TerraformNameRef, info.ProjectID, isCustomShard, isShardKeyUnique, info.ResourceName, zone1, zone2) + dataSourceConfig
 }
