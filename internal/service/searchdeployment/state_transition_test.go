@@ -1,7 +1,6 @@
 package searchdeployment_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -12,8 +11,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/mockadmin"
+
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
+	// TODO: update before merging to master: ""go.mongodb.org/atlas-sdk/v20250219001/mockadmin""
+	"github.com/mongodb/atlas-sdk-go/mockadmin"
 )
 
 var (
@@ -81,7 +83,7 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetAtlasSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := searchdeployment.WaitSearchNodeStateTransition(context.Background(), dummyProjectID, "Cluster0", m, testTimeoutConfig)
+			resp, err := searchdeployment.WaitSearchNodeStateTransition(t.Context(), dummyProjectID, "Cluster0", m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 			assert.Equal(t, responseWithState(tc.expectedState), resp)
 		})
@@ -124,7 +126,7 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetAtlasSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			err := searchdeployment.WaitSearchNodeDelete(context.Background(), dummyProjectID, clusterName, m, testTimeoutConfig)
+			err := searchdeployment.WaitSearchNodeDelete(t.Context(), dummyProjectID, clusterName, m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 		})
 	}

@@ -18,6 +18,7 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		Type:             plan.Type.ValueStringPointer(),
 		ClusterName:      plan.ClusterName.ValueStringPointer(),
 		BootstrapServers: plan.BootstrapServers.ValueStringPointer(),
+		Url:              plan.URL.ValueStringPointer(),
 	}
 	if !plan.Authentication.IsNull() {
 		authenticationModel := &TFConnectionAuthenticationModel{}
@@ -87,7 +88,32 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		}
 	}
 
+	if !plan.Headers.IsNull() {
+		headersMap := make(map[string]string)
+		if diags := plan.Headers.ElementsAs(ctx, &headersMap, true); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.Headers = &headersMap
+	}
+
 	return &streamConnection, nil
+}
+
+func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
+	streamConnection, diags := NewStreamConnectionReq(ctx, plan)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	headersMap := make(map[string]string)
+	// only set headers if the plan is not empty, otherwise the headers will be removed by sending an empty headers map to the PATCH endpoint
+	if !plan.Headers.IsNull() && !plan.Headers.IsUnknown() {
+		if diags := plan.Headers.ElementsAs(ctx, &headersMap, true); diags.HasError() {
+			return nil, diags
+		}
+	}
+	streamConnection.Headers = &headersMap
+	return streamConnection, nil
 }
 
 func NewTFStreamConnection(ctx context.Context, projID, instanceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
@@ -100,6 +126,7 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 		Type:             types.StringPointerValue(apiResp.Type),
 		ClusterName:      types.StringPointerValue(apiResp.ClusterName),
 		BootstrapServers: types.StringPointerValue(apiResp.BootstrapServers),
+		URL:              types.StringPointerValue(apiResp.Url),
 	}
 
 	authModel, diags := newTFConnectionAuthenticationModel(ctx, currAuthConfig, apiResp.Authentication)
@@ -168,6 +195,16 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 			return nil, diags
 		}
 		connectionModel.AWS = aws
+	}
+
+	connectionModel.Headers = types.MapNull(types.StringType)
+	// this is to handle the case where empty headers are returned as an empty map from the API, which is equivalent to a null value
+	if apiResp.Headers != nil && len(*apiResp.Headers) > 0 {
+		mapValue, diags := types.MapValueFrom(ctx, types.StringType, apiResp.Headers)
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.Headers = mapValue
 	}
 
 	return &connectionModel, nil

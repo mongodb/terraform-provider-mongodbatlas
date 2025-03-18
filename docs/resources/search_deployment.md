@@ -72,6 +72,7 @@ output "mongodbatlas_search_deployment_encryption_at_rest_provider" {
 
 ### Read-Only
 
+- `encryption_at_rest_provider` (String) Cloud service provider that manages your customer keys to provide an additional layer of Encryption At Rest for the cluster.
 - `id` (String) Unique 24-hexadecimal digit string that identifies the search deployment.
 - `state_name` (String) Human-readable label that indicates the current operating condition of this search deployment.
 

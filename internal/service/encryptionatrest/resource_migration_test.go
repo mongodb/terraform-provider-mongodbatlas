@@ -28,7 +28,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 		}
 		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
 		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.28.0") // require_private_networking introduced in this version
-		useEnabledForSearchNodes    = mig.IsProviderVersionAtLeast("1.30.0") // enabled_for_search_nodes introduced in this version
+		useEnabledForSearchNodes    = mig.IsProviderVersionAtLeast("1.30.0") // TODO: confirm version enabled_for_search_nodes introduced in this version
 	)
 
 	resource.Test(t, resource.TestCase{

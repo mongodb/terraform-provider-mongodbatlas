@@ -2,7 +2,24 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_stream_connection: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
+* data-source/mongodbatlas_stream_connections: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
+* resource/mongodbatlas_cloud_backup_snapshot: Adds `timeouts` attribute for create operation ([#3171](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3171))
+* resource/mongodbatlas_cloud_backup_snapshot: Adjusts creation default timeout from 20 minutes to 1 hour ([#3171](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3171))
+* resource/mongodbatlas_stream_connection: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
+
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster (preview provider 2.0.0): Avoids error when removing `read_only_specs` in `region_configs` that does not define `electable_specs` ([#3162](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3162))
+
+## 1.29.0 (March 12, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Available as Preview of MongoDB Atlas Provider 2.0.0 ([#3147](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3147))
+* data-source/mongodbatlas_advanced_clusters: Available as Preview of MongoDB Atlas Provider 2.0.0 ([#3147](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3147))
 * data-source/mongodbatlas_stream_connection: Adds `AWSLambda` connection ([#3085](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3085))
+* resource/mongodbatlas_advanced_cluster: Available as Preview of MongoDB Atlas Provider 2.0.0 ([#3147](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3147))
 * resource/mongodbatlas_stream_connection: Adds `AWSLambda` connection ([#3085](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3085))
 
 BUG FIXES:

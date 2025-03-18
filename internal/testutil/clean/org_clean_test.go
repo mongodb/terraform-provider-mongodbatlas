@@ -49,13 +49,12 @@ func TestSingleProjectRemoval(t *testing.T) {
 		t.Skip("skipping test; set MONGODB_ATLAS_CLEAN_PROJECT_ID=project-id to run")
 	}
 	client := acc.ConnV2()
-	ctx := context.Background()
 	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
-	changes := removeProjectResources(ctx, t, dryRun, client, projectToClean)
+	changes := removeProjectResources(t.Context(), t, dryRun, client, projectToClean)
 	if changes != "" {
 		t.Logf("project %s %s", projectToClean, changes)
 	}
-	err := deleteProject(ctx, client, projectToClean)
+	err := deleteProject(t.Context(), client, projectToClean)
 	require.NoError(t, err)
 }
 
@@ -66,7 +65,6 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		t.Skip("skipping test; set MONGODB_ATLAS_CLEAN_ORG=true to run")
 	}
 	client := acc.ConnV2()
-	ctx := context.Background()
 	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
 	onlyZeroClusters, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_ONLY_WHEN_NO_CLUSTERS"))
 	skipProjectsAfter := time.Now().Add(-keepProjectsCreatedWithinHours * time.Hour)
@@ -77,7 +75,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		require.NoError(t, err)
 		runRetries = attempts
 	}
-	projects := readAllProjects(ctx, t, client)
+	projects := readAllProjects(t.Context(), t, client)
 	projectsBefore := len(projects)
 	t.Logf("found %d projects (DRY_RUN=%t)", projectsBefore, dryRun)
 	projectsToDelete := map[string]string{}
@@ -100,7 +98,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	for name, projectID := range projectsToDelete {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			changes := removeProjectResources(ctx, t, dryRun, client, projectID)
+			changes := removeProjectResources(t.Context(), t, dryRun, client, projectID)
 			if changes != "" {
 				t.Logf("project %s %s", name, changes)
 			}
@@ -114,7 +112,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 				if dryRun {
 					return
 				}
-				err = deleteProject(ctx, client, projectID)
+				err = deleteProject(t.Context(), client, projectID)
 				if err == nil {
 					return
 				}
@@ -129,7 +127,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		})
 	}
 	t.Cleanup(func() {
-		projectsAfter := readAllProjects(ctx, t, client)
+		projectsAfter := readAllProjects(t.Context(), t, client)
 		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, dryRun)
 	})
 }
@@ -137,7 +135,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient) []admin.Group {
 	t.Helper()
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
-		return client.ProjectsApi.ListProjects(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
+		return client.ProjectsApi.ListProjects(t.Context()).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	})
 	require.NoError(t, err)
 	return projects

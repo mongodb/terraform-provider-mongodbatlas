@@ -83,15 +83,15 @@ moved {
 - Adds `data "mongodbatlas_cluster" "this"` to avoid breaking changes in `outputs.tf` (see below).
 
 ### [`outputs.tf`](v2/outputs.tf)
-- All outputs can use `mongodbatlas_advanced_cluster` except for:
-  - [TODO: Update with findings](https://jira.mongodb.org/browse/CLOUDP-303685)
-  - `replication_specs`, which uses `data.mongodbatlas_cluster.this.replication_specs` to keep the same format.
-  - `mongodbatlas_cluster`, which uses the `data.mongodbatlas_cluster.this` to keep the same format.
+- Ensure you are not adding any output variables that use the new `mongodbatlas_advanced_cluster` resource. Referencing the new resource before moving can lead to a more verbose plan output (extra `Note: Objects have changed outside of Terraform` section) when performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform-plugin-framework/issues/1109)).
+- Ensure compatibility with `v1` outputs by modifying:
+  - `replication_specs`, uses `data.mongodbatlas_cluster.this.replication_specs` to keep the same format.
+  - `mongodbatlas_cluster`, uses the `data.mongodbatlas_cluster.this` to keep the same format.
 
 
 ## Step 3: Module `v3` Implementation Changes and Highlights
 This module adds variables to support the latest `mongodbatlas_advanced_cluster` features while staying compatible with the old input variables.
-The module supports standalone usage when there is no existing `mongodbatlas_cluster` and also upgrading from `v1` using a `moved` block.
+The module supports standalone usage when there is no existing `mongodbatlas_cluster` and also upgrading from `v1` using a `moved` block. However, upgrading directly from `v1` can lead to a more verbose plan output (extra `Note: Objects have changed outside of Terraform` section) when performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform-plugin-framework/issues/1109)).
 The module also supports changing an existing `mongodbatlas_advanced_cluster` created in `v2`.
 
 ### [`variables.tf`](v3/variables.tf)

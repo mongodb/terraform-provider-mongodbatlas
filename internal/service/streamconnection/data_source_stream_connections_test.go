@@ -21,7 +21,7 @@ func TestAccStreamDSStreamConnections_basic(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionsDataSourceConfig(kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", kafkaNetworkingPublic, false)),
+				Config: streamConnectionsDataSourceConfig(configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", kafkaNetworkingPublic, false)),
 				Check:  streamConnectionsAttributeChecks(dataSourceName, nil, nil, 1),
 			},
 		},
@@ -40,7 +40,7 @@ func TestAccStreamDSStreamConnections_withPageConfig(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: streamConnectionsWithPageAttrDataSourceConfig(kafkaStreamConnectionConfig(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", kafkaNetworkingPublic, false)),
+				Config: streamConnectionsWithPageAttrDataSourceConfig(configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", kafkaNetworkingPublic, false)),
 				Check:  streamConnectionsAttributeChecks(dataSourceName, admin.PtrInt(2), admin.PtrInt(1), 0),
 			},
 		},

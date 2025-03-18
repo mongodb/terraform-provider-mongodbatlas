@@ -1,7 +1,6 @@
 package flexcluster_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -103,7 +102,7 @@ func TestFlexClusterStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetFlexClusterExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := flexcluster.WaitStateTransition(context.Background(), requestParams, m, tc.pendingStates, tc.desiredStates, tc.isUpgradeFromM0, nil)
+			resp, err := flexcluster.WaitStateTransition(t.Context(), requestParams, m, tc.pendingStates, tc.desiredStates, tc.isUpgradeFromM0, nil)
 			assert.Equal(t, tc.expectedError, err != nil)
 			if resp != nil {
 				assert.Equal(t, *tc.expectedState, *resp.StateName)
@@ -148,7 +147,7 @@ func TestFlexClusterStateTransitionForDelete(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetFlexClusterExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			err := flexcluster.WaitStateTransitionDelete(context.Background(), requestParams, m)
+			err := flexcluster.WaitStateTransitionDelete(t.Context(), requestParams, m)
 			assert.Equal(t, tc.expectedError, err != nil)
 		})
 	}

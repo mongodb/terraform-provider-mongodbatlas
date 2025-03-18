@@ -1,7 +1,6 @@
 package controlplaneipaddresses_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -90,7 +89,7 @@ func TestControlPlaneIpAddressesSDKToTFModel(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := controlplaneipaddresses.NewTFControlPlaneIPAddresses(context.Background(), tc.SDKResp)
+			resultModel, diags := controlplaneipaddresses.NewTFControlPlaneIPAddresses(t.Context(), tc.SDKResp)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -101,7 +100,7 @@ func TestControlPlaneIpAddressesSDKToTFModel(t *testing.T) {
 
 func toTFMap(t *testing.T, values map[string][]string) basetypes.MapValue {
 	t.Helper()
-	result, diags := conversion.ToTFMapOfSlices(context.Background(), values)
+	result, diags := conversion.ToTFMapOfSlices(t.Context(), values)
 	if diags.HasError() {
 		t.Errorf("unexpected errors found when creating test cases: %s", diags.Errors()[0].Summary())
 	}

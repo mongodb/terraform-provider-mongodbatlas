@@ -1,7 +1,6 @@
 package advancedcluster_test
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -120,7 +119,7 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin20240530.GetClusterApiRequest{ApiService: testObject}).Once()
 			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
 
-			result, err := advancedcluster.GetReplicationSpecAttributesFromOldAPI(context.Background(), projectID, clusterName, testObject)
+			result, err := advancedcluster.GetReplicationSpecAttributesFromOldAPI(t.Context(), projectID, clusterName, testObject)
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedResult, result)
 		})
@@ -144,7 +143,7 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includ
 	}
 	if includeDedicated {
 		steps = append(steps, resource.TestStep{
-			Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configBasicDedicated(projectID, clusterName, defaultZoneName)),
+			Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName)),
 			Check:  checksBasicDedicated(projectID, clusterName),
 		})
 	}
@@ -179,7 +178,7 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configBasicDedicated(projectID, clusterName, defaultZoneName)),
+				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName)),
 				Check:  checksBasicDedicated(projectID, clusterName),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -213,6 +212,15 @@ func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 				}),
 				Check: checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 60, 3, true, true),
 			},
+			// empty plan when analytics block is removed
+			acc.TestStepCheckEmptyPlan(configAWSProvider(t, isAcc, ReplicaSetAWSConfig{
+				ProjectID:          projectID,
+				ClusterName:        clusterName,
+				ClusterType:        "REPLICASET",
+				DiskSizeGB:         60,
+				NodeCountElectable: 3,
+				WithAnalyticsSpecs: false,
+			})),
 			{
 				Config: configAWSProvider(t, isAcc, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
@@ -220,7 +228,7 @@ func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
-					WithAnalyticsSpecs: false, // removed as part of other updates, computed value is expected to be the same
+					WithAnalyticsSpecs: false, // other update made after removed analytics block, computed value is expected to be the same
 				}),
 				Check: checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 50, 5, true, true),
 			},
@@ -557,8 +565,10 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb", "10"),   // modified disk size gb in config is ignored
 				),
 			},
+			// empty plan when auto_scaling block is removed (also aligns instance_size/disk_size_gb to values in state)
+			acc.TestStepCheckEmptyPlan(configReplicationSpecsAutoScaling(t, true, projectID, clusterName, nil, "M10", 10, 1)),
 			{
-				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, nil, "M10", 10, 2), // auto_scaling block removed together with other changes, preserves previous state
+				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, nil, "M10", 10, 2), // other change after autoscaling block removed, preserves previous state
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterName),
@@ -611,8 +621,10 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
 				),
 			},
+			// empty plan when analytics_auto_scaling block is removed
+			acc.TestStepCheckEmptyPlan(configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, nil, 1)),
 			{
-				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, nil, 2), // analytics_auto_scaling block removed together with other changes, preserves previous state
+				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, nil, 2), // other changes after analytics_auto_scaling block removed, preserves previous state
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterNameUpdated),
@@ -1375,23 +1387,25 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 	})
 }
 
-func TestAccMockableAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
+func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 	if !config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
 		t.Skip("This test is not applicable for SDKv2")
 	}
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 15)
 	)
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBlocks(t, projectID, clusterName, true),
-				Check:  checkBlocks(true),
+				Config: configBlocks(t, projectID, clusterName, "M10", true),
+				Check:  checkBlocks("M10"),
 			},
+			// removing blocks generates an empty plan
+			acc.TestStepCheckEmptyPlan(configBlocks(t, projectID, clusterName, "M10", false)),
 			{
-				Config: configBlocks(t, projectID, clusterName, false),
-				Check:  checkBlocks(false),
+				Config: configBlocks(t, projectID, clusterName, "M20", false), // applying a change after removing blocks preserves previous state
+				Check:  checkBlocks("M20"),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -1491,10 +1505,10 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 	`, projectID, clusterName, autoScaling, analyticsSpecs, analyticsSpecsForSpec2)) + dataSourcesTFNewSchema
 }
 
-func configBlocks(t *testing.T, projectID, clusterName string, firstStep bool) string {
+func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, defineBlocks bool) string {
 	t.Helper()
 	var extraConfig0, extraConfig1 string
-	autoStr := `
+	autoScalingBlocks := `
 		auto_scaling {
 			disk_gb_enabled            = true
 			compute_enabled            = true
@@ -1510,15 +1524,15 @@ func configBlocks(t *testing.T, projectID, clusterName string, firstStep bool) s
 			compute_scale_down_enabled = true
 		}
 	`
-	instanceSize1 := "M20"
-	if firstStep {
-		instanceSize1 = "M10"
+	if defineBlocks {
+		// read only + autoscaling blocks
 		extraConfig0 = `
 			read_only_specs {
 				instance_size = "M10"
 				node_count    = 2
 			}
-		` + autoStr
+		` + autoScalingBlocks
+		// read only + analytics + autoscaling blocks
 		extraConfig1 = `
 			read_only_specs {
 				instance_size = "M10"
@@ -1528,7 +1542,7 @@ func configBlocks(t *testing.T, projectID, clusterName string, firstStep bool) s
 				instance_size = "M10"
 				node_count    = 4
 			}
-		` + autoStr
+		` + autoScalingBlocks
 	}
 	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -1562,12 +1576,18 @@ func configBlocks(t *testing.T, projectID, clusterName string, firstStep bool) s
 					}
 					%[5]s
 				}
+				region_configs { // region with no electable specs
+					provider_name = "AWS"
+					priority      = 0
+					region_name   = "US_EAST_1"
+					%[4]s
+				}
 			}
 		}
-	`, projectID, clusterName, instanceSize1, extraConfig0, extraConfig1))
+	`, projectID, clusterName, instanceSize, extraConfig0, extraConfig1))
 }
 
-func checkBlocks(firstStep bool) resource.TestCheckFunc {
+func checkBlocks(instanceSize string) resource.TestCheckFunc {
 	checksMap := map[string]string{
 		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": "M10",
 		"replication_specs.0.region_configs.0.electable_specs.0.node_count":    "5",
@@ -1575,16 +1595,15 @@ func checkBlocks(firstStep bool) resource.TestCheckFunc {
 		"replication_specs.0.region_configs.0.read_only_specs.0.node_count":    "2",
 		"replication_specs.0.region_configs.0.analytics_specs.0.node_count":    "0",
 
-		"replication_specs.1.region_configs.0.electable_specs.0.instance_size": "M10",
+		"replication_specs.1.region_configs.0.electable_specs.0.instance_size": instanceSize,
 		"replication_specs.1.region_configs.0.electable_specs.0.node_count":    "3",
-		"replication_specs.1.region_configs.0.read_only_specs.0.instance_size": "M10",
+		"replication_specs.1.region_configs.0.read_only_specs.0.instance_size": instanceSize,
 		"replication_specs.1.region_configs.0.read_only_specs.0.node_count":    "1",
 		"replication_specs.1.region_configs.0.analytics_specs.0.instance_size": "M10",
 		"replication_specs.1.region_configs.0.analytics_specs.0.node_count":    "4",
-	}
-	if !firstStep {
-		checksMap["replication_specs.1.region_configs.0.electable_specs.0.instance_size"] = "M20"
-		checksMap["replication_specs.1.region_configs.0.read_only_specs.0.instance_size"] = "M20"
+
+		"replication_specs.1.region_configs.1.read_only_specs.0.instance_size": instanceSize,
+		"replication_specs.1.region_configs.1.read_only_specs.0.node_count":    "2",
 	}
 	for repSpecsIdx := range 2 {
 		for _, block := range []string{"auto_scaling", "analytics_auto_scaling"} {
@@ -1643,33 +1662,6 @@ func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
 			"termination_protection_enabled":       "false",
 			"global_cluster_self_managed_sharding": "false"},
 		pluralChecks...)
-}
-
-func configBasicDedicated(projectID, name, zoneName string) string {
-	zoneNameLine := ""
-	if zoneName != "" {
-		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
-	}
-	return fmt.Sprintf(`
-	resource "mongodbatlas_advanced_cluster" "test" {
-		project_id   = %[1]q
-		name         = %[2]q
-		cluster_type = "REPLICASET"
-		
-		replication_specs {
-			region_configs {
-				priority        = 7
-				provider_name = "AWS"
-				region_name     = "US_EAST_1"
-				electable_specs {
-					node_count = 3
-					instance_size = "M10"
-				}
-			}
-			%[3]s
-		}
-	}
-	`, projectID, name, zoneNameLine) + dataSourcesTFNewSchema
 }
 
 func checksBasicDedicated(projectID, name string) resource.TestCheckFunc {
