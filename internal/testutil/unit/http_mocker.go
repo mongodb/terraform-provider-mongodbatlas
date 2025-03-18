@@ -29,6 +29,7 @@ type MockHTTPDataConfig struct {
 	QueryVars            []string
 	AllowMissingRequests bool
 	AllowOutOfOrder      bool
+	RequestHandler ManualRequestHandler
 }
 
 func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: c is heavy (112 bytes); consider passing it by pointer)
