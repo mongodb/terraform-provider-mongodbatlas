@@ -360,9 +360,14 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
--> **NOTE:** For any cluster leveraging the new sharding configurations and defining independently scaled shards, users should also update corresponding `mongodbatlas_cloud_backup_schedule` resource & data sources. This involves updating any existing Terraform configurations of the resource to use`copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id`. This is needed as `mongodbatlas_advanced_cluster` resource and data source will no longer have `replication_specs.#.id` present when shards are scaled independently. To learn more, review the [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
+### Resources and Data Sources Impacted by Independent Shard Scaling
 
--> **NOTE:** The `mongodbatlas_global_cluster_config` and `mongodbatlas_cluster` resources & data sources are also impacted by clusters using independent shard scaling. Remove any `custom_zone_mapping` usage from `mongodbatlas_global_cluster_config` and migrate `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` (see the [cluster-to-advanced-cluster-migration-guide.](cluster-to-advanced-cluster-migration-guide.md))
+Name | Changes | Transition Guide
+--- | --- | ---
+`mongodbatlas_cloud_backup_schedule` | Use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id` (`replication_specs.#.id` not set for ISS enabled `mongodbatlas_advanced_cluster`) | [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones)
+`mongodbatlas_global_cluster_config` | Remove the `custom_zone_mapping` attribute. | -
+`mongodbatlas_cluster` | Resource and Data Source will not work. API error code `ASYMMETRIC_SHARD_UNSUPPORTED`. | [cluster-to-advanced-cluster-migration-guide.](cluster-to-advanced-cluster-migration-guide.md)
+
 
 <a id="use-auto-scaling-per-shard"></a>
 ## Use Auto-Scaling Per Shard
