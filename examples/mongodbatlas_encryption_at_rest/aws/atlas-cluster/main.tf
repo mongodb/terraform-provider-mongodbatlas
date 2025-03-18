@@ -21,8 +21,8 @@ resource "mongodbatlas_encryption_at_rest" "test" {
     region                 = var.atlas_region
     role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
   }
-  
-  enabled_for_search_nodes = true 
+
+  enabled_for_search_nodes = true
 }
 
 resource "mongodbatlas_advanced_cluster" "cluster" {
