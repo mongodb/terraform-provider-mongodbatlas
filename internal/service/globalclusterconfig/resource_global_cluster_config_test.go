@@ -65,7 +65,7 @@ func TestAccGlobalClusterConfig_iss(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configIss(&clusterInfo, false, false, zone1, zone2),
+				Config: configISS(&clusterInfo, false, false, zone1, zone2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil, []string{"project_id"}, attrsMap),
@@ -368,7 +368,7 @@ func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
 	`, info.TerraformNameRef, info.ProjectID, zones, info.ResourceName) + dataSourceConfig
 }
 
-func configIss(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool, zone1, zone2 string) string {
+func configISS(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool, zone1, zone2 string) string {
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_global_cluster_config" "config" {
 			cluster_name     = %[1]s
