@@ -55,8 +55,6 @@ func TestAccStreamPrivatelinkEndpointMsk_failedUpdate(t *testing.T) {
 }
 
 func TestAccStreamPrivatelinkEndpointMsk_fields(t *testing.T) {
-	acc.SkipTestForCI(t)
-
 	const (
 		projectID = "does-not-matter"
 		provider  = "AWS"
