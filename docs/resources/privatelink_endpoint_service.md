@@ -2,6 +2,8 @@
 
 `mongodbatlas_privatelink_endpoint_service` provides a Private Endpoint Interface Link resource. This represents a Private Endpoint Interface Link, which adds one [Interface Endpoint](https://www.mongodb.com/docs/atlas/security-private-endpoint/#private-endpoint-concepts) to a private endpoint connection in an Atlas project.
 
+> **IMPORTANT:** This resource links your cloud provider's Private Endpoint to the MongoDB Atlas Private Endpoint Service. It does not create the service itself (this is done by `mongodbatlas_privatelink_endpoint`). You first create the service in Atlas with `mongodbatlas_privatelink_endpoint`, then the endpoint is created in your cloud provider, and you link them together with the `mongodbatlas_privatelink_endpoint_service` resource.
+
 The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest) makes use of this resource and simplifies its use.
 
 ~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource:
@@ -172,7 +174,7 @@ In addition to all arguments above, the following attributes are exported:
 * `error_message` - Error message pertaining to the interface endpoint. Returns null if there are no errors.
 * `aws_connection_status` - Status of the interface endpoint for AWS.
   Returns one of the following values:
-    * `NONE` - Atlas created the network load balancer and VPC endpoint service, but AWS hasn’t yet created the VPC endpoint.
+    * `NONE` - Atlas created the network load balancer and VPC endpoint service, but AWS hasn't yet created the VPC endpoint.
     * `PENDING_ACCEPTANCE` - AWS has received the connection request from your VPC endpoint to the Atlas VPC endpoint service.
     * `PENDING` - AWS is establishing the connection between your VPC endpoint and the Atlas VPC endpoint service.
     * `AVAILABLE` - Atlas VPC resources are connected to the VPC endpoint in your VPC. You can connect to Atlas clusters in this region using AWS PrivateLink.
