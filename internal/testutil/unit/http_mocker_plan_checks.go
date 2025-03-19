@@ -31,9 +31,11 @@ func (r *requestHandlerSwitch) CheckPlan(_ context.Context, req plancheck.CheckP
 	resp.Error = expectedError
 }
 
-// TODO: Extract all import parameters instead from the template file
-func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importInput, importConfig, importResourceName string, testStep *resource.TestStep) {
+func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importResourceName, importID, planConfig string, checks []plancheck.PlanCheck) {
 	t.Helper()
+	importConfig := fillMockDataTemplate(t, planConfig)
+	useManualHandler := false
+	checks = append(checks, &requestHandlerSwitch{useManualHandler: &useManualHandler})
 	testCase := &resource.TestCase{
 		IsUnitTest:                true,
 		PreventPostDestroyRefresh: true,
@@ -41,17 +43,19 @@ func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importInp
 			{
 				Config:             importConfig,
 				ResourceName:       importResourceName,
-				ImportStateId:      importInput, // static ID to import
+				ImportStateId:      importID, // static ID to import
 				ImportState:        true,
 				ImportStatePersist: true, // save the state to use it in the next plan
 			},
-			*testStep,
+			{
+				Config: planConfig,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: checks,
+				},
+				ExpectError: regexp.MustCompile(fmt.Sprintf("^Pre-apply plan check\\(s\\) failed:\n%s$", expectedError.Error())), // To avoid doing a full apply
+			},
 		},
 	}
-	fillMockDataTemplate(t, importConfig, testStep.Config)
-	useManualHandler := false
-	testCase.Steps[1].ConfigPlanChecks.PreApply = append(testCase.Steps[1].ConfigPlanChecks.PreApply, &requestHandlerSwitch{useManualHandler: &useManualHandler})
-	testCase.Steps[1].ExpectError = regexp.MustCompile(fmt.Sprintf("^Pre-apply plan check\\(s\\) failed:\n%s$", expectedError.Error()))
 	mockConfig.RequestHandler = func(defaulthHandler RequestHandler, req *http.Request, method string) (*http.Response, error) {
 		customHandler := func(req *http.Request, method string) (*http.Response, error) {
 			switch method {
@@ -71,7 +75,6 @@ func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importInp
 		}
 		return defaulthHandler(req, method)
 	}
-
 	err := enableReplayForTestCase(
 		t,
 		&mockConfig,
@@ -81,7 +84,7 @@ func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importInp
 	resource.ParallelTest(t, *testCase)
 }
 
-func fillMockDataTemplate(t *testing.T, fullImportConfig, planCheckConfig string) {
+func fillMockDataTemplate(t *testing.T, planCheckConfig string) string{
 	t.Helper()
 	templatePath := fmt.Sprintf("testdata/%s.tmpl.yaml", t.Name())
 	templateContent, err := os.ReadFile(templatePath)
@@ -99,10 +102,14 @@ func fillMockDataTemplate(t *testing.T, fullImportConfig, planCheckConfig string
 	mockDataPath := fmt.Sprintf("testdata/%s.yaml", t.Name())
 	err = os.WriteFile(mockDataPath, templateContent, 0644)
 	require.NoError(t, err)
-	addPlanCheckStep(t, fullImportConfig, planCheckConfig, mockDataPath)
+	fullImportConfigBytes, err := os.ReadFile(path.Join(responseDir, "main.tf"))
+	require.NoError(t, err)
+	fullImportConfig := string(fullImportConfigBytes)
+	addPlanCheckStepAndReadImportConfig(t, fullImportConfig, planCheckConfig, mockDataPath)
+	return fullImportConfig
 }
 
-func addPlanCheckStep(t *testing.T, fullImportConfig, planCheckConfig string, mockDataPath string) {
+func addPlanCheckStepAndReadImportConfig(t *testing.T, fullImportConfig, planCheckConfig string, mockDataPath string) {
 	parseData := ReadMockData(t, []string{fullImportConfig})
 	parseData.Steps = append(parseData.Steps, StepRequests{
 		Config:           Literal(planCheckConfig),

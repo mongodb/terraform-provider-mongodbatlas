@@ -1416,7 +1416,6 @@ func TestMockPlanChecks_removeBlocksFromConfig(t *testing.T) {
 	var (
 		projectID                         = "111111111111111111111111"
 		clusterName                       = "mocked-cluster"
-		configImport                      = configBlocks(t, projectID, clusterName, true)
 		configNoBlocksChangedInstanceSize = configBlocks(t, projectID, clusterName, false)
 		importID                          = fmt.Sprintf("%s-%s", projectID, clusterName)
 		repSpec0                          = tfjsonpath.New("replication_specs").AtSliceIndex(0)
@@ -1424,23 +1423,18 @@ func TestMockPlanChecks_removeBlocksFromConfig(t *testing.T) {
 		regionConfig0                     = repSpec0.AtMapKey("region_configs").AtSliceIndex(0)
 		regionConfig1                     = repSpec1.AtMapKey("region_configs").AtSliceIndex(0)
 	)
-	unit.MockPlanChecksAndRun(t, mockConfig, importID, configImport, resourceName, &resource.TestStep{
-		Config: configNoBlocksChangedInstanceSize,
-		ConfigPlanChecks: resource.ConfigPlanChecks{
-			PreApply: []plancheck.PlanCheck{
-				plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
-				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M10")),
-				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M20")),
-				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
-				plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("analytics_auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
-				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
-				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
-				plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("analytics_specs")),
-				plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_specs"), knownvalue.NotNull()),
-				plancheck.ExpectUnknownValue(resourceName, repSpec0.AtMapKey("id")),
-				plancheck.ExpectUnknownValue(resourceName, repSpec1.AtMapKey("id")),
-			},
-		},
+	unit.MockPlanChecksAndRun(t, mockConfig, resourceName, importID, configNoBlocksChangedInstanceSize, []plancheck.PlanCheck{
+		plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+		plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M10")),
+		plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M20")),
+		plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
+		plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("analytics_auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
+		plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
+		plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
+		plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("analytics_specs")),
+		plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_specs"), knownvalue.NotNull()),
+		plancheck.ExpectUnknownValue(resourceName, repSpec0.AtMapKey("id")),
+		plancheck.ExpectUnknownValue(resourceName, repSpec1.AtMapKey("id")),
 	})
 }
 
