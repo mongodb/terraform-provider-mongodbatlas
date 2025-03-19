@@ -18,8 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const resourceID = "mongodbatlas_example.this"
-
 var expectedError = errors.New("avoid full apply by raising an expected error")
 
 type requestHandlerSwitch struct {
@@ -31,31 +29,53 @@ func (r *requestHandlerSwitch) CheckPlan(_ context.Context, req plancheck.CheckP
 	resp.Error = expectedError
 }
 
-func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importResourceName, importID, planConfig string, checks []plancheck.PlanCheck) {
+type MockPlanChecksConfig struct {
+	Checks       []plancheck.PlanCheck
+	ImportID     string
+	ResourceName string
+	MockConfig   MockHTTPDataConfig
+	ImportName   string
+	Name         string
+}
+
+func (m *MockPlanChecksConfig) WithNameAndChecks(name string, checks []plancheck.PlanCheck) MockPlanChecksConfig {
+	return MockPlanChecksConfig{
+		Checks:       checks,
+		ImportName:   m.ImportName,
+		ImportID:     m.ImportID,
+		ResourceName: m.ResourceName,
+		MockConfig:   m.MockConfig,
+		Name:         name,
+	}
+}
+
+func MockPlanChecksAndRun(t *testing.T, runConfig MockPlanChecksConfig) {
 	t.Helper()
-	importConfig := fillMockDataTemplate(t, planConfig)
+	importConfig, planConfig, mockDataPath := fillMockDataTemplate(t, runConfig.ImportName, runConfig.Name)
 	useManualHandler := false
-	checks = append(checks, &requestHandlerSwitch{useManualHandler: &useManualHandler})
+	runConfig.Checks = append(runConfig.Checks, &requestHandlerSwitch{useManualHandler: &useManualHandler})
 	testCase := &resource.TestCase{
 		IsUnitTest:                true,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
 				Config:             importConfig,
-				ResourceName:       importResourceName,
-				ImportStateId:      importID, // static ID to import
+				ResourceName:       runConfig.ResourceName,
+				ImportStateId:      runConfig.ImportID, // static ID to import
 				ImportState:        true,
 				ImportStatePersist: true, // save the state to use it in the next plan
 			},
 			{
 				Config: planConfig,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: checks,
+					PreApply: runConfig.Checks,
 				},
 				ExpectError: regexp.MustCompile(fmt.Sprintf("^Pre-apply plan check\\(s\\) failed:\n%s$", expectedError.Error())), // To avoid doing a full apply
 			},
 		},
 	}
+	mockConfig := runConfig.MockConfig
+	mockConfig.FilePathOverride = mockDataPath
 	mockConfig.RequestHandler = func(defaulthHandler RequestHandler, req *http.Request, method string) (*http.Response, error) {
 		customHandler := func(req *http.Request, method string) (*http.Response, error) {
 			switch method {
@@ -84,12 +104,12 @@ func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importRes
 	resource.ParallelTest(t, *testCase)
 }
 
-func fillMockDataTemplate(t *testing.T, planCheckConfig string) string{
+func fillMockDataTemplate(t *testing.T, importName string, planName string) (importConfig, planConfig, mockDataFilePath string) {
 	t.Helper()
-	templatePath := fmt.Sprintf("testdata/%s.tmpl.yaml", t.Name())
+	templatePath := fmt.Sprintf("testdata/%s.tmpl.yaml", importName)
 	templateContent, err := os.ReadFile(templatePath)
 	require.NoError(t, err)
-	responseDir := fmt.Sprintf("testdata/%s", t.Name())
+	responseDir := fmt.Sprintf("testdata/%s", importName)
 	responsePaths, err := filepath.Glob(path.Join(responseDir, "*.json"))
 	require.NoError(t, err)
 	for _, testFile := range responsePaths {
@@ -99,18 +119,21 @@ func fillMockDataTemplate(t *testing.T, planCheckConfig string) string{
 		testFileContent = bytes.ReplaceAll(testFileContent, []byte("\n"), []byte(`\n`))
 		templateContent = bytes.ReplaceAll(templateContent, []byte(filepath.Base(testFile)), testFileContent)
 	}
-	mockDataPath := fmt.Sprintf("testdata/%s.yaml", t.Name())
+	mockDataPath := fmt.Sprintf("testdata/%s_%s.yaml", importName, planName)
 	err = os.WriteFile(mockDataPath, templateContent, 0644)
 	require.NoError(t, err)
 	fullImportConfigBytes, err := os.ReadFile(path.Join(responseDir, "main.tf"))
 	require.NoError(t, err)
 	fullImportConfig := string(fullImportConfigBytes)
+	planCheckConfigBytes, err := os.ReadFile(path.Join(responseDir, fmt.Sprintf("main_%s.tf", planName)))
+	require.NoError(t, err)
+	planCheckConfig := string(planCheckConfigBytes)
 	addPlanCheckStepAndReadImportConfig(t, fullImportConfig, planCheckConfig, mockDataPath)
-	return fullImportConfig
+	return fullImportConfig, planCheckConfig, mockDataPath
 }
 
 func addPlanCheckStepAndReadImportConfig(t *testing.T, fullImportConfig, planCheckConfig string, mockDataPath string) {
-	parseData := ReadMockData(t, []string{fullImportConfig})
+	parseData := ReadMockDataFile(t, mockDataPath, []string{fullImportConfig})
 	parseData.Steps = append(parseData.Steps, StepRequests{
 		Config:           Literal(planCheckConfig),
 		RequestResponses: parseData.Steps[0].RequestResponses,
