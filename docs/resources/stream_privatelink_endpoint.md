@@ -99,8 +99,11 @@ output "interface_endpoint_ids" {
 
 ### Read-Only
 
+- `error_message` (String) Error message if the connection is in a failed state.
 - `id` (String) The ID of the Private Link connection.
 - `interface_endpoint_id` (String) Interface endpoint ID that is created from the specified service endpoint ID.
+- `interface_endpoint_name` (String) Name of interface endpoint that is created from the specified service endpoint ID.
+- `provider_account_id` (String) Account ID from the cloud provider.
 - `state` (String) Status of the connection.
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createPrivateLinkConnection) Documentation.
