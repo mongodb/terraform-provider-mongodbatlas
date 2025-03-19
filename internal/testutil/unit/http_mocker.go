@@ -30,6 +30,7 @@ type MockHTTPDataConfig struct {
 	AllowMissingRequests bool
 	AllowOutOfOrder      bool
 	RequestHandler       ManualRequestHandler
+	FilePathOverride     string
 }
 
 func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: c is heavy (112 bytes); consider passing it by pointer)
@@ -102,7 +103,11 @@ func MockConfigFilePath(t *testing.T) string {
 func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
 	t.Helper()
 	httpDataPath := MockConfigFilePath(t)
-	data, err := ParseTestDataConfigYAML(httpDataPath)
+	return ReadMockDataFile(t, httpDataPath, tfConfigs)
+}
+
+func ReadMockDataFile(t *testing.T, file string, tfConfigs []string) *MockHTTPData {
+	data, err := ParseTestDataConfigYAML(file)
 	require.NoError(t, err)
 	oldVariables := data.Variables
 	data.Variables = map[string]string{}
@@ -137,7 +142,12 @@ func UpdateMockDataDiffRequest(t *testing.T, stepIndex, diffRequestIndex int, ne
 func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
 	tfConfigs := extractAndNormalizeConfig(t, testCase)
-	data := ReadMockData(t, tfConfigs)
+	var data *MockHTTPData
+	if config.FilePathOverride != "" {
+		data = ReadMockDataFile(t, config.FilePathOverride, tfConfigs)
+	} else {
+		data = ReadMockData(t, tfConfigs)
+	}
 	roundTripper, mockRoundTripper := NewMockRoundTripper(t, config, data)
 	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
