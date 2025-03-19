@@ -21,7 +21,14 @@ var (
 
 func TestAccStreamPrivatelinkEndpointConfluent_basic(t *testing.T) {
 	acc.SkipTestForCI(t) // needs confluent cloud resources
-	tc := basicConfluentTestCase(t)
+	tc := basicConfluentTestCase(t, true)
+	// Tests include testing of plural data source and so cannot be run in parallel
+	resource.Test(t, *tc)
+}
+
+func TestAccStreamPrivatelinkEndpointConfluent_noDNSsubdomains(t *testing.T) {
+	acc.SkipTestForCI(t) // needs confluent cloud resources
+	tc := basicConfluentTestCase(t, false)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
 }
@@ -89,7 +96,7 @@ func TestAccStreamPrivatelinkEndpointMsk_fields(t *testing.T) {
 	}
 }
 
-func basicConfluentTestCase(t *testing.T) *resource.TestCase {
+func basicConfluentTestCase(t *testing.T, withDNSSubdomains bool) *resource.TestCase {
 	t.Helper()
 
 	var (
@@ -99,7 +106,7 @@ func basicConfluentTestCase(t *testing.T) *resource.TestCase {
 		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
 		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
 		privatelinkAccessID = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
-		config              = acc.GetCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID)
+		config              = acc.GetCompleteConfluentConfig(true, withDNSSubdomains, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID)
 	)
 
 	return &resource.TestCase{
@@ -172,8 +179,10 @@ func checksStreamPrivatelinkEndpointConfluent(projectID, provider, region, vendo
 	attrSet := []string{
 		"id",
 		"interface_endpoint_id",
+		"interface_endpoint_name",
 		"state",
 		"dns_domain",
+		"provider_account_id",
 		"service_endpoint_id",
 	}
 	if dnsSubdomainsCheck {

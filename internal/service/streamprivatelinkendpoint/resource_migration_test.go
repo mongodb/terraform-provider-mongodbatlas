@@ -10,7 +10,7 @@ import (
 func TestMigStreamPrivatelinkEndpointConfluent_basic(t *testing.T) {
 	acc.SkipTestForCI(t)                // needs confluent cloud resources
 	mig.SkipIfVersionBelow(t, "1.25.0") // when resource 1st released
-	mig.CreateTestAndRunUseExternalProviderNonParallel(t, basicConfluentTestCase(t), mig.ExternalProvidersWithConfluent(), nil)
+	mig.CreateTestAndRunUseExternalProviderNonParallel(t, basicConfluentTestCase(t, true), mig.ExternalProvidersWithConfluent(), nil)
 }
 
 func TestMigStreamPrivatelinkEndpointMsk_basic(t *testing.T) {
