@@ -1409,7 +1409,7 @@ func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInsta
 	})
 }
 
-func TestAccMockPlanChecks_removeBlocksFromConfig(t *testing.T) {
+func TestMockPlanChecks_removeBlocksFromConfig(t *testing.T) {
 	if !config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
 		t.Skip("This test is not applicable for SDKv2")
 	}

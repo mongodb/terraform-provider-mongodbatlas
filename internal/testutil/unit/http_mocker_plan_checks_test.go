@@ -14,7 +14,7 @@ import (
 
 const (
 	advancedClusterRelPath = "internal/service/advancedcluster"
-	prefixName             = "TestAccMockPlanChecks_"
+	prefixName             = "TestMockPlanChecks_"
 )
 
 func ConvertFileNameToPlanCheckDir(t *testing.T, fileName string) string {
@@ -83,24 +83,20 @@ func CreateImportData(t *testing.T, httpMockFile, outputDir string) {
 }
 
 func TestConvertMockableTests(t *testing.T) {
-	for _, relPath := range []string{
-		advancedClusterRelPath,
+	for relPath, usedNames := range map[string][]string{
+		advancedClusterRelPath: {"TestAccMockableAdvancedCluster_removeBlocksFromConfig"},
 	} {
 		testDataPath := unit.RepoPath(relPath + "/testdata")
-		mockedFilePaths, err := filepath.Glob(path.Join(testDataPath, "*.yaml"))
-		require.NoError(t, err)
 		gitIgnorePath := path.Join(testDataPath, ".gitignore")
 		if !unit.FileExist(gitIgnorePath) {
-			err = os.WriteFile(gitIgnorePath, []byte("TestAccMockPlan*.yaml\n!*.tmpl.yaml\n"), 0644)
+			err := os.WriteFile(gitIgnorePath, []byte("TestMockPlan*.yaml\n!*.tmpl.yaml\n"), 0644)
 			require.NoError(t, err)
 		}
-		for _, testFile := range mockedFilePaths {
-			if strings.HasPrefix(filepath.Base(testFile), prefixName) {
-				continue
-			}
-			destDir := ConvertFileNameToPlanCheckDir(t, testFile)
-			t.Logf("Converting %s to %s", testFile, destDir)
-			CreateImportData(t, testFile, destDir)
+		for _, testFileName := range usedNames {
+			testFilePath := path.Join(testDataPath, testFileName+".yaml")
+			destDir := ConvertFileNameToPlanCheckDir(t, testFilePath)
+			t.Logf("Converting %s to %s", testFilePath, destDir)
+			CreateImportData(t, testFilePath, destDir)
 		}
 	}
 }
