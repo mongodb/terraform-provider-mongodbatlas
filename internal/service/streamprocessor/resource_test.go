@@ -411,7 +411,7 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 		setupStateConfig := fmt.Sprintf(`state = %q`, setupState)
 		steps = append(steps, resource.TestStep{
 			Config: configToUpdateStreamProcessor(projectID, instanceName, processorName, setupStateConfig, initialPipeline),
-			Check:  checkConfigAttribute(projectID, instanceName, processorName, setupState, initialPipeline),
+			Check:  checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, setupState, initialPipeline),
 		})
 	}
 
@@ -422,7 +422,7 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 	}
 	steps = append(steps, resource.TestStep{
 		Config: configToUpdateStreamProcessor(projectID, instanceName, processorName, initialStateConfig, initialPipeline),
-		Check:  checkConfigAttribute(projectID, instanceName, processorName, initialState, initialPipeline),
+		Check:  checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, initialState, initialPipeline),
 	})
 
 	var targetStateConfig string
@@ -444,7 +444,7 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 			targetState = initialState
 		}
 		// For valid transitions, check the result
-		finalStep.Check = checkConfigAttribute(projectID, instanceName, processorName, targetState, updatedPipelineWithTumblingWindow)
+		finalStep.Check = checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, targetState, updatedPipelineWithTumblingWindow)
 	}
 	steps = append(steps, finalStep)
 
@@ -487,7 +487,8 @@ func configToUpdateStreamProcessor(projectID, instanceName, processorName, state
 		`, projectID, instanceName, processorName, pipeline, state)
 }
 
-func checkConfigAttribute(projectID, instanceName, processorName, state, expectedPipelineStr string) resource.TestCheckFunc {
+// the basic update flow checks the attributes from the simplest stream processor pipeline updates without spinning up expensive resources.
+func checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, state, expectedPipelineStr string) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	attributes := map[string]string{
 		"project_id":     projectID,

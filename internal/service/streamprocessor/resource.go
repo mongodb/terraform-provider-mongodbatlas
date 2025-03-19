@@ -204,19 +204,14 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		}
 	}
 
-	// update the stream processor
-	streamProcessorReq, diags := NewStreamProcessorUpdateReq(ctx, &plan)
+	// modify the stream processor
+	modifyAPIRequestParams, diags := NewStreamProcessorUpdateReq(ctx, &plan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
-	modifyResp, _, err := r.Client.AtlasV2.StreamsApi.ModifyStreamProcessorWithParams(ctx, &admin.ModifyStreamProcessorApiParams{
-		GroupId:                      projectID,
-		TenantName:                   instanceName,
-		ProcessorName:                processorName,
-		StreamsModifyStreamProcessor: streamProcessorReq,
-	}).Execute()
+	modifyResp, _, err := r.Client.AtlasV2.StreamsApi.ModifyStreamProcessorWithParams(ctx, modifyAPIRequestParams).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("Error modifying stream processor", err.Error())
 		return

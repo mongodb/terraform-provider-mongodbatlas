@@ -42,14 +42,20 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	return streamProcessor, nil
 }
 
-func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsModifyStreamProcessor, diag.Diagnostics) {
+func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.ModifyStreamProcessorApiParams, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
 		return nil, diags
 	}
-	streamProcessor := &admin.StreamsModifyStreamProcessor{
-		Name:     plan.ProcessorName.ValueStringPointer(),
-		Pipeline: &pipeline,
+
+	streamProcessorAPIParams := &admin.ModifyStreamProcessorApiParams{
+		GroupId:       plan.ProjectID.ValueString(),
+		TenantName:    plan.InstanceName.ValueString(),
+		ProcessorName: plan.ProcessorName.ValueString(),
+		StreamsModifyStreamProcessor: &admin.StreamsModifyStreamProcessor{
+			Name:     plan.ProcessorName.ValueStringPointer(),
+			Pipeline: &pipeline,
+		},
 	}
 
 	if !plan.Options.IsNull() && !plan.Options.IsUnknown() {
@@ -61,7 +67,7 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 		if diags := optionsModel.Dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
-		streamProcessor.Options = &admin.StreamsModifyStreamProcessorOptions{
+		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = &admin.StreamsModifyStreamProcessorOptions{
 			Dlq: &admin.StreamsDLQ{
 				Coll:           dlqModel.Coll.ValueStringPointer(),
 				ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
@@ -70,7 +76,7 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 		}
 	}
 
-	return streamProcessor, nil
+	return streamProcessorAPIParams, nil
 }
 
 func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats) (*TFStreamProcessorRSModel, diag.Diagnostics) {
