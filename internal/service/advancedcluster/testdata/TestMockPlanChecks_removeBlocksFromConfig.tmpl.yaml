@@ -3,12 +3,6 @@ variables:
   groupId: 67d01a24f610961835455eb1
 steps:
   - config: |-
-      resource "mongodbatlas_example" "this" {
-        import_id = "$PLACEHOLDER_IMPORT_ID$"
-      }
-    diff_requests: []
-    request_responses: []
-  - config: |-
       resource "mongodbatlas_advanced_cluster" "test" {
         project_id   = "67d01a24f610961835455eb1"
         name         = "test-acc-tf-c-7398840803408065070"

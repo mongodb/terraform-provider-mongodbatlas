@@ -62,9 +62,7 @@ func (p *ProviderMocked) DataSources(ctx context.Context) []func() datasource.Da
 	return p.OriginalProvider.DataSources(ctx)
 }
 func (p *ProviderMocked) Resources(ctx context.Context) []func() resource.Resource {
-	fromProvider := p.OriginalProvider.Resources(ctx)
-	fromProvider = append(fromProvider, NewExampleResource)
-	return fromProvider
+	return p.OriginalProvider.Resources(ctx)
 }
 
 // Similar to provider.go#muxProviderFactory

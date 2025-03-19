@@ -14,7 +14,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/require"
 )
@@ -29,38 +28,30 @@ type requestHandlerSwitch struct {
 
 func (r *requestHandlerSwitch) CheckPlan(_ context.Context, req plancheck.CheckPlanRequest, resp *plancheck.CheckPlanResponse) {
 	*r.useManualHandler = true
-	fmt.Println(fmt.Sprintf("PlannedValues: %v", req.Plan.PlannedValues))
 	resp.Error = expectedError
 }
 
 // TODO: Extract all import parameters instead from the template file
 func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importInput, importConfig, importResourceName string, testStep *resource.TestStep) {
 	t.Helper()
-	exampleResourceConfig := CreateExampleConfig(importInput)
-	fullImportConfig := exampleResourceConfig + importConfig
-	testStep.Config = exampleResourceConfig + testStep.Config
 	testCase := &resource.TestCase{
 		IsUnitTest:                true,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: exampleResourceConfig,
-				Check:  resource.TestCheckResourceAttr("mongodbatlas_example.this", "import_id", importInput),
-			},
-			{
-				Config:             fullImportConfig,
+				Config:             importConfig,
 				ResourceName:       importResourceName,
-				ImportStateIdFunc:  importStateImportID(),
+				ImportStateId:      importInput, // static ID to import
 				ImportState:        true,
 				ImportStatePersist: true, // save the state to use it in the next plan
 			},
 			*testStep,
 		},
 	}
-	fillMockDataTemplate(t, exampleResourceConfig, fullImportConfig, testStep.Config)
+	fillMockDataTemplate(t, importConfig, testStep.Config)
 	useManualHandler := false
-	testCase.Steps[2].ConfigPlanChecks.PreApply = append(testCase.Steps[2].ConfigPlanChecks.PreApply, &requestHandlerSwitch{useManualHandler: &useManualHandler})
-	testCase.Steps[2].ExpectError = regexp.MustCompile(fmt.Sprintf("^Pre-apply plan check\\(s\\) failed:\n%s$", expectedError.Error()))
+	testCase.Steps[1].ConfigPlanChecks.PreApply = append(testCase.Steps[1].ConfigPlanChecks.PreApply, &requestHandlerSwitch{useManualHandler: &useManualHandler})
+	testCase.Steps[1].ExpectError = regexp.MustCompile(fmt.Sprintf("^Pre-apply plan check\\(s\\) failed:\n%s$", expectedError.Error()))
 	mockConfig.RequestHandler = func(defaulthHandler RequestHandler, req *http.Request, method string) (*http.Response, error) {
 		customHandler := func(req *http.Request, method string) (*http.Response, error) {
 			switch method {
@@ -90,25 +81,7 @@ func MockPlanChecksAndRun(t *testing.T, mockConfig MockHTTPDataConfig, importInp
 	resource.ParallelTest(t, *testCase)
 }
 
-func CreateExampleConfig(importID string) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_example" "this" {
-  import_id = %[1]q
-}
-`, importID)
-}
-func importStateImportID() resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceID]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-
-		return rs.Primary.Attributes["import_id"], nil
-	}
-}
-
-func fillMockDataTemplate(t *testing.T, exampleConfig, fullImportConfig, planCheckConfig string) {
+func fillMockDataTemplate(t *testing.T, fullImportConfig, planCheckConfig string) {
 	t.Helper()
 	templatePath := fmt.Sprintf("testdata/%s.tmpl.yaml", t.Name())
 	templateContent, err := os.ReadFile(templatePath)
@@ -126,14 +99,14 @@ func fillMockDataTemplate(t *testing.T, exampleConfig, fullImportConfig, planChe
 	mockDataPath := fmt.Sprintf("testdata/%s.yaml", t.Name())
 	err = os.WriteFile(mockDataPath, templateContent, 0644)
 	require.NoError(t, err)
-	addPlanCheckStep(t, exampleConfig, fullImportConfig, planCheckConfig, mockDataPath)
+	addPlanCheckStep(t, fullImportConfig, planCheckConfig, mockDataPath)
 }
 
-func addPlanCheckStep(t *testing.T, exampleConfig, fullImportConfig, planCheckConfig string, mockDataPath string) {
-	parseData := ReadMockData(t, []string{exampleConfig, fullImportConfig})
+func addPlanCheckStep(t *testing.T, fullImportConfig, planCheckConfig string, mockDataPath string) {
+	parseData := ReadMockData(t, []string{fullImportConfig})
 	parseData.Steps = append(parseData.Steps, StepRequests{
 		Config:           Literal(planCheckConfig),
-		RequestResponses: parseData.Steps[1].RequestResponses,
+		RequestResponses: parseData.Steps[0].RequestResponses,
 	})
 	finalYaml, err := ConfigYaml(parseData)
 	require.NoError(t, err)

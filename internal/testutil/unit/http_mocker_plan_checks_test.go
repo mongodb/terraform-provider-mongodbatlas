@@ -46,9 +46,6 @@ func CreateImportData(t *testing.T, httpMockFile, outputDir string) {
 	templateMockHTTPData := unit.MockHTTPData{
 		Steps: []unit.StepRequests{
 			{
-				Config: unit.Literal(unit.CreateExampleConfig("$PLACEHOLDER_IMPORT_ID$")),
-			},
-			{
 				Config: firstStep.Config,
 			},
 		},
@@ -72,7 +69,7 @@ func CreateImportData(t *testing.T, httpMockFile, outputDir string) {
 				},
 			},
 		}
-		templateMockHTTPData.Steps[1].RequestResponses = append(templateMockHTTPData.Steps[1].RequestResponses, templateReqResponse)
+		templateMockHTTPData.Steps[0].RequestResponses = append(templateMockHTTPData.Steps[0].RequestResponses, templateReqResponse)
 	}
 	templateYaml, err := unit.ConfigYaml(&templateMockHTTPData)
 	require.NoError(t, err)
