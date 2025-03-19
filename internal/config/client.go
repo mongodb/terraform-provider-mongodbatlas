@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -28,6 +29,16 @@ import (
 const (
 	toolName              = "terraform-provider-mongodbatlas"
 	terraformPlatformName = "Terraform"
+
+	// Network configuration constants
+	defaultTimeout               = 30 * time.Second
+	defaultKeepAlive             = 30 * time.Second
+	defaultMaxIdleConns          = 25
+	defaultMaxIdleConnsPerHost   = 25
+	defaultIdleConnTimeout       = 90 * time.Second
+	defaultExpectContinueTimeout = 1 * time.Second
+	defaultMaxRetries            = 3
+	defaultRetryDelay            = 1 * time.Second
 )
 
 // MongoDBClient contains the mongodbatlas clients and configurations
@@ -78,13 +89,30 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	// setup a transport to handle digest
 	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
 
+	baseTransport := &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout:   defaultTimeout,
+			KeepAlive: defaultKeepAlive,
+		}).DialContext,
+		MaxIdleConns:          defaultMaxIdleConns,
+		MaxIdleConnsPerHost:   defaultMaxIdleConnsPerHost,
+		Proxy:                 http.ProxyFromEnvironment,
+		IdleConnTimeout:       defaultIdleConnTimeout,
+		ExpectContinueTimeout: defaultExpectContinueTimeout,
+	}
+
+	transport.Transport = baseTransport
+
+	// Wrap with retry transport
+	retryingTransport := newRetryTransport(transport, defaultMaxRetries, defaultRetryDelay)
+
 	// initialize the client
 	client, err := transport.Client()
 	if err != nil {
 		return nil, err
 	}
 
-	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
+	client.Transport = logging.NewTransport("MongoDB Atlas", retryingTransport)
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	if c.BaseURL != "" {
